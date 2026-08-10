@@ -1,0 +1,42 @@
+{
+  "aaData": [
+    {
+      "hash": "5398a935d7fbeccac7b1",
+      "groupId": "com.sonatype.insight.scan",
+      "artifactId": "insight-scanner-archive",
+      "version": "1.0.0-SNAPSHOT",
+      "classifier": "",
+      "extension": "jar",
+      "declaredLicenses": [
+        "Apache-1.0",
+        "Apache-1.1",
+        "Apache-2.0",
+        "LGPL-2.1",
+        "MPL-1.1"
+      ],
+      "observedLicenses": [
+        "Apache-2.0 or LGPL-2.1+ or MPL-1.1"
+      ],
+      "effectiveLicenses": [
+        "LGPL-2.1",
+        "MPL-1.1"
+      ],
+      "securityCounters": {
+        "Critical": 0,
+        "Severe": 0,
+        "Moderate": 4
+      },
+      "effectiveLicenseThreat": 0,
+      "matchState": "exact",
+      "proprietary": true,
+      "securityThreatLevel": 3.5,
+      "catalogDate": 1323964380000,
+      "status": "Overridden",
+      "overriddenLicenses": [
+        "Apache-2.0"
+      ],
+      "comment": "",
+      "overriddenLicenseThreat": 0
+    }
+  ]
+}

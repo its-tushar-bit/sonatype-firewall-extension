@@ -1,0 +1,246 @@
+{
+  "bomFormat" : "CycloneDX",
+  "specVersion" : "1.7",
+  "version" : 1,
+  "components" : [
+    {
+      "type" : "library",
+      "group" : "org.apache.tomcat",
+      "name" : "tomcat",
+      "version" : "9.0.50",
+      "hashes" : [
+        {
+          "alg" : "SHA-1",
+          "content" : "abc123abc123abc123abc123abc123abc123abc1"
+        }
+      ],
+      "cpe" : "cpe:2.3:a:org.apache.tomcat:tomcat:9.0.50:*:*:*:*:*:*:*",
+      "purl" : "pkg:maven/org.apache.tomcat/tomcat@9.0.50?type=jar",
+      "swid" : {
+        "tagId" : "org.apache.tomcat:tomcat@9.0.50",
+        "name" : "Apache Tomcat",
+        "version" : "9.0.50"
+      },
+      "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:maven/org.apache.tomcat/tomcat@9.0.50?type=jar"
+        },
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "abc123abc123abc123ab"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "99d16fc41f0a73cc044d29faa0bb5a6abcdfa336"
+        }
+      ]
+    },
+    {
+      "type" : "library",
+      "group" : "org.apache.tomcat",
+      "name" : "tomcat",
+      "version" : "9.0.51",
+      "cpe" : "cpe:2.3:a:org.apache.tomcat:tomcat:9.0.51:*:*:*:*:*:*:*",
+      "purl" : "pkg:maven/org.apache.tomcat/tomcat@9.0.51?type=jar",
+      "swid" : {
+        "tagId" : "org.apache.tomcat:tomcat@9.0.51",
+        "name" : "Apache Tomcat",
+        "version" : "9.0.51"
+      },
+      "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:maven/org.apache.tomcat/tomcat@9.0.51?type=jar"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "246c95631d8c6032f1b07ef742d7cd4213c3079b"
+        }
+      ]
+    },
+    {
+      "type" : "library",
+      "group" : "org.apache.tomcat",
+      "name" : "tomcat",
+      "version" : "9.0.52",
+      "cpe" : "cpe:2.3:a:org.apache.tomcat:tomcat:9.0.52:123:*:*:*:*:*:*",
+      "purl" : "pkg:generic/org.apache.tomcat/tomcat@9.0.52?part=a&update=123",
+      "swid" : {
+        "tagId" : "org.apache.tomcat:tomcat@9.0.52",
+        "name" : "Apache Tomcat",
+        "version" : "9.0.52"
+      },
+      "properties" : [
+        {
+          "name" : "componentRef",
+          "value" : "c78ab4e972bb4d78c234e3abb683c16fefa665e6"
+        }
+      ]
+    },
+    {
+      "type" : "library",
+      "group" : "org.apache.tomcat",
+      "name" : "tomcat",
+      "version" : "9.0.53",
+      "cpe" : "cpe:2.3:a:org.apache.tomcat:tomcat:9.0.53:456:*:*:*:*:*:*",
+      "purl" : "pkg:generic/org.apache.tomcat/tomcat@9.0.53?part=a&update=456",
+      "properties" : [
+        {
+          "name" : "componentRef",
+          "value" : "db14f8b4c83617ac302334875ecc4a587eb4b523"
+        }
+      ]
+    },
+    {
+      "type" : "library",
+      "name" : "Apache Tomcat",
+      "version" : "9.0.54",
+      "purl" : "pkg:swid/Apache%20Tomcat@9.0.54?tag_id=org.apache.tomcat%3Atomcat%409.0.54",
+      "swid" : {
+        "tagId" : "org.apache.tomcat:tomcat@9.0.54",
+        "name" : "Apache Tomcat",
+        "version" : "9.0.54"
+      },
+      "properties" : [
+        {
+          "name" : "componentRef",
+          "value" : "3b20588d48a6503f01af8d46777de0042adf3f5a"
+        }
+      ]
+    },
+    {
+      "type" : "library",
+      "group" : "org.apache.tomcat",
+      "name" : "tomcat",
+      "version" : "9.0.55",
+      "purl" : "pkg:generic/org.apache.tomcat/tomcat@9.0.55?sbom_type=library",
+      "properties" : [
+        {
+          "name" : "componentRef",
+          "value" : "f46439f31324768b46a96faac0555358680e8a5a"
+        }
+      ]
+    },
+    {
+      "type" : "library",
+      "group" : "org.apache.tomcat",
+      "name" : "tomcat",
+      "version" : "9.0.56",
+      "hashes" : [
+        {
+          "alg" : "SHA-1",
+          "content" : "bbc123abc123abc123abc123abc123abc123abc1"
+        }
+      ],
+      "cpe" : "cpe:2.3:a:org.apache.tomcat:tomcat:9.0.56:789:*:*:*:*:*:*",
+      "purl" : "pkg:generic/org.apache.tomcat/tomcat@9.0.56?part=a&update=789",
+      "swid" : {
+        "tagId" : "org.apache.tomcat:tomcat@9.0.56",
+        "name" : "Apache Tomcat",
+        "version" : "9.0.56"
+      },
+      "properties" : [
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "bbc123abc123abc123ab"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "a02333f1f8edec9c0f62173b0b86002edc80031f"
+        }
+      ]
+    },
+    {
+      "type" : "library",
+      "group" : "org.apache.tomcat",
+      "name" : "tomcat",
+      "version" : "9.0.57",
+      "hashes" : [
+        {
+          "alg" : "SHA-1",
+          "content" : "cbc123abc123abc123abc123abc123abc123abc1"
+        }
+      ],
+      "purl" : "pkg:maven/org.apache.tomcat/tomcat@9.0.57?type=jar",
+      "swid" : {
+        "tagId" : "org.apache.tomcat:tomcat@9.0.57",
+        "name" : "Apache Tomcat",
+        "version" : "9.0.57"
+      },
+      "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:maven/org.apache.tomcat/tomcat@9.0.57?type=jar"
+        },
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "cbc123abc123abc123ab"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "f3b498087fc635697df8fa14615e647e6a58eaaf"
+        }
+      ]
+    },
+    {
+      "type" : "library",
+      "name" : "Apache Tomcat",
+      "version" : "9.0.58",
+      "hashes" : [
+        {
+          "alg" : "SHA-1",
+          "content" : "dbc123abc123abc123abc123abc123abc123abc1"
+        }
+      ],
+      "purl" : "pkg:swid/Apache%20Tomcat@9.0.58?tag_id=org.apache.tomcat%3Atomcat%409.0.58",
+      "swid" : {
+        "tagId" : "org.apache.tomcat:tomcat@9.0.58",
+        "name" : "Apache Tomcat",
+        "version" : "9.0.58"
+      },
+      "properties" : [
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "dbc123abc123abc123ab"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "2b21eabf1d5a8b4153fc734d976fe6800fd99e4b"
+        }
+      ]
+    },
+    {
+      "type" : "library",
+      "group" : "org.apache.tomcat",
+      "name" : "tomcat",
+      "version" : "9.0.59",
+      "cpe" : "cpe:2.3:a:org.apache.tomcat:tomcat:9.0.59:*:*:*:*:*:*:*",
+      "purl" : "pkg:maven/org.apache.tomcat/tomcat@9.0.59?type=jar",
+      "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:maven/org.apache.tomcat/tomcat@9.0.59?type=jar"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "e346725d2552e1a57d3e18611903e09cec8f9712"
+        }
+      ]
+    },
+    {
+      "type" : "library",
+      "group" : "org.apache.tomcat",
+      "name" : "tomcat",
+      "version" : "9.0.60",
+      "cpe" : "cpe:/a:org.apache.tomcat:tomcat:9.0.60",
+      "purl" : "pkg:generic/org.apache.tomcat/tomcat@9.0.60?part=a",
+      "properties" : [
+        {
+          "name" : "componentRef",
+          "value" : "ca6757f8284c2c58ada9c44e1ab155dcf8d8d515"
+        }
+      ]
+    }
+  ]
+}

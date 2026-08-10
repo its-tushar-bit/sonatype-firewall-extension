@@ -882,6 +882,26 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
+        <dependencies>
+          <!--
+            CLM-43720: pin the JUnit 4 (junit47) Surefire provider for this module's tests.
+            The shared test bases here (AbstractComponentTest, AbstractLifecycleReportPersistenceServiceTest)
+            carry JUnit 5 (Jupiter) annotations so their concrete subclasses can run under the JUnit Platform
+            in insight-brain-variant-test-component-h2, which forces junit-jupiter-api (and transitively
+            junit-platform-commons) onto this module's TEST classpath. Without this pin, Failsafe auto-detects
+            the JUnit Platform provider and runs the remaining JUnit 4 tests via the Vintage engine, which
+            exposes @Category(SlowTest)/@Category(PostgresTestCategory) only as their fully-qualified tag names
+            and silently breaks the short-name -DexcludedGroups=SlowTest / <excludedGroups> exclusions (letting
+            @Category(SlowTest) tests such as QuartzJobStoreTXTest run in the fast Failsafe buckets and fail).
+            Pinning the JUnit 4 provider keeps this module's vintage tests and their category exclusions
+            behaving as they do on main. Keep this version aligned with the maven-failsafe-plugin version.
+          -->
+          <dependency>
+            <groupId>org.apache.maven.surefire</groupId>
+            <artifactId>surefire-junit47</artifactId>
+            <version>3.4.0</version>
+          </dependency>
+        </dependencies>
         <configuration>
           <skip>false</skip>
           <includes>
@@ -1217,6 +1237,20 @@
                 <include>**/*SearchIndexFixture*</include>
                 <include>**/SearchIndexRule*</include>
                 <include>**/SearchIndexType*</include>
+                <!-- Test helpers/support consumed by the relocated component tests in
+                     insight-brain-variant-test-component-h2 (CLM-43720). Exported here so that module's tests,
+                     which depend on the insight-brain-service test-jar, can resolve them. -->
+                <include>**/MockReportDownloader*</include>
+                <include>**/utils/TemplateHelper*</include>
+                <include>**/sbom/export/IgnoreXmlListOrderMatcher*</include>
+                <include>**/PolicyViolationLogDTOAssert*</include>
+                <include>**/ComponentEvaluationV2Helper*</include>
+                <include>**/PolicyAssertUtils*</include>
+                <include>**/com/sonatype/insight/brain/Assert*</include>
+                <include>**/organization/IconUtils*</include>
+                <include>**/RisksFilterDTOBuilder*</include>
+                <include>**/DashboardMetricsTestSupport*</include>
+                <include>**/HttpHelper*</include>
               </includes>
             </configuration>
           </execution>

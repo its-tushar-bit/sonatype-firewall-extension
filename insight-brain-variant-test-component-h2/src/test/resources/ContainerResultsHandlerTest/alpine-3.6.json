@@ -1,0 +1,287 @@
+{
+  "error_message": "",
+  "report": {
+    "image_id": "43773d1dba76c4d537b494a8454558a41729b92aa2ad0feb23521c3e58cd0440",
+    "registry": "",
+    "repository": "alpine",
+    "tag": "3.6",
+    "digest": "sha256:66790a2b79e1ea3e1dabac43990c54aca5d1ddf268d9a5a0285e4167c8b24475",
+    "base_os": "alpine:3.6.5",
+    "cvedb_version": "2.319",
+    "cvedb_create_time": "2021-06-04T17:27:00Z",
+    "layers": [],
+    "vulnerabilities": [
+      {
+        "name": "CVE-2021-30139",
+        "score": 5.0,
+        "severity": "High",
+        "vectors": "AV:N/AC:L/Au:N/C:N/I:N/A:P",
+        "description": "In Alpine Linux apk-tools before 2.12.5, the tarball parser allows a buffer overflow and crash.",
+        "package_name": "apk-tools",
+        "package_version": "2.7.6-r0",
+        "fixed_version": "2.12.5-r0",
+        "link": "https://cve.mitre.org/cgi-bin/cvename.cgi?name\u003dCVE-2021-30139",
+        "score_v3": 7.5,
+        "vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+        "published_timestamp": 1619021700,
+        "last_modified_timestamp": 1619115660,
+        "cves": [
+          "CVE-2021-30139"
+        ],
+        "feed_rating": ""
+      },
+      {
+        "name": "CVE-2021-28831",
+        "score": 5.0,
+        "severity": "High",
+        "vectors": "AV:N/AC:L/Au:N/C:N/I:N/A:P",
+        "description": "decompress_gunzip.c in BusyBox through 1.32.1 mishandles the error bit on the huft_build result pointer, with a resultant invalid free or segmentation fault, via malformed gzip data.",
+        "package_name": "busybox",
+        "package_version": "1.26.2-r11",
+        "fixed_version": "1.33.0-r5",
+        "link": "https://cve.mitre.org/cgi-bin/cvename.cgi?name\u003dCVE-2021-28831",
+        "score_v3": 7.5,
+        "vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+        "published_timestamp": 1616130900,
+        "last_modified_timestamp": 1622024100,
+        "cves": [
+          "CVE-2021-28831"
+        ],
+        "feed_rating": ""
+      },
+      {
+        "name": "CVE-2018-20679",
+        "score": 5.0,
+        "severity": "High",
+        "vectors": "AV:N/AC:L/Au:N/C:P/I:N/A:N",
+        "description": "An issue was discovered in BusyBox before 1.30.0. An out of bounds read in udhcp components (consumed by the DHCP server, client, and relay) allows a remote attacker to leak sensitive information from the stack by sending a crafted DHCP message. This is related to verification in udhcp_get_option() in networking/udhcp/common.c that 4-byte options are indeed 4 bytes.",
+        "package_name": "busybox",
+        "package_version": "1.26.2-r11",
+        "fixed_version": "1.29.3-r10",
+        "link": "https://cve.mitre.org/cgi-bin/cvename.cgi?name\u003dCVE-2018-20679",
+        "score_v3": 7.5,
+        "vectors_v3": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+        "published_timestamp": 1547051340,
+        "last_modified_timestamp": 1567638900,
+        "cves": [
+          "CVE-2018-20679"
+        ],
+        "feed_rating": ""
+      },
+      {
+        "name": "CVE-2019-5747",
+        "score": 5.0,
+        "severity": "High",
+        "vectors": "AV:N/AC:L/Au:N/C:P/I:N/A:N",
+        "description": "An issue was discovered in BusyBox through 1.30.0. An out of bounds read in udhcp components (consumed by the DHCP server, client, and/or relay) might allow a remote attacker to leak sensitive information from the stack by sending a crafted DHCP message. This is related to assurance of a 4-byte length when decoding DHCP_SUBNET. NOTE: this issue exists because of an incomplete fix for CVE-2018-20679.",
+        "package_name": "busybox",
+        "package_version": "1.26.2-r11",
+        "fixed_version": "1.30.1-r2",
+        "link": "https://cve.mitre.org/cgi-bin/cvename.cgi?name\u003dCVE-2019-5747",
+        "score_v3": 7.5,
+        "vectors_v3": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+        "published_timestamp": 1547051340,
+        "last_modified_timestamp": 1567638900,
+        "cves": [
+          "CVE-2019-5747"
+        ],
+        "feed_rating": ""
+      },
+      {
+        "name": "CVE-2018-1000500",
+        "score": 6.8,
+        "severity": "High",
+        "vectors": "AV:N/AC:M/Au:N/C:P/I:P/A:P",
+        "description": "Busybox contains a Missing SSL certificate validation vulnerability in The \"busybox wget\" applet that can result in arbitrary code execution. This attack appear to be exploitable via Simply download any file over HTTPS using \"busybox wget https://compromised-domain.com/important-file\".",
+        "package_name": "busybox",
+        "package_version": "1.26.2-r11",
+        "fixed_version": "1.28.3-r2",
+        "link": "https://cve.mitre.org/cgi-bin/cvename.cgi?name\u003dCVE-2018-1000500",
+        "score_v3": 8.1,
+        "vectors_v3": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+        "published_timestamp": 1530030540,
+        "last_modified_timestamp": 1600978500,
+        "cves": [
+          "CVE-2018-1000500"
+        ],
+        "feed_rating": ""
+      },
+      {
+        "name": "CVE-2019-14697",
+        "score": 7.5,
+        "severity": "High",
+        "vectors": "AV:N/AC:L/Au:N/C:P/I:P/A:P",
+        "description": "musl libc through 1.1.23 has an x87 floating-point stack adjustment imbalance, related to the math/i386/ directory. In some cases, use of this library could introduce out-of-bounds writes that are not present in an application\u0027s source code.",
+        "package_name": "musl",
+        "package_version": "1.1.16-r15",
+        "fixed_version": "1.1.23-r2",
+        "link": "https://cve.mitre.org/cgi-bin/cvename.cgi?name\u003dCVE-2019-14697",
+        "score_v3": 9.8,
+        "vectors_v3": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+        "published_timestamp": 1565108100,
+        "last_modified_timestamp": 1584213300,
+        "cves": [
+          "CVE-2019-14697"
+        ],
+        "feed_rating": ""
+      },
+      {
+        "name": "CVE-2017-15874",
+        "score": 4.3,
+        "severity": "Medium",
+        "vectors": "AV:N/AC:M/Au:N/C:N/I:N/A:P",
+        "description": "archival/libarchive/decompress_unlzma.c in BusyBox 1.27.2 has an Integer Underflow that leads to a read access violation.",
+        "package_name": "busybox",
+        "package_version": "1.26.2-r11",
+        "fixed_version": "1.27.2-r4",
+        "link": "https://cve.mitre.org/cgi-bin/cvename.cgi?name\u003dCVE-2017-15874",
+        "score_v3": 5.5,
+        "vectors_v3": "CVSS:3.0/AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H",
+        "published_timestamp": 1508876940,
+        "last_modified_timestamp": 1509486480,
+        "cves": [
+          "CVE-2017-15874"
+        ],
+        "feed_rating": ""
+      },
+      {
+        "name": "CVE-2020-28928",
+        "score": 2.1,
+        "severity": "Medium",
+        "vectors": "AV:L/AC:L/Au:N/C:N/I:N/A:P",
+        "description": "In musl libc through 1.2.1, wcsnrtombs mishandles particular combinations of destination buffer size and source character limit, as demonstrated by an invalid write access (buffer overflow).",
+        "package_name": "musl",
+        "package_version": "1.1.16-r15",
+        "fixed_version": "1.2.2_pre2-r0",
+        "link": "https://cve.mitre.org/cgi-bin/cvename.cgi?name\u003dCVE-2020-28928",
+        "score_v3": 5.5,
+        "vectors_v3": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H",
+        "published_timestamp": 1606241700,
+        "last_modified_timestamp": 1620137040,
+        "cves": [
+          "CVE-2020-28928"
+        ],
+        "feed_rating": ""
+      }
+    ],
+    "modules": [
+      {
+        "name": "alpine-baselayout",
+        "version": "3.0.4-r0",
+        "source": "alpine:3.6.5"
+      },
+      {
+        "name": "alpine-keys",
+        "version": "2.1-r1",
+        "source": "alpine:3.6.5"
+      },
+      {
+        "name": "zlib",
+        "version": "1.2.11-r0",
+        "source": "alpine:3.6.5"
+      },
+      {
+        "name": "musl",
+        "version": "1.1.16-r15",
+        "source": "alpine:3.6.5",
+        "cves": [
+          {
+            "name": "CVE-2019-14697",
+            "status": "fix exists"
+          },
+          {
+            "name": "CVE-2020-28928",
+            "status": "fix exists"
+          }
+        ]
+      },
+      {
+        "name": "busybox",
+        "version": "1.26.2-r11",
+        "source": "alpine:3.6.5",
+        "cves": [
+          {
+            "name": "CVE-2017-15874",
+            "status": "fix exists"
+          },
+          {
+            "name": "CVE-2019-5747",
+            "status": "fix exists"
+          },
+          {
+            "name": "CVE-2018-20679",
+            "status": "fix exists"
+          },
+          {
+            "name": "CVE-2021-28831",
+            "status": "fix exists"
+          },
+          {
+            "name": "CVE-2018-1000500",
+            "status": "fix exists"
+          }
+        ]
+      },
+      {
+        "name": "libressl",
+        "version": "2.5.5-r2",
+        "source": "alpine:3.6.5"
+      },
+      {
+        "name": "apk-tools",
+        "version": "2.7.6-r0",
+        "source": "alpine:3.6.5",
+        "cves": [
+          {
+            "name": "CVE-2021-30139",
+            "status": "fix exists"
+          }
+        ]
+      },
+      {
+        "name": "pax-utils",
+        "version": "1.2.2-r0",
+        "source": "alpine:3.6.5"
+      },
+      {
+        "name": "libc-dev",
+        "version": "0.7.1-r0",
+        "source": "alpine:3.6.5"
+      }
+    ],
+    "checks": [
+      {
+        "test_number": "I.4.1",
+        "catalog": "image",
+        "type": "image",
+        "profile": "Level 1",
+        "scored": true,
+        "description": "Ensure a user for the container has been created",
+        "remediation": "",
+        "tags": [],
+        "level": "WARN",
+        "message": []
+      },
+      {
+        "test_number": "I.4.6",
+        "catalog": "image",
+        "type": "image",
+        "profile": "Level 1",
+        "scored": false,
+        "description": "Ensure that HEALTHCHECK instructions have been added to container images",
+        "remediation": "",
+        "tags": [],
+        "level": "WARN",
+        "message": []
+      }
+    ],
+    "secrets": [],
+    "setid_perms": [],
+    "envs": [
+      "PATH\u003d/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    ],
+    "cmds": [
+      "/bin/sh"
+    ]
+  }
+}

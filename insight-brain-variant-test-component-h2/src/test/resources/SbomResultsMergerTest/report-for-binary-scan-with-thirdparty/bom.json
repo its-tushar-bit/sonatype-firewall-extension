@@ -1,0 +1,186 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "Microsoft.Identity.Client.Extensions.Msal",
+        "version" : "2.23.0"
+      }
+    },
+    "packageUrl" : "pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0:00603c85922bf35d8edd" ],
+    "pathnames" : [ "dependency:/app6-bom.xml/pkg:nuget\\Microsoft.Identity.Client.Extensions.Msal@2.23.0:00603c85922bf35d8edd" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "00603c85922bf35d8edd",
+    "relativePopularity" : null,
+    "createTime" : 1659649523043,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "ID",
+        "value" : "Microsoft.Identity.Client.Extensions.Msal"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "2.23.0"
+      } ],
+      "name" : "Microsoft.Identity.Client.Extensions.Msal"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:nuget/Azure.Identity@1.8.0" ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "Microsoft.IdentityModel.Protocols",
+        "version" : "6.25.1"
+      }
+    },
+    "packageUrl" : "pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1:c795e78734c2860bb627" ],
+    "pathnames" : [ "dependency:/app6-bom.xml/pkg:nuget\\Microsoft.IdentityModel.Protocols@6.25.1:c795e78734c2860bb627" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "c795e78734c2860bb627",
+    "relativePopularity" : null,
+    "createTime" : 1669915663951,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "ID",
+        "value" : "Microsoft.IdentityModel.Protocols"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "6.25.1"
+      } ],
+      "name" : "Microsoft.IdentityModel.Protocols"
+    },
+    "directDependency" : true,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:nuget/Microsoft.IdentityModel.Protocols.OpenIdConnect@6.25.1" ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "istack-commons-runtime",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.sun.istack",
+        "version" : "4.1.2"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.sun.istack/istack-commons-runtime@4.1.2?type=jar",
+    "groupId" : "com.sun.istack",
+    "artifactId" : "istack-commons-runtime",
+    "version" : "4.1.2",
+    "filenames" : [ "istack-commons-runtime-4.1.2.jar" ],
+    "pathnames": [],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "18ec117c85f3ba0ac654",
+    "relativePopularity" : null,
+    "createTime" : 1681225637000,
+    "lastModifiedTime" : 1681250792000,
+    "lastModifiedEntryTime" : 1681250792000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 0,
+      "label" : "Normal"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.sun.istack"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "istack-commons-runtime"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "4.1.2"
+      } ],
+      "name" : "istack-commons-runtime"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:maven/org.glassfish.jaxb/jaxb-core@4.0.3?type=jar" ]
+  } ],
+  "dependencyDataIncluded" : true
+}

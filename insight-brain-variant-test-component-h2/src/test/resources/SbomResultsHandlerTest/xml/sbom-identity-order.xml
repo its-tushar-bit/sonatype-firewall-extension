@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bom xmlns="http://cyclonedx.org/schema/bom/1.6"
+     version="1"
+     serialNumber="urn:uuid:550e8400-e29b-41d4-a716-446655440000">
+
+  <components>
+    <!-- 1. This component has a hash, CPE, purl and SWID -->
+    <component type="library">
+      <group>org.apache.tomcat</group>
+      <name>tomcat</name>
+      <version>9.0.50</version>
+      <hashes>
+        <hash alg="SHA-1">abc123abc123abc123abc123abc123abc123abc1</hash>
+      </hashes>
+      <cpe>cpe:2.3:a:org.apache.tomcat:tomcat:9.0.50:*:*:*:*:*:*:*</cpe>
+      <purl>pkg:maven/org.apache.tomcat/tomcat@9.0.50?type=jar</purl>
+      <swid tagId="org.apache.tomcat:tomcat@9.0.50" name = "Apache Tomcat" version="9.0.50"/>
+    </component>
+    <!-- 2. This component has CPE, purl and SWID -->
+    <component type="library">
+      <group>org.apache.tomcat</group>
+      <name>tomcat</name>
+      <version>9.0.51</version>
+      <cpe>cpe:2.3:a:org.apache.tomcat:tomcat:9.0.51:*:*:*:*:*:*:*</cpe>
+      <purl>pkg:maven/org.apache.tomcat/tomcat@9.0.51?type=jar</purl>
+      <swid tagId="org.apache.tomcat:tomcat@9.0.51" name = "Apache Tomcat" version="9.0.51"/>
+    </component>
+    <!-- 3. This component has CPE and SWID -->
+    <component type="library">
+      <group>org.apache.tomcat</group>
+      <name>tomcat</name>
+      <version>9.0.52</version>
+      <cpe>cpe:2.3:a:org.apache.tomcat:tomcat:9.0.52:123:*:*:*:*:*:*</cpe>
+      <swid tagId="org.apache.tomcat:tomcat@9.0.52" name = "Apache Tomcat" version="9.0.52"/>
+    </component>
+    <!-- 4. This component has CPE -->
+    <component type="library">
+      <group>org.apache.tomcat</group>
+      <name>tomcat</name>
+      <version>9.0.53</version>
+      <cpe>cpe:2.3:a:org.apache.tomcat:tomcat:9.0.53:456:*:*:*:*:*:*</cpe>
+    </component>
+    <!-- 5. This component has SWID -->
+    <component type="library">
+      <group>org.apache.tomcat</group>
+      <name>tomcat</name>
+      <version>9.0.54</version>
+      <swid tagId="org.apache.tomcat:tomcat@9.0.54" name = "Apache Tomcat" version="9.0.54"/>
+    </component>
+    <!-- 6. This component has Coordinates -->
+    <component type="library">
+      <group>org.apache.tomcat</group>
+      <name>tomcat</name>
+      <version>9.0.55</version>
+    </component>
+    <!-- 7. This component has name and group only -->
+    <component type="library">
+      <group>org.apache.tomcat</group>
+      <name>tomcat</name>
+    </component>
+    <!-- 8. This component has a hash, CPE and SWID -->
+    <component type="library">
+      <group>org.apache.tomcat</group>
+      <name>tomcat</name>
+      <version>9.0.56</version>
+      <hashes>
+        <hash alg="SHA-1">bbc123abc123abc123abc123abc123abc123abc1</hash>
+      </hashes>
+      <cpe>cpe:2.3:a:org.apache.tomcat:tomcat:9.0.56:789:*:*:*:*:*:*</cpe>
+      <swid tagId="org.apache.tomcat:tomcat@9.0.56" name = "Apache Tomcat" version="9.0.56"/>
+    </component>
+    <!-- 9 This component has a hash, purl and SWID -->
+    <component type="library">
+      <group>org.apache.tomcat</group>
+      <name>tomcat</name>
+      <version>9.0.57</version>
+      <hashes>
+        <hash alg="SHA-1">cbc123abc123abc123abc123abc123abc123abc1</hash>
+      </hashes>
+      <purl>pkg:maven/org.apache.tomcat/tomcat@9.0.57?type=jar</purl>
+      <swid tagId="org.apache.tomcat:tomcat@9.0.57" name = "Apache Tomcat" version="9.0.57"/>
+    </component>
+    <!-- 10. This component has a hash and SWID -->
+    <component type="library">
+      <group>org.apache.tomcat</group>
+      <name>tomcat</name>
+      <version>9.0.58</version>
+      <hashes>
+        <hash alg="SHA-1">dbc123abc123abc123abc123abc123abc123abc1</hash>
+      </hashes>
+      <swid tagId="org.apache.tomcat:tomcat@9.0.58" name = "Apache Tomcat" version="9.0.58"/>
+    </component>
+    <!-- 11. This component has a CPE, purl-->
+    <component type="library">
+      <group>org.apache.tomcat</group>
+      <name>tomcat</name>
+      <version>9.0.59</version>
+      <cpe>cpe:2.3:a:org.apache.tomcat:tomcat:9.0.59:*:*:*:*:*:*:*</cpe>
+      <purl>pkg:maven/org.apache.tomcat/tomcat@9.0.59?type=jar</purl>
+    </component>
+    <!-- 12. This component has a CPE 2.2-->
+    <component type="library">
+      <group>org.apache.tomcat</group>
+      <name>tomcat</name>
+      <cpe>cpe:/a:org.apache.tomcat:tomcat:9.0.60</cpe>
+    </component>
+  </components>
+</bom>

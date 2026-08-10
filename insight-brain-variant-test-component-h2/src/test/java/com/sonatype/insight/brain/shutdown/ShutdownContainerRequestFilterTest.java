@@ -1,0 +1,61 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.shutdown;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+
+@ComponentH2Test
+public class ShutdownContainerRequestFilterTest
+    extends AbstractComponentH2Test
+{
+  @Inject
+  private ShutdownContainerRequestFilter shutdownContainerRequestFilter;
+
+  @Mock
+  private ShutdownHandler mockShutdownHandler;
+
+  @Mock
+  private ContainerRequestContext mockContainerRequestContext;
+
+  @Captor
+  private ArgumentCaptor<Response> responseArgumentCaptor;
+
+  @Test
+  public void testFilter_AfterGracePeriod() throws Exception {
+    when(mockShutdownHandler.isAfterGracePeriod()).thenReturn(true);
+
+    shutdownContainerRequestFilter.filter(mockContainerRequestContext);
+
+    verify(mockContainerRequestContext).abortWith(responseArgumentCaptor.capture());
+    Response response = responseArgumentCaptor.getValue();
+    assertThat(response).isNotNull();
+    assertThat(response.getStatus()).isEqualTo(Status.SERVICE_UNAVAILABLE.getStatusCode());
+  }
+
+  @Test
+  public void testFilter_BeforeGracePeriod() throws Exception {
+    when(mockShutdownHandler.isAfterGracePeriod()).thenReturn(false);
+
+    shutdownContainerRequestFilter.filter(mockContainerRequestContext);
+
+    verify(mockContainerRequestContext, never()).abortWith(any());
+  }
+}

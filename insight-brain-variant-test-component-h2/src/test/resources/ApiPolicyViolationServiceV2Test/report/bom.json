@@ -1,0 +1,267 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": null,
+      "matchState": "unknown",
+      "proprietary": false,
+      "hash": "81399f9f3278d8615a7c",
+      "relativePopularity": null,
+      "createTime": 1587400833527,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Filename",
+            "value": "unknown.zip"
+          }
+        ]
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "direct1",
+          "classifier": "",
+          "extension": "e",
+          "groupId": "g",
+          "version": "v"
+        }
+      },
+      "hash": "hash1",
+      "matchState": "exact",
+      "proprietary": false,
+      "relativePopularity": null,
+      "createTime": 1587400833527,
+      "innerSource": true,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "g"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "direct1"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "v"
+          }
+        ]
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "direct2",
+          "classifier": "",
+          "extension": "e",
+          "groupId": "g",
+          "version": "v"
+        }
+      },
+      "hash": "hash2",
+      "matchState": "exact",
+      "proprietary": false,
+      "relativePopularity": null,
+      "createTime": 1587400833527,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "g"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "direct2"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "v"
+          }
+        ]
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "transitive1",
+          "classifier": "",
+          "extension": "e",
+          "groupId": "g",
+          "version": "v"
+        }
+      },
+      "hash": "hash21",
+      "matchState": "exact",
+      "proprietary": false,
+      "relativePopularity": null,
+      "createTime": 1587400833527,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "g"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "transitive1"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "v"
+          }
+        ]
+      },
+      "parentComponentPurls": [
+        "pkg:maven/g/direct2@v?type=e"
+      ]
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "transitive2",
+          "classifier": "",
+          "extension": "e",
+          "groupId": "g",
+          "version": "v"
+        }
+      },
+      "hash": "hash22",
+      "matchState": "exact",
+      "proprietary": false,
+      "relativePopularity": null,
+      "createTime": 1587400833527,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "g"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "transitive2"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "v"
+          }
+        ]
+      },
+      "parentComponentPurls": [
+        "pkg:maven/g/direct2@v?type=e"
+      ]
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "transitive21",
+          "classifier": "",
+          "extension": "e",
+          "groupId": "g",
+          "version": "v"
+        }
+      },
+      "hash": "hash221",
+      "matchState": "exact",
+      "proprietary": false,
+      "relativePopularity": null,
+      "createTime": 1587400833527,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "g"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "transitive21"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "v"
+          }
+        ]
+      },
+      "parentComponentPurls": [
+        "pkg:maven/g/transitive2@v?type=e"
+      ]
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "transitive22",
+          "classifier": "",
+          "extension": "e",
+          "groupId": "g",
+          "version": "v"
+        }
+      },
+      "hash": "hash222",
+      "matchState": "exact",
+      "proprietary": false,
+      "relativePopularity": null,
+      "createTime": 1587400833527,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "g"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "transitive22"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "v"
+          }
+        ]
+      },
+      "parentComponentPurls": [
+        "pkg:maven/g/transitive2@v?type=e"
+      ]
+    }
+  ]
+}

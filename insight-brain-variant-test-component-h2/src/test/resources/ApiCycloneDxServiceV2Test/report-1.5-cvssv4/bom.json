@@ -1,0 +1,68 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "fake",
+      "coordinates" : {
+        "name" : "guava",
+        "namespace" : "com.google.guava",
+        "type" : "jar",
+        "version" : "30.1-jre"
+      }
+    },
+    "packageUrl" : "pkg:fake/com.google.guava/guava@30.1-jre?type=jar",
+    "originalPurl" : "pkg:fake/com.google.guava/guava@30.1-jre?type=jar",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "pkg:fake/com.google.guava/guava@30.1-jre?type=jar" ],
+    "pathnames" : [ "dependency:/third-party-cvss4-bom.xml/pkg:fake\\com.google.guava\\guava@30.1-jre?type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "db6b61d995de714813ac",
+    "relativePopularity" : null,
+    "createTime" : 1705589185166,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "third-party-cvss4",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "brain",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : null,
+    "cpe" : null,
+    "swid" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "name",
+        "value" : "guava"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "namespace",
+        "value" : "com.google.guava"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "type",
+        "value" : "jar"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "30.1-jre"
+      } ],
+      "name" : "guava : com.google.guava : jar : 30.1-jre"
+    }
+  } ],
+  "dependencyDataIncluded" : true
+}

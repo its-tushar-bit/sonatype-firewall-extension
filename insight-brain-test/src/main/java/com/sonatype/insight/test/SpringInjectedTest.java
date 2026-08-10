@@ -27,6 +27,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.sonatype.insight.brain.security.SecurityAspectControl;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.rules.MethodRule;
@@ -266,6 +268,7 @@ public abstract class SpringInjectedTest
   }
 
   @Before
+  @BeforeEach
   public void prepareInjectedTestInstance() {
     if (!enforceSecurityAspects()) {
       SecurityAspectControl.disableEnforcement();
@@ -279,6 +282,7 @@ public abstract class SpringInjectedTest
   }
 
   @After
+  @AfterEach
   public void restoreInjectedTestInstance() {
     SecurityAspectControl.enableEnforcement();
     List<Map.Entry<BeanFieldMutation, Object>> mutations = new ArrayList<>(originalBeanFieldValues.entrySet());

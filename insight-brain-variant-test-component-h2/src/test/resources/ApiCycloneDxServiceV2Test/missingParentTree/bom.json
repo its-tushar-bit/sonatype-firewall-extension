@@ -1,0 +1,254 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "slf4j-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.slf4j",
+        "version" : "1.7.36"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.slf4j/slf4j-api@1.7.36?type=jar",
+    "groupId" : "org.slf4j",
+    "artifactId" : "slf4j-api",
+    "version" : "1.7.36",
+    "filenames" : [ "slf4j-api-1.7.36.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-client-utils:jar:2.36.19-SNAPSHOT/org.slf4j:slf4j-api:jar:1.7.36", "dependency:/com.sonatype.insight.scan:insight-module-model:jar:2.36.19-SNAPSHOT/org.slf4j:slf4j-api:jar:1.7.36", "dependency:/com.sonatype.insight.scan:insight-scanner-archive:jar:2.36.19-SNAPSHOT/org.slf4j:slf4j-api:jar:1.7.36", "dependency:/com.sonatype.insight.scan:insight-scanner-core:jar:2.36.19-SNAPSHOT/org.slf4j:slf4j-api:jar:1.7.36", "dependency:/com.sonatype.insight.scan:insight-scanner-manifest-model:jar:2.36.19-SNAPSHOT/org.slf4j:slf4j-api:jar:1.7.36", "dependency:/com.sonatype.insight.scan:insight-scanner-model-io:jar:2.36.19-SNAPSHOT/org.slf4j:slf4j-api:jar:1.7.36", "dependency:/com.sonatype.insight.scan:insight-scanner-tools:jar:2.36.19-SNAPSHOT/org.slf4j:slf4j-api:jar:1.7.36", "dependency:/com.sonatype.insight.scan:insight-test-reverse-proxy:jar:2.36.19-SNAPSHOT/org.slf4j:slf4j-api:jar:1.7.36" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "6c62681a2f655b49963a",
+    "relativePopularity" : 0.0,
+    "createTime" : 1644327230000,
+    "lastModifiedTime" : 1650560214000,
+    "lastModifiedEntryTime" : 1644345060000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.slf4j"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "slf4j-api"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.7.36"
+      } ],
+      "name" : "slf4j-api"
+    },
+    "directDependency" : true,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:maven/com.networknt/json-schema-validator@1.0.72?type=jar" ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jcl-over-slf4j",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.slf4j",
+        "version" : "1.7.36"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.slf4j/jcl-over-slf4j@1.7.36?type=jar",
+    "groupId" : "org.slf4j",
+    "artifactId" : "jcl-over-slf4j",
+    "version" : "1.7.36",
+    "filenames" : [ "jcl-over-slf4j-1.7.36.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-client-utils:jar:2.36.19-SNAPSHOT/org.slf4j:jcl-over-slf4j:jar:1.7.36", "dependency:/com.sonatype.insight.scan:insight-scanner-archive:jar:2.36.19-SNAPSHOT/org.slf4j:jcl-over-slf4j:jar:1.7.36", "dependency:/com.sonatype.insight.scan:insight-test-reverse-proxy:jar:2.36.19-SNAPSHOT/org.slf4j:jcl-over-slf4j:jar:1.7.36" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "d877e195a05aca4a2f1a",
+    "relativePopularity" : 0.0,
+    "createTime" : 1644327313000,
+    "lastModifiedTime" : 1650560188000,
+    "lastModifiedEntryTime" : 1644345060000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.slf4j"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jcl-over-slf4j"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.7.36"
+      } ],
+      "name" : "jcl-over-slf4j"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "insight-test-networking",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.sonatype.insight.scan",
+        "version" : "2.36.19-SNAPSHOT"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "insight-test-networking-2.36.19-SNAPSHOT.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-client-utils:jar:2.36.19-SNAPSHOT/com.sonatype.insight.scan:insight-test-networking:jar:2.36.19-SNAPSHOT", "dependency:/com.sonatype.insight.scan:insight-test-reverse-proxy:jar:2.36.19-SNAPSHOT/com.sonatype.insight.scan:insight-test-networking:jar:2.36.19-SNAPSHOT" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "7817b556c5ea246303b6",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1665181334000,
+    "lastModifiedEntryTime" : 1665181334000,
+    "website" : null,
+    "identificationSource" : "Package Manifest",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "mvn",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false,
+      "manifestContentType" : "null"
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.sonatype.insight.scan"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "insight-test-networking"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.36.19-SNAPSHOT"
+      } ],
+      "name" : "insight-test-networking"
+    },
+    "packageUrl" : "pkg:maven/com.sonatype.insight.scan/insight-test-networking@2.36.19-SNAPSHOT?type=jar",
+    "directDependency" : true
+  },  {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "insight-test-reverse-proxy",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.sonatype.insight.scan",
+        "version" : "2.36.19-SNAPSHOT"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "insight-test-reverse-proxy-2.36.19-SNAPSHOT.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-client-utils:jar:2.36.19-SNAPSHOT/com.sonatype.insight.scan:insight-test-reverse-proxy:jar:2.36.19-SNAPSHOT" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "c8846799f44490c10371",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1665181340000,
+    "lastModifiedEntryTime" : 1665181340000,
+    "website" : null,
+    "identificationSource" : "Package Manifest",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "mvn",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false,
+      "manifestContentType" : "null"
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.sonatype.insight.scan"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "insight-test-reverse-proxy"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.36.19-SNAPSHOT"
+      } ],
+      "name" : "insight-test-reverse-proxy"
+    },
+    "packageUrl" : "pkg:maven/com.sonatype.insight.scan/insight-test-reverse-proxy@2.36.19-SNAPSHOT?type=jar",
+    "directDependency" : true
+  }],
+  "dependencyDataIncluded" : true
+}

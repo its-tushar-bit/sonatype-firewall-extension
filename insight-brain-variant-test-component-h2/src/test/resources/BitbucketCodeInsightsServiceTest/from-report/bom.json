@@ -1,0 +1,214 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "a-name",
+        "coordinates": {
+          "name": "com.eventsourcing h2",
+          "qualifier": "",
+          "version": "1.4.192"
+        }
+      },
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "filenames": [
+        "table.js",
+        "tree.js"
+      ],
+      "pathnames": [
+        "webgoat-server/target/webgoat-server-8.0.0.M1.jar/BOOT-INF/lib/h2-1.4.190.jar/org/h2/util/data.zip/org/h2/server/web/res/table.js",
+        "webgoat-server/target/webgoat-server-8.0.0.M1.jar/BOOT-INF/lib/h2-1.4.190.jar/org/h2/util/data.zip/org/h2/server/web/res/tree.js"
+      ],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "95b0c6866f97346938b1",
+      "relativePopularity": null,
+      "createTime": 1468551827000,
+      "lastModifiedTime": 1444575270000,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Name",
+            "value": "com.eventsourcing h2"
+          },
+          {
+            "value": " "
+          },
+          {
+            "field": "Version",
+            "value": "1.4.192"
+          }
+        ]
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "spring-security-web",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.springframework.security",
+          "version": "4.2.3.RELEASE"
+        }
+      },
+      "groupId": "org.springframework.security",
+      "artifactId": "spring-security-web",
+      "version": "4.2.3.RELEASE",
+      "filenames": [
+        "spring-security-web-4.2.3.RELEASE.jar"
+      ],
+      "pathnames": [
+        "webgoat-server/target/webgoat-server-8.0.0.M1.jar/BOOT-INF/lib/spring-security-web-4.2.3.RELEASE.jar",
+        "webwolf/target/webwolf-8.0.0.M1.jar/BOOT-INF/lib/spring-security-web-4.2.3.RELEASE.jar"
+      ],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "7a03e737484ca232d714",
+      "relativePopularity": 0.2,
+      "createTime": 1496897808000,
+      "lastModifiedTime": 1496895628000,
+      "lastModifiedEntryTime": 1496895628000,
+      "website": null,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "org.springframework.security"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "spring-security-web"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "4.2.3.RELEASE"
+          }
+        ]
+      }
+    },
+    {
+      "componentIdentifier": null,
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "filenames": [
+        "html-tampering-8.0.0.M1.jar"
+      ],
+      "pathnames": [
+        "webgoat-container/src/main/resources/plugin_lessons/html-tampering-8.0.0.M1.jar",
+        "webgoat-lessons/html-tampering/target/html-tampering-8.0.0.M1.jar",
+        "webgoat-server/target/webgoat-server-8.0.0.M1.jar/BOOT-INF/lib/html-tampering-8.0.0.M1.jar"
+      ],
+      "matchState": "unknown",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "5c7d0432745d8b8461c0",
+      "relativePopularity": null,
+      "createTime": null,
+      "lastModifiedTime": 1576777612000,
+      "lastModifiedEntryTime": 1576777612000,
+      "website": null,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Filename",
+            "value": "html-tampering-8.0.0.M1.jar"
+          }
+        ]
+      }
+    },
+    {
+      "componentIdentifier": null,
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "filenames": [
+        "webgoat-server-8.0.0.M1.jar"
+      ],
+      "pathnames": [
+        "webgoat-server/target/webgoat-server-8.0.0.M1.jar"
+      ],
+      "matchState": "unknown",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "f7582e676c731e86b44f",
+      "relativePopularity": null,
+      "createTime": null,
+      "lastModifiedTime": 1576777632000,
+      "lastModifiedEntryTime": 1576777630000,
+      "website": null,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Filename",
+            "value": "webgoat-server-8.0.0.M1.jar"
+          }
+        ]
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "h2",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.h2database",
+          "version": "1.4.190"
+        }
+      },
+      "groupId": "com.h2database",
+      "artifactId": "h2",
+      "version": "1.4.190",
+      "filenames": [
+        "h2-1.4.190.jar"
+      ],
+      "pathnames": [
+        "webgoat-server/target/webgoat-server-8.0.0.M1.jar/BOOT-INF/lib/h2-1.4.190.jar"
+      ],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "df71536d44e3b07f0c15",
+      "relativePopularity": 0.03,
+      "createTime": 1444568574000,
+      "lastModifiedTime": 1444575270000,
+      "lastModifiedEntryTime": 1444575270000,
+      "website": null,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "com.h2database"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "h2"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "1.4.190"
+          }
+        ]
+      }
+    }
+  ]
+}

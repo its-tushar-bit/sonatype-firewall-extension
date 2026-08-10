@@ -19,9 +19,12 @@ import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.api.v2.dto.ApiJiraConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.api.v2.service.ApiJiraConfigurationService;
+import com.sonatype.insight.brain.api.v2.service.ApiProxyServerConfigurationService;
 import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.dataaccess.DatamartUpdaterState;
 import com.sonatype.insight.brain.dataaccess.TestSamlFactory;
+import com.sonatype.insight.brain.dataaccess.jira.JiraConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlPasswordFactory;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
@@ -75,6 +78,9 @@ import org.apache.shiro.util.ThreadContext;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
 import org.mockito.Mock;
@@ -105,6 +111,11 @@ import org.springframework.test.util.AopTestUtils;
  * inner classes or override `setUpTestConfiguration()` to customize beans.
  * </p>
  */
+// @DirtiesContext(AFTER_CLASS) is retained so the JUnit-4 (vintage) subclasses that remain in
+// insight-brain-service keep their per-class Spring-context isolation (unchanged behavior). The reused-context
+// insight-brain-variant-test-component-h2 module opts OUT per-cohort by excluding the DirtiesContext
+// TestExecutionListeners on @ComponentH2Test, so the annotation is inert there and that module shares a single
+// cached context — without changing service-module behavior.
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class AbstractComponentTest
     extends BrainInjectedTest
@@ -155,7 +166,25 @@ public class AbstractComponentTest
 
   private final Collection<DisposableBean> disposableComponents = new ArrayList<>();
 
+  /**
+   * Under the Jupiter engine the {@code @Rule TestName} field above is inert, so
+   * {@link TestName#getMethodName()} returns {@code null}. This Jupiter-only hook (ignored by the JUnit 4
+   * runner, which processes neither {@code @BeforeEach} nor {@link TestInfo} injection) reassigns the field to a
+   * {@link TestName} that reports the running method name, keeping helpers such as {@code TenantTestHelper} working.
+   */
+  @BeforeEach
+  public void seedTestNameForJupiter(final TestInfo testInfo) {
+    testInfo.getTestMethod().ifPresent(method -> testName = new TestName()
+    {
+      @Override
+      public String getMethodName() {
+        return method.getName();
+      }
+    });
+  }
+
   @Before
+  @BeforeEach
   public void beforeTest() {
     log.info("Before: {}", testName.getMethodName());
     if (systemConfigurationPropertyDAO == null) {
@@ -178,6 +207,7 @@ public class AbstractComponentTest
     if (systemConfigurationPropertyDAO != null) {
       systemConfigurationPropertyDAO.invalidateCache();
     }
+    resetProxyServerConfiguration();
     setUpTestLicenseThreatGroups();
     grantDefaultTestUserAllPermissions();
     setUpSecurity();
@@ -185,17 +215,81 @@ public class AbstractComponentTest
   }
 
   @After
+  @AfterEach
   public void afterTest() {
     log.info("After: {}", testName.getMethodName());
     runCleanupStep("stop disposable components", this::stopDisposableComponents);
     runCleanupStep("tear down security", this::tearDownSecurity);
     runCleanupStep("reset base URL", this::resetBaseUrl);
+    runCleanupStep("reset proxy server configuration", this::resetProxyServerConfiguration);
+    runCleanupStep("reset HDS URL", this::resetHdsUrl);
+    runCleanupStep("reset Jira configuration", this::resetJiraConfiguration);
     runCleanupStep("reset access allowlist", this::resetAccessAllowlist);
     runCleanupStep("reset API access allow list", this::resetApiAccessAllowList);
     runCleanupStep("reset advanced reporting insights", this::resetAdvancedReportingInsightsEnabled);
     runCleanupStep("disable OAuth2 SSO", this::disableSsoWithOAuth2);
     runCleanupStep("disable SAML SSO", this::disableSsoWithSaml);
     runCleanupStep("reset mutable singleton test state", this::resetMutableSingletonTestState);
+  }
+
+  /**
+   * Drops any proxy-server configuration and pushes the resulting "no proxy" state into the live HTTP clients.
+   * <p>
+   * Proxy-mutating tests push the proxy host into the in-memory {@link Configuration} bean via
+   * {@link ApiProxyServerConfigurationService#applyProxyServerConfigurationToClients()}. {@code TemporaryEntity}
+   * removes the DB row after each test, but with the Spring context cached across classes the bean keeps the
+   * leaked proxy, so every later SCM/GitHub/HDS request in the same fixture group is routed through a dead port
+   * and fails with "Connection refused". Re-applying the (now empty) configuration is enough to recover. Called
+   * from both {@code beforeTest()} and {@code afterTest()}.
+   */
+  public void resetProxyServerConfiguration() {
+    Configuration configuration = lookupIfAvailable(Configuration.class);
+    if (configuration == null || configuration.getProxyServerConfiguration() == null) {
+      // Nothing is applied to the clients, so there is nothing to undo. Keeps the common path free of DB access.
+      return;
+    }
+    ProxyServerConfigurationDAO dao = lookupIfAvailable(ProxyServerConfigurationDAO.class);
+    if (dao != null) {
+      dao.delete();
+    }
+    ApiProxyServerConfigurationService service = lookupIfAvailable(ApiProxyServerConfigurationService.class);
+    if (service != null) {
+      service.applyProxyServerConfigurationToClients();
+    }
+  }
+
+  /**
+   * Drops any HDS URL override and re-applies it to the HDS clients. {@code setHdsUrl(...)} points the HDS clients
+   * at a test-only mock server whose lifetime is tied to the calling class; with the Spring context cached across
+   * classes, an un-reset override leaves later classes' HDS clients pointed at a now-closed mock server ("Connection
+   * refused" / gateway timeouts). Called from {@code afterTest()} so each class cleans up at the source.
+   */
+  public void resetHdsUrl() {
+    ApiConfigurationService service = lookupIfAvailable(ApiConfigurationService.class);
+    if (service == null) {
+      return;
+    }
+    Set<String> propertyNames = ImmutableSet.of(SystemConfigurationProperty.HDS_URL);
+    service.deleteConfigurationInDatabaseNoAuthz(propertyNames);
+    service.applyConfigurationToClients(propertyNames);
+  }
+
+  /**
+   * Drops any Jira configuration and re-applies the resulting "no configuration" state to the Jira clients.
+   * {@code createJiraConfiguration()} pushes configuration into an in-memory bean; {@code TemporaryEntity} deletes
+   * the DB row after each test, but with the Spring context cached across classes the in-memory bean would still
+   * point at the deleted (possibly mock-server-backed) configuration for the next class. Called from
+   * {@code afterTest()}.
+   */
+  public void resetJiraConfiguration() {
+    JiraConfigurationDAO dao = lookupIfAvailable(JiraConfigurationDAO.class);
+    if (dao != null) {
+      dao.delete();
+    }
+    ApiJiraConfigurationService service = lookupIfAvailable(ApiJiraConfigurationService.class);
+    if (service != null) {
+      service.applyJiraConfigurationToClients();
+    }
   }
 
   public String getBaseUrl() {

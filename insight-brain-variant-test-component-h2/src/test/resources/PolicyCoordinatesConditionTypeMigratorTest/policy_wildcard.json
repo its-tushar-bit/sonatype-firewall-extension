@@ -1,0 +1,28 @@
+{
+  "id": "fe4f46f82ea6492586be3c45ed137f38",
+  "name": "ToBeMigratedGWildcard",
+  "ownerId": "a3178a2e375347818d8ddb8e0c328ddc",
+  "enabled": true,
+  "threatLevel": 5,
+  "constraints": [
+    {
+      "id": "f73ad2c3bbc646b98b0c97cd0a832e06",
+      "name": "AConstraint",
+      "enabled": true,
+      "operator": "OR",
+      "conditions": [
+        {
+          "conditionTypeId": "Coordinates",
+          "operator": "match",
+          "value": "g:*"
+        }
+      ]
+    }
+  ],
+  "actions": {},
+  "notifications": {
+    "userNotifications": [],
+    "roleNotifications": [],
+    "jiraNotifications": []
+  }
+}

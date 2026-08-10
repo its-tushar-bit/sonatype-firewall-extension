@@ -1,0 +1,50 @@
+[
+  {
+    "hash": "033e7a20b23ea284d474",
+    "componentIdentifier": {
+      "format": "maven",
+      "coordinates": {
+        "artifactId": "spring-boot-actuator",
+        "classifier": "source",
+        "extension": "jar",
+        "groupId": "org.springframework.boot",
+        "version": "2.2.6.RELEASE"
+      }
+    },
+    "legalFiles": [
+      {
+        "relPath": "META-INF/LICENSE",
+        "content": "This copy of Java ClassMate library is licensed under Apache (Software) License,\nversion 2.0 (\"the License\").\nSee the License for details about distribution rights, and the specific rights regarding derivate works.\n\nYou may obtain a copy of the License at:\n\nhttp://www.apache.org/licenses/LICENSE-2.0\n",
+        "contentHash" : "legalFileHash1",
+        "type": "LICENSE"
+      },
+      {
+        "relPath": "META-INF/NOTICE",
+        "content": "Java ClassMate library was originally written by Tatu Saloranta (tatu.saloranta@iki.fi)\n\nOther developers who have contributed code are:\n\n* Brian Langel\n\n",
+        "contentHash" : "legalFileHash2",
+        "type": "NOTICE"
+      }
+    ]
+  },
+  {
+    "hash": "05fc73a94e771eb044e4",
+    "componentIdentifier": {
+      "format": "maven",
+      "coordinates": {
+        "artifactId": "jackson-datatype-jdk8",
+        "classifier": "source",
+        "extension": "jar",
+        "groupId": "com.fasterxml.jackson.datatype",
+        "version": "2.10.3"
+      }
+    },
+    "legalFiles": [
+      {
+        "relPath": "META-INF/LICENSE",
+        "content": "This copy of Jackson JSON processor annotations is licensed under the\nApache (Software) License, version 2.0 (\"the License\").\nSee the License for details about distribution rights, and the\nspecific rights regarding derivate works.\n\nYou may obtain a copy of the License at:\n\nhttp://www.apache.org/licenses/LICENSE-2.0\n",
+        "contentHash" : "legalFileHash3",
+        "type": "LICENSE"
+      }
+    ]
+  }
+]

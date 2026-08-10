@@ -1,0 +1,52 @@
+{
+  "aaData" : [ {
+    "hash" : "8e8ce65ac17553f7aabe",
+    "matchDetails" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-boot-jarmode-layertools",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.boot",
+          "version" : "2.4.3"
+        }
+      },
+      "groupId" : "org.springframework.boot",
+      "artifactId" : "spring-boot-jarmode-layertools",
+      "version" : "2.4.3",
+      "hash" : "8e8ce65ac17553f7aabe",
+      "declaredLicenses" : [ "Apache-2.0" ],
+      "observedLicenses" : [ "Apache-2.0" ],
+      "effectiveLicenses" : [ "Apache-2.0" ],
+      "securityCounters" : {
+        "Critical" : 0,
+        "Severe" : 0,
+        "Moderate" : 0
+      },
+      "effectiveLicenseThreat" : 0,
+      "matchState" : null,
+      "proprietary" : null,
+      "matchedByCoordinates" : false,
+      "securityThreatLevel" : null,
+      "catalogDate" : 1613660821000,
+      "displayName" : {
+        "parts" : [ {
+          "field" : "Group",
+          "value" : "org.springframework.boot"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Artifact",
+          "value" : "spring-boot-jarmode-layertools"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Version",
+          "value" : "2.4.3"
+        } ],
+        "name" : "spring-boot-jarmode-layertools"
+      }
+    } ]
+  } ]
+}

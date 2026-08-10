@@ -1,0 +1,436 @@
+{
+  "dependencyGraph" : [ {
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "ehcache",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "net.sf.ehcache",
+          "version" : "2.10.7"
+        }
+      },
+      "packageUrl" : "pkg:maven/net.sf.ehcache/ehcache@2.10.7?type=jar",
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "sizeof-agent",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "net.sf.ehcache",
+          "version" : "1.0.1"
+        }
+      },
+      "packageUrl" : "pkg:maven/net.sf.ehcache/sizeof-agent@1.0.1?type=jar",
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jackson-databind",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.fasterxml.jackson.core",
+          "version" : "2.14.0"
+        }
+      },
+      "packageUrl" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.14.0?type=jar",
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "log4j-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.apache.logging.log4j",
+          "version" : "2.16.0"
+        }
+      },
+      "packageUrl" : "pkg:maven/org.apache.logging.log4j/log4j-core@2.16.0?type=jar",
+      "directDependency" : true
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-annotations",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.14.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.14.0?type=jar",
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.14.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.14.0?type=jar",
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.14.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.14.0?type=jar",
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jackson-annotations",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.fasterxml.jackson.core",
+          "version" : "2.14.0"
+        }
+      },
+      "packageUrl" : "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.14.0?type=jar"
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jackson-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.fasterxml.jackson.core",
+          "version" : "2.14.0"
+        }
+      },
+      "packageUrl" : "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.14.0?type=jar"
+    } ],
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "packageUrl" : "pkg:maven/net.sf.ehcache/ehcache@2.10.7?type=jar",
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "slf4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "1.7.25"
+        }
+      },
+      "packageUrl" : "pkg:maven/org.slf4j/slf4j-api@1.7.25?type=jar"
+    } ],
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "sizeof-agent",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "1.0.1"
+      }
+    },
+    "packageUrl" : "pkg:maven/net.sf.ehcache/sizeof-agent@1.0.1?type=jar",
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "log4j-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.logging.log4j",
+        "version" : "2.16.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.apache.logging.log4j/log4j-api@2.16.0?type=jar",
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "log4j-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.logging.log4j",
+        "version" : "2.16.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.apache.logging.log4j/log4j-core@2.16.0?type=jar",
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "log4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.apache.logging.log4j",
+          "version" : "2.16.0"
+        }
+      },
+      "packageUrl" : "pkg:maven/org.apache.logging.log4j/log4j-api@2.16.0?type=jar"
+    } ],
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "slf4j-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.slf4j",
+        "version" : "1.7.25"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.slf4j/slf4j-api@1.7.25?type=jar",
+    "directDependency" : false
+  } ],
+  "gavDepths" : {
+    "com.fasterxml.jackson.core:jackson-core:2.14.0" : [ 2 ],
+    "net.sf.ehcache:ehcache:2.10.7" : [ 1 ],
+    "com.fasterxml.jackson.core:jackson-annotations:2.14.0" : [ 2 ],
+    "net.sf.ehcache:sizeof-agent:1.0.1" : [ 1 ],
+    "org.apache.logging.log4j:log4j-api:2.16.0" : [ 2 ],
+    "org.apache.logging.log4j:log4j-core:2.16.0" : [ 1 ],
+    "org.slf4j:slf4j-api:1.7.25" : [ 2 ],
+    "com.fasterxml.jackson.core:jackson-databind:2.14.0" : [ 1 ]
+  },
+  "componentDepths" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "slf4j-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.slf4j",
+        "version" : "1.7.25"
+      }
+    },
+    "depths" : [ 2 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "sizeof-agent",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "1.0.1"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.14.0"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-annotations",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.14.0"
+      }
+    },
+    "depths" : [ 2 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.14.0"
+      }
+    },
+    "depths" : [ 2 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "log4j-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.logging.log4j",
+        "version" : "2.16.0"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "log4j-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.logging.log4j",
+        "version" : "2.16.0"
+      }
+    },
+    "depths" : [ 2 ]
+  } ],
+  "dependencyTree" : {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "pr-comment-02",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.sonatype.testing",
+        "version" : "1.0-SNAPSHOT"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.sonatype.testing/pr-comment-02@1.0-SNAPSHOT?type=jar",
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "ehcache",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "net.sf.ehcache",
+          "version" : "2.10.7"
+        }
+      },
+      "packageUrl" : "pkg:maven/net.sf.ehcache/ehcache@2.10.7?type=jar",
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "slf4j-api",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.slf4j",
+            "version" : "1.7.25"
+          }
+        },
+        "packageUrl" : "pkg:maven/org.slf4j/slf4j-api@1.7.25?type=jar"
+      } ],
+      "direct" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jackson-databind",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.fasterxml.jackson.core",
+          "version" : "2.14.0"
+        }
+      },
+      "packageUrl" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.14.0?type=jar",
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "jackson-annotations",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.fasterxml.jackson.core",
+            "version" : "2.14.0"
+          }
+        },
+        "packageUrl" : "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.14.0?type=jar"
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "jackson-core",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.fasterxml.jackson.core",
+            "version" : "2.14.0"
+          }
+        },
+        "packageUrl" : "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.14.0?type=jar"
+      } ],
+      "direct" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "log4j-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.apache.logging.log4j",
+          "version" : "2.16.0"
+        }
+      },
+      "packageUrl" : "pkg:maven/org.apache.logging.log4j/log4j-core@2.16.0?type=jar",
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "log4j-api",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.apache.logging.log4j",
+            "version" : "2.16.0"
+          }
+        },
+        "packageUrl" : "pkg:maven/org.apache.logging.log4j/log4j-api@2.16.0?type=jar"
+      } ],
+      "direct" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "sizeof-agent",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "net.sf.ehcache",
+          "version" : "1.0.1"
+        }
+      },
+      "packageUrl" : "pkg:maven/net.sf.ehcache/sizeof-agent@1.0.1?type=jar"
+    } ],
+    "module" : true
+  }
+}

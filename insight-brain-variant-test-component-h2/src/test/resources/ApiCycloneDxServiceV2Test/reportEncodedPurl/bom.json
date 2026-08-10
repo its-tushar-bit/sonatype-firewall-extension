@@ -1,0 +1,70 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "pecoff",
+      "coordinates" : {
+        "name" : "vcruntime140.dll",
+        "namespace" : "Microsoft Corporation/Microsoft® Visual Studio® 2017",
+        "version" : "14.16.27024.1 built by: vcwrkspc"
+      }
+    },
+    "packageUrl" : "pkg:generic/vcruntime140.dll@14.16.27024.1%20built%20by%3A%20vcwrkspc?nexusnamespace=Microsoft%20Corporation%2FMicrosoft%C2%AE%20Visual%20Studio%C2%AE%202017&nexustype=pecoff",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "pkg:generic/vcruntime140.dll@14.16.27024.1%20built%20by%3A%20vcwrkspc?nexusnamespace=Microsoft%20Corporation%2FMicrosoft%EF%BF%BDFFFFC3%EF%BF%BDFFFFBFFFFFC3%EF%BF%BDFFFFC3%EF%BF%BDFFFFBFFFFF82%EF%BF%BDFFFFC3%EF%BF%BDFFFFBFFFFFC2%EF%BF%BDFFFFC3%EF%BF%BDFFFFBFFFFFAE%20Visual%20Studio%EF%BF%BDFFFFC3%EF%BF%BDFFFFBFFFFFC3%EF%BF%BDFFFFC3%EF%BF%BDFFFFBFFFFF82%EF%BF%BDFFFFC3%EF%BF%BDFFFFBFFFFFC2%EF%BF%BDFFFFC3%EF%BF%BDFFFFBFFFFFAE%202017&nexustype=pecoff:7b4fe24321d2b108eda7" ],
+    "pathnames" : [ "dependency:/support114-bom.xml/pkg:generic\\vcruntime140.dll@14.16.27024.1%20built%20by%3A%20vcwrkspc?nexusnamespace=Microsoft%20Corporation%2FMicrosoft%EF%BF%BDFFFFC3%EF%BF%BDFFFFBFFFFFC3%EF%BF%BDFFFFC3%EF%BF%BDFFFFBFFFFF82%EF%BF%BDFFFFC3%EF%BF%BDFFFFBFFFFFC2%EF%BF%BDFFFFC3%EF%BF%BDFFFFBFFFFFAE%20Visual%20Studio%EF%BF%BDFFFFC3%EF%BF%BDFFFFBFFFFFC3%EF%BF%BDFFFFC3%EF%BF%BDFFFFBFFFFF82%EF%BF%BDFFFFC3%EF%BF%BDFFFFBFFFFFC2%EF%BF%BDFFFFC3%EF%BF%BDFFFFBFFFFFAE%202017&nexustype=pecoff:7b4fe24321d2b108eda7" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "7b4fe24321d2b108eda7",
+    "relativePopularity" : null,
+    "createTime" : 1567763859720,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "sonatypeIdentifier" : "43638145a5fe4f319a0be76a8b74bd80",
+    "componentRef" : "2fc4a5de22ed3db2b26789067297b144859d57a4",
+    "endOfLife" : "END_OF_LIFE_UNKNOWN",
+    "derivedFromAiModel" : null,
+    "componentRefs" : [ "2fc4a5de22ed3db2b26789067297b144859d57a4" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Namespace",
+        "value" : "Microsoft Corporation/Microsoft® Visual Studio® 2017"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Name",
+        "value" : "vcruntime140.dll"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "14.16.27024.1 built by: vcwrkspc"
+      } ],
+      "name" : "vcruntime140.dll"
+    }
+  } ],
+  "dependencyDataIncluded" : false
+}

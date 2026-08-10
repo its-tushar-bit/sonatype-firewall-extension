@@ -1,0 +1,36 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "fake",
+      "coordinates" : {
+        "name" : "guava",
+        "namespace" : "com.google.guava",
+        "type" : "jar",
+        "version" : "30.1-jre"
+      }
+    },
+    "packageUrl" : "pkg:fake/com.google.guava/guava@30.1-jre?type=jar",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ ],
+    "pathnames" : [ ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "db6b61d995de714813ac",
+    "relativePopularity" : null,
+    "createTime" : 1705589185166,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "third-party-cvss4",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : null,
+    "integrityRating" : null,
+    "cpe" : null,
+    "swid" : null
+  } ]
+}

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bom xmlns="http://cyclonedx.org/schema/bom/1.5"
+     serialNumber="urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79"
+     version="1">
+  <components>
+    <component type="application">
+      <name>Acme Application</name>
+      <version>9.1.1</version>
+      <!-- This component has a CPE and SWID specified -->
+      <cpe>cpe:/a:acme:application:9.1.1</cpe>
+      <swid tagId="swidgen-242eb18a-503e-ca37-393b-cf156ef09691_9.1.1" name="Acme Application" version="9.1.1">
+        <text content-type="text/xml" encoding="base64">PD94bWwgdmVyc</text>
+      </swid>
+    </component>
+  </components>
+</bom>

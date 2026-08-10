@@ -1,0 +1,125 @@
+<bom xmlns="http://cyclonedx.org/schema/bom/1.1"
+    serialNumber="urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79"
+    xmlns:v="http://cyclonedx.org/schema/ext/vulnerability/1.0" version="1">
+    <components>
+        <component type="library" bom-ref="pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar">
+            <group>com.fasterxml.jackson.core</group>
+            <name>jackson-databind</name>
+            <version>2.9.9</version>
+            <purl>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar</purl>
+            <v:vulnerabilities>
+            </v:vulnerabilities>
+        </component>
+        <component type="library" bom-ref="pkg:pypi/bdist-mpkg@0.5.0">
+            <name>libstdc</name>
+            <version>6.4.0-r8</version>
+            <purl>pkg:alpine/libstdc@6.4.0-r8</purl>
+            <v:vulnerabilities>
+                <v:vulnerability ref="pkg:alpine/libstdc@6.4.0-r8">
+                    <v:id>CVE-2022-7489</v:id>
+                    <v:source name="NVD">
+                        <v:url>https://nvd.nist.gov/vuln/detail/CVE-2022-7489</v:url>
+                    </v:source>
+                    <v:ratings>
+                    </v:ratings>
+                    <v:cwes>
+                        <v:cwe>502</v:cwe>
+                    </v:cwes>
+                </v:vulnerability>
+            </v:vulnerabilities>
+        </component>
+        <component type="library" bom-ref="pkg:alpine/a@6.4.0-r8">
+            <name>a</name>
+            <version>6.4.0-r8</version>
+            <purl>pkg:alpine/a@6.4.0-r8</purl>
+            <v:vulnerabilities>
+                <v:vulnerability ref="pkg:alpine/a@6.4.0-r8">
+                    <v:id>CVE-2022-7489</v:id>
+                    <v:source name="NVD">
+                        <v:url>https://nvd.nist.gov/vuln/detail/CVE-2022-7489</v:url>
+                    </v:source>
+                    <v:ratings>
+                        <v:rating>
+                            <v:score>
+                                <v:base>9.8</v:base>
+                                <v:impact>5.9</v:impact>
+                                <v:exploitability>3.0</v:exploitability>
+                            </v:score>
+                            <v:severity>Critical</v:severity>
+                            <v:method>CVSSv3</v:method>
+                            <v:vector>AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H</v:vector>
+                        </v:rating>
+                    </v:ratings>
+                    <v:cwes>
+                        <v:cwe></v:cwe>
+                        <v:cwe>ssss</v:cwe>
+                        <v:cwe>502</v:cwe>
+                    </v:cwes>
+                </v:vulnerability>
+            </v:vulnerabilities>
+        </component>
+        <component type="library" bom-ref="pkg:alpine/b@6.4.0-r8">
+            <name>b</name>
+            <version>6.4.0-r8</version>
+            <purl>pkg:alpine/b@6.4.0-r8</purl>
+            <v:vulnerabilities>
+                <v:vulnerability ref="pkg:alpine/b@6.4.0-r8">
+                    <v:id>CVE-2022-7489</v:id>
+                    <v:source name="NVD">
+                        <v:url>https://nvd.nist.gov/vuln/detail/CVE-2022-7489</v:url>
+                    </v:source>
+                    <v:ratings>
+                        <v:rating>
+                            <v:score>
+                                <v:base>9.8</v:base>
+                                <v:impact>5.9</v:impact>
+                                <v:exploitability>3.0</v:exploitability>
+                            </v:score>
+                            <v:severity>Critical</v:severity>
+                            <v:method>CVSSv3</v:method>
+                            <v:vector>AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H</v:vector>
+                        </v:rating>
+                    </v:ratings>
+                    <v:cwes>
+                        <v:cwe>502</v:cwe>
+                    </v:cwes>
+                    <v:recommendations>
+                    </v:recommendations>
+                </v:vulnerability>
+            </v:vulnerabilities>
+        </component>
+        <component type="library" bom-ref="pkg:alpine/c@6.4.0-r8">
+            <name>c</name>
+            <version>6.4.0-r8</version>
+            <purl>pkg:alpine/c@6.4.0-r8</purl>
+            <v:vulnerabilities>
+                <v:vulnerability ref="pkg:alpine/c@6.4.0-r8">
+                    <v:id>CVE-2022-7489</v:id>
+                    <v:source name="NVD">
+                        <v:url>https://nvd.nist.gov/vuln/detail/CVE-2022-7489</v:url>
+                    </v:source>
+                    <v:ratings>
+                        <v:rating>
+                            <v:score>
+                                <v:base>9.8</v:base>
+                                <v:impact>5.9</v:impact>
+                                <v:exploitability>3.0</v:exploitability>
+                            </v:score>
+                            <v:severity>Critical</v:severity>
+                            <v:method>CVSSv3</v:method>
+                            <v:vector>AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H</v:vector>
+                        </v:rating>
+                    </v:ratings>
+                    <v:cwes>
+                        <v:cwe>502</v:cwe>
+                    </v:cwes>
+                    <v:recommendations>
+                        <v:recommendation>Upgrade</v:recommendation>
+                    </v:recommendations>
+                    <v:advisories>
+                    </v:advisories>
+                </v:vulnerability>
+            </v:vulnerabilities>
+        </component>
+    </components>
+</bom>

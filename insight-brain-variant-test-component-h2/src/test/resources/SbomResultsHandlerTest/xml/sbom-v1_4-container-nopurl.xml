@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bom serialNumber="urn:uuid:33dfc2b6-6d6f-4174-8f4f-2b09cd3ba363" version="1"
+     xmlns="http://cyclonedx.org/schema/bom/1.4">
+  <components>
+    <component type="library" bom-ref="pkg:fake/com.google.guava/guava@30.1-jre?type=jar">
+      <group>com.google.guava</group>
+      <name>guava</name>
+      <version>30.1-jre</version>
+      <modified>false</modified>
+    </component>
+    <component type="container" bom-ref="annotation-api@1.1.6">
+      <name>annotation-api</name>
+      <version>1.1.6</version>
+    </component>
+  </components>
+  <vulnerabilities>
+    <vulnerability>
+      <id>sonatype-2020-0926</id>
+      <source>
+        <name>SONATYPE</name>
+        <url>http://localhost:8072/ui/links/vln/sonatype-2020-0926</url>
+      </source>
+      <ratings>
+        <rating>
+          <source>
+            <name>SONATYPE</name>
+          </source>
+          <score>6.2</score>
+          <severity>high</severity>
+          <method>CVSSv3</method>
+          <vector>CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N</vector>
+        </rating>
+      </ratings>
+      <cwes>
+        <cwe>379</cwe>
+      </cwes>
+      <affects>
+        <target>
+          <ref>pkg:fake/com.google.guava/guava@30.1-jre?type=jar</ref>
+        </target>
+      </affects>
+    </vulnerability>
+  </vulnerabilities>
+</bom>

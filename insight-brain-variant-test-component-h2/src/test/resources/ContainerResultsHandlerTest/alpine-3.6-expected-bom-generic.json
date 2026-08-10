@@ -1,0 +1,313 @@
+{
+  "bomFormat" : "CycloneDX",
+  "specVersion" : "1.7",
+  "version" : 1,
+  "components" : [
+    {
+      "type" : "file",
+      "bom-ref" : "de84ea3c-c657-41cc-a799-9a90f5215af4",
+      "group" : "jar",
+      "name" : "jar:java_se_runtime_environment",
+      "version" : "1.2.3",
+      "purl" : "pkg:generic/jar/jar%3Ajava_se_runtime_environment@1.2.3?nexustype=container",
+      "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:generic/jar/jar%3Ajava_se_runtime_environment@1.2.3?nexustype=container"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "0648d5dfedba1cff4e717294b8f88e3ee606cdb9"
+        }
+      ]
+    },
+    {
+      "type" : "file",
+      "bom-ref" : "5762ce60-7eca-4c88-ad20-27df3bc5a0aa",
+      "group" : "Wordpress",
+      "name" : "Wordpress",
+      "version" : "1.2.3",
+      "purl" : "pkg:generic/Wordpress/Wordpress@1.2.3?nexustype=container",
+      "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:generic/Wordpress/Wordpress@1.2.3?nexustype=container"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "2dc517d8529987cbdac05b5b1a7f18fcb473fef0"
+        }
+      ]
+    },
+    {
+      "type" : "file",
+      "bom-ref" : "71829b71-8a60-4fd7-8a8e-0ec111e4cb60",
+      "group" : "php",
+      "name" : "php:monolog:monolog",
+      "version" : "1.2.3",
+      "purl" : "pkg:generic/php/php%3Amonolog%3Amonolog@1.2.3?nexustype=container",
+      "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:generic/php/php%3Amonolog%3Amonolog@1.2.3?nexustype=container"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "a978bca0e25a5727dea83415525231ffe1375b49"
+        }
+      ]
+    },
+    {
+      "type" : "file",
+      "bom-ref" : "32260ab0-edf1-4f77-abf6-1cc83977062d",
+      "group" : "jar",
+      "name" : "org.springframework:spring-core",
+      "version" : "5.3.31",
+      "purl" : "pkg:generic/jar/org.springframework%3Aspring-core@5.3.31?nexustype=container",
+      "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:generic/jar/org.springframework%3Aspring-core@5.3.31?nexustype=container"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "93f1e7d9c42db58ae39778bb7260334b02a72b01"
+        }
+      ]
+    },
+    {
+      "type" : "file",
+      "bom-ref" : "8b3eb91c-bff2-41bd-b72d-5ca58145ab0f",
+      "group" : ".NET",
+      "name" : ".NET:Newtonsoft.Json",
+      "version" : "13.0.3",
+      "purl" : "pkg:generic/.NET/.NET%3ANewtonsoft.Json@13.0.3?nexustype=container",
+      "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:generic/.NET/.NET%3ANewtonsoft.Json@13.0.3?nexustype=container"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "15d75aea0ae9c78230393bcdb8c40f7d58fa3bb6"
+        }
+      ]
+    },
+    {
+      "type" : "file",
+      "bom-ref" : "f4b342b8-9ef0-41af-a924-fb5126a2e1dd",
+      "group" : "npm",
+      "name" : "react",
+      "version" : "18.2.0",
+      "purl" : "pkg:generic/npm/react@18.2.0?nexustype=container",
+      "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:generic/npm/react@18.2.0?nexustype=container"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "952ce00a343f1d931db6fe4df21220a1ed5d1f57"
+        }
+      ]
+    },
+    {
+      "type" : "file",
+      "bom-ref" : "4d18cd63-38ec-4690-8d04-3c8a483211b5",
+      "group" : "python",
+      "name" : "python:flask",
+      "version" : "3.0.3",
+      "purl" : "pkg:generic/python/python%3Aflask@3.0.3?nexustype=container",
+      "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:generic/python/python%3Aflask@3.0.3?nexustype=container"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "a333919fbb309942aa6423bce43eb91e4885c140"
+        }
+      ]
+    },
+    {
+      "type" : "file",
+      "bom-ref" : "d9ab8bc9-5d17-4bc9-a462-075ff093f954",
+      "group" : "ruby",
+      "name" : "ruby:rails",
+      "version" : "7.1.3",
+      "purl" : "pkg:generic/ruby/ruby%3Arails@7.1.3?nexustype=container",
+      "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:generic/ruby/ruby%3Arails@7.1.3?nexustype=container"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "de41eaa4daa9806a3a061c16db3de47c91a5f8a1"
+        }
+      ]
+    },
+    {
+      "type" : "file",
+      "bom-ref" : "a6db1924-af3b-455b-bfe7-64c6e35fbf45",
+      "group" : "alpine:3.6.5",
+      "name" : "alpine-baselayout",
+      "version" : "3.0.4-r0",
+      "purl" : "pkg:generic/alpine%3A3.6.5/alpine-baselayout@3.0.4-r0?nexustype=container",
+      "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:generic/alpine%3A3.6.5/alpine-baselayout@3.0.4-r0?nexustype=container"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "d8a1dacc75945d3a74e21c5475472542fc150e42"
+        }
+      ]
+    },
+    {
+      "type" : "file",
+      "bom-ref" : "d5d34a1a-174d-43d0-a91b-3167ad6086a0",
+      "group" : "alpine:3.6.5",
+      "name" : "alpine-keys",
+      "version" : "2.1-r1",
+      "purl" : "pkg:generic/alpine%3A3.6.5/alpine-keys@2.1-r1?nexustype=container",
+      "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:generic/alpine%3A3.6.5/alpine-keys@2.1-r1?nexustype=container"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "d91f02e99c165c34b3d4a6225e609d4f4f323c79"
+        }
+      ]
+    },
+    {
+      "type" : "file",
+      "bom-ref" : "053e32b0-98f5-4cc5-a613-a2081764d5b3",
+      "group" : "alpine:3.6.5",
+      "name" : "zlib",
+      "version" : "1.2.11-r0",
+      "purl" : "pkg:generic/alpine%3A3.6.5/zlib@1.2.11-r0?nexustype=container",
+      "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:generic/alpine%3A3.6.5/zlib@1.2.11-r0?nexustype=container"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "bc5ae67f45ee6d911c053bf1f9278378df73420e"
+        }
+      ]
+    },
+    {
+      "type" : "file",
+      "bom-ref" : "6000e58a-b64f-4387-9a4c-d07ec6d30c61",
+      "group" : "alpine:3.6.5",
+      "name" : "musl",
+      "version" : "1.1.16-r15",
+      "purl" : "pkg:generic/alpine%3A3.6.5/musl@1.1.16-r15?nexustype=container",
+      "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:generic/alpine%3A3.6.5/musl@1.1.16-r15?nexustype=container"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "b8ed8db5ceaaabd72658f940f25825dc33b6842d"
+        }
+      ]
+    },
+    {
+      "type" : "file",
+      "bom-ref" : "1ad2cc47-d747-41c3-a6b1-c1f167a7a78e",
+      "group" : "alpine:3.6.5",
+      "name" : "busybox",
+      "version" : "1.26.2-r11",
+      "purl" : "pkg:generic/alpine%3A3.6.5/busybox@1.26.2-r11?nexustype=container",
+      "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:generic/alpine%3A3.6.5/busybox@1.26.2-r11?nexustype=container"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "0e6806c0eda5e5417f815a1afe59fa3b3b8e4e55"
+        }
+      ]
+    },
+    {
+      "type" : "file",
+      "bom-ref" : "5545a8c8-6741-46da-af06-c49117c7af2a",
+      "group" : "alpine:3.6.5",
+      "name" : "libressl",
+      "version" : "2.5.5-r2",
+      "purl" : "pkg:generic/alpine%3A3.6.5/libressl@2.5.5-r2?nexustype=container",
+      "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:generic/alpine%3A3.6.5/libressl@2.5.5-r2?nexustype=container"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "8ac59b3253f036c0d8e729566f098aaa5ad9aa6e"
+        }
+      ]
+    },
+    {
+      "type" : "file",
+      "bom-ref" : "f830ea1d-04db-4f0a-bb08-fe930b61fcd3",
+      "group" : "alpine:3.6.5",
+      "name" : "apk-tools",
+      "version" : "2.7.6-r0",
+      "purl" : "pkg:generic/alpine%3A3.6.5/apk-tools@2.7.6-r0?nexustype=container",
+      "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:generic/alpine%3A3.6.5/apk-tools@2.7.6-r0?nexustype=container"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "e184eae4397c986f49af391932334a70430afcb5"
+        }
+      ]
+    },
+    {
+      "type" : "file",
+      "bom-ref" : "3919ee69-3845-42e7-bbc4-fcaad4727f4d",
+      "group" : "alpine:3.6.5",
+      "name" : "pax-utils",
+      "version" : "1.2.2-r0",
+      "purl" : "pkg:generic/alpine%3A3.6.5/pax-utils@1.2.2-r0?nexustype=container",
+      "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:generic/alpine%3A3.6.5/pax-utils@1.2.2-r0?nexustype=container"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "51d349d982a93c9d262a65e4ccffd4231deee5a4"
+        }
+      ]
+    },
+    {
+      "type" : "file",
+      "bom-ref" : "1116158b-6cb6-4cd3-bd9b-0279b0d3ff77",
+      "group" : "alpine:3.6.5",
+      "name" : "libc-dev",
+      "version" : "0.7.1-r0",
+      "purl" : "pkg:generic/alpine%3A3.6.5/libc-dev@0.7.1-r0?nexustype=container",
+      "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:generic/alpine%3A3.6.5/libc-dev@0.7.1-r0?nexustype=container"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "ebb01cd398adb474d60c7de3f472afb36f88d6fd"
+        }
+      ]
+    }
+  ]
+}

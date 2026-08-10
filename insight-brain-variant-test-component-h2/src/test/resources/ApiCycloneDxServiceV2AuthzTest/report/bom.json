@@ -1,0 +1,91 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "jQuery",
+        "version" : "3.4.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "jquery.3.4.1.nupkg" ],
+    "pathnames" : [ "jquery.3.4.1.nupkg" ],
+    "displayName": {
+      "parts": [
+        {
+          "value": "displayName"
+        }
+      ]
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "5408e54a94044d1f1f21",
+    "relativePopularity" : null,
+    "createTime" : 1556821287254,
+    "lastModifiedTime" : 1561666468000,
+    "lastModifiedEntryTime" : 1556810292000,
+    "website" : null
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "knockout.validation",
+        "qualifier" : "",
+        "version" : "2.0.0-Pre"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "jquery-3.4.1.intellisense.js" ],
+    "pathnames" : [ "jquery.3.4.1.nupkg/Tools/jquery-3.4.1.intellisense.js" ],
+    "displayName": {
+      "parts": [
+        {
+          "value": "displayName"
+        }
+      ]
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "7c9933a349f37d5f3131",
+    "relativePopularity" : null,
+    "createTime" : 1383585090000,
+    "lastModifiedTime" : 1556810124000,
+    "lastModifiedEntryTime" : null,
+    "website" : null
+  }, {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "jQuery",
+        "version" : "3.2.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "common.ps1", "install.ps1", "uninstall.ps1" ],
+    "pathnames" : [ "jquery.3.4.1.nupkg/Tools/common.ps1", "jquery.3.4.1.nupkg/Tools/install.ps1", "jquery.3.4.1.nupkg/Tools/uninstall.ps1" ],
+    "displayName": {
+      "parts": [
+        {
+          "value": "displayName"
+        }
+      ]
+    },
+    "matchState" : "similar",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "0babbbd2c221d24484f5",
+    "relativePopularity" : null,
+    "createTime" : 1505410495144,
+    "lastModifiedTime" : 1556810124000,
+    "lastModifiedEntryTime" : null,
+    "website" : null
+  } ]
+}

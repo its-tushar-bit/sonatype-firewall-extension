@@ -1,0 +1,31 @@
+{
+  "components": [
+    {
+      "packageUrl": "pkg:maven/test-group/test-artifact@version?type=jar",
+      "hash": "05fc73a94e771eb044e4",
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "test-artifact",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "test-group",
+          "version": "version"
+        }
+      },
+      "proprietary": false,
+      "matchState": "exact",
+      "pathnames": [
+        "target/dependencies/test-group-test-artifact-version.jar"
+      ],
+      "displayName": "test-group : test-artifact : version",
+      "securityData": {
+        "securityIssues": []
+      }
+    }
+  ],
+  "matchSummary": {
+    "totalComponentCount": 1,
+    "knownComponentCount": 1
+  }
+}

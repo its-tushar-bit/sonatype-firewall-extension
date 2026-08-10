@@ -1,0 +1,281 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "zxcvbn",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.nulab-inc",
+        "version" : "1.9.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.nulab-inc/zxcvbn@1.9.0?type=jar",
+    "groupId" : "com.nulab-inc",
+    "artifactId" : "zxcvbn",
+    "version" : "1.9.0",
+    "filenames" : [ "pkg:maven/com.nulab-inc/zxcvbn@1.9.0?type=jar" ],
+    "pathnames" : [ "dependency:/iqtestprojectone/pom.xml/pkg:maven\\com.nulab-inc\\zxcvbn@1.9.0?type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "47e0b80099d6109ef199",
+    "relativePopularity" : null,
+    "createTime" : 1712393079107,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 147,
+      "path" : "Programming/Regular Expression"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 0,
+      "label" : "Normal"
+    },
+    "endOfLife" : "END_OF_LIFE_UNKNOWN",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.nulab-inc"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "zxcvbn"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.9.0"
+      } ],
+      "name" : "zxcvbn"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-io",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-io",
+        "version" : "2.2"
+      }
+    },
+    "packageUrl" : "pkg:maven/commons-io/commons-io@2.2?type=jar",
+    "groupId" : "commons-io",
+    "artifactId" : "commons-io",
+    "version" : "2.2",
+    "filenames" : [ "pkg:maven/commons-io/commons-io@2.2?type=jar" ],
+    "pathnames" : [ "dependency:/iqtestprojectone/pom.xml/pkg:maven\\commons-io\\commons-io@2.2?type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "83b5b8a7ba1c08f9e8c8",
+    "relativePopularity" : 0.1,
+    "createTime" : 1332774876000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_UNKNOWN",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "commons-io"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-io"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.2"
+      } ],
+      "name" : "commons-io"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "logback-classic",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ch.qos.logback",
+        "version" : "1.3.14"
+      }
+    },
+    "packageUrl" : "pkg:maven/ch.qos.logback/logback-classic@1.3.14?type=jar",
+    "groupId" : "ch.qos.logback",
+    "artifactId" : "logback-classic",
+    "version" : "1.3.14",
+    "filenames" : [ "pkg:maven/ch.qos.logback/logback-classic@1.3.14?type=jar" ],
+    "pathnames" : [ "dependency:/iqtestprojectone/pom.xml/pkg:maven\\ch.qos.logback\\logback-classic@1.3.14?type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "a2f0045eae641a356b74",
+    "relativePopularity" : 0.03,
+    "createTime" : 1701432373260,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 0,
+      "label" : "Normal"
+    },
+    "endOfLife" : "END_OF_LIFE_UNKNOWN",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "ch.qos.logback"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "logback-classic"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.3.14"
+      } ],
+      "name" : "logback-classic"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "untitled-1.0-SNAPSHOT.jar" ],
+    "pathnames" : [ "iqtestprojectone/target/untitled-1.0-SNAPSHOT.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "4ac86061ec0c6d341a57",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1718648294000,
+    "lastModifiedEntryTime" : 1718648246000,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : null,
+    "endOfLife" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Filename",
+        "value" : "untitled-1.0-SNAPSHOT.jar"
+      } ],
+      "name" : "untitled-1.0-SNAPSHOT.jar"
+    }
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "original-untitled-1.0-SNAPSHOT.jar" ],
+    "pathnames" : [ "iqtestprojectone/target/original-untitled-1.0-SNAPSHOT.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "d71362c9b1f47eff4bb7",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1717096364000,
+    "lastModifiedEntryTime" : 1717096364000,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : null,
+    "endOfLife" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Filename",
+        "value" : "original-untitled-1.0-SNAPSHOT.jar"
+      } ],
+      "name" : "original-untitled-1.0-SNAPSHOT.jar"
+    }
+  } ],
+  "dependencyDataIncluded" : true
+}

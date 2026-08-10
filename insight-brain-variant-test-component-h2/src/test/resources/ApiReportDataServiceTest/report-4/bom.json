@@ -1,0 +1,62 @@
+{
+  "aaData": [
+    {
+      "hash": "65abcacd880ab89879f8",
+      "proprietary": false,
+      "analyzerFeatures": {
+        "analysisSource": "THIRD_PARTY",
+        "analysisType": "COORDINATE",
+        "scanClient": "null",
+        "hasLicense": false,
+        "hasIdentity": false,
+        "hasSecurity": false
+      },
+      "createTime": 1631733243252,
+      "relativePopularity": 0,
+      "matchState": "exact",
+      "identificationSource": "Package Manifest",
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "nexus-iq-cli",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.sonatype.insight.brain",
+          "version": "1.122.0-SNAPSHOT"
+        }
+      },
+      "packageUrl": "pkg:maven/com.sonatype.insight.brain/nexus-iq-cli@1.122.0-SNAPSHOT?type=jar",
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "com.sonatype.insight.brain"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "nexus-iq-cli"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "1.122.0-SNAPSHOT"
+          }
+        ],
+        "name": "nexus-iq-cli"
+      },
+      "directDependency": true,
+      "innerSource": true,
+      "innerSourceData": [
+        {
+          "ownerApplicationName": "frontendide",
+          "ownerApplicationId": "f9ebd2880028479a859ca7d8d8a72ec2"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "version": 4,
+  "aaData": [
+    {
+      "hash": "65abcacd880ab89879f8",
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "nexus-iq-cli",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.sonatype.insight.brain",
+          "version": "1.122.0-SNAPSHOT"
+        }
+      },
+      "policyId": "1eeebf7045b6401ab49f0a6adb39e473",
+      "policyName": "License-None",
+      "policyThreatLevel": 9,
+      "activeViolations": [
+        {
+          "policyId": "1eeebf7045b6401ab49f0a6adb39e473",
+          "policyViolationId": "0d3d1041bab24078b4485af54bde9ee6",
+          "policyName": "License-None",
+          "policyThreatLevel": 9,
+          "waived": false,
+          "grandfathered": false,
+          "constraintFactsJson": "[{\"constraintId\":\"e6f0ae78722f4f1482fb5aa193577a7a\",\"constraintName\":\"License Data Not Available for Ecosystem\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"DataSource\",\"conditionIndex\":0,\"summary\":\"Data Source has no support for license\",\"reason\":\"Data Source has no support for License\",\"reference\":null,\"triggerJson\":null},{\"conditionTypeId\":\"LicenseStatus\",\"conditionIndex\":1,\"summary\":\"License Status is not OVERRIDDEN\",\"reason\":\"License status was Open, not Overridden\",\"reference\":null,\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"id\\\":\\\"OVERRIDDEN\\\"}}\"}]}]",
+          "actions": [
+            {
+              "actionType": "warn",
+              "actionSummary": "Build Warning"
+            }
+          ],
+          "constraints": [
+            {
+              "constraintId": "e6f0ae78722f4f1482fb5aa193577a7a",
+              "constraintName": "License Data Not Available for Ecosystem",
+              "constraintOperator": "AND",
+              "conditions": [
+                {
+                  "conditionType": "DataSource",
+                  "conditionSummary": "Data Source has no support for license",
+                  "conditionReason": "Data Source has no support for License",
+                  "conditionTriggerReference": null
+                },
+                {
+                  "conditionType": "LicenseStatus",
+                  "conditionSummary": "License Status is not OVERRIDDEN",
+                  "conditionReason": "License status was Open, not Overridden",
+                  "conditionTriggerReference": null
+                }
+              ]
+            }
+          ],
+          "policyThreatCategory": "LICENSE"
+        }
+      ]
+    }
+  ]
+}

@@ -21,7 +21,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 import jakarta.inject.Inject;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -33,8 +32,9 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.testing.FunctionUtils.PredicateWithException;
 
 import com.fasterxml.jackson.databind.node.ContainerNode;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.BOM_JSON;
 import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.LICENSES_JSON;
@@ -47,6 +47,10 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+// Cohort-only Jupiter Spring wiring: this abstract base's only concrete subclass is the reused-context
+// FileLifecycleReportPersistenceServiceTest (@ComponentH2Test). @ExtendWith(SpringExtension.class) is declared here
+// (not on the shared SpringInjectedTest/AbstractComponentTest) so the JUnit-4 service tests stay vintage-only.
+@ExtendWith(SpringExtension.class)
 abstract class AbstractLifecycleReportPersistenceServiceTest
     extends AbstractComponentTest
 {
@@ -112,7 +116,6 @@ abstract class AbstractLifecycleReportPersistenceServiceTest
   public abstract void testCorrectImplClass();
 
   @Test
-  @Category(SlowTest.class)
   public void testGetReportEntity_exists() throws Exception {
     helper.saveEmptyMockReport();
 
@@ -141,7 +144,6 @@ abstract class AbstractLifecycleReportPersistenceServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testGetReportEntity_notExists() throws Exception {
     helper.saveEmptyMockReport();
     long startTime = System.currentTimeMillis();
@@ -170,7 +172,6 @@ abstract class AbstractLifecycleReportPersistenceServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testGetReportEntity_existsLocalOnly() throws Exception {
     helper.saveEmptyMockReport();
     helper.writeLocalFile("foo.txt", "foo");
@@ -370,7 +371,6 @@ abstract class AbstractLifecycleReportPersistenceServiceTest
   protected abstract LifecycleReportPersistenceService mockForSaveOriginalReport_cleansUpOnFailure() throws IOException;
 
   @Test
-  @Category(SlowTest.class)
   public void testSaveReportFile_newFile_notInZip() throws Exception {
     helper.saveEmptyMockReport();
     Instant now = Instant.now();
@@ -390,7 +390,6 @@ abstract class AbstractLifecycleReportPersistenceServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testSaveReportFile_updateFile_notInZip() throws Exception {
     helper.saveEmptyMockReport();
     helper.writeLocalFile("file.txt", "old file contents");
@@ -411,7 +410,6 @@ abstract class AbstractLifecycleReportPersistenceServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testSaveReportFile_updateFile_inZip() throws Exception {
     helper.saveMockReport();
     Instant now = Instant.now();
@@ -431,7 +429,6 @@ abstract class AbstractLifecycleReportPersistenceServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testSaveReportFile_updateFile_inZipAndLocalCache() throws Exception {
     helper.saveMockReport();
     helper.writeLocalFile("bom.json", "old local file contents");
@@ -475,7 +472,6 @@ abstract class AbstractLifecycleReportPersistenceServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testSaveAdditionalReportFile_newFile() throws Exception {
     helper.saveEmptyMockReport();
     Instant now = Instant.now();
@@ -495,7 +491,6 @@ abstract class AbstractLifecycleReportPersistenceServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testSaveAdditionalReportFile_updateFile() throws Exception {
     helper.saveEmptyMockReport();
     helper.writeAdditionalFile("file.txt", "old file contents");
@@ -539,7 +534,6 @@ abstract class AbstractLifecycleReportPersistenceServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testGetPdfEntity() throws Exception {
     helper.saveEmptyMockReport();
     helper.writePdf("PDF");
@@ -594,7 +588,6 @@ abstract class AbstractLifecycleReportPersistenceServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testGetPdfEntity_currentlyEmpty() throws Exception {
     helper.saveEmptyMockReport();
     helper.writePdf("");
@@ -650,7 +643,6 @@ abstract class AbstractLifecycleReportPersistenceServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testGetVulnerabilitySignaturesEntity() throws Exception {
     helper.saveEmptyMockReport();
     helper.writeVulnerabilitySignatures("{}");

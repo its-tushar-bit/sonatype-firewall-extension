@@ -1,0 +1,290 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "Microsoft.Identity.Client.Extensions.Msal",
+        "version" : "2.23.0"
+      }
+    },
+    "packageUrl" : "pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0:00603c85922bf35d8edd" ],
+    "pathnames" : [ "dependency:/app6-bom.xml/pkg:nuget\\Microsoft.Identity.Client.Extensions.Msal@2.23.0:00603c85922bf35d8edd" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "00603c85922bf35d8edd",
+    "relativePopularity" : null,
+    "createTime" : 1659649523043,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "ID",
+        "value" : "Microsoft.Identity.Client.Extensions.Msal"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "2.23.0"
+      } ],
+      "name" : "Microsoft.Identity.Client.Extensions.Msal"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:nuget/Azure.Identity@1.8.0" ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "Microsoft.IdentityModel.Protocols",
+        "version" : "6.25.1"
+      }
+    },
+    "packageUrl" : "pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1:c795e78734c2860bb627" ],
+    "pathnames" : [ "dependency:/app6-bom.xml/pkg:nuget\\Microsoft.IdentityModel.Protocols@6.25.1:c795e78734c2860bb627" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "c795e78734c2860bb627",
+    "relativePopularity" : null,
+    "createTime" : 1669915663951,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "ID",
+        "value" : "Microsoft.IdentityModel.Protocols"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "6.25.1"
+      } ],
+      "name" : "Microsoft.IdentityModel.Protocols"
+    },
+    "directDependency" : true,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:nuget/Microsoft.IdentityModel.Protocols.OpenIdConnect@6.25.1" ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "Microsoft.Extensions.Options",
+        "version" : "5.0.0"
+      }
+    },
+    "packageUrl" : "pkg:nuget/Microsoft.Extensions.Options@5.0.0",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "pkg:nuget/Microsoft.Extensions.Options@5.0.0:d98bcd35050378773586" ],
+    "pathnames" : [ "dependency:/app6-bom.xml/pkg:nuget\\Microsoft.Extensions.Options@5.0.0:d98bcd35050378773586" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "d98bcd35050378773586",
+    "relativePopularity" : null,
+    "createTime" : 1656376999407,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "ID",
+        "value" : "Microsoft.Extensions.Options"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "5.0.0"
+      } ],
+      "name" : "Microsoft.Extensions.Options"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "Microsoft.IdentityModel.JsonWebTokens",
+        "version" : "6.25.1"
+      }
+    },
+    "packageUrl" : "pkg:nuget/Microsoft.IdentityModel.JsonWebTokens@6.25.1",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "pkg:nuget/Microsoft.IdentityModel.JsonWebTokens@6.25.1:0e3da21fd80b9853692d" ],
+    "pathnames" : [ "dependency:/app6-bom.xml/pkg:nuget\\Microsoft.IdentityModel.JsonWebTokens@6.25.1:0e3da21fd80b9853692d" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "0e3da21fd80b9853692d",
+    "relativePopularity" : null,
+    "createTime" : 1712868158327,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "ID",
+        "value" : "Microsoft.IdentityModel.JsonWebTokens"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "6.25.1"
+      } ],
+      "name" : "Microsoft.IdentityModel.JsonWebTokens"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:nuget/System.IdentityModel.Tokens.Jwt@6.25.1", "pkg:nuget/Microsoft.Data.SqlClient@5.0.1" ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "AutoMapper",
+        "version" : "12.0.1"
+      }
+    },
+    "packageUrl" : "pkg:nuget/AutoMapper@12.0.1",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "pkg:nuget/AutoMapper@12.0.1:ff4b7ba21f3191400fd7" ],
+    "pathnames" : [ "dependency:/app6-bom.xml/pkg:nuget\\AutoMapper@12.0.1:ff4b7ba21f3191400fd7" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "ff4b7ba21f3191400fd7",
+    "relativePopularity" : null,
+    "createTime" : 1673884012801,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "ID",
+        "value" : "AutoMapper"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "12.0.1"
+      } ],
+      "name" : "AutoMapper"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  } ],
+  "dependencyDataIncluded" : true
+}

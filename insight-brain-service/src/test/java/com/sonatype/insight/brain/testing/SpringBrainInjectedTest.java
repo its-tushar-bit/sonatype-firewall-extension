@@ -15,6 +15,8 @@ import com.sonatype.insight.brain.search.SearchIndexRule;
 import com.sonatype.insight.test.SpringInjectedTest;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -67,11 +69,13 @@ public abstract class SpringBrainInjectedTest
   protected DAOFactory daoFactory;
 
   @BeforeClass
+  @BeforeAll
   public static void disableWaitToCloseOldClients() {
     HdsClient.waitToCloseOldClients = false;
   }
 
   @Before
+  @BeforeEach
   public final void initializeSpringBrainInjectedTestHarness() {
     // Re-inject classes that have static dependencies before any subclass @Before methods run.
     daoFactory = new TestDAOFactory(databaseContainerRule);

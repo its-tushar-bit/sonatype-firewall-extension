@@ -1,0 +1,49 @@
+{
+  "aaData" : [ {
+    "sonatypeIdentifier": "86163fcc32524261bfd2bdbedb7eae43",
+    "componentRefs": [ "e3eb444687945a191bc0ae39e53ff39a2e35e73e" ],
+    "filenames" : [ "tomcat-util-5.5.23.jar" ],
+    "pathnames" : [ "tomcat-util-5.5.23.jar" ],
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.5.23",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "tomcat",
+        "artifactId" : "tomcat-util",
+        "version" : "5.5.23",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "1249e25aebb15358bedd",
+    "relativePopularity" : 1.0,
+    "createTime" : 1201589122000
+  }, {
+    "filenames" : [ "commons-pool-1.4.jar" ],
+    "pathnames" : [ "commons-pool-1.4.jar" ],
+    "groupId" : "commons-pool",
+    "artifactId" : "commons-pool",
+    "version" : "1.4",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "commons-pool",
+        "artifactId" : "commons-pool",
+        "version" : "1.4",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "1a667c9d419dc4f185c9",
+    "relativePopularity" : 0.1,
+    "createTime" : 1200480439000
+  }]
+}

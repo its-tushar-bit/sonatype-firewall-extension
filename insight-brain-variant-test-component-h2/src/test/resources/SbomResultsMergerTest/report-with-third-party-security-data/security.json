@@ -1,0 +1,169 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "terraform",
+        "coordinates": {
+          "name": "aws_s3_bucket.test01",
+          "plan": "plan.tfplan",
+          "version": "current"
+        }
+      },
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "hash": "0d8e3bd6ee4e6d50557a",
+      "url": "new link1",
+      "reference": "FG-R00229",
+      "source": "IaC",
+      "score": 9.0,
+      "cwe": 508,
+      "cvssVectorString": "new vectorString1",
+      "cvssVectorSource": null,
+      "matchState": "exact",
+      "proprietary": null,
+      "vulnerabilityCategories": [
+        "data"
+      ],
+      "fixedVersion": null,
+      "description": "S3 buckets should have all block public access options enabled. AWS's S3 Block Public Access feature has four settings: BlockPublicAcls, IgnorePublicAcls, BlockPublicPolicy, and RestrictPublicBuckets. All four settings should be enabled to help prevent the risk of a data breach.",
+      "severity": "High",
+      "ratingMethod": null,
+      "recommendations": null,
+      "advisories": null,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Name",
+            "value": "aws_s3_bucket.test01"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Plan",
+            "value": "plan.tfplan"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "current"
+          }
+        ],
+        "name": "aws_s3_bucket.test01 : plan.tfplan : current"
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "terraform",
+        "coordinates": {
+          "name": "aws_s3_bucket.test01",
+          "plan": "plan.tfplan",
+          "version": "current"
+        }
+      },
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "hash": "0d8e3bd6ee4e6d50557a",
+      "url": "new link2",
+      "reference": "FG-R00230",
+      "source": "IaC",
+      "score": 9.0,
+      "cwe": null,
+      "cvssVectorString": "new vectorString2",
+      "cvssVectorSource": null,
+      "matchState": "exact",
+      "proprietary": null,
+      "vulnerabilityCategories": [
+        "data"
+      ],
+      "fixedVersion": null,
+      "description": "S3 buckets should have all block public access options enabled. AWS's S3 Block Public Access feature has four settings: BlockPublicAcls, IgnorePublicAcls, BlockPublicPolicy, and RestrictPublicBuckets. All four settings should be enabled to help prevent the risk of a data breach.",
+      "severity": "High",
+      "ratingMethod": null,
+      "recommendations": null,
+      "advisories": null,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Name",
+            "value": "aws_s3_bucket.test01"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Plan",
+            "value": "plan.tfplan"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "current"
+          }
+        ],
+        "name": "aws_s3_bucket.test01 : plan.tfplan : current"
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "terraform",
+        "coordinates": {
+          "name": "aws_s3_bucket.test01",
+          "plan": "plan.tfplan",
+          "version": "current"
+        }
+      },
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "hash": "0d8e3bd6ee4e6d50557a",
+      "url": "new link3",
+      "reference": "FG-R00231",
+      "source": "IaC",
+      "score": 9.0,
+      "cwe": "noinfo",
+      "cvssVectorString": "new vectorString3",
+      "cvssVectorSource": null,
+      "matchState": "exact",
+      "proprietary": null,
+      "vulnerabilityCategories": [
+        "data"
+      ],
+      "fixedVersion": null,
+      "description": "S3 buckets should have all block public access options enabled. AWS's S3 Block Public Access feature has four settings: BlockPublicAcls, IgnorePublicAcls, BlockPublicPolicy, and RestrictPublicBuckets. All four settings should be enabled to help prevent the risk of a data breach.",
+      "severity": "High",
+      "ratingMethod": null,
+      "recommendations": null,
+      "advisories": null,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Name",
+            "value": "aws_s3_bucket.test01"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Plan",
+            "value": "plan.tfplan"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "current"
+          }
+        ],
+        "name": "aws_s3_bucket.test01 : plan.tfplan : current"
+      }
+    }
+  ]
+}

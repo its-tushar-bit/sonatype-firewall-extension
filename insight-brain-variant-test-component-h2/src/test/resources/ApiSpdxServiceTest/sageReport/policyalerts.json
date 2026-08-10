@@ -1,0 +1,4859 @@
+{
+  "aaData" : [ {
+    "trigger" : {
+      "policyId" : "1c473b0c09de42c99d49b20267cbfe2e",
+      "policyName" : "Component-Unknown",
+      "threatLevel" : 2,
+      "policyViolationId" : "5c1dbc20a273411797da72e49a8e7e49",
+      "componentFacts" : [ {
+        "componentIdentifier" : null,
+        "hash" : "cefaf26c4e2a74baf403",
+        "constraintFacts" : [ {
+          "constraintId" : "d08306b97bd244508cb8792fbf63cc66",
+          "constraintName" : "Unknown 3rd party component",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "MatchState",
+            "conditionIndex" : 0,
+            "summary" : "Match State is unknown",
+            "reason" : "Match state was 'Unknown'",
+            "reference" : null,
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "Proprietary",
+            "conditionIndex" : 0,
+            "summary" : "Proprietary is false",
+            "reason" : "Component does not contain proprietary packages",
+            "reference" : null,
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "DataSource",
+            "conditionIndex" : 0,
+            "summary" : "Data Source has support for identity",
+            "reason" : "Data Source has support for Identity",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "target/pr-comment-02-1.0-SNAPSHOT.jar" ],
+        "displayName" : null
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "1e931e704123477e807a5758598e71f3",
+      "policyName" : "Architecture-Quality",
+      "threatLevel" : 1,
+      "policyViolationId" : "ef46f014d8044316846f72e02cb46320",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "f6a445527893437bb3cd1bf0666d3526",
+          "constraintName" : "Version is unpopular",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "RelativePopularity",
+            "conditionIndex" : 0,
+            "summary" : "Relative Popularity (Percentage) <= 10",
+            "reason" : "Relative popularity was <= 10% (relative popularity = 0%)",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "1e931e704123477e807a5758598e71f3",
+      "policyName" : "Architecture-Quality",
+      "threatLevel" : 1,
+      "policyViolationId" : "cd60f7404e38492cbb5f94099457feb6",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "slf4j-api",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.slf4j",
+            "version" : "1.7.25"
+          }
+        },
+        "hash" : "da76ca59f6a57ee3102f",
+        "constraintFacts" : [ {
+          "constraintId" : "3a6a70599cff415eb24a32651ac86619",
+          "constraintName" : "Version is old",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "AgeInDays",
+            "conditionIndex" : 0,
+            "summary" : "Age older than 1825 days",
+            "reason" : "Found component older than 5 years",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/org.slf4j:slf4j-api:jar:1.7.25" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "org.slf4j"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "slf4j-api"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.7.25"
+          } ],
+          "name" : "slf4j-api"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "1e931e704123477e807a5758598e71f3",
+      "policyName" : "Architecture-Quality",
+      "threatLevel" : 1,
+      "policyViolationId" : "7c629f00a8444527a27bd65eef094963",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "sizeof-agent",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "1.0.1"
+          }
+        },
+        "hash" : "e86399a80ae6a6c7a563",
+        "constraintFacts" : [ {
+          "constraintId" : "3a6a70599cff415eb24a32651ac86619",
+          "constraintName" : "Version is old",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "AgeInDays",
+            "conditionIndex" : 0,
+            "summary" : "Age older than 1825 days",
+            "reason" : "Found component older than 5 years",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "ehcache-2.10.7.jar/net/sf/ehcache/pool/sizeof/sizeof-agent.jar" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "sizeof-agent"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.0.1"
+          } ],
+          "name" : "sizeof-agent"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "1e931e704123477e807a5758598e71f3",
+      "policyName" : "Architecture-Quality",
+      "threatLevel" : 1,
+      "policyViolationId" : "7f6f3c5f89d04cefaa7cb8a3cf123daa",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "sizeof-agent",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "1.0.1"
+          }
+        },
+        "hash" : "e86399a80ae6a6c7a563",
+        "constraintFacts" : [ {
+          "constraintId" : "f6a445527893437bb3cd1bf0666d3526",
+          "constraintName" : "Version is unpopular",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "RelativePopularity",
+            "conditionIndex" : 0,
+            "summary" : "Relative Popularity (Percentage) <= 10",
+            "reason" : "Relative popularity was <= 10% (relative popularity = 0%)",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "ehcache-2.10.7.jar/net/sf/ehcache/pool/sizeof/sizeof-agent.jar" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "sizeof-agent"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.0.1"
+          } ],
+          "name" : "sizeof-agent"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "595c90125d9145cfbdfbc6e99f25a46d",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "c89d370e2f2647f582c16f2e61577ec9",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "log4j-core",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.apache.logging.log4j",
+            "version" : "2.16.0"
+          }
+        },
+        "hash" : "ca12fb3902ecfcba1e13",
+        "constraintFacts" : [ {
+          "constraintId" : "4fb2011c19a142b29a07e928b7558186",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-2021-44832 with severity >= 4 (severity = 6.6)",
+            "reference" : {
+              "value" : "CVE-2021-44832",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-2021-44832 with severity < 7 (severity = 6.6)",
+            "reference" : {
+              "value" : "CVE-2021-44832",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/org.apache.logging.log4j:log4j-core:jar:2.16.0" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "org.apache.logging.log4j"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "log4j-core"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.16.0"
+          } ],
+          "name" : "log4j-core"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "warn",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "595c90125d9145cfbdfbc6e99f25a46d",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "cb94d8bf701e4eefa024924a61e142ad",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "log4j-core",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.apache.logging.log4j",
+            "version" : "2.16.0"
+          }
+        },
+        "hash" : "ca12fb3902ecfcba1e13",
+        "constraintFacts" : [ {
+          "constraintId" : "4fb2011c19a142b29a07e928b7558186",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-2021-45105 with severity >= 4 (severity = 5.9)",
+            "reference" : {
+              "value" : "CVE-2021-45105",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-2021-45105 with severity < 7 (severity = 5.9)",
+            "reference" : {
+              "value" : "CVE-2021-45105",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/org.apache.logging.log4j:log4j-core:jar:2.16.0" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "org.apache.logging.log4j"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "log4j-core"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.16.0"
+          } ],
+          "name" : "log4j-core"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "warn",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "595c90125d9145cfbdfbc6e99f25a46d",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "43bb25626da344b88f06de8e70edf713",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "4fb2011c19a142b29a07e928b7558186",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-2019-10241 with severity >= 4 (severity = 6.1)",
+            "reference" : {
+              "value" : "CVE-2019-10241",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-2019-10241 with severity < 7 (severity = 6.1)",
+            "reference" : {
+              "value" : "CVE-2019-10241",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "warn",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "595c90125d9145cfbdfbc6e99f25a46d",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "8afd77a9aaf94ad5be8f4bb3367dd080",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "4fb2011c19a142b29a07e928b7558186",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-2019-10246 with severity >= 4 (severity = 5.3)",
+            "reference" : {
+              "value" : "CVE-2019-10246",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-2019-10246 with severity < 7 (severity = 5.3)",
+            "reference" : {
+              "value" : "CVE-2019-10246",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "warn",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "595c90125d9145cfbdfbc6e99f25a46d",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "0dd789d81918465190e4ef4e0561e0a5",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "4fb2011c19a142b29a07e928b7558186",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-2019-10247 with severity >= 4 (severity = 5.3)",
+            "reference" : {
+              "value" : "CVE-2019-10247",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-2019-10247 with severity < 7 (severity = 5.3)",
+            "reference" : {
+              "value" : "CVE-2019-10247",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "warn",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "595c90125d9145cfbdfbc6e99f25a46d",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "09344c263a16490c93b9b864b95e50f9",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "4fb2011c19a142b29a07e928b7558186",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-2019-12384 with severity >= 4 (severity = 5.9)",
+            "reference" : {
+              "value" : "CVE-2019-12384",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-2019-12384 with severity < 7 (severity = 5.9)",
+            "reference" : {
+              "value" : "CVE-2019-12384",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "warn",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "595c90125d9145cfbdfbc6e99f25a46d",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "0adaf4c86a014a98ba75700a05dd358c",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "4fb2011c19a142b29a07e928b7558186",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-2019-12814 with severity >= 4 (severity = 5.9)",
+            "reference" : {
+              "value" : "CVE-2019-12814",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-2019-12814 with severity < 7 (severity = 5.9)",
+            "reference" : {
+              "value" : "CVE-2019-12814",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "warn",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "595c90125d9145cfbdfbc6e99f25a46d",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "385dbe7dfa194dd6985559bf4107a451",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "4fb2011c19a142b29a07e928b7558186",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-2020-27218 with severity >= 4 (severity = 4.8)",
+            "reference" : {
+              "value" : "CVE-2020-27218",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-2020-27218 with severity < 7 (severity = 4.8)",
+            "reference" : {
+              "value" : "CVE-2020-27218",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "warn",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "595c90125d9145cfbdfbc6e99f25a46d",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "4d795f4072734626bd561e86f02302aa",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "4fb2011c19a142b29a07e928b7558186",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-2020-27223 with severity >= 4 (severity = 5.3)",
+            "reference" : {
+              "value" : "CVE-2020-27223",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-2020-27223 with severity < 7 (severity = 5.3)",
+            "reference" : {
+              "value" : "CVE-2020-27223",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "warn",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "595c90125d9145cfbdfbc6e99f25a46d",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "73161ed1ca8e4379b82743a4cc3edc20",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "4fb2011c19a142b29a07e928b7558186",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-2023-26048 with severity >= 4 (severity = 5.3)",
+            "reference" : {
+              "value" : "CVE-2023-26048",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-2023-26048 with severity < 7 (severity = 5.3)",
+            "reference" : {
+              "value" : "CVE-2023-26048",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "warn",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "595c90125d9145cfbdfbc6e99f25a46d",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "bb66d7f254c34ab7a91c8011bbafebe1",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "4fb2011c19a142b29a07e928b7558186",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-2023-26049 with severity >= 4 (severity = 5.3)",
+            "reference" : {
+              "value" : "CVE-2023-26049",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-2023-26049 with severity < 7 (severity = 5.3)",
+            "reference" : {
+              "value" : "CVE-2023-26049",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "warn",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "595c90125d9145cfbdfbc6e99f25a46d",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "9f1904ea876f4b9ab3b1e00c8d87cb29",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "4fb2011c19a142b29a07e928b7558186",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability sonatype-2014-0257 with severity >= 4 (severity = 4.8)",
+            "reference" : {
+              "value" : "sonatype-2014-0257",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability sonatype-2014-0257 with severity < 7 (severity = 4.8)",
+            "reference" : {
+              "value" : "sonatype-2014-0257",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "warn",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "595c90125d9145cfbdfbc6e99f25a46d",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "5e443e210d584afa8da9a155a7b77eb4",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "4fb2011c19a142b29a07e928b7558186",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability sonatype-2016-0687 with severity >= 4 (severity = 6.5)",
+            "reference" : {
+              "value" : "sonatype-2016-0687",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability sonatype-2016-0687 with severity < 7 (severity = 6.5)",
+            "reference" : {
+              "value" : "sonatype-2016-0687",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "warn",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "69d5da64bd3d475e99265996861d248c",
+      "policyName" : "Security-Critical",
+      "threatLevel" : 10,
+      "policyViolationId" : "35e0fda90ffe4ce883357d56a1368019",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "log4j-core",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.apache.logging.log4j",
+            "version" : "2.16.0"
+          }
+        },
+        "hash" : "ca12fb3902ecfcba1e13",
+        "constraintFacts" : [ {
+          "constraintId" : "b5b616cd8adb4f04ac0d14b80298f301",
+          "constraintName" : "Critical risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 9",
+            "reason" : "Found security vulnerability CVE-2021-44228 with severity >= 9 (severity = 10.0)",
+            "reference" : {
+              "value" : "CVE-2021-44228",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/org.apache.logging.log4j:log4j-core:jar:2.16.0" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "org.apache.logging.log4j"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "log4j-core"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.16.0"
+          } ],
+          "name" : "log4j-core"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "69d5da64bd3d475e99265996861d248c",
+      "policyName" : "Security-Critical",
+      "threatLevel" : 10,
+      "policyViolationId" : "e3d6b23157794f80816f4d47febf6b5f",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "b5b616cd8adb4f04ac0d14b80298f301",
+          "constraintName" : "Critical risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 9",
+            "reason" : "Found security vulnerability CVE-2019-14379 with severity >= 9 (severity = 9.8)",
+            "reference" : {
+              "value" : "CVE-2019-14379",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "69d5da64bd3d475e99265996861d248c",
+      "policyName" : "Security-Critical",
+      "threatLevel" : 10,
+      "policyViolationId" : "002d674be6e0462a8df93912ba49b6ee",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "b5b616cd8adb4f04ac0d14b80298f301",
+          "constraintName" : "Critical risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 9",
+            "reason" : "Found security vulnerability CVE-2019-14540 with severity >= 9 (severity = 9.8)",
+            "reference" : {
+              "value" : "CVE-2019-14540",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "69d5da64bd3d475e99265996861d248c",
+      "policyName" : "Security-Critical",
+      "threatLevel" : 10,
+      "policyViolationId" : "6c4e31d5be1b45e6af4a3dd1ae39b560",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "b5b616cd8adb4f04ac0d14b80298f301",
+          "constraintName" : "Critical risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 9",
+            "reason" : "Found security vulnerability CVE-2019-14892 with severity >= 9 (severity = 9.8)",
+            "reference" : {
+              "value" : "CVE-2019-14892",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "69d5da64bd3d475e99265996861d248c",
+      "policyName" : "Security-Critical",
+      "threatLevel" : 10,
+      "policyViolationId" : "07f3bbab0c6b459eb07da6e641985cf7",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "b5b616cd8adb4f04ac0d14b80298f301",
+          "constraintName" : "Critical risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 9",
+            "reason" : "Found security vulnerability CVE-2019-14893 with severity >= 9 (severity = 9.8)",
+            "reference" : {
+              "value" : "CVE-2019-14893",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "69d5da64bd3d475e99265996861d248c",
+      "policyName" : "Security-Critical",
+      "threatLevel" : 10,
+      "policyViolationId" : "d1bc6080623845d4a4873e9610a8d963",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "b5b616cd8adb4f04ac0d14b80298f301",
+          "constraintName" : "Critical risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 9",
+            "reason" : "Found security vulnerability CVE-2019-16335 with severity >= 9 (severity = 9.8)",
+            "reference" : {
+              "value" : "CVE-2019-16335",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "69d5da64bd3d475e99265996861d248c",
+      "policyName" : "Security-Critical",
+      "threatLevel" : 10,
+      "policyViolationId" : "1091711f80814b9b80cbe788b77ece04",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "b5b616cd8adb4f04ac0d14b80298f301",
+          "constraintName" : "Critical risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 9",
+            "reason" : "Found security vulnerability CVE-2019-16942 with severity >= 9 (severity = 9.8)",
+            "reference" : {
+              "value" : "CVE-2019-16942",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "69d5da64bd3d475e99265996861d248c",
+      "policyName" : "Security-Critical",
+      "threatLevel" : 10,
+      "policyViolationId" : "70f2c9f5cd064d09ab0fec577947e98b",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "b5b616cd8adb4f04ac0d14b80298f301",
+          "constraintName" : "Critical risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 9",
+            "reason" : "Found security vulnerability CVE-2019-16943 with severity >= 9 (severity = 9.8)",
+            "reference" : {
+              "value" : "CVE-2019-16943",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "69d5da64bd3d475e99265996861d248c",
+      "policyName" : "Security-Critical",
+      "threatLevel" : 10,
+      "policyViolationId" : "7ad81c5086d8496484d82effe1ca2d61",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "b5b616cd8adb4f04ac0d14b80298f301",
+          "constraintName" : "Critical risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 9",
+            "reason" : "Found security vulnerability CVE-2019-17267 with severity >= 9 (severity = 9.8)",
+            "reference" : {
+              "value" : "CVE-2019-17267",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "69d5da64bd3d475e99265996861d248c",
+      "policyName" : "Security-Critical",
+      "threatLevel" : 10,
+      "policyViolationId" : "45340d1c5f324c7c81598170343ec73b",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "b5b616cd8adb4f04ac0d14b80298f301",
+          "constraintName" : "Critical risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 9",
+            "reason" : "Found security vulnerability CVE-2019-17531 with severity >= 9 (severity = 9.8)",
+            "reference" : {
+              "value" : "CVE-2019-17531",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "69d5da64bd3d475e99265996861d248c",
+      "policyName" : "Security-Critical",
+      "threatLevel" : 10,
+      "policyViolationId" : "5488f1c335a74098a8ac58e0a62a6d39",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "b5b616cd8adb4f04ac0d14b80298f301",
+          "constraintName" : "Critical risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 9",
+            "reason" : "Found security vulnerability CVE-2019-20330 with severity >= 9 (severity = 9.8)",
+            "reference" : {
+              "value" : "CVE-2019-20330",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "69d5da64bd3d475e99265996861d248c",
+      "policyName" : "Security-Critical",
+      "threatLevel" : 10,
+      "policyViolationId" : "b7e5ce1058b5426b9a6815f6263c8f79",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "b5b616cd8adb4f04ac0d14b80298f301",
+          "constraintName" : "Critical risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 9",
+            "reason" : "Found security vulnerability CVE-2020-8840 with severity >= 9 (severity = 9.8)",
+            "reference" : {
+              "value" : "CVE-2020-8840",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "69d5da64bd3d475e99265996861d248c",
+      "policyName" : "Security-Critical",
+      "threatLevel" : 10,
+      "policyViolationId" : "4be698a23cbd4011bfb69a17fdf94122",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "b5b616cd8adb4f04ac0d14b80298f301",
+          "constraintName" : "Critical risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 9",
+            "reason" : "Found security vulnerability CVE-2020-9546 with severity >= 9 (severity = 9.8)",
+            "reference" : {
+              "value" : "CVE-2020-9546",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "69d5da64bd3d475e99265996861d248c",
+      "policyName" : "Security-Critical",
+      "threatLevel" : 10,
+      "policyViolationId" : "ddcc3bf3432041fc87e0dec52eaf25f8",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "b5b616cd8adb4f04ac0d14b80298f301",
+          "constraintName" : "Critical risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 9",
+            "reason" : "Found security vulnerability CVE-2020-9547 with severity >= 9 (severity = 9.8)",
+            "reference" : {
+              "value" : "CVE-2020-9547",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "69d5da64bd3d475e99265996861d248c",
+      "policyName" : "Security-Critical",
+      "threatLevel" : 10,
+      "policyViolationId" : "7c5466a9059846298005465f075cf4cd",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "b5b616cd8adb4f04ac0d14b80298f301",
+          "constraintName" : "Critical risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 9",
+            "reason" : "Found security vulnerability CVE-2020-9548 with severity >= 9 (severity = 9.8)",
+            "reference" : {
+              "value" : "CVE-2020-9548",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "727e312fc19848c0a208e8e561d688cd",
+      "policyName" : "Security-Low",
+      "threatLevel" : 3,
+      "policyViolationId" : "29599b2f3b3545ce8cf6c5cd783c1807",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "b634f3f716d54840b01a24c5e23b6756",
+          "constraintName" : "Low risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 0",
+            "reason" : "Found security vulnerability CVE-2022-2047 with severity >= 0 (severity = 2.7)",
+            "reference" : {
+              "value" : "CVE-2022-2047",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 4",
+            "reason" : "Found security vulnerability CVE-2022-2047 with severity < 4 (severity = 2.7)",
+            "reference" : {
+              "value" : "CVE-2022-2047",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "74ba2cca2f1e48e69c025cb36821bb1e",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "jackson-core",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.fasterxml.jackson.core",
+            "version" : "2.14.0"
+          }
+        },
+        "hash" : "49d219171d6af643e061",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability sonatype-2022-6438 with severity >= 7 (severity = 7.5)",
+            "reference" : {
+              "value" : "sonatype-2022-6438",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability sonatype-2022-6438 with severity < 9 (severity = 7.5)",
+            "reference" : {
+              "value" : "sonatype-2022-6438",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/com.fasterxml.jackson.core:jackson-core:jar:2.14.0" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "com.fasterxml.jackson.core"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "jackson-core"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.14.0"
+          } ],
+          "name" : "jackson-core"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "e802ab38cc8c4f1a8cc9a4c2dcbe6ace",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2019-12086 with severity >= 7 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2019-12086",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2019-12086 with severity < 9 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2019-12086",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "490b277d6b0a4f298101ff99ff9814c0",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2019-14439 with severity >= 7 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2019-14439",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2019-14439 with severity < 9 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2019-14439",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "0f8c048070ee4af4b7adccb42e82dce9",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-10650 with severity >= 7 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-10650",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-10650 with severity < 9 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-10650",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "fb267253cd314c728b447740a9fdee44",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-10672 with severity >= 7 (severity = 8.8)",
+            "reference" : {
+              "value" : "CVE-2020-10672",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-10672 with severity < 9 (severity = 8.8)",
+            "reference" : {
+              "value" : "CVE-2020-10672",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "0f99ea780808450d8d0ff450fe63750a",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-10673 with severity >= 7 (severity = 8.8)",
+            "reference" : {
+              "value" : "CVE-2020-10673",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-10673 with severity < 9 (severity = 8.8)",
+            "reference" : {
+              "value" : "CVE-2020-10673",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "a4af16eef37d4701b2925cb153dd1601",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-10968 with severity >= 7 (severity = 8.8)",
+            "reference" : {
+              "value" : "CVE-2020-10968",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-10968 with severity < 9 (severity = 8.8)",
+            "reference" : {
+              "value" : "CVE-2020-10968",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "8fc0279ddde54bd29d790fa4806baba9",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-10969 with severity >= 7 (severity = 8.8)",
+            "reference" : {
+              "value" : "CVE-2020-10969",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-10969 with severity < 9 (severity = 8.8)",
+            "reference" : {
+              "value" : "CVE-2020-10969",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "c515936a7fb547f1b9f506c854715ff7",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-11111 with severity >= 7 (severity = 8.8)",
+            "reference" : {
+              "value" : "CVE-2020-11111",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-11111 with severity < 9 (severity = 8.8)",
+            "reference" : {
+              "value" : "CVE-2020-11111",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "67b6735d5efa4e22bf450d87790825d1",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-11112 with severity >= 7 (severity = 8.8)",
+            "reference" : {
+              "value" : "CVE-2020-11112",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-11112 with severity < 9 (severity = 8.8)",
+            "reference" : {
+              "value" : "CVE-2020-11112",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "c8fe6cbeccb54bf5a1791ee3826f311d",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-11113 with severity >= 7 (severity = 8.8)",
+            "reference" : {
+              "value" : "CVE-2020-11113",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-11113 with severity < 9 (severity = 8.8)",
+            "reference" : {
+              "value" : "CVE-2020-11113",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "60fa99ac94ad4eb0a8eb07db699d420d",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-11619 with severity >= 7 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-11619",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-11619 with severity < 9 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-11619",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "4224b9f071cd4bbb8c2bc89e074273de",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-11620 with severity >= 7 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-11620",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-11620 with severity < 9 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-11620",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "2cbf5e57c35a44b9adf5a3ab77be2c64",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-14060 with severity >= 7 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-14060",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-14060 with severity < 9 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-14060",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "48066fb248c04c9bb829e1d25fbe2abb",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-14061 with severity >= 7 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-14061",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-14061 with severity < 9 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-14061",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "f1f22ba8a8ec4e1e8fd68047bf40d434",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-24616 with severity >= 7 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-24616",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-24616 with severity < 9 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-24616",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "ce8a91c4a4894526911555ca5d33584b",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-24750 with severity >= 7 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-24750",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-24750 with severity < 9 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-24750",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "ddc7b844ae09483ca62628e4fcf0db93",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-25649 with severity >= 7 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2020-25649",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-25649 with severity < 9 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2020-25649",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "53d6a223822343d5a13acdae49aa9e43",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-35490 with severity >= 7 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-35490",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-35490 with severity < 9 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-35490",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "34d7d494feb94e7692aed866769bbc16",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-35491 with severity >= 7 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-35491",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-35491 with severity < 9 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-35491",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "30f9e1bec32a49498ca0ac03a49ebb50",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-35728 with severity >= 7 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-35728",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-35728 with severity < 9 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-35728",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "a24d42a11dc5425d822185a90facf641",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-36179 with severity >= 7 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-36179",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-36179 with severity < 9 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-36179",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "aa33c62fb308432fa9982393aab09c69",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-36180 with severity >= 7 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-36180",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-36180 with severity < 9 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-36180",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "4f05e2d66ee14cc48809c47597a241bd",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-36181 with severity >= 7 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-36181",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-36181 with severity < 9 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-36181",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "40758819f1da4ffabae8f23776124d78",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-36182 with severity >= 7 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-36182",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-36182 with severity < 9 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-36182",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "13d2fb77ed6c4c4fb091bbe23bcf0c6f",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-36183 with severity >= 7 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-36183",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-36183 with severity < 9 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-36183",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "d596dc5c6b1845b2a57992022d3c5b0c",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-36184 with severity >= 7 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-36184",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-36184 with severity < 9 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-36184",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "6a03e781a0184eb4970829f4741d6595",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-36185 with severity >= 7 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-36185",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-36185 with severity < 9 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-36185",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "e07896c628f448dda6a47fa00e5f1ddb",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-36186 with severity >= 7 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-36186",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-36186 with severity < 9 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-36186",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "47be5797dd884f48b8ca418d9f2b52db",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-36187 with severity >= 7 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-36187",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-36187 with severity < 9 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-36187",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "c7e3c577eb1c46c1883e6935329ffe08",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-36188 with severity >= 7 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-36188",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-36188 with severity < 9 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-36188",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "c19bd0e248784177bae9e891d1316790",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-36189 with severity >= 7 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-36189",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-36189 with severity < 9 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2020-36189",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "67f98638c06b4d08b7e5726218c0f42b",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-36518 with severity >= 7 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2020-36518",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-36518 with severity < 9 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2020-36518",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "51bc504c97aa4254b42770e226cfcbe3",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2021-20190 with severity >= 7 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2021-20190",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2021-20190 with severity < 9 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2021-20190",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "33d4a2dca6904fc8afc6dda32e0a724c",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2021-28165 with severity >= 7 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2021-28165",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2021-28165 with severity < 9 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2021-28165",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "e44ad971b7504f30820ac5552fbe12bd",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2022-42003 with severity >= 7 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2022-42003",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2022-42003 with severity < 9 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2022-42003",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "027f0948389c4bd7abc3d3d8f671b894",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2022-42004 with severity >= 7 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2022-42004",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2022-42004 with severity < 9 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2022-42004",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "fcd94190afb34e67b87ce2a9d30e8786",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability sonatype-2019-0371 with severity >= 7 (severity = 8.5)",
+            "reference" : {
+              "value" : "sonatype-2019-0371",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability sonatype-2019-0371 with severity < 9 (severity = 8.5)",
+            "reference" : {
+              "value" : "sonatype-2019-0371",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "6692eb17779f4f7ab559e931626ee602",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability sonatype-2020-0348 with severity >= 7 (severity = 8.5)",
+            "reference" : {
+              "value" : "sonatype-2020-0348",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability sonatype-2020-0348 with severity < 9 (severity = 8.5)",
+            "reference" : {
+              "value" : "sonatype-2020-0348",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "7bb2b3cbda864b909194ccd1adf62037",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability sonatype-2020-0436 with severity >= 7 (severity = 8.5)",
+            "reference" : {
+              "value" : "sonatype-2020-0436",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability sonatype-2020-0436 with severity < 9 (severity = 8.5)",
+            "reference" : {
+              "value" : "sonatype-2020-0436",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "12fd603d2ac342a6a1cf7d62be671023",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ehcache",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "net.sf.ehcache",
+            "version" : "2.10.7"
+          }
+        },
+        "hash" : "cf0f1bb23f08b47b3aac",
+        "constraintFacts" : [ {
+          "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability sonatype-2022-6438 with severity >= 7 (severity = 7.5)",
+            "reference" : {
+              "value" : "sonatype-2022-6438",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability sonatype-2022-6438 with severity < 9 (severity = 7.5)",
+            "reference" : {
+              "value" : "sonatype-2022-6438",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "net.sf.ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ehcache"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.10.7"
+          } ],
+          "name" : "ehcache"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  } ]
+}

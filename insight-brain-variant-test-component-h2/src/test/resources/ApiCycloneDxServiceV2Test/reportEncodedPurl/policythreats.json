@@ -1,0 +1,73 @@
+{
+  "version" : 5,
+  "stageTypeId" : "build",
+  "aaData" : [ {
+    "hash" : "7b4fe24321d2b108eda7",
+    "componentIdentifier" : {
+      "format" : "pecoff",
+      "coordinates" : {
+        "name" : "vcruntime140.dll",
+        "namespace" : "Microsoft Corporation/Microsoft® Visual Studio® 2017",
+        "version" : "14.16.27024.1 built by: vcwrkspc"
+      }
+    },
+    "policyId" : "cf7f9cd979f24a6dae9cb9ae1d82aa95",
+    "policyName" : "Architecture-Quality",
+    "policyThreatLevel" : 1,
+    "activeViolations" : [ {
+      "policyId" : "cf7f9cd979f24a6dae9cb9ae1d82aa95",
+      "policyViolationId" : "902e3709906a4b659f510538a2c4d63d",
+      "policyName" : "Architecture-Quality",
+      "policyThreatLevel" : 1,
+      "policyOwnerId" : "ROOT_ORGANIZATION_ID",
+      "policyOwnerType" : "organization",
+      "waived" : false,
+      "waivedWithAutoWaiver" : false,
+      "grandfathered" : false,
+      "legacyViolation" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"b609c3471a8640b483fe5a6237746cbf\",\"constraintName\":\"Version is old\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"AgeInDays\",\"conditionIndex\":0,\"summary\":\"Age older than 1825 days\",\"reason\":\"Found component older than 5 years\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "b609c3471a8640b483fe5a6237746cbf",
+        "constraintName" : "Version is old",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "AgeInDays",
+          "conditionSummary" : "Age older than 1825 days",
+          "conditionReason" : "Found component older than 5 years",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY",
+      "reachabilityStatus" : null
+    } ],
+    "waivedViolations" : [ ],
+    "allViolations" : [ {
+      "policyId" : "cf7f9cd979f24a6dae9cb9ae1d82aa95",
+      "policyViolationId" : "902e3709906a4b659f510538a2c4d63d",
+      "policyName" : "Architecture-Quality",
+      "policyThreatLevel" : 1,
+      "policyOwnerId" : "ROOT_ORGANIZATION_ID",
+      "policyOwnerType" : "organization",
+      "waived" : false,
+      "waivedWithAutoWaiver" : false,
+      "grandfathered" : false,
+      "legacyViolation" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"b609c3471a8640b483fe5a6237746cbf\",\"constraintName\":\"Version is old\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"AgeInDays\",\"conditionIndex\":0,\"summary\":\"Age older than 1825 days\",\"reason\":\"Found component older than 5 years\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "b609c3471a8640b483fe5a6237746cbf",
+        "constraintName" : "Version is old",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "AgeInDays",
+          "conditionSummary" : "Age older than 1825 days",
+          "conditionReason" : "Found component older than 5 years",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY",
+      "reachabilityStatus" : null
+    } ]
+  } ]
+}

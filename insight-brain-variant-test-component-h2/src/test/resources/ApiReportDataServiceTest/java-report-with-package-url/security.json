@@ -1,0 +1,1445 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars jquery",
+        "qualifier" : "",
+        "version" : "1.10.2"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "37081687a930b9a4a29c",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-11023",
+    "reference" : "CVE-2020-11023",
+    "source" : "cve",
+    "score" : 6.1,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars jquery"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.10.2"
+      } ],
+      "name" : "org.webjars jquery"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars jquery",
+        "qualifier" : "",
+        "version" : "1.10.2"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "37081687a930b9a4a29c",
+    "url" : null,
+    "reference" : "sonatype-2014-0026",
+    "source" : "sonatype",
+    "score" : 6.5,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:H/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars jquery"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.10.2"
+      } ],
+      "name" : "org.webjars jquery"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars jquery",
+        "qualifier" : "",
+        "version" : "1.10.2"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "37081687a930b9a4a29c",
+    "url" : null,
+    "reference" : "sonatype-2019-0115",
+    "source" : "sonatype",
+    "score" : 6.1,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars jquery"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.10.2"
+      } ],
+      "name" : "org.webjars jquery"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "jquery",
+        "qualifier" : "",
+        "version" : "2.1.4"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "37da25aeb3ac361a1964",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-11023",
+    "reference" : "CVE-2020-11023",
+    "source" : "cve",
+    "score" : 6.1,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "jquery"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "2.1.4"
+      } ],
+      "name" : "jquery"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "asciidoctorj",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.asciidoctor",
+        "version" : "2.4.3"
+      }
+    },
+    "groupId" : "org.asciidoctor",
+    "artifactId" : "asciidoctorj",
+    "version" : "2.4.3",
+    "hash" : "58c98a3ec44d15288a13",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2015-3649",
+    "reference" : "CVE-2015-3649",
+    "source" : "cve",
+    "score" : 7.8,
+    "cwe" : "20",
+    "cvssVectorString" : "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.asciidoctor"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "asciidoctorj"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.4.3"
+      } ],
+      "name" : "asciidoctorj"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "asciidoctorj",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.asciidoctor",
+        "version" : "2.4.3"
+      }
+    },
+    "groupId" : "org.asciidoctor",
+    "artifactId" : "asciidoctorj",
+    "version" : "2.4.3",
+    "hash" : "58c98a3ec44d15288a13",
+    "url" : null,
+    "reference" : "sonatype-2015-0247",
+    "source" : "sonatype",
+    "score" : 5.4,
+    "cwe" : "20",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:L/UI:R/S:C/C:L/I:L/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.asciidoctor"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "asciidoctorj"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.4.3"
+      } ],
+      "name" : "asciidoctorj"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xstream",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.thoughtworks.xstream",
+        "version" : "1.4.5"
+      }
+    },
+    "groupId" : "com.thoughtworks.xstream",
+    "artifactId" : "xstream",
+    "version" : "1.4.5",
+    "hash" : "61c0a127b237182fdf2c",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2013-7285",
+    "reference" : "CVE-2013-7285",
+    "source" : "cve",
+    "score" : 9.8,
+    "cwe" : "77",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "operational" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.thoughtworks.xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.4.5"
+      } ],
+      "name" : "xstream"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xstream",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.thoughtworks.xstream",
+        "version" : "1.4.5"
+      }
+    },
+    "groupId" : "com.thoughtworks.xstream",
+    "artifactId" : "xstream",
+    "version" : "1.4.5",
+    "hash" : "61c0a127b237182fdf2c",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2016-3674",
+    "reference" : "CVE-2016-3674",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "200",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.thoughtworks.xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.4.5"
+      } ],
+      "name" : "xstream"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xstream",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.thoughtworks.xstream",
+        "version" : "1.4.5"
+      }
+    },
+    "groupId" : "com.thoughtworks.xstream",
+    "artifactId" : "xstream",
+    "version" : "1.4.5",
+    "hash" : "61c0a127b237182fdf2c",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-7957",
+    "reference" : "CVE-2017-7957",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "20",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.thoughtworks.xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.4.5"
+      } ],
+      "name" : "xstream"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xstream",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.thoughtworks.xstream",
+        "version" : "1.4.5"
+      }
+    },
+    "groupId" : "com.thoughtworks.xstream",
+    "artifactId" : "xstream",
+    "version" : "1.4.5",
+    "hash" : "61c0a127b237182fdf2c",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-26217",
+    "reference" : "CVE-2020-26217",
+    "source" : "cve",
+    "score" : 8.8,
+    "cwe" : "78",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.thoughtworks.xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.4.5"
+      } ],
+      "name" : "xstream"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xstream",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.thoughtworks.xstream",
+        "version" : "1.4.5"
+      }
+    },
+    "groupId" : "com.thoughtworks.xstream",
+    "artifactId" : "xstream",
+    "version" : "1.4.5",
+    "hash" : "61c0a127b237182fdf2c",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-26258",
+    "reference" : "CVE-2020-26258",
+    "source" : "cve",
+    "score" : 7.7,
+    "cwe" : "918",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:N/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.thoughtworks.xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.4.5"
+      } ],
+      "name" : "xstream"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xstream",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.thoughtworks.xstream",
+        "version" : "1.4.5"
+      }
+    },
+    "groupId" : "com.thoughtworks.xstream",
+    "artifactId" : "xstream",
+    "version" : "1.4.5",
+    "hash" : "61c0a127b237182fdf2c",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-26259",
+    "reference" : "CVE-2020-26259",
+    "source" : "cve",
+    "score" : 6.8,
+    "cwe" : "78",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:C/C:N/I:H/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.thoughtworks.xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.4.5"
+      } ],
+      "name" : "xstream"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xstream",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.thoughtworks.xstream",
+        "version" : "1.4.5"
+      }
+    },
+    "groupId" : "com.thoughtworks.xstream",
+    "artifactId" : "xstream",
+    "version" : "1.4.5",
+    "hash" : "61c0a127b237182fdf2c",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-21342",
+    "reference" : "CVE-2021-21342",
+    "source" : "cve",
+    "score" : 9.1,
+    "cwe" : "502,918",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.thoughtworks.xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.4.5"
+      } ],
+      "name" : "xstream"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xstream",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.thoughtworks.xstream",
+        "version" : "1.4.5"
+      }
+    },
+    "groupId" : "com.thoughtworks.xstream",
+    "artifactId" : "xstream",
+    "version" : "1.4.5",
+    "hash" : "61c0a127b237182fdf2c",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-21343",
+    "reference" : "CVE-2021-21343",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "502,73",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.thoughtworks.xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.4.5"
+      } ],
+      "name" : "xstream"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xstream",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.thoughtworks.xstream",
+        "version" : "1.4.5"
+      }
+    },
+    "groupId" : "com.thoughtworks.xstream",
+    "artifactId" : "xstream",
+    "version" : "1.4.5",
+    "hash" : "61c0a127b237182fdf2c",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-21344",
+    "reference" : "CVE-2021-21344",
+    "source" : "cve",
+    "score" : 9.8,
+    "cwe" : "434,502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.thoughtworks.xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.4.5"
+      } ],
+      "name" : "xstream"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xstream",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.thoughtworks.xstream",
+        "version" : "1.4.5"
+      }
+    },
+    "groupId" : "com.thoughtworks.xstream",
+    "artifactId" : "xstream",
+    "version" : "1.4.5",
+    "hash" : "61c0a127b237182fdf2c",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-21345",
+    "reference" : "CVE-2021-21345",
+    "source" : "cve",
+    "score" : 9.9,
+    "cwe" : "502,94",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.thoughtworks.xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.4.5"
+      } ],
+      "name" : "xstream"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xstream",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.thoughtworks.xstream",
+        "version" : "1.4.5"
+      }
+    },
+    "groupId" : "com.thoughtworks.xstream",
+    "artifactId" : "xstream",
+    "version" : "1.4.5",
+    "hash" : "61c0a127b237182fdf2c",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-21346",
+    "reference" : "CVE-2021-21346",
+    "source" : "cve",
+    "score" : 9.8,
+    "cwe" : "434,502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data", "configuration" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.thoughtworks.xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.4.5"
+      } ],
+      "name" : "xstream"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xstream",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.thoughtworks.xstream",
+        "version" : "1.4.5"
+      }
+    },
+    "groupId" : "com.thoughtworks.xstream",
+    "artifactId" : "xstream",
+    "version" : "1.4.5",
+    "hash" : "61c0a127b237182fdf2c",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-21347",
+    "reference" : "CVE-2021-21347",
+    "source" : "cve",
+    "score" : 9.8,
+    "cwe" : "434,502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.thoughtworks.xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.4.5"
+      } ],
+      "name" : "xstream"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xstream",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.thoughtworks.xstream",
+        "version" : "1.4.5"
+      }
+    },
+    "groupId" : "com.thoughtworks.xstream",
+    "artifactId" : "xstream",
+    "version" : "1.4.5",
+    "hash" : "61c0a127b237182fdf2c",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-21348",
+    "reference" : "CVE-2021-21348",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "400,502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data", "configuration" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.thoughtworks.xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.4.5"
+      } ],
+      "name" : "xstream"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xstream",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.thoughtworks.xstream",
+        "version" : "1.4.5"
+      }
+    },
+    "groupId" : "com.thoughtworks.xstream",
+    "artifactId" : "xstream",
+    "version" : "1.4.5",
+    "hash" : "61c0a127b237182fdf2c",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-21349",
+    "reference" : "CVE-2021-21349",
+    "source" : "cve",
+    "score" : 8.6,
+    "cwe" : "502,918",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:N/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.thoughtworks.xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.4.5"
+      } ],
+      "name" : "xstream"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xstream",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.thoughtworks.xstream",
+        "version" : "1.4.5"
+      }
+    },
+    "groupId" : "com.thoughtworks.xstream",
+    "artifactId" : "xstream",
+    "version" : "1.4.5",
+    "hash" : "61c0a127b237182fdf2c",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-21350",
+    "reference" : "CVE-2021-21350",
+    "source" : "cve",
+    "score" : 9.8,
+    "cwe" : "434,502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data", "configuration" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.thoughtworks.xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.4.5"
+      } ],
+      "name" : "xstream"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "underscore",
+        "qualifier" : "",
+        "version" : "1.10.2"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "6e27fcb901943b36046d",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-23358",
+    "reference" : "CVE-2021-23358",
+    "source" : "cve",
+    "score" : 7.2,
+    "cwe" : "94",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "underscore"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.10.2"
+      } ],
+      "name" : "underscore"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ant",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ant",
+        "version" : "1.6.5"
+      }
+    },
+    "groupId" : "ant",
+    "artifactId" : "ant",
+    "version" : "1.6.5",
+    "hash" : "7d18faf23df1a5c3a436",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2012-2098",
+    "reference" : "CVE-2012-2098",
+    "source" : "cve",
+    "score" : 5.0,
+    "cwe" : "310",
+    "cvssVectorString" : "AV:N/AC:L/Au:N/C:N/I:N/A:P",
+    "cvssVectorSource" : "cve_cvss_2",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "functional", "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "ant"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ant"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.6.5"
+      } ],
+      "name" : "ant"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ant",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ant",
+        "version" : "1.6.5"
+      }
+    },
+    "groupId" : "ant",
+    "artifactId" : "ant",
+    "version" : "1.6.5",
+    "hash" : "7d18faf23df1a5c3a436",
+    "url" : null,
+    "reference" : "sonatype-2018-0330",
+    "source" : "sonatype",
+    "score" : 6.5,
+    "cwe" : "22",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:C/C:L/I:L/A:L",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "ant"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ant"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.6.5"
+      } ],
+      "name" : "ant"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "jquery-form",
+        "qualifier" : "",
+        "version" : "3.50.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "9c06887e03feb6c996ab",
+    "url" : null,
+    "reference" : "sonatype-2015-0356",
+    "source" : "sonatype",
+    "score" : 6.1,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "jquery-form"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "3.50.0"
+      } ],
+      "name" : "jquery-form"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars bootstrap",
+        "qualifier" : "",
+        "version" : "3.1.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "b72e6b076e32fb3a87f6",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-14042",
+    "reference" : "CVE-2018-14042",
+    "source" : "cve",
+    "score" : 6.1,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars bootstrap"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "3.1.1"
+      } ],
+      "name" : "org.webjars bootstrap"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars bootstrap",
+        "qualifier" : "",
+        "version" : "3.1.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "b72e6b076e32fb3a87f6",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-8331",
+    "reference" : "CVE-2019-8331",
+    "source" : "cve",
+    "score" : 6.1,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars bootstrap"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "3.1.1"
+      } ],
+      "name" : "org.webjars bootstrap"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars bootstrap",
+        "qualifier" : "",
+        "version" : "3.1.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "b72e6b076e32fb3a87f6",
+    "url" : null,
+    "reference" : "sonatype-2016-0129",
+    "source" : "sonatype",
+    "score" : 5.4,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:L/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars bootstrap"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "3.1.1"
+      } ],
+      "name" : "org.webjars bootstrap"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars bootstrap",
+        "qualifier" : "",
+        "version" : "3.1.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "b72e6b076e32fb3a87f6",
+    "url" : null,
+    "reference" : "sonatype-2018-0607",
+    "source" : "sonatype",
+    "score" : 6.1,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars bootstrap"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "3.1.1"
+      } ],
+      "name" : "org.webjars bootstrap"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "bootstrap",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.webjars",
+        "version" : "3.3.7"
+      }
+    },
+    "groupId" : "org.webjars",
+    "artifactId" : "bootstrap",
+    "version" : "3.3.7",
+    "hash" : "d6aeba80236573ed585b",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-14042",
+    "reference" : "CVE-2018-14042",
+    "source" : "cve",
+    "score" : 6.1,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.webjars"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "bootstrap"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.3.7"
+      } ],
+      "name" : "bootstrap"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "bootstrap",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.webjars",
+        "version" : "3.3.7"
+      }
+    },
+    "groupId" : "org.webjars",
+    "artifactId" : "bootstrap",
+    "version" : "3.3.7",
+    "hash" : "d6aeba80236573ed585b",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-20677",
+    "reference" : "CVE-2018-20677",
+    "source" : "cve",
+    "score" : 6.1,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.webjars"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "bootstrap"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.3.7"
+      } ],
+      "name" : "bootstrap"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "bootstrap",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.webjars",
+        "version" : "3.3.7"
+      }
+    },
+    "groupId" : "org.webjars",
+    "artifactId" : "bootstrap",
+    "version" : "3.3.7",
+    "hash" : "d6aeba80236573ed585b",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-8331",
+    "reference" : "CVE-2019-8331",
+    "source" : "cve",
+    "score" : 6.1,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.webjars"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "bootstrap"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.3.7"
+      } ],
+      "name" : "bootstrap"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "bootstrap",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.webjars",
+        "version" : "3.3.7"
+      }
+    },
+    "groupId" : "org.webjars",
+    "artifactId" : "bootstrap",
+    "version" : "3.3.7",
+    "hash" : "d6aeba80236573ed585b",
+    "url" : null,
+    "reference" : "sonatype-2016-0129",
+    "source" : "sonatype",
+    "score" : 5.4,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:L/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.webjars"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "bootstrap"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.3.7"
+      } ],
+      "name" : "bootstrap"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "bootstrap",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.webjars",
+        "version" : "3.3.7"
+      }
+    },
+    "groupId" : "org.webjars",
+    "artifactId" : "bootstrap",
+    "version" : "3.3.7",
+    "hash" : "d6aeba80236573ed585b",
+    "url" : null,
+    "reference" : "sonatype-2017-0695",
+    "source" : "sonatype",
+    "score" : 6.1,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.webjars"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "bootstrap"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.3.7"
+      } ],
+      "name" : "bootstrap"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "bootstrap",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.webjars",
+        "version" : "3.3.7"
+      }
+    },
+    "groupId" : "org.webjars",
+    "artifactId" : "bootstrap",
+    "version" : "3.3.7",
+    "hash" : "d6aeba80236573ed585b",
+    "url" : null,
+    "reference" : "sonatype-2018-0607",
+    "source" : "sonatype",
+    "score" : 6.1,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.webjars"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "bootstrap"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.3.7"
+      } ],
+      "name" : "bootstrap"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jsoup",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.jsoup",
+        "version" : "1.13.1"
+      }
+    },
+    "groupId" : "org.jsoup",
+    "artifactId" : "jsoup",
+    "version" : "1.13.1",
+    "hash" : "f9577f3732bb7caa4fee",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-37714",
+    "reference" : "CVE-2021-37714",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "835",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.jsoup"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jsoup"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.13.1"
+      } ],
+      "name" : "jsoup"
+    }
+  } ]
+}

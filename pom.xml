@@ -79,7 +79,7 @@
     <!-- byte-buddy version should match whichever version mockito-core depends on in its pom.xml file. -->
     <mockito-core.version>5.23.0</mockito-core.version>
     <byte-buddy.version>1.18.3</byte-buddy.version>
-    <embedded-postgres.version>2.1.0</embedded-postgres.version>
+    <embedded-postgres.version>2.2.2</embedded-postgres.version>
     <testcontainers.version>2.0.5</testcontainers.version>
     <!-- OpenSearch TestContainers 3.x series is for Java 21+ so we are stuck on 2.x for now -->
     <opensearch-testcontainers.version>2.1.4</opensearch-testcontainers.version>

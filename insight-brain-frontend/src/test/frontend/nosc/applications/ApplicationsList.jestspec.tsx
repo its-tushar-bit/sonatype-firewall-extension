@@ -279,7 +279,7 @@ describe('ApplicationsList (CLM-42224)', () => {
 
     expect(screen.getByTestId('applications-toolbar-csv')).toHaveAttribute(
       'title',
-      'CSV export caveat: sorted by total risk (not evaluation time); stage filter uses Classic matching and may differ from this list'
+      'CSV export caveat: sorted by total risk; stage filter uses Classic matching and may differ from this list'
     );
   });
 
@@ -306,7 +306,7 @@ describe('ApplicationsList (CLM-42224)', () => {
           page: 0,
           pageSize: 50,
           includeFacets: true,
-          orderBy: '-lastEvaluationTime',
+          orderBy: '-maxPolicyThreatLevel',
         })
       );
       expect(body.stageIds).toBeUndefined();
@@ -321,7 +321,7 @@ describe('ApplicationsList (CLM-42224)', () => {
     });
     expect(screen.getByTestId('applications-toolbar-search')).toBeInTheDocument();
     expect(screen.getByTestId('applications-toolbar-sort')).toBeInTheDocument();
-    expect(screen.getByLabelText('Sort')).toHaveTextContent('Latest evaluation');
+    expect(screen.getByLabelText('Sort')).toHaveTextContent('Highest threat');
     expect(screen.getByTestId('applications-toolbar-csv')).toBeEnabled();
     expect(screen.getByTestId('applications-toolbar-export-form')).toHaveAttribute(
       'action',
@@ -346,14 +346,14 @@ describe('ApplicationsList (CLM-42224)', () => {
         expect.objectContaining({
           search: 'apple',
           page: 0,
-          orderBy: '-lastEvaluationTime',
+          orderBy: '-maxPolicyThreatLevel',
         })
       );
     });
 
     expect(screen.getByTestId('applications-toolbar-csv')).toHaveAttribute(
       'title',
-      'CSV export caveat: sorted by total risk (not evaluation time); search term is not included'
+      'CSV export caveat: sorted by total risk; search term is not included'
     );
   });
 
@@ -425,7 +425,7 @@ describe('ApplicationsPage async states', () => {
   const toolbarProps = {
     searchValue: '',
     onSearchSubmit: jest.fn(),
-    orderBy: '-lastEvaluationTime' as const,
+    orderBy: '-maxPolicyThreatLevel' as const,
     onOrderByChange: jest.fn(),
   };
   const pageProps = {

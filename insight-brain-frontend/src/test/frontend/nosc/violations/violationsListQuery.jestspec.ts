@@ -5,6 +5,7 @@
  */
 import {
   buildViolationsListRouteParams,
+  DEFAULT_VIOLATIONS_LIST_ORDER_BY,
   MAX_DEEP_LINK_PAGE,
   parseViolationsListParams,
   violationsFiltersEqual,
@@ -16,13 +17,30 @@ function filterState(overrides: Partial<ViolationsFilterState> = {}): Violations
   return { ...createDefaultViolationsFilterState(), ...overrides };
 }
 
+function queryState(
+  overrides: Partial<Parameters<typeof buildViolationsListRouteParams>[0]> = {},
+) {
+  return {
+    search: '',
+    page: 0,
+    orderBy: DEFAULT_VIOLATIONS_LIST_ORDER_BY,
+    filters: createDefaultViolationsFilterState(),
+    ...overrides,
+  };
+}
+
 describe('violationsListQuery (CLM-42260)', () => {
   describe('parseViolationsListParams', () => {
-    it('returns empty search, page 0, and default filters for empty params', () => {
+    it('returns empty search, page 0, default sort, and default filters for empty params', () => {
       const parsed = parseViolationsListParams({});
       expect(parsed.search).toBe('');
       expect(parsed.page).toBe(0);
+      expect(parsed.orderBy).toBe(DEFAULT_VIOLATIONS_LIST_ORDER_BY);
       expect(violationsFiltersEqual(parsed.filters, createDefaultViolationsFilterState())).toBe(true);
+    });
+
+    it('parses lowest-threat sort slug', () => {
+      expect(parseViolationsListParams({ sort: 'lowest-threat' }).orderBy).toBe('policyThreatLevel');
     });
 
     it('parses search, 1-based page (to 0-based), and all filter groups', () => {
@@ -97,13 +115,10 @@ describe('violationsListQuery (CLM-42260)', () => {
 
   describe('buildViolationsListRouteParams', () => {
     it('omits every param for the default (unfiltered, first-page) state', () => {
-      const params = buildViolationsListRouteParams({
-        search: '',
-        page: 0,
-        filters: createDefaultViolationsFilterState(),
-      });
+      const params = buildViolationsListRouteParams(queryState());
       expect(params).toEqual({
         q: undefined,
+        sort: undefined,
         page: undefined,
         state: undefined,
         category: undefined,
@@ -117,21 +132,24 @@ describe('violationsListQuery (CLM-42260)', () => {
     });
 
     it('serializes search, 1-based page, sorted csv groups, and the threat range', () => {
-      const params = buildViolationsListRouteParams({
-        search: 'lodash',
-        page: 2,
-        filters: filterState({
-          states: new Set(['WAIVED', 'OPEN']),
-          threatCategories: new Set(['license', 'security']),
-          stageIds: new Set(['release', 'build']),
-          organizationIds: new Set(['org-java']),
-          applicationIds: new Set(['app-banana', 'app-apple']),
-          applicationCategoryIds: new Set(['cat-b', 'cat-a']),
-          threatRange: [4, 9],
+      const params = buildViolationsListRouteParams(
+        queryState({
+          search: 'lodash',
+          page: 2,
+          filters: filterState({
+            states: new Set(['WAIVED', 'OPEN']),
+            threatCategories: new Set(['license', 'security']),
+            stageIds: new Set(['release', 'build']),
+            organizationIds: new Set(['org-java']),
+            applicationIds: new Set(['app-banana', 'app-apple']),
+            applicationCategoryIds: new Set(['cat-b', 'cat-a']),
+            threatRange: [4, 9],
+          }),
         }),
-      });
+      );
       expect(params).toEqual({
         q: 'lodash',
+        sort: undefined,
         page: '3',
         state: 'OPEN,WAIVED',
         category: 'license,security',
@@ -140,28 +158,32 @@ describe('violationsListQuery (CLM-42260)', () => {
         app: 'app-apple,app-banana',
         appCategory: 'cat-a,cat-b',
         threat: '4-9',
+        waiver: undefined,
       });
     });
 
-    it('serializes the waiver-type radio to a lowercase token, omitting ANY (CLM-42261)', () => {
-      const base = { search: '', page: 0 };
+    it('serializes lowest-threat sort explicitly', () => {
       expect(
-        buildViolationsListRouteParams({ ...base, filters: filterState({ waiverType: 'ANY' }) }).waiver,
+        buildViolationsListRouteParams(queryState({ orderBy: 'policyThreatLevel' })).sort,
+      ).toBe('lowest-threat');
+    });
+
+    it('serializes the waiver-type radio to a lowercase token, omitting ANY (CLM-42261)', () => {
+      expect(
+        buildViolationsListRouteParams(queryState({ filters: filterState({ waiverType: 'ANY' }) })).waiver,
       ).toBeUndefined();
       expect(
-        buildViolationsListRouteParams({ ...base, filters: filterState({ waiverType: 'AUTO' }) }).waiver,
+        buildViolationsListRouteParams(queryState({ filters: filterState({ waiverType: 'AUTO' }) })).waiver,
       ).toBe('auto');
       expect(
-        buildViolationsListRouteParams({ ...base, filters: filterState({ waiverType: 'MANUAL' }) }).waiver,
+        buildViolationsListRouteParams(queryState({ filters: filterState({ waiverType: 'MANUAL' }) })).waiver,
       ).toBe('manual');
     });
 
     it('omits the threat param when the range is the full [0, 10] default', () => {
-      const params = buildViolationsListRouteParams({
-        search: '',
-        page: 0,
-        filters: filterState({ threatRange: [0, 10] }),
-      });
+      const params = buildViolationsListRouteParams(
+        queryState({ filters: filterState({ threatRange: [0, 10] }) }),
+      );
       expect(params.threat).toBeUndefined();
     });
 
@@ -169,6 +191,7 @@ describe('violationsListQuery (CLM-42260)', () => {
       const state = {
         search: 'log4j',
         page: 4,
+        orderBy: 'policyThreatLevel' as const,
         filters: filterState({
           states: new Set(['OPEN']),
           threatCategories: new Set(['security']),
@@ -183,6 +206,7 @@ describe('violationsListQuery (CLM-42260)', () => {
       const reparsed = parseViolationsListParams(buildViolationsListRouteParams(state));
       expect(reparsed.search).toBe('log4j');
       expect(reparsed.page).toBe(4);
+      expect(reparsed.orderBy).toBe('policyThreatLevel');
       expect(violationsFiltersEqual(reparsed.filters, state.filters)).toBe(true);
     });
   });

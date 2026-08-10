@@ -23,6 +23,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.lenient;
@@ -50,6 +51,20 @@ public class ApplicationsListRequestValidatorTest
         new PolicyThreatLevelFilter(1, 1));
 
     assertThatCode(() -> validator.validate(request)).doesNotThrowAnyException();
+  }
+
+  @Test
+  public void validate_acceptsSupportedApplicationsListOrderByTokens() {
+    assertThat(ApplicationsListRequestValidator.DEFAULT_ORDER_BY).isEqualTo("-maxPolicyThreatLevel");
+
+    assertThatCode(() -> validator.validate(requestWithOrderBy("-maxPolicyThreatLevel")))
+        .doesNotThrowAnyException();
+    assertThatCode(() -> validator.validate(requestWithOrderBy("maxPolicyThreatLevel")))
+        .doesNotThrowAnyException();
+    assertThatCode(() -> validator.validate(requestWithOrderBy("-lastEvaluationTime")))
+        .doesNotThrowAnyException();
+    assertThatCode(() -> validator.validate(requestWithOrderBy("lastEvaluationTime")))
+        .doesNotThrowAnyException();
   }
 
   @Test
@@ -121,5 +136,11 @@ public class ApplicationsListRequestValidatorTest
     assertThatThrownBy(() -> validator.validate(request))
         .isInstanceOf(BadRequestException.class)
         .hasMessageContaining("must not contain null elements");
+  }
+
+  private static ApplicationsListRequestDTO requestWithOrderBy(final String orderBy) {
+    ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
+    request.orderBy = orderBy;
+    return request;
   }
 }

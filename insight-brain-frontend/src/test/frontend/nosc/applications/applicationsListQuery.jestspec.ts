@@ -46,7 +46,7 @@ describe('applicationsListQuery (CLM-42226)', () => {
     expect(
       buildApplicationsListRouteParams({
         search: '',
-        orderBy: sortSlugToOrderBy('latest'),
+        orderBy: sortSlugToOrderBy('highest-threat'),
         page: 0,
         filters: EMPTY_APPLICATIONS_LIST_FILTERS,
       }),
@@ -69,13 +69,13 @@ describe('applicationsListQuery (CLM-42226)', () => {
     };
     const params = buildApplicationsListRouteParams({
       search: 'banana',
-      orderBy: 'lastEvaluationTime',
+      orderBy: '-lastEvaluationTime',
       page: 1,
       filters,
     });
     const parsed = parseApplicationsListParams(params);
     expect(parsed.search).toBe('banana');
-    expect(parsed.orderBy).toBe('lastEvaluationTime');
+    expect(parsed.orderBy).toBe('-lastEvaluationTime');
     expect(parsed.page).toBe(1);
     expect(Array.from(parsed.filters.stageIds)).toEqual(['build']);
     expect(Array.from(parsed.filters.organizationIds)).toEqual(['org-a']);
@@ -86,5 +86,23 @@ describe('applicationsListQuery (CLM-42226)', () => {
     expect(params.threat).toBe('4-7');
     expect(params.policyType).toBe('security');
     expect(params.violationState).toBe('OPEN');
+    expect(params.sort).toBe('latest');
+  });
+
+  it('round-trips lowest threat sort explicitly', () => {
+    const params = buildApplicationsListRouteParams({
+      search: '',
+      orderBy: 'maxPolicyThreatLevel',
+      page: 0,
+      filters: EMPTY_APPLICATIONS_LIST_FILTERS,
+    });
+
+    expect(params.sort).toBe('lowest-threat');
+    expect(parseApplicationsListParams(params).orderBy).toBe('maxPolicyThreatLevel');
+  });
+
+  it('defaults unknown sort slugs to highest threat', () => {
+    expect(sortSlugToOrderBy('highest-risk')).toBe('-maxPolicyThreatLevel');
+    expect(sortSlugToOrderBy('not-a-sort')).toBe('-maxPolicyThreatLevel');
   });
 });

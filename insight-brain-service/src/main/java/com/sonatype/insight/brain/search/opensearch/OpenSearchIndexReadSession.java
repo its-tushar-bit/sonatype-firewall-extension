@@ -28,11 +28,13 @@ import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.SortedNumericSortField;
 import org.opensearch.client.opensearch.OpenSearchClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.opensearch.client.opensearch._types.FieldValue;
 import org.opensearch.client.opensearch._types.SortOptions;
 import org.opensearch.client.opensearch._types.SortOrder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.opensearch.client.opensearch._types.aggregations.Aggregate;
 import org.opensearch.client.opensearch._types.aggregations.StringTermsBucket;
 import org.opensearch.client.opensearch.core.SearchRequest;
@@ -129,7 +131,8 @@ public class OpenSearchIndexReadSession
 
     List<Object> searchAfter = IndexSessionCursors.decode(BACKEND_ID, request.searchAfter());
     if (!searchAfter.isEmpty()) {
-      // Pagination is restricted to keyword/string sort fields (see buildSortOptions); cursors store strings.
+      // OpenSearch Java client accepts search_after as strings; the cluster coerces numeric
+      // FieldSort cursor values from the previous hit's sort tuple (Global Search parity).
       builder.searchAfter(searchAfter.stream().map(String::valueOf).toList());
     }
 
@@ -239,6 +242,7 @@ public class OpenSearchIndexReadSession
 
   private List<SortOptions> buildSortOptions(final Sort sort) {
     List<SortOptions> options = new ArrayList<>();
+    boolean hasDocumentKey = false;
     if (sort != null) {
       for (SortField sf : sort.getSort()) {
         if (sf.getField() == null) {
@@ -249,25 +253,31 @@ public class OpenSearchIndexReadSession
           options.add(SortOptions.of(o -> o.score(s -> s
               .order(sf.getReverse() ? SortOrder.Asc : SortOrder.Desc))));
         }
-        else if (sf.getType() != SortField.Type.STRING) {
-          // OpenSearch search_after requires stable string sort keys; numeric sorts stringify incorrectly.
-          throw new IllegalArgumentException(
-              "OpenSearch IndexReadSession only supports keyword/string sort fields for search_after pagination; got: "
-                  + sf);
-        }
         else {
+          // Field sorts (keyword or numeric). OpenSearch chooses numeric vs lex from mapping.
+          // Numeric session sorts set Lucene missing-last sentinels; mirror that with missing=_last.
+          boolean numeric = sf instanceof SortedNumericSortField;
           options.add(SortOptions.of(o -> o
-              .field(f -> f
-                  .field(sf.getField())
-                  .order(sf.getReverse() ? SortOrder.Desc : SortOrder.Asc))));
+              .field(f -> {
+                f.field(sf.getField()).order(sf.getReverse() ? SortOrder.Desc : SortOrder.Asc);
+                if (numeric) {
+                  f.missing(FieldValue.of("_last"));
+                }
+                return f;
+              })));
+          if (FieldIdentifier.DOCUMENT_KEY.label.equals(sf.getField())) {
+            hasDocumentKey = true;
+          }
         }
       }
     }
     else {
       options.add(SortOptions.of(o -> o.score(s -> s.order(SortOrder.Desc))));
     }
-    options.add(SortOptions.of(o -> o
-        .field(f -> f.field(FieldIdentifier.DOCUMENT_KEY.label).order(SortOrder.Asc))));
+    if (!hasDocumentKey) {
+      options.add(SortOptions.of(o -> o
+          .field(f -> f.field(FieldIdentifier.DOCUMENT_KEY.label).order(SortOrder.Asc))));
+    }
     return options;
   }
 

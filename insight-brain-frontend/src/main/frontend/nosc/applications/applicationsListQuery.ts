@@ -15,14 +15,23 @@ import {
 } from 'MainRoot/nosc/applications/applicationsListFilters';
 
 /** Martha list API orderBy tokens (validator-enforced). */
-export type ApplicationsListOrderBy = 'lastEvaluationTime' | '-lastEvaluationTime';
+export type ApplicationsListOrderBy =
+  | 'maxPolicyThreatLevel'
+  | '-maxPolicyThreatLevel'
+  | 'lastEvaluationTime'
+  | '-lastEvaluationTime';
 
-export const DEFAULT_APPLICATIONS_LIST_ORDER_BY: ApplicationsListOrderBy = '-lastEvaluationTime';
+export const DEFAULT_APPLICATIONS_LIST_ORDER_BY: ApplicationsListOrderBy = '-maxPolicyThreatLevel';
 
-/** URL-friendly sort slugs persisted in the hash query. */
-type ApplicationsListSortSlug = 'latest' | 'oldest';
+/**
+ * URL-friendly sort slugs persisted in the hash query.
+ * Threat-band sorts use "threat" (not "risk") so they are not confused with the Total Risk score.
+ */
+type ApplicationsListSortSlug = 'highest-threat' | 'lowest-threat' | 'latest' | 'oldest';
 
 const ORDER_BY_TO_SORT_SLUG: Record<ApplicationsListOrderBy, ApplicationsListSortSlug> = {
+  '-maxPolicyThreatLevel': 'highest-threat',
+  maxPolicyThreatLevel: 'lowest-threat',
   '-lastEvaluationTime': 'latest',
   lastEvaluationTime: 'oldest',
 };
@@ -32,12 +41,26 @@ export function orderByToSortSlug(orderBy: ApplicationsListOrderBy): Application
 }
 
 export function sortSlugToOrderBy(slug: string | null | undefined): ApplicationsListOrderBy {
+  if (slug === 'lowest-threat') return 'maxPolicyThreatLevel';
+  if (slug === 'latest') return '-lastEvaluationTime';
   if (slug === 'oldest') return 'lastEvaluationTime';
+  // Default covers highest-threat and unknown/missing.
   return DEFAULT_APPLICATIONS_LIST_ORDER_BY;
 }
 
 export function applicationsListOrderByLabel(orderBy: ApplicationsListOrderBy): string {
-  return orderBy === '-lastEvaluationTime' ? 'Latest evaluation' : 'Oldest evaluation';
+  switch (orderBy) {
+    case '-maxPolicyThreatLevel':
+      return 'Highest threat';
+    case 'maxPolicyThreatLevel':
+      return 'Lowest threat';
+    case '-lastEvaluationTime':
+      return 'Latest evaluation';
+    case 'lastEvaluationTime':
+      return 'Oldest evaluation';
+    default:
+      return 'Highest threat';
+  }
 }
 
 function parseCsvParam(value: string | null | undefined): ReadonlyArray<string> {
@@ -125,7 +148,7 @@ export function buildApplicationsListRouteParams(state: {
 
   return {
     q: state.search.trim() || undefined,
-    sort: sort === 'latest' ? undefined : sort,
+    sort: sort === 'highest-threat' ? undefined : sort,
     page,
     stage,
     org,

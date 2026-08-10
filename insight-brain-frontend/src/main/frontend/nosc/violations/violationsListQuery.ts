@@ -16,6 +16,7 @@ import {
   isDefaultThreatRange,
   STATE_LABELS,
   THREAT_CATEGORY_LABELS,
+  VIOLATIONS_DEFAULT_ORDER_BY,
 } from 'MainRoot/nosc/violations/violationsListApi';
 import {
   asString,
@@ -29,14 +30,36 @@ import {
 
 export { MAX_DEEP_LINK_PAGE };
 
+/** Martha list API orderBy tokens (validator-enforced). */
+export type ViolationsListOrderBy = 'policyThreatLevel' | '-policyThreatLevel';
+
+export const DEFAULT_VIOLATIONS_LIST_ORDER_BY: ViolationsListOrderBy =
+  VIOLATIONS_DEFAULT_ORDER_BY as ViolationsListOrderBy;
+
+type ViolationsListSortSlug = 'highest-threat' | 'lowest-threat';
+
+const ORDER_BY_TO_SORT_SLUG: Record<ViolationsListOrderBy, ViolationsListSortSlug> = {
+  '-policyThreatLevel': 'highest-threat',
+  policyThreatLevel: 'lowest-threat',
+};
+
+export function violationsListOrderByLabel(orderBy: ViolationsListOrderBy): string {
+  return orderBy === 'policyThreatLevel' ? 'Lowest threat' : 'Highest threat';
+}
+
+export function sortSlugToViolationsOrderBy(slug: string | null | undefined): ViolationsListOrderBy {
+  if (slug === 'lowest-threat') return 'policyThreatLevel';
+  return DEFAULT_VIOLATIONS_LIST_ORDER_BY;
+}
+
 /**
- * URL-friendly names for the list-page hash query. Sort is intentionally absent: the Violations list
- * only supports the single {@code -policyThreatLevel} order, so there is nothing to persist.
+ * URL-friendly names for the list-page hash query (search, page, filters, sort).
  */
 export interface ViolationsListQueryState {
   readonly search: string;
   /** 0-based page index for the list API. */
   readonly page: number;
+  readonly orderBy: ViolationsListOrderBy;
   readonly filters: ViolationsFilterState;
 }
 
@@ -92,6 +115,7 @@ export function parseViolationsListParams(params: Record<string, unknown>): Viol
   return {
     search,
     page,
+    orderBy: sortSlugToViolationsOrderBy(typeof params.sort === 'string' ? params.sort : null),
     filters: {
       ...createDefaultViolationsFilterState(),
       states: parseFilteredSet(params.state, SUPPORTED_STATES),
@@ -113,8 +137,10 @@ export function parseViolationsListParams(params: Record<string, unknown>): Viol
 export function buildViolationsListRouteParams(
   state: ViolationsListQueryState,
 ): Record<string, string | undefined> {
+  const sort = ORDER_BY_TO_SORT_SLUG[state.orderBy];
   return {
     q: state.search.trim() || undefined,
+    sort: sort === 'highest-threat' ? undefined : sort,
     page: state.page > 0 ? String(state.page + 1) : undefined,
     state: serializeCsvParam(state.filters.states),
     category: serializeCsvParam(state.filters.threatCategories),
@@ -135,6 +161,7 @@ export function buildViolationsListRouteParams(
 export function rawViolationsListParamsSnapshot(params: Record<string, unknown>): string {
   return JSON.stringify({
     q: asString(params.q),
+    sort: asString(params.sort),
     page: asString(params.page),
     state: asString(params.state),
     category: asString(params.category),

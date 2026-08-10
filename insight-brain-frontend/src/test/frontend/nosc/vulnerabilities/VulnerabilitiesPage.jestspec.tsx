@@ -164,14 +164,14 @@ describe('VulnerabilitiesPage', () => {
     );
   });
 
-  it('disables CSV and hides sort on Catalog', () => {
+  it('disables CSV on Catalog while keeping CVSS sort available', () => {
     renderPage({ tab: 'catalog', totalCount: 5 });
     expect(screen.getByTestId('vulnerabilities-toolbar-csv')).toBeDisabled();
     expect(screen.getByTestId('vulnerabilities-toolbar-csv')).toHaveAttribute(
       'title',
       'Sonatype Catalog export is not available',
     );
-    expect(screen.queryByTestId('vulnerabilities-toolbar-sort')).not.toBeInTheDocument();
+    expect(screen.getByTestId('vulnerabilities-toolbar-sort')).toBeInTheDocument();
   });
 
   it('hides estate scope sections on Catalog even when facet maps are present', () => {

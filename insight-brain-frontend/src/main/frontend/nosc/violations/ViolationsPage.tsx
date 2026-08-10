@@ -17,6 +17,7 @@ import {
   ViolationWaiverType,
 } from 'MainRoot/nosc/violations/violationListTypes';
 import { hasActiveViolationFilters } from 'MainRoot/nosc/violations/violationsListApi';
+import type { ViolationsListOrderBy } from 'MainRoot/nosc/violations/violationsListQuery';
 import ViolationsFilterRail from 'MainRoot/nosc/violations/ViolationsFilterRail';
 import ViolationsToolbar from 'MainRoot/nosc/violations/ViolationsToolbar';
 import ViolationCardGrid from 'MainRoot/nosc/violations/ViolationCardGrid';
@@ -47,6 +48,9 @@ export interface ViolationsPageProps {
   readonly totalCount: number;
   readonly searchValue: string;
   readonly onSearchSubmit: (term: string) => void;
+  /** When omitted (e.g. Legal), the threat sort control is hidden. */
+  readonly orderBy?: ViolationsListOrderBy;
+  readonly onOrderByChange?: (orderBy: ViolationsListOrderBy) => void;
   /** 1-based current page. */
   readonly page: number;
   readonly pageSize: number;
@@ -127,6 +131,8 @@ export default function ViolationsPage({
   totalCount,
   searchValue,
   onSearchSubmit,
+  orderBy,
+  onOrderByChange,
   page,
   pageSize,
   onPageChange,
@@ -259,6 +265,8 @@ export default function ViolationsPage({
           totalCount={totalCount}
           searchValue={searchValue}
           onSearchSubmit={onSearchSubmit}
+          orderBy={orderBy}
+          onOrderByChange={onOrderByChange}
           filters={filters}
           hideCsvExport={hideCsvExport}
           resultNoun={emptyResultNoun === 'violations' ? undefined : emptyResultNoun}

@@ -50,8 +50,8 @@ public class ApplicationsListRequestDTO
   public PolicyViolationStateFilter policyViolationStates;
 
   /**
-   * Reserved for latest-evaluation default sort ({@link ApplicationsListRequestValidator#DEFAULT_ORDER_BY}).
-   * Only {@code lastEvaluationTime} / {@code -lastEvaluationTime} are accepted in Martha V1.
+   * Applications list sort token. Accepted values are {@code maxPolicyThreatLevel},
+   * {@code -maxPolicyThreatLevel}, {@code lastEvaluationTime}, and {@code -lastEvaluationTime}.
    */
   public String orderBy;
 

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.sonatype.insight.brain.search.ConversionHelper;
+import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.lucene.LuceneComponents;
 import com.sonatype.insight.brain.search.session.IndexPageRequest;
 import com.sonatype.insight.brain.search.session.IndexPageResult;
@@ -20,9 +21,12 @@ import com.sonatype.insight.brain.service.InsightWork;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.SortedNumericSortField;
 import org.junit.Before;
 import org.junit.Test;
 import org.opensearch.client.opensearch.OpenSearchClient;
+import org.opensearch.client.opensearch._types.SortOptions;
+import org.opensearch.client.opensearch._types.SortOrder;
 import org.opensearch.client.opensearch._types.aggregations.Aggregate;
 import org.opensearch.client.opensearch._types.aggregations.StringTermsBucket;
 import org.opensearch.client.opensearch.core.SearchRequest;
@@ -37,7 +41,6 @@ import org.opensearch.client.opensearch.core.search.TotalHitsRelation;
 import org.mockito.ArgumentCaptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -126,13 +129,36 @@ public class OpenSearchIndexReadSessionTest
   }
 
   @Test
-  public void searchPage_rejectsNumericSortFieldsForPagination() {
-    Sort numericSort = new Sort(new SortField("priority", SortField.Type.LONG, false));
+  @SuppressWarnings("unchecked")
+  public void searchPage_acceptsNumericSortFieldsForPagination() throws Exception {
+    Hit<Map> first = mock(Hit.class);
+    when(first.source()).thenReturn(Map.of("value", "one"));
+    // Sort arity matches OpenSearch: numeric field + DOCUMENT_KEY (not double-appended).
+    when(first.sort()).thenReturn(List.of("10", "doc-1"));
+    Hit<Map> extra = mock(Hit.class);
+    stubSearchResponse(List.of(first, extra), 2L);
 
-    assertThatThrownBy(
-        () -> session.searchPage(new IndexPageRequest(new MatchAllDocsQuery(), numericSort, 1, List.of())))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("keyword/string sort fields");
+    Sort numericSort = new Sort(
+        new SortedNumericSortField("priority", SortField.Type.LONG, true),
+        new SortField(FieldIdentifier.DOCUMENT_KEY.label, SortField.Type.STRING));
+
+    IndexPageResult result = session.searchPage(
+        new IndexPageRequest(new MatchAllDocsQuery(), numericSort, 1, List.of()));
+
+    assertThat(result.hasNext()).isTrue();
+    assertThat(IndexSessionCursors.decode(OpenSearchIndexReadSession.BACKEND_ID, result.nextSearchAfter()))
+        .containsExactly("10", "doc-1");
+
+    ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+    verify(client).search(captor.capture(), eq(Map.class));
+    List<SortOptions> sorts = captor.getValue().sort();
+    assertThat(sorts).hasSize(2);
+    assertThat(sorts.get(0).isField()).isTrue();
+    assertThat(sorts.get(0).field().field()).isEqualTo("priority");
+    assertThat(sorts.get(0).field().order()).isEqualTo(SortOrder.Desc);
+    assertThat(sorts.get(0).field().missing().stringValue()).isEqualTo("_last");
+    assertThat(sorts.get(1).field().field()).isEqualTo(FieldIdentifier.DOCUMENT_KEY.label);
+    assertThat(sorts.get(1).field().order()).isEqualTo(SortOrder.Asc);
   }
 
   @Test

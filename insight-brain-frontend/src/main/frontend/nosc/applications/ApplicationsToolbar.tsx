@@ -26,8 +26,8 @@ export interface ApplicationsToolbarProps {
 /**
  * Toolbar row for the Martha V1 Applications page (CLM-42226).
  *
- * Search submits on Enter and drives the list API {@code search} field. Sort toggles between the
- * two validator-supported {@code orderBy} tokens. CSV export posts the active sidebar filters to
+ * Search submits on Enter and drives the list API {@code search} field. Sort emits the
+ * validator-supported {@code orderBy} tokens. CSV export posts the active sidebar filters to
  * the Classic {@code /rest/dashboard/export/applicationRisks} endpoint (search is index-only and is
  * not included in the export payload). Stage filters follow Classic matching and may differ from
  * the violation-scoped apps shown in the Martha list.
@@ -52,8 +52,8 @@ export default function ApplicationsToolbar({
   );
   const csvExportTitle = useMemo(() => {
     const caveats: string[] = [
-      // Classic PostgreSQL export rejects lastEvaluationTime; payload remaps to TOTAL_RISK.
-      'sorted by total risk (not evaluation time)',
+      // Classic PostgreSQL export accepts only total-risk ordering for these Martha sort tokens.
+      'sorted by total risk',
     ];
     if (searchValue.trim().length > 0) {
       caveats.push('search term is not included');
@@ -108,7 +108,14 @@ export default function ApplicationsToolbar({
               variant="soft"
               color="gray"
             />
-            <Select.Content>
+            {/* Popper: item-aligned Select collapses to ~1 option inside this page's overflow shell. */}
+            <Select.Content position="popper">
+              <Select.Item value="-maxPolicyThreatLevel">
+                {applicationsListOrderByLabel('-maxPolicyThreatLevel')}
+              </Select.Item>
+              <Select.Item value="maxPolicyThreatLevel">
+                {applicationsListOrderByLabel('maxPolicyThreatLevel')}
+              </Select.Item>
               <Select.Item value="-lastEvaluationTime">
                 {applicationsListOrderByLabel('-lastEvaluationTime')}
               </Select.Item>

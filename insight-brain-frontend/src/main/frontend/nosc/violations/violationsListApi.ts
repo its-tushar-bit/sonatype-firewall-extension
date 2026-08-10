@@ -92,6 +92,7 @@ export function buildViolationsListRequest(params: {
   readonly pageSize?: number;
   readonly search?: string;
   readonly includeFacets?: boolean;
+  readonly orderBy?: string;
   readonly filters?: ViolationsFilterState;
   readonly organizationFacetSearch?: string;
   readonly applicationFacetSearch?: string;
@@ -120,7 +121,7 @@ export function buildViolationsListRequest(params: {
     page: params.page,
     pageSize: params.pageSize ?? VIOLATIONS_PAGE_SIZE,
     includeFacets: params.includeFacets ?? true,
-    orderBy: VIOLATIONS_DEFAULT_ORDER_BY,
+    orderBy: params.orderBy ?? VIOLATIONS_DEFAULT_ORDER_BY,
     ...(search ? { search } : {}),
     ...(states ? { policyViolationStates: states } : {}),
     ...(categories ? { policyThreatCategories: categories.join(',') } : {}),

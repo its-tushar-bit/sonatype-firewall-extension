@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.dashboard.applications;
 
 import java.util.Arrays;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
@@ -52,10 +51,64 @@ public class ApplicationsListServiceTest
   }
 
   @Test
-  public void stableSessionSort_usesDocumentKeyDocValuesField() {
-    SortField[] sortFields = ApplicationsListService.stableSessionSort().getSort();
-    assertThat(Arrays.stream(sortFields).map(SortField::getField).collect(Collectors.toList()))
-        .containsExactly(FieldIdentifier.DOCUMENT_KEY.label);
+  public void sessionSort_riskFirstUsesThreatThenEvaluationThenDocumentKey() {
+    SortField[] fields = ApplicationsListService.sessionSort("-maxPolicyThreatLevel").getSort();
+
+    assertThat(Arrays.stream(fields).map(SortField::getField).toList())
+        .containsExactly(
+            FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL.label,
+            FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label,
+            FieldIdentifier.DOCUMENT_KEY.label);
+    assertThat(fields[0].getReverse()).isTrue();
+    assertThat(fields[0].getMissingValue()).isEqualTo(Integer.MIN_VALUE);
+    assertThat(fields[1].getReverse()).isTrue();
+    assertThat(fields[1].getMissingValue()).isEqualTo(Long.MIN_VALUE);
+    assertThat(fields[2].getReverse()).isFalse();
+  }
+
+  @Test
+  public void sessionSort_ascendingRiskUsesAscendingMissingSentinels() {
+    SortField[] fields = ApplicationsListService.sessionSort("maxPolicyThreatLevel").getSort();
+
+    assertThat(Arrays.stream(fields).map(SortField::getField).toList())
+        .containsExactly(
+            FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL.label,
+            FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label,
+            FieldIdentifier.DOCUMENT_KEY.label);
+    assertThat(fields[0].getReverse()).isFalse();
+    assertThat(fields[0].getMissingValue()).isEqualTo(Integer.MAX_VALUE);
+    assertThat(fields[1].getReverse()).isFalse();
+    assertThat(fields[1].getMissingValue()).isEqualTo(Long.MAX_VALUE);
+    assertThat(fields[2].getReverse()).isFalse();
+  }
+
+  @Test
+  public void sessionSort_evaluationTimeUsesEvaluationThenDocumentKey() {
+    SortField[] descending = ApplicationsListService.sessionSort("-lastEvaluationTime").getSort();
+    assertThat(Arrays.stream(descending).map(SortField::getField).toList())
+        .containsExactly(
+            FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label,
+            FieldIdentifier.DOCUMENT_KEY.label);
+    assertThat(descending[0].getReverse()).isTrue();
+    assertThat(descending[0].getMissingValue()).isEqualTo(Long.MIN_VALUE);
+
+    SortField[] ascending = ApplicationsListService.sessionSort("lastEvaluationTime").getSort();
+    assertThat(Arrays.stream(ascending).map(SortField::getField).toList())
+        .containsExactly(
+            FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label,
+            FieldIdentifier.DOCUMENT_KEY.label);
+    assertThat(ascending[0].getReverse()).isFalse();
+    assertThat(ascending[0].getMissingValue()).isEqualTo(Long.MAX_VALUE);
+  }
+
+  @Test
+  public void toFallbackComparatorOrderBy_mapsThreatTokensToEvaluationTimeNotTotalRisk() {
+    assertThat(ApplicationsListService.toFallbackComparatorOrderBy("-maxPolicyThreatLevel"))
+        .isEqualTo("-lastEvaluationTime");
+    assertThat(ApplicationsListService.toFallbackComparatorOrderBy("maxPolicyThreatLevel"))
+        .isEqualTo("lastEvaluationTime");
+    assertThat(ApplicationsListService.toFallbackComparatorOrderBy("-lastEvaluationTime"))
+        .isEqualTo("-lastEvaluationTime");
   }
 
   @Test

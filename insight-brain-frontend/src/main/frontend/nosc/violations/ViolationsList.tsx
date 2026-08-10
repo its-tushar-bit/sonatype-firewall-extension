@@ -22,8 +22,10 @@ import {
 } from 'MainRoot/nosc/violations/violationsListApi';
 import {
   buildViolationsListRouteParams,
+  DEFAULT_VIOLATIONS_LIST_ORDER_BY,
   parseViolationsListParams,
   rawViolationsListParamsSnapshot,
+  type ViolationsListOrderBy,
   violationsFiltersEqual,
 } from 'MainRoot/nosc/violations/violationsListQuery';
 import { fetchApplicationCategoryOptions } from 'MainRoot/nosc/violations/applicationCategoryOptions';
@@ -51,10 +53,12 @@ export default function ViolationsList(): JSX.Element {
     search,
     page,
     filters,
+    orderBy: orderByFromUrl,
     fetchEnabled,
     setSearch,
     setPage,
     setFilters,
+    setOrderBy,
     requestUrlWrite,
   } = useNexusOneListUrlState<ViolationsFilterState>({
     stateName: NEXUS_ONE_VIOLATIONS_STATE_NAME,
@@ -63,6 +67,7 @@ export default function ViolationsList(): JSX.Element {
     rawSnapshot: rawViolationsListParamsSnapshot,
     filtersEqual: violationsFiltersEqual,
   });
+  const orderBy = (orderByFromUrl as ViolationsListOrderBy | undefined) ?? DEFAULT_VIOLATIONS_LIST_ORDER_BY;
 
   // Facet-rail org/app name search — not URL-persisted; debounced before the list POST (CLM-42912).
   const [organizationFacetSearch, setOrganizationFacetSearch] = useState('');
@@ -124,6 +129,7 @@ export default function ViolationsList(): JSX.Element {
     page: page - 1,
     pageSize: VIOLATIONS_PAGE_SIZE,
     search,
+    orderBy,
     includeFacets,
     filters,
     organizationFacetSearch: debouncedOrganizationFacetSearch || undefined,
@@ -221,6 +227,15 @@ export default function ViolationsList(): JSX.Element {
     [setSearch, setPage, requestUrlWrite]
   );
 
+  const changeOrderBy = useCallback(
+    (next: ViolationsListOrderBy) => {
+      setOrderBy(next);
+      setPage(1);
+      requestUrlWrite();
+    },
+    [setOrderBy, setPage, requestUrlWrite]
+  );
+
   const goToPage = useCallback(
     (nextPage: number) => {
       setPage(nextPage);
@@ -269,6 +284,8 @@ export default function ViolationsList(): JSX.Element {
       totalCount={data?.total ?? 0}
       searchValue={search}
       onSearchSubmit={submitSearch}
+      orderBy={orderBy}
+      onOrderByChange={changeOrderBy}
       page={page}
       pageSize={VIOLATIONS_PAGE_SIZE}
       onPageChange={goToPage}

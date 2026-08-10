@@ -45,18 +45,23 @@ describe('applicationsListExport (CLM-42226)', () => {
   it('omits optional keys when sidebar filters are empty', () => {
     const payload = buildApplicationsListExportPayload(
       EMPTY_APPLICATIONS_LIST_FILTERS,
-      '-lastEvaluationTime',
+      '-maxPolicyThreatLevel',
     );
 
     expect(payload).toEqual({ orderBy: '-TOTAL_RISK' });
   });
 
-  it('maps Martha lastEvaluationTime sort to Classic TOTAL_RISK for PostgreSQL export', () => {
+  it('maps Martha sort tokens to Classic TOTAL_RISK for PostgreSQL export', () => {
     const payload = buildApplicationsListExportPayload(
       EMPTY_APPLICATIONS_LIST_FILTERS,
       'lastEvaluationTime',
     );
+    const riskPayload = buildApplicationsListExportPayload(
+      EMPTY_APPLICATIONS_LIST_FILTERS,
+      'maxPolicyThreatLevel',
+    );
 
     expect(payload).toEqual({ orderBy: 'TOTAL_RISK' });
+    expect(riskPayload).toEqual({ orderBy: 'TOTAL_RISK' });
   });
 });

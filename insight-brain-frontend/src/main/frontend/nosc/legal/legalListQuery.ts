@@ -5,6 +5,7 @@
  */
 import { createDefaultLegalFilterState } from 'MainRoot/nosc/legal/legalListApi';
 import {
+  DEFAULT_VIOLATIONS_LIST_ORDER_BY,
   ViolationsListQueryState,
   violationsFiltersEqual,
 } from 'MainRoot/nosc/violations/violationsListQuery';
@@ -39,6 +40,8 @@ export function parseLegalListParams(params: Record<string, unknown>): LegalList
   return {
     search,
     page,
+    // Legal list does not expose sort UI; keep the shared query-state shape satisfied.
+    orderBy: DEFAULT_VIOLATIONS_LIST_ORDER_BY,
     filters: {
       ...createDefaultLegalFilterState(),
       threatCategories: new Set(parseCsvParam(params.category)),

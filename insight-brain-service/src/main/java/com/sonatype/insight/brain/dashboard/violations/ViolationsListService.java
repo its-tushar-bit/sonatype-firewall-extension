@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.search.session.IndexPageRequest;
 import com.sonatype.insight.brain.search.session.IndexPageResult;
 import com.sonatype.insight.brain.search.session.IndexReadSession;
 import com.sonatype.insight.brain.search.session.IndexReadSessionFactory;
+import com.sonatype.insight.brain.search.session.IndexSessionNumericSorts;
 import com.sonatype.insight.brain.search.session.SearchReadPath;
 import com.sonatype.insight.brain.search.session.SearchReadPathFlags;
 import com.sonatype.insight.brain.search.session.SearchReadPathSurface;
@@ -40,7 +41,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
-import org.apache.lucene.search.SortField;
 
 /**
  * Index-backed Martha V1 Violations list.
@@ -51,12 +51,10 @@ import org.apache.lucene.search.SortField;
  * <p>
  * Request defaults: {@code page=0}, {@code pageSize=50}, {@code includeFacets=true} when omitted.
  * <p>
- * <b>Sort caveat:</b> {@code orderBy=-policyThreatLevel} (the default) orders rows <em>within</em> each
- * index page after retrieval — neither {@link SearchIndexClient#searchIndex} nor the session walk
- * expose threat-level sort until Track B docValues, so the ordering cannot be pushed into the index
- * for this V1. Consequently the highest-threat rows are ordered correctly on each returned page, but
- * global "highest threat first" ordering is <em>not</em> guaranteed across page boundaries.
- * Index-level sort is tracked under CLM-42262.
+ * {@code orderBy=-policyThreatLevel} (the default) and {@code orderBy=policyThreatLevel} are pushed
+ * into the index {@link Sort} on the session path ({@link IndexReadSession}), so threat ordering is
+ * stable across page boundaries (CLM-44036). The legacy {@link SearchIndexClient} path still sorts
+ * rows in memory after retrieval.
  * <p>
  * When {@code nexusOne.search.readPath.violations=new}, list + facets share one
  * {@link IndexReadSession} opened via {@link IndexReadSessionFactory} (PR-0 / CLM-42705). Default
@@ -192,7 +190,7 @@ public class ViolationsListService
       if (targetPageHasHits) {
         IndexPageResult result = null;
         List<Object> searchAfter = List.of();
-        Sort sort = stableSessionSort();
+        Sort sort = sessionSort(orderBy);
         for (int currentPage = 0; currentPage <= page; currentPage++) {
           result = session.searchPage(new IndexPageRequest(sessionQuery, sort, pageSize, searchAfter));
           searchAfter = result.nextSearchAfter();
@@ -205,7 +203,6 @@ public class ViolationsListService
         rows.add(toRow(item));
       }
       enrichFirstOccurredTimes(rows);
-      rows.sort(comparator(orderBy));
 
       ViolationsListResponseDTO response = new ViolationsListResponseDTO();
       response.violations = rows;
@@ -232,13 +229,14 @@ public class ViolationsListService
   }
 
   /**
-   * Stable total order for session {@code searchAfter} walks.
-   * <p>
-   * Lucene today only indexes {@link FieldIdentifier#DOCUMENT_KEY} as SortedDocValuesField for a
-   * unique stable order without schema change. Threat-level sort awaits Track B docValues (CLM-42262).
+   * Stable total order for session {@code searchAfter} walks: threat level (per {@code orderBy}) then
+   * {@link FieldIdentifier#DOCUMENT_KEY} for tie-breaking.
    */
-  static Sort stableSessionSort() {
-    return new Sort(new SortField(FieldIdentifier.DOCUMENT_KEY.label, SortField.Type.STRING));
+  static Sort sessionSort(final String orderBy) {
+    boolean ascending = ViolationsListRequestValidator.ORDER_BY_POLICY_THREAT_LEVEL_ASC.equals(orderBy);
+    return new Sort(
+        IndexSessionNumericSorts.intField(FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL, !ascending),
+        IndexSessionNumericSorts.documentKeyAscending());
   }
 
   /**
@@ -251,7 +249,7 @@ public class ViolationsListService
   }
 
   static Comparator<ViolationRowDTO> comparator(final String orderBy) {
-    boolean ascending = "policyThreatLevel".equals(orderBy);
+    boolean ascending = ViolationsListRequestValidator.ORDER_BY_POLICY_THREAT_LEVEL_ASC.equals(orderBy);
     Comparator<Integer> threatOrder = ascending ? Comparator.naturalOrder() : Comparator.reverseOrder();
     // Wrap nullsLast around the directional order (not the other way around) so that rows with an
     // absent threat level always sort last, for both ascending and the default descending request.

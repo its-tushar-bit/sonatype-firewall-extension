@@ -26,12 +26,18 @@ import org.apache.commons.lang3.StringUtils;
 @Singleton
 final class ViolationsListRequestValidator
 {
-  static final String DEFAULT_ORDER_BY = "-policyThreatLevel";
+  static final String ORDER_BY_POLICY_THREAT_LEVEL_ASC = "policyThreatLevel";
+
+  static final String ORDER_BY_POLICY_THREAT_LEVEL_DESC = "-policyThreatLevel";
+
+  static final String DEFAULT_ORDER_BY = ORDER_BY_POLICY_THREAT_LEVEL_DESC;
 
   /** Matches {@code application_component.hash} / index componentHash storage width. */
   static final int MAX_COMPONENT_HASH_LENGTH = 40;
 
-  private static final Set<String> SUPPORTED_ORDER_BY = Set.of("policyThreatLevel", "-policyThreatLevel");
+  private static final Set<String> SUPPORTED_ORDER_BY = Set.of(
+      ORDER_BY_POLICY_THREAT_LEVEL_ASC,
+      ORDER_BY_POLICY_THREAT_LEVEL_DESC);
 
   void validate(final ViolationsListRequestDTO request) {
     if (request == null) {
@@ -72,7 +78,8 @@ final class ViolationsListRequestValidator
     }
     if (!SUPPORTED_ORDER_BY.contains(orderBy)) {
       throw new BadRequestException(
-          "Invalid orderBy: " + orderBy + ". Supported values are policyThreatLevel and -policyThreatLevel.");
+          "Invalid orderBy: " + orderBy + ". Supported values are "
+              + ORDER_BY_POLICY_THREAT_LEVEL_ASC + " and " + ORDER_BY_POLICY_THREAT_LEVEL_DESC + ".");
     }
   }
 }

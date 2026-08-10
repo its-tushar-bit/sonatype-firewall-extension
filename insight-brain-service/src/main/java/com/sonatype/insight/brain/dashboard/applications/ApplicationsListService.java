@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.search.session.IndexPageRequest;
 import com.sonatype.insight.brain.search.session.IndexPageResult;
 import com.sonatype.insight.brain.search.session.IndexReadSession;
 import com.sonatype.insight.brain.search.session.IndexReadSessionFactory;
+import com.sonatype.insight.brain.search.session.IndexSessionNumericSorts;
 import com.sonatype.insight.brain.search.session.SearchReadPath;
 import com.sonatype.insight.brain.search.session.SearchReadPathFlags;
 import com.sonatype.insight.brain.search.session.SearchReadPathSurface;
@@ -42,7 +43,6 @@ import com.sonatype.insight.error.exception.ConflictException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
-import org.apache.lucene.search.SortField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,8 +55,8 @@ import org.slf4j.LoggerFactory;
  * <p>
  * Request defaults: {@code page=0}, {@code pageSize=50}, {@code includeFacets=true} when omitted.
  * <p>
- * {@code orderBy=-lastEvaluationTime} sorts evaluation cards within each index page after enrichment.
- * Cross-page ordering still follows index pagination until index-level sort lands (CLM-42230).
+ * {@code orderBy=-maxPolicyThreatLevel} uses the CLM-44036 session sort:
+ * max threat, recency, and document key, so max-threat ordering is stable across pages.
  */
 @Named
 @Singleton
@@ -150,7 +150,7 @@ public class ApplicationsListService
       }
       cards = mergeIndexPageWithEnrichment(pageItems, enriched);
     }
-    cards.sort(new ApplicationRiskScoreDTOComparator(orderBy));
+    cards.sort(new ApplicationRiskScoreDTOComparator(toFallbackComparatorOrderBy(orderBy)));
 
     ApplicationsListResponseDTO response = new ApplicationsListResponseDTO();
     response.applications = new ArrayList<>(cards);
@@ -198,7 +198,7 @@ public class ApplicationsListService
         // and MAX_WALKABLE_PAGE until Track B offset/cursor API. Acceptable for flag-gated rollout.
         IndexPageResult result = null;
         List<Object> searchAfter = List.of();
-        Sort sort = stableSessionSort();
+        Sort sort = sessionSort(orderBy);
         for (int currentPage = 0; currentPage <= page; currentPage++) {
           result = session.searchPage(new IndexPageRequest(sessionQuery, sort, pageSize, searchAfter));
           if (result == null) {
@@ -215,7 +215,7 @@ public class ApplicationsListService
       }
 
       ApplicationsListResponseDTO response =
-          buildResponse(request, page, pageSize, orderBy, total, pageItems);
+          buildResponse(request, page, pageSize, total, pageItems);
       if (includeFacets) {
         try {
           String violationQueryString = ApplicationsListViolationQuerySupport.toViolationQuery(query);
@@ -236,7 +236,6 @@ public class ApplicationsListService
       final ApplicationsListRequestDTO request,
       final int page,
       final int pageSize,
-      final String orderBy,
       final long total,
       final LinkedHashMap<String, SearchResultItemDTO> pageItems)
   {
@@ -261,8 +260,6 @@ public class ApplicationsListService
       }
       cards = mergeIndexPageWithEnrichment(pageItems, enriched);
     }
-    cards.sort(new ApplicationRiskScoreDTOComparator(orderBy));
-
     ApplicationsListResponseDTO response = new ApplicationsListResponseDTO();
     response.applications = new ArrayList<>(cards);
     response.total = total;
@@ -323,14 +320,47 @@ public class ApplicationsListService
   /**
    * Stable total order for session {@code searchAfter} walks.
    * <p>
-   * Lucene today only indexes {@link FieldIdentifier#DOCUMENT_KEY} as
-   * {@code SortedDocValuesField} ({@code LuceneIndexingContext}). Sorting on
-   * {@code applicationName}/{@code applicationId} would throw at search time until Track B
-   * docValues land (red-gate). {@code documentKey} hashes identity fields including
-   * applicationId, so it is a unique stable order without schema change.
+   * CLM-44036 sorts by indexed application risk fields, then uses {@link FieldIdentifier#DOCUMENT_KEY}
+   * as a unique ascending tie-breaker.
+   */
+  static Sort sessionSort(final String orderBy) {
+    return switch (orderBy) {
+      case ApplicationsListRequestValidator.ORDER_BY_MAX_POLICY_THREAT_LEVEL_DESC -> new Sort(
+          IndexSessionNumericSorts.intField(FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL, true),
+          IndexSessionNumericSorts.longField(FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS, true),
+          IndexSessionNumericSorts.documentKeyAscending());
+      case ApplicationsListRequestValidator.ORDER_BY_MAX_POLICY_THREAT_LEVEL_ASC -> new Sort(
+          IndexSessionNumericSorts.intField(FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL, false),
+          IndexSessionNumericSorts.longField(FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS, false),
+          IndexSessionNumericSorts.documentKeyAscending());
+      case ApplicationsListRequestValidator.ORDER_BY_LAST_EVALUATION_DESC -> new Sort(
+          IndexSessionNumericSorts.longField(FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS, true),
+          IndexSessionNumericSorts.documentKeyAscending());
+      case ApplicationsListRequestValidator.ORDER_BY_LAST_EVALUATION_ASC -> new Sort(
+          IndexSessionNumericSorts.longField(FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS, false),
+          IndexSessionNumericSorts.documentKeyAscending());
+      default -> throw new IllegalArgumentException("Unsupported applications list orderBy: " + orderBy);
+    };
+  }
+
+  /**
+   * Stable identity order for session scans that are not rendering the application list page.
    */
   static Sort stableSessionSort() {
-    return new Sort(new SortField(FieldIdentifier.DOCUMENT_KEY.label, SortField.Type.STRING));
+    return new Sort(IndexSessionNumericSorts.documentKeyAscending());
+  }
+
+  /**
+   * OLD {@link SearchIndexClient} path cannot index-sort by max threat across pages. Map threat
+   * tokens to evaluation-time page sort — not Total Risk — so the UI label "Highest threat" is not
+   * silently remapped to the yellow score. Cross-page threat order requires the NEW session path.
+   */
+  static String toFallbackComparatorOrderBy(final String orderBy) {
+    return switch (orderBy) {
+      case ApplicationsListRequestValidator.ORDER_BY_MAX_POLICY_THREAT_LEVEL_ASC -> ApplicationsListRequestValidator.ORDER_BY_LAST_EVALUATION_ASC;
+      case ApplicationsListRequestValidator.ORDER_BY_MAX_POLICY_THREAT_LEVEL_DESC -> ApplicationsListRequestValidator.ORDER_BY_LAST_EVALUATION_DESC;
+      default -> orderBy;
+    };
   }
 
   private static List<ApplicationRiskScoreDTO> mergeIndexPageWithEnrichment(

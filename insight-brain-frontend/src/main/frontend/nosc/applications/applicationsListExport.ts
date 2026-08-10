@@ -8,15 +8,15 @@ import { applicationsListFiltersToRequest } from 'MainRoot/nosc/applications/app
 import type { ApplicationsListOrderBy } from 'MainRoot/nosc/applications/applicationsListQuery';
 
 /**
- * Classic PostgreSQL application-risk export rejects Martha's {@code lastEvaluationTime} tokens
+ * Classic PostgreSQL application-risk export rejects Martha's sort tokens
  * ({@code PostgresApplicationRiskService}). Map to Classic {@code TOTAL_RISK} while preserving
  * direction. Callers should surface this remapping in the export UI (see ApplicationsToolbar).
  */
 export function toClassicExportOrderBy(orderBy: ApplicationsListOrderBy): string {
-  if (orderBy === 'lastEvaluationTime') {
+  if (orderBy === 'maxPolicyThreatLevel' || orderBy === 'lastEvaluationTime') {
     return 'TOTAL_RISK';
   }
-  if (orderBy === '-lastEvaluationTime') {
+  if (orderBy === '-maxPolicyThreatLevel' || orderBy === '-lastEvaluationTime') {
     return '-TOTAL_RISK';
   }
   return orderBy;
@@ -27,9 +27,9 @@ export function toClassicExportOrderBy(orderBy: ApplicationsListOrderBy): string
  *
  * Uses POST /rest/dashboard/export/applicationRisks (multipart {@code filter} JSON). Sidebar
  * filters map into Classic export fields; free-text {@code search} is index-only and is not
- * supported on the Classic export path. Martha toolbar sort ({@code lastEvaluationTime}) is
- * mapped to Classic {@code TOTAL_RISK} because PostgreSQL-backed export does not support
- * evaluation-time ordering. Pagination fields are omitted — the export resource fetches all
+ * supported on the Classic export path. Martha toolbar sort tokens are mapped to Classic
+ * {@code TOTAL_RISK} because PostgreSQL-backed export does not support the list sort fields.
+ * Pagination fields are omitted — the export resource fetches all
  * matching rows via {@code getApplicationRisks(..., 0, Integer.MAX_VALUE)}.
  *
  * Parity caveat: Martha list stage, policy type, and violation state filters are violation-scoped

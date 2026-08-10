@@ -11,6 +11,8 @@ export interface NexusOneListUrlParsedState<TFilters> {
   /** 0-based page index (API / codec). */
   readonly page: number;
   readonly filters: TFilters;
+  /** Optional list sort token when the surface persists {@code sort} in the hash. */
+  readonly orderBy?: string;
 }
 
 export interface UseNexusOneListUrlStateOptions<TFilters> {
@@ -29,11 +31,13 @@ export interface NexusOneListUrlState<TFilters> {
   /** 1-based page for Pagination UI. */
   readonly page: number;
   readonly filters: TFilters;
+  readonly orderBy: string | undefined;
   /** True after the first hydrate so the list fetch uses restored deep-link state. */
   readonly fetchEnabled: boolean;
   readonly setSearch: React.Dispatch<React.SetStateAction<string>>;
   readonly setPage: React.Dispatch<React.SetStateAction<number>>;
   readonly setFilters: React.Dispatch<React.SetStateAction<TFilters>>;
+  readonly setOrderBy: React.Dispatch<React.SetStateAction<string | undefined>>;
   /** Mark the next state change as a user-driven URL write (replace, no transition). */
   readonly requestUrlWrite: () => void;
 }
@@ -60,6 +64,7 @@ export function useNexusOneListUrlState<TFilters>(
   const [page, setPage] = useState(() => parsed.page + 1);
   const [search, setSearch] = useState(() => parsed.search);
   const [filters, setFilters] = useState<TFilters>(() => parsed.filters);
+  const [orderBy, setOrderBy] = useState<string | undefined>(() => parsed.orderBy);
   const pendingUrlWrite = useRef(false);
 
   const requestUrlWrite = useCallback(() => {
@@ -70,6 +75,7 @@ export function useNexusOneListUrlState<TFilters>(
     setSearch((current) => (current === parsed.search ? current : parsed.search));
     setPage((current) => (current === parsed.page + 1 ? current : parsed.page + 1));
     setFilters((current) => (filtersEqual(current, parsed.filters) ? current : parsed.filters));
+    setOrderBy((current) => (current === parsed.orderBy ? current : parsed.orderBy));
     if (!fetchGateOpened.current) {
       fetchGateOpened.current = true;
       setFetchEnabled(true);
@@ -87,22 +93,24 @@ export function useNexusOneListUrlState<TFilters>(
   useEffect(() => {
     if (!pendingUrlWrite.current) return;
     pendingUrlWrite.current = false;
-    const nextParams = build({ search, page: page - 1, filters });
+    const nextParams = build({ search, page: page - 1, filters, orderBy });
     if (JSON.stringify(nextParams) === routeKey) return;
     router.stateService.go(stateName, nextParams, {
       notify: false,
       location: 'replace',
     });
-  }, [router, search, page, filters, routeKey, stateName, build]);
+  }, [router, search, page, filters, orderBy, routeKey, stateName, build]);
 
   return {
     search,
     page,
     filters,
+    orderBy,
     fetchEnabled,
     setSearch,
     setPage,
     setFilters,
+    setOrderBy,
     requestUrlWrite,
   };
 }

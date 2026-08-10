@@ -141,7 +141,10 @@ public class ApplicationsListPaginationParityTest
     verify(session, times(1)).searchPage(pageRequestCaptor.capture());
     SortField[] sortFields = pageRequestCaptor.getValue().sort().getSort();
     assertThat(Arrays.stream(sortFields).map(SortField::getField).toList())
-        .containsExactly(FieldIdentifier.DOCUMENT_KEY.label);
+        .containsExactly(
+            FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL.label,
+            FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label,
+            FieldIdentifier.DOCUMENT_KEY.label);
   }
 
   private static ApplicationsListRequestDTO request() {

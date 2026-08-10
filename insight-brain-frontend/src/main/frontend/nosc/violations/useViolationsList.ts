@@ -17,6 +17,7 @@ export interface UseViolationsListParams {
   readonly page: number;
   readonly pageSize?: number;
   readonly search?: string;
+  readonly orderBy?: string;
   readonly includeFacets?: boolean;
   readonly filters?: ViolationsFilterState;
   /** Debounced Organizations facet search (server-side name match; not URL-persisted). */
@@ -45,6 +46,7 @@ export function useViolationsList(
     page,
     pageSize = VIOLATIONS_PAGE_SIZE,
     search,
+    orderBy,
     includeFacets = true,
     filters,
     organizationFacetSearch,
@@ -58,12 +60,22 @@ export function useViolationsList(
         page,
         pageSize,
         search,
+        orderBy,
         includeFacets,
         filters,
         organizationFacetSearch,
         applicationFacetSearch,
       }),
-    [page, pageSize, search, includeFacets, filters, organizationFacetSearch, applicationFacetSearch],
+    [
+      page,
+      pageSize,
+      search,
+      orderBy,
+      includeFacets,
+      filters,
+      organizationFacetSearch,
+      applicationFacetSearch,
+    ],
   );
 
   return useTile<ViolationsListResponse>(getViolationsListUrl(), undefined, {

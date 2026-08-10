@@ -760,8 +760,6 @@ public class IqLocalSearchServiceTest
         FieldIdentifier.POLICY_WAIVER_CREATED_AT_EPOCH_MS))
     {
       SortField field = IqLocalSearchService.buildSortField(f).getSort()[0];
-      // Numeric fields use SortedNumericSortField (reads the SortedNumericDocValues twin); its
-      // getType() is CUSTOM, so assert the numeric type via getNumericType().
       assertThat(field).as("field for %s", f).isInstanceOf(SortedNumericSortField.class);
       assertThat(((SortedNumericSortField) field).getNumericType())
           .as("numeric type for %s", f)
@@ -793,6 +791,23 @@ public class IqLocalSearchServiceTest
       assertThat(field.getMissingValue())
           .as("missing sorts last for %s", f)
           .isEqualTo(Integer.MIN_VALUE);
+      assertThat(field.getReverse()).as("reverse for %s", f).isTrue();
+      assertThat(field.getField()).isEqualTo(f.label);
+    }
+  }
+
+  @Test
+  public void buildSortField_threatFields_sortDescendingAsInt() {
+    for (FieldIdentifier f : List.of(
+        FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL,
+        FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL,
+        FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL))
+    {
+      SortField field = IqLocalSearchService.buildSortField(f).getSort()[0];
+      assertThat(field).as("field for %s", f).isInstanceOf(SortedNumericSortField.class);
+      assertThat(((SortedNumericSortField) field).getNumericType())
+          .as("numeric type for %s", f)
+          .isEqualTo(SortField.Type.INT);
       assertThat(field.getReverse()).as("reverse for %s", f).isTrue();
       assertThat(field.getField()).isEqualTo(f.label);
     }

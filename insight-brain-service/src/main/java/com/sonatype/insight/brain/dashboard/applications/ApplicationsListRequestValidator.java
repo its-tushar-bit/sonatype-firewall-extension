@@ -27,12 +27,16 @@ import org.apache.commons.lang3.StringUtils;
 @Singleton
 final class ApplicationsListRequestValidator
 {
-  /** Martha V1 fixed default — latest evaluation descending. */
-  static final String DEFAULT_ORDER_BY = "-lastEvaluationTime";
+  /** CLM-44036: risk-first default for cross-page Applications list ordering. */
+  static final String DEFAULT_ORDER_BY = "-maxPolicyThreatLevel";
 
-  private static final String ORDER_BY_LAST_EVALUATION_ASC = "lastEvaluationTime";
+  static final String ORDER_BY_MAX_POLICY_THREAT_LEVEL_ASC = "maxPolicyThreatLevel";
 
-  private static final String ORDER_BY_LAST_EVALUATION_DESC = "-" + ORDER_BY_LAST_EVALUATION_ASC;
+  static final String ORDER_BY_MAX_POLICY_THREAT_LEVEL_DESC = "-" + ORDER_BY_MAX_POLICY_THREAT_LEVEL_ASC;
+
+  static final String ORDER_BY_LAST_EVALUATION_ASC = "lastEvaluationTime";
+
+  static final String ORDER_BY_LAST_EVALUATION_DESC = "-" + ORDER_BY_LAST_EVALUATION_ASC;
 
   /** Matches the selectable Martha threat buckets (Critical/Severe/Moderate/Low/None). */
   static final int MAX_POLICY_THREAT_LEVEL_RANGES = 5;
@@ -121,7 +125,11 @@ final class ApplicationsListRequestValidator
   }
 
   private static void validateOrderBy(final String orderBy) {
-    if (ORDER_BY_LAST_EVALUATION_DESC.equals(orderBy) || ORDER_BY_LAST_EVALUATION_ASC.equals(orderBy)) {
+    if (ORDER_BY_MAX_POLICY_THREAT_LEVEL_DESC.equals(orderBy)
+        || ORDER_BY_MAX_POLICY_THREAT_LEVEL_ASC.equals(orderBy)
+        || ORDER_BY_LAST_EVALUATION_DESC.equals(orderBy)
+        || ORDER_BY_LAST_EVALUATION_ASC.equals(orderBy))
+    {
       return;
     }
     throw new BadRequestException("Unsupported orderBy on the applications list: " + orderBy);

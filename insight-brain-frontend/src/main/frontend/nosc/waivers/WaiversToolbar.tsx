@@ -98,7 +98,8 @@ export default function WaiversToolbar({
               variant="soft"
               color="gray"
             />
-            <Select.Content>
+            {/* Popper: item-aligned Select collapses to ~1 option inside this page's overflow shell. */}
+            <Select.Content position="popper">
               {SORT_OPTIONS.map((option) => (
                 <Select.Item key={option} value={option}>
                   {waiversListOrderByLabel(option)}

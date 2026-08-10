@@ -132,31 +132,30 @@ export default function VulnerabilitiesToolbar({
             </TextField.Root>
           </form>
 
-          {tab === 'myScanData' && (
-            <Flex align="center" gap="2" data-testid="vulnerabilities-toolbar-sort">
-              <Text size="2" color="gray" as="label" htmlFor="vulnerabilities-toolbar-sort-select">
-                Sort
-              </Text>
-              <Select.Root
-                value={orderBy}
-                onValueChange={(value) => onOrderByChange(value as VulnerabilitiesListOrderBy)}
-              >
-                <Select.Trigger
-                  id="vulnerabilities-toolbar-sort-select"
-                  variant="soft"
-                  color="gray"
-                />
-                <Select.Content>
-                  <Select.Item value="-cvssScore">
-                    {vulnerabilitiesListOrderByLabel('-cvssScore')}
-                  </Select.Item>
-                  <Select.Item value="cvssScore">
-                    {vulnerabilitiesListOrderByLabel('cvssScore')}
-                  </Select.Item>
-                </Select.Content>
-              </Select.Root>
-            </Flex>
-          )}
+          <Flex align="center" gap="2" data-testid="vulnerabilities-toolbar-sort">
+            <Text size="2" color="gray" as="label" htmlFor="vulnerabilities-toolbar-sort-select">
+              Sort
+            </Text>
+            <Select.Root
+              value={orderBy}
+              onValueChange={(value) => onOrderByChange(value as VulnerabilitiesListOrderBy)}
+            >
+              <Select.Trigger
+                id="vulnerabilities-toolbar-sort-select"
+                variant="soft"
+                color="gray"
+              />
+              {/* Popper: item-aligned Select collapses to ~1 option inside this page's overflow shell. */}
+              <Select.Content position="popper">
+                <Select.Item value="-cvssScore">
+                  {vulnerabilitiesListOrderByLabel('-cvssScore')}
+                </Select.Item>
+                <Select.Item value="cvssScore">
+                  {vulnerabilitiesListOrderByLabel('cvssScore')}
+                </Select.Item>
+              </Select.Content>
+            </Select.Root>
+          </Flex>
 
           <form
             action={getVulnerabilitiesExportUrl()}

@@ -9,15 +9,15 @@
  * ({@code nexus-one/routes.tsx}), the {@link ViolationsList} container's URL read/write bridge, and
  * the test harness so the state name and the query-param declaration can never drift apart.
  *
- * The optional query params persist search + sidebar filters + page in the hash (CLM-42260); there is
- * no {@code sort} param because the list supports only the single {@code -policyThreatLevel} order.
+ * The optional query params persist search + sidebar filters + page + sort in the hash (CLM-42260 /
+ * CLM-44036). {@code sort} is {@code highest-threat} (default, omitted) or {@code lowest-threat}.
  * {@code waiver} carries the auto/manual waiver-type radio (CLM-42261).
  * {@code appCategory} carries Application Category (tag) ids (CLM-44129).
  */
 export const NEXUS_ONE_VIOLATIONS_STATE_NAME = 'nexusOneViolations';
 
 export const NEXUS_ONE_VIOLATIONS_URL =
-  '/violations?q&page&state&category&stage&org&app&threat&waiver&appCategory';
+  '/violations?q&sort&page&state&category&stage&org&app&threat&waiver&appCategory';
 
 /**
  * All list query params are {@code dynamic} so the container's URL round-trip (search / filters / page
@@ -29,6 +29,7 @@ export const NEXUS_ONE_VIOLATIONS_URL =
  */
 export const NEXUS_ONE_VIOLATIONS_PARAMS = {
   q: { dynamic: true },
+  sort: { dynamic: true },
   page: { dynamic: true },
   state: { dynamic: true },
   category: { dynamic: true },

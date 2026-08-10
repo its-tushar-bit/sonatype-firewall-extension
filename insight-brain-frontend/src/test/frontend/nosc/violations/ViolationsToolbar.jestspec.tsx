@@ -12,6 +12,11 @@ import ViolationsToolbar from 'MainRoot/nosc/violations/ViolationsToolbar';
 import { VIOLATIONS_CLASSIC_EXPORT_ORDER_BY } from 'MainRoot/nosc/violations/violationsListExport';
 import { createDefaultViolationsFilterState } from 'MainRoot/nosc/violations/violationsListApi';
 import { ViolationsFilterState } from 'MainRoot/nosc/violations/violationListTypes';
+import { installRadixJsdomShims } from 'TestRoot/nosc/shell/radixJsdomShims';
+
+beforeAll(() => {
+  installRadixJsdomShims();
+});
 
 function filterState(overrides: Partial<ViolationsFilterState> = {}): ViolationsFilterState {
   return { ...createDefaultViolationsFilterState(), ...overrides };
@@ -24,21 +29,26 @@ function renderToolbar(props: {
   onSearchSubmit?: (term: string) => void;
   hideCsvExport?: boolean;
   resultNoun?: string;
+  orderBy?: '-policyThreatLevel' | 'policyThreatLevel';
+  onOrderByChange?: (orderBy: '-policyThreatLevel' | 'policyThreatLevel') => void;
 } = {}) {
   const onSearchSubmit = props.onSearchSubmit ?? jest.fn();
+  const onOrderByChange = props.onOrderByChange ?? jest.fn();
   render(
     <Theme>
       <ViolationsToolbar
         totalCount={props.totalCount ?? 3}
         searchValue={props.searchValue ?? ''}
         onSearchSubmit={onSearchSubmit}
+        orderBy={props.orderBy ?? '-policyThreatLevel'}
+        onOrderByChange={onOrderByChange}
         filters={props.filters ?? filterState()}
         hideCsvExport={props.hideCsvExport}
         resultNoun={props.resultNoun}
       />
     </Theme>,
   );
-  return { onSearchSubmit };
+  return { onSearchSubmit, onOrderByChange };
 }
 
 describe('ViolationsToolbar (CLM-42260)', () => {
@@ -51,6 +61,12 @@ describe('ViolationsToolbar (CLM-42260)', () => {
     const { onSearchSubmit } = renderToolbar();
     await user.type(screen.getByTestId('violations-toolbar-search'), '  log4j  {enter}');
     expect(onSearchSubmit).toHaveBeenCalledWith('log4j');
+  });
+
+  it('exposes Highest and Lowest threat sort options', () => {
+    renderToolbar();
+    expect(screen.getByTestId('violations-toolbar-sort')).toBeInTheDocument();
+    expect(screen.getByLabelText('Sort')).toHaveTextContent('Highest threat');
   });
 
   it('posts the CSV export to the Classic violations export endpoint', () => {

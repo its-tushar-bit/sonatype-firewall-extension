@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.session.IndexReadSessionFactory;
 
+import org.apache.lucene.search.SortedNumericSortField;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -55,6 +56,20 @@ public class ViolationsListServiceTest
 
   @Mock
   private PolicyViolationDAO policyViolationDAO;
+
+  @Test
+  public void sessionSort_missingThreatSortsLastUnderDescending() {
+    SortedNumericSortField threat =
+        (SortedNumericSortField) ViolationsListService.sessionSort("-policyThreatLevel").getSort()[0];
+    assertThat(threat.getMissingValue()).isEqualTo(Integer.MIN_VALUE);
+  }
+
+  @Test
+  public void sessionSort_missingThreatSortsLastUnderAscending() {
+    SortedNumericSortField threat =
+        (SortedNumericSortField) ViolationsListService.sessionSort("policyThreatLevel").getSort()[0];
+    assertThat(threat.getMissingValue()).isEqualTo(Integer.MAX_VALUE);
+  }
 
   @Test
   public void descendingSort_ordersHighestThreatFirst_withNullsLast() {

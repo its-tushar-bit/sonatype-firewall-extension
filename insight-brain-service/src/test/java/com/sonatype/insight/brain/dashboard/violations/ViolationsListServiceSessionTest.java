@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dashboard.violations;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.search.ConversionHelper;
@@ -24,6 +25,8 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -115,6 +118,46 @@ public class ViolationsListServiceSessionTest
     document.add(new StringField(FieldIdentifier.ITEM_TYPE.label, ItemType.POLICY_VIOLATION.name(), Store.YES));
     document.add(new StringField(FieldIdentifier.POLICY_VIOLATION_ID.label, policyViolationId, Store.YES));
     return document;
+  }
+
+  @Test
+  public void sessionPath_requestsThreatLevelSortDescendingByDefault() {
+    when(session.count(SESSION_QUERY)).thenReturn(1L);
+    AtomicReference<Sort> seenSort = new AtomicReference<>();
+    when(session.searchPage(any(IndexPageRequest.class))).thenAnswer(invocation -> {
+      IndexPageRequest req = invocation.getArgument(0);
+      seenSort.set(req.sort());
+      return new IndexPageResult(List.of(violationDoc("pv-1")), List.of(), false);
+    });
+
+    service().listViolations(request(0, 10));
+
+    SortField[] fields = seenSort.get().getSort();
+    assertThat(fields).hasSize(2);
+    assertThat(fields[0].getField()).isEqualTo(FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label);
+    assertThat(fields[0].getReverse()).isTrue();
+    assertThat(fields[1].getField()).isEqualTo(FieldIdentifier.DOCUMENT_KEY.label);
+  }
+
+  @Test
+  public void sessionPath_requestsThreatLevelSortAscendingWhenRequested() {
+    when(session.count(SESSION_QUERY)).thenReturn(1L);
+    AtomicReference<Sort> seenSort = new AtomicReference<>();
+    when(session.searchPage(any(IndexPageRequest.class))).thenAnswer(invocation -> {
+      IndexPageRequest req = invocation.getArgument(0);
+      seenSort.set(req.sort());
+      return new IndexPageResult(List.of(violationDoc("pv-1")), List.of(), false);
+    });
+
+    ViolationsListRequestDTO request = request(0, 10);
+    request.orderBy = "policyThreatLevel";
+    service().listViolations(request);
+
+    SortField[] fields = seenSort.get().getSort();
+    assertThat(fields).hasSize(2);
+    assertThat(fields[0].getField()).isEqualTo(FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label);
+    assertThat(fields[0].getReverse()).isFalse();
+    assertThat(fields[1].getField()).isEqualTo(FieldIdentifier.DOCUMENT_KEY.label);
   }
 
   @Test

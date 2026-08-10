@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
+import com.sonatype.insight.brain.search.session.IndexSessionNumericSorts;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -439,28 +440,9 @@ public class IqLocalSearchService
     return buildSortField(indexField);
   }
 
-  /** Missing-value sentinel for a numeric sort: absent numeric fields sort LAST under descending order. */
-  private static final long NUMERIC_MISSING_LAST = Long.MIN_VALUE;
-
   /**
-   * Missing-value sentinels for a sort over an {@code IntPoint}-backed field, which must use
-   * {@link SortField.Type#INT} (see {@link #INT_POINT_SORT_FIELDS}) and therefore an {@code Integer}
-   * sentinel — {@code SortedNumericSortField} reads the missing value at the width of its declared
-   * type, so a {@code Long} sentinel on an INT sort is rejected.
-   */
-  private static final int NUMERIC_INT_MISSING_LAST = Integer.MIN_VALUE;
-
-  /**
-   * Missing-value sentinel for an ASCENDING sort over an {@code IntPoint}-backed field: absent
-   * values compare as the largest possible {@code int} so they sort LAST, matching
-   * {@link #NUMERIC_ASC_MISSING_LAST} at {@link SortField.Type#INT} width.
-   */
-  private static final int NUMERIC_INT_ASC_MISSING_LAST = Integer.MAX_VALUE;
-
-  /**
-   * Missing-value sentinel for an ASCENDING numeric sort: absent numeric fields sort LAST under
-   * ascending order, so a never-expiring waiver (no expiry value) trails the soonest-first list,
-   * mirroring the prototype's {@code Infinity} fallback for a missing expiration date.
+   * Missing-value sentinel for an ASCENDING LONG numeric sort by raw label (oldest created-at):
+   * absent fields sort LAST. IntPoint missing sentinels live in {@link IndexSessionNumericSorts}.
    */
   private static final long NUMERIC_ASC_MISSING_LAST = Long.MAX_VALUE;
 
@@ -468,18 +450,12 @@ public class IqLocalSearchService
    * Build the {@link Sort} for a resolved sortable index field, choosing the numeric-vs-string
    * shape from the field itself rather than from a hardcoded key set. Descending numeric fields
    * (epoch-millis create time, threat level) sort on their {@code SortedNumericDocValues} twin
-   * newest/highest first via a reversed {@link SortedNumericSortField} — the doc-values are
-   * emitted as {@code SortedNumericDocValuesField} by {@code LuceneIndexingContext}, which a plain
-   * {@link SortField} cannot read. The comparator type is INT for the {@link #INT_POINT_SORT_FIELDS}
-   * (whose point twin is a 4-byte {@code IntPoint}) and LONG for the epoch-millis fields (8-byte
-   * {@code LongPoint}), because Lucene validates the sort's byte width against the points index.
-   * Docs missing the numeric field sort last
-   * (never-evaluated app, waiver without a create time). Ascending numeric fields (expiry) sort
-   * soonest first with a missing value (never-expires) placed last. String fields sort ascending on
-   * their lower-cased keyword {@code SortedDocValues} twin (case-insensitive A→Z, matching the
-   * OpenSearch keyword lowercase normalizer). Both backends receive the same {@code (field,
-   * direction)} and OpenSearch picks numeric-vs-lexicographic from its field mapping type, so the
-   * ordering is identical.
+   * newest/highest first via a {@link SortedNumericSortField}. The comparator type is INT for
+   * {@link #INT_POINT_SORT_FIELDS} (4-byte {@code IntPoint}) and LONG for epoch-millis fields
+   * (8-byte {@code LongPoint}) — Lucene validates the sort's byte width against the points index.
+   * Docs missing the numeric field sort last. Ascending numeric fields (expiry) sort soonest first
+   * with a missing value (never-expires) placed last. String fields sort ascending on their
+   * lower-cased keyword {@code SortedDocValues} twin.
    */
   static Sort buildSortField(final FieldIdentifier indexField) {
     if (FLOAT_SORT_FIELDS.contains(indexField)) {
@@ -493,30 +469,11 @@ public class IqLocalSearchService
       return new Sort(sortField);
     }
     if (NUMERIC_DESC_SORT_FIELDS.contains(indexField)) {
-      // Descending order: a doc with no value must sort AFTER real values, i.e. compare as the
-      // smallest possible value under the reversed comparator.
-      if (INT_POINT_SORT_FIELDS.contains(indexField)) {
-        SortedNumericSortField sortField =
-            new SortedNumericSortField(indexField.label, SortField.Type.INT, true);
-        sortField.setMissingValue(NUMERIC_INT_MISSING_LAST);
-        return new Sort(sortField);
-      }
-      SortedNumericSortField sortField =
-          new SortedNumericSortField(indexField.label, SortField.Type.LONG, true);
-      sortField.setMissingValue(NUMERIC_MISSING_LAST);
-      return new Sort(sortField);
+      return numericSort(indexField, true);
     }
     if (NUMERIC_ASC_SORT_FIELDS.contains(indexField)) {
-      // Ascending numeric (waiver expiry: soonest first; violation-state ordinal: Open=0 first). A doc
-      // with no value must still sort AFTER real values, so its missing value compares as the largest
-      // possible value under ascending.
-      if (INT_POINT_SORT_FIELDS.contains(indexField)) {
-        SortedNumericSortField sortField =
-            new SortedNumericSortField(indexField.label, SortField.Type.INT, false);
-        sortField.setMissingValue(NUMERIC_INT_ASC_MISSING_LAST);
-        return new Sort(sortField);
-      }
-      return ascendingNumericSort(indexField.label);
+      // Ascending numeric (waiver expiry: soonest first; violation-state ordinal: Open=0 first).
+      return ascendingNumericSort(indexField);
     }
     // Absent keyword sorts last under ascending order (STRING_LAST), so a never-set name/stage does
     // not lead the page.
@@ -537,16 +494,7 @@ public class IqLocalSearchService
       return new Sort(sortField);
     }
     if (NUMERIC_DESC_SORT_FIELDS.contains(indexField) || NUMERIC_ASC_SORT_FIELDS.contains(indexField)) {
-      if (INT_POINT_SORT_FIELDS.contains(indexField)) {
-        SortedNumericSortField sortField =
-            new SortedNumericSortField(indexField.label, SortField.Type.INT, reverse);
-        sortField.setMissingValue(reverse ? NUMERIC_INT_MISSING_LAST : NUMERIC_INT_ASC_MISSING_LAST);
-        return new Sort(sortField);
-      }
-      SortedNumericSortField sortField =
-          new SortedNumericSortField(indexField.label, SortField.Type.LONG, reverse);
-      sortField.setMissingValue(reverse ? NUMERIC_MISSING_LAST : NUMERIC_ASC_MISSING_LAST);
-      return new Sort(sortField);
+      return numericSort(indexField, reverse);
     }
     SortField sortField = new SortField(indexField.label, SortField.Type.STRING, reverse);
     sortField.setMissingValue(reverse ? SortField.STRING_FIRST : SortField.STRING_LAST);
@@ -554,20 +502,27 @@ public class IqLocalSearchService
   }
 
   /**
-   * Ascending numeric sort over a doc-values twin (forward LONG); a doc with no value sorts LAST via
-   * {@link #NUMERIC_ASC_MISSING_LAST}. Shared by the {@code NUMERIC_ASC_SORT_FIELDS} dispatch and the
-   * {@code oldest} created-at special case (created-at lives in {@code NUMERIC_DESC_SORT_FIELDS}, so it
-   * can only resolve ascending by label).
-   *
-   * <p>
-   * Only valid for a field whose point twin is an 8-byte {@code LongPoint}; an {@code IntPoint}
-   * field routed here would fail the points byte-width check in Lucene's numeric comparator, so
-   * callers must dispatch {@link #INT_POINT_SORT_FIELDS} to an INT sort before reaching this.
+   * Ascending numeric sort; a doc with no value sorts LAST. Shared by the
+   * {@code NUMERIC_ASC_SORT_FIELDS} dispatch. IntPoint fields go through
+   * {@link IndexSessionNumericSorts#intField}; LongPoint via {@link IndexSessionNumericSorts#longField}.
+   * The {@code oldest} created-at special case uses {@link #ascendingNumericSort(String)} by label.
    */
+  private static Sort ascendingNumericSort(final FieldIdentifier indexField) {
+    return numericSort(indexField, false);
+  }
+
+  /** Ascending LONG sort by field label (oldest created-at special case). */
   private static Sort ascendingNumericSort(final String label) {
     SortedNumericSortField sortField = new SortedNumericSortField(label, SortField.Type.LONG, false);
     sortField.setMissingValue(NUMERIC_ASC_MISSING_LAST);
     return new Sort(sortField);
+  }
+
+  private static Sort numericSort(final FieldIdentifier indexField, final boolean reverse) {
+    if (INT_POINT_SORT_FIELDS.contains(indexField)) {
+      return new Sort(IndexSessionNumericSorts.intField(indexField, reverse));
+    }
+    return new Sort(IndexSessionNumericSorts.longField(indexField, reverse));
   }
 
   /**

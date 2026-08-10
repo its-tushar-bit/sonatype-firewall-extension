@@ -130,6 +130,8 @@ public class ReportDataApiRegressionTest
     assertThatJson(body).node("data.applicationPublicId").isEqualTo(app.getPublicId());
     assertThatJson(body).node("data.stage").isEqualTo(BuildStageType.ID);
     assertThatJson(body).node("data.scanDate").isPresent();
+    assertThatJson(body).node("data.ownerType").isEqualTo("application");
+    assertThatJson(body).node("data.hrcId").isAbsent();
     assertThatJson(body).node("source").isObject();
   }
 

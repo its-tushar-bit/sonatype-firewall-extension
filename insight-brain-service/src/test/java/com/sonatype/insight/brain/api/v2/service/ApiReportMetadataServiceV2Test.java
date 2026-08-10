@@ -99,6 +99,8 @@ public class ApiReportMetadataServiceV2Test
     assertThat(response.getData().getScanId()).isEqualTo(scanId);
     assertThat(response.getData().getApplicationId()).isEqualTo(app.getId());
     assertThat(response.getData().getApplicationPublicId()).isEqualTo(app.getPublicId());
+    assertThat(response.getData().getOwnerType()).isEqualTo("application");
+    assertThat(response.getData().getHrcId()).isNull();
     assertThat(response.getData().getStage()).isEqualTo(BuildStageType.ID);
     assertThat(response.getData().getScanDate()).isEqualTo(scanDate);
     assertThat(response.getData().getCommitHash()).isEqualTo(commitHash);
@@ -243,6 +245,8 @@ public class ApiReportMetadataServiceV2Test
     assertThat(response.getData().getScanId()).isEqualTo(scanId);
     assertThat(response.getData().getApplicationId()).isEqualTo(hrc.getId());
     assertThat(response.getData().getApplicationPublicId()).isEqualTo(hrc.getId());
+    assertThat(response.getData().getOwnerType()).isEqualTo("hosted_repository_component");
+    assertThat(response.getData().getHrcId()).isEqualTo(hrc.getId());
     assertThat(response.getData().getStage()).isEqualTo(BuildStageType.ID);
     assertThat(response.getData().getScanDate()).isEqualTo(scanDate);
     assertThat(response.getData().getCommitHash()).isEqualTo("hrc-commit");

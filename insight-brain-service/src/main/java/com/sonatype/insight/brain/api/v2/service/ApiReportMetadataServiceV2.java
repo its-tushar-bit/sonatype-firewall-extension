@@ -20,6 +20,7 @@ import com.sonatype.clm.dto.model.ci.config.ApiReportMetadataResponseDto;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -55,6 +56,10 @@ public class ApiReportMetadataServiceV2
     data.setScanId(evaluation.getScanId());
     data.setApplicationId(evaluation.getOwnerId());
     data.setApplicationPublicId(owner.getPublicId());
+    data.setOwnerType(owner.getType().toString());
+    if (owner instanceof HostedRepositoryComponent) {
+      data.setHrcId(owner.getId());
+    }
     data.setStage(evaluation.getStageTypeId());
     data.setScanDate(evaluation.getTime());
     data.setCommitHash(evaluation.getCommitHash());

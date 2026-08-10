@@ -25,6 +25,10 @@
     Keeping the shared machinery here lets both sibling modules reuse it without duplication.
   </description>
 
+  <properties>
+    <clm.skip>true</clm.skip>
+  </properties>
+
   <dependencies>
     <!-- IQ app + its test fixtures (TestCLMServer, InsightBrainServiceFactory, Configurator). -->
     <!--

@@ -23,6 +23,7 @@ import jakarta.inject.Singleton;
 import jakarta.ws.rs.core.StreamingOutput;
 
 import com.sonatype.insight.brain.audit.AuditLogFilesProvider;
+import com.sonatype.insight.brain.audit.NulStrippingInputStream;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -93,8 +94,12 @@ public class ApiAuditLogsService
         }
       }
 
-      try (SequenceInputStream sequenceInputStream = new SequenceInputStream(Collections.enumeration(inputStreams))) {
-        IOUtils.copy(sequenceInputStream, os);
+      // NUL bytes have been observed in audit.log files on shared EFS mounts in MTIQ (CLM-40845).
+      // Filter them out of the response as a stopgap while the on-disk root cause is investigated.
+      try (SequenceInputStream sequenceInputStream = new SequenceInputStream(Collections.enumeration(inputStreams));
+          InputStream filtered = new NulStrippingInputStream(sequenceInputStream))
+      {
+        IOUtils.copy(filtered, os);
       }
     };
   }

@@ -17,8 +17,11 @@ import jakarta.ws.rs.core.StreamingOutput;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.zip.GZIPOutputStream;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
@@ -109,6 +112,57 @@ public class ApiAuditLogsServiceTest
     String actualContent = getResponseContent(response);
     String expectedContent = AUDIT_2024_02_08_CONTENT;
     assertThat(actualContent).isEqualTo(expectedContent);
+  }
+
+  @Test
+  public void testGetAuditLogs_StripsNulBytesFromResponse() throws Exception {
+    String recordOne = "{\"timestamp\":\"2024-02-08T10:00:00Z\",\"type\":\"start\"}\n";
+    String recordTwo = "{\"timestamp\":\"2024-02-08T10:00:01Z\",\"type\":\"stop\"}\n";
+    byte[] corrupted = new byte[recordOne.length() + 5 + recordTwo.length()];
+    System.arraycopy(recordOne.getBytes(StandardCharsets.UTF_8), 0, corrupted, 0, recordOne.length());
+    // 5 NUL bytes inserted between two otherwise-valid records
+    for (int i = 0; i < 5; i++) {
+      corrupted[recordOne.length() + i] = 0;
+    }
+    System.arraycopy(recordTwo.getBytes(StandardCharsets.UTF_8), 0, corrupted, recordOne.length() + 5,
+        recordTwo.length());
+    Files.write(Paths.get(logDir, "audit.log"), corrupted);
+
+    StreamingOutput response = apiAuditLogsService.getAuditLogs(LocalDate.now().toString(), LocalDate.now().toString());
+
+    String actualContent = getResponseContent(response);
+    assertThat(actualContent).isEqualTo(recordOne + recordTwo);
+    assertThat(actualContent).doesNotContain("\0");
+  }
+
+  @Test
+  public void testGetAuditLogs_HandlesAllNulChunk() throws Exception {
+    byte[] onlyNuls = new byte[8192];
+    Files.write(Paths.get(logDir, "audit.log"), onlyNuls);
+
+    StreamingOutput response = apiAuditLogsService.getAuditLogs(LocalDate.now().toString(), LocalDate.now().toString());
+
+    assertThat(getResponseContent(response)).isEmpty();
+  }
+
+  @Test
+  public void testGetAuditLogs_StripsNulBytesFromGzippedArchive() throws Exception {
+    String record = "{\"timestamp\":\"2024-02-08T10:00:00Z\",\"type\":\"start\"}\n";
+    byte[] corrupted = new byte[record.length() + 4];
+    System.arraycopy(record.getBytes(StandardCharsets.UTF_8), 0, corrupted, 0, record.length());
+    for (int i = 0; i < 4; i++) {
+      corrupted[record.length() + i] = 0;
+    }
+    File gz = Paths.get(logDir, "audit-2024-02-08.log.gz").toFile();
+    try (OutputStream out = new GZIPOutputStream(Files.newOutputStream(gz.toPath()))) {
+      out.write(corrupted);
+    }
+
+    StreamingOutput response = apiAuditLogsService.getAuditLogs("2024-02-08", "2024-02-08");
+
+    String actualContent = getResponseContent(response);
+    assertThat(actualContent).isEqualTo(record);
+    assertThat(actualContent).doesNotContain("\0");
   }
 
   @Test

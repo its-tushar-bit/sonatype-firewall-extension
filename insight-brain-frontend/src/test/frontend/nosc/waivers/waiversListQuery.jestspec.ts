@@ -18,6 +18,7 @@ describe('waiversListQuery', () => {
       sort: 'severity',
       page: '2',
       threat: 'Critical,Severe',
+      lifecycle: 'active,expiring',
       expiry: 'Active',
       auto: 'Auto,Manual',
       state: 'existing,requested',
@@ -31,6 +32,7 @@ describe('waiversListQuery', () => {
     expect(state.orderBy).toBe('-policyWaiverThreatLevel');
     expect(state.page).toBe(2);
     expect([...state.filters.threatLevelIds].sort()).toEqual(['Critical', 'Severe']);
+    expect([...state.filters.lifecycleStatusIds].sort()).toEqual(['active', 'expiring']);
     expect([...state.filters.expiryStatusIds]).toEqual(['Active']);
     expect([...state.filters.autoStatusIds].sort()).toEqual(['Auto', 'Manual']);
     expect([...state.filters.waiverStateIds].sort()).toEqual(['existing', 'requested']);
@@ -57,6 +59,7 @@ describe('waiversListQuery', () => {
   it('drops invalid threat / expiry / auto / state tokens without falling over', () => {
     const state = parseWaiversListParams({
       threat: 'None,Bogus,Critical',
+      lifecycle: 'active,who-knows,auto-waived',
       expiry: 'Never,WhoKnows',
       auto: 'Robot,Auto',
       state: 'excluded,existing,bogus',
@@ -64,6 +67,7 @@ describe('waiversListQuery', () => {
       policyType: 'SECURITY,security',
     });
     expect([...state.filters.threatLevelIds]).toEqual(['Critical']);
+    expect([...state.filters.lifecycleStatusIds]).toEqual(['active', 'auto-waived']);
     expect([...state.filters.expiryStatusIds]).toEqual(['Never']);
     expect([...state.filters.autoStatusIds]).toEqual(['Auto']);
     expect([...state.filters.waiverStateIds]).toEqual(['existing']);
@@ -78,6 +82,7 @@ describe('waiversListQuery', () => {
       page: 1,
       filters: {
         threatLevelIds: new Set(),
+        lifecycleStatusIds: new Set(),
         expiryStatusIds: new Set(),
         autoStatusIds: new Set(),
         waiverStateIds: new Set(),
@@ -93,6 +98,7 @@ describe('waiversListQuery', () => {
       sort: undefined,
       page: undefined,
       threat: undefined,
+      lifecycle: undefined,
       expiry: undefined,
       auto: undefined,
       state: undefined,
@@ -111,6 +117,7 @@ describe('waiversListQuery', () => {
       page: 3,
       filters: {
         threatLevelIds: new Set(['Critical', 'Low'] as const),
+        lifecycleStatusIds: new Set(['expired', 'auto-waived'] as const),
         expiryStatusIds: new Set(['Active'] as const),
         autoStatusIds: new Set(['Manual'] as const),
         waiverStateIds: new Set(['requested'] as const),
@@ -127,6 +134,7 @@ describe('waiversListQuery', () => {
     expect(reparsed.orderBy).toBe(initial.orderBy);
     expect(reparsed.page).toBe(initial.page);
     expect([...reparsed.filters.threatLevelIds].sort()).toEqual(['Critical', 'Low']);
+    expect([...reparsed.filters.lifecycleStatusIds].sort()).toEqual(['auto-waived', 'expired']);
     expect([...reparsed.filters.expiryStatusIds]).toEqual(['Active']);
     expect([...reparsed.filters.autoStatusIds]).toEqual(['Manual']);
     expect([...reparsed.filters.waiverStateIds]).toEqual(['requested']);
@@ -135,6 +143,12 @@ describe('waiversListQuery', () => {
     expect([...reparsed.filters.organizationIds]).toEqual(['Java Team']);
     expect([...reparsed.filters.applicationIds]).toEqual(['Apple - Java']);
     expect([...reparsed.filters.policyIds]).toEqual(['Critical CVSS 9+']);
+  });
+
+  it('round-trips the expires soon deep-link lifecycle filter', () => {
+    const state = parseWaiversListParams({ lifecycle: 'expiring' });
+    expect([...state.filters.lifecycleStatusIds]).toEqual(['expiring']);
+    expect(buildWaiversListRouteParams(state).lifecycle).toBe('expiring');
   });
 
   it('sort slug conversion is total (unknown → default)', () => {

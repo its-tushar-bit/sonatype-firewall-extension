@@ -363,13 +363,13 @@ public class DashboardMetricsService
   }
 
   /**
-   * Classic {@code IN_30_DAYS} upper bound: start of the current UTC day + 30 days + 1 day.
+   * Classic {@code IN_7_DAYS} upper bound: start of the current UTC day + 7 days + 1 day.
    * Inclusive {@code le(upperBound)} so waivers expiring on the last calendar day of the
    * window are counted; matches {@code PolicyWaiverService} expiration-date filtering.
    */
   static Date expiringCountUpperBound() {
     return Date.from(
-        Instant.now().truncatedTo(ChronoUnit.DAYS).plus(30, ChronoUnit.DAYS).plus(1, ChronoUnit.DAYS));
+        Instant.now().truncatedTo(ChronoUnit.DAYS).plus(7, ChronoUnit.DAYS).plus(1, ChronoUnit.DAYS));
   }
 
   private static void logBenchmarkDuration(String metric, long startedAt) {

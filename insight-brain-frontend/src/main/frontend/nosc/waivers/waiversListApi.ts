@@ -12,10 +12,12 @@ import {
   WaiversListFilterState,
   isSelectablePolicyTypeId,
   isSelectableScopeId,
+  isSelectableThreatLevelId,
   policyTypeFacetLabel,
   scopeFacetLabel,
   staticAutoStatusFacets,
   staticExpiryStatusFacets,
+  staticLifecycleStatusFacets,
   staticPolicyTypeFacets,
   staticScopeFacets,
   staticThreatLevelFacets,
@@ -23,6 +25,7 @@ import {
   waiversListFiltersToRequest,
 } from 'MainRoot/nosc/waivers/waiversListFilters';
 import type { WaiversListOrderBy } from 'MainRoot/nosc/waivers/waiversListQuery';
+import { classifyThreat } from 'MainRoot/nosc/applications/applicationDetailUtils';
 
 export const WAIVERS_LIST_PAGE_SIZE = 50;
 
@@ -183,7 +186,7 @@ function facetEntriesFromBuckets(
 function mergeStaticFacetsWithCounts(
   staticEntries: ReadonlyArray<WaiversFilterFacetEntry>,
   buckets: ReadonlyArray<ApiIndexQueryFacetBucket> | null | undefined,
-  labelFor: (id: string) => string = (id) => id,
+  labelFor?: (id: string) => string,
 ): ReadonlyArray<WaiversFilterFacetEntry> {
   const countById = new Map<string, number>();
   (buckets ?? []).forEach((bucket) => {
@@ -192,8 +195,43 @@ function mergeStaticFacetsWithCounts(
   });
   return staticEntries.map((entry) => ({
     id: entry.id,
-    label: labelFor(entry.id),
+    label: labelFor ? labelFor(entry.id) : entry.label,
     count: countById.get(entry.id.toLowerCase()) ?? entry.count,
+  }));
+}
+
+function mergeLifecycleFacets(
+  buckets: ReadonlyArray<ApiIndexQueryFacetBucket> | null | undefined,
+): ReadonlyArray<WaiversFilterFacetEntry> {
+  return mergeStaticFacetsWithCounts(staticLifecycleStatusFacets(), buckets);
+}
+
+function mergeAutoFacets(
+  buckets: ReadonlyArray<ApiIndexQueryFacetBucket> | null | undefined,
+): ReadonlyArray<WaiversFilterFacetEntry> {
+  const normalized = (buckets ?? []).flatMap((bucket): ApiIndexQueryFacetBucket[] => {
+    const value = bucket.value?.trim().toLowerCase();
+    if (value === 'true') return [{ ...bucket, value: 'Auto' }];
+    if (value === 'false') return [{ ...bucket, value: 'Manual' }];
+    return [];
+  });
+  return mergeStaticFacetsWithCounts(staticAutoStatusFacets(), normalized);
+}
+
+function mergeThreatFacets(
+  buckets: ReadonlyArray<ApiIndexQueryFacetBucket> | null | undefined,
+): ReadonlyArray<WaiversFilterFacetEntry> {
+  const countById = new Map<string, number>();
+  (buckets ?? []).forEach((bucket) => {
+    const parsed = Number(bucket.value);
+    if (!Number.isFinite(parsed)) return;
+    const id = classifyThreat(parsed).label;
+    if (!isSelectableThreatLevelId(id)) return;
+    countById.set(id, (countById.get(id) ?? 0) + (typeof bucket.count === 'number' ? bucket.count : 0));
+  });
+  return staticThreatLevelFacets().map((entry) => ({
+    ...entry,
+    count: countById.get(entry.id) ?? entry.count,
   }));
 }
 
@@ -215,9 +253,10 @@ export function mapWaiversFacets(
   );
   return {
     totalWaivers,
-    threatLevels: staticThreatLevelFacets(),
+    threatLevels: mergeThreatFacets(facets.threatLevel),
+    lifecycleStatuses: mergeLifecycleFacets(facets.status),
     expiryStatuses: staticExpiryStatusFacets(),
-    autoStatuses: staticAutoStatusFacets(),
+    autoStatuses: mergeAutoFacets(facets.auto),
     waiverStates: staticWaiverStateFacets(),
     scopes: mergeStaticFacetsWithCounts(staticScopeFacets(), scopeBuckets, scopeFacetLabel),
     policyTypes: mergeStaticFacetsWithCounts(

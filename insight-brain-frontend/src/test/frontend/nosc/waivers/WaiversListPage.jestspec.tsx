@@ -88,7 +88,7 @@ describe('WaiversListPage (Ana)', () => {
     expect(screen.getByTestId('nosc-waivers-auto-waivers-button')).toBeInTheDocument();
     expect(screen.getByTestId('waivers-toolbar-csv')).toBeInTheDocument();
     expect(screen.getByTestId('waivers-filter-state')).toHaveTextContent('Waiver State');
-    expect(screen.getByTestId('waivers-filter-expiry')).toHaveTextContent('Status');
+    expect(screen.getByTestId('waivers-filter-status')).toHaveTextContent('Status');
   });
 
   it('hides the Auto-Waivers entry when the feature flag is off', async () => {

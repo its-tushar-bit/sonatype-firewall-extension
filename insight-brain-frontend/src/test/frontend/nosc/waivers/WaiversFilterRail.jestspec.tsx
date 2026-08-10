@@ -14,13 +14,14 @@ import type { WaiversFilterFacetCounts } from 'MainRoot/nosc/waivers/waiversList
 import { EMPTY_WAIVERS_LIST_FILTERS } from 'MainRoot/nosc/waivers/waiversListFilters';
 
 function renderRail(facets: WaiversFilterFacetCounts) {
+  const onToggleFilter = jest.fn();
   return render(
     <Theme>
       <WaiversFilterRail
         facets={facets}
         filters={EMPTY_WAIVERS_LIST_FILTERS}
         hasActiveFilters={false}
-        onToggleFilter={jest.fn()}
+        onToggleFilter={onToggleFilter}
         onResetFilters={jest.fn()}
       />
     </Theme>,
@@ -33,6 +34,7 @@ describe('WaiversFilterRail', () => {
       totalWaivers: 1,
       threatLevels: [{ id: 'critical', label: 'Critical', count: 1 }],
       autoStatuses: [{ id: 'auto', label: 'Auto', count: 1 }],
+      lifecycleStatuses: [{ id: 'active', label: 'Active', count: 1 }],
       expiryStatuses: [{ id: 'active', label: 'Active', count: 1 }],
       waiverStates: [{ id: 'active', label: 'Active', count: 1 }],
       scopes: [{ id: 'application', label: 'Application', count: 1 }],
@@ -69,6 +71,7 @@ describe('WaiversFilterRail', () => {
       totalWaivers: 0,
       threatLevels: [],
       autoStatuses: [],
+      lifecycleStatuses: [],
       expiryStatuses: [],
       waiverStates: [],
       scopes: [],
@@ -90,5 +93,38 @@ describe('WaiversFilterRail', () => {
 
     await user.click(toggle);
     expect(screen.queryByText(`Scale - Platform - Org ${WAIVERS_FILTER_COLLAPSED_COUNT}`)).not.toBeInTheDocument();
+  });
+
+  it('wires the Status section to lifecycleStatusIds', async () => {
+    const user = userEvent.setup();
+    const onToggleFilter = jest.fn();
+
+    render(
+      <Theme>
+        <WaiversFilterRail
+          facets={{
+            totalWaivers: 1,
+            threatLevels: [],
+            autoStatuses: [],
+            lifecycleStatuses: [{ id: 'expiring', label: 'Expires Soon', count: 1 }],
+            expiryStatuses: [{ id: 'Active', label: 'Active', count: 1 }],
+            waiverStates: [],
+            scopes: [],
+            policyTypes: [],
+            organizations: [],
+            applications: [],
+            policies: [],
+          }}
+          filters={EMPTY_WAIVERS_LIST_FILTERS}
+          hasActiveFilters={false}
+          onToggleFilter={onToggleFilter}
+          onResetFilters={jest.fn()}
+        />
+      </Theme>,
+    );
+
+    await user.click(screen.getByTestId('waivers-filter-status-checkbox-expiring'));
+
+    expect(onToggleFilter).toHaveBeenCalledWith('lifecycleStatusIds', 'expiring');
   });
 });

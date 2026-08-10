@@ -90,7 +90,7 @@ final class ResultsFacetQueryBridge
     // the CompiledQuery is only needed for symmetry; the facet engine reads it from fieldClauses.
     final String rebuiltQ = String.join(" ", fieldClauses);
     return new IndexQueryFilterCompiler.CompiledQuery(
-        rebuiltQ, fieldClauses, autoWaiverRestrictionClause, waiverStatusClauses);
+        rebuiltQ, fieldClauses, autoWaiverRestrictionClause, waiverStatusClauses, List.of());
   }
 
   /**

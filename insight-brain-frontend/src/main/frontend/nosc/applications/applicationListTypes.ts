@@ -59,13 +59,11 @@ export const APPLICATIONS_POLICY_TYPES: ReadonlyArray<{ readonly id: string; rea
   { id: 'other', label: 'Other' },
 ];
 
-/**
- * Violation states offered in the rail. The API also accepts {@code LEGACY_VIOLATION}, but Legacy is a
- * deferred Kitchen Sink vision filter (CLM-42708) and is deliberately not surfaced here.
- */
+/** Violation states offered in the rail. */
 export const APPLICATIONS_VIOLATION_STATES: ReadonlyArray<{ readonly id: string; readonly label: string }> = [
   { id: 'OPEN', label: 'Open' },
   { id: 'WAIVED', label: 'Waived' },
+  { id: 'LEGACY_VIOLATION', label: 'Legacy' },
 ];
 
 /**

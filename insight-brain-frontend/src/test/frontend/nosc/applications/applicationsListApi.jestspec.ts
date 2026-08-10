@@ -196,6 +196,7 @@ describe('applicationsListApi', () => {
     expect(mapped.facets.violationStates).toEqual([
       { id: 'OPEN', label: 'Open', count: 7 },
       { id: 'WAIVED', label: 'Waived', count: 0 },
+      { id: 'LEGACY_VIOLATION', label: 'Legacy', count: 0 },
     ]);
   });
 
@@ -213,6 +214,6 @@ describe('applicationsListApi', () => {
       'other',
     ]);
     expect(mapped.facets.policyTypes.every((entry) => entry.count === 0)).toBe(true);
-    expect(mapped.facets.violationStates.map((entry) => entry.id)).toEqual(['OPEN', 'WAIVED']);
+    expect(mapped.facets.violationStates.map((entry) => entry.id)).toEqual(['OPEN', 'WAIVED', 'LEGACY_VIOLATION']);
   });
 });

@@ -78,6 +78,20 @@ export const MOCK_WAIVERS_INDEX_QUERY_RESPONSE: WaiversIndexQueryResponse = {
     },
   ],
   facets: {
+    status: [
+      { value: 'active', count: 8 },
+      { value: 'expiring', count: 2 },
+      { value: 'expired', count: 1 },
+      { value: 'auto-waived', count: 4 },
+    ],
+    auto: [
+      { value: 'true', count: 4 },
+      { value: 'false', count: 6 },
+    ],
+    threatLevel: [
+      { value: '9', count: 3 },
+      { value: '3', count: 2 },
+    ],
     organizationName: [
       { value: 'Java Team', count: 1 },
       { value: 'Platform', count: 1 },

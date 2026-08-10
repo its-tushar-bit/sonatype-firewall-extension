@@ -251,10 +251,10 @@ export default function WaiversFilterRail({
 
           <CheckboxFilterSection
             title="Status"
-            testId="waivers-filter-expiry"
-            group="expiryStatusIds"
-            entries={facets.expiryStatuses}
-            selected={filters.expiryStatusIds}
+            testId="waivers-filter-status"
+            group="lifecycleStatusIds"
+            entries={facets.lifecycleStatuses}
+            selected={filters.lifecycleStatusIds}
             onToggle={onToggleFilter}
             showCount={false}
           />

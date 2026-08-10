@@ -46,6 +46,7 @@ export const WAIVERS_INDEX_UNAVAILABLE_MESSAGE =
 const EMPTY_FACETS: WaiversFilterFacetCounts = {
   totalWaivers: 0,
   threatLevels: [],
+  lifecycleStatuses: [],
   expiryStatuses: [],
   autoStatuses: [],
   waiverStates: [],

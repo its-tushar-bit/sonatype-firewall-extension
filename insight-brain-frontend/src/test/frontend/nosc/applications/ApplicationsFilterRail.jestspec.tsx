@@ -38,6 +38,7 @@ const FACETS = {
   violationStates: [
     { id: 'OPEN', label: 'Open', count: 7 },
     { id: 'WAIVED', label: 'Waived', count: 1 },
+    { id: 'LEGACY_VIOLATION', label: 'Legacy', count: 3 },
   ],
 };
 
@@ -113,11 +114,11 @@ describe('ApplicationsFilterRail', () => {
     });
     expect(screen.getByTestId('applications-filter-violation-states-option-OPEN')).toBeInTheDocument();
     expect(screen.getByTestId('applications-filter-violation-states-option-WAIVED')).toBeInTheDocument();
+    expect(screen.getByTestId('applications-filter-violation-states-option-LEGACY_VIOLATION')).toBeInTheDocument();
   });
 
-  it('omits deferred Kitchen Sink vision filters from the rail (CLM-43211)', () => {
+  it('omits deferred Coming Soon / Age / Categories vision filters (CLM-43211)', () => {
     renderRail();
-    expect(screen.queryByTestId('applications-filter-violation-states-option-LEGACY_VIOLATION')).not.toBeInTheDocument();
     expect(screen.queryByText(/Coming Soon/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/^Age$/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/^Categories$/i)).not.toBeInTheDocument();

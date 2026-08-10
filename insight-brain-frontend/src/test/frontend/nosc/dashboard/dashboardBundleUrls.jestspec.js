@@ -10,6 +10,7 @@ import {
   dashboardOrgsAndPoliciesHref,
   dashboardSuccessMetricsHref,
   dashboardVulnerabilitiesHref,
+  dashboardWaiversHref,
 } from 'MainRoot/nosc/dashboard/dashboardBundleUrls';
 import { _setBaseUrlForTesting, setBaseUrl } from 'MainRoot/util/urlUtil';
 
@@ -42,6 +43,12 @@ describe('dashboardBundleUrls deep dives (CLM-43206)', () => {
   it('dashboardVulnerabilitiesHref uses the native NOUX vulnerabilities list', () => {
     expect(dashboardVulnerabilitiesHref()).toBe(
       'http://localhost/assets/nexus-one/index.html#/vulnerabilities',
+    );
+  });
+
+  it('dashboardWaiversHref can deep-link to expires soon waivers', () => {
+    expect(dashboardWaiversHref({ expiresSoon: true })).toBe(
+      'http://localhost/assets/nexus-one/index.html#/waivers?lifecycle=expiring',
     );
   });
 

@@ -20,6 +20,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
@@ -40,6 +41,7 @@ import com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsSqlModeP
 import com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsSqlReadiness;
 import com.sonatype.insight.brain.dashboard.metrics.sql.ResolvedScope;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -58,6 +60,11 @@ import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
 import com.sonatype.insight.brain.search.index.MetricAggregationResult;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
+import com.sonatype.insight.brain.search.indexquery.IndexQueryRequest;
+import com.sonatype.insight.brain.search.indexquery.IndexQueryResponse;
+import com.sonatype.insight.brain.search.indexquery.IndexQueryService;
+import com.sonatype.insight.brain.search.indexquery.IndexQueryType;
+import com.sonatype.insight.brain.search.global.IqLocalSearchService;
 import com.sonatype.insight.brain.search.lucene.DocumentBuilderHelper;
 import com.sonatype.insight.brain.search.lucene.LuceneSearchIndexClient;
 import com.sonatype.insight.brain.security.CurrentUser;
@@ -112,12 +119,12 @@ public class DashboardMetricsServiceTest
 
     tempEntity.newWaiver("hashExisting1", policy.getId(), app.getId());
     tempEntity.newWaiver("hashExisting2", policy.getId(), app.getId());
-    // Anchor inside the service window (upperBound - 14d) so the assertion stays tied to
-    // expiringCountUpperBound() rather than a bare wall-clock +7d assumption.
-    Date expiringSoon = Date.from(
-        DashboardMetricsService.expiringCountUpperBound().toInstant().minus(14, ChronoUnit.DAYS));
+    Instant expiringWindowUpperBound = DashboardMetricsService.expiringCountUpperBound().toInstant();
+    Date expiringSoon = Date.from(expiringWindowUpperBound.minus(1, ChronoUnit.DAYS));
     tempEntity.newWaiver("hashExpiring", policy.getId(), app.getId(), null, "expiring soon", new Date(),
         expiringSoon);
+    tempEntity.newWaiver("hashOutsideExpiring", policy.getId(), app.getId(), null, "not expiring soon", new Date(),
+        Date.from(expiringWindowUpperBound.plus(1, ChronoUnit.DAYS)));
 
     PolicyWaiverRequest requested = new PolicyWaiverRequest("hashRequested", policy.getId(), app.getId(), "pending");
     requested.setStatus(PolicyWaiverRequestStatus.REQUESTED);
@@ -136,13 +143,32 @@ public class DashboardMetricsServiceTest
 
     DashboardMetricsDTO metrics = dashboardMetricsService.getMetrics(new DashboardMetricsRequestDTO());
 
-    assertThat(metrics.waivers.total).isEqualTo(4);
+    assertThat(metrics.waivers.total).isEqualTo(5);
     assertThat(metrics.waivers.source).isEqualTo("sql");
-    assertThat(metrics.waivers.breakdown).containsEntry("existing", 3L);
+    assertThat(metrics.waivers.breakdown).containsEntry("existing", 4L);
     assertThat(metrics.waivers.breakdown).containsEntry("requested", 1L);
     assertThat(metrics.waivers.breakdown).containsEntry("expiring", 1L);
     assertThat(metrics.waivers.total)
         .isEqualTo(metrics.waivers.breakdown.get("existing") + metrics.waivers.breakdown.get("requested"));
+
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+    try {
+      IndexQueryService indexQueryService = new IndexQueryService(
+          new IqLocalSearchService(luceneSearchIndexClient), luceneSearchIndexClient, null);
+      IndexQueryResponse waivers = indexQueryService.query(
+          IndexQueryType.WAIVER, new IndexQueryRequest("WAIVER", Map.of(), 1, 25, null, null, true));
+      long railExpiringCount = waivers.facets()
+          .get("status")
+          .stream()
+          .filter(bucket -> "expiring".equals(bucket.value()))
+          .findFirst()
+          .orElseThrow()
+          .count();
+      assertThat(metrics.waivers.breakdown.get("expiring")).isEqualTo(railExpiringCount);
+    }
+    finally {
+      SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(false);
+    }
   }
 
   @Test

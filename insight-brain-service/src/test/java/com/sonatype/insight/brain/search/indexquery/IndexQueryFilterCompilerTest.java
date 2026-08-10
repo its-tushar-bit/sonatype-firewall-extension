@@ -11,6 +11,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 
@@ -155,6 +156,35 @@ public class IndexQueryFilterCompilerTest
         .isThrownBy(() -> IndexQueryFilterCompiler.compileWithClauses(
             IndexQueryType.WAIVER, Map.of("expiryStatus", List.of("InvalidStatus"))))
         .satisfies(e -> assertThat(e.getCode()).isEqualTo(FilterValidationException.Code.INVALID_FILTER));
+  }
+
+  @Test
+  public void lifecycleStatus_reusesWaiverStatusClauses() {
+    assertThat(IndexQueryService.STATUS_EXPIRING_WINDOW_DAYS).isEqualTo(7);
+    long windowEnd = classicExpiringWindowEnd(FIXED_CLOCK);
+
+    CompiledQuery compiled = IndexQueryFilterCompiler.compileWithClauses(
+        IndexQueryType.WAIVER, Map.of("lifecycleStatus", List.of("expiring", "auto-waived")), FIXED_CLOCK);
+
+    assertThat(compiled.q()).isEqualTo(
+        "((itemType:policy_waiver AND policyWaiverExpiresAtEpochMs:{" + FIXED_NOW_MS + " TO " + windowEnd + "])"
+            + " OR policyWaiverAuto:\"true\")");
+  }
+
+  @Test
+  public void lifecycleStatus_invalidValue_rejectedWith400() {
+    assertThatExceptionOfType(FilterValidationException.class)
+        .isThrownBy(() -> IndexQueryFilterCompiler.compileWithClauses(
+            IndexQueryType.WAIVER, Map.of("lifecycleStatus", List.of("future-ish")), FIXED_CLOCK))
+        .satisfies(e -> assertThat(e.getCode()).isEqualTo(FilterValidationException.Code.INVALID_FILTER));
+  }
+
+  private static long classicExpiringWindowEnd(final Clock clock) {
+    return clock.instant()
+        .truncatedTo(ChronoUnit.DAYS)
+        .plus(IndexQueryService.STATUS_EXPIRING_WINDOW_DAYS, ChronoUnit.DAYS)
+        .plus(1, ChronoUnit.DAYS)
+        .toEpochMilli();
   }
 
   @Test

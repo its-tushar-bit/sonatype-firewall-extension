@@ -171,8 +171,11 @@ describe('MetricCardGrid (CLM-40905 AT-F16: landing grid)', () => {
     expect(screen.getByTestId('metric-card-waivers-value')).toHaveTextContent('5');
     expect(screen.getByTestId('metric-card-waivers-sub-existing-waivers-value')).toHaveTextContent('4');
     expect(screen.getByTestId('metric-card-waivers-sub-requested-waivers-value')).toHaveTextContent('1');
-    // slugLabel('Expiring (30d)') → 'expiring-(30d)' (parentheses preserved).
-    expect(screen.getByTestId('metric-card-waivers-sub-expiring-(30d)-value')).toHaveTextContent('2');
+    expect(screen.getByTestId('metric-card-waivers-sub-expires-soon-value')).toHaveTextContent('2');
+    expect(screen.getByTestId('metric-card-waivers-link')).toHaveAttribute(
+      'href',
+      expect.stringContaining('/waivers?lifecycle=expiring'),
+    );
   });
 
   it('omits the waivers expiring row when breakdown.expiring is absent (older backend)', async () => {
@@ -180,7 +183,7 @@ describe('MetricCardGrid (CLM-40905 AT-F16: landing grid)', () => {
     renderGrid();
 
     await waitFor(() => expect(screen.getByTestId('metric-card-waivers-value')).toHaveTextContent('5'));
-    expect(screen.queryByTestId('metric-card-waivers-sub-expiring-(30d)-value')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('metric-card-waivers-sub-expires-soon-value')).not.toBeInTheDocument();
   });
 
   it('shows 0 for waivers expiring when the key is present with value 0', async () => {
@@ -191,7 +194,13 @@ describe('MetricCardGrid (CLM-40905 AT-F16: landing grid)', () => {
     renderGrid();
 
     await waitFor(() => expect(screen.getByTestId('metric-card-waivers-value')).toHaveTextContent('5'));
-    expect(screen.getByTestId('metric-card-waivers-sub-expiring-(30d)-value')).toHaveTextContent('0');
+    expect(screen.getByTestId('metric-card-waivers-sub-expires-soon-value')).toHaveTextContent('0');
+    // Hero still represents all waivers when nothing is expiring.
+    expect(screen.getByTestId('metric-card-waivers-link')).toHaveAttribute(
+      'href',
+      expect.stringMatching(/\/waivers(?:\?|$)/),
+    );
+    expect(screen.getByTestId('metric-card-waivers-link').getAttribute('href')).not.toContain('lifecycle=expiring');
   });
 
   it('keeps mixed successful and unavailable cards visible without displaying a broader-scope number', () => {

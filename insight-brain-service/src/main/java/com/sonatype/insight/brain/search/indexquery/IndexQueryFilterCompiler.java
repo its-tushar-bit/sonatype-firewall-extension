@@ -39,12 +39,16 @@ public final class IndexQueryFilterCompiler
    * filters (both compile against the waiver-status field). The fixed states/waiverType facets subtract
    * these so each fixed count reflects the whole (unrestricted-by-its-own-dimension) corpus rather than
    * self-restricting to the user's current state/waiver selection.
+   * <p>
+   * {@code lifecycleStatusClauses} is the subset produced by the WAIVER lifecycle status rail, so the
+   * WAIVER status facet can subtract its own filter dimension while keeping unrelated waiver-state context.
    */
   public record CompiledQuery(
       String q,
       List<String> fieldClauses,
       String autoWaiverRestrictionClause,
-      List<String> waiverStatusClauses)
+      List<String> waiverStatusClauses,
+      List<String> lifecycleStatusClauses)
   {
   }
 
@@ -69,6 +73,7 @@ public final class IndexQueryFilterCompiler
     // omit it and report whole-corpus true/false counts regardless of the toggle.
     String autoWaiverRestrictionClause = null;
     final List<String> waiverStatusChips = new ArrayList<>();
+    final List<String> lifecycleStatusChips = new ArrayList<>();
     // Whether the request carries a filter that implies POLICY_WAIVER_REQUEST docs: an explicit
     // waiverStates selection (which fully owns the item-type + auto/manual scoping per state), or a
     // status filter (policyWaiverRequestStatus, request-only). When either is present, drop an
@@ -137,6 +142,13 @@ public final class IndexQueryFilterCompiler
             chips.add(chip);
           }
         }
+        case WAIVER_LIFECYCLE_STATUS -> {
+          String chip = compileWaiverLifecycleStatus(key, value, clock);
+          if (chip != null) {
+            chips.add(chip);
+            lifecycleStatusChips.add(chip);
+          }
+        }
         case WAIVER_STATES -> {
           String chip = compileWaiverStates(key, value);
           if (chip != null) {
@@ -176,7 +188,8 @@ public final class IndexQueryFilterCompiler
       }
       q.append(chip);
     }
-    return new CompiledQuery(q.toString(), chips, autoWaiverRestrictionClause, waiverStatusChips);
+    return new CompiledQuery(
+        q.toString(), chips, autoWaiverRestrictionClause, waiverStatusChips, lifecycleStatusChips);
   }
 
   /**
@@ -333,6 +346,37 @@ public final class IndexQueryFilterCompiler
         throw badRequest("filter '" + key + "' values must be true or false");
       }
       clauses.add(field + ":\"" + raw + "\"");
+    }
+    if (clauses.isEmpty()) {
+      return null;
+    }
+    if (clauses.size() == 1) {
+      return clauses.get(0);
+    }
+    return "(" + String.join(" OR ", clauses) + ")";
+  }
+
+  private static String compileWaiverLifecycleStatus(final String key, final Object value, final Clock clock) {
+    if (!(value instanceof List<?> list)) {
+      throw badRequest("filter '" + key + "' must be an array");
+    }
+    final Map<String, String> statusClauses = IndexQueryService.statusClauses(clock);
+    final List<String> clauses = new ArrayList<>();
+    for (Object element : list) {
+      if (element == null) {
+        continue;
+      }
+      final String status = String.valueOf(element).strip().toLowerCase(Locale.ROOT);
+      if (status.isEmpty()) {
+        continue;
+      }
+      final String clause = statusClauses.get(status);
+      if (clause == null) {
+        throw badRequest("filter '" + key + "' values must be active, expiring, expired, or auto-waived");
+      }
+      if (!clauses.contains(clause)) {
+        clauses.add(clause);
+      }
     }
     if (clauses.isEmpty()) {
       return null;

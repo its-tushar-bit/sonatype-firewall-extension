@@ -11,6 +11,9 @@ export type WaiversThreatLevelId = (typeof THREAT_GROUPS)[number]['group'];
 /** {@code Active|Expired|Never} maps 1:1 to the backend {@code policyWaiverExpiryStatus} keyword. */
 export type WaiversExpiryStatusId = 'Active' | 'Expired' | 'Never';
 
+/** WAIVER lifecycle-status facet ids returned by Ana's fixed {@code status} facet. */
+export type WaiversLifecycleStatusId = 'active' | 'expiring' | 'expired' | 'auto-waived';
+
 /** {@code Auto|Manual} — collapsed to a single {@code includeAutoWaivers} boolean at the wire. */
 export type WaiversAutoStatusId = 'Auto' | 'Manual';
 
@@ -50,6 +53,12 @@ const SELECTABLE_THREAT_LEVEL_IDS = new Set<WaiversThreatLevelId>([
 ]);
 
 const SELECTABLE_EXPIRY_STATUS_IDS = new Set<WaiversExpiryStatusId>(['Active', 'Expired', 'Never']);
+const SELECTABLE_LIFECYCLE_STATUS_IDS = new Set<WaiversLifecycleStatusId>([
+  'active',
+  'expiring',
+  'expired',
+  'auto-waived',
+]);
 const SELECTABLE_AUTO_STATUS_IDS = new Set<WaiversAutoStatusId>(['Auto', 'Manual']);
 const SELECTABLE_STATE_IDS = new Set<WaiversStateId>(['existing', 'requested', 'rejected']);
 const SELECTABLE_SCOPE_IDS = new Set<WaiversScopeId>(['application', 'organization', 'component']);
@@ -66,6 +75,10 @@ export function isSelectableThreatLevelId(value: string): value is WaiversThreat
 
 export function isSelectableExpiryStatusId(value: string): value is WaiversExpiryStatusId {
   return SELECTABLE_EXPIRY_STATUS_IDS.has(value as WaiversExpiryStatusId);
+}
+
+export function isSelectableLifecycleStatusId(value: string): value is WaiversLifecycleStatusId {
+  return SELECTABLE_LIFECYCLE_STATUS_IDS.has(value as WaiversLifecycleStatusId);
 }
 
 export function isSelectableAutoStatusId(value: string): value is WaiversAutoStatusId {
@@ -86,6 +99,7 @@ export function isSelectablePolicyTypeId(value: string): value is WaiversPolicyT
 
 export type WaiversListFilterState = {
   readonly threatLevelIds: ReadonlySet<WaiversThreatLevelId>;
+  readonly lifecycleStatusIds: ReadonlySet<WaiversLifecycleStatusId>;
   readonly expiryStatusIds: ReadonlySet<WaiversExpiryStatusId>;
   readonly autoStatusIds: ReadonlySet<WaiversAutoStatusId>;
   readonly waiverStateIds: ReadonlySet<WaiversStateId>;
@@ -101,6 +115,7 @@ export type WaiversFilterSetGroup = keyof WaiversListFilterState;
 
 export const EMPTY_WAIVERS_LIST_FILTERS: WaiversListFilterState = {
   threatLevelIds: new Set(),
+  lifecycleStatusIds: new Set(),
   expiryStatusIds: new Set(),
   autoStatusIds: new Set(),
   waiverStateIds: new Set(),
@@ -114,6 +129,7 @@ export const EMPTY_WAIVERS_LIST_FILTERS: WaiversListFilterState = {
 export function hasActiveWaiversListFilters(filters: WaiversListFilterState): boolean {
   return (
     filters.threatLevelIds.size > 0
+    || filters.lifecycleStatusIds.size > 0
     || filters.expiryStatusIds.size > 0
     || filters.autoStatusIds.size > 0
     || filters.waiverStateIds.size > 0
@@ -136,6 +152,7 @@ export function toggleWaiversListFilterId(
   id: string,
 ): WaiversListFilterState {
   if (group === 'threatLevelIds' && !isSelectableThreatLevelId(id)) return filters;
+  if (group === 'lifecycleStatusIds' && !isSelectableLifecycleStatusId(id)) return filters;
   if (group === 'expiryStatusIds' && !isSelectableExpiryStatusId(id)) return filters;
   if (group === 'autoStatusIds' && !isSelectableAutoStatusId(id)) return filters;
   if (group === 'waiverStateIds' && !isSelectableStateId(id)) return filters;
@@ -158,6 +175,7 @@ export function filtersEqual(
 ): boolean {
   const fields: WaiversFilterSetGroup[] = [
     'threatLevelIds',
+    'lifecycleStatusIds',
     'expiryStatusIds',
     'autoStatusIds',
     'waiverStateIds',
@@ -203,6 +221,7 @@ export interface WaiversIndexQueryFilterFields {
   /** Policy display names → Ana {@code policy} TERMS on policyWaiverPolicyName. */
   readonly policy?: ReadonlyArray<string>;
   readonly policyThreatLevel?: readonly [number, number];
+  readonly lifecycleStatus?: ReadonlyArray<WaiversLifecycleStatusId>;
   readonly expiryStatus?: ReadonlyArray<WaiversExpiryStatusId>;
   /** Classic: {@code false}=manual only; omitted otherwise (true is not sent). */
   readonly includeAutoWaivers?: boolean;
@@ -232,6 +251,7 @@ export function waiversListFiltersToRequest(
     applications?: ReadonlyArray<string>;
     policy?: ReadonlyArray<string>;
     policyThreatLevel?: readonly [number, number];
+    lifecycleStatus?: ReadonlyArray<WaiversLifecycleStatusId>;
     expiryStatus?: ReadonlyArray<WaiversExpiryStatusId>;
     includeAutoWaivers?: boolean;
     isAuto?: ReadonlyArray<'true' | 'false'>;
@@ -252,6 +272,9 @@ export function waiversListFiltersToRequest(
   const range = buildThreatLevelRange(filters.threatLevelIds);
   if (range) {
     out.policyThreatLevel = range;
+  }
+  if (filters.lifecycleStatusIds.size > 0) {
+    out.lifecycleStatus = Array.from(filters.lifecycleStatusIds);
   }
   if (filters.expiryStatusIds.size > 0) {
     out.expiryStatus = Array.from(filters.expiryStatusIds);
@@ -303,6 +326,22 @@ export function staticExpiryStatusFacets(): ReadonlyArray<{
   readonly count: number;
 }> {
   return STATIC_EXPIRY_STATUS_FACETS;
+}
+
+/** Static lifecycle status rows for the Ana {@code status} facet. */
+const STATIC_LIFECYCLE_STATUS_FACETS = [
+  { id: 'active', label: 'Active', count: 0 },
+  { id: 'expiring', label: 'Expires Soon', count: 0 },
+  { id: 'expired', label: 'Expired', count: 0 },
+  { id: 'auto-waived', label: 'Auto-waived', count: 0 },
+];
+
+export function staticLifecycleStatusFacets(): ReadonlyArray<{
+  readonly id: string;
+  readonly label: string;
+  readonly count: number;
+}> {
+  return STATIC_LIFECYCLE_STATUS_FACETS;
 }
 
 /** Static Auto vs Manual facet rows. */

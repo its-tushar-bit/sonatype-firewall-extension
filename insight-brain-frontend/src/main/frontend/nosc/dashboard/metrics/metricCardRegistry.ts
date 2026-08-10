@@ -212,7 +212,7 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
         ];
         if (typeof b.expiring === 'number') {
           subMetrics.push({
-            label: 'Expiring (30d)',
+            label: 'Expires Soon',
             value: b.expiring,
             variant: 'stat',
           });
@@ -221,7 +221,10 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
       return {
         value: data.waivers?.total ?? 0,
         subMetrics,
-        href: dashboardWaiversHref(),
+        // Hero is the aggregate Waivers total — only deep-link Expires Soon when that count is > 0.
+        href: typeof b?.expiring === 'number' && b.expiring > 0
+          ? dashboardWaiversHref({ expiresSoon: true })
+          : dashboardWaiversHref(),
       };
     },
   },

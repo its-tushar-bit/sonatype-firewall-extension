@@ -24,7 +24,7 @@ export interface ViolationsBreakdown {
 export interface WaiversBreakdown {
   readonly existing: number;
   readonly requested: number;
-  /** Present when backend supports expiring-within-30d; omit on older servers. */
+  /** Present when backend supports expires-soon waivers; omit on older servers. */
   readonly expiring?: number;
 }
 

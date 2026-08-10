@@ -6,7 +6,8 @@
 package com.sonatype.insight.brain.search.indexquery;
 
 import java.time.Clock;
-import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -264,7 +265,7 @@ public class IndexQueryService
    * Expiring-soon window: a waiver is "expiring" when its expiry falls within this many days of now,
    * matching the prototype's {@code EXPIRY_THRESHOLD_DAYS}. "expiring" is a subset of "active".
    */
-  static final int STATUS_EXPIRING_WINDOW_DAYS = 30;
+  static final int STATUS_EXPIRING_WINDOW_DAYS = 7;
 
   /**
    * One facet.
@@ -939,21 +940,27 @@ public class IndexQueryService
    * the {@code expiry} filter's expired shape;</li>
    * <li>{@code active} = NOT expired (never-expiring waivers carry no point and so are active),
    * matching the {@code expiry} filter's active shape;</li>
-   * <li>{@code expiring} = expiry within the next {@value #STATUS_EXPIRING_WINDOW_DAYS} days
-   * ({@code field:[now TO now+window]}); a subset of active, so its count can exceed neither the
-   * active total nor overlap the expired bucket;</li>
+   * <li>{@code expiring} = expiry after now and on or before the classic {@code IN_7_DAYS}
+   * upper bound (start of the current UTC day + {@value #STATUS_EXPIRING_WINDOW_DAYS} days
+   * + 1 day); a subset of active, so its count can exceed neither the active total nor overlap
+   * the expired bucket;</li>
    * <li>{@code auto-waived} = {@code policyWaiverAuto:"true"}, orthogonal to the expiry-derived
    * buckets (an auto-waiver can also be active/expiring/expired).</li>
    * </ul>
    */
-  private static Map<String, String> statusClauses(final Clock clock) {
-    final long now = clock.millis();
-    final long windowEnd = now + Duration.ofDays(STATUS_EXPIRING_WINDOW_DAYS).toMillis();
+  static Map<String, String> statusClauses(final Clock clock) {
+    final Instant requestTime = clock.instant();
+    final long now = requestTime.toEpochMilli();
+    final long windowEnd = requestTime
+        .truncatedTo(ChronoUnit.DAYS)
+        .plus(STATUS_EXPIRING_WINDOW_DAYS, ChronoUnit.DAYS)
+        .plus(1, ChronoUnit.DAYS)
+        .toEpochMilli();
     final String expiredClause = WAIVER_EXPIRES_AT_EPOCH_FIELD + ":[* TO " + now + "]";
     final Map<String, String> m = new LinkedHashMap<>();
     m.put(STATUS_ACTIVE, "(" + COMMITTED_WAIVER_TYPE_CLAUSE + " AND NOT " + expiredClause + ")");
     m.put(STATUS_EXPIRING, "(" + COMMITTED_WAIVER_TYPE_CLAUSE + " AND "
-        + WAIVER_EXPIRES_AT_EPOCH_FIELD + ":[" + now + " TO " + windowEnd + "])");
+        + WAIVER_EXPIRES_AT_EPOCH_FIELD + ":{" + now + " TO " + windowEnd + "])");
     m.put(STATUS_EXPIRED, "(" + COMMITTED_WAIVER_TYPE_CLAUSE + " AND " + expiredClause + ")");
     m.put(STATUS_AUTO_WAIVED, WAIVER_AUTO_FIELD + ":" + quote("true"));
     return m;
@@ -973,6 +980,7 @@ public class IndexQueryService
       final CompiledQuery compiled)
   {
     final List<String> excluded = new ArrayList<>();
+    excluded.addAll(compiled.lifecycleStatusClauses());
     final String autoRestriction = compiled.autoWaiverRestrictionClause();
     if (autoRestriction != null) {
       excluded.add(autoRestriction);

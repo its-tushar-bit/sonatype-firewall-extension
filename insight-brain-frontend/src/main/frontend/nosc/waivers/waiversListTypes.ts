@@ -55,6 +55,7 @@ export type WaiversFilterFacetEntry = {
 export type WaiversFilterFacetCounts = {
   readonly totalWaivers: number;
   readonly threatLevels: ReadonlyArray<WaiversFilterFacetEntry>;
+  readonly lifecycleStatuses: ReadonlyArray<WaiversFilterFacetEntry>;
   readonly expiryStatuses: ReadonlyArray<WaiversFilterFacetEntry>;
   readonly autoStatuses: ReadonlyArray<WaiversFilterFacetEntry>;
   readonly waiverStates: ReadonlyArray<WaiversFilterFacetEntry>;

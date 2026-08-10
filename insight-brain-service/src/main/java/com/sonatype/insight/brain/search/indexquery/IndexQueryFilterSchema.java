@@ -61,6 +61,11 @@ public final class IndexQueryFilterSchema
      */
     BOOLEAN_TERMS,
     /**
+     * The WAIVER lifecycle status rail: active / expiring / expired / auto-waived. Distinct from the
+     * {@code status} request-status filter over {@code policyWaiverRequestStatus}.
+     */
+    WAIVER_LIFECYCLE_STATUS,
+    /**
      * The {@code waiverStates} multi-select on WAIVER queries, spanning both item types:
      * <ul>
      * <li>{@code existing} — committed waivers ({@code itemType:policy_waiver});</li>
@@ -149,8 +154,9 @@ public final class IndexQueryFilterSchema
         // Prefer expiry (clock, Kind.EXPIRY_STATUS) for Active/Expired toggles — never-expiring docs
         // count as active. expiryStatus is the denormalized active/expired/never keyword.
         // waiverStates spans both item types (see Kind.WAIVER_STATES). status filters requests by the
-        // policyWaiverRequestStatus discriminator; scope by the indexed scope; policyTypes by
-        // policyWaiverPolicyType. All three are OR-within / AND-across standard TERMS.
+        // policyWaiverRequestStatus discriminator; lifecycleStatus filters the committed-waiver
+        // active/expiring/expired/auto-waived rail; scope by the indexed scope; policyTypes by
+        // policyWaiverPolicyType. All standard TERMS are OR-within / AND-across.
         IndexQueryType.WAIVER, Map.ofEntries(
             Map.entry("query", FREE_TEXT_QUERY),
             Map.entry("organizations", new FilterDef("organizationName", Kind.TERMS)),
@@ -160,6 +166,7 @@ public final class IndexQueryFilterSchema
             Map.entry("policyTypes", new FilterDef("policyWaiverPolicyType", Kind.TERMS)),
             Map.entry("scope", new FilterDef("policyWaiverScope", Kind.TERMS)),
             Map.entry("status", new FilterDef("policyWaiverRequestStatus", Kind.TERMS)),
+            Map.entry("lifecycleStatus", new FilterDef(null, Kind.WAIVER_LIFECYCLE_STATUS)),
             // WAIVER_STATES self-compiles its item-type/status clauses (see compileWaiverStates), so
             // it takes no index field — null like FREE_TEXT_QUERY.
             Map.entry("waiverStates", new FilterDef(null, Kind.WAIVER_STATES)),

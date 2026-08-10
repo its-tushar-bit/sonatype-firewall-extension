@@ -31,7 +31,10 @@ export function dashboardViolationsHref() {
   return nexusOneEntityHref('/violations');
 }
 
-export function dashboardWaiversHref() {
+export function dashboardWaiversHref(options = {}) {
+  if (options.expiresSoon) {
+    return nexusOneEntityHref('/waivers?lifecycle=expiring');
+  }
   return nexusOneEntityHref('/waivers');
 }
 

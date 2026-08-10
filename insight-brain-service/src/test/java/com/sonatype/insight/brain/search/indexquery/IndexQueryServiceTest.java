@@ -15,6 +15,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -600,20 +604,21 @@ public class IndexQueryServiceTest
         java.time.Clock.fixed(java.time.Instant.parse("2026-01-01T00:00:00Z"), java.time.ZoneOffset.UTC);
     final IndexQueryService svc = new IndexQueryService(iq, searchIndexClient, null, fixed);
     final long now = fixed.millis();
-    final long windowEnd = now + java.time.Duration.ofDays(IndexQueryService.STATUS_EXPIRING_WINDOW_DAYS).toMillis();
+    assertThat(IndexQueryService.STATUS_EXPIRING_WINDOW_DAYS).isEqualTo(7);
+    final long windowEnd = classicExpiringWindowEnd(fixed);
 
     SearchResultItemDTO w = waiverDto("w-1", "APPLICATION", 5, false);
     when(searchIndexClient.searchGlobal(any())).thenReturn(new GlobalSearchResult(List.of(w), 1, List.of()));
     final String expiredRange = "policyWaiverExpiresAtEpochMs:[* TO " + now + "]";
-    final String expiringRange = "policyWaiverExpiresAtEpochMs:[" + now + " TO " + windowEnd + "]";
+    final String expiringRange = "policyWaiverExpiresAtEpochMs:{" + now + " TO " + windowEnd + "]";
     // active = "NOT <expiredRange>"; expired = ends with <expiredRange> but has no NOT;
-    // expiring = the [now TO now+window] range; auto = policyWaiverAuto:"true". argThat disambiguates
+    // expiring = the {now TO now+window] range; auto = policyWaiverAuto:"true". argThat disambiguates
     // active-vs-expired since both contain the expired range substring. Every expiry-derived bucket is
     // scoped to committed waivers (itemType:policy_waiver) so pending-request docs never inflate them.
     when(searchIndexClient.count(argThat(qy -> qy != null && qy.contains("NOT " + expiredRange)
         && qy.contains("itemType:policy_waiver AND NOT")))).thenReturn(80L);
     when(searchIndexClient.count(argThat(qy -> qy != null && qy.contains(expiringRange)
-        && qy.contains("itemType:policy_waiver AND policyWaiverExpiresAtEpochMs:[" + now)))).thenReturn(15L);
+        && qy.contains("itemType:policy_waiver AND policyWaiverExpiresAtEpochMs:{" + now)))).thenReturn(15L);
     when(searchIndexClient.count(argThat(
         qy -> qy != null && qy.contains(expiredRange) && !qy.contains("NOT ") && !qy.contains(expiringRange)
             && qy.contains("itemType:policy_waiver AND " + expiredRange))))
@@ -633,6 +638,64 @@ public class IndexQueryServiceTest
         .containsEntry(IndexQueryService.STATUS_EXPIRING, 15L)
         .containsEntry(IndexQueryService.STATUS_EXPIRED, 20L)
         .containsEntry(IndexQueryService.STATUS_AUTO_WAIVED, 5L);
+  }
+
+  @Test
+  public void query_waiverLifecycleStatusFilter_appliesExpiringStatusClause() {
+    final Clock fixed = Clock.fixed(Instant.parse("2026-01-01T12:34:00Z"), ZoneOffset.UTC);
+    final IndexQueryService svc = new IndexQueryService(iq, searchIndexClient, null, fixed);
+    final long now = fixed.millis();
+    assertThat(IndexQueryService.STATUS_EXPIRING_WINDOW_DAYS).isEqualTo(7);
+    final long oldExactSevenDayEnd = Instant.parse("2026-01-08T12:34:00Z").toEpochMilli();
+    final long windowEnd = classicExpiringWindowEnd(fixed);
+    final long lateSeventhCalendarDayExpiry = Instant.parse("2026-01-08T23:59:00Z").toEpochMilli();
+    assertThat(lateSeventhCalendarDayExpiry)
+        .isGreaterThan(oldExactSevenDayEnd)
+        .isLessThanOrEqualTo(windowEnd);
+    final String expiringRange = "policyWaiverExpiresAtEpochMs:{" + now + " TO " + windowEnd + "]";
+    final String parsedExpiringRange = "policyWaiverExpiresAtEpochMs:[" + (now + 1) + " TO " + windowEnd + "]";
+    SearchResultItemDTO expiringWaiver = waiverDto("w-expiring", "APPLICATION", 5, false);
+
+    when(searchIndexClient.searchGlobal(any())).thenAnswer(inv -> {
+      GlobalSearchRequest searchRequest = inv.getArgument(0);
+      if (searchRequest.baseQuery().toString().contains(parsedExpiringRange)) {
+        return new GlobalSearchResult(List.of(expiringWaiver), 1, List.of());
+      }
+      return emptyResult();
+    });
+    when(searchIndexClient.count(argThat(qy -> qy != null && qy.contains(expiringRange)))).thenReturn(1L);
+
+    IndexQueryRequest req = new IndexQueryRequest(
+        "WAIVER", Map.of("lifecycleStatus", List.of(IndexQueryService.STATUS_EXPIRING)), 1, 25, null, null, true);
+    IndexQueryResponse resp = svc.query(IndexQueryType.WAIVER, req);
+
+    Query sent = capture();
+    assertThat(sent.toString())
+        .contains(parsedExpiringRange)
+        .doesNotContain("policyWaiverExpiresAtEpochMs:[" + now + " TO ");
+    assertThat(resp.totalEstimate()).isEqualTo(1);
+    assertThat(resp.rows()).extracting(IndexQueryRow::getId).containsExactly("w-expiring");
+    Map<String, Long> status = resp.facets()
+        .get("status")
+        .stream()
+        .collect(java.util.stream.Collectors.toMap(
+            IndexQueryResponse.IndexQueryFacetBucket::value, IndexQueryResponse.IndexQueryFacetBucket::count));
+    assertThat(status).containsEntry(IndexQueryService.STATUS_EXPIRING, 1L);
+  }
+
+  @Test
+  public void statusClauses_expiryAtNowIsExpiredOnly() {
+    final Clock fixed = Clock.fixed(Instant.parse("2026-01-01T12:34:00Z"), ZoneOffset.UTC);
+    final long now = fixed.millis();
+    final long windowEnd = classicExpiringWindowEnd(fixed);
+
+    Map<String, String> clauses = IndexQueryService.statusClauses(fixed);
+
+    assertThat(clauses.get(IndexQueryService.STATUS_EXPIRED))
+        .contains("policyWaiverExpiresAtEpochMs:[* TO " + now + "]");
+    assertThat(clauses.get(IndexQueryService.STATUS_EXPIRING))
+        .contains("policyWaiverExpiresAtEpochMs:{" + now + " TO " + windowEnd + "]")
+        .doesNotContain("policyWaiverExpiresAtEpochMs:[" + now + " TO ");
   }
 
   @Test
@@ -1058,6 +1121,14 @@ public class IndexQueryServiceTest
 
   private static IndexQueryRequest request(final Map<String, Object> filters) {
     return new IndexQueryRequest("ANY", filters, 1, 25, null, null, false);
+  }
+
+  private static long classicExpiringWindowEnd(final Clock clock) {
+    return clock.instant()
+        .truncatedTo(ChronoUnit.DAYS)
+        .plus(IndexQueryService.STATUS_EXPIRING_WINDOW_DAYS, ChronoUnit.DAYS)
+        .plus(1, ChronoUnit.DAYS)
+        .toEpochMilli();
   }
 
   private static SearchResultItemDTO appDto(final String publicId, final String name, final String org) {

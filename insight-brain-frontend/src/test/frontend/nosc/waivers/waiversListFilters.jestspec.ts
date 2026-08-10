@@ -37,8 +37,18 @@ describe('waiversListFilters', () => {
       toggleWaiversListFilterId(EMPTY_WAIVERS_LIST_FILTERS, 'expiryStatusIds', 'WhoKnows'),
     ).toBe(EMPTY_WAIVERS_LIST_FILTERS);
     expect(
+      toggleWaiversListFilterId(EMPTY_WAIVERS_LIST_FILTERS, 'lifecycleStatusIds', 'WhoKnows'),
+    ).toBe(EMPTY_WAIVERS_LIST_FILTERS);
+    expect(
       toggleWaiversListFilterId(EMPTY_WAIVERS_LIST_FILTERS, 'autoStatusIds', 'Robot'),
     ).toBe(EMPTY_WAIVERS_LIST_FILTERS);
+  });
+
+  it('maps lifecycle status selections to the lifecycleStatus request filter', () => {
+    let filters = toggleWaiversListFilterId(EMPTY_WAIVERS_LIST_FILTERS, 'lifecycleStatusIds', 'expiring');
+    filters = toggleWaiversListFilterId(filters, 'lifecycleStatusIds', 'auto-waived');
+
+    expect(waiversListFiltersToRequest(filters).lifecycleStatus).toEqual(['expiring', 'auto-waived']);
   });
 
   it('maps a Manual-only selection to includeAutoWaivers=false', () => {

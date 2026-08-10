@@ -139,14 +139,24 @@ public class GuideUsageTelemetryCollector
     attributes.put("plan_tier", "SELF_HOSTED");
     attributes.put("user_id", r.hashedUserId());
     if (r.identifier() != null) {
-      // Key off the original annotated operation, not r.operationType(): for MCP that field is
-      // overridden to "mcp_lookup", which would mis-bucket a vulnerability id under "purl".
-      attributes.put(r.restOperationType() == GuideOperationType.VULNERABILITY_LOOKUP
-          ? "vulnerability_id"
-          : "purl", r.identifier());
+      attributes.put(identifierKey(r.restOperationType()), r.identifier());
     }
     data.setAttributes(attributes);
     return data;
+  }
+
+  /**
+   * The attribute key under which a lookup's identifier is filed, selected from the original annotated
+   * operation &mdash; not the possibly MCP-overridden operation type, which would mis-bucket the id.
+   * Component lookups are identified by a package URL; vulnerabilities and security events each get a
+   * dedicated id key so their ids are not mixed into the {@code purl} column.
+   */
+  private static String identifierKey(final GuideOperationType restOperationType) {
+    return switch (restOperationType) {
+      case VULNERABILITY_LOOKUP -> "vulnerability_id";
+      case SECURITY_EVENT_LOOKUP -> "security_event_id";
+      default -> "purl";
+    };
   }
 
   private String hashUserId(final String username) {

@@ -97,6 +97,32 @@ public class GuideUsageTelemetryCollectorTest
   }
 
   @Test
+  public void securityEventLookupKeysIdentifierAsSecurityEventId() {
+    // A security-event detail id must be filed under "security_event_id", not "purl" (the component
+    // fallback) — mirroring how a vulnerability id is filed under "vulnerability_id".
+    GuideChannelContext.set(GuideChannel.API);
+    collector.record(GuideOperationType.SECURITY_EVENT_LOOKUP, new Object[]{"sonatype-2024-0001"});
+
+    TelemetryData td = collector.collectAllData().get(0);
+    assertThat(td.getAttributes()).containsEntry("operation_type", "security_event_lookup");
+    assertThat(td.getAttributes()).containsEntry("security_event_id", "sonatype-2024-0001");
+    assertThat(td.getAttributes()).doesNotContainKey("purl");
+  }
+
+  @Test
+  public void mcpSecurityEventLookupKeysIdentifierAsSecurityEventId() {
+    // As with vulnerabilities, the MCP channel overrides operation_type to "mcp_lookup", but the
+    // identifier key must still be chosen from the original annotated operation.
+    GuideChannelContext.set(GuideChannel.MCP);
+    collector.record(GuideOperationType.SECURITY_EVENT_LOOKUP, new Object[]{"sonatype-2024-0001"});
+
+    TelemetryData td = collector.collectAllData().get(0);
+    assertThat(td.getAttributes()).containsEntry("operation_type", "mcp_lookup");
+    assertThat(td.getAttributes()).containsEntry("security_event_id", "sonatype-2024-0001");
+    assertThat(td.getAttributes()).doesNotContainKey("purl");
+  }
+
+  @Test
   public void isNotClusterTelemetry() {
     assertThat(collector.isClusterTelemetry()).isFalse();
   }

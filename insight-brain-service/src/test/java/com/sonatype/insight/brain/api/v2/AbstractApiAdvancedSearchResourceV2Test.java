@@ -38,9 +38,11 @@ public abstract class AbstractApiAdvancedSearchResourceV2Test
 {
   private IndexService indexService;
 
+  private TaskScheduler taskScheduler;
+
   @Before
   public void before() throws Exception {
-    TaskScheduler taskScheduler = getCLMServer().getInstance(TaskScheduler.class);
+    taskScheduler = getCLMServer().getInstance(TaskScheduler.class);
     taskScheduler.disableForTesting = false;
     taskScheduler.start();
     indexService = getCLMServer().getInstance(IndexService.class);
@@ -57,6 +59,68 @@ public abstract class AbstractApiAdvancedSearchResourceV2Test
     // verify the index exists
     long size = indexService.getIndexSize();
     assertThat(size).isGreaterThan(0);
+  }
+
+  /**
+   * Cancel is best-effort and idempotent, so calling it when nothing is building must be a no-op rather than an error
+   * or a teardown of what is already serving.
+   */
+  @Test
+  public void testCancelSearchIndexRebuildLeavesTheServingIndexSearchable() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    restRequest().path(ApiAdvancedSearchResourceV2.INDEX_PATH).post();
+    awaitIndexCompletion();
+    long sizeBeforeCancel = indexService.getIndexSize();
+
+    HttpResponse cancelResponse = restRequest().path(ApiAdvancedSearchResourceV2.INDEX_CANCEL_PATH).post();
+
+    assertResponseStatus(204, cancelResponse);
+    assertThat(indexService.isFullIndexTriggered()).isFalse();
+    assertThat(indexService.getIndexSize()).isEqualTo(sizeBeforeCancel);
+
+    HttpResponse searchResponse =
+        restRequest().query("query", FieldIdentifier.APPLICATION_ID.label + ":" + application.getId()).get();
+
+    assertResponseStatus(200, searchResponse);
+    SearchResultDTO searchResultDTO = searchResponse.getBody(SearchResultDTO.class);
+    assertThat(searchResultDTO.groupingByDTOS).hasSize(1);
+    assertThat(searchResultDTO.groupingByDTOS.get(0).searchResultItemDTOS).hasSize(1);
+  }
+
+  /**
+   * A rebuild is a scheduled task, so an operator who starts one and cancels straight after is cancelling a rebuild
+   * that has not begun. Holding the scheduler in standby reproduces that gap exactly rather than racing it: the
+   * rebuild is queued but cannot run until the cancel has been accepted, and it must then abort on its own without
+   * disturbing the index that is already serving.
+   */
+  @Test
+  public void testCancelSearchIndexRebuildQueuedButNotStartedLeavesTheServingIndexIntact() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    restRequest().path(ApiAdvancedSearchResourceV2.INDEX_PATH).post();
+    awaitIndexCompletion();
+    long servingSize = indexService.getIndexSize();
+    assertThat(servingSize).isGreaterThan(0);
+
+    taskScheduler.standby();
+    try {
+      restRequest().path(ApiAdvancedSearchResourceV2.INDEX_PATH).post();
+
+      HttpResponse cancelResponse = restRequest().path(ApiAdvancedSearchResourceV2.INDEX_CANCEL_PATH).post();
+
+      assertResponseStatus(204, cancelResponse);
+    }
+    finally {
+      taskScheduler.start();
+    }
+    awaitIndexCompletion();
+
+    assertThat(indexService.getIndexSize()).isEqualTo(servingSize);
+    HttpResponse searchResponse =
+        restRequest().query("query", FieldIdentifier.APPLICATION_ID.label + ":" + application.getId()).get();
+    assertResponseStatus(200, searchResponse);
+    SearchResultDTO searchResultDTO = searchResponse.getBody(SearchResultDTO.class);
+    assertThat(searchResultDTO.groupingByDTOS).hasSize(1);
+    assertThat(searchResultDTO.groupingByDTOS.get(0).searchResultItemDTOS).hasSize(1);
   }
 
   @Test

@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.search.lucene;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -39,10 +41,14 @@ import org.slf4j.LoggerFactory;
  * {@link LuceneComponents#openSearchIndex(boolean)} resolves a tenant-specific directory via
  * {@link com.sonatype.insight.brain.service.InsightWork#getSearchIndexDir()}.
  * <p>
- * {@link #rebuildExclusive(Runnable)} and {@link #runWithWriter(WriterWork)} are mutually exclusive
- * per tenant: both hold the tenant's {@link TenantIndex#lock}. Read paths use
- * {@link #tryGetSearcherManagerHolder()} ({@link ReentrantLock#tryLock()}) so searches fall back to
- * {@link org.apache.lucene.index.DirectoryReader} instead of blocking while a rebuild holds the lock.
+ * {@link #rebuildExclusive(WriterWork)} builds a green generation without wiping the serving (blue)
+ * index; readers keep using the blue {@link LuceneSearcherManagerHolder} until a short cutover.
+ * {@link #runWithWriter(WriterWork)} is skipped while a full rebuild is in progress so the outbox
+ * can catch up after cutover. Cutover briefly holds the tenant {@link TenantIndex#lock}.
+ * <p>
+ * Blue/green requires renaming the serving directory while searchers may still hold its files open, which is
+ * POSIX-only. Deployments on filesystems that refuse it — Windows — rebuild in place instead, so search is
+ * unavailable for the duration of a rebuild there.
  */
 public class LuceneIndexWriterOwner
     implements Closeable, TenantManaged
@@ -66,6 +72,11 @@ public class LuceneIndexWriterOwner
    */
   private final TenantIndex testIndex;
 
+  /**
+   * False on filesystems that refuse to rename a directory holding open files, where the cutover cannot work.
+   */
+  private final boolean blueGreenSupported;
+
   private final AtomicBoolean closed = new AtomicBoolean();
 
   public LuceneIndexWriterOwner(
@@ -80,11 +91,25 @@ public class LuceneIndexWriterOwner
       final ShutdownHandler shutdownHandler,
       final MeterRegistry meterRegistry)
   {
+    this(luceneComponents, shutdownHandler, meterRegistry, supportsRenameWithOpenReaders());
+  }
+
+  LuceneIndexWriterOwner(
+      final LuceneComponents luceneComponents,
+      final ShutdownHandler shutdownHandler,
+      final MeterRegistry meterRegistry,
+      final boolean blueGreenSupported)
+  {
     this.luceneComponents = luceneComponents;
     this.testAnalyzer = null;
     this.meterRegistry = meterRegistry;
     this.tenantIndexes = new ConcurrentHashMap<>();
     this.testIndex = null;
+    this.blueGreenSupported = blueGreenSupported;
+    if (luceneComponents != null && !blueGreenSupported) {
+      log.info("Filesystem does not support renaming a directory with open readers; Lucene full rebuilds will run "
+          + "in place and search will be unavailable while one runs.");
+    }
     shutdownHandler.add(() -> {
       try {
         close();
@@ -111,10 +136,28 @@ public class LuceneIndexWriterOwner
     this.testAnalyzer = analyzer;
     this.meterRegistry = null;
     this.tenantIndexes = null;
+    this.blueGreenSupported = false;
     TenantIndex index = new TenantIndex();
     index.directory = directory;
     index.writer = openWriter(directory, analyzer, OpenMode.CREATE_OR_APPEND);
     this.testIndex = index;
+  }
+
+  /**
+   * Cutover renames the serving directory while searchers may still hold its files open: {@link
+   * LuceneSearcherManagerHolder#acquire()} runs outside the holder lock to avoid deadlocking with {@code pause()},
+   * so pausing cannot drain a searcher acquired just before it. POSIX allows the rename regardless; Windows fails it
+   * with {@code AccessDeniedException}.
+   */
+  private static boolean supportsRenameWithOpenReaders() {
+    return FileSystems.getDefault().supportedFileAttributeViews().contains("posix");
+  }
+
+  /**
+   * True when a full rebuild will build a separate green generation and cut over, rather than wiping in place.
+   */
+  private boolean usesBlueGreen() {
+    return luceneComponents != null && blueGreenSupported;
   }
 
   public IndexWriter getWriter() {
@@ -209,8 +252,16 @@ public class LuceneIndexWriterOwner
    */
   public void runWithWriter(final WriterWork work) throws Exception {
     TenantIndex index = state();
+    if (index.fullRebuildInProgress.get()) {
+      log.debug("Skipping Lucene incremental update while a full rebuild is in progress");
+      return;
+    }
     index.lock.lock();
     try {
+      if (index.fullRebuildInProgress.get()) {
+        log.debug("Skipping Lucene incremental update while a full rebuild is in progress");
+        return;
+      }
       ensureAvailable(index);
       ensureWriterOpen(index);
       try {
@@ -236,57 +287,187 @@ public class LuceneIndexWriterOwner
     void run(IndexWriter writer) throws Exception;
   }
 
-  public void rebuildExclusive(final Runnable rebuild) {
+  /**
+   * True while a blue/green full rebuild is building green or cutting over. Incremental writers
+   * should leave {@code search_index_change} rows for catch-up after cutover.
+   */
+  public boolean isFullRebuildInProgress() {
+    TenantIndex index = existingState();
+    return index != null && index.fullRebuildInProgress.get();
+  }
+
+  /**
+   * Requests that an in-flight full rebuild abort before cutover. Blue keeps serving; green is
+   * discarded. Cooperative — checked during populate, when the green build returns, and again
+   * immediately before cutover.
+   */
+  public void requestCancelFullRebuild() {
+    TenantIndex index = existingState();
+    if (index != null) {
+      index.cancelRequested.set(true);
+    }
+  }
+
+  /**
+   * Throws if {@link #requestCancelFullRebuild()} was called for the current tenant's rebuild.
+   */
+  public void throwIfFullRebuildCancelled() {
+    TenantIndex index = existingState();
+    if (index != null) {
+      throwIfRebuildCancelled(index);
+    }
+  }
+
+  /**
+   * Builds a new (green) Lucene generation, then atomically cuts over the serving (blue) path.
+   * Readers continue on blue until cutover. On failure or cancel, green is discarded and blue is
+   * left serving.
+   * <p>
+   * Falls back to wipe-in-place {@link OpenMode#CREATE} on the serving directory when the filesystem cannot rename a
+   * directory with open readers, and for unit-test owners backed by an in-memory directory.
+   */
+  public void rebuildExclusive(final WriterWork rebuild) {
     if (closed.get()) {
       throw new SearchIndexException("Lucene index writer is closed; cannot rebuild.",
           new IllegalStateException("Lucene index writer is closed."));
     }
     TenantIndex index = state();
+    if (!index.fullRebuildInProgress.compareAndSet(false, true)) {
+      throw new SearchIndexException("Lucene full rebuild is already in progress.",
+          new IllegalStateException("Lucene full rebuild is already in progress."));
+    }
+    // The flag is deliberately not cleared here. A rebuild is scheduled as a task and starts some time after the
+    // request that triggered it, so a cancel accepted in that gap arrives before this method runs; clearing on entry
+    // would discard it and take the rebuild all the way to cutover. Callers only accept a cancel while a rebuild is
+    // in progress or scheduled, and the finally below clears the flag once the rebuild it belongs to has ended.
+    try {
+      // A cancel that landed while this rebuild was still queued means the work is already unwanted. Checking before
+      // any of it starts saves a full reindex, and on the in-place path it is what keeps the serving index from being
+      // wiped for a rebuild nobody is waiting for.
+      throwIfRebuildCancelled(index);
+      if (usesBlueGreen()) {
+        rebuildBlueGreen(index, rebuild);
+      }
+      else {
+        rebuildInPlace(index, rebuild);
+      }
+    }
+    finally {
+      index.fullRebuildInProgress.set(false);
+      index.cancelRequested.set(false);
+    }
+  }
+
+  private void rebuildBlueGreen(final TenantIndex index, final WriterWork rebuild) {
+    Path greenPath = null;
+    Directory greenDirectory = null;
+    IndexWriter greenWriter = null;
+    Path retiredPath = null;
+    boolean blueTornDown = false;
+    boolean rotated = false;
+    try {
+      greenPath = luceneComponents.createBuildingGenerationDirectory();
+      greenDirectory = luceneComponents.openSearchIndexAt(greenPath, false);
+      greenWriter = openWriter(greenDirectory, OpenMode.CREATE);
+
+      // Build green without holding the tenant lock so blue SearcherManager keeps serving.
+      rebuild.run(greenWriter);
+      throwIfRebuildCancelled(index);
+      greenWriter.commit();
+      // Each handle is dropped from its local before being closed, so a close that throws cannot leave the local set
+      // and have the catch below close the same handle a second time.
+      IndexWriter committedWriter = greenWriter;
+      greenWriter = null;
+      committedWriter.close();
+      Directory builtDirectory = greenDirectory;
+      greenDirectory = null;
+      builtDirectory.close();
+
+      index.lock.lock();
+      try {
+        // Must stay ahead of the teardown below. This is the last point a cancel costs nothing but the green tree;
+        // once the SearcherManager is paused and blue is closed, aborting would leave search unavailable rather than
+        // still serving the old generation, which is the guarantee cancel exists to provide.
+        throwIfRebuildCancelled(index);
+        quiesceBlue(index, "cutover");
+        try {
+          closeDirectory(index);
+        }
+        catch (IOException e) {
+          log.warn("Unable to close Lucene blue directory before cutover", e);
+          index.directory = null;
+        }
+        blueTornDown = true;
+
+        retiredPath = luceneComponents.cutoverBuildingGeneration(greenPath);
+        greenPath = null;
+        rotated = true;
+
+        index.directory = luceneComponents.openSearchIndex(false);
+        index.writer = openWriter(index.directory, OpenMode.CREATE_OR_APPEND);
+        index.available = true;
+        if (index.searcherManagerHolder != null) {
+          index.searcherManagerHolder.reopen(index.writer);
+        }
+      }
+      finally {
+        index.lock.unlock();
+      }
+
+      if (retiredPath != null) {
+        try {
+          luceneComponents.deleteIndexGeneration(retiredPath);
+        }
+        catch (IOException e) {
+          log.warn("Unable to delete retired Lucene index generation at {}", retiredPath, e);
+        }
+      }
+    }
+    catch (Exception e) {
+      if (!rotated) {
+        closeQuietly(greenWriter, greenDirectory);
+        if (greenPath != null) {
+          try {
+            luceneComponents.deleteIndexGeneration(greenPath);
+          }
+          catch (IOException deleteFailure) {
+            log.warn("Unable to delete incomplete Lucene green generation at {}", greenPath, deleteFailure);
+          }
+        }
+        if (blueTornDown) {
+          // Cutover itself failed after blue's writer and directory were already closed. Without
+          // this the tenant keeps available=true with a null writer, and reads silently degrade to
+          // uncached DirectoryReader.open until some later write happens to reopen it.
+          closeQuietly(index);
+        }
+      }
+      else {
+        // Cutover already replaced serving; reopen failed. Close any half-open serving handles
+        // so we do not leak Directory/writer for the life of the process.
+        closeQuietly(index);
+      }
+      throw new SearchIndexException("Error rebuilding Lucene search index", e);
+    }
+  }
+
+  /**
+   * Wipes the serving directory and rebuilds into it under the tenant lock, leaving search unavailable until the
+   * rebuild finishes. Used where blue/green cannot be: filesystems that refuse to rename a directory with open
+   * readers, and in-memory test owners. Cancel cannot preserve the serving index here, because the wipe has already
+   * happened by the time the rebuild work runs.
+   */
+  private void rebuildInPlace(final TenantIndex index, final WriterWork rebuild) {
     index.lock.lock();
     try {
       try {
-        // Best-effort quiesce. Integration tests (and some ops paths) may delete the on-disk
-        // index directory out from under the live writer; flush/commit then fails with
-        // NoSuchFileException on write.lock. Recover by recreating directory + writer.
-        try {
-          if (index.writer != null && index.writer.isOpen()) {
-            index.writer.flush();
-            index.writer.commit();
-          }
-        }
-        catch (IOException | RuntimeException e) {
-          log.warn("Unable to commit Lucene writer before rebuild; recreating index from scratch", e);
-        }
-        try {
-          pauseSearcherManagerHolder(index);
-        }
-        catch (IOException e) {
-          log.warn("Unable to pause Lucene SearcherManager before rebuild", e);
-        }
-        try {
-          closeWriter(index);
-        }
-        catch (IOException e) {
-          log.warn("Unable to close Lucene writer before rebuild", e);
-          index.writer = null;
-        }
-        if (luceneComponents != null) {
-          try {
-            closeDirectory(index);
-          }
-          catch (IOException e) {
-            log.warn("Unable to close Lucene directory before rebuild", e);
-            index.directory = null;
-          }
-          index.directory = luceneComponents.openSearchIndex(false);
-        }
-        else if (index.directory == null) {
+        quiesceBlue(index, "rebuild");
+        if (index.directory == null) {
           throw new SearchIndexException("Lucene directory is not available for rebuild",
               new IllegalStateException("Lucene directory is null"));
         }
         index.writer = openWriter(index.directory, OpenMode.CREATE);
         index.available = true;
-        rebuild.run();
+        rebuild.run(index.writer);
         index.writer.commit();
         if (index.searcherManagerHolder != null) {
           index.searcherManagerHolder.reopen(index.writer);
@@ -299,6 +480,68 @@ public class LuceneIndexWriterOwner
     }
     finally {
       index.lock.unlock();
+    }
+  }
+
+  /**
+   * Brings the serving (blue) generation to rest: buffered work is committed, the SearcherManager stops handing out
+   * searchers, and the writer is closed. Each step is best-effort, since none of them is a reason to abandon a rebuild
+   * that is about to replace this generation.
+   * <p>
+   * The order is load-bearing: the SearcherManager is paused before the writer closes, so nothing opens a searcher
+   * against a writer that is going away. Both rebuild paths quiesce identically, and only the blue/green path goes on
+   * to close the directory as well — the in-place path rebuilds into the directory it already holds.
+   *
+   * @param phase what the caller is quiescing for, used in the log messages
+   */
+  private void quiesceBlue(final TenantIndex index, final String phase) {
+    try {
+      if (index.writer != null && index.writer.isOpen()) {
+        index.writer.flush();
+        index.writer.commit();
+      }
+    }
+    catch (IOException | RuntimeException e) {
+      log.warn("Unable to commit Lucene serving writer before {}", phase, e);
+    }
+    try {
+      pauseSearcherManagerHolder(index);
+    }
+    catch (IOException e) {
+      log.warn("Unable to pause Lucene SearcherManager before {}", phase, e);
+    }
+    try {
+      closeWriter(index);
+    }
+    catch (IOException e) {
+      log.warn("Unable to close Lucene serving writer before {}", phase, e);
+      index.writer = null;
+    }
+  }
+
+  private void throwIfRebuildCancelled(final TenantIndex index) {
+    if (index.cancelRequested.get()) {
+      throw new SearchIndexException("Lucene full rebuild was cancelled; serving index unchanged.",
+          new IllegalStateException("Lucene full rebuild was cancelled."));
+    }
+  }
+
+  private void closeQuietly(final IndexWriter writer, final Directory directory) {
+    if (writer != null) {
+      try {
+        writer.close();
+      }
+      catch (IOException e) {
+        log.warn("Unable to close Lucene green writer after failed rebuild", e);
+      }
+    }
+    if (directory != null) {
+      try {
+        directory.close();
+      }
+      catch (IOException e) {
+        log.warn("Unable to close Lucene green directory after failed rebuild", e);
+      }
     }
   }
 
@@ -510,6 +753,10 @@ public class LuceneIndexWriterOwner
   static final class TenantIndex
   {
     final ReentrantLock lock = new ReentrantLock();
+
+    final AtomicBoolean fullRebuildInProgress = new AtomicBoolean();
+
+    final AtomicBoolean cancelRequested = new AtomicBoolean();
 
     Directory directory;
 

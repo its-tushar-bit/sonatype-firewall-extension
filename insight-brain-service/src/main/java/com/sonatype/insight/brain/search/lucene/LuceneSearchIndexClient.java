@@ -186,7 +186,7 @@ public class LuceneSearchIndexClient
     long start = System.currentTimeMillis();
     try {
       indexWriterOwner.rebuildExclusive(
-          () -> doPopulateIndex(new LuceneIndexingContext(ownerDAO, indexWriterOwner.getWriter(), conversionHelper)));
+          writer -> doPopulateIndex(new LuceneIndexingContext(ownerDAO, writer, conversionHelper)));
       log.info("all indexing complete");
     }
     catch (Exception e) {
@@ -194,6 +194,21 @@ public class LuceneSearchIndexClient
     }
     sendAdvancedSearchIndexingTelemetry(System.currentTimeMillis() - start);
     log.info("index creation exit");
+  }
+
+  @Override
+  public void cancelFullRebuild() {
+    indexWriterOwner.requestCancelFullRebuild();
+  }
+
+  @Override
+  public boolean isFullRebuildInProgress() {
+    return indexWriterOwner.isFullRebuildInProgress();
+  }
+
+  @Override
+  protected void checkPopulateNotCancelled() {
+    indexWriterOwner.throwIfFullRebuildCancelled();
   }
 
   @Override

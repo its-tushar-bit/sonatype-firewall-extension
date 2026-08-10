@@ -50,6 +50,8 @@ public class ApiAdvancedSearchResourceV2
 
   static final String INDEX_PATH = "index";
 
+  static final String INDEX_CANCEL_PATH = "index/cancel";
+
   static final String EXPORT_CSV_REPORT_PATH = "export/csv";
 
   @Inject
@@ -118,6 +120,25 @@ public class ApiAdvancedSearchResourceV2
   @ApiResponse(responseCode = "204", description = "Index created successfully.")
   public void createSearchIndexAsync() {
     indexService.createIndexAsync();
+  }
+
+  /**
+   * Request cancellation of an in-flight Advanced Search index rebuild. On a Lucene-backed deployment the previous
+   * complete (blue) index continues to serve reads and the incomplete green generation is discarded. OpenSearch cancel
+   * is a no-op today, so an OpenSearch-backed rebuild runs to completion.
+   */
+  @POST
+  @Path(INDEX_CANCEL_PATH)
+  @Operation(description = "Request cancellation of an in-flight Advanced Search index rebuild. " +
+      "On a Lucene-backed deployment the previous complete index continues to serve search results. " +
+      "Cancellation is not supported on OpenSearch-backed deployments, where the rebuild runs to completion. " +
+      "Use the status method to confirm whether a rebuild is still in progress." +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit System Configuration and Users")
+  @ApiResponse(responseCode = "204", description = "Cancel requested.")
+  public void cancelSearchIndexRebuild() {
+    indexService.cancelFullRebuild();
   }
 
   @GET

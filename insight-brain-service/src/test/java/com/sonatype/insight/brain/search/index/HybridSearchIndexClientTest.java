@@ -5,25 +5,35 @@
  */
 package com.sonatype.insight.brain.search.index;
 
+import java.io.File;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.search.global.StaleCursorException;
 import com.sonatype.insight.brain.search.global.GlobalSearchRequest;
 import com.sonatype.insight.brain.search.global.GlobalSearchResult;
+import com.sonatype.insight.brain.search.lucene.LuceneComponents;
+import com.sonatype.insight.brain.search.lucene.LuceneIndexWriterOwner;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
+import org.apache.lucene.document.Document;
 import org.apache.lucene.search.MatchAllDocsQuery;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -37,6 +47,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -51,6 +62,9 @@ public class HybridSearchIndexClientTest
 
   @Mock
   private SearchIndexClient secondaryClient;
+
+  @Rule
+  public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   private HybridSearchIndexClient hybridClient;
 
@@ -297,6 +311,138 @@ public class HybridSearchIndexClientTest
     verify(mockSecondaryAbstract, times(1)).updateIndex(anyList(), any());
     // Should still delete changes because secondary succeeded
     verify(mockPrimaryAbstract, times(1)).deleteSearchIndexChange(change1);
+  }
+
+  /**
+   * A delegate holds its cancel flag until the rebuild it belongs to ends and clears it, so a delegate that is not
+   * building must not be armed — there would be no rebuild coming to clear the flag, and its next rebuild would abort
+   * on entry for a cancel that was never meant for it.
+   */
+  @Test
+  public void testCancelFullRebuild_ArmsNeitherDelegateWhenNothingIsBuilding() {
+    hybridClient.cancelFullRebuild();
+
+    verify(primaryClient, never()).cancelFullRebuild();
+    verify(secondaryClient, never()).cancelFullRebuild();
+  }
+
+  @Test
+  public void testCancelFullRebuild_ArmsOnlyThePrimaryWhileThePrimaryIsBuilding() {
+    doAnswer(invocation -> {
+      hybridClient.cancelFullRebuild();
+      return null;
+    }).when(primaryClient).populateIndex();
+
+    hybridClient.populateIndex();
+
+    verify(primaryClient, times(1)).cancelFullRebuild();
+    verify(secondaryClient, never()).cancelFullRebuild();
+  }
+
+  @Test
+  public void testCancelFullRebuild_ArmsOnlyTheSecondaryWhileTheSecondaryIsBuilding() {
+    doAnswer(invocation -> {
+      hybridClient.cancelFullRebuild();
+      return null;
+    }).when(secondaryClient).populateIndex();
+
+    hybridClient.populateIndex();
+
+    verify(primaryClient, never()).cancelFullRebuild();
+    verify(secondaryClient, times(1)).cancelFullRebuild();
+  }
+
+  /**
+   * Exercises the flag against a real {@link LuceneIndexWriterOwner} rather than a mock secondary, because a mock
+   * holds no flag and so cannot show the failure: a cancel during the primary phase used to arm the Lucene owner even
+   * though no Lucene rebuild was running, and the skip below then meant the rebuild that would have cleared the flag
+   * never ran. The following rebuild aborted on entry, leaving the Lucene fallback a generation stale.
+   */
+  @Test
+  public void testPopulateIndex_CancelDuringThePrimaryPhaseDoesNotPoisonTheNextLuceneRebuild() throws Exception {
+    File search = new File(temporaryFolder.getRoot(), "hybrid-cancel");
+    Files.createDirectories(search.toPath());
+    InsightWork insightWork = mock(InsightWork.class);
+    lenient().when(insightWork.getSearchDir()).thenReturn(search);
+    lenient().when(insightWork.getSearchIndexDir()).thenReturn(new File(search, "index"));
+    lenient().when(insightWork.getSearchIndexGenerationsDir()).thenReturn(new File(search, "generations"));
+    // Blue/green is left to the host filesystem rather than pinned on. The flag this test is about is cleared by
+    // rebuildExclusive's finally, which both the blue/green and the in-place path run through.
+    LuceneIndexWriterOwner owner =
+        new LuceneIndexWriterOwner(new LuceneComponents(insightWork), mock(ShutdownHandler.class));
+
+    try {
+      // Materialises the tenant's index. requestCancelFullRebuild() resolves an existing index and no-ops without one,
+      // so a fresh owner cannot be armed at all and the test would pass whatever the fan-out does.
+      owner.runWithWriter(writer -> writer.addDocument(new Document()));
+
+      AtomicInteger luceneRebuilds = new AtomicInteger();
+      SearchIndexClient luceneBackedSecondary = mock(SearchIndexClient.class);
+      doAnswer(invocation -> {
+        owner.rebuildExclusive(writer -> {
+          luceneRebuilds.incrementAndGet();
+          writer.addDocument(new Document());
+        });
+        return null;
+      }).when(luceneBackedSecondary).populateIndex();
+      // Lenient because going unused is the fixed behaviour: the secondary is no longer armed for a cancel that lands
+      // while the primary is building. It has to stay stubbed all the same, since it is what arms the real owner and
+      // reproduces the stale fallback if the fan-out ever regresses.
+      lenient().doAnswer(invocation -> {
+        owner.requestCancelFullRebuild();
+        return null;
+      }).when(luceneBackedSecondary).cancelFullRebuild();
+
+      SearchIndexClient cancellingPrimary = mock(SearchIndexClient.class);
+      HybridSearchIndexClient hybrid = new HybridSearchIndexClient(cancellingPrimary, luceneBackedSecondary);
+      AtomicBoolean cancelThisRun = new AtomicBoolean(true);
+      doAnswer(invocation -> {
+        if (cancelThisRun.getAndSet(false)) {
+          hybrid.cancelFullRebuild();
+        }
+        return null;
+      }).when(cancellingPrimary).populateIndex();
+
+      hybrid.populateIndex();
+      assertThat(luceneRebuilds.get()).isZero();
+
+      hybrid.populateIndex();
+      assertThat(luceneRebuilds.get()).isEqualTo(1);
+    }
+    finally {
+      owner.close();
+    }
+  }
+
+  /**
+   * A cancel landing after the primary finishes and before the secondary starts reaches neither delegate — the
+   * primary is done and the secondary has not begun — so the secondary would otherwise go on to rebuild work that was
+   * already cancelled.
+   */
+  @Test
+  public void testPopulateIndex_SkipsSecondaryWhenCancelledAfterPrimaryCompletes() {
+    doAnswer(invocation -> {
+      hybridClient.cancelFullRebuild();
+      return null;
+    }).when(primaryClient).populateIndex();
+
+    hybridClient.populateIndex();
+
+    verify(primaryClient, times(1)).populateIndex();
+    verify(secondaryClient, never()).populateIndex();
+  }
+
+  /**
+   * The cancel belongs to the rebuild it was requested against; the next one starts clean.
+   */
+  @Test
+  public void testPopulateIndex_DoesNotCarryACancelIntoTheFollowingRebuild() {
+    hybridClient.cancelFullRebuild();
+    hybridClient.populateIndex();
+
+    hybridClient.populateIndex();
+
+    verify(secondaryClient, times(1)).populateIndex();
   }
 
   @Test

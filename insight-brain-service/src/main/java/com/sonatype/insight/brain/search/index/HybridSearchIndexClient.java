@@ -52,6 +52,15 @@ public class HybridSearchIndexClient
 
   private final AtomicBoolean secondaryReindexing = new AtomicBoolean(false);
 
+  private final AtomicBoolean cancelRequested = new AtomicBoolean(false);
+
+  /**
+   * Serialises entry into the secondary phase against the cancel fan-out, so that a cancel either arms the secondary
+   * or causes it to be skipped, never both. Arming a delegate that then never rebuilds leaves its cancel flag set with
+   * nothing coming to clear it.
+   */
+  private final Object secondaryPhaseLock = new Object();
+
   @Inject
   public HybridSearchIndexClient(
       @Named("primary") final SearchIndexClient primaryClient,
@@ -64,45 +73,90 @@ public class HybridSearchIndexClient
   }
 
   /**
+   * Records the request so that a cancel arriving while the primary is still running also stops the secondary from
+   * starting once the primary finishes, and forwards it to whichever delegate is actually building.
+   * <p>
+   * Only the building delegate is told. A delegate holds its cancel flag until the rebuild it belongs to ends and
+   * clears it, so arming one that is not building leaves the flag set with no rebuild coming to clear it, and the
+   * delegate's next rebuild aborts on entry for a cancel that was never meant for it.
+   */
+  @Override
+  public void cancelFullRebuild() {
+    cancelRequested.set(true);
+    if (primaryReindexing.get()) {
+      primaryClient.cancelFullRebuild();
+    }
+    synchronized (secondaryPhaseLock) {
+      if (secondaryReindexing.get()) {
+        secondaryClient.cancelFullRebuild();
+      }
+    }
+  }
+
+  @Override
+  public boolean isFullRebuildInProgress() {
+    return primaryReindexing.get()
+        || secondaryReindexing.get()
+        || primaryClient.isFullRebuildInProgress()
+        || secondaryClient.isFullRebuildInProgress();
+  }
+
+  /**
    * Populates both primary and secondary indexes.
    * Sets reindexing flags to pause incremental updates during the operation.
+   * <p>
+   * A delegate honours a cancel that lands while it is building. One that lands any time before the secondary starts
+   * is not forwarded to it, so it is honoured here instead by skipping the secondary entirely.
    */
   @Override
   public void populateIndex() {
     log.debug("Starting full index population on both primary and secondary clients");
 
-    // Set reindexing flag for primary client to pause incremental updates
-    primaryReindexing.set(true);
-
-    // Populate primary client first (OpenSearch - the target state)
     try {
-      log.debug("Populating primary client index");
-      primaryClient.populateIndex();
-      log.info("Primary client index population completed");
-    }
-    catch (Exception e) {
-      log.error("Failed to populate primary client index", e);
-      throw new SearchIndexException("Failed to populate primary client index", e);
+      // Set reindexing flag for primary client to pause incremental updates
+      primaryReindexing.set(true);
+
+      // Populate primary client first (OpenSearch - the target state)
+      try {
+        log.debug("Populating primary client index");
+        primaryClient.populateIndex();
+        log.info("Primary client index population completed");
+      }
+      catch (Exception e) {
+        log.error("Failed to populate primary client index", e);
+        throw new SearchIndexException("Failed to populate primary client index", e);
+      }
+      finally {
+        primaryReindexing.set(false);
+      }
+
+      // Claim the secondary phase, or discover a cancel got here first. Taken under the lock so that a concurrent
+      // cancel either finds the phase unclaimed and leaves the secondary alone for this branch to skip, or finds it
+      // claimed and arms the secondary, which then clears its own flag as it aborts.
+      synchronized (secondaryPhaseLock) {
+        if (cancelRequested.get()) {
+          log.info("Full rebuild was cancelled; skipping secondary client index population");
+          return;
+        }
+        secondaryReindexing.set(true);
+      }
+
+      // Then populate secondary client (Lucene - the fallback)
+      try {
+        log.debug("Populating secondary client index");
+        secondaryClient.populateIndex();
+        log.info("Secondary client index population completed");
+      }
+      catch (Exception e) {
+        log.error("Failed to populate secondary client index", e);
+        throw new SearchIndexException("Failed to populate secondary client index", e);
+      }
+      finally {
+        secondaryReindexing.set(false);
+      }
     }
     finally {
-      primaryReindexing.set(false);
-    }
-
-    // Set reindexing flag for secondary client
-    secondaryReindexing.set(true);
-
-    // Then populate secondary client (Lucene - the fallback)
-    try {
-      log.debug("Populating secondary client index");
-      secondaryClient.populateIndex();
-      log.info("Secondary client index population completed");
-    }
-    catch (Exception e) {
-      log.error("Failed to populate secondary client index", e);
-      throw new SearchIndexException("Failed to populate secondary client index", e);
-    }
-    finally {
-      secondaryReindexing.set(false);
+      cancelRequested.set(false);
     }
   }
 

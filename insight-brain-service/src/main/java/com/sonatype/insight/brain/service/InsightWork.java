@@ -169,10 +169,20 @@ public class InsightWork
   }
 
   /**
+   * Serving (blue) Lucene search index directory.
+   *
    * @since 1.88
    */
   public File getSearchIndexDir() {
     return new File(getSearchDir(), "index");
+  }
+
+  /**
+   * Sibling directory for Lucene index generations used during blue/green rebuilds.
+   * Peak disk is roughly 2× {@link #getSearchIndexDir()} while a rebuild is in progress.
+   */
+  public File getSearchIndexGenerationsDir() {
+    return new File(getSearchDir(), "generations");
   }
 
   /**

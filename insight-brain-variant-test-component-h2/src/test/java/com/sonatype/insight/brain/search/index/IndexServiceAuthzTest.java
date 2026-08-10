@@ -42,4 +42,38 @@ public class IndexServiceAuthzTest
     grantConfigureSystemPermission();
     indexService.createIndexAsync();
   }
+
+  @Test
+  public void testCancelFullRebuild_Unauthenticated() {
+    assertThrows(UnauthenticatedException.class, () -> indexService.cancelFullRebuild());
+  }
+
+  @Test
+  public void testCancelFullRebuild_Unauthorized() {
+    login();
+    assertThrows(UnauthorizedException.class, () -> indexService.cancelFullRebuild());
+  }
+
+  @Test
+  public void testCancelFullRebuild_Authorized() {
+    grantConfigureSystemPermission();
+    indexService.cancelFullRebuild();
+  }
+
+  @Test
+  public void testIsFullRebuildInProgress_Unauthenticated() {
+    assertThrows(UnauthenticatedException.class, () -> indexService.isFullRebuildInProgress());
+  }
+
+  @Test
+  public void testIsFullRebuildInProgress_Unauthorized() {
+    login();
+    assertThrows(UnauthorizedException.class, () -> indexService.isFullRebuildInProgress());
+  }
+
+  @Test
+  public void testIsFullRebuildInProgress_Authorized() {
+    grantConfigureSystemPermission();
+    indexService.isFullRebuildInProgress();
+  }
 }

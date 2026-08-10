@@ -7,7 +7,9 @@ package com.sonatype.insight.brain.search.index;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -77,5 +79,63 @@ public class IndexServiceTest
     indexService.isFullIndexTriggered();
 
     verify(taskSchedulerMock).isJobTriggered(indexCreationScheduler, Collections.emptyMap());
+  }
+
+  @Test
+  public void testCancelFullRebuild() {
+    when(searchIndexClientMock.isFullRebuildInProgress()).thenReturn(true);
+
+    indexService.cancelFullRebuild();
+
+    verify(searchIndexClientMock).cancelFullRebuild();
+  }
+
+  /**
+   * A cancel outlives this call — a rebuild that is only scheduled reads it when its task starts — so one accepted
+   * while nothing is building would stay armed and abort whichever rebuild ran next.
+   */
+  @Test
+  public void testCancelFullRebuild_IsANoOpWhenNothingIsBuilding() {
+    when(taskSchedulerMock.isJobTriggered(indexCreationScheduler, Collections.emptyMap())).thenReturn(false);
+    when(searchIndexClientMock.isFullRebuildInProgress()).thenReturn(false);
+
+    indexService.cancelFullRebuild();
+
+    verify(searchIndexClientMock, never()).cancelFullRebuild();
+  }
+
+  /**
+   * A rebuild that is scheduled but not yet started is cancellable: that gap is where an operator hitting cancel
+   * straight after starting a rebuild lands.
+   */
+  @Test
+  public void testCancelFullRebuild_CancelsARebuildThatIsScheduledButNotYetRunning() {
+    when(taskSchedulerMock.isJobTriggered(indexCreationScheduler, Collections.emptyMap())).thenReturn(true);
+
+    indexService.cancelFullRebuild();
+
+    verify(searchIndexClientMock).cancelFullRebuild();
+  }
+
+  /**
+   * Turning the feature off while a rebuild is running must not strand it. Cancel is the only way to stop one, so it
+   * stays reachable on permission alone.
+   */
+  @Test
+  public void testCancelFullRebuild_StillCancelsWhenAdvancedConfigurationDisabled() {
+    SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.setEnabled(false);
+    when(searchIndexClientMock.isFullRebuildInProgress()).thenReturn(true);
+
+    indexService.cancelFullRebuild();
+
+    verify(searchIndexClientMock).cancelFullRebuild();
+  }
+
+  @Test
+  public void testIsFullRebuildInProgress_DelegatesToClientWhenNotScheduled() {
+    when(taskSchedulerMock.isJobTriggered(indexCreationScheduler, Collections.emptyMap())).thenReturn(false);
+    when(searchIndexClientMock.isFullRebuildInProgress()).thenReturn(true);
+
+    assertThat(indexService.isFullRebuildInProgress()).isTrue();
   }
 }

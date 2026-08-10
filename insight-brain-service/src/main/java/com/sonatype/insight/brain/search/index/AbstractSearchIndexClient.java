@@ -1217,8 +1217,16 @@ public abstract class AbstractSearchIndexClient
     });
   }
 
+  /**
+   * Cooperative cancel hook for full rebuilds. Backends that support cancel override this to throw
+   * when a cancel was requested so green generations are discarded without cutover.
+   */
+  protected void checkPopulateNotCancelled() {
+  }
+
   protected void doPopulateIndex(final IndexingContext indexingContext) {
     log.info("begin indexing");
+    checkPopulateNotCancelled();
 
     List<Organization> organizations = organizationDAO.getAll();
     Map<String, Organization> organizationById =
@@ -1232,70 +1240,49 @@ public abstract class AbstractSearchIndexClient
 
     AtomicInteger consecutiveFailures = new AtomicInteger(0);
 
-    CompletableFuture<Void> orgDocs = CompletableFuture.supplyAsync(
+    CompletableFuture<Void> orgDocs = populatePhase(indexingContext,
         () -> documentBuilderHelper.buildOrganizationDocs(indexingContext, organizations, parentsByOrganization),
-        getIndexingExecutor())
-        .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
+        consecutiveFailures);
 
-    CompletableFuture<Void> appDocs = CompletableFuture.supplyAsync(
+    CompletableFuture<Void> appDocs = populatePhase(indexingContext,
         () -> documentBuilderHelper.buildApplicationDocs(indexingContext, applications, parentsByOrganization),
-        getIndexingExecutor())
-        .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
+        consecutiveFailures);
 
     Function<Application, CompletableFuture<Void>> processSVDocsForApplication =
-        application -> CompletableFuture
-            .supplyAsync(
-                () -> documentBuilderHelper.buildApplicationSVDocs(indexingContext,
-                    organizationById.get(application.getOrganizationId()),
-                    application, parentsByOrganization),
-                getIndexingExecutor())
-            .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
+        application -> populatePhase(indexingContext,
+            () -> documentBuilderHelper.buildApplicationSVDocs(indexingContext,
+                organizationById.get(application.getOrganizationId()),
+                application, parentsByOrganization),
+            consecutiveFailures);
 
     List<CompletableFuture<Void>> appSVDocs = applications
         .stream()
         .map(processSVDocsForApplication)
         .toList();
 
-    CompletableFuture<Void> tagDocs =
-        CompletableFuture.supplyAsync(
-            () -> documentBuilderHelper.buildTagDocs(indexingContext), getIndexingExecutor())
-            .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
+    CompletableFuture<Void> tagDocs = populatePhase(indexingContext,
+        () -> documentBuilderHelper.buildTagDocs(indexingContext), consecutiveFailures);
 
-    CompletableFuture<Void> labelDocs =
-        CompletableFuture.supplyAsync(
-            () -> documentBuilderHelper.buildLabelDocs(indexingContext),
-            getIndexingExecutor())
-            .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
+    CompletableFuture<Void> labelDocs = populatePhase(indexingContext,
+        () -> documentBuilderHelper.buildLabelDocs(indexingContext), consecutiveFailures);
 
-    CompletableFuture<Void> policyDocs =
-        CompletableFuture.supplyAsync(
-            () -> documentBuilderHelper.buildPolicyDocs(indexingContext),
-            getIndexingExecutor())
-            .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
+    CompletableFuture<Void> policyDocs = populatePhase(indexingContext,
+        () -> documentBuilderHelper.buildPolicyDocs(indexingContext), consecutiveFailures);
 
-    CompletableFuture<Void> sbomDocs = CompletableFuture.supplyAsync(
-        () -> documentBuilderHelper.buildSbomDocs(indexingContext, parentsByOrganization), getIndexingExecutor())
-        .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
+    CompletableFuture<Void> sbomDocs = populatePhase(indexingContext,
+        () -> documentBuilderHelper.buildSbomDocs(indexingContext, parentsByOrganization), consecutiveFailures);
 
-    CompletableFuture<Void> policyWaiverDocs =
-        CompletableFuture.supplyAsync(
-            () -> documentBuilderHelper.buildPolicyWaiverDocs(indexingContext),
-            getIndexingExecutor())
-            .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
+    CompletableFuture<Void> policyWaiverDocs = populatePhase(indexingContext,
+        () -> documentBuilderHelper.buildPolicyWaiverDocs(indexingContext), consecutiveFailures);
 
-    CompletableFuture<Void> policyWaiverRequestDocs =
-        CompletableFuture.supplyAsync(
-            () -> documentBuilderHelper.buildPolicyWaiverRequestDocs(indexingContext),
-            getIndexingExecutor())
-            .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
+    CompletableFuture<Void> policyWaiverRequestDocs = populatePhase(indexingContext,
+        () -> documentBuilderHelper.buildPolicyWaiverRequestDocs(indexingContext), consecutiveFailures);
 
     Function<Application, CompletableFuture<Void>> processSbomSVDocsForApplication =
-        application -> CompletableFuture
-            .supplyAsync(
-                () -> documentBuilderHelper.buildSbomSVDocs(organizationById.get(application.getOrganizationId()),
-                    application, parentsByOrganization),
-                getIndexingExecutor())
-            .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
+        application -> populatePhase(indexingContext,
+            () -> documentBuilderHelper.buildSbomSVDocs(organizationById.get(application.getOrganizationId()),
+                application, parentsByOrganization),
+            consecutiveFailures);
 
     List<CompletableFuture<Void>> sbomSVDocs = applications
         .stream()
@@ -1303,26 +1290,42 @@ public abstract class AbstractSearchIndexClient
         .toList();
 
     log.info("indexing threads started");
-    orgDocs.join();
-    log.info("org indexing complete");
-    appDocs.join();
-    log.info("app indexing complete");
-    CompletableFuture.allOf(appSVDocs.toArray(CompletableFuture[]::new)).join();
-    log.info("appSV indexing complete");
-    tagDocs.join();
-    log.info("tag indexing complete");
-    labelDocs.join();
-    log.info("label indexing complete");
-    policyDocs.join();
-    log.info("policy indexing complete");
-    policyWaiverDocs.join();
-    log.info("policy waiver indexing complete");
-    policyWaiverRequestDocs.join();
-    log.info("policy waiver request indexing complete");
-    sbomDocs.join();
-    log.info("SBOM metadata indexing complete");
-    CompletableFuture.allOf(sbomSVDocs.toArray(CompletableFuture[]::new)).join();
-    log.info("sbomSV indexing complete");
+    joinPopulatePhase(orgDocs, "org");
+    joinPopulatePhase(appDocs, "app");
+    joinPopulatePhase(CompletableFuture.allOf(appSVDocs.toArray(CompletableFuture[]::new)), "appSV");
+    joinPopulatePhase(tagDocs, "tag");
+    joinPopulatePhase(labelDocs, "label");
+    joinPopulatePhase(policyDocs, "policy");
+    joinPopulatePhase(policyWaiverDocs, "policy waiver");
+    joinPopulatePhase(policyWaiverRequestDocs, "policy waiver request");
+    joinPopulatePhase(sbomDocs, "SBOM metadata");
+    joinPopulatePhase(CompletableFuture.allOf(sbomSVDocs.toArray(CompletableFuture[]::new)), "sbomSV");
+  }
+
+  /**
+   * Builds one phase's documents on the indexing executor and adds them to the index.
+   * <p>
+   * Cancel is checked before the build rather than only when the documents are added. Phases are all submitted up
+   * front and queue on a bounded executor, so most of them have not started when a cancel lands; checking here means a
+   * cancelled rebuild does not go on to build documents for a whole entity type that it will then discard.
+   */
+  private CompletableFuture<Void> populatePhase(
+      final IndexingContext indexingContext,
+      final Supplier<List<Document>> build,
+      final AtomicInteger consecutiveFailures)
+  {
+    return CompletableFuture
+        .supplyAsync(() -> {
+          checkPopulateNotCancelled();
+          return build.get();
+        }, getIndexingExecutor())
+        .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
+  }
+
+  private void joinPopulatePhase(final CompletableFuture<?> phase, final String phaseName) {
+    checkPopulateNotCancelled();
+    phase.join();
+    log.info("{} indexing complete", phaseName);
   }
 
   protected void addDocumentsWithResilience(
@@ -1330,6 +1333,7 @@ public abstract class AbstractSearchIndexClient
       final List<Document> documents,
       final AtomicInteger consecutiveFailures)
   {
+    checkPopulateNotCancelled();
     try {
       indexingContext.addNonNullDocuments(documents);
       consecutiveFailures.set(0);

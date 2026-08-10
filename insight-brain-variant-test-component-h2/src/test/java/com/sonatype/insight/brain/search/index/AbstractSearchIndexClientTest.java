@@ -17,11 +17,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
+import com.google.common.util.concurrent.MoreExecutors;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -56,6 +59,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -771,6 +775,32 @@ public class AbstractSearchIndexClientTest
         .isEqualTo(7);
   }
 
+  /**
+   * A cancel used to be noticed only once a phase offered its documents to the index, which meant a phase already
+   * running built documents for an entire entity type before anything checked. Phases are all submitted up front onto
+   * a bounded executor, so a cancelled rebuild would go on paying for work it was always going to discard.
+   */
+  @Test
+  public void doPopulateIndex_cancelledRebuildDoesNotBuildDocuments() throws Exception {
+    DocumentBuilderHelper builderSpy = spy(documentBuilderHelper);
+    TestSearchIndexClient indexingClient = new TestSearchIndexClient(applicationDAO, labelDAO, organizationDAO,
+        ownerDAO, policyDAO, policyWaiverDAO, autoPolicyWaiverDAO, tagDAO, builderSpy);
+    Organization organization = tempEntity.newOrganization();
+    tempEntity.newApplication(organization.getId());
+    // Lets the check at the top of doPopulateIndex through, so the cancel lands with the phases already submitted.
+    indexingClient.cancelAfterCheck(1);
+
+    assertThatExceptionOfType(SearchIndexException.class)
+        .isThrownBy(() -> indexingClient.runPopulateIndex(new RecordingIndexingContext()));
+
+    verify(builderSpy, never()).buildOrganizationDocs(any(), any(), any());
+    verify(builderSpy, never()).buildApplicationDocs(any(), any(), any());
+    verify(builderSpy, never()).buildTagDocs(any());
+    verify(builderSpy, never()).buildLabelDocs(any());
+    verify(builderSpy, never()).buildPolicyDocs(any());
+    verify(builderSpy, never()).buildPolicyWaiverDocs(any());
+  }
+
   private class TestSearchIndexClient
       extends AbstractSearchIndexClient
   {
@@ -817,6 +847,38 @@ public class AbstractSearchIndexClientTest
     // error-handling tests, so callers that want the genuine path use this instead.
     void runUpdateIndex(final SearchIndexChange change, final IndexingContext indexingContext) throws IOException {
       super.updateIndex(change, indexingContext);
+    }
+
+    // Bridge to the real protected doPopulateIndex; populateIndex() itself is stubbed out below.
+    void runPopulateIndex(final IndexingContext indexingContext) {
+      doPopulateIndex(indexingContext);
+    }
+
+    private final AtomicInteger cancelChecks = new AtomicInteger();
+
+    private int cancelAfterCheck = Integer.MAX_VALUE;
+
+    /**
+     * Stands in for a backend that supports cancel. Counting rather than a plain flag lets a test let the check at the
+     * top of {@code doPopulateIndex} through and cancel only once the phases are under way, which is where a cancel
+     * actually lands.
+     */
+    void cancelAfterCheck(final int checks) {
+      cancelAfterCheck = checks;
+    }
+
+    @Override
+    protected void checkPopulateNotCancelled() {
+      if (cancelChecks.incrementAndGet() > cancelAfterCheck) {
+        throw new SearchIndexException("Full rebuild was cancelled", new IllegalStateException("cancelled"));
+      }
+    }
+
+    // The real executor needs a ShutdownHandler this client is not given, and running phases on the calling thread
+    // keeps what did and did not get built deterministic.
+    @Override
+    public ExecutorService getIndexingExecutor() {
+      return MoreExecutors.newDirectExecutorService();
     }
 
     @Override

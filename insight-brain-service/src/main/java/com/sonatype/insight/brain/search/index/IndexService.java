@@ -128,6 +128,35 @@ public class IndexService
   }
 
   /**
+   * Cancel an in-flight full rebuild. Lucene keeps serving the previous complete (blue) index and
+   * discards the incomplete green generation. OpenSearch cancel is a no-op today.
+   * <p>
+   * Deliberately not gated on {@code ADVANCED_SEARCH_CONFIGURATION}: stopping work that is already running must stay
+   * possible after the feature is turned off, otherwise disabling it mid-rebuild strands the rebuild until cutover.
+   */
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public void cancelFullRebuild() {
+    // Only a rebuild that is running or scheduled can be cancelled. The request outlives this call — a scheduled
+    // rebuild reads it when the task starts — so accepting one while nothing is building would leave a cancel armed
+    // for whichever rebuild happens to run next. Cancel stays idempotent: asking with nothing to cancel does nothing.
+    if (!isFullRebuildInProgress()) {
+      return;
+    }
+    searchIndexClient.cancelFullRebuild();
+  }
+
+  /**
+   * True when a full rebuild was scheduled via {@link #createIndexAsync()} or a Lucene/Hybrid
+   * rebuild is actively building.
+   * <p>
+   * Reports on system-wide indexing state, so it carries the same permission as the operations that change it.
+   */
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public boolean isFullRebuildInProgress() {
+    return isFullIndexTriggered() || searchIndexClient.isFullRebuildInProgress();
+  }
+
+  /**
    * Returns the index size - Used internally after {@link #createSearchIndex()} for telemetry - But also externally by
    * {@link com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryCollector}
    */

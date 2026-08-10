@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.search.indexquery.IndexQueryCsvExportEndpointT
 import com.sonatype.insight.brain.search.indexquery.IndexQueryEndpointTest;
 import com.sonatype.insight.brain.search.lucene.LegacyViolationStateNegativeControlE2ETest;
 import com.sonatype.insight.brain.search.lucene.LuceneIndexReadSession;
+import com.sonatype.insight.brain.search.lucene.LuceneIndexWriterOwnerTest;
 import com.sonatype.insight.brain.search.lucene.LuceneRbacFilterQueryBuilderTest;
 import com.sonatype.insight.brain.search.lucene.LuceneSearchIndexClient;
 import com.sonatype.insight.brain.search.lucene.LuceneSearcherManagerHolder;
@@ -60,6 +61,10 @@ public class IndexReadSessionArchitectureTest
         .areNotAssignableTo(IndexQueryCsvExportEndpointTest.class)
         .and()
         .areNotAssignableTo(CatalogCsvExportEndpointTest.class)
+        .and()
+        // Asserts on the generation a rebuild left on disk, which is the state the searcher lifecycle is being
+        // swapped between rather than a read served through it.
+        .areNotAssignableTo(LuceneIndexWriterOwnerTest.class)
         .and()
         // Isolated in-memory negative-control E2E harnesses that build their own throwaway index.
         .areNotAssignableTo(PointsConfigNegativeControlE2ETest.class)

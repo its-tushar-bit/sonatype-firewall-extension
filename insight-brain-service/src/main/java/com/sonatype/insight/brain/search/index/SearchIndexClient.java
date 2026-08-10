@@ -34,6 +34,20 @@ public interface SearchIndexClient
   void populateIndex();
 
   /**
+   * Requests that an in-flight full rebuild abort without cutting over to a partial generation.
+   * Default is a no-op for backends that do not support cooperative cancel.
+   */
+  default void cancelFullRebuild() {
+  }
+
+  /**
+   * True while a full rebuild is building a new generation (or cutting over). Default {@code false}.
+   */
+  default boolean isFullRebuildInProgress() {
+    return false;
+  }
+
+  /**
    * Updates the search index with the given changes, using the provided deletion callback.
    * This allows callers to control how SearchIndexChanges are deleted after processing.
    *

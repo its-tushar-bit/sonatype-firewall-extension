@@ -40,18 +40,42 @@ public class LuceneComponents
 
   private final InsightWork insightWork;
 
+  private final LuceneIndexGenerations indexGenerations;
+
   @Inject
   public LuceneComponents(InsightWork insightWork) {
     this.insightWork = insightWork;
+    this.indexGenerations = new LuceneIndexGenerations(insightWork);
     numberFormat = NumberFormat.getNumberInstance(Locale.ROOT);
   }
 
+  /**
+   * Opens the serving (blue) Lucene index directory under {@code search/index}.
+   */
   public Directory openSearchIndex(boolean readOnly) throws IOException {
-    Path searchIndexDirectory = insightWork.getSearchIndexDir().toPath();
-    if (readOnly && !Files.exists(searchIndexDirectory)) {
-      return null;
+    return openSearchIndexAt(insightWork.getSearchIndexDir().toPath(), readOnly);
+  }
+
+  public Directory openSearchIndexAt(final Path searchIndexDirectory, final boolean readOnly) throws IOException {
+    if (!Files.exists(searchIndexDirectory)) {
+      if (readOnly) {
+        return null;
+      }
+      Files.createDirectories(searchIndexDirectory);
     }
     return FSDirectory.open(searchIndexDirectory);
+  }
+
+  public Path createBuildingGenerationDirectory() throws IOException {
+    return indexGenerations.createBuildingGenerationDirectory();
+  }
+
+  public Path cutoverBuildingGeneration(final Path greenPath) throws IOException {
+    return indexGenerations.cutover(greenPath);
+  }
+
+  public void deleteIndexGeneration(final Path generationPath) throws IOException {
+    LuceneIndexGenerations.deleteRecursively(generationPath);
   }
 
   public Analyzer newAnalyzerForSearch() {

@@ -5,6 +5,7 @@
  */
 import { createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
+import type { EstateComponentPathContext } from 'MainRoot/nosc/components/detail/estateComponentDetailHref';
 import type { EstateComponentDetails } from './estateComponentDetailsApi';
 
 export type EstateComponentHdsStatus = 'loading' | 'ready' | 'error' | 'empty';
@@ -15,12 +16,19 @@ export type EstateComponentBlastRadiusCounts = {
   readonly violations?: number;
 };
 
+export type EstateComponentPathSelection = EstateComponentPathContext & {
+  readonly stageTypeId?: string;
+  /** Human-readable selected report label for Identity scan captions. */
+  readonly reportLabel?: string;
+};
+
 export interface EstateComponentDetailShellContextValue {
   readonly componentHash: string;
   readonly hdsStatus: EstateComponentHdsStatus;
   readonly details: EstateComponentDetails | null;
   readonly displayName: string;
   readonly blastRadiusCounts: EstateComponentBlastRadiusCounts;
+  readonly pathSelection: EstateComponentPathSelection;
   readonly retryHds: () => void;
 }
 

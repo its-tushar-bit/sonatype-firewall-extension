@@ -15,10 +15,18 @@ import { LoadingSkeleton } from 'MainRoot/nosc/components/LoadingSkeleton';
 import type { EstateComponentTab } from 'MainRoot/nosc/components/detail/estateComponentDetailHref';
 import { NEXUS_ONE_COMPONENTS_STATE_NAME } from 'MainRoot/nosc/componentsList/componentsRoute';
 import { EstateComponentDetailShellProvider } from './estateComponentDetailContext';
-import type { EstateComponentBlastRadiusCounts, EstateComponentHdsStatus } from './estateComponentDetailContext';
+import type {
+  EstateComponentBlastRadiusCounts,
+  EstateComponentHdsStatus,
+  EstateComponentPathSelection,
+} from './estateComponentDetailContext';
 import { fetchEstateComponentDetails } from './estateComponentDetailsApi';
 import type { EstateComponentDetails } from './estateComponentDetailsApi';
 import { EstateComponentPathSwitcher } from './EstateComponentPathSwitcher';
+import type {
+  EstateComponentPathSwitcherApplicationsUsage,
+  EstateComponentPathSwitcherOrganizationsUsage,
+} from './EstateComponentPathSwitcher';
 import {
   ESTATE_COMPONENT_TAB_IDS,
   estateComponentDetailStateNameForTab,
@@ -30,7 +38,6 @@ import {
   fetchComponentUsageApplications,
   fetchComponentUsageOrganizations,
 } from './estateComponentUsageApi';
-import type { ComponentUsageApplicationRow } from './estateComponentUsageApi';
 import { buildViolationsListRequest } from 'MainRoot/nosc/violations/violationsListApi';
 import type { ViolationsListResponse } from 'MainRoot/nosc/violations/violationListTypes';
 import { getViolationsListUrl } from 'MainRoot/util/CLMLocation';
@@ -49,14 +56,8 @@ const ESTATE_COMPONENT_TABS = [
 ] as const;
 
 function paramAsString(value: unknown): string | undefined {
-  return typeof value === 'string' ? value : undefined;
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined;
 }
-
-type ApplicationsUsageState = {
-  readonly applications: ReadonlyArray<ComponentUsageApplicationRow>;
-  readonly total: number;
-  readonly status: 'loading' | 'ready' | 'error';
-};
 
 function formatCount(value: number | undefined, singular: string, plural: string): string {
   if (typeof value !== 'number') {
@@ -105,16 +106,34 @@ export default function EstateComponentDetail(): ReactElement {
 
   const componentHash = paramAsString(params.componentHash) || '';
   const activeTab: EstateComponentTab = tabFromEstateComponentDetailStateName(state?.name);
+  const pathSelection = useMemo<EstateComponentPathSelection>(
+    () => ({
+      organizationId: paramAsString(params.organizationId),
+      applicationId: paramAsString(params.applicationId),
+      reportId: paramAsString(params.reportId),
+    }),
+    [params.applicationId, params.organizationId, params.reportId]
+  );
 
   const [hdsStatus, setHdsStatus] = useState<EstateComponentHdsStatus>('loading');
   const [details, setDetails] = useState<EstateComponentDetails | null>(null);
   const [blastRadiusCounts, setBlastRadiusCounts] = useState<EstateComponentBlastRadiusCounts>({});
-  const [applicationsUsage, setApplicationsUsage] = useState<ApplicationsUsageState>({
+  const [organizationsUsage, setOrganizationsUsage] = useState<EstateComponentPathSwitcherOrganizationsUsage>({
+    organizations: [],
+    total: 0,
+    status: 'loading',
+  });
+  const [applicationsUsage, setApplicationsUsage] = useState<EstateComponentPathSwitcherApplicationsUsage>({
     applications: [],
     total: 0,
     status: 'loading',
   });
+  const [resolvedPathSelection, setResolvedPathSelection] = useState<EstateComponentPathSelection>(pathSelection);
   const hdsAbortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    setResolvedPathSelection(pathSelection);
+  }, [componentHash, pathSelection]);
 
   const loadHds = useCallback(
     async (signal?: AbortSignal): Promise<void> => {
@@ -157,22 +176,44 @@ export default function EstateComponentDetail(): ReactElement {
   useEffect(() => {
     if (!componentHash) {
       setBlastRadiusCounts({});
+      setOrganizationsUsage({ organizations: [], total: 0, status: 'error' });
       setApplicationsUsage({ applications: [], total: 0, status: 'error' });
       return undefined;
     }
 
     const controller = new AbortController();
     setBlastRadiusCounts({});
+    setOrganizationsUsage({ organizations: [], total: 0, status: 'loading' });
     setApplicationsUsage({ applications: [], total: 0, status: 'loading' });
 
+    // Pin URL Path ids so deep links resolve even when the target is past page 0.
+    const organizationIncludeIds = pathSelection.organizationId
+      ? [pathSelection.organizationId]
+      : undefined;
+    const applicationIncludeIds = pathSelection.applicationId
+      ? [pathSelection.applicationId]
+      : undefined;
+
     void Promise.allSettled([
-      fetchComponentUsageApplications(componentHash, 0, COMPONENT_USAGE_PAGE_SIZE, controller.signal),
-      fetchComponentUsageOrganizations(componentHash, 0, HEADER_COUNT_PAGE_SIZE, controller.signal).then(
-        (response) => response.total
-      ),
+      fetchComponentUsageOrganizations(componentHash, 0, COMPONENT_USAGE_PAGE_SIZE, controller.signal, {
+        includeIds: organizationIncludeIds,
+      }),
+      fetchComponentUsageApplications(componentHash, 0, COMPONENT_USAGE_PAGE_SIZE, controller.signal, {
+        includeIds: applicationIncludeIds,
+        organizationId: pathSelection.organizationId,
+      }),
       fetchViolationCount(componentHash, controller.signal),
-    ]).then(([applicationsResult, organizationsResult, violationsResult]) => {
+    ]).then(([organizationsResult, applicationsResult, violationsResult]) => {
       if (controller.signal.aborted) return;
+      setOrganizationsUsage(
+        organizationsResult.status === 'fulfilled'
+          ? {
+              organizations: organizationsResult.value.organizations,
+              total: organizationsResult.value.total,
+              status: 'ready',
+            }
+          : { organizations: [], total: 0, status: 'error' }
+      );
       setApplicationsUsage(
         applicationsResult.status === 'fulfilled'
           ? {
@@ -183,23 +224,46 @@ export default function EstateComponentDetail(): ReactElement {
           : { applications: [], total: 0, status: 'error' }
       );
       setBlastRadiusCounts({
+        organizations: organizationsResult.status === 'fulfilled' ? organizationsResult.value.total : undefined,
         applications: applicationsResult.status === 'fulfilled' ? applicationsResult.value.total : undefined,
-        organizations: organizationsResult.status === 'fulfilled' ? organizationsResult.value : undefined,
         violations: violationsResult.status === 'fulfilled' ? violationsResult.value : undefined,
       });
     });
 
     return () => controller.abort();
+    // Re-seed only on hash change; PathSwitcher owns subsequent search/pin fetches.
+    // pathSelection is captured for the initial URL pin only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [componentHash]);
 
   const displayName =
     details?.displayName?.trim() || details?.packageUrl?.trim() || truncatedComponentHash(componentHash);
 
+  const pathParamsForNavigation = useCallback(
+    (next: EstateComponentPathSelection) => ({
+      componentHash,
+      organizationId: next.organizationId,
+      applicationId: next.applicationId,
+      reportId: next.reportId,
+    }),
+    [componentHash]
+  );
+
+  const handlePathChange = useCallback(
+    (next: EstateComponentPathSelection): void => {
+      setResolvedPathSelection(next);
+      stateService.go(
+        state.name,
+        pathParamsForNavigation(next),
+        { inherit: false, notify: false, location: 'replace' }
+      );
+    },
+    [pathParamsForNavigation, state.name, stateService]
+  );
+
   const handleTabChange = (next: string): void => {
     if (!(ESTATE_COMPONENT_TAB_IDS as readonly string[]).includes(next)) return;
-    stateService.go(estateComponentDetailStateNameForTab(next as EstateComponentTab), {
-      componentHash,
-    });
+    stateService.go(estateComponentDetailStateNameForTab(next as EstateComponentTab), pathParamsForNavigation(resolvedPathSelection));
   };
 
   const shellContext = useMemo(
@@ -209,9 +273,10 @@ export default function EstateComponentDetail(): ReactElement {
       details,
       displayName,
       blastRadiusCounts,
+      pathSelection: resolvedPathSelection,
       retryHds: startHdsLoad,
     }),
-    [blastRadiusCounts, componentHash, details, displayName, hdsStatus, startHdsLoad]
+    [blastRadiusCounts, componentHash, details, displayName, hdsStatus, resolvedPathSelection, startHdsLoad]
   );
 
   const breadcrumb = useMemo(
@@ -255,35 +320,44 @@ export default function EstateComponentDetail(): ReactElement {
         {(hdsStatus === 'ready' || hdsStatus === 'empty') && (
           <Flex direction="column" gap="2" data-testid="nosc-estate-component-header">
             <PageHeading data-testid="nosc-estate-component-name">{displayName}</PageHeading>
-            <Flex gap="3" wrap="wrap" align="center">
-              <Text size="2" color="gray" style={{ fontFamily: 'var(--code-font-family)' }}>
-                {componentHash}
-              </Text>
+            <Flex gap="2" wrap="wrap" align="center">
               {details?.format && (
-                <Badge size="1" color="gray" variant="soft">
-                  {details.format}
+                <Badge size="1" color="gray" variant="soft" data-testid="nosc-estate-component-ecosystem">
+                  Ecosystem: {details.format}
                 </Badge>
               )}
               {details?.matchState && (
-                <Badge size="1" color="gray" variant="soft">
+                <Badge size="1" color="gray" variant="soft" data-testid="nosc-estate-component-match-state">
                   {details.matchState}
                 </Badge>
               )}
+              <Text size="2" color="gray" style={{ fontFamily: 'var(--code-font-family)' }}>
+                {componentHash}
+              </Text>
             </Flex>
           </Flex>
         )}
         <BlastRadiusCountBadges counts={blastRadiusCounts} />
-        <EstateComponentPathSwitcher componentHash={componentHash} applicationsUsage={applicationsUsage} />
+        <EstateComponentPathSwitcher
+          componentHash={componentHash}
+          organizationsUsage={organizationsUsage}
+          applicationsUsage={applicationsUsage}
+          pathSelection={pathSelection}
+          onPathChange={handlePathChange}
+        />
       </Flex>
     ),
     [
       applicationsUsage,
       blastRadiusCounts,
       componentHash,
-      details?.format,
-      details?.matchState,
+      details,
       displayName,
+      handlePathChange,
       hdsStatus,
+      organizationsUsage,
+      pathSelection,
+      resolvedPathSelection,
       startHdsLoad,
     ]
   );

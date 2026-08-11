@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -102,9 +103,16 @@ public class ComponentUsageService
     UsageQuery query = prepareUsageQuery(request);
 
     PagedOwnersByHash paged = ownerComponentDAO.findDistinctOwnersByHashPaged(
-        query.hash(), query.readableOwnerIds(), query.offset(), query.pageSize());
+        query.hash(),
+        query.readableOwnerIds(),
+        query.offset(),
+        query.pageSize(),
+        query.nameSearch(),
+        query.organizationId());
 
-    List<String> pageOwnerIds = paged.rows().stream().map(ComponentOwnerUsageRow::ownerId).toList();
+    MergedUsageRows<ComponentOwnerUsageRow> merged = mergeIncludedOwners(query, paged.rows());
+    List<ComponentOwnerUsageRow> rows = merged.rows();
+    List<String> pageOwnerIds = rows.stream().map(ComponentOwnerUsageRow::ownerId).toList();
     Map<String, Application> applicationsById = applicationService
         .getAppsByIds(null, new LinkedHashSet<>(pageOwnerIds), null)
         .stream()
@@ -122,9 +130,13 @@ public class ComponentUsageService
         .collect(Collectors.toMap(Organization::getId, org -> org, (a, b) -> a));
 
     ComponentUsageApplicationsResponseDTO response = new ComponentUsageApplicationsResponseDTO();
-    applyPaging(response,
-        pageSlice(query.page(), query.pageSize(), paged.total(), query.offset(), paged.rows().size()));
-    for (ComponentOwnerUsageRow row : paged.rows()) {
+    // hasNextPage follows the nameSearch page; pinned rows only adjust total for truncation copy.
+    applyPaging(response, new PageSlice(
+        query.page(),
+        query.pageSize(),
+        paged.total() + merged.pinnedOutsideFilterCount(),
+        (long) query.offset() + paged.rows().size() < paged.total()));
+    for (ComponentOwnerUsageRow row : rows) {
       Application app = applicationsById.get(row.ownerId());
       if (app == null) {
         // DAO inner-joins application; defensive if getAppsByIds omits a row.
@@ -148,9 +160,11 @@ public class ComponentUsageService
     UsageQuery query = prepareUsageQuery(request);
 
     PagedOrganizationsByHash paged = ownerComponentDAO.findDistinctOrganizationsByHashPaged(
-        query.hash(), query.readableOwnerIds(), query.offset(), query.pageSize());
+        query.hash(), query.readableOwnerIds(), query.offset(), query.pageSize(), query.nameSearch());
 
-    Set<String> orgIds = paged.rows()
+    MergedUsageRows<ComponentOrganizationUsageRow> merged = mergeIncludedOrganizations(query, paged.rows());
+    List<ComponentOrganizationUsageRow> rows = merged.rows();
+    Set<String> orgIds = rows
         .stream()
         .map(ComponentOrganizationUsageRow::organizationId)
         .collect(Collectors.toCollection(LinkedHashSet::new));
@@ -159,9 +173,12 @@ public class ComponentUsageService
         .collect(Collectors.toMap(Organization::getId, org -> org, (a, b) -> a));
 
     ComponentUsageOrganizationsResponseDTO response = new ComponentUsageOrganizationsResponseDTO();
-    applyPaging(response,
-        pageSlice(query.page(), query.pageSize(), paged.total(), query.offset(), paged.rows().size()));
-    for (ComponentOrganizationUsageRow row : paged.rows()) {
+    applyPaging(response, new PageSlice(
+        query.page(),
+        query.pageSize(),
+        paged.total() + merged.pinnedOutsideFilterCount(),
+        (long) query.offset() + paged.rows().size() < paged.total()));
+    for (ComponentOrganizationUsageRow row : rows) {
       ComponentUsageOrganizationRowDTO dto = new ComponentUsageOrganizationRowDTO();
       dto.organizationId = row.organizationId();
       Organization org = orgsById.get(row.organizationId());
@@ -205,11 +222,127 @@ public class ComponentUsageService
 
   private UsageQuery prepareUsageQuery(final ComponentUsageRequestDTO request) {
     productLicense.validateFeature(LicensedFeature.DASHBOARD);
-    String hash = requireComponentHash(request == null ? null : request.componentHash);
+    if (request == null) {
+      throw new BadRequestException("componentHash is required.");
+    }
+    String hash = requireComponentHash(request.componentHash);
     int page = request.page == null ? 0 : request.page;
     int pageSize = request.pageSize == null ? DEFAULT_PAGE_SIZE : request.pageSize;
     validatePagination(page, pageSize);
-    return new UsageQuery(hash, page, pageSize, page * pageSize, readableApplicationIdsOrNullIfUnrestricted());
+    String nameSearch = StringUtils.isBlank(request.nameSearch) ? null : request.nameSearch.trim();
+    String organizationId = StringUtils.isBlank(request.organizationId) ? null : request.organizationId.trim();
+    Set<String> includeIds = sanitizeIncludeIds(request.includeIds);
+    return new UsageQuery(
+        hash,
+        page,
+        pageSize,
+        page * pageSize,
+        readableApplicationIdsOrNullIfUnrestricted(),
+        nameSearch,
+        organizationId,
+        includeIds);
+  }
+
+  private MergedUsageRows<ComponentOwnerUsageRow> mergeIncludedOwners(
+      final UsageQuery query,
+      final List<ComponentOwnerUsageRow> pageRows)
+  {
+    if (query.includeIds().isEmpty()) {
+      return new MergedUsageRows<>(pageRows, 0L);
+    }
+    Set<String> present = pageRows.stream()
+        .map(ComponentOwnerUsageRow::ownerId)
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+    Set<String> missing = query.includeIds()
+        .stream()
+        .filter(id -> !present.contains(id))
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+    if (missing.isEmpty()) {
+      return new MergedUsageRows<>(pageRows, 0L);
+    }
+    // Pin Path selections even when nameSearch would exclude them.
+    List<ComponentOwnerUsageRow> extras = ownerComponentDAO.findDistinctOwnersByHashAndIds(
+        query.hash(), query.readableOwnerIds(), missing, query.organizationId(), null);
+    if (extras.isEmpty()) {
+      return new MergedUsageRows<>(pageRows, 0L);
+    }
+    long pinnedOutsideFilter = countPinnedOwnersOutsideNameSearch(query, extras);
+    return new MergedUsageRows<>(
+        Stream.concat(extras.stream(), pageRows.stream()).toList(),
+        pinnedOutsideFilter);
+  }
+
+  private MergedUsageRows<ComponentOrganizationUsageRow> mergeIncludedOrganizations(
+      final UsageQuery query,
+      final List<ComponentOrganizationUsageRow> pageRows)
+  {
+    if (query.includeIds().isEmpty()) {
+      return new MergedUsageRows<>(pageRows, 0L);
+    }
+    Set<String> present = pageRows.stream()
+        .map(ComponentOrganizationUsageRow::organizationId)
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+    Set<String> missing = query.includeIds()
+        .stream()
+        .filter(id -> !present.contains(id))
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+    if (missing.isEmpty()) {
+      return new MergedUsageRows<>(pageRows, 0L);
+    }
+    List<ComponentOrganizationUsageRow> extras = ownerComponentDAO.findDistinctOrganizationsByHashAndIds(
+        query.hash(), query.readableOwnerIds(), missing, null);
+    if (extras.isEmpty()) {
+      return new MergedUsageRows<>(pageRows, 0L);
+    }
+    long pinnedOutsideFilter = countPinnedOrganizationsOutsideNameSearch(query, extras);
+    return new MergedUsageRows<>(
+        Stream.concat(extras.stream(), pageRows.stream()).toList(),
+        pinnedOutsideFilter);
+  }
+
+  private long countPinnedOwnersOutsideNameSearch(
+      final UsageQuery query,
+      final List<ComponentOwnerUsageRow> extras)
+  {
+    if (query.nameSearch() == null || extras.isEmpty()) {
+      return 0L;
+    }
+    Set<String> extraIds = extras.stream()
+        .map(ComponentOwnerUsageRow::ownerId)
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+    int matching = ownerComponentDAO.findDistinctOwnersByHashAndIds(
+        query.hash(),
+        query.readableOwnerIds(),
+        extraIds,
+        query.organizationId(),
+        query.nameSearch()).size();
+    return extras.size() - matching;
+  }
+
+  private long countPinnedOrganizationsOutsideNameSearch(
+      final UsageQuery query,
+      final List<ComponentOrganizationUsageRow> extras)
+  {
+    if (query.nameSearch() == null || extras.isEmpty()) {
+      return 0L;
+    }
+    Set<String> extraIds = extras.stream()
+        .map(ComponentOrganizationUsageRow::organizationId)
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+    int matching = ownerComponentDAO.findDistinctOrganizationsByHashAndIds(
+        query.hash(), query.readableOwnerIds(), extraIds, query.nameSearch()).size();
+    return extras.size() - matching;
+  }
+
+  private static Set<String> sanitizeIncludeIds(final List<String> includeIds) {
+    if (includeIds == null || includeIds.isEmpty()) {
+      return Set.of();
+    }
+    return includeIds.stream()
+        .filter(StringUtils::isNotBlank)
+        .map(String::trim)
+        .limit(MAX_PAGE_SIZE)
+        .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
   private ReportUsageQuery prepareReportUsageQuery(final ComponentUsageReportsRequestDTO request) {
@@ -223,7 +356,15 @@ public class ComponentUsageService
         hash, applicationId, page, pageSize, page * pageSize, readableApplicationIdsOrNullIfUnrestricted());
   }
 
-  private record UsageQuery(String hash, int page, int pageSize, int offset, Set<String> readableOwnerIds)
+  private record UsageQuery(
+      String hash,
+      int page,
+      int pageSize,
+      int offset,
+      Set<String> readableOwnerIds,
+      String nameSearch,
+      String organizationId,
+      Set<String> includeIds)
   {
   }
 
@@ -234,6 +375,10 @@ public class ComponentUsageService
       int pageSize,
       int offset,
       Set<String> readableOwnerIds)
+  {
+  }
+
+  private record MergedUsageRows<T>(List<T> rows, long pinnedOutsideFilterCount)
   {
   }
 

@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapte
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.ApplicationComponentRisk;
+import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -37,6 +38,7 @@ import org.jooq.impl.DSL;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.Application.APPLICATION;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.LastPolicyEvaluation.LAST_POLICY_EVALUATION;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.Organization.ORGANIZATION;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerComponent.OWNER_COMPONENT;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ComponentObligation.COMPONENT_OBLIGATION;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.PolicyEvaluation.POLICY_EVALUATION;
@@ -669,16 +671,32 @@ public class OwnerComponentDAO
       final int offset,
       final int limit)
   {
+    return findDistinctOwnersByHashPaged(hash, ownerIds, offset, limit, null, null);
+  }
+
+  /**
+   * Paged distinct application owners with optional name / organization filters (CLM-44667).
+   */
+  public PagedOwnersByHash findDistinctOwnersByHashPaged(
+      final String hash,
+      final Set<String> ownerIds,
+      final int offset,
+      final int limit,
+      final String nameSearch,
+      final String organizationId)
+  {
     if (StringUtils.isBlank(hash) || isFailClosedOwnerScope(ownerIds) || limit < 1) {
       return new PagedOwnersByHash(0L, List.of());
     }
+    String normalizedName = normalizedNameSearch(nameSearch);
     // Embedded H2: avoid uncapped IN (ownerIds) cost; seek by hash then filter/page in memory.
     if (ownerIds != null && requiresManualFilter(ownerIds)) {
-      return findDistinctOwnersByHashPagedEmbedded(hash, ownerIds, offset, limit);
+      return findDistinctOwnersByHashPagedEmbedded(hash, ownerIds, offset, limit, normalizedName, organizationId);
     }
     try (TransactionContext tx = createTransactionContext()) {
       boolean useTemporaryTable = prepareOwnerTempTable(tx, ownerIds);
-      Condition where = hashAndOwnerCondition(hash, ownerIds, useTemporaryTable);
+      Condition where = hashAndOwnerCondition(hash, ownerIds, useTemporaryTable)
+          .and(applicationUsageFilters(normalizedName, organizationId));
 
       var countFrom = tx.dsl()
           .select(DSL.countDistinct(OWNER_COMPONENT.OWNER_ID))
@@ -716,22 +734,72 @@ public class OwnerComponentDAO
   }
 
   /**
+   * Resolve specific application owners for a hash (URL / selected Path ids).
+   * When {@code nameSearch} is null/blank, name is not filtered (used to pin Path selections).
+   */
+  public List<ComponentOwnerUsageRow> findDistinctOwnersByHashAndIds(
+      final String hash,
+      final Set<String> ownerIds,
+      final Set<String> includeIds,
+      final String organizationId)
+  {
+    return findDistinctOwnersByHashAndIds(hash, ownerIds, includeIds, organizationId, null);
+  }
+
+  public List<ComponentOwnerUsageRow> findDistinctOwnersByHashAndIds(
+      final String hash,
+      final Set<String> ownerIds,
+      final Set<String> includeIds,
+      final String organizationId,
+      final String nameSearch)
+  {
+    if (StringUtils.isBlank(hash) || isFailClosedOwnerScope(ownerIds) || CollectionUtils.isEmpty(includeIds)) {
+      return List.of();
+    }
+    Set<String> scopedIncludeIds = ownerIds == null
+        ? includeIds
+        : includeIds.stream().filter(ownerIds::contains).collect(Collectors.toCollection(java.util.LinkedHashSet::new));
+    if (scopedIncludeIds.isEmpty()) {
+      return List.of();
+    }
+    String normalizedName = normalizedNameSearch(nameSearch);
+    try (TransactionContext tx = createTransactionContext()) {
+      Condition where = OWNER_COMPONENT.HASH.eq(hash)
+          .and(OWNER_COMPONENT.OWNER_ID.in(scopedIncludeIds))
+          .and(applicationUsageFilters(normalizedName, organizationId));
+      var lastSeen = DSL.max(OWNER_COMPONENT.TIME).as("last_seen");
+      return tx.dsl()
+          .select(OWNER_COMPONENT.OWNER_ID, lastSeen)
+          .from(OWNER_COMPONENT)
+          .join(APPLICATION)
+          .on(APPLICATION.APPLICATION_ID.eq(OWNER_COMPONENT.OWNER_ID))
+          .where(where)
+          .groupBy(OWNER_COMPONENT.OWNER_ID)
+          .orderBy(lastSeen.desc(), OWNER_COMPONENT.OWNER_ID.asc())
+          .fetch(r -> new ComponentOwnerUsageRow(r.get(OWNER_COMPONENT.OWNER_ID), r.get(lastSeen)));
+    }
+  }
+
+  /**
    * H2-safe owners where-used: hash index seek + join application, then RBAC filter/page in memory.
    */
   private PagedOwnersByHash findDistinctOwnersByHashPagedEmbedded(
       final String hash,
       final Set<String> ownerIds,
       final int offset,
-      final int limit)
+      final int limit,
+      final String normalizedName,
+      final String organizationId)
   {
     try (TransactionContext tx = createTransactionContext()) {
       var lastSeen = DSL.max(OWNER_COMPONENT.TIME).as("last_seen");
+      Condition where = OWNER_COMPONENT.HASH.eq(hash).and(applicationUsageFilters(normalizedName, organizationId));
       List<ComponentOwnerUsageRow> filtered = tx.dsl()
           .select(OWNER_COMPONENT.OWNER_ID, lastSeen)
           .from(OWNER_COMPONENT)
           .join(APPLICATION)
           .on(APPLICATION.APPLICATION_ID.eq(OWNER_COMPONENT.OWNER_ID))
-          .where(OWNER_COMPONENT.HASH.eq(hash))
+          .where(where)
           .groupBy(OWNER_COMPONENT.OWNER_ID)
           .fetch(r -> new ComponentOwnerUsageRow(r.get(OWNER_COMPONENT.OWNER_ID), r.get(lastSeen)))
           .stream()
@@ -774,23 +842,44 @@ public class OwnerComponentDAO
       final int offset,
       final int limit)
   {
+    return findDistinctOrganizationsByHashPaged(hash, ownerIds, offset, limit, null);
+  }
+
+  /**
+   * Paged distinct organizations with optional name filter (CLM-44667).
+   */
+  public PagedOrganizationsByHash findDistinctOrganizationsByHashPaged(
+      final String hash,
+      final Set<String> ownerIds,
+      final int offset,
+      final int limit,
+      final String nameSearch)
+  {
     if (StringUtils.isBlank(hash) || isFailClosedOwnerScope(ownerIds) || limit < 1) {
       return new PagedOrganizationsByHash(0L, List.of());
     }
+    String normalizedName = normalizedNameSearch(nameSearch);
     if (ownerIds != null && requiresManualFilter(ownerIds)) {
-      return findDistinctOrganizationsByHashPagedEmbedded(hash, ownerIds, offset, limit);
+      return findDistinctOrganizationsByHashPagedEmbedded(hash, ownerIds, offset, limit, normalizedName);
     }
     try (TransactionContext tx = createTransactionContext()) {
       boolean useTemporaryTable = prepareOwnerTempTable(tx, ownerIds);
       // organization_id is NOT NULL in schema; keep explicit for GROUP BY / COUNT Distinct parity.
       Condition where = hashAndOwnerCondition(hash, ownerIds, useTemporaryTable)
-          .and(APPLICATION.ORGANIZATION_ID.isNotNull());
+          .and(APPLICATION.ORGANIZATION_ID.isNotNull())
+          .and(organizationUsageFilters(normalizedName));
+      boolean joinOrganization = requiresOrganizationJoin(normalizedName);
 
       var countFrom = tx.dsl()
           .select(DSL.countDistinct(APPLICATION.ORGANIZATION_ID))
           .from(OWNER_COMPONENT)
           .join(APPLICATION)
           .on(APPLICATION.APPLICATION_ID.eq(OWNER_COMPONENT.OWNER_ID));
+      if (joinOrganization) {
+        countFrom = countFrom
+            .join(ORGANIZATION)
+            .on(ORGANIZATION.ORGANIZATION_ID.eq(APPLICATION.ORGANIZATION_ID));
+      }
       if (useTemporaryTable) {
         countFrom = countFrom
             .join(DSL.table("temporary_ids").as("ti"))
@@ -806,6 +895,11 @@ public class OwnerComponentDAO
           .from(OWNER_COMPONENT)
           .join(APPLICATION)
           .on(APPLICATION.APPLICATION_ID.eq(OWNER_COMPONENT.OWNER_ID));
+      if (joinOrganization) {
+        select = select
+            .join(ORGANIZATION)
+            .on(ORGANIZATION.ORGANIZATION_ID.eq(APPLICATION.ORGANIZATION_ID));
+      }
       if (useTemporaryTable) {
         select = select
             .join(DSL.table("temporary_ids").as("ti"))
@@ -825,6 +919,67 @@ public class OwnerComponentDAO
                 r.get(lastSeen));
           });
       return new PagedOrganizationsByHash(total, rows);
+    }
+  }
+
+  /**
+   * Resolve specific organizations for a hash (URL / selected Path ids).
+   * When {@code nameSearch} is null/blank, name is not filtered (used to pin Path selections).
+   */
+  public List<ComponentOrganizationUsageRow> findDistinctOrganizationsByHashAndIds(
+      final String hash,
+      final Set<String> ownerIds,
+      final Set<String> includeOrganizationIds)
+  {
+    return findDistinctOrganizationsByHashAndIds(hash, ownerIds, includeOrganizationIds, null);
+  }
+
+  public List<ComponentOrganizationUsageRow> findDistinctOrganizationsByHashAndIds(
+      final String hash,
+      final Set<String> ownerIds,
+      final Set<String> includeOrganizationIds,
+      final String nameSearch)
+  {
+    if (StringUtils.isBlank(hash)
+        || isFailClosedOwnerScope(ownerIds)
+        || CollectionUtils.isEmpty(includeOrganizationIds))
+    {
+      return List.of();
+    }
+    String normalizedName = normalizedNameSearch(nameSearch);
+    try (TransactionContext tx = createTransactionContext()) {
+      boolean useTemporaryTable = prepareOwnerTempTable(tx, ownerIds);
+      Condition where = hashAndOwnerCondition(hash, ownerIds, useTemporaryTable)
+          .and(APPLICATION.ORGANIZATION_ID.in(includeOrganizationIds))
+          .and(organizationUsageFilters(normalizedName));
+      var lastSeen = DSL.max(OWNER_COMPONENT.TIME).as("last_seen");
+      var appCount = DSL.countDistinct(OWNER_COMPONENT.OWNER_ID).as("application_count");
+      var select = tx.dsl()
+          .select(APPLICATION.ORGANIZATION_ID, appCount, lastSeen)
+          .from(OWNER_COMPONENT)
+          .join(APPLICATION)
+          .on(APPLICATION.APPLICATION_ID.eq(OWNER_COMPONENT.OWNER_ID));
+      if (requiresOrganizationJoin(normalizedName)) {
+        select = select
+            .join(ORGANIZATION)
+            .on(ORGANIZATION.ORGANIZATION_ID.eq(APPLICATION.ORGANIZATION_ID));
+      }
+      if (useTemporaryTable) {
+        select = select
+            .join(DSL.table("temporary_ids").as("ti"))
+            .on(OWNER_COMPONENT.OWNER_ID.eq(DSL.field("ti.id", String.class)));
+      }
+      return select
+          .where(where)
+          .groupBy(APPLICATION.ORGANIZATION_ID)
+          .orderBy(lastSeen.desc(), APPLICATION.ORGANIZATION_ID.asc())
+          .fetch(r -> {
+            Long applicationCount = r.get(appCount, Long.class);
+            return new ComponentOrganizationUsageRow(
+                r.get(APPLICATION.ORGANIZATION_ID),
+                applicationCount == null ? 0L : applicationCount,
+                r.get(lastSeen));
+          });
     }
   }
 
@@ -890,20 +1045,29 @@ public class OwnerComponentDAO
       final String hash,
       final Set<String> ownerIds,
       final int offset,
-      final int limit)
+      final int limit,
+      final String normalizedName)
   {
     try (TransactionContext tx = createTransactionContext()) {
       var lastSeen = DSL.max(OWNER_COMPONENT.TIME).as("last_seen");
       record OwnerOrg(String ownerId, String organizationId, Date lastSeenTime)
       {
       }
-      List<OwnerOrg> owners = tx.dsl()
+      Condition where = OWNER_COMPONENT.HASH.eq(hash)
+          .and(APPLICATION.ORGANIZATION_ID.isNotNull())
+          .and(organizationUsageFilters(normalizedName));
+      var select = tx.dsl()
           .select(OWNER_COMPONENT.OWNER_ID, APPLICATION.ORGANIZATION_ID, lastSeen)
           .from(OWNER_COMPONENT)
           .join(APPLICATION)
-          .on(APPLICATION.APPLICATION_ID.eq(OWNER_COMPONENT.OWNER_ID))
-          .where(OWNER_COMPONENT.HASH.eq(hash))
-          .and(APPLICATION.ORGANIZATION_ID.isNotNull())
+          .on(APPLICATION.APPLICATION_ID.eq(OWNER_COMPONENT.OWNER_ID));
+      if (requiresOrganizationJoin(normalizedName)) {
+        select = select
+            .join(ORGANIZATION)
+            .on(ORGANIZATION.ORGANIZATION_ID.eq(APPLICATION.ORGANIZATION_ID));
+      }
+      List<OwnerOrg> owners = select
+          .where(where)
           .groupBy(OWNER_COMPONENT.OWNER_ID, APPLICATION.ORGANIZATION_ID)
           .fetch(r -> new OwnerOrg(
               r.get(OWNER_COMPONENT.OWNER_ID),
@@ -991,6 +1155,37 @@ public class OwnerComponentDAO
       where = where.and(OWNER_COMPONENT.OWNER_ID.in(ownerIds));
     }
     return where;
+  }
+
+  private static String normalizedNameSearch(final String nameSearch) {
+    if (StringUtils.isBlank(nameSearch)) {
+      return null;
+    }
+    String normalized = NameHelper.normalize(nameSearch.trim());
+    return StringUtils.isBlank(normalized) ? null : normalized;
+  }
+
+  private static Condition applicationUsageFilters(final String normalizedName, final String organizationId) {
+    Condition condition = DSL.noCondition();
+    if (StringUtils.isNotBlank(organizationId)) {
+      condition = condition.and(APPLICATION.ORGANIZATION_ID.eq(organizationId.trim()));
+    }
+    if (StringUtils.isNotBlank(normalizedName)) {
+      condition = condition.and(APPLICATION.NAME_LOWERCASE_NO_WHITESPACE.contains(normalizedName));
+    }
+    return condition;
+  }
+
+  private static Condition organizationUsageFilters(final String normalizedName) {
+    if (!requiresOrganizationJoin(normalizedName)) {
+      return DSL.noCondition();
+    }
+    return ORGANIZATION.NAME_LOWERCASE_NO_WHITESPACE.contains(normalizedName);
+  }
+
+  /** True when org-name filters require joining {@code organization}. */
+  private static boolean requiresOrganizationJoin(final String normalizedName) {
+    return StringUtils.isNotBlank(normalizedName);
   }
 
   /**

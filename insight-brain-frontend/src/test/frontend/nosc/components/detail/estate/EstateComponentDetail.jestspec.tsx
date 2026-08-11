@@ -49,6 +49,39 @@ const HDS_RESPONSE = {
 describe('EstateComponentDetail', () => {
   let axiosMock: ReturnType<typeof axiosMockAdapter>;
 
+  async function selectPathOption(triggerTestId: string, optionId: string): Promise<void> {
+    const user = userEvent.setup();
+    const trigger = screen.getByTestId(triggerTestId);
+    await waitFor(() => expect(trigger).toBeEnabled());
+    await user.click(trigger);
+    const menu = await screen.findByRole('menu');
+    await user.click(within(menu).getByTestId(`${triggerTestId}-option-${optionId}`));
+  }
+
+  function mockDefaultUsageEndpoints(): void {
+    axiosMock.onPost(getComponentUsageOrganizationsUrl()).reply(200, {
+      organizations: [],
+      total: 0,
+      page: 0,
+      pageSize: 25,
+      hasNextPage: false,
+    });
+    axiosMock.onPost(getComponentUsageApplicationsUrl()).reply(200, {
+      applications: [],
+      total: 0,
+      page: 0,
+      pageSize: 25,
+      hasNextPage: false,
+    });
+    axiosMock.onPost(getViolationsListUrl()).reply(200, {
+      violations: [],
+      total: 0,
+      page: 0,
+      pageSize: 1,
+      hasNextPage: false,
+    });
+  }
+
   beforeAll(() => {
     axiosMock = axiosMockAdapter();
     _setBaseUrlForTesting('http://localhost');
@@ -61,6 +94,10 @@ describe('EstateComponentDetail', () => {
 
   afterEach(() => {
     axiosMock.reset();
+  });
+
+  beforeEach(() => {
+    mockDefaultUsageEndpoints();
   });
 
   it('renders Iteration 1 tabs and never kitchen-sink tabs', async () => {
@@ -84,13 +121,20 @@ describe('EstateComponentDetail', () => {
     expect(within(tabList).queryByText('Audit Log')).not.toBeInTheDocument();
   });
 
-  it('shows Overview identity from HDS and links to Violations / Applications', async () => {
+  it('shows Overview cards Estate Usage and Identity without versions or remediation chrome', async () => {
     axiosMock.onPost(getApiV2ComponentDetailsUrl()).reply(200, HDS_RESPONSE);
 
     renderNexusOneEstateComponentDetail(COMPONENT_HASH);
 
     expect(await screen.findByTestId('nosc-estate-component-overview')).toBeInTheDocument();
-    expect(screen.getByText(/Package URL:/)).toHaveTextContent('pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1');
+    expect(screen.getByTestId('nosc-estate-component-overview-violations-card')).toBeInTheDocument();
+    expect(screen.getByTestId('nosc-estate-component-overview-vulnerabilities-card')).toBeInTheDocument();
+    expect(screen.getByTestId('nosc-estate-component-overview-license-card')).toBeInTheDocument();
+    expect(screen.getByTestId('nosc-estate-component-overview-estate-usage')).toBeInTheDocument();
+    expect(screen.getByTestId('nosc-estate-component-overview-identity')).toBeInTheDocument();
+    expect(screen.getByTestId('nosc-estate-component-overview-package-url')).toHaveTextContent(
+      'pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1'
+    );
     expect(screen.getByTestId('nosc-estate-component-overview-violations-link')).toHaveAttribute(
       'href',
       `#/components/${COMPONENT_HASH}/violations`
@@ -99,14 +143,21 @@ describe('EstateComponentDetail', () => {
       'href',
       `#/components/${COMPONENT_HASH}/applications`
     );
-    expect(screen.queryByTestId('nosc-estate-component-overview-organizations-link')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('nosc-estate-component-overview-vulnerabilities-link')).not.toBeInTheDocument();
+    expect(screen.getByTestId('nosc-estate-component-overview-vulnerabilities-link')).toHaveAttribute(
+      'href',
+      `#/components/${COMPONENT_HASH}/vulnerabilities`
+    );
+    expect(screen.queryByTestId('nosc-estate-component-overview-versions-link')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Catalog versions/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Explore versions/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Recommended/i)).not.toBeInTheDocument();
   });
 
-  it('shows a Vulnerabilities overflow hint when security issues exceed the Overview preview', async () => {
+  it('shows vulnerability threat bands and highest CVSS on Overview', async () => {
     const manyIssues = Array.from({ length: 7 }, (_, i) => ({
       reference: `CVE-2021-000${i}`,
-      severity: 5,
+      severity: i === 0 ? 9.8 : 5,
+      threatCategory: i === 0 ? 'critical' : 'moderate',
     }));
     axiosMock.onPost(getApiV2ComponentDetailsUrl()).reply(200, {
       componentDetails: [
@@ -119,13 +170,9 @@ describe('EstateComponentDetail', () => {
 
     renderNexusOneEstateComponentDetail(COMPONENT_HASH);
 
-    expect(await screen.findByTestId('nosc-estate-component-overview-security-overflow')).toHaveTextContent(
-      '…and 2 more'
-    );
-    expect(screen.getByTestId('nosc-estate-component-overview-security-overflow-link')).toHaveAttribute(
-      'href',
-      `#/components/${COMPONENT_HASH}/vulnerabilities`
-    );
+    expect(await screen.findByTestId('nosc-estate-component-overview-threat-grid')).toBeInTheDocument();
+    expect(screen.getByTestId('nosc-estate-component-overview-threat-critical')).toHaveTextContent('1');
+    expect(screen.getByTestId('nosc-estate-component-overview-highest-cvss')).toHaveTextContent('9.8');
     expect(screen.getByTestId('nosc-estate-component-overview-vulnerabilities-link')).toHaveAttribute(
       'href',
       `#/components/${COMPONENT_HASH}/vulnerabilities`
@@ -150,8 +197,21 @@ describe('EstateComponentDetail', () => {
     });
   });
 
-  it('keeps blast-radius counts and App to Report switcher available when HDS fails', async () => {
+  it('keeps blast-radius counts and auto-selects org, app, and report in the Path switcher when HDS fails', async () => {
     axiosMock.onPost(getApiV2ComponentDetailsUrl()).reply(500);
+    axiosMock.onPost(getComponentUsageOrganizationsUrl()).reply((config) => {
+      const body = JSON.parse(config.data as string);
+      return [
+        200,
+        {
+          organizations: [{ organizationId: 'org-1', organizationName: 'Engineering', applicationCount: 3 }],
+          total: 3,
+          page: body.page,
+          pageSize: body.pageSize,
+          hasNextPage: false,
+        },
+      ];
+    });
     axiosMock.onPost(getComponentUsageApplicationsUrl()).reply((config) => {
       const body = JSON.parse(config.data as string);
       return [
@@ -159,14 +219,17 @@ describe('EstateComponentDetail', () => {
         {
           applications: [
             {
-              applicationPublicId: 'missing-id',
-              applicationName: 'Missing ID',
-              organizationName: 'Engineering',
-            },
-            {
               applicationId: 'app-1',
               applicationPublicId: 'webgoat',
               applicationName: 'WebGoat',
+              organizationId: 'org-1',
+              organizationName: 'Engineering',
+            },
+            {
+              applicationId: 'app-missing',
+              applicationPublicId: 'missing-id',
+              applicationName: 'Missing ID',
+              organizationId: 'org-1',
               organizationName: 'Engineering',
             },
           ],
@@ -176,13 +239,6 @@ describe('EstateComponentDetail', () => {
           hasNextPage: false,
         },
       ];
-    });
-    axiosMock.onPost(getComponentUsageOrganizationsUrl()).reply(200, {
-      organizations: [],
-      total: 3,
-      page: 0,
-      pageSize: 1,
-      hasNextPage: false,
     });
     axiosMock.onPost(getViolationsListUrl()).reply(200, {
       violations: [],
@@ -207,33 +263,37 @@ describe('EstateComponentDetail', () => {
     expect(screen.getByTestId('nosc-estate-component-blast-radius-violations')).toHaveTextContent('5 Violations');
 
     await waitFor(() => {
-      const applicationRequests = axiosMock.history.post.filter(
-        (request) => request.url === getComponentUsageApplicationsUrl()
+      const organizationRequests = axiosMock.history.post.filter(
+        (request) => request.url === getComponentUsageOrganizationsUrl()
       );
-      expect(applicationRequests).toHaveLength(1);
-      expect(JSON.parse(applicationRequests[0].data as string)).toMatchObject({
+      expect(organizationRequests.length).toBeGreaterThanOrEqual(1);
+      expect(JSON.parse(organizationRequests[0].data as string)).toMatchObject({
         componentHash: COMPONENT_HASH,
         page: 0,
         pageSize: 25,
       });
       expect(
         axiosMock.history.post
-          .filter((request) => request.url === getComponentUsageOrganizationsUrl())
-          .some((request) => JSON.parse(request.data as string).pageSize === 1)
-      ).toBe(true);
-      expect(
-        axiosMock.history.post
           .filter((request) => request.url === getViolationsListUrl())
           .some((request) => JSON.parse(request.data as string).pageSize === 1)
       ).toBe(true);
     });
-    expect(screen.getByText('Showing the first 2 of 3 applications.')).toBeInTheDocument();
-    expect(axiosMock.history.post.filter((request) => request.url === getComponentUsageReportsUrl())).toHaveLength(0);
-
-    await userEvent.selectOptions(await screen.findByLabelText('Application'), 'app-1');
 
     await waitFor(() => {
-      expect(axiosMock.history.post.filter((request) => request.url === getComponentUsageReportsUrl())).toHaveLength(1);
+      expect(screen.getByTestId('nosc-estate-component-path-switcher-report-link')).toBeInTheDocument();
+    });
+
+    const user = userEvent.setup();
+    const applicationTrigger = screen.getByRole('button', { name: 'Application' });
+    await user.click(applicationTrigger);
+    const applicationMenu = await screen.findByRole('menu');
+    expect(within(applicationMenu).getByText('Showing the first 2 of 3 applications.')).toBeInTheDocument();
+    await userEvent.keyboard('{Escape}');
+
+    await waitFor(() => {
+      expect(
+        axiosMock.history.post.filter((request) => request.url === getComponentUsageReportsUrl()).length
+      ).toBeGreaterThanOrEqual(1);
     });
     expect(
       JSON.parse(
@@ -241,34 +301,105 @@ describe('EstateComponentDetail', () => {
       )
     ).toMatchObject({ componentHash: COMPONENT_HASH, applicationId: 'app-1' });
 
-    await userEvent.selectOptions(await screen.findByLabelText('Report'), 'report-1');
     expect(await screen.findByTestId('nosc-estate-component-path-switcher-report-link')).toHaveAttribute(
       'href',
       getApplicationReportDeepLinkUrl('webgoat', 'report-1')
     );
   });
 
-  it('shows an error when reports fail to load after selecting an application', async () => {
+  it('supports searchable Path selection without native selects', async () => {
     axiosMock.onPost(getApiV2ComponentDetailsUrl()).reply(200, HDS_RESPONSE);
+    axiosMock.onPost(getComponentUsageOrganizationsUrl()).reply(200, {
+      organizations: [
+        { organizationId: 'org-1', organizationName: 'Engineering' },
+        { organizationId: 'org-2', organizationName: 'Platform' },
+      ],
+      total: 2,
+      page: 0,
+      pageSize: 25,
+      hasNextPage: false,
+    });
+    axiosMock.onPost(getComponentUsageApplicationsUrl()).reply((config) => {
+      const body = JSON.parse(config.data as string);
+      return [
+        200,
+        {
+          applications: [
+            {
+              applicationId: 'app-1',
+              applicationPublicId: 'webgoat',
+              applicationName: 'WebGoat',
+              organizationId: body.organizationId ?? 'org-1',
+            },
+            {
+              applicationId: 'app-2',
+              applicationPublicId: 'demo',
+              applicationName: 'Demo App',
+              organizationId: body.organizationId ?? 'org-2',
+            },
+          ],
+          total: 2,
+          page: 0,
+          pageSize: 25,
+          hasNextPage: false,
+        },
+      ];
+    });
+    axiosMock.onPost(getComponentUsageReportsUrl()).reply(200, {
+      reports: [
+        { reportId: 'report-1', stageTypeId: 'build', evaluationTime: 1_700_000_000_000 },
+        { reportId: 'report-2', stageTypeId: 'release', evaluationTime: 1_700_000_100_000 },
+      ],
+      total: 2,
+      page: 0,
+      pageSize: 25,
+      hasNextPage: false,
+    });
+
+    renderNexusOneEstateComponentDetail(COMPONENT_HASH);
+    await screen.findByTestId('nosc-estate-component-header');
+    await waitFor(() => {
+      expect(axiosMock.history.post.filter((request) => request.url === getComponentUsageReportsUrl()).length).toBeGreaterThanOrEqual(1);
+    });
+
+    expect(document.querySelector('select')).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId('nosc-estate-component-path-switcher-report-link')).toHaveAttribute(
+        'href',
+        getApplicationReportDeepLinkUrl('webgoat', 'report-1')
+      );
+    });
+    await selectPathOption('nosc-estate-component-path-switcher-application', 'app-2');
+    await selectPathOption('nosc-estate-component-path-switcher-report', 'report-2');
+
+    expect(await screen.findByTestId('nosc-estate-component-path-switcher-report-link')).toHaveAttribute(
+      'href',
+      getApplicationReportDeepLinkUrl('demo', 'report-2')
+    );
+  });
+
+  it('shows an error when reports fail to load after auto-selecting an application', async () => {
+    axiosMock.onPost(getApiV2ComponentDetailsUrl()).reply(200, HDS_RESPONSE);
+    axiosMock.onPost(getComponentUsageOrganizationsUrl()).reply(200, {
+      organizations: [{ organizationId: 'org-1', organizationName: 'Engineering' }],
+      total: 1,
+      page: 0,
+      pageSize: 25,
+      hasNextPage: false,
+    });
     axiosMock.onPost(getComponentUsageApplicationsUrl()).reply(200, {
       applications: [
         {
           applicationId: 'app-1',
           applicationPublicId: 'webgoat',
           applicationName: 'WebGoat',
+          organizationId: 'org-1',
           organizationName: 'Engineering',
         },
       ],
       total: 1,
       page: 0,
       pageSize: 25,
-      hasNextPage: false,
-    });
-    axiosMock.onPost(getComponentUsageOrganizationsUrl()).reply(200, {
-      organizations: [],
-      total: 0,
-      page: 0,
-      pageSize: 1,
       hasNextPage: false,
     });
     axiosMock.onPost(getViolationsListUrl()).reply(200, {
@@ -282,13 +413,10 @@ describe('EstateComponentDetail', () => {
 
     renderNexusOneEstateComponentDetail(COMPONENT_HASH);
 
-    const applicationSelect = await screen.findByLabelText('Application');
-    await waitFor(() => expect(applicationSelect).not.toBeDisabled());
-
-    await userEvent.selectOptions(applicationSelect, 'app-1');
-
     expect(await screen.findByText('Reports could not be loaded for this application.')).toBeInTheDocument();
-    expect(axiosMock.history.post.filter((request) => request.url === getComponentUsageReportsUrl())).toHaveLength(1);
+    await waitFor(() => {
+      expect(axiosMock.history.post.filter((request) => request.url === getComponentUsageReportsUrl()).length).toBeGreaterThanOrEqual(1);
+    });
   });
 
   it('navigates to Vulnerabilities tab via the tab strip', async () => {

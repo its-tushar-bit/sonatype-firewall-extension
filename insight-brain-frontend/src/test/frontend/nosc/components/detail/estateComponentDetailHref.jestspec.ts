@@ -23,4 +23,16 @@ describe('estateComponentDetailHref', () => {
     expect(estateComponentDetailHref('h1', 'violations')).toBe('#/components/h1/violations');
     expect(estateComponentDetailHref('h1', 'applications')).toBe('#/components/h1/applications');
   });
+
+  it('appends optional path context query params', () => {
+    expect(
+      estateComponentDetailHref('abc123', 'applications', {
+        organizationId: 'org-1',
+        applicationId: 'app-1',
+        reportId: 'report-1',
+      })
+    ).toBe(
+      '#/components/abc123/applications?organizationId=org-1&applicationId=app-1&reportId=report-1'
+    );
+  });
 });

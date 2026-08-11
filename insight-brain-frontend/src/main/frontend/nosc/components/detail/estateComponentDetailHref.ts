@@ -11,10 +11,39 @@
  */
 export type EstateComponentTab = 'overview' | 'vulnerabilities' | 'violations' | 'applications';
 
-export function estateComponentDetailHref(componentHash: string, tab: EstateComponentTab = 'overview'): string {
-  const encoded = encodeURIComponent(componentHash);
-  if (tab === 'overview') {
-    return `#/components/${encoded}`;
+export type EstateComponentPathContext = {
+  readonly organizationId?: string;
+  readonly applicationId?: string;
+  readonly reportId?: string;
+};
+
+function appendPathContextQuery(href: string, pathContext?: EstateComponentPathContext): string {
+  if (!pathContext) {
+    return href;
   }
-  return `#/components/${encoded}/${tab}`;
+  const params = new URLSearchParams();
+  const organizationId = pathContext.organizationId?.trim();
+  const applicationId = pathContext.applicationId?.trim();
+  const reportId = pathContext.reportId?.trim();
+  if (organizationId) {
+    params.set('organizationId', organizationId);
+  }
+  if (applicationId) {
+    params.set('applicationId', applicationId);
+  }
+  if (reportId) {
+    params.set('reportId', reportId);
+  }
+  const query = params.toString();
+  return query ? `${href}?${query}` : href;
+}
+
+export function estateComponentDetailHref(
+  componentHash: string,
+  tab: EstateComponentTab = 'overview',
+  pathContext?: EstateComponentPathContext
+): string {
+  const encoded = encodeURIComponent(componentHash);
+  const base = tab === 'overview' ? `#/components/${encoded}` : `#/components/${encoded}/${tab}`;
+  return appendPathContextQuery(base, pathContext);
 }

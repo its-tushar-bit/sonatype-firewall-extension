@@ -85,6 +85,31 @@ describe('estateComponentUsageApi', () => {
     });
   });
 
+  it('POSTs applications usage with optional filters', async () => {
+    axiosMock.onPost(getComponentUsageApplicationsUrl()).reply(200, {
+      applications: [],
+      total: 0,
+      page: 0,
+      pageSize: 25,
+      hasNextPage: false,
+    });
+
+    await fetchComponentUsageApplications('deadbeef', 0, COMPONENT_USAGE_PAGE_SIZE, undefined, {
+      nameSearch: 'web',
+      includeIds: ['app-1'],
+      organizationId: 'org-1',
+    });
+
+    expect(JSON.parse(axiosMock.history.post[0].data)).toEqual({
+      componentHash: 'deadbeef',
+      page: 0,
+      pageSize: COMPONENT_USAGE_PAGE_SIZE,
+      nameSearch: 'web',
+      includeIds: ['app-1'],
+      organizationId: 'org-1',
+    });
+  });
+
   it('POSTs organizations usage', async () => {
     axiosMock.onPost(getComponentUsageOrganizationsUrl()).reply(200, {
       organizations: [{ organizationId: 'org-1', organizationName: 'Engineering', applicationCount: 3 }],
@@ -97,6 +122,29 @@ describe('estateComponentUsageApi', () => {
     const result = await fetchComponentUsageOrganizations('deadbeef', 0);
     expect(result.organizations[0].organizationName).toBe('Engineering');
     expect(result.organizations[0].applicationCount).toBe(3);
+  });
+
+  it('POSTs organizations usage with optional filters', async () => {
+    axiosMock.onPost(getComponentUsageOrganizationsUrl()).reply(200, {
+      organizations: [],
+      total: 0,
+      page: 0,
+      pageSize: 25,
+      hasNextPage: false,
+    });
+
+    await fetchComponentUsageOrganizations('deadbeef', 0, COMPONENT_USAGE_PAGE_SIZE, undefined, {
+      nameSearch: 'eng',
+      includeIds: ['org-1'],
+    });
+
+    expect(JSON.parse(axiosMock.history.post[0].data)).toEqual({
+      componentHash: 'deadbeef',
+      page: 0,
+      pageSize: COMPONENT_USAGE_PAGE_SIZE,
+      nameSearch: 'eng',
+      includeIds: ['org-1'],
+    });
   });
 
   it('POSTs reports usage only for the selected application and normalizes the response', async () => {

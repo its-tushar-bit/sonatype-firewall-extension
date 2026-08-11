@@ -29,7 +29,7 @@ export function nexusOneEstateComponentDetailStates(): ReactStateDeclaration[] {
   return [
     {
       name: NEXUS_ONE_ESTATE_COMPONENT_DETAIL_PARENT_STATE,
-      url: '/components/{componentHash}',
+      url: '/components/{componentHash}?organizationId&applicationId&reportId',
       abstract: true,
       component: EstateComponentDetail,
       data: { title: ESTATE_COMPONENT_DETAIL_TITLE },

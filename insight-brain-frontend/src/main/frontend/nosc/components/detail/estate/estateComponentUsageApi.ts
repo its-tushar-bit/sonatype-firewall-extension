@@ -13,11 +13,17 @@ import {
 /** Default page size for estate component where-used tables. */
 export const COMPONENT_USAGE_PAGE_SIZE = 25;
 
+export type ComponentUsageRequestFilters = {
+  readonly nameSearch?: string;
+  readonly includeIds?: ReadonlyArray<string>;
+  readonly organizationId?: string;
+};
+
 export type ComponentUsageRequest = {
   readonly componentHash: string;
   readonly page: number;
   readonly pageSize: number;
-};
+} & ComponentUsageRequestFilters;
 
 export type ComponentUsageReportsRequest = ComponentUsageRequest & {
   readonly applicationId: string;
@@ -70,15 +76,31 @@ export type ComponentUsageReportsResponse = {
   readonly hasNextPage: boolean;
 };
 
+function normalizeFilters(filters?: ComponentUsageRequestFilters): ComponentUsageRequestFilters {
+  if (!filters) {
+    return {};
+  }
+  const nameSearch = filters.nameSearch?.trim();
+  const includeIds = filters.includeIds?.map((id) => id.trim()).filter(Boolean);
+  const organizationId = filters.organizationId?.trim();
+  return {
+    ...(nameSearch ? { nameSearch } : {}),
+    ...(includeIds?.length ? { includeIds } : {}),
+    ...(organizationId ? { organizationId } : {}),
+  };
+}
+
 export function buildComponentUsageRequest(
   componentHash: string,
   page: number,
-  pageSize: number = COMPONENT_USAGE_PAGE_SIZE
+  pageSize: number = COMPONENT_USAGE_PAGE_SIZE,
+  filters?: ComponentUsageRequestFilters
 ): ComponentUsageRequest {
   return {
     componentHash,
     page,
     pageSize,
+    ...normalizeFilters(filters),
   };
 }
 
@@ -100,11 +122,12 @@ export async function fetchComponentUsageApplications(
   componentHash: string,
   page: number,
   pageSize: number = COMPONENT_USAGE_PAGE_SIZE,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  filters?: ComponentUsageRequestFilters
 ): Promise<ComponentUsageApplicationsResponse> {
   const { data } = await axios.post<ComponentUsageApplicationsResponse>(
     getComponentUsageApplicationsUrl(),
-    buildComponentUsageRequest(componentHash, page, pageSize),
+    buildComponentUsageRequest(componentHash, page, pageSize, filters),
     { signal }
   );
   return {
@@ -141,11 +164,12 @@ export async function fetchComponentUsageOrganizations(
   componentHash: string,
   page: number,
   pageSize: number = COMPONENT_USAGE_PAGE_SIZE,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  filters?: ComponentUsageRequestFilters
 ): Promise<ComponentUsageOrganizationsResponse> {
   const { data } = await axios.post<ComponentUsageOrganizationsResponse>(
     getComponentUsageOrganizationsUrl(),
-    buildComponentUsageRequest(componentHash, page, pageSize),
+    buildComponentUsageRequest(componentHash, page, pageSize, filters),
     { signal }
   );
   return {

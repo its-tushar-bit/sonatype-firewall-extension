@@ -373,6 +373,14 @@
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-email2-jakarta</artifactId>
         <version>2.0.0-M1</version>
+        <exclusions>
+          <!-- Exclude the outdated Jakarta Mail RI (vulnerable: sonatype-2025-003555, and mismatched
+               against jakarta.mail-api 2.1.5). org.eclipse.angus:angus-mail is the successor impl. -->
+          <exclusion>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>jakarta.mail</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.jsoup</groupId>

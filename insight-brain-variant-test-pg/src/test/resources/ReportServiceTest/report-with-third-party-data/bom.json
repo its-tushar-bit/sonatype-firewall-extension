@@ -1,0 +1,99 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-httpclient",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "apache-httpclient",
+        "version" : "3.1"
+      }
+    },
+    "groupId" : "apache-httpclient",
+    "artifactId" : "commons-httpclient",
+    "version" : "3.1",
+    "filenames" : [ "commons-httpclient-3.1.jar" ],
+    "pathnames" : [ "test/commons-httpclient-3.1.jar" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "964cd74171f427720480",
+    "relativePopularity" : 0.0,
+    "createTime" : 1453445378786,
+    "lastModifiedTime" : 1334088088000,
+    "lastModifiedEntryTime" : 1187449150000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    }
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "glibc:2.24-11+deb9u3" ],
+    "pathnames" : [ "dependency:/test/clair-scanner-output.json/glibc:2.24-11+deb9u3" ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "37b3ce40791bc2dd8068",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false,
+      "manifestContentType" : null
+    }
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "pkg:pypi/altgraph@0.10.2" ],
+    "pathnames" : [ "dependency:/pkg:pypi\\altgraph@0.10.2" ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "cf085cd08ee27334c573",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false,
+      "manifestContentType" : "SBOM"
+    }
+  } ]
+}

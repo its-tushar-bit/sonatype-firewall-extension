@@ -1,0 +1,300 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<Document>
+  <SPDXID>SPDXRef-DOCUMENT</SPDXID>
+  <spdxVersion>SPDX-2.2</spdxVersion>
+  <creationInfo>
+    <created>2025-07-02T09:45:36Z</created>
+    <creators>Tool: Sonatype SBOM Manager - 1.193.0-SNAPSHOT</creators>
+  </creationInfo>
+  <name>SbomRegressionTestApp</name>
+  <dataLicense>CC0-1.0</dataLicense>
+  <hasExtractedLicensingInfos>
+    <licenseId>LicenseRef-See-License-Clause</licenseId>
+    <extractedText>Extracted license created by Sonatype SBOM Manager</extractedText>
+  </hasExtractedLicensingInfos>
+  <hasExtractedLicensingInfos>
+    <licenseId>LicenseRef-Some-random-license</licenseId>
+    <extractedText>Extracted license created by Sonatype SBOM Manager</extractedText>
+    <name>Some random license</name>
+  </hasExtractedLicensingInfos>
+  <documentNamespace>http://localhost:10007/ui/links/sbomManager/management/view/application/SbomRegressionTestApp/bom/20250702104532953</documentNamespace>
+  <packages>
+    <SPDXID>SPDXRef-gnrtd0</SPDXID>
+    <attributionTexts>Evidence license text for: (Apache-2.0)</attributionTexts>
+    <checksums>
+      <algorithm>SHA256</algorithm>
+      <checksumValue>f498a8ff2dd007e29c2074f5e4b01a9a01775c3ff3aeaf6906ea503bc5791b7b</checksumValue>
+    </checksums>
+    <checksums>
+      <algorithm>SHA1</algorithm>
+      <checksumValue>e6b1000b94e835ffd37f4c6dcbdad43f4b48a02a</checksumValue>
+    </checksums>
+    <checksums>
+      <algorithm>MD5</algorithm>
+      <checksumValue>3942447fac867ae5cdb3229b658f4d48</checksumValue>
+    </checksums>
+    <copyrightText>NOASSERTION</copyrightText>
+    <description>Modified version of Apache Catalina</description>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/com.acme/tomcat-catalina@9.0.14?packaging=jar</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>(Apache-2.0)</licenseConcluded>
+    <licenseDeclared>Apache-2.0</licenseDeclared>
+    <name>com.acme:tomcat-catalina</name>
+    <originator>Organization: Acme Inc</originator>
+    <versionInfo>9.0.14</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-gnrtd1</SPDXID>
+    <copyrightText>NOASSERTION</copyrightText>
+    <description>Apache Catalina</description>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?packaging=jar</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>Apache-2.0</licenseDeclared>
+    <name>org.apache.tomcat:tomcat-catalina</name>
+    <originator>Organization: Apache</originator>
+    <versionInfo>9.0.14</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-gnrtd2</SPDXID>
+    <attributionTexts>Evidence license text for: (EPL-2.0)</attributionTexts>
+    <checksums>
+      <algorithm>SHA1</algorithm>
+      <checksumValue>68b78babe00a053f9e35ec6a2d9080f5b90122b0</checksumValue>
+    </checksums>
+    <checksums>
+      <algorithm>MD5</algorithm>
+      <checksumValue>2342c2eaf1feb9a80195dbaddf2ebaa3</checksumValue>
+    </checksums>
+    <checksums>
+      <algorithm>SHA256</algorithm>
+      <checksumValue>708f1f53b41f11f02d12a11b1a38d2905d47b099afc71a0f1124ef8582ec7313</checksumValue>
+    </checksums>
+    <copyrightText>Copyright Example Inc. All rights reserved.</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/com.example/myapplication@1.0.0?packaging=war</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://example.org/security</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>cpe:/a:example:myapplication:1.0.0</referenceLocator>
+      <referenceType>cpe22Type</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>All component versions are documented here</comment>
+      <referenceCategory>OTHER</referenceCategory>
+      <referenceLocator>http://example.org/docs</referenceLocator>
+      <referenceType>http://cyclonedx.org/referenctype/documentation</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>(EPL-2.0)</licenseConcluded>
+    <licenseDeclared>(GPL-2.0 WITH Classpath-exception-2.0 OR EPL-2.0)</licenseDeclared>
+    <name>org.example:mylibrary</name>
+    <versionInfo>1.0.0</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-gnrtd3</SPDXID>
+    <checksums>
+      <algorithm>MD5</algorithm>
+      <checksumValue>cfcb0b64aacd2f81c1cd546543de965a</checksumValue>
+    </checksums>
+    <checksums>
+      <algorithm>SHA256</algorithm>
+      <checksumValue>0384db3cec55d86a6898c489fdb75a8e75fe66b26639634983d2f3c3558493d1</checksumValue>
+    </checksums>
+    <checksums>
+      <algorithm>SHA1</algorithm>
+      <checksumValue>7fbeef2346c45d565c3341f037bce4e088af8a52</checksumValue>
+    </checksums>
+    <copyrightText>NOASSERTION</copyrightText>
+    <description>Example Inc, enterprise framework</description>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/com.example/myframework@1.0.0?packaging=war</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://example.com/security</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <homepage>http://example.com/myframework</homepage>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>LicenseRef-Some-random-license</licenseDeclared>
+    <name>com.example:myframework</name>
+    <versionInfo>1.0.0</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-123</SPDXID>
+    <copyrightText>NOASSERTION</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>NOASSERTION</licenseDeclared>
+    <name>acme-library</name>
+    <versionInfo>1.0.0</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-456</SPDXID>
+    <copyrightText>NOASSERTION</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>NOASSERTION</licenseDeclared>
+    <name>acme-library</name>
+    <versionInfo>1.0.0</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-789</SPDXID>
+    <copyrightText>NOASSERTION</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>NOASSERTION</licenseDeclared>
+    <name>acme-library</name>
+    <versionInfo>1.0.0</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-pkg-maven-com.fasterxml.jackson.core-jackson-databind-2.9.9-type-jar</SPDXID>
+    <attributionTexts>Evidence license text for: (LicenseRef-See-License-Clause)</attributionTexts>
+    <copyrightText>NOASSERTION</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-42004</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-42003</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-12814</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-12384</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-36518</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-25649</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://nvd.nist.gov/vuln/detail/CVE-2018-7489</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2018-7489</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2020-36518</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-42003</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2019-12814</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2020-25649</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2019-12384</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-42004</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>(LicenseRef-See-License-Clause)</licenseConcluded>
+    <licenseDeclared>NOASSERTION</licenseDeclared>
+    <name>com.fasterxml.jackson.core:jackson-databind</name>
+    <versionInfo>2.9.9</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-gnrtd4</SPDXID>
+    <copyrightText>NOASSERTION</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>NOASSERTION</licenseDeclared>
+    <name>SbomRegressionTestApp</name>
+  </packages>
+  <relationships>
+    <spdxElementId>SPDXRef-DOCUMENT</spdxElementId>
+    <relationshipType>DESCRIBES</relationshipType>
+    <relatedSpdxElement>SPDXRef-gnrtd4</relatedSpdxElement>
+  </relationships>
+  <relationships>
+    <spdxElementId>SPDXRef-gnrtd0</spdxElementId>
+    <relationshipType>ANCESTOR_OF</relationshipType>
+    <relatedSpdxElement>SPDXRef-gnrtd1</relatedSpdxElement>
+  </relationships>
+  <relationships>
+    <spdxElementId>SPDXRef-123</spdxElementId>
+    <relationshipType>CONTAINS</relationshipType>
+    <relatedSpdxElement>SPDXRef-456</relatedSpdxElement>
+  </relationships>
+</Document>

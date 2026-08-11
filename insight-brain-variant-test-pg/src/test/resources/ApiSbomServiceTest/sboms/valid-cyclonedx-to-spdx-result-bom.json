@@ -1,0 +1,68 @@
+{
+  "SPDXID" : "SPDXRef-DOCUMENT",
+  "spdxVersion" : "SPDX-2.3",
+  "creationInfo" : {
+    "created" : "2024-08-02T18:33:08Z",
+    "creators" : [ "Tool: Sonatype SBOM Manager - 1.180.0-SNAPSHOT" ]
+  },
+  "name" : "DUMMY-PUBLIC-ID-e55549bbb59141c1a192ec75aafb6d7d",
+  "dataLicense" : "CC0-1.0",
+  "documentNamespace" : "http://localhost:8070/ui/links/sbomManager/management/view/application/DUMMY-PUBLIC-ID-e55549bbb59141c1a192ec75aafb6d7d/bom/1f675c2374244a4ab2d1",
+  "packages" : [ {
+    "SPDXID" : "SPDXRef-435d9efa-2c0c-4078-91fb-7fdec24fcad0",
+    "attributionTexts" : [ "Evidence license text for: (MIT AND Apache-2.0)" ],
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "comment" : "source: SONATYPE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://link.to/vuln/Sonatype-2024-123",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: NVD",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://nvd.nist.gov/vuln/detail/CVE-2007-2353",
+      "referenceType" : "advisory"
+    }, {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/apache/axis@1.0?type=jar",
+      "referenceType" : "purl"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/Sonatype-2024-123",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2007-2353",
+      "referenceType" : "advisory"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "(MIT AND Apache-2.0)",
+    "licenseDeclared" : "Apache-2.0",
+    "name" : "apache:axis",
+    "primaryPackagePurpose" : "LIBRARY",
+    "versionInfo" : "1.0"
+  }, {
+    "SPDXID" : "SPDXRef-08dd5978-577c-46a6-8bae-4f3d1a243b43",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:generic/sonatype/iq_application_vuln@a140fd3c3ded4bb0a640dc31e2904dc9",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "sonatype:iq_application_vuln",
+    "primaryPackagePurpose" : "APPLICATION",
+    "versionInfo" : "a140fd3c3ded4bb0a640dc31e2904dc9"
+  } ],
+  "relationships" : [ {
+    "spdxElementId" : "SPDXRef-DOCUMENT",
+    "relationshipType" : "DESCRIBES",
+    "relatedSpdxElement" : "SPDXRef-08dd5978-577c-46a6-8bae-4f3d1a243b43"
+  } ]
+}

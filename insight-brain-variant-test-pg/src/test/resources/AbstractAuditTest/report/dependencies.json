@@ -1,0 +1,127 @@
+{
+  "dependencyGraph" : {
+    "ch.qos.logback:logback-access:0.6" : [ "org.mortbay.jetty:jetty:6.1.15" ],
+    "cobertura:cobertura:1.6" : [ "javancss:javancss:29.50" ],
+    "commons-beanutils:commons-beanutils:1.8.3" : [ ],
+    "commons-dbcp:commons-dbcp:1.4" : [ "commons-pool:commons-pool:1.4" ],
+    "commons-httpclient:commons-httpclient:3.1" : [ ],
+    "commons-pool:commons-pool:1.4" : [ ],
+    "edu.stanford.ejalbert:BrowserLauncher2:1.3" : [ ],
+    "edu.ucar:unidataCommon:4.2.20" : [ "org.slf4j:slf4j-api:1.6.1" ],
+    "geronimo:geronimo-tomcat-builder:1.1" : [ "geronimo:geronimo-tomcat:1.0", "tomcat:servlets-default:5.5.4", "tomcat:tomcat-util:5.5.23" ],
+    "geronimo:geronimo-tomcat:1.0" : [ "commons-beanutils:commons-beanutils:1.8.3", "tomcat:servlets-default:5.5.4", "tomcat:tomcat-util:5.5.23" ],
+    "javancss:javancss:29.50" : [ ],
+    "net.sf.xradar:xradar:1.1.2" : [ "cobertura:cobertura:1.6", "javancss:javancss:29.50" ],
+    "null" : [ "org.opencms.modules:com.alkacon.opencms.v8.twitter:8.0.2", "ch.qos.logback:logback-access:0.6", "org.openid4java:openid4java:0.9.5", "edu.stanford.ejalbert:BrowserLauncher2:1.3", "org.apache.geronimo.framework:geronimo-security:2.1", "org.jclouds.driver:jclouds-enterprise:1.3.1", "net.sf.xradar:xradar:1.1.2", "org.apache.flume:flume-ng-node:1.0.0-incubating", "edu.ucar:unidataCommon:4.2.20", "org.webjars:select2:3.2", "tomcat:catalina-host-manager:5.5.23", "geronimo:geronimo-tomcat-builder:1.1", "org.apache.lucene:lucene-spellchecker:2.9.0", "commons-httpclient:commons-httpclient:3.1" ],
+    "org.apache.avro:avro-ipc:1.5.0" : [ "org.mortbay.jetty:jetty:6.1.15", "org.slf4j:slf4j-api:1.6.1" ],
+    "org.apache.flume.flume-ng-channels:flume-jdbc-channel:1.0.0-incubating" : [ "commons-dbcp:commons-dbcp:1.4", "org.apache.flume:flume-ng-core:1.0.0-incubating" ],
+    "org.apache.flume:flume-ng-core:1.0.0-incubating" : [ "org.apache.avro:avro-ipc:1.5.0", "org.slf4j:slf4j-api:1.6.1" ],
+    "org.apache.flume:flume-ng-node:1.0.0-incubating" : [ "org.apache.flume:flume-ng-core:1.0.0-incubating", "org.apache.flume.flume-ng-channels:flume-jdbc-channel:1.0.0-incubating", "org.slf4j:slf4j-api:1.6.1" ],
+    "org.apache.geronimo.framework:geronimo-security:2.1" : [ ],
+    "org.apache.lucene:lucene-spellchecker:2.9.0" : [ ],
+    "org.jclouds.driver:jclouds-bouncycastle:1.3.1" : [ ],
+    "org.jclouds.driver:jclouds-enterprise:1.3.1" : [ "org.jclouds.driver:jclouds-bouncycastle:1.3.1" ],
+    "org.mortbay.jetty:jetty:6.1.15" : [ ],
+    "org.opencms.modules:com.alkacon.opencms.v8.twitter:8.0.2" : [ ],
+    "org.openid4java:openid4java:0.9.5" : [ ],
+    "org.slf4j:slf4j-api:1.6.1" : [ ],
+    "org.webjars:select2:3.2" : [ ],
+    "tomcat:catalina-host-manager:5.5.23" : [ ],
+    "tomcat:servlets-default:5.5.4" : [ ],
+    "tomcat:tomcat-util:5.5.23" : [ ]
+  },
+  "securityIssuesByDepth" : {
+    "2" : {
+      "Severe" : 18,
+      "Critical" : 0,
+      "Moderate" : 0
+    },
+    "3" : {
+      "Severe" : 12,
+      "Critical" : 0,
+      "Moderate" : 0
+    },
+    "4" : {
+      "Severe" : 6,
+      "Critical" : 0,
+      "Moderate" : 0
+    },
+    "1" : {
+      "Severe" : 11,
+      "Critical" : 4,
+      "Moderate" : 3
+    },
+    "5" : {
+      "Severe" : 6,
+      "Critical" : 0,
+      "Moderate" : 0
+    }
+  },
+  "gavDepths" : {
+    "cobertura:cobertura:1.6" : [ 2 ],
+    "org.openid4java:openid4java:0.9.5" : [ 1 ],
+    "commons-pool:commons-pool:1.4" : [ 4 ],
+    "tomcat:catalina-host-manager:5.5.23" : [ 1 ],
+    "org.jclouds.driver:jclouds-enterprise:1.3.1" : [ 1 ],
+    "org.mortbay.jetty:jetty:6.1.15" : [ 2, 4, 5 ],
+    "org.apache.flume:flume-ng-core:1.0.0-incubating" : [ 2, 3 ],
+    "org.apache.avro:avro-ipc:1.5.0" : [ 3, 4 ],
+    "commons-dbcp:commons-dbcp:1.4" : [ 3 ],
+    "ch.qos.logback:logback-access:0.6" : [ 1 ],
+    "org.apache.lucene:lucene-spellchecker:2.9.0" : [ 1 ],
+    "edu.stanford.ejalbert:BrowserLauncher2:1.3" : [ 1 ],
+    "javancss:javancss:29.50" : [ 2, 3 ],
+    "org.jclouds.driver:jclouds-bouncycastle:1.3.1" : [ 2 ],
+    "tomcat:tomcat-util:5.5.23" : [ 2, 3 ],
+    "edu.ucar:unidataCommon:4.2.20" : [ 1 ],
+    "org.opencms.modules:com.alkacon.opencms.v8.twitter:8.0.2" : [ 1 ],
+    "commons-httpclient:commons-httpclient:3.1" : [ 1 ],
+    "tomcat:servlets-default:5.5.4" : [ 2, 3 ],
+    "org.apache.flume:flume-ng-node:1.0.0-incubating" : [ 1 ],
+    "net.sf.xradar:xradar:1.1.2" : [ 1 ],
+    "geronimo:geronimo-tomcat:1.0" : [ 2 ],
+    "org.webjars:select2:3.2" : [ 1 ],
+    "geronimo:geronimo-tomcat-builder:1.1" : [ 1 ],
+    "commons-beanutils:commons-beanutils:1.8.3" : [ 3 ],
+    "org.apache.flume.flume-ng-channels:flume-jdbc-channel:1.0.0-incubating" : [ 2 ],
+    "org.apache.geronimo.framework:geronimo-security:2.1" : [ 1 ],
+    "org.slf4j:slf4j-api:1.6.1" : [ 2, 3, 4, 5 ]
+  },
+  "licenseThreatsByDepth" : {
+    "2" : {
+      "NON-STANDARD" : 1,
+      "LIBERAL" : 7,
+      "WEAKCOPYLEFT" : 0,
+      "COPYLEFT" : 2,
+      "NOT-PROVIDED" : 0
+    },
+    "3" : {
+      "NON-STANDARD" : 0,
+      "LIBERAL" : 7,
+      "WEAKCOPYLEFT" : 0,
+      "COPYLEFT" : 1,
+      "NOT-PROVIDED" : 0
+    },
+    "4" : {
+      "NON-STANDARD" : 1,
+      "LIBERAL" : 3,
+      "WEAKCOPYLEFT" : 0,
+      "COPYLEFT" : 0,
+      "NOT-PROVIDED" : 0
+    },
+    "1" : {
+      "NON-STANDARD" : 1,
+      "LIBERAL" : 9,
+      "WEAKCOPYLEFT" : 2,
+      "COPYLEFT" : 1,
+      "NOT-PROVIDED" : 1
+    },
+    "5" : {
+      "NON-STANDARD" : 1,
+      "LIBERAL" : 1,
+      "WEAKCOPYLEFT" : 0,
+      "COPYLEFT" : 0,
+      "NOT-PROVIDED" : 0
+    }
+  }
+}

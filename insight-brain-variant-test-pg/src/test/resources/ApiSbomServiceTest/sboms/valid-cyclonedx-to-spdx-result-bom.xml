@@ -1,0 +1,74 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<Document>
+  <SPDXID>SPDXRef-DOCUMENT</SPDXID>
+  <spdxVersion>SPDX-2.3</spdxVersion>
+  <creationInfo>
+    <created>2024-08-02T18:22:01Z</created>
+    <creators>Tool: Sonatype SBOM Manager - 1.180.0-SNAPSHOT</creators>
+  </creationInfo>
+  <name>DUMMY-PUBLIC-ID-f2cd22d439e148f3803681c9927fc797</name>
+  <dataLicense>CC0-1.0</dataLicense>
+  <documentNamespace>http://localhost:8070/ui/links/sbomManager/management/view/application/DUMMY-PUBLIC-ID-f2cd22d439e148f3803681c9927fc797/bom/db8bc370136b447c9262</documentNamespace>
+  <packages>
+    <SPDXID>SPDXRef-08dd5978-577c-46a6-8bae-4f3d1a243b43</SPDXID>
+    <copyrightText>NOASSERTION</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:generic/sonatype/iq_application_vuln@a140fd3c3ded4bb0a640dc31e2904dc9</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>NOASSERTION</licenseDeclared>
+    <name>sonatype:iq_application_vuln</name>
+    <primaryPackagePurpose>APPLICATION</primaryPackagePurpose>
+    <versionInfo>a140fd3c3ded4bb0a640dc31e2904dc9</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-435d9efa-2c0c-4078-91fb-7fdec24fcad0</SPDXID>
+    <attributionTexts>Evidence license text for: (MIT AND Apache-2.0)</attributionTexts>
+    <copyrightText>NOASSERTION</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/apache/axis@1.0?type=jar</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/Sonatype-2024-123</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://link.to/vuln/Sonatype-2024-123</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2007-2353</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://nvd.nist.gov/vuln/detail/CVE-2007-2353</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>(MIT AND Apache-2.0)</licenseConcluded>
+    <licenseDeclared>Apache-2.0</licenseDeclared>
+    <name>apache:axis</name>
+    <primaryPackagePurpose>LIBRARY</primaryPackagePurpose>
+    <versionInfo>1.0</versionInfo>
+  </packages>
+  <relationships>
+    <spdxElementId>SPDXRef-DOCUMENT</spdxElementId>
+    <relationshipType>DESCRIBES</relationshipType>
+    <relatedSpdxElement>SPDXRef-08dd5978-577c-46a6-8bae-4f3d1a243b43</relatedSpdxElement>
+  </relationships>
+</Document>

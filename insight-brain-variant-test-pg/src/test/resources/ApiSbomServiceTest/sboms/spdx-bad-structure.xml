@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document>
+  <spdxVersion>SPDX-2.3</spdxVersion>
+  <SPDXID>SPDXRef-DOCUMENT</SPDXID>
+  <name>DummySPDXFile</name>
+  <documentNamespace>http://spdx.org/spdxdocs/DummySPDXFile</documentNamespace>
+  <documentDescribes>SPDXRef-Package1</documentDescribes>
+  <dataLicense>CC0-1.0</dataLicense>
+  <creationInfo>
+	<created>2010-01-29T18:30:22Z</created>
+	<creators>
+	  Person: Dummy Person
+	</creators>
+  </creationInfo>
+  <packages>
+	<name>DummyComponent1</name>
+	<SPDXID>SPDXRef-Package1</SPDXID>
+	<downloadLocation>http://some-download-1</downloadLocation>
+  </packages
+</Document>

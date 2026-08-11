@@ -1,0 +1,761 @@
+{
+  "bomFormat" : "CycloneDX",
+  "specVersion" : "1.6",
+  "serialNumber" : "urn:uuid:3e671687-395b-41f5-a30f-a58921a69b80",
+  "version" : 1,
+  "metadata" : {
+    "timestamp" : "2025-08-07T10:45:23Z",
+    "tools" : {
+      "components" : [
+        {
+          "type" : "application",
+          "name" : "Sonatype SBOM Manager",
+          "version" : "1.194.0-SNAPSHOT"
+        }
+      ]
+    },
+    "component" : {
+      "type" : "application",
+      "bom-ref" : "6ccde2cc-a765-42e7-8af6-87804cc9f831",
+      "name" : "SbomRegressionTestApp",
+      "version" : "9.1.1"
+    }
+  },
+  "components" : [
+    {
+      "type" : "library",
+      "bom-ref" : "pkg:maven/partner/shaded-library@1.0",
+      "name" : "Partner Shaded Library",
+      "version" : "1.0",
+      "purl" : "pkg:maven/partner/shaded-library@1.0",
+      "properties" : [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "SBOM"
+        },
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "bea74eb2b5af290ae9b7"
+        },
+        {
+          "name": "sonatype:original_purl",
+          "value": "pkg:maven/partner/shaded-library@1.0"
+        }
+      ],
+      "components" : [
+        {
+          "type" : "library",
+          "bom-ref" : "pkg:maven/ossproject/library@2.0",
+          "name" : "Some Opensource Library",
+          "version" : "2.0",
+          "purl" : "pkg:maven/ossproject/library@2.0"
+        }
+      ]
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "pkg:maven/acme/library@3.0",
+      "name" : "Acme Library",
+      "version" : "2.0",
+      "purl" : "pkg:maven/acme/library@3.0",
+      "properties" : [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "SBOM"
+        },
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "a9f7d008c44d7c8a6796"
+        },
+        {
+          "name": "sonatype:original_purl",
+          "value": "pkg:maven/acme/library@3.0"
+        }
+      ]
+    },
+    {
+      "type" : "application",
+      "author" : "Acme Super Heros",
+      "publisher" : "Acme Inc",
+      "group" : "com.acme",
+      "name" : "tomcat-catalina",
+      "version" : "9.0.14",
+      "description" : "Modified version of Apache Catalina",
+      "scope" : "required",
+      "hashes" : [
+        {
+          "alg" : "MD5",
+          "content" : "641b6e166f8b33c5e959e2adcc18b1c7"
+        },
+        {
+          "alg" : "SHA-1",
+          "content" : "9188560f22e0b73070d2efce670c74af2bdf30af"
+        },
+        {
+          "alg" : "SHA-256",
+          "content" : "d88bc4e70bfb34d18b5542136639acbb26a8ae2429aa1e47489332fb389cc964"
+        },
+        {
+          "alg" : "SHA3-256",
+          "content" : "7478c7cf41c883a04ee89f1813f687886d53fa86f791fff90690c6221e3853aa"
+        },
+        {
+          "alg" : "BLAKE2b-256",
+          "content" : "d8779633380c050bccf4e733b763ab2abd8ad2db60b517d47fd29bbf76433237"
+        },
+        {
+          "alg" : "BLAKE3",
+          "content" : "26cdc7fb3fd65fc3b621a4ef70bc7d2489d5c19e70c76cf7ec20e538df0047cf"
+        }
+      ],
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0",
+            "text" : {
+              "encoding" : "base64",
+              "content" : "CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIEFwYWNoZSBMaWNlbnNl="
+            },
+            "url" : "https://www.apache.org/licenses/LICENSE-2.0.txt",
+            "properties" : [
+              {
+                "name" : "sonatype:identification_sources",
+                "value" : "SBOM"
+              }
+            ]
+          }
+        }
+      ],
+      "purl" : "pkg:maven/com.acme/tomcat-catalina@9.0.14?packaging=jar",
+      "pedigree" : {
+        "ancestors" : [
+          {
+            "type" : "application",
+            "author" : "Apache Super Heros",
+            "publisher" : "Apache",
+            "group" : "org.apache.tomcat",
+            "name" : "tomcat-catalina",
+            "version" : "9.0.14",
+            "description" : "Apache Catalina",
+            "licenses" : [
+              {
+                "license" : {
+                  "id" : "Apache-2.0"
+                }
+              }
+            ],
+            "purl" : "pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?packaging=jar"
+          }
+        ],
+        "commits" : [
+          {
+            "uid" : "7638417db6d59f3c431d3e1f261cc637155684cd",
+            "url" : "https://location/to/7638417db6d59f3c431d3e1f261cc637155684cd",
+            "author" : {
+              "timestamp" : "2018-11-07T22:01:45Z",
+              "name" : "John Doe",
+              "email" : "john.doe@example.com"
+            },
+            "committer" : {
+              "timestamp" : "2018-11-07T22:01:45Z",
+              "name" : "Jane Doe",
+              "email" : "jane.doe@example.com"
+            },
+            "message" : "Initial commit"
+          }
+        ],
+        "patches" : [
+          {
+            "diff" : {
+              "text" : {
+                "encoding" : "base64",
+                "content" : "blah"
+              },
+              "url" : "uri/to/changes.diff"
+            },
+            "resolves" : [
+              {
+                "id" : "JIRA-17240",
+                "description" : "Great new feature that does something",
+                "source" : {
+                  "name" : "Acme Org",
+                  "url" : "https://issues.acme.org/17240"
+                },
+                "type" : "enhancement"
+              }
+            ],
+            "type" : "unofficial"
+          },
+          {
+            "diff" : {
+              "text" : {
+                "encoding" : "base64",
+                "content" : "blah"
+              },
+              "url" : "uri/to/changes.diff"
+            },
+            "resolves" : [
+              {
+                "id" : "CVE-2019-9997",
+                "name" : "CVE-2019-9997",
+                "description" : "blah blah",
+                "source" : {
+                  "name" : "NVD",
+                  "url" : "https://nvd.nist.gov/vuln/detail/CVE-2019-9997"
+                },
+                "references" : [
+                  "http://some/other/site-1",
+                  "http://some/other/site-2"
+                ],
+                "type" : "security"
+              },
+              {
+                "id" : "JIRA-874319",
+                "description" : "Enable to do something",
+                "source" : {
+                  "name" : "Example Org",
+                  "url" : "https://issues.example.org/874319"
+                },
+                "references" : [
+                  "http://some/other/site-1",
+                  "http://some/other/site-2"
+                ],
+                "type" : "defect"
+              }
+            ],
+            "type" : "backport"
+          }
+        ],
+        "notes" : "Commentary here"
+      },
+      "properties" : [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "SBOM"
+        },
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "9188560f22e0b73070d2"
+        },
+        {
+          "name": "sonatype:original_purl",
+          "value": "pkg:maven/com.acme/tomcat-catalina@9.0.14?packaging=jar"
+        }
+      ],
+      "releaseNotes" : {
+        "type" : "major",
+        "title" : "My new release",
+        "featuredImage" : "https://example.com/featured_image.png",
+        "socialImage" : "https://example.com/social_image.png",
+        "description" : "The main description of your release",
+        "timestamp" : "2021-09-17T00:51:18Z",
+        "aliases" : [
+          "Project Orion"
+        ],
+        "tags" : [
+          "CMS",
+          "SEO",
+          "wysiwyg"
+        ],
+        "notes" : [
+          {
+            "locale" : "en-US",
+            "text" : {
+              "contentType" : "text/html",
+              "encoding" : "base64",
+              "content" : "PGgxPk15IG5ldyByZWxlYXNlPGgxPgo8cD5SZWxlYXNlIG5vdGVzIGhlcmU8L3A+"
+            }
+          },
+          {
+            "locale" : "es",
+            "text" : {
+              "contentType" : "text/html",
+              "encoding" : "base64",
+              "content" : "PGgxPk15IG5ldyByZWxlYXNlPGgxPgo8cD5Ob3RhcyBkZSBsYSB2ZXJzacOzbiBhcXXDrTwvcD4="
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "123",
+      "supplier" : {
+        "name" : "Example Inc.",
+        "url" : [
+          "https://example.com",
+          "https://example.net"
+        ],
+        "contact" : [
+          {
+            "name" : "Example Support AMER",
+            "email" : "support@example.com",
+            "phone" : "800-555-1212"
+          },
+          {
+            "name" : "Example Support APAC",
+            "email" : "support@apac.example.com"
+          }
+        ]
+      },
+      "author" : "Example Super Heros",
+      "group" : "org.example",
+      "name" : "mylibrary",
+      "version" : "1.0.0",
+      "scope" : "required",
+      "hashes" : [
+        {
+          "alg" : "MD5",
+          "content" : "2342c2eaf1feb9a80195dbaddf2ebaa3"
+        },
+        {
+          "alg" : "SHA-1",
+          "content" : "68b78babe00a053f9e35ec6a2d9080f5b90122b0"
+        },
+        {
+          "alg" : "SHA-256",
+          "content" : "708f1f53b41f11f02d12a11b1a38d2905d47b099afc71a0f1124ef8582ec7313"
+        }
+      ],
+      "licenses" : [
+        {
+          "license" : {
+            "bom-ref" : "be9eef6a-66c0-4b4c-b914-ce774d126fac",
+            "id" : "GPL-2.0-with-classpath-exception",
+            "properties" : [
+              {
+                "name" : "sonatype:identification_sources",
+                "value" : "SBOM"
+              }
+            ]
+          }
+        },
+        {
+          "license" : {
+            "bom-ref" : "933dd499-02ac-4a08-824e-b7e0546870dc",
+            "id" : "EPL-2.0",
+            "properties" : [
+              {
+                "name" : "sonatype:identification_sources",
+                "value" : "SBOM"
+              }
+            ]
+          }
+        }
+      ],
+      "copyright" : "Copyright Example Inc. All rights reserved.",
+      "cpe" : "cpe:/a:example:myapplication:1.0.0",
+      "purl" : "pkg:maven/com.example/myapplication@1.0.0?packaging=war",
+      "modified" : false,
+      "externalReferences" : [
+        {
+          "type" : "documentation",
+          "url" : "http://example.org/docs",
+          "comment" : "All component versions are documented here"
+        },
+        {
+          "type" : "advisories",
+          "url" : "http://example.org/security"
+        }
+      ],
+      "properties" : [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "SBOM"
+        },
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "68b78babe00a053f9e35"
+        },
+        {
+          "name": "sonatype:original_purl",
+          "value": "pkg:maven/com.example/myapplication@1.0.0?packaging=war"
+        }
+      ]
+    },
+    {
+      "type" : "framework",
+      "bom-ref" : "a99aa6ef-5901-485a-8bee-c6270b411ff1",
+      "author" : "Example Super Heros",
+      "group" : "com.example",
+      "name" : "myframework",
+      "version" : "1.0.0",
+      "description" : "Example Inc, enterprise framework",
+      "scope" : "required",
+      "hashes" : [
+        {
+          "alg" : "MD5",
+          "content" : "cfcb0b64aacd2f81c1cd546543de965a"
+        },
+        {
+          "alg" : "SHA-1",
+          "content" : "7fbeef2346c45d565c3341f037bce4e088af8a52"
+        },
+        {
+          "alg" : "SHA-256",
+          "content" : "0384db3cec55d86a6898c489fdb75a8e75fe66b26639634983d2f3c3558493d1"
+        }
+      ],
+      "licenses" : [
+        {
+          "license" : {
+            "name" : "Some random license"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/com.example/myframework@1.0.0?packaging=war&type=jar",
+      "modified" : false,
+      "externalReferences" : [
+        {
+          "type" : "website",
+          "url" : "http://example.com/myframework"
+        },
+        {
+          "type" : "advisories",
+          "url" : "http://example.com/security"
+        }
+      ],
+      "properties" : [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "SBOM"
+        },
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "7fbeef2346c45d565c33"
+        },
+        {
+          "name": "sonatype:original_purl",
+          "value": "pkg:maven/com.example/myframework@1.0.0?packaging=war&type=jar"
+        }
+      ],
+      "evidence" : {
+        "licenses" : [
+          {
+            "license" : {
+              "id" : "Apache-2.0",
+              "url" : "http://www.apache.org/licenses/LICENSE-2.0"
+            }
+          },
+          {
+            "license" : {
+              "id" : "LGPL-2.1-only",
+              "url" : "https://opensource.org/licenses/LGPL-2.1"
+            }
+          }
+        ],
+        "copyright" : [
+          {
+            "text" : "Copyright 2012 Google Inc. All Rights Reserved."
+          },
+          {
+            "text" : "Copyright (C) 2004,2005 Dave Brosius <dbrosius@users.sourceforge.net>"
+          },
+          {
+            "text" : "Copyright (C) 2005 William Pugh"
+          },
+          {
+            "text" : "Copyright (C) 2004,2005 University of Maryland"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4",
+      "group" : "com.fasterxml.jackson.core",
+      "name" : "jackson-databind",
+      "version" : "2.9.4",
+      "purl" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4",
+      "properties" : [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "SBOM"
+        },
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "230e09fd610400a07572"
+        },
+        {
+          "name": "sonatype:original_purl",
+          "value": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4"
+        }
+      ]
+    }
+  ],
+  "services" : [
+    {
+      "bom-ref" : "b2a46a4b-8367-4bae-9820-95557cfe03a8",
+      "provider" : {
+        "name" : "Partner Org",
+        "url" : [
+          "https://partner.org"
+        ],
+        "contact" : [
+          {
+            "name" : "Support",
+            "email" : "support@partner",
+            "phone" : "800-555-1212"
+          }
+        ]
+      },
+      "group" : "org.partner",
+      "name" : "Stock ticker service",
+      "version" : "2020-Q2",
+      "description" : "Provides real-time stock information",
+      "endpoints" : [
+        "https://partner.org/api/v1/lookup",
+        "https://partner.org/api/v1/stock"
+      ],
+      "authenticated" : true,
+      "x-trust-boundary" : true,
+      "licenses" : [
+        {
+          "license" : {
+            "name" : "Partner license"
+          }
+        }
+      ],
+      "externalReferences" : [
+        {
+          "type" : "website",
+          "url" : "http://partner.org"
+        },
+        {
+          "type" : "documentation",
+          "url" : "http://api.partner.org/swagger"
+        }
+      ]
+    }
+  ],
+  "dependencies" : [
+    {
+      "ref" : "acme-application-1.0",
+      "dependsOn" : [
+        "pkg:maven/partner/shaded-library@1.0",
+        "pkg:maven/acme/library@3.0",
+        "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4"
+      ]
+    }
+  ],
+  "compositions" : [
+    {
+      "aggregate" : "complete",
+      "assemblies" : [
+        "pkg:maven/partner/shaded-library@1.0"
+      ],
+      "dependencies" : [
+        "acme-application-1.0"
+      ]
+    },
+    {
+      "aggregate" : "unknown",
+      "assemblies" : [
+        "pkg:maven/acme/library@3.0"
+      ]
+    }
+  ],
+  "vulnerabilities" : [
+    {
+      "bom-ref" : "6eee14da-8f42-4cc4-bb65-203235f02415",
+      "id" : "SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111",
+      "source" : {
+        "name" : "Snyk",
+        "url" : "https://snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111"
+      },
+      "references" : [
+        {
+          "id" : "CVE-2018-7489",
+          "source" : {
+            "name" : "NVD",
+            "url" : "https://nvd.nist.gov/vuln/detail/CVE-2019-9997"
+          }
+        },
+        {
+          "id" : "CVE-2018-7489",
+          "source" : {
+            "name" : "NVD",
+            "url" : "https://nvd.nist.gov/vuln/detail/CVE-2019-9997"
+          }
+        }, {
+          "id" : "CVE-2018-7489",
+          "source" : {
+            "name" : "CVE",
+            "url" : "https://www.cve.org/CVERecord?id=CVE-2018-7489"
+          }
+        }, {
+          "id" : "SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111"
+          }
+        }
+      ],
+      "ratings" : [
+        {
+          "source" : {
+            "name" : "Snyk",
+            "url" : "https://snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111"
+          },
+          "score" : 9.8,
+          "severity" : "critical",
+          "method" : "CVSSv3",
+          "vector" : "AN/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+        }
+      ],
+      "cwes" : [
+        184,
+        502
+      ],
+      "description" : "FasterXML jackson-databind before 2.7.9.3, 2.8.x before 2.8.11.1 and 2.9.x before 2.9.5 allows unauthenticated remote code execution because of an incomplete fix for the CVE-2017-7525 deserialization flaw. This is exploitable by sending maliciously crafted JSON input to the readValue method of the ObjectMapper, bypassing a blacklist that is ineffective if the c3p0 libraries are available in the classpath.",
+      "recommendation" : "Upgrade com.fasterxml.jackson.core:jackson-databind to version 2.6.7.5, 2.8.11.1, 2.9.5 or higher.",
+      "advisories" : [
+        {
+          "title" : "GitHub Commit",
+          "url" : "https://github.com/FasterXML/jackson-databind/commit/6799f8f10cc78e9af6d443ed6982d00a13f2e7d2"
+        },
+        {
+          "title" : "GitHub Issue",
+          "url" : "https://github.com/FasterXML/jackson-databind/issues/1931"
+        }
+      ],
+      "created" : "2021-01-01T00:00:00Z",
+      "published" : "2021-01-01T00:00:00Z",
+      "updated" : "2021-01-01T00:00:00Z",
+      "credits" : {
+        "organizations" : [
+          {
+            "name" : "Acme, Inc.",
+            "url" : [
+              "https://example.com"
+            ]
+          }
+        ],
+        "individuals" : [
+          {
+            "name" : "Jane Doe",
+            "email" : "jane.doe@example.com"
+          }
+        ]
+      },
+      "tools" : {
+        "components" : [
+          {
+            "type" : "application",
+            "group" : "Snyk",
+            "name" : "Snyk CLI (Linux)",
+            "version" : "1.729.0",
+            "hashes" : [
+              {
+                "alg" : "SHA-256",
+                "content" : "2eaf8c62831a1658c95d41fdc683cd177c147733c64a93e59cb2362829e45b7d"
+              }
+            ]
+          }
+        ]
+      },
+      "analysis" : {
+        "state" : "not_affected",
+        "justification" : "code_not_reachable",
+        "response" : [
+          "will_not_fix",
+          "update"
+        ],
+        "detail" : "An optional explanation of why the application is not affected by the vulnerable component."
+      },
+      "affects" : [
+        {
+          "ref" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4",
+          "versions" : [
+            {
+              "range" : "vers:semver/<2.6.7.5",
+              "status" : "affected"
+            },
+            {
+              "range" : "vers:semver/2.7.0|<2.8.11.1",
+              "status" : "affected"
+            },
+            {
+              "range" : "vers:semver/2.9.0|<2.9.5",
+              "status" : "affected"
+            }
+          ]
+        }
+      ],
+      "properties" : [
+        {
+          "name" : "Foo",
+          "value" : "Bar"
+        },
+        {
+          "name" : "Foo",
+          "value" : "You"
+        },
+        {
+          "name" : "Foo",
+          "value" : "Two"
+        },
+        {
+          "name" : "Bar",
+          "value" : "Foo"
+        },
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "SBOM"
+        }
+      ]
+    },
+    {
+      "id" : "CVE-2022-40155",
+      "source" : {
+        "name" : "NVD",
+        "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-40155"
+      },
+      "ratings" : [
+        {
+          "source" : {
+            "name" : "NVD",
+            "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-40155"
+          },
+          "score" : 7.5,
+          "severity" : "critical",
+          "method" : "CVSSv3",
+          "vector" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+        }
+      ],
+      "cwes" : [
+        787
+      ],
+      "analysis" : {
+        "state" : "exploitable",
+        "justification" : "code_not_present",
+        "response" : [
+          "can_not_fix"
+        ],
+        "detail" : "",
+        "firstIssued" : "2025-08-07T10:45:23Z",
+        "lastUpdated" : "2025-08-07T10:45:23Z"
+      },
+      "affects" : [
+        {
+          "ref" : "a99aa6ef-5901-485a-8bee-c6270b411ff1"
+        }
+      ],
+      "properties" : [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "SBOM"
+        }
+      ],
+      "references" : [
+        {
+          "id" : "CVE-2022-40155",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2022-40155"
+          }
+        }
+      ]
+    }
+  ]
+}

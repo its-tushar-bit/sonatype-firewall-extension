@@ -1,0 +1,32 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.9"
+      }
+    },
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-databind",
+    "version" : "2.9.9",
+    "hash" : "d6eb9817d9c7289a91f0",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "See-License-Clause" ],
+    "effectiveLicenses" : [ "See-License-Clause" ],
+    "securityCounters" : {
+      "Critical" : 4,
+      "Severe" : 2,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : 7.5,
+    "catalogDate" : 1557976205000
+  } ]
+}

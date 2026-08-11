@@ -1,0 +1,85 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "nuget",
+        "coordinates": {
+          "packageId": "Search.Test",
+          "version": "1.2.3"
+        }
+      },
+      "hash": "1234567890abcdeABCDE",
+      "filenames": [
+        "test.jar"
+      ],
+      "pathnames": [
+        "some/dir/test.jar"
+      ],
+      "displayName": {
+        "parts": [
+          {
+            "value": "displayName"
+          }
+        ]
+      },
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "relativePopularity": null,
+      "createTime": 1364313072251,
+      "lastModifiedTime": 1481029585000,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "artifact",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "test",
+          "version": "1.2"
+        }
+      },
+      "hash": "abcdefFEDCBAabcdefFE",
+      "filenames": [
+        "test.jar"
+      ],
+      "pathnames": [
+        "some/dir/test.jar"
+      ],
+      "displayName": {
+        "parts": [
+          {
+            "value": "displayName"
+          }
+        ]
+      },
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "relativePopularity": null,
+      "createTime": 1364313072251,
+      "lastModifiedTime": 1481029585000,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null
+    }
+  ]
+}

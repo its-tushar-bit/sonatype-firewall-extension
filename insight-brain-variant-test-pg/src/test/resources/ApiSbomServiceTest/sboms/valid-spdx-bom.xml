@@ -1,0 +1,51 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<Document>
+  <SPDXID>SPDXRef-DOCUMENT</SPDXID>
+  <spdxVersion>SPDX-2.3</spdxVersion>
+  <creationInfo>
+    <created>2024-05-10T02:50:23Z</created>
+    <creators>Tool: Sonatype IQ Server - 1.176.0-SNAPSHOT</creators>
+  </creationInfo>
+  <name>pkg:generic/sonatype/iq_application_SBOMTests@4daddd64a281411cb9ba2e6eabe12fa1</name>
+  <dataLicense>CC0-1.0</dataLicense>
+  <documentNamespace>http://localhost:8070/ui/links/application/SBOMTests/report/4daddd64a281411cb9ba2e6eabe12fa1</documentNamespace>
+  <packages>
+    <SPDXID>SPDXRef-maven-apache-axis-1.0</SPDXID>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/apache/axis@1.0?type=jar</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://nvd.nist.gov/vuln/detail/CVE-2007-2353</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>Apache-2.0</licenseConcluded>
+    <licenseDeclared>Apache-2.0</licenseDeclared>
+    <name>apache:axis</name>
+    <versionInfo>1.0</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-generic-sonatype-iq-application-SBOMTests-4daddd64a281411cb9ba2e6eabe12fa1</SPDXID>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:generic/sonatype/iq_application_SBOMTests@4daddd64a281411cb9ba2e6eabe12fa1</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>NOASSERTION</licenseDeclared>
+    <name>sonatype:iq_application_SBOMTests</name>
+    <versionInfo>4daddd64a281411cb9ba2e6eabe12fa1</versionInfo>
+  </packages>
+  <relationships>
+    <spdxElementId>SPDXRef-DOCUMENT</spdxElementId>
+    <relationshipType>DESCRIBES</relationshipType>
+    <relatedSpdxElement>SPDXRef-generic-sonatype-iq-application-SBOMTests-4daddd64a281411cb9ba2e6eabe12fa1</relatedSpdxElement>
+  </relationships>
+</Document>

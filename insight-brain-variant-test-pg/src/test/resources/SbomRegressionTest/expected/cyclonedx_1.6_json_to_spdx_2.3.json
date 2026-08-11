@@ -1,0 +1,173 @@
+{
+  "SPDXID" : "SPDXRef-DOCUMENT",
+  "spdxVersion" : "SPDX-2.3",
+  "creationInfo" : {
+    "created" : "2025-08-26T13:31:34Z",
+    "creators" : [ "Tool: Sonatype SBOM Manager - 1.195.0-SNAPSHOT" ]
+  },
+  "name" : "SbomRegressionTestApp",
+  "dataLicense" : "CC0-1.0",
+  "documentNamespace" : "http://localhost:10211/ui/links/sbomManager/management/view/application/SbomRegressionTestApp/bom/1.0.0",
+  "packages" : [ {
+    "SPDXID" : "SPDXRef-pkg-maven-partner-shaded-library-1.0",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/partner/shaded-library@1.0",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "Partner Shaded Library",
+    "primaryPackagePurpose" : "LIBRARY",
+    "versionInfo" : "1.0"
+  }, {
+    "SPDXID" : "SPDXRef-pkg-maven-ossproject-library-2.0",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/ossproject/library@2.0",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "Some Opensource Library",
+    "primaryPackagePurpose" : "LIBRARY",
+    "versionInfo" : "2.0"
+  }, {
+    "SPDXID" : "SPDXRef-pkg-maven-acme-library-3.0",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/acme/library@3.0",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "Acme Library",
+    "primaryPackagePurpose" : "LIBRARY",
+    "versionInfo" : "3.0"
+  }, {
+    "SPDXID" : "SPDXRef-123",
+    "attributionTexts" : [ "Evidence license text for: (Apache-2.0)" ],
+    "checksums" : [ {
+      "algorithm" : "SHA1",
+      "checksumValue" : "aad4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
+    } ],
+    "copyrightText" : "NOASSERTION",
+    "description" : "A library with a lot of dependencies.",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/acme/library@1.0.0",
+      "referenceType" : "purl"
+    }, {
+      "comment" : "source: NVD",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://nvd.nist.gov/vuln/detail/CVE-2018-7489",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2018-7489",
+      "referenceType" : "advisory"
+    } ],
+    "filesAnalyzed" : false,
+    "homepage" : "http://acme.example.com/",
+    "licenseConcluded" : "(Apache-2.0)",
+    "licenseDeclared" : "Apache-2.0",
+    "name" : "ACME Library",
+    "primaryPackagePurpose" : "LIBRARY",
+    "versionInfo" : "1.0.0"
+  }, {
+    "SPDXID" : "SPDXRef-a99aa6ef-5901-485a-8bee-c6270b411ff1",
+    "checksums" : [ {
+      "algorithm" : "SHA1",
+      "checksumValue" : "aad4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
+    } ],
+    "copyrightText" : "Copyright 2019 Spring.io",
+    "description" : "Spring Web",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/org.springframework/spring-web@5.0.4.RELEASE?type=jar",
+      "referenceType" : "purl"
+    }, {
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "cpe:2.3:a:pivotal_software:spring_framework:5.0.4:*:*:*:*:*:*:*",
+      "referenceType" : "cpe23Type"
+    } ],
+    "filesAnalyzed" : false,
+    "homepage" : "http://spring.io",
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "Apache-2.0",
+    "name" : "org.springframework:spring-web",
+    "originator" : "Organization: Pivotal",
+    "primaryPackagePurpose" : "FRAMEWORK",
+    "supplier" : "Organization: Spring",
+    "versionInfo" : "5.0.4.RELEASE"
+  }, {
+    "SPDXID" : "SPDXRef-pkg-maven-com.fasterxml.jackson.core-jackson-databind-2.9.4",
+    "checksums" : [ {
+      "algorithm" : "SHA1",
+      "checksumValue" : "aad4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
+    } ],
+    "copyrightText" : "Copyright 2019 FasterXML",
+    "description" : "General data-binding functionality for Jackson: works on core streaming API",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "comment" : "source: NVD",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://nvd.nist.gov/vuln/detail/CVE-2018-7489",
+      "referenceType" : "advisory"
+    }, {
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "cpe:2.3:a:fasterxml:jackson-databind:2.9.4:*:*:*:*:*:*:*",
+      "referenceType" : "cpe23Type"
+    }, {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4",
+      "referenceType" : "purl"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2018-7489",
+      "referenceType" : "advisory"
+    } ],
+    "filesAnalyzed" : false,
+    "homepage" : "http://github.com/FasterXML/jackson",
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "Apache-2.0",
+    "name" : "com.fasterxml.jackson.core:jackson-databind",
+    "originator" : "Organization: FasterXML",
+    "primaryPackagePurpose" : "LIBRARY",
+    "supplier" : "Organization: FasterXML",
+    "versionInfo" : "2.9.4"
+  }, {
+    "SPDXID" : "SPDXRef-acme-application-1.0",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "Acme Application",
+    "originator" : "Person: Acme Super Heros",
+    "primaryPackagePurpose" : "APPLICATION",
+    "versionInfo" : "1.0.0"
+  } ],
+  "relationships" : [ {
+    "spdxElementId" : "SPDXRef-DOCUMENT",
+    "relationshipType" : "DESCRIBES",
+    "relatedSpdxElement" : "SPDXRef-acme-application-1.0"
+  }, {
+    "spdxElementId" : "SPDXRef-pkg-maven-partner-shaded-library-1.0",
+    "relationshipType" : "CONTAINS",
+    "relatedSpdxElement" : "SPDXRef-pkg-maven-ossproject-library-2.0"
+  } ]
+}

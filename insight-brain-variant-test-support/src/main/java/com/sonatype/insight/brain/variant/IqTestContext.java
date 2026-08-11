@@ -258,6 +258,29 @@ public final class IqTestContext
     hdsRespondWith(resourceUrl).atUri("rest/application/analysis/" + scanId);
   }
 
+  /**
+   * Writes a mock analysis report onto the server's local filesystem for {@code applicationId}/{@code scanId}
+   * (mirrors {@code AbstractBaseIntegrationTest.createReportFile}). Endpoints that read the report locally
+   * (rather than fetching it from HDS) need this instead of {@link #mockReport}.
+   */
+  public File createReportFile(
+      final String applicationId,
+      final String scanId,
+      final String sourceReportDir) throws java.io.IOException
+  {
+    InsightWork insightWork = lookup(InsightWork.class);
+    ReportHelper.saveMockReport(insightWork, tempFolder, sourceReportDir, applicationId, scanId);
+    return insightWork.getReportFile(applicationId, scanId);
+  }
+
+  /**
+   * Writes a dummy scan file for {@code applicationId}/{@code scanId} (mirrors
+   * {@code AbstractBaseIntegrationTest.createScanFile}).
+   */
+  public void createScanFile(final String applicationId, final String scanId) {
+    com.sonatype.insight.brain.utils.ScanHelper.createDummyScanFile(lookup(InsightWork.class), applicationId, scanId);
+  }
+
   // --- license helpers -------------------------------------------------------------------------
 
   public void installLicense() throws Exception {

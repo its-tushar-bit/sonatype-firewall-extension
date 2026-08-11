@@ -1,0 +1,180 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<Document>
+  <SPDXID>SPDXRef-DOCUMENT</SPDXID>
+  <spdxVersion>SPDX-2.2</spdxVersion>
+  <creationInfo>
+    <created>2025-08-26T13:31:29Z</created>
+    <creators>Tool: Sonatype SBOM Manager - 1.195.0-SNAPSHOT</creators>
+  </creationInfo>
+  <name>SbomRegressionTestApp</name>
+  <dataLicense>CC0-1.0</dataLicense>
+  <documentNamespace>http://localhost:10211/ui/links/sbomManager/management/view/application/SbomRegressionTestApp/bom/1.0.0</documentNamespace>
+  <packages>
+    <SPDXID>SPDXRef-pkg-maven-partner-shaded-library-1.0</SPDXID>
+    <copyrightText>NOASSERTION</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/partner/shaded-library@1.0</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>NOASSERTION</licenseDeclared>
+    <name>Partner Shaded Library</name>
+    <versionInfo>1.0</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-pkg-maven-ossproject-library-2.0</SPDXID>
+    <copyrightText>NOASSERTION</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/ossproject/library@2.0</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>NOASSERTION</licenseDeclared>
+    <name>Some Opensource Library</name>
+    <versionInfo>2.0</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-pkg-maven-acme-library-3.0</SPDXID>
+    <copyrightText>NOASSERTION</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/acme/library@3.0</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>NOASSERTION</licenseDeclared>
+    <name>Acme Library</name>
+    <versionInfo>3.0</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-123</SPDXID>
+    <attributionTexts>Evidence license text for: (Apache-2.0)</attributionTexts>
+    <checksums>
+      <algorithm>SHA1</algorithm>
+      <checksumValue>aad4c61ddcc5e8a2dabede0f3b482cd9aea9434d</checksumValue>
+    </checksums>
+    <copyrightText>NOASSERTION</copyrightText>
+    <description>A library with a lot of dependencies.</description>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/acme/library@1.0.0</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://nvd.nist.gov/vuln/detail/CVE-2018-7489</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2018-7489</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <homepage>http://acme.example.com/</homepage>
+    <licenseConcluded>(Apache-2.0)</licenseConcluded>
+    <licenseDeclared>Apache-2.0</licenseDeclared>
+    <name>ACME Library</name>
+    <versionInfo>1.0.0</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-a99aa6ef-5901-485a-8bee-c6270b411ff1</SPDXID>
+    <checksums>
+      <algorithm>SHA1</algorithm>
+      <checksumValue>aad4c61ddcc5e8a2dabede0f3b482cd9aea9434d</checksumValue>
+    </checksums>
+    <copyrightText>Copyright 2019 Spring.io</copyrightText>
+    <description>Spring Web</description>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/org.springframework/spring-web@5.0.4.RELEASE?type=jar</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>cpe:2.3:a:pivotal_software:spring_framework:5.0.4:*:*:*:*:*:*:*</referenceLocator>
+      <referenceType>cpe23Type</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <homepage>http://spring.io</homepage>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>Apache-2.0</licenseDeclared>
+    <name>org.springframework:spring-web</name>
+    <originator>Organization: Pivotal</originator>
+    <supplier>Organization: Spring</supplier>
+    <versionInfo>5.0.4.RELEASE</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-pkg-maven-com.fasterxml.jackson.core-jackson-databind-2.9.4</SPDXID>
+    <checksums>
+      <algorithm>SHA1</algorithm>
+      <checksumValue>aad4c61ddcc5e8a2dabede0f3b482cd9aea9434d</checksumValue>
+    </checksums>
+    <copyrightText>Copyright 2019 FasterXML</copyrightText>
+    <description>General data-binding functionality for Jackson: works on core streaming API</description>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://nvd.nist.gov/vuln/detail/CVE-2018-7489</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>cpe:2.3:a:fasterxml:jackson-databind:2.9.4:*:*:*:*:*:*:*</referenceLocator>
+      <referenceType>cpe23Type</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2018-7489</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <homepage>http://github.com/FasterXML/jackson</homepage>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>Apache-2.0</licenseDeclared>
+    <name>com.fasterxml.jackson.core:jackson-databind</name>
+    <originator>Organization: FasterXML</originator>
+    <supplier>Organization: FasterXML</supplier>
+    <versionInfo>2.9.4</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-acme-application-1.0</SPDXID>
+    <copyrightText>NOASSERTION</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>NOASSERTION</licenseDeclared>
+    <name>Acme Application</name>
+    <originator>Person: Acme Super Heros</originator>
+    <versionInfo>1.0.0</versionInfo>
+  </packages>
+  <relationships>
+    <spdxElementId>SPDXRef-DOCUMENT</spdxElementId>
+    <relationshipType>DESCRIBES</relationshipType>
+    <relatedSpdxElement>SPDXRef-acme-application-1.0</relatedSpdxElement>
+  </relationships>
+  <relationships>
+    <spdxElementId>SPDXRef-pkg-maven-partner-shaded-library-1.0</spdxElementId>
+    <relationshipType>CONTAINS</relationshipType>
+    <relatedSpdxElement>SPDXRef-pkg-maven-ossproject-library-2.0</relatedSpdxElement>
+  </relationships>
+</Document>

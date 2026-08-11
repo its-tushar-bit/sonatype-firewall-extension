@@ -1,0 +1,89 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "terraform",
+      "coordinates" : {
+        "name" : "aws_s3_bucket.test02",
+        "plan" : "plan.tfplan",
+        "version" : "current"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "0b21d00434253711ca98",
+    "declaredLicenses" : [ "Not Provided" ],
+    "observedLicenses" : [ "Not Provided" ],
+    "effectiveLicenses" : [ "Not Provided" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 5,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 0,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "aws_s3_bucket.test02"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Plan",
+        "value" : "plan.tfplan"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "current"
+      } ],
+      "name" : "aws_s3_bucket.test02 : plan.tfplan : current"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "terraform",
+      "coordinates" : {
+        "name" : "aws_s3_bucket.test01",
+        "plan" : "plan.tfplan",
+        "version" : "current"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "0d8e3bd6ee4e6d50557a",
+    "declaredLicenses" : [ "Not Provided" ],
+    "observedLicenses" : [ "Not Provided" ],
+    "effectiveLicenses" : [ "Not Provided" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 5,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 0,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "aws_s3_bucket.test01"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Plan",
+        "value" : "plan.tfplan"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "current"
+      } ],
+      "name" : "aws_s3_bucket.test01 : plan.tfplan : current"
+    }
+  } ]
+}

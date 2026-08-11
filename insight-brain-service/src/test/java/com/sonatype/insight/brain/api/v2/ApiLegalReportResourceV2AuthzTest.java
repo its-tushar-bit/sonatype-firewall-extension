@@ -31,7 +31,7 @@ public class ApiLegalReportResourceV2AuthzTest
   public void setup() {
     PolicyEvaluation policyEvaluation =
         tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, TemporaryEntity.uuid());
-    mockReport(policyEvaluation, ApiLegalReportResourceV2Test.class.getSimpleName());
+    mockReport(policyEvaluation, "ApiLegalReportResourceV2Test");
     hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.METADATA_URL);
     hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
     hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.LEGAL_FILE_URL);

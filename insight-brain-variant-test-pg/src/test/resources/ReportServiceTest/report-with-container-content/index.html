@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<title>Sonatype CLM Continuous Integration Report</title>
+		<link type="text/css" href="lib.min.css" rel="stylesheet" />
+		<link type="text/css" href="report.css" rel="stylesheet">
+		<script type='text/javascript' src='../brain/policy-assets/js/brain.client.js'></script>
+		<script type='text/javascript' src='lib.min.js'></script>
+		<script type='text/javascript' src='protovis.min.js'></script>
+		<!--[if IE]><script src="protovis-msie.min.js"></script><![endif]-->
+		<script type='text/javascript' src='protovis-tipsy.js'></script>
+		<script type='text/javascript' src='protovis-xpan.js'></script>
+		<script type='text/javascript' src='appcheck.js'></script>
+		<script type='text/javascript' src='report.js'></script>
+		<script type='text/javascript' src='../brain/policy-assets/js/cip-loader.js'></script>
+		<script type='text/javascript' src='slick.grid-2.0.merged.min.js'></script>
+		<script type='text/javascript' src='insight-slick-grid.merged.min.js'></script>
+		<script type='text/javascript'>
+			var reportId = '34c3d0f0386942179860462f879367cf',
+				instanceId = '',
+				applicationId = 'test-app',
+				currentDate = new Date(1625090262826),
+				earliestReleaseDate = new Date(9223372036854775807),
+				hideFilename = false;
+		</script>
+	</head>
+	<body>
+	<div class='container'>
+		<div style='width:100%'>
+			<div class='btn-group' data-toggle="buttons-radio" style='width:91.25%;display:inline-block' id='views'>
+				<button class='btn active' style='width:25%' id='summaryBtn' data-containerid='summary'>Summary</button>
+				<button class='btn' style='width:25%' id='componentcontainerBtn' data-containerid='componentcontainer'>Policy Violations</button>
+				<button class='btn' style='width:25%' id='securitycontainerBtn' data-containerid='securitycontainer'>Security Issues</button>
+				<button class='btn' style='width:25%' id='licensecontainerBtn' data-containerid='licensecontainer'>License Analysis</button>
+			</div>
+
+			<div class='btn-group' style='width:7.75%;display:inline-block;text-align:right' id='actions'>
+				<button class='btn btn-primary'
+				        id='reevaluate-policy'
+				        data-action='reevaluatePolicy'
+				        data-tooltip='Reevaluate Policy'
+				        data-gravity='n'
+				        data-gravity-offset='5'
+				        original-title=''
+				        aria-label="Reevaluate Policy"><!--
+			   --><i class='icon-white icon-refresh'></i> <!--
+			 --></button>
+				<a href='../printReport'
+				   target='_blank'
+				   class='btn btn-primary'
+				   id='print-report'
+				   data-action='print'
+				   data-tooltip='Print Report'
+				   data-gravity='n'
+				   data-gravity-offset='5'
+				   original-title=''><!--
+			   --><i class='icon-white icon-print'></i> <!--
+			 --></a>
+			</div>
+		</div>
+	<div id='summary' style='padding-top:5px' data-container='true'>Loading...</div>
+	<div id='licensecontainer' style='display:none;width:100%;padding-top:5px' data-container='true'>
+		<div class='sectionBorder'>
+			<div id="licenseTable" class="borderedTable"></div>
+			<div id="licenseTablePager"></div>
+		</div>
+	</div>
+
+	<div id='securitycontainer' style='display:none;width:100%;padding-top:5px' data-container='true'>
+		<div class='sectionBorder'>
+			<div id='securityTable' class="borderedTable"></div>
+			<div id="securityTablePager"></div>
+		</div>
+	</div>
+
+	<div id='componentcontainer' style='display:none;width:100%;padding-top:5px' data-container='true'>
+		<div class='sectionBorder'>
+			<div class='pull-right hide' id='policy-violation-filter'>
+				<h4>Violations:</h4>
+				<ul class='nav nav-pills'>
+					<li id='violations-summary' class='active'><a href='#'>Summary</a></li>
+					<li id='violations-all'><a href='#'>All</a></li>
+					<li id='violations-waived'><a href='#'>Waived</a></li>
+					<li id='policy-violations-grandfathered' class='hide'><a href='#'>Grandfathered</a></li>
+				</ul>
+			</div>
+			<h4>Filter:</h4>
+			<ul class='nav nav-pills' id='policy-match-state-filter'>
+				<li id='filter-all' class='active'><a href='#'>All</a></li>
+				<li id='filter-exact'><a href='#'>Exact</a></li>
+				<li id='filter-similar'><a href='#'>Similar</a></li>
+				<li id='filter-unknown'><a href='#'>Unknown</a></li>
+				<li id='filter-proprietary'><a href='#'>Proprietary</a></li>
+				
+			</ul>
+			<div id='componentTable' class="borderedTable"></div>
+			<div id="componentTablePager"></div>
+		</div>
+	</div>
+</div>
+<script type='text/x-mustache-template' id='errorTemplate'>
+<div class='alert alert-error fade in' style='margin:auto;margin-top:20px;padding-top:5px;width:50%'>
+	<h4>Error</h4>
+	<p>{{#message}}{{message}}{{/message}}
+		{{^message}}Unfortunately an error occurred while contacting the Sonatype CLM Server, if the problem persists please contact support.{{/message}}
+	</p>
+	<p><button type='button' class='btn btn-danger'><i class='icon-white icon-refresh'></i> Retry</button></p>
+</div>
+</script>
+<script type='text/x-mustache-template' id='infoPanelComponentTemplate'>
+{{#partial}}
+<div id='informationPanelBanner' class='well' style='margin-top:5px;margin-bottom:10px;display:inline-block;'>
+	Security and License information for all versions of this component are available in the detailed report. Examples of this data can be seen in the <em>Security Issues</em> or <em>License Analysis</em> views.
+</div>
+{{/partial}}
+<div style='overflow: hidden; height: 270px;'>
+	<img src='artifactInfoIcon.png' style='display:inline-block; float: left;'/>
+	<table id='infoPanelArtifactTable' style='display: inline-block;border-collapse: collapse; table-layout: fixed;'>
+		<tr id='artifactInfoGroupIdRow'>
+			<td class='artifactInfoTableLabel'>Group:</td>
+			<td class='artifactInfoTableValue'>{{groupId}}</td>
+		</tr>
+		<tr id='artifactInfoArtifactIdRow'>
+			<td class='artifactInfoTableLabel'>Artifact:</td>
+			<td class='artifactInfoTableValue'>{{artifactId}}</td>
+		</tr>
+		<tr id='artifactInfoVersionRow'>
+			<td class='artifactInfoTableLabel'>Version:</td>
+			<td class='artifactInfoTableValue'>{{version}}</td>
+		</tr>
+	{{#overriddenLicenses}}
+		<tr id='artifactInfoOverriddenLicenseRow'>
+			<td class='artifactInfoTableLabel'>Overridden License:</td>
+			<td class='artifactInfoTableValue'>{{{overriddenLicenses}}}</td>
+		</tr>
+	{{/overriddenLicenses}}
+	{{^partial}}
+		<tr id='artifactInfoDeclaredLicenseRow'>
+			<td class='artifactInfoTableLabel'>Declared License:</td>
+			<td class='artifactInfoTableValue'>{{^isManual}}{{{declaredLicenses}}}{{/isManual}}{{#isManual}}Unavailable, Claimed Component{{/isManual}}</td>
+		</tr>
+		<tr id='artifactInfoObservedLicenseRow'>
+			<td class='artifactInfoTableLabel'>Observed License:</td>
+			<td class='artifactInfoTableValue'>{{^isManual}}{{{observedLicenses}}}{{/isManual}}{{#isManual}}Unavailable, Claimed Component{{/isManual}}</td>
+		</tr>
+	{{/partial}}
+{{^partial}}
+		<tr id='artifactInfoSecurityThreatRow'>
+			<td class='artifactInfoTableLabel'>Highest Security Threat:</td>
+			<td class='artifactInfoTableValue'>
+			{{^isManual}}<div class="{{colorCls}}">{{lvl}}</div>{{#multipleSecurity}} within {{securityThreatCount}} security issues{{/multipleSecurity}}{{/isManual}}
+			{{#isManual}}Unavailable, Claimed Component{{/isManual}}
+			</td>
+		</tr>
+{{/partial}}
+		<tr id='artifactInfoCatalogDateRow'>
+			<td class='artifactInfoTableLabel'>Cataloged:</td>
+			<td class='artifactInfoTableValue'>{{#cataloged}}{{cataloged}} ago{{/cataloged}}{{^cataloged}}-{{/cataloged}}</td>
+		</tr>
+		<tr id='artifactInfoSimilarityScoreRow'>
+			<td class='artifactInfoTableLabel'>Match State:</td>
+			<td class='artifactInfoTableValue'>{{currentMatchState}}{{#proprietary}} (proprietary){{/proprietary}}</td>
+		</tr>
+{{#identificationSource}}
+		<tr id='artifactInfoIdentificatonSource'>
+			<td class='artifactInfoTableLabel'>Identification Source:</td>
+			<td class='artifactInfoTableValue'>{{identificationSource}}</td>
+		</tr>
+{{/identificationSource}}
+{{#website}}
+          <tr id='artifactWebsite'>
+            <td class='artifactInfoTableLabel'>Website:</td>
+            <td class='artifactInfoTableValue'> <a href='{{website}}' target='_blank'><i class='icon-info-sign'></i></a></td>
+          </tr>
+{{/website}}
+{{#identificationSourceComment}}
+		<tr id='artifactInfoClaimComment'>
+			<td class='artifactInfoTableLabel'>Identification Comment:</td>
+			<td class='artifactInfoTableValue'><div style='width: 700px; position: absolute; margin-top: -10px;'>{{identificationSourceComment}}</div></td>
+		</tr>
+{{/identificationSourceComment}}
+	</table>
+	<div id='aiVersionChartContainer' style='font-size:0;display:inline-block;float:right;border:1px solid #D8DBE0;width:477px;height:250px;background:rgb(247,251,254);border-radius:4px;padding:2px'>
+	   <div id='aiVersionChartLabelsWrapper' style='display:inline-block;vertical-align:top;width:100px'>
+			<div id='aiVersionChartLabels'></div>
+			<!-- note these divs must be next to each other with no spaces in between, for some reason this causes a gap in safari-->
+		</div><div id='aiVersionChartVizWrapper' style='display:inline-block;vertical-align:top;width:374px'>
+			<div id='aiVersionChartViz' style='overflow:hidden;width:374px;'></div>
+		</div>
+	</div>
+</div>
+</script>
+<script type='text/x-mustache-template' id='infoPanelSecurityEditor'>
+	<div style='display:inline-block;width:350px;vertical-align:top;margin-left:10px' class='topBorder bottomBorder'><div id='sv{{timestamp}}Table' class='borderedTable'></div></div>
+	<div id='editor{{timestamp}}' class='well' style='display:inline-block;margin-left:10px;margin-bottom:10px;-moz-box-sizing:border-box;box-sizing:border-box;width:490px'>
+	</div>
+</script>
+<script type='text/x-mustache-template' id='svEditorTemplate'>
+	<div class='form-horizontal'>
+		<div class='control-group'>
+			<label class='control-label' for='svStatus{{timestamp}}'>Status</label>
+			<div class='controls' style='text-align:left'>
+				<select id='svStatus{{timestamp}}'{{#width}} style='width:{{width}}px'{{/width}}>
+					<option value='Open'>Open</option>
+					<option value='Acknowledged'>Acknowledged</option>
+					<option value='Not Applicable'>Not Applicable</option>
+					<option value='Confirmed'>Confirmed</option>
+				</select>
+			</div>
+		</div>
+		<div class='control-group'>
+			<label class='control-label' for='comment{{timestamp}}'>Comment</label>
+			<div class='controls'>
+				<textarea class='input-xlarge' id='comment{{timestamp}}' rows='3' style='{{#width}}width:{{width}}px;{{/width}}height:108px;padding:0px'></textarea>
+			</div>
+		</div>
+		<div class='controls' style='{{#width}}width:{{width}}px;{{/width}}text-align:right'>
+			<button type='none' class='btn btn-primary' data-type='update'>Update</button>
+			{{#cancel}}<button type='none' class='btn' data-type='cancel'>Cancel</button>{{/cancel}}
+		</div>
+	</div>
+</script>
+<script type='text/x-mustache-template' id='summaryPageTemplate'>
+	<h5>This report provides security and license assessments for identified components found within an application.</h5>
+	<div style='padding:5px' class='topBorder'>
+		<div class='page-header'>
+			<h4>Scope of Analysis</h4>
+		</div>
+		<div class='row'>
+			<div class='{{#policy.grandfathering}}span4{{/policy.grandfathering}}{{^policy.grandfathering}}span5{{/policy.grandfathering}}' data-tooltip='Matches: {{exactlyMatchedComponentCount}} exact, {{partiallyMatchedComponentCount}} similar' data-gravity='n'>
+				<span id="coverage_donut" alt="{{percentKnownComponents}}% of Components Identified"></span>
+				<span class='header-container'>
+					<div class="value_lrg">{{knownComponentCount}}</div>
+					<div class="label_med">COMPONENT{{#multipleKnown}}S{{/multipleKnown}} IDENTIFIED</div>
+					<div class="label_sml"><span class="value_sml">{{percentKnownComponents}}%</span> OF ALL COMPONENTS ARE IDENTIFIED</div>
+				</span>
+			</div>
+	{{#policy}}
+			<div class="span21" data-tooltip='A policy alert advises you of components that violate one or more policies within the application.' data-gravity='n'>
+	{{#hasPolicyAlerts}}
+				<div class="value_lrg pval">
+					{{#criticalCount}}<span class="iq-pill red">{{criticalCount}}</span>{{/criticalCount}}
+					{{#severeCount}}<span class="iq-pill orange">{{severeCount}}</span>{{/severeCount}}
+					{{#moderateCount}}<span class="iq-pill yellow">{{moderateCount}}</span>{{/moderateCount}}
+					<span><span></span></span>
+				</div>
+				<div class="label_med">POLICY ALERT{{#multipleAlerts}}S{{/multipleAlerts}}</div>
+				<div class="label_sml">AFFECTING <span class="value_sml">{{policyComponentCount}}</span> COMPONENT{{#multipleComponents}}S{{/multipleComponents}}</div>
+	{{/hasPolicyAlerts}}
+	{{^hasPolicyAlerts}}
+				<div class="value_lrg pval">0</div>
+				<div class="label_med">POLICY ALERTS</div>
+	{{/hasPolicyAlerts}}
+			</div>
+	{{#grandfathering}}
+			<div class="span2-narrow" data-tooltip='A grandfathered violation is a policy violation against which an action will not be taken.' data-gravity='n'>
+				<div class="value_lrg">{{grandfatheredPolicyViolationCount}}</div>
+				<div class="label_med">GRANDFATHERED VIOLATION{{#multipleGrandfatheredViolations}}S{{/multipleGrandfatheredViolations}}</div>
+			</div>
+	{{/grandfathering}}
+	{{/policy}}
+	{{#sv}}
+			<div class="span2" data-tooltip='A security alert advises you of components with a known security defect as defined by public and private data sources.' data-gravity='n'>
+				<div class="value_lrg">{{count}}</div>
+				<div class="label_med">SECURITY ALERT{{#multiple}}S{{/multiple}}</div>
+				<div class="label_sml">AFFECTING <span class="value_sml">{{insecureArtifactCount}}</span> COMPONENT{{#multipleComponents}}S{{/multipleComponents}}</div>
+			</div>
+	{{/sv}}
+	{{#license}}
+			<div class="span2-narrow" data-tooltip='A license alert advises you of components with obligations that may not be suitable for certain commercial usage.' data-gravity='n'>
+				<div class="value_lrg">{{licenseAlerts}}</div>
+				<div class="label_med">LICENSE ALERT{{#multipleLicenseAlerts}}S{{/multipleLicenseAlerts}}</div>
+			</div>
+	{{/license}}
+		</div>
+	</div>
+	<div style='padding:5px' class='topBorder'>
+		<div class='page-header'>
+			<h4 class='i-sec'><span data-tooltip='Sonatype utilizes the base score from the Common Vulnerability Scoring System, version 2.' data-gravity='w'>Security Issues</span></h4>
+		</div>
+		<div class='sectionsummary'>How bad are the vulnerabilities and how many are there?</div>
+		<div class="sums iblock">
+			<div class="sval sv-red">
+				<span class="cat">Critical (7-10)</span><span class="iq-pill iq-pill--large red">{{sv.criticalCount}}</span>
+			</div>
+			<div class="sval sv-orange">
+				<span class="cat">Severe (4-6)</span><span class="iq-pill iq-pill--large orange">{{sv.severeCount}}</span>
+			</div>
+			<div class="sval sv-yellow">
+				<span class="cat">Moderate (1-3)</span><span class="iq-pill iq-pill--large yellow">{{sv.moderateCount}}</span>
+			</div>
+		</div>
+		<div id="security-chart" class='iblock' style='width:267px'>
+		</div>
+		<div class='iblock security-description label_med'>
+			<span>The summary of security issues demonstrates the breakdown of vulnerabilities based on severity and the threat level it poses to your application.<br>The dependency depth highlights quantity and severity and distribution within the application's dependencies.</span>
+		</div>
+		<div id='security-punchcard' class='iblock punchcard'>
+		</div>
+	</div>
+	<div style='padding:5px' class='topBorder bottomBorder'>
+		<div class='page-header'>
+			<h4 class='i-lic'><span data-tooltip='License Analysis Summary: License data is calculated based the information provided by the publishing project, and the results of multiple public and proprietary source and binary scans.' data-gravity='w'>License Analysis</span></h4>
+		</div>
+		<div class='sectionsummary'>What type of licenses and how many of each?</div>
+		<div class="sums iblock">
+			<div class="sval sv-red">
+				<span class="cat">Critical (8-10)</span><span class="iq-pill iq-pill--large red" id='criticalLicenseCount'>{{license.criticalCount}}</span>
+			</div>
+			<div class="sval sv-orange">
+				<span class="cat">Severe (4-7)</span><span class="iq-pill iq-pill--large orange" id='severeLicenseCount'>{{license.severeCount}}</span>
+			</div>
+			<div class="sval sv-yellow">
+				<span class="cat">Moderate (1-3)</span><span class="iq-pill iq-pill--large yellow" id='moderateLicenseCount'>{{license.moderateCount}}</span>
+			</div>
+			<div class="sval sv-blue">
+				<span class="cat">No Threat (0)</span><span class="iq-pill iq-pill--large blue" id='noThreatLicenseCount'>{{license.noThreatCount}}</span>
+			</div>
+		</div>
+		<div id="license-chart" class='iblock' style='width:235px'>
+		</div>
+		<div class='iblock license-description label_med'>
+			<span>The summary of license analysis demonstrates the number of licenses detected in each category.<br>The dependency depth compares quantity by category and the distribution within your application's dependencies.</span>
+		</div>
+		<div id='license-punchcard' class='iblock punchcard'>
+		</div>
+	</div>
+	<div style='margin-bottom:10px;padding:5px;display:none' id='update' class='bottomBorder'>
+		<div style='width:33%;display:inline-block' class='sectionsummary'>&nbsp;Potential updates to resolve security issues:<div id='security' style='text-align:center;width:100%'></div></div>
+		<div style='width:33%;display:inline-block' class='sectionsummary'>&nbsp;Potential updates to resolve license issues:<div id='license' style='text-align:center;width:100%'></div></div>
+		<div style='width:33%;display:inline-block' class='sectionsummary'>&nbsp;Distance from most popular versions:<div id='popularity' style='text-align:center;width:100%'></div></div>
+	</div>
+</script>
+		<div id="sv-info-modal" class="modal hide fade">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h3>Vulnerability Information</h3>
+			</div>
+			<div class="modal-body"></div>
+			<div class="modal-footer">
+				<a href="#" data-dismiss="modal" class="btn">Close</a>
+			</div>
+		</div>
+
+		<script>
+			window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+			ga('create', 'UA-1693297-45', 'auto');
+			ga('set', 'anonymizeIp', true);
+			ga('set', 'location', 'https://iq-server.sonatype.com/application-report');
+			ga('set', 'hostname', 'iq-server.sonatype.com');
+			ga('set', 'page', '/application-report');
+
+			ga('set', 'dimension1', window.Brain && Brain.getVersion && Brain.getVersion());
+			ga('set', 'referrer', 'https://iq-server.sonatype.com');
+			ga('send', 'pageview');
+		</script>
+		<script async src='https://www.google-analytics.com/analytics.js'></script>
+	</body>
+</html>

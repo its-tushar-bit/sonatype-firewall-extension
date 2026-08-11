@@ -1,0 +1,45 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.4"
+      }
+    },
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-databind",
+    "version" : "2.9.4",
+    "hash" : "230e09fd610400a07572",
+    "url" : "https://snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111",
+    "reference" : "SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111",
+    "source" : "Snyk",
+    "score" : 9.8,
+    "cwe" : "184,502",
+    "cvssVectorString" : "AN/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "CVSSv3",
+    "matchState" : "exact",
+    "proprietary" : null,
+    "vulnerabilityCategories" : null,
+    "aliases" : null,
+    "vulnIds" : null,
+    "researchType" : null,
+    "analysis" : {
+      "state" : "not_affected",
+      "justification" : "code_not_reachable",
+      "response" : "will_not_fix,update",
+      "detail" : "An optional explanation of why the application is not affected by the vulnerable component."
+    },
+    "fixedVersion" : null,
+    "description" : "FasterXML jackson-databind before 2.7.9.3, 2.8.x before 2.8.11.1 and 2.9.x before 2.9.5 allows unauthenticated remote code execution because of an incomplete fix for the CVE-2017-7525 deserialization flaw. This is exploitable by sending maliciously crafted JSON input to the readValue method of the ObjectMapper, bypassing a blacklist that is ineffective if the c3p0 libraries are available in the classpath.",
+    "severity" : "critical",
+    "ratingMethod" : "CVSSv3",
+    "recommendations" : "Upgrade com.fasterxml.jackson.core:jackson-databind to version 2.6.7.5, 2.8.11.1, 2.9.5 or higher.",
+    "advisories" : "GitHub Commit|https://github.com/FasterXML/jackson-databind/commit/6799f8f10cc78e9af6d443ed6982d00a13f2e7d2,GitHub Issue|https://github.com/FasterXML/jackson-databind/issues/1931",
+    "provider" : null,
+    "inputType" : null
+  } ]
+}

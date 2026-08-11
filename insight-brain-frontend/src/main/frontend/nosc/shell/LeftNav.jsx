@@ -4,13 +4,16 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* eslint-disable react/prop-types */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Box, Flex, IconButton, ScrollArea, Separator, Tooltip } from '@radix-ui/themes';
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { DomainIcons } from 'MainRoot/nosc/icons';
 import { embeddedHref } from 'MainRoot/nexus-one/nativeClassicEmbedSlugs';
 import { bundleIndexUrl } from 'MainRoot/util/urlUtil';
+import router from 'MainRoot/router/routerInstance';
+import { comingSoonStateName } from 'MainRoot/nosc/comingSoon';
+import { SETTINGS_PAGE_ITEMS } from 'MainRoot/nosc/settings/settingsPageItems';
 import { useLeftNavCollapsed } from 'MainRoot/nosc/shell/useLeftNavCollapsed';
 import {
   LEFT_NAV_COLLAPSED_WIDTH_PX,
@@ -133,6 +136,20 @@ function hrefMatches(currentPath, href) {
 }
 
 /**
+ * Extract the hash-path segment of a UI-Router `href`. Accepts both `#/foo` and
+ * full URLs (`http://…/#/foo`) so paths compare consistently against
+ * `currentPath` from `readHashPath()`, which strips both the leading `#` and
+ * any trailing `?query`. Strip the query here too so both normalizers agree.
+ */
+function extractHashPath(href) {
+  if (!href) return '';
+  const hashIndex = href.indexOf('#');
+  const path = hashIndex === -1 ? href : href.slice(hashIndex + 1);
+  const qIndex = path.indexOf('?');
+  return qIndex === -1 ? path : path.slice(0, qIndex);
+}
+
+/**
  * Active-route check — match the item's own href (exact or descendant prefix),
  * or any of its `activeHrefs` alternates. `activeHrefs` covers embedded-mount
  * items whose in-page navigation (e.g. tab switches) lands on a different path
@@ -246,6 +263,7 @@ function buildNavItems(flags) {
     isIntegratedEnterpriseReportingSupported,
     isHostedRepositoryEvaluationEnabled,
     isAdvancedLegalPackSupported,
+    settingsActiveHrefs,
   } = flags;
 
   const items = [];
@@ -377,6 +395,10 @@ function buildNavItems(flags) {
       label: 'Settings',
       Icon: DomainIcons.Settings,
       href: '/settings',
+      // Keep Settings highlighted while the user is inside any Settings sub-page —
+      // the Coming Soon placeholder, or any hub row's embedded Classic mount whose
+      // hash path does not start with `/settings/` (e.g. `/mailConfig`, `/users`).
+      activeHrefs: settingsActiveHrefs,
     });
   }
   pushGroup(items, settingsGroupItems);
@@ -398,6 +420,36 @@ function buildNavItems(flags) {
 export default function LeftNav() {
   const [isCollapsed, setIsCollapsed] = useLeftNavCollapsed();
   const currentPath = useCurrentHashPath();
+
+  // Every Settings hub row targets either an embedded Classic state (hash paths
+  // scattered across Classic — `/users`, `/mailConfig`, `/proxyConfig`, …) or the
+  // `/coming-soon/settings` placeholder for unported rows. None of these start
+  // with `/settings/`, so `hrefMatches` alone can't keep the rail's Settings item
+  // lit inside them. Derive the full activeHrefs list from `SETTINGS_PAGE_ITEMS`
+  // (the same source of truth `SettingsPage.tsx` renders from), resolved through
+  // `router.stateService.href` so paths stay in lock-step with the actual state
+  // URLs even if a Classic state is renamed. Items whose create/edit sub-pages
+  // live under a different URL prefix than their list page (LDAP, Webhooks)
+  // supply `additionalActivePrefixes` — `hrefMatches` covers the descendant
+  // URLs via prefix match. The Coming Soon placeholder resolves via the same
+  // `router.stateService.href(comingSoonStateName('settings'))` path
+  // SettingsPage.tsx uses, so both stay in lock-step if the placeholder route
+  // ever moves. `router` is a stable singleton and route registrations don't
+  // change at runtime, so an empty dependency array is correct here.
+  const settingsActiveHrefs = useMemo(() => {
+    const paths = [extractHashPath(router.stateService.href(comingSoonStateName('settings')))];
+    for (const item of SETTINGS_PAGE_ITEMS) {
+      if (item.stateName) {
+        paths.push(extractHashPath(router.stateService.href(item.stateName)));
+      }
+      if (item.additionalActivePrefixes) {
+        for (const prefix of item.additionalActivePrefixes) {
+          paths.push(prefix);
+        }
+      }
+    }
+    return paths.filter(Boolean);
+  }, []);
 
   // Read the same Redux selectors NavigationContainer.jsx feeds into
   // Classic's IqSidebarNav. Lets the Preview LeftNav respect the user's
@@ -446,6 +498,7 @@ export default function LeftNav() {
         isIntegratedEnterpriseReportingSupported,
         isHostedRepositoryEvaluationEnabled,
         isAdvancedLegalPackSupported,
+        settingsActiveHrefs,
       });
 
   return (

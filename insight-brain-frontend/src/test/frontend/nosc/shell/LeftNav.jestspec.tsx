@@ -10,16 +10,47 @@ import LeftNav from 'MainRoot/nosc/shell/LeftNav';
 import { installRadixJsdomShims } from 'TestRoot/nosc/shell/radixJsdomShims';
 import { COLLAPSED_KEY } from 'MainRoot/nosc/shell/useLeftNavCollapsed';
 import { _setBaseUrlForTesting } from 'MainRoot/util/urlUtil';
+import router from 'MainRoot/router/routerInstance';
 
 beforeAll(installRadixJsdomShims);
+
+// State-name → real hash path mapping for every state in `SETTINGS_PAGE_ITEMS`
+// (plus the Coming Soon placeholder) whose registered URL differs from
+// `/<stateName>`. Every state not listed here has a registered URL of exactly
+// `/<stateName>` (mailConfig, proxyConfig, users, saml, administrators, …), and
+// falls through the fallback branch below.
+const STATE_NAME_TO_HASH_PATH: Record<string, string> = {
+  'ldap-list': '#/ldap-servers',
+  listWebhooks: '#/webhooks/list',
+  rolesList: '#/roles',
+  userActivity: '#/user-activity',
+  nexusOneUiSettings: '#/ui-settings',
+  atlassianCrowdConfiguration: '#/crowd',
+  baseUrlConfiguration: '#/baseUrl',
+  nexusOneComingSoonSettings: '#/coming-soon/settings',
+};
 
 beforeEach(() => {
   window.localStorage.removeItem(COLLAPSED_KEY);
   _setBaseUrlForTesting('http://localhost');
+  // LeftNav computes the Settings hub's activeHrefs by calling
+  // `router.stateService.href(stateName)` per SETTINGS_PAGE_ITEMS entry. Spy on
+  // that method directly (per RouterStateContext's own deprecation guidance —
+  // "For tests, mock router.stateService methods directly") with a fake that
+  // mirrors production URL mapping for states whose registered URL differs
+  // from their state name; every other state falls back to `#/<stateName>`.
+  jest.spyOn(router.stateService, 'href').mockImplementation(
+    (name) => STATE_NAME_TO_HASH_PATH[name as string] ?? `#/${name as string}`,
+  );
 });
 
 afterEach(() => {
   window.location.hash = '';
+  // Restore router.stateService.href so a spy set in beforeEach doesn't leak
+  // into other test files running in the same Jest worker (belt-and-suspenders
+  // on top of the per-test beforeEach reset, since global `restoreMocks` isn't
+  // enabled at the Jest-config level in this project).
+  jest.restoreAllMocks();
 });
 
 /** Fully-licensed, fully-feature-flagged tenant — every item visible. */
@@ -403,6 +434,82 @@ describe('LeftNav', () => {
     it('highlights API on the clean embed path', () => {
       renderLeftNav(fullyLicensedState, '#/api');
       expect(screen.getByRole('link', { name: 'API' })).toHaveAttribute('aria-current', 'page');
+    });
+
+    it('highlights Settings on the native hub path', () => {
+      renderLeftNav(fullyLicensedState, '#/settings');
+      expect(screen.getByRole('link', { name: 'Settings' })).toHaveAttribute('aria-current', 'page');
+    });
+
+    it('keeps Settings highlighted on the /coming-soon/settings placeholder via activeHrefs (CLM-44698)', () => {
+      // Rows without a ported native page fall back to the placeholder — the rail's Settings
+      // item must stay lit while the user is on it.
+      renderLeftNav(fullyLicensedState, '#/coming-soon/settings');
+      expect(screen.getByRole('link', { name: 'Settings' })).toHaveAttribute('aria-current', 'page');
+    });
+
+    it.each([
+      // Simple embedded rows whose registered URL matches the state name.
+      ['/mailConfig'],
+      ['/proxyConfig'],
+      ['/users'],
+      ['/saml'],
+      ['/administrators'],
+      ['/roles'],
+      // Embedded rows whose registered URL differs from the state name
+      // (STATE_NAME_TO_HASH_PATH covers these).
+      ['/ldap-servers'],
+      ['/webhooks/list'],
+      ['/user-activity'],
+      ['/ui-settings'],
+      ['/crowd'],
+      ['/baseUrl'],
+    ])('keeps Settings highlighted on embedded settings sub-page %s via activeHrefs (CLM-44698)', (hashPath) => {
+      // Rows whose admin page is already embedded in the shell link straight to a Classic
+      // hash path — none of which start with `/settings/`. Settings must stay highlighted
+      // for the whole duration the user is on that sub-page.
+      renderLeftNav(fullyLicensedState, `#${hashPath}`);
+      expect(screen.getByRole('link', { name: 'Settings' })).toHaveAttribute('aria-current', 'page');
+    });
+
+    it.each([
+      // LDAP create / edit / user-mapping — /ldap/* prefix, matched via the
+      // `additionalActivePrefixes: ['/ldap']` on the LDAP settings item.
+      ['/ldap/create'],
+      ['/ldap/edit/abc123'],
+      ['/ldap/edit/abc123/userMapping'],
+      // Webhook create / edit — /webhooks/* prefix, matched via the
+      // `additionalActivePrefixes: ['/webhooks']` on the Webhooks settings item.
+      ['/webhooks/create'],
+      ['/webhooks/wh-42'],
+      // User / role / administrator edit sub-routes — covered by their list
+      // page's own URL prefix-matching (no additionalActivePrefixes needed).
+      ['/users/user-42'],
+      ['/users/_new_'],
+      ['/users/activity/joe'],
+      ['/roles/role-9'],
+      ['/roles/_new_'],
+      ['/administrators/role-9'],
+    ])('keeps Settings highlighted on a deep sub-route %s of an embedded settings page (CLM-44698)', (hashPath) => {
+      // Regression guard: navigating within an embedded settings page (e.g. LDAP edit,
+      // Webhook edit) must not de-highlight the rail entry — the highlight must persist
+      // across the entire settings-related URL sub-tree, not just the list page's URL.
+      renderLeftNav(fullyLicensedState, `#${hashPath}`);
+      expect(screen.getByRole('link', { name: 'Settings' })).toHaveAttribute('aria-current', 'page');
+    });
+
+    it('does not highlight Settings on an unrelated route (CLM-44698)', () => {
+      renderLeftNav(fullyLicensedState, '#/dashboard');
+      expect(screen.getByRole('link', { name: 'Settings' })).not.toHaveAttribute('aria-current', 'page');
+    });
+
+    it('does not highlight Settings on an unrelated route that shares a substring with a settings prefix (CLM-44698)', () => {
+      // Guard against overly-broad prefix matching: `/webhooks-report` (not a real route,
+      // but a shape that could exist) must not activate Settings just because it
+      // shares a `/webhooks` substring — hrefMatches uses exact-or-descendant-prefix,
+      // so `/webhooks-report` doesn't start with `/webhooks/` and stays inactive.
+      renderLeftNav(fullyLicensedState, '#/webhookssomething');
+      expect(screen.getByRole('link', { name: 'Settings' })).not.toHaveAttribute('aria-current', 'page');
     });
   });
 });

@@ -234,7 +234,7 @@ export default function WaiversFilterRail({
             data-testid="waivers-filter-reset"
           >
             <ActionIcons.Refresh size={12} />
-            Reset filters
+            Reset to default view
           </Button>
         </Flex>
 

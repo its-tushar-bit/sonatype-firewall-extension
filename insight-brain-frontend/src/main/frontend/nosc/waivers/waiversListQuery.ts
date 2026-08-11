@@ -5,8 +5,8 @@
  */
 import {
   EMPTY_WAIVERS_LIST_FILTERS,
+  INITIAL_WAIVERS_LIST_FILTERS,
   WaiversAutoStatusId,
-  WaiversExpiryStatusId,
   WaiversLifecycleStatusId,
   WaiversListFilterState,
   WaiversPolicyTypeId,
@@ -14,7 +14,6 @@ import {
   WaiversStateId,
   WaiversThreatLevelId,
   isSelectableAutoStatusId,
-  isSelectableExpiryStatusId,
   isSelectableLifecycleStatusId,
   isSelectablePolicyTypeId,
   isSelectableScopeId,
@@ -100,6 +99,27 @@ function serializeCsvParam(values: ReadonlySet<string>): string | undefined {
   return Array.from(values).sort().join(',');
 }
 
+/**
+ * URL sentinel for {@code lifecycle=} meaning "show every waiver regardless of lifecycle
+ * status" — the user has explicitly deselected every lifecycle chip in the rail. Distinct
+ * from the no-param path (which restores {@link INITIAL_WAIVERS_LIST_FILTERS} = every bucket
+ * except {@code expired}), so an explicitly-empty selection survives a page reload.
+ */
+const LIFECYCLE_ALL_SENTINEL = 'none';
+
+function serializeLifecycleParam(
+  values: ReadonlySet<WaiversLifecycleStatusId>,
+): string | undefined {
+  if (values.size === 0) return LIFECYCLE_ALL_SENTINEL;
+  return serializeCsvParam(values);
+}
+
+function parseLifecycleParam(raw: string | null): ReadonlySet<WaiversLifecycleStatusId> {
+  if (raw === null || !raw.trim()) return INITIAL_WAIVERS_LIST_FILTERS.lifecycleStatusIds;
+  if (raw.trim() === LIFECYCLE_ALL_SENTINEL) return new Set();
+  return parseTypedSet<WaiversLifecycleStatusId>(parseCsvParam(raw), isSelectableLifecycleStatusId);
+}
+
 export interface WaiversListQueryState {
   readonly search: string;
   readonly orderBy: WaiversListOrderBy;
@@ -142,13 +162,12 @@ export function parseWaiversListParams(
         parseCsvParam(typeof params.threat === 'string' ? params.threat : null),
         isSelectableThreatLevelId,
       ),
-      lifecycleStatusIds: parseTypedSet<WaiversLifecycleStatusId>(
-        parseCsvParam(typeof params.lifecycle === 'string' ? params.lifecycle : null),
-        isSelectableLifecycleStatusId,
-      ),
-      expiryStatusIds: parseTypedSet<WaiversExpiryStatusId>(
-        parseCsvParam(typeof params.expiry === 'string' ? params.expiry : null),
-        isSelectableExpiryStatusId,
+      // No {@code lifecycle} URL param → use the page's initial default (every bucket except
+      // {@code expired}), matching the dashboard's non-expired waiver total.
+      // {@code lifecycle=none} is the sentinel for "user cleared every Status chip" and
+      // round-trips to an empty set. Any other non-empty value is the user's own choice.
+      lifecycleStatusIds: parseLifecycleParam(
+        typeof params.lifecycle === 'string' ? params.lifecycle : null,
       ),
       autoStatusIds: parseTypedSet<WaiversAutoStatusId>(
         parseCsvParam(typeof params.auto === 'string' ? params.auto : null),
@@ -180,8 +199,7 @@ export function buildWaiversListRouteParams(state: WaiversListQueryState): Recor
     sort: sort === 'newest' ? undefined : sort,
     page: state.page > 1 ? String(state.page) : undefined,
     threat: serializeCsvParam(state.filters.threatLevelIds),
-    lifecycle: serializeCsvParam(state.filters.lifecycleStatusIds),
-    expiry: serializeCsvParam(state.filters.expiryStatusIds),
+    lifecycle: serializeLifecycleParam(state.filters.lifecycleStatusIds),
     auto: serializeCsvParam(state.filters.autoStatusIds),
     state: serializeCsvParam(state.filters.waiverStateIds),
     scope: serializeCsvParam(state.filters.scopeIds),

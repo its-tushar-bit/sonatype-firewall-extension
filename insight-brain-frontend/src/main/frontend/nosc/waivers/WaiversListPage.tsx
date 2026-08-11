@@ -28,7 +28,7 @@ function rawRouteParamsSnapshot(params: Record<string, unknown>): string {
     sort: asOptionalString(params.sort),
     page: asOptionalString(params.page),
     threat: asOptionalString(params.threat),
-    expiry: asOptionalString(params.expiry),
+    lifecycle: asOptionalString(params.lifecycle),
     auto: asOptionalString(params.auto),
     org: asOptionalString(params.org),
     app: asOptionalString(params.app),

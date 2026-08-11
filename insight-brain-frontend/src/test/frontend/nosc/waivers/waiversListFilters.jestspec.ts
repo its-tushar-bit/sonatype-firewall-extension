@@ -5,6 +5,7 @@
  */
 import {
   EMPTY_WAIVERS_LIST_FILTERS,
+  INITIAL_WAIVERS_LIST_FILTERS,
   filtersEqual,
   hasActiveWaiversListFilters,
   toggleWaiversListFilterId,
@@ -12,17 +13,28 @@ import {
 } from 'MainRoot/nosc/waivers/waiversListFilters';
 
 describe('waiversListFilters', () => {
-  it('starts empty and has no active filters', () => {
-    expect(hasActiveWaiversListFilters(EMPTY_WAIVERS_LIST_FILTERS)).toBe(false);
+  it('initial state pre-selects every lifecycle bucket except expired and reads as no active user filter', () => {
+    expect(INITIAL_WAIVERS_LIST_FILTERS.lifecycleStatusIds.has('active')).toBe(true);
+    expect(INITIAL_WAIVERS_LIST_FILTERS.lifecycleStatusIds.has('expiring')).toBe(true);
+    expect(INITIAL_WAIVERS_LIST_FILTERS.lifecycleStatusIds.has('auto-waived')).toBe(true);
+    expect(INITIAL_WAIVERS_LIST_FILTERS.lifecycleStatusIds.has('expired')).toBe(false);
+    expect(hasActiveWaiversListFilters(INITIAL_WAIVERS_LIST_FILTERS)).toBe(false);
+    expect(waiversListFiltersToRequest(INITIAL_WAIVERS_LIST_FILTERS))
+      .toEqual({ lifecycleStatus: ['active', 'expiring', 'auto-waived'] });
+  });
+
+  it('EMPTY (all-sets-cleared) reads as an active deviation from the initial default', () => {
+    expect(hasActiveWaiversListFilters(EMPTY_WAIVERS_LIST_FILTERS)).toBe(true);
     expect(waiversListFiltersToRequest(EMPTY_WAIVERS_LIST_FILTERS)).toEqual({});
   });
 
   it('toggles a threat-level id on and back off', () => {
-    const on = toggleWaiversListFilterId(EMPTY_WAIVERS_LIST_FILTERS, 'threatLevelIds', 'Critical');
+    const on = toggleWaiversListFilterId(INITIAL_WAIVERS_LIST_FILTERS, 'threatLevelIds', 'Critical');
     expect(on.threatLevelIds.has('Critical')).toBe(true);
     expect(hasActiveWaiversListFilters(on)).toBe(true);
     const off = toggleWaiversListFilterId(on, 'threatLevelIds', 'Critical');
     expect(off.threatLevelIds.has('Critical')).toBe(false);
+    expect(hasActiveWaiversListFilters(off)).toBe(false);
   });
 
   it('ignores non-selectable threat-level ids like None or bogus values', () => {
@@ -32,10 +44,7 @@ describe('waiversListFilters', () => {
       .toBe(EMPTY_WAIVERS_LIST_FILTERS);
   });
 
-  it('ignores non-canonical expiry / auto ids', () => {
-    expect(
-      toggleWaiversListFilterId(EMPTY_WAIVERS_LIST_FILTERS, 'expiryStatusIds', 'WhoKnows'),
-    ).toBe(EMPTY_WAIVERS_LIST_FILTERS);
+  it('ignores non-canonical lifecycle / auto ids', () => {
     expect(
       toggleWaiversListFilterId(EMPTY_WAIVERS_LIST_FILTERS, 'lifecycleStatusIds', 'WhoKnows'),
     ).toBe(EMPTY_WAIVERS_LIST_FILTERS);

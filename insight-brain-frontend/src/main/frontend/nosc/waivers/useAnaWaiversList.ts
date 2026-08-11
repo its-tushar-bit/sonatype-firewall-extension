@@ -13,7 +13,7 @@ import {
   WaiversFilterFacetCounts,
 } from 'MainRoot/nosc/waivers/waiversListTypes';
 import {
-  EMPTY_WAIVERS_LIST_FILTERS,
+  INITIAL_WAIVERS_LIST_FILTERS,
   WaiversFilterSetGroup,
   WaiversListFilterState,
   filtersEqual,
@@ -47,7 +47,6 @@ const EMPTY_FACETS: WaiversFilterFacetCounts = {
   totalWaivers: 0,
   threatLevels: [],
   lifecycleStatuses: [],
-  expiryStatuses: [],
   autoStatuses: [],
   waiverStates: [],
   scopes: [],
@@ -162,12 +161,12 @@ export function useAnaWaiversList(
     () => initialState?.orderBy ?? DEFAULT_WAIVERS_LIST_ORDER_BY,
   );
   const [filters, setFilters] = useState<WaiversListFilterState>(
-    () => initialState?.filters ?? EMPTY_WAIVERS_LIST_FILTERS,
+    () => initialState?.filters ?? INITIAL_WAIVERS_LIST_FILTERS,
   );
   const initialQueryKey = waiversQueryCacheKey(
     initialState?.search ?? '',
     initialState?.orderBy ?? DEFAULT_WAIVERS_LIST_ORDER_BY,
-    initialState?.filters ?? EMPTY_WAIVERS_LIST_FILTERS,
+    initialState?.filters ?? INITIAL_WAIVERS_LIST_FILTERS,
   );
   /** 1-based page → searchAfter cursor. Hydrated from the module cache so a route remount
    * (non-dynamic page param) does not forget the cursor needed for page 2+. */
@@ -273,7 +272,7 @@ export function useAnaWaiversList(
   }, [clearCursors]);
 
   const resetFilters = useCallback(() => {
-    setFilters(EMPTY_WAIVERS_LIST_FILTERS);
+    setFilters(INITIAL_WAIVERS_LIST_FILTERS);
     setPage(1);
     clearCursors();
   }, [clearCursors]);

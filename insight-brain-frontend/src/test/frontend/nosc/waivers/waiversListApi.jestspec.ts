@@ -39,7 +39,6 @@ describe('waiversListApi (index-query)', () => {
         policyIds: new Set(['Critical CVSS 9+']),
         threatLevelIds: new Set(['Critical']),
         lifecycleStatusIds: new Set(['expiring']),
-        expiryStatusIds: new Set(['Active']),
         autoStatusIds: new Set(['Manual']),
         waiverStateIds: new Set(['existing']),
         scopeIds: new Set(['application']),
@@ -54,7 +53,6 @@ describe('waiversListApi (index-query)', () => {
       policy: ['Critical CVSS 9+'],
       policyThreatLevel: [8, 10],
       lifecycleStatus: ['expiring'],
-      expiryStatus: ['Active'],
       includeAutoWaivers: false,
       waiverStates: ['existing'],
       scope: ['application'],
@@ -149,11 +147,6 @@ describe('waiversListApi (index-query)', () => {
       expect.objectContaining({ id: 'expiring', label: 'Expires Soon', count: 2 }),
       expect.objectContaining({ id: 'expired', label: 'Expired', count: 1 }),
       expect.objectContaining({ id: 'auto-waived', label: 'Auto-waived', count: 4 }),
-    ]);
-    expect(mapped.facets.expiryStatuses).toEqual([
-      expect.objectContaining({ id: 'Active' }),
-      expect.objectContaining({ id: 'Expired' }),
-      expect.objectContaining({ id: 'Never' }),
     ]);
     expect(mapped.facets.autoStatuses).toEqual([
       expect.objectContaining({ id: 'Auto', label: 'Auto-generated', count: 4 }),

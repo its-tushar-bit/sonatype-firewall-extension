@@ -8,9 +8,6 @@ import { THREAT_GROUPS } from 'MainRoot/nosc/applications/applicationDetailUtils
 /** Policy threat-level bucket ids — aligned with the Applications rail so filter labels match. */
 export type WaiversThreatLevelId = (typeof THREAT_GROUPS)[number]['group'];
 
-/** {@code Active|Expired|Never} maps 1:1 to the backend {@code policyWaiverExpiryStatus} keyword. */
-export type WaiversExpiryStatusId = 'Active' | 'Expired' | 'Never';
-
 /** WAIVER lifecycle-status facet ids returned by Ana's fixed {@code status} facet. */
 export type WaiversLifecycleStatusId = 'active' | 'expiring' | 'expired' | 'auto-waived';
 
@@ -52,7 +49,6 @@ const SELECTABLE_THREAT_LEVEL_IDS = new Set<WaiversThreatLevelId>([
   'Low',
 ]);
 
-const SELECTABLE_EXPIRY_STATUS_IDS = new Set<WaiversExpiryStatusId>(['Active', 'Expired', 'Never']);
 const SELECTABLE_LIFECYCLE_STATUS_IDS = new Set<WaiversLifecycleStatusId>([
   'active',
   'expiring',
@@ -71,10 +67,6 @@ const SELECTABLE_POLICY_TYPE_IDS = new Set<WaiversPolicyTypeId>([
 
 export function isSelectableThreatLevelId(value: string): value is WaiversThreatLevelId {
   return SELECTABLE_THREAT_LEVEL_IDS.has(value as WaiversThreatLevelId);
-}
-
-export function isSelectableExpiryStatusId(value: string): value is WaiversExpiryStatusId {
-  return SELECTABLE_EXPIRY_STATUS_IDS.has(value as WaiversExpiryStatusId);
 }
 
 export function isSelectableLifecycleStatusId(value: string): value is WaiversLifecycleStatusId {
@@ -100,7 +92,6 @@ export function isSelectablePolicyTypeId(value: string): value is WaiversPolicyT
 export type WaiversListFilterState = {
   readonly threatLevelIds: ReadonlySet<WaiversThreatLevelId>;
   readonly lifecycleStatusIds: ReadonlySet<WaiversLifecycleStatusId>;
-  readonly expiryStatusIds: ReadonlySet<WaiversExpiryStatusId>;
   readonly autoStatusIds: ReadonlySet<WaiversAutoStatusId>;
   readonly waiverStateIds: ReadonlySet<WaiversStateId>;
   readonly scopeIds: ReadonlySet<WaiversScopeId>;
@@ -113,10 +104,15 @@ export type WaiversListFilterState = {
 
 export type WaiversFilterSetGroup = keyof WaiversListFilterState;
 
+/**
+ * The "no user-selected filters" state — every set empty. Kept for test seeds and toggle-diff
+ * comparisons where a known-empty baseline is useful. Not used for the initial page render; the
+ * page opens with {@link INITIAL_WAIVERS_LIST_FILTERS} so the count matches the dashboard's
+ * non-expired waiver total by default.
+ */
 export const EMPTY_WAIVERS_LIST_FILTERS: WaiversListFilterState = {
   threatLevelIds: new Set(),
   lifecycleStatusIds: new Set(),
-  expiryStatusIds: new Set(),
   autoStatusIds: new Set(),
   waiverStateIds: new Set(),
   scopeIds: new Set(),
@@ -126,24 +122,34 @@ export const EMPTY_WAIVERS_LIST_FILTERS: WaiversListFilterState = {
   policyIds: new Set(),
 };
 
+/**
+ * Initial filter state for the Waivers list page — pre-selects every lifecycle bucket EXCEPT
+ * {@code expired} so the default view hides expired waivers, matching the dashboard's Waivers
+ * tile total (which SQL-filters out expired waivers via {@code EXPIRY_TIME > now()}). Reset also
+ * returns to this state; users who want to see expired waivers explicitly toggle the
+ * {@code Expired} chip in the rail's "Status" section. Any user chip change surfaces via
+ * {@link hasActiveWaiversListFilters}. Aligned with CLM-44905's decision to wire the "Status"
+ * rail to {@code lifecycleStatus} rather than {@code expiryStatus}.
+ */
+export const INITIAL_WAIVERS_LIST_FILTERS: WaiversListFilterState = {
+  ...EMPTY_WAIVERS_LIST_FILTERS,
+  lifecycleStatusIds: new Set(['active', 'expiring', 'auto-waived']),
+};
+
+/**
+ * True when the user has changed any chip away from the page's initial default
+ * ({@link INITIAL_WAIVERS_LIST_FILTERS}). Drives the "Reset to default view" affordance in the
+ * rail — so it does NOT fire on a fresh load whose {@code lifecycleStatusIds} is
+ * {@code active + expiring + auto-waived} (that's the default, not a user selection), and it
+ * does fire the moment the user toggles any chip in or out of any group.
+ */
 export function hasActiveWaiversListFilters(filters: WaiversListFilterState): boolean {
-  return (
-    filters.threatLevelIds.size > 0
-    || filters.lifecycleStatusIds.size > 0
-    || filters.expiryStatusIds.size > 0
-    || filters.autoStatusIds.size > 0
-    || filters.waiverStateIds.size > 0
-    || filters.scopeIds.size > 0
-    || filters.policyTypeIds.size > 0
-    || filters.organizationIds.size > 0
-    || filters.applicationIds.size > 0
-    || filters.policyIds.size > 0
-  );
+  return !filtersEqual(filters, INITIAL_WAIVERS_LIST_FILTERS);
 }
 
 /**
  * Toggle a single id in one of the sidebar sets. Silently no-ops when the id is not a
- * selectable value for the group (e.g. threat=None, expiry=Bogus) so URL/state stays
+ * selectable value for the group (e.g. threat=None, lifecycle=Bogus) so URL/state stays
  * clean and callers do not need to guard.
  */
 export function toggleWaiversListFilterId(
@@ -153,7 +159,6 @@ export function toggleWaiversListFilterId(
 ): WaiversListFilterState {
   if (group === 'threatLevelIds' && !isSelectableThreatLevelId(id)) return filters;
   if (group === 'lifecycleStatusIds' && !isSelectableLifecycleStatusId(id)) return filters;
-  if (group === 'expiryStatusIds' && !isSelectableExpiryStatusId(id)) return filters;
   if (group === 'autoStatusIds' && !isSelectableAutoStatusId(id)) return filters;
   if (group === 'waiverStateIds' && !isSelectableStateId(id)) return filters;
   if (group === 'scopeIds' && !isSelectableScopeId(id)) return filters;
@@ -176,7 +181,6 @@ export function filtersEqual(
   const fields: WaiversFilterSetGroup[] = [
     'threatLevelIds',
     'lifecycleStatusIds',
-    'expiryStatusIds',
     'autoStatusIds',
     'waiverStateIds',
     'scopeIds',
@@ -222,7 +226,6 @@ export interface WaiversIndexQueryFilterFields {
   readonly policy?: ReadonlyArray<string>;
   readonly policyThreatLevel?: readonly [number, number];
   readonly lifecycleStatus?: ReadonlyArray<WaiversLifecycleStatusId>;
-  readonly expiryStatus?: ReadonlyArray<WaiversExpiryStatusId>;
   /** Classic: {@code false}=manual only; omitted otherwise (true is not sent). */
   readonly includeAutoWaivers?: boolean;
   /** Ana Auto-only chip → {@code isAuto:["true"]} (do not overload includeAutoWaivers). */
@@ -252,7 +255,6 @@ export function waiversListFiltersToRequest(
     policy?: ReadonlyArray<string>;
     policyThreatLevel?: readonly [number, number];
     lifecycleStatus?: ReadonlyArray<WaiversLifecycleStatusId>;
-    expiryStatus?: ReadonlyArray<WaiversExpiryStatusId>;
     includeAutoWaivers?: boolean;
     isAuto?: ReadonlyArray<'true' | 'false'>;
     waiverStates?: ReadonlyArray<WaiversStateId>;
@@ -275,9 +277,6 @@ export function waiversListFiltersToRequest(
   }
   if (filters.lifecycleStatusIds.size > 0) {
     out.lifecycleStatus = Array.from(filters.lifecycleStatusIds);
-  }
-  if (filters.expiryStatusIds.size > 0) {
-    out.expiryStatus = Array.from(filters.expiryStatusIds);
   }
   if (filters.waiverStateIds.size > 0) {
     out.waiverStates = Array.from(filters.waiverStateIds);
@@ -311,21 +310,6 @@ export function staticThreatLevelFacets(): ReadonlyArray<{
   readonly count: number;
 }> {
   return STATIC_THREAT_LEVEL_FACETS;
-}
-
-/** Static expiry facet rows: the three canonical {@code policyWaiverExpiryStatus} keyword values. */
-const STATIC_EXPIRY_STATUS_FACETS = [
-  { id: 'Active', label: 'Active', count: 0 },
-  { id: 'Expired', label: 'Expired', count: 0 },
-  { id: 'Never', label: 'Never expires', count: 0 },
-];
-
-export function staticExpiryStatusFacets(): ReadonlyArray<{
-  readonly id: string;
-  readonly label: string;
-  readonly count: number;
-}> {
-  return STATIC_EXPIRY_STATUS_FACETS;
 }
 
 /** Static lifecycle status rows for the Ana {@code status} facet. */

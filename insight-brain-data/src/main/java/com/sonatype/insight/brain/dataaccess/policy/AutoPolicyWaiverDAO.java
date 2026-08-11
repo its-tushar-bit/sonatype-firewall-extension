@@ -6,7 +6,9 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
@@ -90,6 +92,38 @@ public class AutoPolicyWaiverDAO
                 .fetch(this::toEntity);
           }
         });
+  }
+
+  /**
+   * Counts auto-waivers scoped to the given owners. No expiry or container predicate is
+   * needed — auto-waivers have neither column.
+   * <p>
+   * {@code accessibleOwnerIds} is never {@code null} on the dashboard metrics path;
+   * {@code null} means unscoped (internal callers only).
+   */
+  public long selectCount(final Set<String> accessibleOwnerIds) {
+    if (accessibleOwnerIds != null && accessibleOwnerIds.isEmpty()) {
+      return 0L;
+    }
+    if (accessibleOwnerIds == null) {
+      return selectCountInternal(null);
+    }
+    return getListWithSqlInClause(
+        accessibleOwnerIds,
+        chunk -> List.of(selectCountInternal(new HashSet<>(chunk))))
+            .stream()
+            .mapToLong(Long::longValue)
+            .sum();
+  }
+
+  private long selectCountInternal(final Set<String> accessibleOwnerIds) {
+    try (TransactionContext tx = createTransactionContext()) {
+      var query = tx.dsl().selectCount().from(AUTO_POLICY_WAIVER);
+      if (accessibleOwnerIds != null) {
+        return query.where(AUTO_POLICY_WAIVER.OWNER_ID.in(accessibleOwnerIds)).fetchOne(0, Long.class);
+      }
+      return query.fetchOne(0, Long.class);
+    }
   }
 
   public AutoPolicyWaiver getByIdAndOwnerIdNotNull(String autoPolicyWaiverId, String ownerId) {

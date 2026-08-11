@@ -30,6 +30,7 @@ import java.util.UUID;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
@@ -126,6 +127,14 @@ public class DashboardMetricsServiceTest
     tempEntity.newWaiver("hashOutsideExpiring", policy.getId(), app.getId(), null, "not expiring soon", new Date(),
         Date.from(expiringWindowUpperBound.plus(1, ChronoUnit.DAYS)));
 
+    // Auto-waivers are indexed alongside manual waivers on the Waivers page (POLICY_WAIVER docs
+    // with policyWaiverAuto=true), so the dashboard "existing" total counts them too — otherwise
+    // the tile would under-report vs the Waivers list on any tenant with auto-waivers.
+    int autoWaiverThreatLevel = 7;
+    boolean autoWaiverReachable = true;
+    boolean autoWaiverPathForward = false;
+    tempEntity.newAutoPolicyWaiver(app.getId(), autoWaiverThreatLevel, autoWaiverReachable, autoWaiverPathForward);
+
     PolicyWaiverRequest requested = new PolicyWaiverRequest("hashRequested", policy.getId(), app.getId(), "pending");
     requested.setStatus(PolicyWaiverRequestStatus.REQUESTED);
     tempEntity.newPolicyWaiverRequest(requested);
@@ -143,9 +152,12 @@ public class DashboardMetricsServiceTest
 
     DashboardMetricsDTO metrics = dashboardMetricsService.getMetrics(new DashboardMetricsRequestDTO());
 
-    assertThat(metrics.waivers.total).isEqualTo(5);
+    assertThat(metrics.waivers.total).isEqualTo(6);
     assertThat(metrics.waivers.source).isEqualTo("sql");
-    assertThat(metrics.waivers.breakdown).containsEntry("existing", 4L);
+    // "existing" folds manual + auto (both are already-granted waivers, indexed on the Waivers page).
+    // 4 manual waivers (hashExisting1, hashExisting2, hashExpiring, hashOutsideExpiring — all
+    // non-expired) plus 1 auto-waiver = 5.
+    assertThat(metrics.waivers.breakdown).containsEntry("existing", 5L);
     assertThat(metrics.waivers.breakdown).containsEntry("requested", 1L);
     assertThat(metrics.waivers.breakdown).containsEntry("expiring", 1L);
     assertThat(metrics.waivers.total)
@@ -165,6 +177,73 @@ public class DashboardMetricsServiceTest
           .orElseThrow()
           .count();
       assertThat(metrics.waivers.breakdown.get("expiring")).isEqualTo(railExpiringCount);
+    }
+    finally {
+      SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(false);
+    }
+  }
+
+  @Test
+  public void testGetMetrics_WaiverExistingCountMatchesWaiversPageExistingSlice() {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    Policy policy = tempEntity.newPolicy(org.getId());
+
+    tempEntity.newWaiver("hashActive1", policy.getId(), app.getId());
+    tempEntity.newWaiver("hashActive2", policy.getId(), app.getId());
+
+    // Expired manual waiver: excluded by both the SQL tile (EXPIRY_TIME > now()) and the Waivers
+    // page default (policyWaiverExpiryStatus in [Active, Never]). Adding it here proves both
+    // surfaces symmetrically drop expired waivers rather than one hiding while the other counts.
+    Date past = new Date(System.currentTimeMillis() - Duration.ofDays(1).toMillis());
+    tempEntity.newWaiver("hashExpired", policy.getId(), app.getId(), "expired-fixture", past);
+
+    int autoWaiverThreatLevel = 7;
+    boolean autoWaiverReachable = true;
+    boolean autoWaiverPathForward = false;
+    tempEntity.newAutoPolicyWaiver(app.getId(), autoWaiverThreatLevel, autoWaiverReachable, autoWaiverPathForward);
+
+    PolicyWaiverRequest requested = new PolicyWaiverRequest("hashRequested", policy.getId(), app.getId(), "pending");
+    requested.setStatus(PolicyWaiverRequestStatus.REQUESTED);
+    tempEntity.newPolicyWaiverRequest(requested);
+
+    User reader = tempEntity.newUser("metrics-waivers-parity-reader");
+    Role readRole = tempEntity.newRole(false /* global */, Permission.READ);
+    tempEntity.newMembershipMapping(org.getId(), readRole.getId(), reader.getUsername());
+
+    DashboardMetricsTestSupport.populateIndex(luceneSearchIndexClient);
+    loginAs(reader);
+
+    DashboardMetricsDTO metrics = dashboardMetricsService.getMetrics(new DashboardMetricsRequestDTO());
+
+    // Query the WAIVER index for the slice this PR reconciles: POLICY_WAIVER docs regardless of
+    // {@code policyWaiverAuto}, with the page's default lifecycle filter (every bucket except
+    // {@code expired}). The page's {@code existing} filter maps to manual-only
+    // ({@code policyWaiverAuto:"false"}) and {@code excluded} maps to auto
+    // ({@code policyWaiverAuto:"true"}); folding both gives the same "already granted" universe
+    // the dashboard tile's {@code existing} breakdown reports on. Requests and container-image
+    // group waivers are outside this slice by design (request-doc parity is pre-existing;
+    // container-image group parity is the noted deferral). Nexus One preview must be enabled so
+    // {@code IndexQueryService.query()} accepts the WAIVER index-query request.
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+    try {
+      IndexQueryService indexQueryService = lookup(IndexQueryService.class);
+      IndexQueryRequest pageRequest = new IndexQueryRequest(
+          "WAIVER",
+          Map.of(
+              "waiverStates", List.of("existing", "excluded"),
+              "lifecycleStatus", List.of("active", "expiring", "auto-waived")),
+          1,
+          25,
+          null,
+          null,
+          false);
+      IndexQueryResponse pageResponse = indexQueryService.query(IndexQueryType.WAIVER, pageRequest);
+
+      // Auto-waivers now fold into the tile's "existing" count (the fix this PR delivers), so
+      // the tile and the Waivers-page "already-granted + non-expired" slice agree on 3 waivers.
+      Long existingBreakdown = (Long) metrics.waivers.breakdown.get("existing");
+      assertThat(existingBreakdown).isEqualTo(pageResponse.totalEstimate());
     }
     finally {
       SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(false);
@@ -665,6 +744,7 @@ public class DashboardMetricsServiceTest
         new MetricFilterValidator(),
         mock(PolicyWaiverDAO.class),
         mock(PolicyWaiverRequestDAO.class),
+        mock(AutoPolicyWaiverDAO.class),
         modeProvider,
         readiness,
         scopeResolver,
@@ -703,6 +783,7 @@ public class DashboardMetricsServiceTest
         new MetricFilterValidator(),
         mock(PolicyWaiverDAO.class),
         mock(PolicyWaiverRequestDAO.class),
+        mock(AutoPolicyWaiverDAO.class),
         modeProvider,
         readiness,
         mock(DashboardMetricsScopeResolver.class),
@@ -755,6 +836,7 @@ public class DashboardMetricsServiceTest
         mock(SearchIndexClient.class),
         mock(PolicyWaiverDAO.class),
         mock(PolicyWaiverRequestDAO.class),
+        mock(AutoPolicyWaiverDAO.class),
         scopeResolver,
         coordinator);
 
@@ -777,7 +859,8 @@ public class DashboardMetricsServiceTest
     when(coordinator.countViolations(noAccess)).thenReturn(
         new MetricValueDTO(0L, Map.of("low", 0L, "moderate", 0L, "severe", 0L, "critical", 0L), "sql"));
     DashboardMetricsService service =
-        newSqlModeService(mock(SearchIndexClient.class), waiverDAO, waiverRequestDAO, scopeResolver, coordinator);
+        newSqlModeService(mock(SearchIndexClient.class), waiverDAO, waiverRequestDAO,
+            mock(AutoPolicyWaiverDAO.class), scopeResolver, coordinator);
 
     DashboardMetricsDTO metrics = service.getMetrics(new DashboardMetricsRequestDTO());
 
@@ -805,6 +888,7 @@ public class DashboardMetricsServiceTest
         searchIndexClient,
         mock(PolicyWaiverDAO.class),
         mock(PolicyWaiverRequestDAO.class),
+        mock(AutoPolicyWaiverDAO.class),
         scopeResolver,
         coordinator);
 
@@ -833,6 +917,7 @@ public class DashboardMetricsServiceTest
         mock(SearchIndexClient.class),
         mock(PolicyWaiverDAO.class),
         mock(PolicyWaiverRequestDAO.class),
+        mock(AutoPolicyWaiverDAO.class),
         scopeResolver,
         coordinator);
 
@@ -853,6 +938,7 @@ public class DashboardMetricsServiceTest
         searchIndexClient,
         mock(PolicyWaiverDAO.class),
         mock(PolicyWaiverRequestDAO.class),
+        mock(AutoPolicyWaiverDAO.class),
         scopeResolver,
         coordinator);
     DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
@@ -875,6 +961,7 @@ public class DashboardMetricsServiceTest
         searchIndexClient,
         mock(PolicyWaiverDAO.class),
         mock(PolicyWaiverRequestDAO.class),
+        mock(AutoPolicyWaiverDAO.class),
         queryableScopeResolver(),
         sqlCoordinatorReturning(1L));
     DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
@@ -1259,11 +1346,14 @@ public class DashboardMetricsServiceTest
 
     PolicyWaiverDAO policyWaiverDAO = mock(PolicyWaiverDAO.class);
     PolicyWaiverRequestDAO policyWaiverRequestDAO = mock(PolicyWaiverRequestDAO.class);
+    AutoPolicyWaiverDAO autoPolicyWaiverDAO = mock(AutoPolicyWaiverDAO.class);
+    lenient().when(autoPolicyWaiverDAO.selectCount(any())).thenReturn(0L);
     DashboardMetricsService service = new DashboardMetricsService(
         searchIndexClient,
         new MetricFilterValidator(),
         policyWaiverDAO,
         policyWaiverRequestDAO,
+        autoPolicyWaiverDAO,
         mock(DashboardMetricsSqlModeProvider.class),
         mock(DashboardMetricsSqlReadiness.class),
         mock(DashboardMetricsScopeResolver.class),
@@ -1297,11 +1387,14 @@ public class DashboardMetricsServiceTest
 
     PolicyWaiverDAO policyWaiverDAO = mock(PolicyWaiverDAO.class);
     PolicyWaiverRequestDAO policyWaiverRequestDAO = mock(PolicyWaiverRequestDAO.class);
+    AutoPolicyWaiverDAO autoPolicyWaiverDAO = mock(AutoPolicyWaiverDAO.class);
+    lenient().when(autoPolicyWaiverDAO.selectCount(any())).thenReturn(0L);
     DashboardMetricsService service = new DashboardMetricsService(
         searchIndexClient,
         new MetricFilterValidator(),
         policyWaiverDAO,
         policyWaiverRequestDAO,
+        autoPolicyWaiverDAO,
         mock(DashboardMetricsSqlModeProvider.class),
         mock(DashboardMetricsSqlReadiness.class),
         mock(DashboardMetricsScopeResolver.class),
@@ -1339,6 +1432,8 @@ public class DashboardMetricsServiceTest
 
     PolicyWaiverDAO policyWaiverDAO = mock(PolicyWaiverDAO.class);
     PolicyWaiverRequestDAO policyWaiverRequestDAO = mock(PolicyWaiverRequestDAO.class);
+    AutoPolicyWaiverDAO autoPolicyWaiverDAO = mock(AutoPolicyWaiverDAO.class);
+    lenient().when(autoPolicyWaiverDAO.selectCount(any())).thenReturn(0L);
     DashboardMetricsScopeResolver scopeResolver = mock(DashboardMetricsScopeResolver.class);
     when(scopeResolver.resolve(any())).thenReturn(
         new ResolvedScope(
@@ -1356,6 +1451,7 @@ public class DashboardMetricsServiceTest
         new MetricFilterValidator(),
         policyWaiverDAO,
         policyWaiverRequestDAO,
+        autoPolicyWaiverDAO,
         offModeProvider(),
         offSqlReadiness(),
         scopeResolver,
@@ -1650,6 +1746,7 @@ public class DashboardMetricsServiceTest
       final SearchIndexClient searchIndexClient,
       final PolicyWaiverDAO policyWaiverDAO,
       final PolicyWaiverRequestDAO policyWaiverRequestDAO,
+      final AutoPolicyWaiverDAO autoPolicyWaiverDAO,
       final DashboardMetricsScopeResolver scopeResolver,
       final DashboardMetricsSqlCoordinator coordinator)
   {
@@ -1658,6 +1755,7 @@ public class DashboardMetricsServiceTest
         searchIndexClient,
         policyWaiverDAO,
         policyWaiverRequestDAO,
+        autoPolicyWaiverDAO,
         scopeResolver,
         coordinator);
   }
@@ -1669,6 +1767,8 @@ public class DashboardMetricsServiceTest
   {
     PolicyWaiverDAO policyWaiverDAO = mock(PolicyWaiverDAO.class);
     PolicyWaiverRequestDAO policyWaiverRequestDAO = mock(PolicyWaiverRequestDAO.class);
+    AutoPolicyWaiverDAO autoPolicyWaiverDAO = mock(AutoPolicyWaiverDAO.class);
+    lenient().when(autoPolicyWaiverDAO.selectCount(any())).thenReturn(0L);
     lenient().when(policyWaiverDAO.selectCount(any())).thenReturn(0L);
     lenient().when(policyWaiverRequestDAO.selectCount(any())).thenReturn(0L);
     return newModeService(
@@ -1676,6 +1776,7 @@ public class DashboardMetricsServiceTest
         mock(SearchIndexClient.class),
         policyWaiverDAO,
         policyWaiverRequestDAO,
+        autoPolicyWaiverDAO,
         scopeResolver,
         coordinator);
   }
@@ -1685,6 +1786,7 @@ public class DashboardMetricsServiceTest
       final SearchIndexClient searchIndexClient,
       final PolicyWaiverDAO policyWaiverDAO,
       final PolicyWaiverRequestDAO policyWaiverRequestDAO,
+      final AutoPolicyWaiverDAO autoPolicyWaiverDAO,
       final DashboardMetricsScopeResolver scopeResolver,
       final DashboardMetricsSqlCoordinator coordinator)
   {
@@ -1700,6 +1802,7 @@ public class DashboardMetricsServiceTest
         new MetricFilterValidator(),
         policyWaiverDAO,
         policyWaiverRequestDAO,
+        autoPolicyWaiverDAO,
         modeProvider,
         readiness,
         scopeResolver,
@@ -1743,6 +1846,8 @@ public class DashboardMetricsServiceTest
   {
     PolicyWaiverDAO policyWaiverDAO = mock(PolicyWaiverDAO.class);
     PolicyWaiverRequestDAO policyWaiverRequestDAO = mock(PolicyWaiverRequestDAO.class);
+    AutoPolicyWaiverDAO autoPolicyWaiverDAO = mock(AutoPolicyWaiverDAO.class);
+    lenient().when(autoPolicyWaiverDAO.selectCount(any())).thenReturn(0L);
     lenient().when(policyWaiverDAO.selectCount(any())).thenReturn(0L);
     lenient().when(policyWaiverRequestDAO.selectCount(any())).thenReturn(0L);
     lenient()
@@ -1753,6 +1858,7 @@ public class DashboardMetricsServiceTest
         metricFilterValidator,
         policyWaiverDAO,
         policyWaiverRequestDAO,
+        autoPolicyWaiverDAO,
         offModeProvider(),
         offSqlReadiness(),
         queryableScopeResolver(),

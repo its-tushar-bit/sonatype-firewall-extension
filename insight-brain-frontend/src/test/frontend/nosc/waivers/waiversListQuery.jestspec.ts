@@ -19,7 +19,6 @@ describe('waiversListQuery', () => {
       page: '2',
       threat: 'Critical,Severe',
       lifecycle: 'active,expiring',
-      expiry: 'Active',
       auto: 'Auto,Manual',
       state: 'existing,requested',
       scope: 'application',
@@ -33,7 +32,6 @@ describe('waiversListQuery', () => {
     expect(state.page).toBe(2);
     expect([...state.filters.threatLevelIds].sort()).toEqual(['Critical', 'Severe']);
     expect([...state.filters.lifecycleStatusIds].sort()).toEqual(['active', 'expiring']);
-    expect([...state.filters.expiryStatusIds]).toEqual(['Active']);
     expect([...state.filters.autoStatusIds].sort()).toEqual(['Auto', 'Manual']);
     expect([...state.filters.waiverStateIds].sort()).toEqual(['existing', 'requested']);
     expect([...state.filters.scopeIds]).toEqual(['application']);
@@ -56,11 +54,10 @@ describe('waiversListQuery', () => {
     expect(parseWaiversListParams({ page: 0 }).page).toBe(1);
   });
 
-  it('drops invalid threat / expiry / auto / state tokens without falling over', () => {
+  it('drops invalid threat / lifecycle / auto / state tokens without falling over', () => {
     const state = parseWaiversListParams({
       threat: 'None,Bogus,Critical',
       lifecycle: 'active,who-knows,auto-waived',
-      expiry: 'Never,WhoKnows',
       auto: 'Robot,Auto',
       state: 'excluded,existing,bogus',
       scope: 'repository,application',
@@ -68,14 +65,13 @@ describe('waiversListQuery', () => {
     });
     expect([...state.filters.threatLevelIds]).toEqual(['Critical']);
     expect([...state.filters.lifecycleStatusIds]).toEqual(['active', 'auto-waived']);
-    expect([...state.filters.expiryStatusIds]).toEqual(['Never']);
     expect([...state.filters.autoStatusIds]).toEqual(['Auto']);
     expect([...state.filters.waiverStateIds]).toEqual(['existing']);
     expect([...state.filters.scopeIds]).toEqual(['application']);
     expect([...state.filters.policyTypeIds]).toEqual(['security']);
   });
 
-  it('builds hash params with defaults omitted for round-trip cleanliness', () => {
+  it('omits URL params whose set is empty, except lifecycle which serializes an explicit "show all" sentinel', () => {
     const params = buildWaiversListRouteParams({
       search: '',
       orderBy: DEFAULT_WAIVERS_LIST_ORDER_BY,
@@ -83,7 +79,6 @@ describe('waiversListQuery', () => {
       filters: {
         threatLevelIds: new Set(),
         lifecycleStatusIds: new Set(),
-        expiryStatusIds: new Set(),
         autoStatusIds: new Set(),
         waiverStateIds: new Set(),
         scopeIds: new Set(),
@@ -98,8 +93,10 @@ describe('waiversListQuery', () => {
       sort: undefined,
       page: undefined,
       threat: undefined,
-      lifecycle: undefined,
-      expiry: undefined,
+      // Empty lifecycle set is distinct from the no-param default (active + expiring +
+      // auto-waived) — the sentinel preserves the user's "show all incl. expired" selection
+      // through a page reload.
+      lifecycle: 'none',
       auto: undefined,
       state: undefined,
       scope: undefined,
@@ -110,6 +107,33 @@ describe('waiversListQuery', () => {
     });
   });
 
+  it('round-trips a cleared lifecycle selection through the "none" sentinel', () => {
+    const params = buildWaiversListRouteParams({
+      search: '',
+      orderBy: DEFAULT_WAIVERS_LIST_ORDER_BY,
+      page: 1,
+      filters: {
+        threatLevelIds: new Set(),
+        lifecycleStatusIds: new Set(),
+        autoStatusIds: new Set(),
+        waiverStateIds: new Set(),
+        scopeIds: new Set(),
+        policyTypeIds: new Set(),
+        organizationIds: new Set(),
+        applicationIds: new Set(),
+        policyIds: new Set(),
+      },
+    });
+    expect(params.lifecycle).toBe('none');
+    const reparsed = parseWaiversListParams(params as Record<string, unknown>);
+    expect([...reparsed.filters.lifecycleStatusIds]).toEqual([]);
+  });
+
+  it('restores the initial (active + expiring + auto-waived) default when the lifecycle param is absent', () => {
+    expect([...parseWaiversListParams({}).filters.lifecycleStatusIds].sort())
+      .toEqual(['active', 'auto-waived', 'expiring']);
+  });
+
   it('round-trips a non-default state back to the parsed shape', () => {
     const initial = {
       search: 'guava',
@@ -118,7 +142,6 @@ describe('waiversListQuery', () => {
       filters: {
         threatLevelIds: new Set(['Critical', 'Low'] as const),
         lifecycleStatusIds: new Set(['expired', 'auto-waived'] as const),
-        expiryStatusIds: new Set(['Active'] as const),
         autoStatusIds: new Set(['Manual'] as const),
         waiverStateIds: new Set(['requested'] as const),
         scopeIds: new Set(['organization'] as const),
@@ -135,7 +158,6 @@ describe('waiversListQuery', () => {
     expect(reparsed.page).toBe(initial.page);
     expect([...reparsed.filters.threatLevelIds].sort()).toEqual(['Critical', 'Low']);
     expect([...reparsed.filters.lifecycleStatusIds].sort()).toEqual(['auto-waived', 'expired']);
-    expect([...reparsed.filters.expiryStatusIds]).toEqual(['Active']);
     expect([...reparsed.filters.autoStatusIds]).toEqual(['Manual']);
     expect([...reparsed.filters.waiverStateIds]).toEqual(['requested']);
     expect([...reparsed.filters.scopeIds]).toEqual(['organization']);

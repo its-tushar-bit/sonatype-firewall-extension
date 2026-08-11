@@ -254,7 +254,7 @@ export default function WaiversAnaPage({
                           data-testid="waivers-empty-reset-filters"
                         >
                           <ActionIcons.Refresh size={14} aria-hidden />
-                          Reset filters
+                          Reset to default view
                         </Button>
                       )}
                     </Flex>

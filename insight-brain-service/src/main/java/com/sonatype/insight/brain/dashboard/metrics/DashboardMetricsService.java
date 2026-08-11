@@ -21,6 +21,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
@@ -118,6 +119,8 @@ public class DashboardMetricsService
 
   private final PolicyWaiverRequestDAO policyWaiverRequestDAO;
 
+  private final AutoPolicyWaiverDAO autoPolicyWaiverDAO;
+
   private final DashboardMetricsSqlModeProvider sqlModeProvider;
 
   private final DashboardMetricsSqlReadiness sqlReadiness;
@@ -144,6 +147,7 @@ public class DashboardMetricsService
       MetricFilterValidator metricFilterValidator,
       PolicyWaiverDAO policyWaiverDAO,
       PolicyWaiverRequestDAO policyWaiverRequestDAO,
+      AutoPolicyWaiverDAO autoPolicyWaiverDAO,
       DashboardMetricsSqlModeProvider sqlModeProvider,
       DashboardMetricsSqlReadiness sqlReadiness,
       DashboardMetricsScopeResolver sqlScopeResolver,
@@ -158,6 +162,7 @@ public class DashboardMetricsService
     this.metricFilterValidator = metricFilterValidator;
     this.policyWaiverDAO = policyWaiverDAO;
     this.policyWaiverRequestDAO = policyWaiverRequestDAO;
+    this.autoPolicyWaiverDAO = autoPolicyWaiverDAO;
     this.sqlModeProvider = sqlModeProvider;
     this.sqlReadiness = sqlReadiness;
     this.sqlScopeResolver = sqlScopeResolver;
@@ -350,7 +355,12 @@ public class DashboardMetricsService
     Set<String> accessibleOwnerIds = scope.ownerIds();
     Date now = new Date();
     Date upperBound = expiringCountUpperBound();
-    long existingWaivers = policyWaiverDAO.selectCount(accessibleOwnerIds);
+    // Both manual and auto-waivers are "already granted" — the Ana index (WAIVER doc type) indexes
+    // both and the Waivers list page shows both, so the dashboard total counts both under
+    // {@code existing}. {@code requested} covers only pending waiver requests.
+    long manualWaivers = policyWaiverDAO.selectCount(accessibleOwnerIds);
+    long autoWaivers = autoPolicyWaiverDAO.selectCount(accessibleOwnerIds);
+    long existingWaivers = manualWaivers + autoWaivers;
     long requestedWaivers = policyWaiverRequestDAO.selectCount(accessibleOwnerIds);
     long expiringWaivers = policyWaiverDAO.selectExpiringCount(accessibleOwnerIds, now, upperBound);
     return new MetricValueDTO(

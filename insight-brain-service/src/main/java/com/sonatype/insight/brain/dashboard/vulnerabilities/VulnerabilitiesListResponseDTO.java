@@ -24,6 +24,9 @@ public class VulnerabilitiesListResponseDTO
 
   public long total;
 
+  /** False when {@code total} is a backend estimate rather than an exact distinct count. */
+  public Boolean totalExact;
+
   public int page;
 
   public int pageSize;

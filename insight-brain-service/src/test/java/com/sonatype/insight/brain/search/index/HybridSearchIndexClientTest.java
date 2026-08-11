@@ -210,6 +210,57 @@ public class HybridSearchIndexClientTest
   }
 
   @Test
+  public void rankGroupsByMaxMetricDelegatesToPrimary() {
+    RankedGroupsResult expected =
+        new RankedGroupsResult(List.of(new RankedGroup("cve-2021-44228", 10.0f)), 1L, true, Map.of(), 0L);
+    when(primaryClient.rankGroupsByMaxMetric("q", "g", "m", 25, false, Map.of())).thenReturn(expected);
+
+    RankedGroupsResult actual =
+        hybridClient.rankGroupsByMaxMetric("q", "g", "m", 25, false, Map.of());
+
+    assertThat(actual).isEqualTo(expected);
+  }
+
+  @Test
+  public void rankGroupsByMaxMetricFallsBackToSecondaryWhenPrimaryFails() {
+    RankedGroupsResult expected =
+        new RankedGroupsResult(List.of(new RankedGroup("cve-2021-45046", 9.0f)), 1L, true, Map.of(), 0L);
+    when(primaryClient.rankGroupsByMaxMetric("q", "g", "m", 25, false, Map.of()))
+        .thenThrow(new SearchIndexException(new RuntimeException("primary down")));
+    when(secondaryClient.rankGroupsByMaxMetric("q", "g", "m", 25, false, Map.of())).thenReturn(expected);
+
+    RankedGroupsResult actual =
+        hybridClient.rankGroupsByMaxMetric("q", "g", "m", 25, false, Map.of());
+
+    assertThat(actual).isEqualTo(expected);
+  }
+
+  @Test
+  public void rankGroupsByMaxMetricThrowsExceptionWhenBothClientsFail() {
+    when(primaryClient.rankGroupsByMaxMetric("q", "g", "m", 25, false, Map.of()))
+        .thenThrow(new RuntimeException("primary down"));
+    when(secondaryClient.rankGroupsByMaxMetric("q", "g", "m", 25, false, Map.of()))
+        .thenThrow(new RuntimeException("secondary down"));
+
+    assertThatThrownBy(() -> hybridClient.rankGroupsByMaxMetric("q", "g", "m", 25, false, Map.of()))
+        .isInstanceOf(SearchIndexException.class)
+        .hasMessageContaining("Ranked groups failed on both primary and secondary clients");
+  }
+
+  @Test
+  public void rankGroupsByMaxMetricPreservesAPrimaryConflictWhenTheSecondaryAlsoFails() {
+    // A conflict carries its own downstream status, so wrapping it in the generic dual-failure
+    // exception would turn a retryable answer into a server error.
+    ConflictException conflict = new ConflictException("index is rebuilding");
+    when(primaryClient.rankGroupsByMaxMetric("q", "g", "m", 25, false, Map.of())).thenThrow(conflict);
+    when(secondaryClient.rankGroupsByMaxMetric("q", "g", "m", 25, false, Map.of()))
+        .thenThrow(new RuntimeException("secondary down"));
+
+    assertThatThrownBy(() -> hybridClient.rankGroupsByMaxMetric("q", "g", "m", 25, false, Map.of()))
+        .isSameAs(conflict);
+  }
+
+  @Test
   public void testSearchIndex_UsesPrimaryClient() {
     // Given
     SearchResultDTO expectedResult = new SearchResultDTO();

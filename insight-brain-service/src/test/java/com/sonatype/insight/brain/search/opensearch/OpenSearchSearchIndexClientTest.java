@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.SearchConfig;
 import com.sonatype.insight.brain.search.global.GlobalSearchRequest;
+import com.sonatype.insight.brain.search.index.RankedGroupsResult;
 import com.sonatype.insight.brain.search.index.SearchIndexException;
 import com.sonatype.insight.brain.search.lucene.DocumentBuilderHelper;
 import com.sonatype.insight.brain.search.lucene.LuceneComponents;
@@ -46,6 +47,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.utils.CvssV3Severity;
 
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.junit.Before;
@@ -374,6 +376,168 @@ public class OpenSearchSearchIndexClientTest
     // desiredStartIndex=(2-1)*10=10, so size=desiredStartIndex+pageSize=20 (the SECOND window),
     // not 10 (a repeat of the first page).
     assertThat(captor.getValue().size()).isEqualTo(20);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void rankGroupsByMaxMetric_ordersTermsAggregationByMaxSubAggregation() throws Exception {
+    SearchResponse<Map> response = mock(SearchResponse.class);
+    when(response.aggregations()).thenReturn(null);
+    when(openSearchClient.search(any(SearchRequest.class), eq(Map.class))).thenReturn(response);
+
+    client.rankGroupsByMaxMetric(
+        "itemType:security_vulnerability",
+        FieldIdentifier.VULNERABILITY_ID.label,
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        25,
+        false,
+        CvssV3Severity.halfOpenScoreBands());
+
+    ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+    org.mockito.Mockito.verify(openSearchClient).search(captor.capture(), eq(Map.class));
+    SearchRequest request = captor.getValue();
+
+    var terms = request.aggregations().get("rankedGroups").terms();
+    assertThat(terms.size()).isEqualTo(25);
+    assertThat(terms.shardSize()).isEqualTo(1000);
+    assertThat(request.aggregations().get("rankedGroups").aggregations()).containsKey("groupMetric");
+    assertThat(request.aggregations()).containsKeys("distinctGroups", "metricBands");
+    assertThat(request.aggregations().get("distinctGroups").cardinality().precisionThreshold())
+        .isEqualTo(40_000);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void rankGroupsByMaxMetric_ordersTermsAggregationByMetricThenKeyAscendingTieBreak() throws Exception {
+    // Many CVEs share a CVSS score (7.5 and 9.8 are extremely common), so a terms order on the metric
+    // sub-aggregation alone leaves ties unspecified. The list service pages this with offset
+    // arithmetic, so an unstable tie order lets a row appear on two pages or be skipped entirely.
+    // A second _key:asc criterion pins the tie-break to the lowercased term's byte order, matching
+    // the ascending-groupValue tie-break of the Lucene global-ordinal comparator.
+    SearchResponse<Map> response = mock(SearchResponse.class);
+    when(response.aggregations()).thenReturn(null);
+    when(openSearchClient.search(any(SearchRequest.class), eq(Map.class))).thenReturn(response);
+
+    client.rankGroupsByMaxMetric(
+        "itemType:security_vulnerability",
+        FieldIdentifier.VULNERABILITY_ID.label,
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        25,
+        false,
+        CvssV3Severity.halfOpenScoreBands());
+
+    ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+    org.mockito.Mockito.verify(openSearchClient).search(captor.capture(), eq(Map.class));
+    var order = captor.getValue().aggregations().get("rankedGroups").terms().order();
+
+    assertThat(order).hasSize(2);
+    assertThat(order.get(0)).containsEntry("groupMetric", org.opensearch.client.opensearch._types.SortOrder.Desc);
+    assertThat(order.get(1)).containsEntry("_key", org.opensearch.client.opensearch._types.SortOrder.Asc);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void rankGroupsByMaxMetric_ascendingRequest_keyTieBreakStaysAscending() throws Exception {
+    // The contract ties-break ascending regardless of the metric direction, the same way the Lucene
+    // comparator does: only the primary "groupMetric" criterion should flip with `ascending`.
+    SearchResponse<Map> response = mock(SearchResponse.class);
+    when(response.aggregations()).thenReturn(null);
+    when(openSearchClient.search(any(SearchRequest.class), eq(Map.class))).thenReturn(response);
+
+    client.rankGroupsByMaxMetric(
+        "itemType:security_vulnerability",
+        FieldIdentifier.VULNERABILITY_ID.label,
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        25,
+        true,
+        CvssV3Severity.halfOpenScoreBands());
+
+    ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+    org.mockito.Mockito.verify(openSearchClient).search(captor.capture(), eq(Map.class));
+    var order = captor.getValue().aggregations().get("rankedGroups").terms().order();
+
+    assertThat(order).hasSize(2);
+    assertThat(order.get(0)).containsEntry("groupMetric", org.opensearch.client.opensearch._types.SortOrder.Asc);
+    assertThat(order.get(1)).containsEntry("_key", org.opensearch.client.opensearch._types.SortOrder.Asc);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void rankGroupsByMaxMetric_reportsDistinctCountAsInexactAndZeroFillsBands() throws Exception {
+    SearchResponse<Map> response = mock(SearchResponse.class);
+    when(response.aggregations()).thenReturn(null);
+    when(openSearchClient.search(any(SearchRequest.class), eq(Map.class))).thenReturn(response);
+
+    RankedGroupsResult result = client.rankGroupsByMaxMetric(
+        "itemType:security_vulnerability",
+        FieldIdentifier.VULNERABILITY_ID.label,
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        25,
+        false,
+        CvssV3Severity.halfOpenScoreBands());
+
+    assertThat(result.distinctGroupCountExact()).isFalse();
+    assertThat(result.groups()).isEmpty();
+    assertThat(result.bandCounts().keySet())
+        .containsExactlyElementsOf(CvssV3Severity.halfOpenScoreBands().keySet());
+    assertThat(result.bandCounts().values()).containsOnly(0L);
+    assertThat(result.unbandedGroupCount()).isZero();
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void rankGroupsByMaxMetric_hugeLimit_shardSizeStaysPositive() throws Exception {
+    // shardSize over-fetches 5x the limit. Computed in int arithmetic that product overflows to a
+    // negative number for limits above ~429M, and OpenSearch rejects a negative shard_size outright.
+    SearchResponse<Map> response = mock(SearchResponse.class);
+    when(response.aggregations()).thenReturn(null);
+    when(openSearchClient.search(any(SearchRequest.class), eq(Map.class))).thenReturn(response);
+
+    client.rankGroupsByMaxMetric(
+        "itemType:security_vulnerability",
+        FieldIdentifier.VULNERABILITY_ID.label,
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        Integer.MAX_VALUE,
+        false,
+        CvssV3Severity.halfOpenScoreBands());
+
+    ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+    org.mockito.Mockito.verify(openSearchClient).search(captor.capture(), eq(Map.class));
+    assertThat(captor.getValue().aggregations().get("rankedGroups").terms().shardSize())
+        .isEqualTo(Integer.MAX_VALUE);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void rankGroupsByMaxMetric_foldsDocumentsWithNoMetricInBelowTheScoreFloor() throws Exception {
+    // Ordering the buckets on a maximum that some bucket may not have leaves the position of an
+    // unscored vulnerability up to the backend. Folding those documents in below the 0.0 CVSS floor
+    // gives every bucket a number, so ordering is decided here rather than by that behaviour. The
+    // sentinel has to sit below the floor: above the 10.0 ceiling it would win the maximum and
+    // corrupt the metric of any vulnerability holding both scored and unscored documents.
+    SearchResponse<Map> response = mock(SearchResponse.class);
+    when(response.aggregations()).thenReturn(null);
+    when(openSearchClient.search(any(SearchRequest.class), eq(Map.class))).thenReturn(response);
+
+    client.rankGroupsByMaxMetric(
+        "itemType:security_vulnerability",
+        FieldIdentifier.VULNERABILITY_ID.label,
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        25,
+        false,
+        CvssV3Severity.halfOpenScoreBands());
+
+    ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+    org.mockito.Mockito.verify(openSearchClient).search(captor.capture(), eq(Map.class));
+    double sentinel = captor.getValue()
+        .aggregations()
+        .get("rankedGroups")
+        .aggregations()
+        .get("groupMetric")
+        .max()
+        .missing()
+        .doubleValue();
+    assertThat(sentinel).isLessThan(0.0d);
   }
 
   private void stubMaxResultWindow() throws Exception {

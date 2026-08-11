@@ -12,9 +12,11 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
@@ -33,6 +35,8 @@ import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.MetricAggregationResult;
+import com.sonatype.insight.brain.search.index.RankedGroup;
+import com.sonatype.insight.brain.search.index.RankedGroupsResult;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
@@ -671,6 +675,186 @@ public class LuceneSearchIndexClientAggregateTest
             FieldIdentifier.VULNERABILITY_SEVERITY.label,
             inverted))
         .withMessageContaining("inverted");
+  }
+
+  @Test
+  public void testRankGroupsByMaxMetric_RanksDistinctVulnerabilitiesByHighestCvss() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    newAppReport(app.getId(), Stage.ID_BUILD, "rankGroupsReport", "/IndexSearchingTest/componentsMetricReport");
+
+    luceneSearchIndexClient.populateIndex();
+
+    RankedGroupsResult result = luceneSearchIndexClient.rankGroupsByMaxMetric(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
+        FieldIdentifier.VULNERABILITY_ID.label,
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        25,
+        false,
+        CvssV3Severity.halfOpenScoreBands());
+
+    // Four SECURITY_VULNERABILITY docs, but rows are distinct vulnerabilities.
+    assertThat(result.distinctGroupCount()).isEqualTo(result.groups().size());
+    assertThat(result.distinctGroupCountExact()).isTrue();
+    assertThat(result.groups()).isNotEmpty();
+    assertThat(result.groups()).extracting(RankedGroup::groupValue).doesNotHaveDuplicates();
+    assertThat(result.groups()).extracting(RankedGroup::groupValue)
+        .allSatisfy(id -> assertThat(id).isEqualTo(id.toLowerCase(Locale.ROOT)));
+
+    // Descending CVSS, nulls last. This fixture happens to score every vulnerability, so the
+    // trailing "nulls" slice is empty; allMatch (unlike containsOnlyNulls) holds vacuously for an
+    // empty slice, so the assertion still expresses "any unscored group sorts after every scored one"
+    // without assuming this fixture has an unscored vulnerability.
+    List<Float> scores = result.groups().stream().map(RankedGroup::metricValue).toList();
+    List<Float> scored = scores.stream().filter(java.util.Objects::nonNull).toList();
+    assertThat(scored).isSortedAccordingTo(Comparator.reverseOrder());
+    assertThat(scores.subList(scored.size(), scores.size())).allMatch(java.util.Objects::isNull);
+  }
+
+  @Test
+  public void testRankGroupsByMaxMetric_BandCountsAndUnbandedSumToDistinctTotal() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    newAppReport(app.getId(), Stage.ID_BUILD, "rankGroupsBandsReport",
+        "/IndexSearchingTest/componentsMetricReport");
+
+    luceneSearchIndexClient.populateIndex();
+
+    RankedGroupsResult result = luceneSearchIndexClient.rankGroupsByMaxMetric(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
+        FieldIdentifier.VULNERABILITY_ID.label,
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        25,
+        false,
+        CvssV3Severity.halfOpenScoreBands());
+
+    assertThat(result.bandCounts().keySet())
+        .containsExactlyElementsOf(CvssV3Severity.halfOpenScoreBands().keySet());
+    long banded = result.bandCounts().values().stream().mapToLong(Long::longValue).sum();
+    assertThat(banded + result.unbandedGroupCount()).isEqualTo(result.distinctGroupCount());
+  }
+
+  @Test
+  public void testRankGroupsByMaxMetric_LimitBoundsGroupsButNotDistinctCount() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    newAppReport(app.getId(), Stage.ID_BUILD, "rankGroupsLimitReport",
+        "/IndexSearchingTest/componentsMetricReport");
+
+    luceneSearchIndexClient.populateIndex();
+
+    RankedGroupsResult unlimited = luceneSearchIndexClient.rankGroupsByMaxMetric(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
+        FieldIdentifier.VULNERABILITY_ID.label,
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        25, false, CvssV3Severity.halfOpenScoreBands());
+    RankedGroupsResult limited = luceneSearchIndexClient.rankGroupsByMaxMetric(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
+        FieldIdentifier.VULNERABILITY_ID.label,
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        1, false, CvssV3Severity.halfOpenScoreBands());
+
+    assertThat(limited.groups()).hasSize(1);
+    assertThat(limited.distinctGroupCount()).isEqualTo(unlimited.distinctGroupCount());
+    assertThat(limited.groups().get(0)).isEqualTo(unlimited.groups().get(0));
+  }
+
+  @Test
+  public void testRankGroupsByMaxMetric_FailsClosed_UserWithNoReadContextsGetsEmpty() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    newAppReport(app.getId(), Stage.ID_BUILD, "rankGroupsFailClosed",
+        "/IndexSearchingTest/componentsMetricReport");
+
+    luceneSearchIndexClient.populateIndex();
+
+    actAsUser("user-with-no-permissions");
+
+    RankedGroupsResult result = luceneSearchIndexClient.rankGroupsByMaxMetric(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
+        FieldIdentifier.VULNERABILITY_ID.label,
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        25, false, CvssV3Severity.halfOpenScoreBands());
+
+    assertThat(result.groups()).isEmpty();
+    assertThat(result.distinctGroupCount()).isZero();
+  }
+
+  /**
+   * Loads the dedicated {@code rankGroupsEdgeCasesReport} fixture: 4 distinct CVEs across 4
+   * components — one with no CVSS score, two ({@code CVE-RANK-TIE-A}, {@code CVE-RANK-TIE-B})
+   * tied at exactly 6.5 (medium band), and one ({@code CVE-RANK-BOUNDARY}) at exactly 7.0, the
+   * medium/high band boundary. Unlike {@code componentsMetricReport} (whose 4 CVEs are all scored
+   * and land in 4 different, non-adjacent bands), this fixture exercises the NaN-sentinel,
+   * unbanded-count, tie-break, and half-open-boundary paths that {@code componentsMetricReport}
+   * cannot. {@code security.json}'s unscored entry omits the {@code score} key entirely;
+   * {@code ComponentLoader} reads it via {@code JsonUtils.getNullableFloat}, which returns
+   * {@code null} for a missing key, so the report pipeline (not just the low-level
+   * {@code DocumentBuilder} test helpers) can produce a CVE with no severity.
+   */
+  private RankedGroupsResult rankGroupsEdgeCases(final int limit, final boolean ascending) throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    newAppReport(app.getId(), Stage.ID_BUILD, "rankGroupsEdgeCases-" + System.nanoTime(),
+        "/IndexSearchingTest/rankGroupsEdgeCasesReport");
+
+    luceneSearchIndexClient.populateIndex();
+
+    return luceneSearchIndexClient.rankGroupsByMaxMetric(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
+        FieldIdentifier.VULNERABILITY_ID.label,
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        limit,
+        ascending,
+        CvssV3Severity.halfOpenScoreBands());
+  }
+
+  @Test
+  public void testRankGroupsByMaxMetric_UnscoredVulnerabilitySortsLastWithNullMetric() throws Exception {
+    RankedGroupsResult result = rankGroupsEdgeCases(25, false);
+
+    RankedGroup last = result.groups().get(result.groups().size() - 1);
+    assertThat(last.groupValue()).isEqualTo("cve-rank-unscored");
+    assertThat(last.metricValue()).isNull();
+    // Every other group is scored, so the unscored CVE is the unique null and it sorts last.
+    assertThat(result.groups()).filteredOn(g -> g.metricValue() == null).containsExactly(last);
+  }
+
+  @Test
+  public void testRankGroupsByMaxMetric_UnbandedCountMatchesUnscoredAndSumsToDistinctTotal() throws Exception {
+    RankedGroupsResult result = rankGroupsEdgeCases(25, false);
+
+    assertThat(result.distinctGroupCount()).isEqualTo(4);
+    // Exactly one unscored CVE (CVE-RANK-UNSCORED) is unbanded; the other three are all scored.
+    assertThat(result.unbandedGroupCount()).isEqualTo(1);
+    long banded = result.bandCounts().values().stream().mapToLong(Long::longValue).sum();
+    assertThat(banded + result.unbandedGroupCount()).isEqualTo(result.distinctGroupCount());
+  }
+
+  @Test
+  public void testRankGroupsByMaxMetric_TiedMetricsBreakTieByAscendingVulnerabilityId() throws Exception {
+    RankedGroupsResult result = rankGroupsEdgeCases(25, false);
+
+    // Descending metric: CVE-RANK-BOUNDARY (7.0) first, then the two 6.5-tied CVEs, then the
+    // unscored CVE last. The tie between TIE-A and TIE-B must break on ascending global ordinal,
+    // i.e. ascending lower-cased vulnerability id: "cve-rank-tie-a" before "cve-rank-tie-b".
+    assertThat(result.groups()).extracting(RankedGroup::groupValue)
+        .containsExactly("cve-rank-boundary", "cve-rank-tie-a", "cve-rank-tie-b", "cve-rank-unscored");
+  }
+
+  @Test
+  public void testRankGroupsByMaxMetric_BoundaryScoreLandsInHighBandNotMedium() throws Exception {
+    RankedGroupsResult result = rankGroupsEdgeCases(25, false);
+
+    // CVE-RANK-BOUNDARY is scored exactly 7.0, the medium/high boundary: high=[7.0,9.0), so it
+    // must land in high, never medium. CVE-RANK-TIE-A/B at 6.5 are the only other scored CVEs and
+    // both fall in medium=[4.0,7.0), so a high count of 1 and a medium count of 2 is only possible
+    // if the boundary CVE is counted in high, not medium.
+    assertThat(result.bandCounts()).containsEntry("high", 1L);
+    assertThat(result.bandCounts()).containsEntry("medium", 2L);
+    assertThat(result.groups()).filteredOn(g -> "cve-rank-boundary".equals(g.groupValue()))
+        .extracting(RankedGroup::metricValue)
+        .containsExactly(7.0f);
   }
 
   /**

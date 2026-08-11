@@ -18,7 +18,8 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * Extracts estate-distinct SECURITY_VULNERABILITY hits keyed by {@code vulnerabilityId}, and
- * accumulates distinct applications seen for each vulnerability during the collect walk.
+ * accumulates the distinct applications seen for each vulnerability as a walk pages through hits.
+ * List hydration takes only the distinct hits; the Impact tabs also take the accumulated applications.
  * <p>
  * Application identity uses {@code applicationPublicId} only — same key as the Impact affected-apps
  * endpoint — so card counts do not include hits that Impact would skip.
@@ -28,13 +29,19 @@ final class VulnerabilitiesListIndexItems
   private VulnerabilitiesListIndexItems() {
   }
 
-  static void mergeDistinctVulnerabilityItems(
+  /**
+   * @return the vulnerability ids this result carried, in their document casing, so a caller paging
+   *         towards a known set of ids can tell what the page covered without re-reading everything
+   *         merged so far
+   */
+  static Set<String> mergeDistinctVulnerabilityItems(
       final SearchResultDTO searchResult,
       final LinkedHashMap<String, SearchResultItemDTO> distinctByVulnerabilityId,
       final Map<String, Set<String>> applicationIdsByVulnerabilityId)
   {
+    Set<String> vulnerabilityIds = new HashSet<>();
     if (searchResult == null || searchResult.groupingByDTOS == null) {
-      return;
+      return vulnerabilityIds;
     }
     for (var group : searchResult.groupingByDTOS) {
       if (group == null || group.searchResultItemDTOS == null) {
@@ -48,6 +55,7 @@ final class VulnerabilitiesListIndexItems
           continue;
         }
         distinctByVulnerabilityId.putIfAbsent(item.vulnerabilityId, item);
+        vulnerabilityIds.add(item.vulnerabilityId);
         String applicationKey = applicationKey(item);
         if (applicationKey != null && applicationIdsByVulnerabilityId != null) {
           applicationIdsByVulnerabilityId
@@ -56,6 +64,7 @@ final class VulnerabilitiesListIndexItems
         }
       }
     }
+    return vulnerabilityIds;
   }
 
   /** Impact/deep-link key only — blank public id is skipped (matches affected-apps merge). */

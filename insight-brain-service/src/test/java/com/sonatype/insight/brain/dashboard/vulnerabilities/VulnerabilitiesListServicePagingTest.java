@@ -6,10 +6,10 @@
 package com.sonatype.insight.brain.dashboard.vulnerabilities;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
-import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
+import com.sonatype.insight.brain.search.index.RankedGroupsResult;
 
 import org.junit.Test;
 
@@ -38,60 +38,26 @@ public class VulnerabilitiesListServicePagingTest
   }
 
   @Test
-  public void bucketSeverityFacets_countsDistinctRowsPerCvssBandWithoutIndexFanOut() {
-    Map<String, SearchResultItemDTO> distinct = new LinkedHashMap<>();
-    distinct.put("CVE-1", itemWithScore(9.8f));
-    distinct.put("CVE-2", itemWithScore(9.1f));
-    distinct.put("CVE-3", itemWithScore(5.0f));
-    distinct.put("CVE-4", itemWithScore(null));
+  public void severityFacets_foldsUnbandedGroupsIntoNoneSoBucketsSumToTotal() {
+    Map<String, Long> bandCounts = new LinkedHashMap<>();
+    bandCounts.put("none", 1L);
+    bandCounts.put("low", 0L);
+    bandCounts.put("medium", 1L);
+    bandCounts.put("high", 0L);
+    bandCounts.put("critical", 2L);
+    RankedGroupsResult ranked = new RankedGroupsResult(List.of(), 6L, true, bandCounts, 2L);
 
-    Map<String, Long> severities = VulnerabilitiesListService.bucketSeverityFacets(distinct);
+    Map<String, Long> severities = VulnerabilitiesListService.severityFacets(ranked);
 
     assertThat(severities.get("critical")).isEqualTo(2L);
     assertThat(severities.get("medium")).isEqualTo(1L);
     assertThat(severities.get("high")).isZero();
     assertThat(severities.get("low")).isZero();
-    assertThat(severities.get("none")).isEqualTo(1L);
-  }
-
-  @Test
-  public void bucketSeverityFacets_mapsOutOfBandScoresToNoneNotUnknown() {
-    // 0.05 sits in the CVSS v3 gap between NONE (0.0) and LOW (0.1).
-    Map<String, SearchResultItemDTO> distinct = Map.of("CVE-gap", itemWithScore(0.05f));
-
-    Map<String, Long> severities = VulnerabilitiesListService.bucketSeverityFacets(distinct);
-
-    assertThat(severities.get("none")).isEqualTo(1L);
+    // Unscored and out-of-range vulnerabilities land in none rather than an unknown bucket.
+    assertThat(severities.get("none")).isEqualTo(3L);
     assertThat(severities).doesNotContainKey("unknown");
+    assertThat(severities.values().stream().mapToLong(Long::longValue).sum())
+        .isEqualTo(ranked.distinctGroupCount());
   }
 
-  @Test
-  public void bucketEcosystemFacets_countsDistinctFormats() {
-    Map<String, SearchResultItemDTO> distinct = new LinkedHashMap<>();
-    distinct.put("CVE-1", itemWithFormat("maven"));
-    distinct.put("CVE-2", itemWithFormat("Maven"));
-    distinct.put("CVE-3", itemWithFormat("npm"));
-    distinct.put("CVE-4", itemWithFormat(null));
-
-    Map<String, Long> ecosystems = VulnerabilitiesListService.bucketEcosystemFacets(distinct);
-
-    assertThat(ecosystems).containsEntry("maven", 2L).containsEntry("npm", 1L);
-    assertThat(ecosystems).doesNotContainKey(null);
-  }
-
-  private static SearchResultItemDTO itemWithScore(final Float score) {
-    SearchResultItemDTO item = new SearchResultItemDTO();
-    item.vulnerabilitySeverity = score;
-    return item;
-  }
-
-  private static SearchResultItemDTO itemWithFormat(final String format) {
-    SearchResultItemDTO item = new SearchResultItemDTO();
-    if (format != null) {
-      ApiComponentIdentifierDTOV2 identifier = new ApiComponentIdentifierDTOV2();
-      identifier.setFormat(format);
-      item.componentIdentifier = identifier;
-    }
-    return item;
-  }
 }

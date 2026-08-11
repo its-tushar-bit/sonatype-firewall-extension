@@ -182,6 +182,29 @@ public interface SearchIndexClient
       Collection<String> groupValues);
 
   /**
+   * Groups the RBAC-filtered documents matching {@code metricQuery} by {@code groupField}, reduces each
+   * group to the maximum value of {@code metricField}, and returns the highest-ranked groups together
+   * with the distinct group count and per-band distinct group counts.
+   * <p>
+   * Groups are ordered by metric, then by {@code groupValue} ascending. Groups whose documents carry no
+   * metric value sort last regardless of {@code ascending}. Group values are returned lower-cased.
+   *
+   * @param limit maximum number of ranked groups returned
+   * @param ascending true to rank by lowest metric first
+   * @param metricBands half-open {@code [minInclusive, maxExclusive)} bands, counted as distinct groups
+   */
+  default RankedGroupsResult rankGroupsByMaxMetric(
+      final String metricQuery,
+      final String groupField,
+      final String metricField,
+      final int limit,
+      final boolean ascending,
+      final Map<String, float[]> metricBands)
+  {
+    throw new UnsupportedOperationException("rankGroupsByMaxMetric is not supported by " + backendId());
+  }
+
+  /**
    * RBAC-scoped, page-level distinct count split into numeric <em>bands</em>: for the documents matching
    * {@code metricQuery}, counts distinct {@code distinctField} values grouped by {@code groupField}
    * (restricted to {@code groupValues}) <em>within each</em> {@code [minInclusive, maxInclusive]} band of

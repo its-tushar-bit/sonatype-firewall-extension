@@ -67,7 +67,8 @@ public class VulnerabilitiesListServiceAffectedApplicationsTest
         indexQueryBuilder(),
         requestValidator,
         catalogListService,
-        scopeFacetsBuilder);
+        scopeFacetsBuilder,
+        configuration);
   }
 
   @Test

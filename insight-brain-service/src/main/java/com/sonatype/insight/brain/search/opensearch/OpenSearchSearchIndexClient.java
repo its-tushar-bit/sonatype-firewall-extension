@@ -50,6 +50,8 @@ import com.sonatype.insight.brain.search.SearchConfig.AwsHttpOpenSearchConfig;
 import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.MetricAggregationResult;
+import com.sonatype.insight.brain.search.index.RankedGroup;
+import com.sonatype.insight.brain.search.index.RankedGroupsResult;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.index.SearchIndexException;
 import com.sonatype.insight.brain.search.lucene.DocumentBuilderHelper;
@@ -135,6 +137,14 @@ public class OpenSearchSearchIndexClient
   private static final Logger log = LoggerFactory.getLogger(OpenSearchSearchIndexClient.class);
 
   private static final int DEFAULT_MAX_RESULT_WINDOW = 10000;
+
+  /**
+   * Stands in for a document that carries no ranking metric, so a group made only of such documents
+   * reduces to a definite number rather than to whatever a backend reports for an empty maximum.
+   * Any value below the 0.0 CVSS floor works; what matters is that it loses the maximum against every
+   * real score, leaving a group that mixes scored and unscored documents ranked on its real ones.
+   */
+  private static final double UNSCORED_METRIC = -1.0d;
 
   private static final Set<Class<?>> SYSTEMIC_NETWORK_EXCEPTIONS = Set.of(
       SocketException.class,
@@ -1050,6 +1060,136 @@ public class OpenSearchSearchIndexClient
       throwMetricSearchException(e);
       // throwMetricSearchException always throws; this keeps the no-throw path structurally impossible so a
       // future change can't make countDistinct() silently return an unscoped 0 (fail-open RBAC footgun).
+      throw new IllegalStateException("unreachable: throwMetricSearchException always throws", e);
+    }
+  }
+
+  /**
+   * Departs from the interface contract in one respect: unscored groups sort last only when ranking
+   * descending. A terms aggregation orders on a single sub-aggregation value, and the sentinel that
+   * keeps unscored groups out of the way when ranking descending necessarily puts them at the front
+   * when ranking ascending. Separating them from the ordering needs a paged composite aggregation,
+   * tracked in CLM-44916; the Lucene sibling honours the contract in both directions.
+   */
+  @Override
+  public RankedGroupsResult rankGroupsByMaxMetric(
+      final String metricQuery,
+      final String groupField,
+      final String metricField,
+      final int limit,
+      final boolean ascending,
+      final Map<String, float[]> metricBands)
+  {
+    checkFieldNames(new HashSet<>(List.of(groupField, metricField)));
+    validateFloatRangeBounds(metricBands);
+    if (limit <= 0) {
+      return RankedGroupsResult.empty(metricBands);
+    }
+    try {
+      String initialQuery = createInitialQuery(metricQuery, true);
+      checkFieldNames(getFieldNames(initialQuery));
+
+      String groupLabel = resolveCompositeKeyFieldLabel(groupField);
+      SortOrder order = ascending ? SortOrder.Asc : SortOrder.Desc;
+      // Over-fetch 5x per shard so the coordinator sees enough candidates to rank correctly. `limit`
+      // is caller-supplied, so compute in long arithmetic: `limit * 5` overflows to a negative
+      // shardSize above ~429M, which OpenSearch rejects outright.
+      int shardSize = (int) Math.min(Integer.MAX_VALUE, Math.max((long) limit * 5L, 1_000L));
+
+      List<AggregationRange> aggregationRanges = new ArrayList<>();
+      // Half-open [from, to) is exactly OpenSearch range-agg semantics, so bounds pass through
+      // verbatim — the same treatment aggregateCountByFloatField gives its float bands.
+      metricBands.forEach((label, bounds) -> aggregationRanges.add(AggregationRange.of(r -> r
+          .key(label)
+          .from(String.valueOf(bounds[0]))
+          .to(String.valueOf(bounds[1])))));
+
+      SearchRequest searchRequest = new SearchRequest.Builder()
+          .index(indexConfigProvider.getIndexConfig().getIndexName())
+          .size(0)
+          .query(buildMetricQuery(initialQuery))
+          .aggregations("rankedGroups", a -> a
+              .terms(t -> t
+                  .field(groupLabel)
+                  .size(limit)
+                  .shardSize(shardSize)
+                  // Ties on the metric (e.g. many CVEs sharing a 7.5 or 9.8 CVSS score) break
+                  // ascending on _key regardless of `ascending`, matching the Lucene comparator's
+                  // ascending-groupValue tie-break so paging stays stable across both backends.
+                  .order(Map.of("groupMetric", order), Map.of("_key", SortOrder.Asc)))
+              // Documents with no metric value are folded in at UNSCORED_METRIC, below the 0.0 CVSS
+              // floor, so every bucket carries a number and bucket order never depends on how the
+              // backend happens to place a missing sub-aggregation value. A group holding both scored
+              // and unscored documents is unaffected: max ignores a sentinel beneath its real values.
+              // The sentinel has to sit below the floor rather than above the ceiling for that reason
+              // — a high sentinel would win the max and corrupt the metric of any mixed group.
+              .aggregations("groupMetric", sub -> sub
+                  .max(m -> m.field(metricField).missing(FieldValue.of(UNSCORED_METRIC)))))
+          .aggregations("distinctGroups", a -> a
+              .cardinality(c -> c.field(groupLabel).precisionThreshold(40_000)))
+          // Bands are computed from raw document metrics, so a group whose documents carry different
+          // metric values is counted in every band it touches — unlike the Lucene sibling, which
+          // assigns each group once by its max. Band counts can therefore exceed the distinct total
+          // here, and `unbandedGroupCount` clamps to zero. Matching Lucene exactly needs a paged
+          // composite aggregation, tracked in CLM-44916; the existing float-band aggregations in
+          // CatalogService and DashboardMetricsService already ship these same raw-document semantics.
+          .aggregations("metricBands", a -> a
+              .range(r -> r.field(metricField).ranges(aggregationRanges))
+              .aggregations("distinct", sub -> sub
+                  .cardinality(c -> c.field(groupLabel).precisionThreshold(40_000))))
+          .build();
+
+      SearchResponse<Map> searchResponse = getClient().search(searchRequest, Map.class);
+      Map<String, Aggregate> aggs = searchResponse.aggregations();
+
+      List<RankedGroup> groups = new ArrayList<>();
+      Aggregate ranked = aggs == null ? null : aggs.get("rankedGroups");
+      if (ranked != null && ranked.isSterms()) {
+        for (StringTermsBucket bucket : ranked.sterms().buckets().array()) {
+          Aggregate metric = bucket.aggregations().get("groupMetric");
+          Float metricValue = null;
+          if (metric != null && metric.isMax()) {
+            double value = metric.max().value();
+            // NaN covers a max reported over no values at all; the sentinel covers the documents the
+            // aggregation folded in for a missing field. Both mean the group carries no metric.
+            if (!Double.isNaN(value) && value > UNSCORED_METRIC) {
+              metricValue = (float) value;
+            }
+          }
+          groups.add(new RankedGroup(bucket.key(), metricValue));
+        }
+      }
+
+      Aggregate distinctAgg = aggs == null ? null : aggs.get("distinctGroups");
+      long distinct = distinctAgg != null && distinctAgg.isCardinality()
+          ? distinctAgg.cardinality().value()
+          : 0L;
+
+      Map<String, Long> bandCounts = new LinkedHashMap<>();
+      metricBands.keySet().forEach(label -> bandCounts.put(label, 0L));
+      Aggregate bandsAgg = aggs == null ? null : aggs.get("metricBands");
+      if (bandsAgg != null && bandsAgg.isRange()) {
+        for (RangeBucket bucket : bandsAgg.range().buckets().array()) {
+          String key = bucket.key();
+          if (key == null || !bandCounts.containsKey(key)) {
+            continue;
+          }
+          Aggregate distinctInBand = bucket.aggregations().get("distinct");
+          bandCounts.put(key, distinctInBand != null && distinctInBand.isCardinality()
+              ? distinctInBand.cardinality().value()
+              : 0L);
+        }
+      }
+
+      // Both inputs are HyperLogLog++ estimates, so the difference can go negative on estimation
+      // noise alone. Clamp at zero rather than surfacing an impossible count.
+      long banded = bandCounts.values().stream().mapToLong(Long::longValue).sum();
+      long unbanded = Math.max(0L, distinct - banded);
+
+      return new RankedGroupsResult(groups, distinct, false, bandCounts, unbanded);
+    }
+    catch (Exception e) {
+      throwMetricSearchException(e);
       throw new IllegalStateException("unreachable: throwMetricSearchException always throws", e);
     }
   }

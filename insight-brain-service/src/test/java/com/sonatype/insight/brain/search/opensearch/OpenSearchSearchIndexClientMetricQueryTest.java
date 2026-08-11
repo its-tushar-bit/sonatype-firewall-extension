@@ -43,6 +43,8 @@ import com.sonatype.insight.brain.search.SearchConfig;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.MetricAggregationResult;
+import com.sonatype.insight.brain.search.index.RankedGroup;
+import com.sonatype.insight.brain.search.index.RankedGroupsResult;
 import com.sonatype.insight.brain.search.lucene.DocumentBuilderHelper;
 import com.sonatype.insight.brain.search.lucene.LuceneComponents;
 import com.sonatype.insight.brain.security.CurrentUser;
@@ -74,8 +76,11 @@ import org.opensearch.client.opensearch.core.search.TotalHitsRelation;
 import org.opensearch.client.opensearch._types.aggregations.Aggregate;
 import org.opensearch.client.opensearch._types.aggregations.Buckets;
 import org.opensearch.client.opensearch._types.aggregations.CardinalityAggregate;
+import org.opensearch.client.opensearch._types.aggregations.MaxAggregate;
 import org.opensearch.client.opensearch._types.aggregations.RangeAggregate;
 import org.opensearch.client.opensearch._types.aggregations.RangeBucket;
+import org.opensearch.client.opensearch._types.aggregations.StringTermsAggregate;
+import org.opensearch.client.opensearch._types.aggregations.StringTermsBucket;
 
 /**
  * No-cluster unit tests for the security-critical metric query / RBAC construction in
@@ -745,6 +750,183 @@ public class OpenSearchSearchIndexClientMetricQueryTest
     JsonNode filter = root.path("query").path("bool").path("filter");
     assertThat(filter.isArray()).isTrue();
     assertThat(filter.get(0).has("match_none")).isTrue();
+  }
+
+  @Test
+  public void testRankGroupsByMaxMetric_ReadsGroupsMetricsAndBandsFromPopulatedResponse() throws Exception {
+    // Every prior rankGroupsByMaxMetric test stubs an empty aggregation map, so the response-parsing
+    // half of the method — bucket order, max sub-agg extraction, per-band cardinality, and the
+    // distinct/banded subtraction that yields unbandedGroupCount — was never exercised.
+    grantGlobalAccess();
+
+    stubRankedResponse(
+        List.of(termBucket("cve-2021-44228", 10.0d), termBucket("cve-2022-22965", 9.8d)),
+        7L,
+        Map.of("critical", 4L, "high", 2L));
+
+    RankedGroupsResult result = client.rankGroupsByMaxMetric(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
+        FieldIdentifier.VULNERABILITY_ID.label,
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        25,
+        false,
+        CvssV3Severity.halfOpenScoreBands());
+
+    assertThat(result.groups()).containsExactly(
+        new RankedGroup("cve-2021-44228", 10.0f),
+        new RankedGroup("cve-2022-22965", 9.8f));
+    assertThat(result.distinctGroupCount()).isEqualTo(7L);
+    assertThat(result.bandCounts()).containsEntry("critical", 4L).containsEntry("high", 2L);
+    // Bands absent from the response stay zero-filled rather than dropping out of the map.
+    assertThat(result.bandCounts()).containsEntry("none", 0L).containsEntry("low", 0L);
+    assertThat(result.bandCounts().keySet())
+        .containsExactlyElementsOf(CvssV3Severity.halfOpenScoreBands().keySet());
+    assertThat(result.unbandedGroupCount()).isEqualTo(1L); // 7 distinct - (4 + 2) banded
+  }
+
+  @Test
+  public void testRankGroupsByMaxMetric_NanMaxValue_YieldsNullMetric() throws Exception {
+    // OpenSearch reports an empty max sub-aggregation as NaN. That must surface as a null metric —
+    // the same "no metric" signal the Lucene collector encodes with its Float.NaN sentinel — so an
+    // unscored CVE is never mistaken for one scoring 0.0.
+    grantGlobalAccess();
+
+    stubRankedResponse(List.of(termBucket("cve-2024-00001", Double.NaN)), 1L, Map.of());
+
+    RankedGroupsResult result = client.rankGroupsByMaxMetric(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
+        FieldIdentifier.VULNERABILITY_ID.label,
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        25,
+        false,
+        CvssV3Severity.halfOpenScoreBands());
+
+    assertThat(result.groups()).containsExactly(new RankedGroup("cve-2024-00001", null));
+    assertThat(result.unbandedGroupCount()).isEqualTo(1L);
+  }
+
+  @Test
+  public void testRankGroupsByMaxMetric_SentinelMaxValue_YieldsNullMetric() throws Exception {
+    // A bucket made only of documents with no metric reduces to the sentinel the aggregation folded
+    // them in at. That is the same "no metric" signal as an empty maximum and must not reach a row as
+    // a negative CVSS score.
+    grantGlobalAccess();
+
+    stubRankedResponse(List.of(termBucket("cve-2024-00001", -1.0d)), 1L, Map.of());
+
+    RankedGroupsResult result = client.rankGroupsByMaxMetric(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
+        FieldIdentifier.VULNERABILITY_ID.label,
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        25,
+        false,
+        CvssV3Severity.halfOpenScoreBands());
+
+    assertThat(result.groups()).containsExactly(new RankedGroup("cve-2024-00001", null));
+    assertThat(result.unbandedGroupCount()).isEqualTo(1L);
+  }
+
+  @Test
+  public void testRankGroupsByMaxMetric_ZeroScore_SurvivesTheSentinelCheck() throws Exception {
+    // 0.0 is a real CVSS score and sits above the sentinel, so it has to keep reaching the row as a
+    // score rather than being folded in with the unscored.
+    grantGlobalAccess();
+
+    stubRankedResponse(List.of(termBucket("cve-2024-00002", 0.0d)), 1L, Map.of());
+
+    RankedGroupsResult result = client.rankGroupsByMaxMetric(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
+        FieldIdentifier.VULNERABILITY_ID.label,
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        25,
+        false,
+        CvssV3Severity.halfOpenScoreBands());
+
+    assertThat(result.groups()).containsExactly(new RankedGroup("cve-2024-00002", 0.0f));
+  }
+
+  @Test
+  public void testRankGroupsByMaxMetric_BandsExceedingDistinctTotal_ClampsUnbandedAtZero() throws Exception {
+    // Bands come from raw document metrics while the distinct total is a HyperLogLog++ estimate, so a
+    // group spanning two bands (or plain estimation noise) can push the banded sum above the total.
+    // The difference must clamp at zero rather than surfacing a negative count.
+    grantGlobalAccess();
+
+    stubRankedResponse(List.of(termBucket("cve-2021-44228", 10.0d)), 3L, Map.of("critical", 3L, "medium", 2L));
+
+    RankedGroupsResult result = client.rankGroupsByMaxMetric(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
+        FieldIdentifier.VULNERABILITY_ID.label,
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        25,
+        false,
+        CvssV3Severity.halfOpenScoreBands());
+
+    assertThat(result.unbandedGroupCount()).isZero();
+  }
+
+  private static StringTermsBucket termBucket(final String key, final double maxValue) {
+    MaxAggregate max = mock(MaxAggregate.class);
+    when(max.value()).thenReturn(maxValue);
+    Aggregate metric = mock(Aggregate.class);
+    when(metric.isMax()).thenReturn(true);
+    when(metric.max()).thenReturn(max);
+    Map<String, Aggregate> subAggregations = Map.of("groupMetric", metric);
+
+    StringTermsBucket bucket = mock(StringTermsBucket.class);
+    when(bucket.key()).thenReturn(key);
+    when(bucket.aggregations()).thenReturn(subAggregations);
+    return bucket;
+  }
+
+  private static Aggregate cardinalityAggregate(final long value) {
+    CardinalityAggregate cardinality = mock(CardinalityAggregate.class);
+    when(cardinality.value()).thenReturn(value);
+    Aggregate aggregate = mock(Aggregate.class);
+    when(aggregate.isCardinality()).thenReturn(true);
+    when(aggregate.cardinality()).thenReturn(cardinality);
+    return aggregate;
+  }
+
+  @SuppressWarnings("unchecked")
+  private void stubRankedResponse(
+      final List<StringTermsBucket> termBuckets,
+      final long distinctGroups,
+      final Map<String, Long> bandDistincts) throws Exception
+  {
+    Buckets<StringTermsBucket> buckets = mock(Buckets.class);
+    when(buckets.array()).thenReturn(termBuckets);
+    StringTermsAggregate sterms = mock(StringTermsAggregate.class);
+    when(sterms.buckets()).thenReturn(buckets);
+    Aggregate ranked = mock(Aggregate.class);
+    when(ranked.isSterms()).thenReturn(true);
+    when(ranked.sterms()).thenReturn(sterms);
+
+    List<RangeBucket> rangeBuckets = new ArrayList<>();
+    bandDistincts.forEach((label, value) -> {
+      // Build the sub-aggregation before opening the outer when(...): Mockito rejects stubbing a
+      // second mock while an enclosing stub is still awaiting its thenReturn.
+      Map<String, Aggregate> subAggregations = Map.of("distinct", cardinalityAggregate(value));
+      RangeBucket bucket = mock(RangeBucket.class);
+      when(bucket.key()).thenReturn(label);
+      when(bucket.aggregations()).thenReturn(subAggregations);
+      rangeBuckets.add(bucket);
+    });
+    Buckets<RangeBucket> bandBuckets = mock(Buckets.class);
+    when(bandBuckets.array()).thenReturn(rangeBuckets);
+    RangeAggregate range = mock(RangeAggregate.class);
+    when(range.buckets()).thenReturn(bandBuckets);
+    Aggregate bands = mock(Aggregate.class);
+    when(bands.isRange()).thenReturn(true);
+    when(bands.range()).thenReturn(range);
+
+    Map<String, Aggregate> aggregations = Map.of(
+        "rankedGroups", ranked,
+        "distinctGroups", cardinalityAggregate(distinctGroups),
+        "metricBands", bands);
+    SearchResponse<Map> response = mock(SearchResponse.class);
+    when(response.aggregations()).thenReturn(aggregations);
+    when(openSearchClient.search(any(SearchRequest.class), eq(Map.class))).thenReturn(response);
   }
 
   private static Map<String, List<String>> collectTerms(JsonNode shouldArray) {

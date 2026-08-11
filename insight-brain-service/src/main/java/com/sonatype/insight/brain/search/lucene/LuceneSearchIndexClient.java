@@ -14,11 +14,13 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -43,6 +45,8 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.search.index.RankedGroup;
+import com.sonatype.insight.brain.search.index.RankedGroupsResult;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.index.MetricAggregationResult;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
@@ -72,7 +76,11 @@ import org.apache.lucene.index.IndexFormatTooOldException;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.MergePolicy.MergeException;
+import org.apache.lucene.index.MultiDocValues;
+import org.apache.lucene.index.MultiDocValues.MultiSortedDocValues;
+import org.apache.lucene.index.OrdinalMap;
 import org.apache.lucene.index.SegmentInfos;
+import org.apache.lucene.index.SortedDocValues;
 import org.apache.lucene.index.StoredFields;
 import org.apache.lucene.index.TwoPhaseCommitTool.CommitFailException;
 import org.apache.lucene.index.TwoPhaseCommitTool.PrepareCommitFailException;
@@ -98,6 +106,7 @@ import org.apache.lucene.store.AlreadyClosedException;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.LockObtainFailedException;
 import org.apache.lucene.store.LockReleaseFailedException;
+import org.apache.lucene.util.FixedBitSet;
 import org.apache.lucene.util.ThreadInterruptedException;
 
 import org.slf4j.Logger;
@@ -787,6 +796,181 @@ public class LuceneSearchIndexClient
     catch (Exception e) {
       throw mapSearchException(e);
     }
+  }
+
+  @Override
+  public RankedGroupsResult rankGroupsByMaxMetric(
+      final String metricQuery,
+      final String groupField,
+      final String metricField,
+      final int limit,
+      final boolean ascending,
+      final Map<String, float[]> metricBands)
+  {
+    checkFieldNames(new HashSet<>(List.of(groupField, metricField)));
+    validateFloatRangeBounds(metricBands);
+    if (limit <= 0) {
+      return RankedGroupsResult.empty(metricBands);
+    }
+    updateMaxQueryClauseCount();
+
+    // Prefer the pooled searcher: Lucene caches the OrdinalMap against the reader, so a pooled
+    // reader amortises ordinal map construction that a fresh DirectoryReader would repay every call.
+    Optional<LuceneSearcherManagerHolder> searcherManagerHolder = getAvailableSearcherManagerHolder();
+    if (searcherManagerHolder.isPresent()) {
+      try {
+        IndexSearcher indexSearcher = searcherManagerHolder.get().acquire();
+        try {
+          return rankGroupsWithSearcher(
+              indexSearcher, metricQuery, groupField, metricField, limit, ascending, metricBands);
+        }
+        finally {
+          searcherManagerHolder.get().release(indexSearcher);
+        }
+      }
+      catch (Exception e) {
+        if (!(e instanceof IOException ioException) || !isSearcherManagerUnavailable(ioException)) {
+          throw mapSearchException(e);
+        }
+        log.debug("SearcherManager unavailable during rebuild/pause; falling back to DirectoryReader", e);
+      }
+    }
+
+    try (Directory directory = openSearchIndex();
+        IndexReader indexReader = DirectoryReader.open(directory))
+    {
+      return rankGroupsWithSearcher(new IndexSearcher(indexReader), metricQuery, groupField, metricField,
+          limit, ascending, metricBands);
+    }
+    catch (Exception e) {
+      throw mapSearchException(e);
+    }
+  }
+
+  private RankedGroupsResult rankGroupsWithSearcher(
+      final IndexSearcher indexSearcher,
+      final String metricQuery,
+      final String groupField,
+      final String metricField,
+      final int limit,
+      final boolean ascending,
+      final Map<String, float[]> metricBands) throws Exception
+  {
+    IndexReader indexReader = indexSearcher.getIndexReader();
+    SortedDocValues globalGroups = MultiDocValues.getSortedValues(indexReader, groupField);
+    if (globalGroups == null) {
+      return RankedGroupsResult.empty(metricBands);
+    }
+    OrdinalMap ordinalMap =
+        globalGroups instanceof MultiSortedDocValues multi ? multi.mapping : null;
+
+    int ordCount = globalGroups.getValueCount();
+    float[] maxByOrd = new float[ordCount];
+    Arrays.fill(maxByOrd, Float.NaN);
+    FixedBitSet seen = new FixedBitSet(Math.max(ordCount, 1));
+
+    Query query = buildRbacFilteredMetricQuery(metricQuery, null, buildRbacFilterQuery());
+    indexSearcher.search(query,
+        new MaxMetricByGroupCollector(groupField, metricField, ordinalMap, maxByOrd, seen));
+
+    return reduceRankedGroups(globalGroups, maxByOrd, seen, ordCount, limit, ascending, metricBands);
+  }
+
+  /**
+   * Walks the seen ordinals once to produce the distinct count, the band counts and a bounded top-N.
+   * Ordinal order is lower-cased term order, so an ascending ordinal is the case-insensitive
+   * tie-break the ranked contract promises, and only surviving ordinals are resolved to terms.
+   */
+  private static RankedGroupsResult reduceRankedGroups(
+      final SortedDocValues globalGroups,
+      final float[] maxByOrd,
+      final FixedBitSet seen,
+      final int ordCount,
+      final int limit,
+      final boolean ascending,
+      final Map<String, float[]> metricBands) throws IOException
+  {
+    Map<String, Long> bandCounts = new LinkedHashMap<>();
+    metricBands.keySet().forEach(band -> bandCounts.put(band, 0L));
+
+    Comparator<Integer> worstFirst = rankedOrdComparator(maxByOrd, ascending).reversed();
+    PriorityQueue<Integer> heap = new PriorityQueue<>(worstFirst);
+
+    long distinct = 0;
+    long unbanded = 0;
+    // The bit set spans the whole term dictionary, of which a filtered read typically matches a small
+    // part. Jumping set bit to set bit skips the gaps a word at a time, so the walk costs what the
+    // query matched rather than what the estate has ever recorded.
+    for (int ord = nextSeenOrd(seen, 0, ordCount); ord < ordCount; ord = nextSeenOrd(seen, ord + 1, ordCount)) {
+      distinct++;
+      String band = bandFor(metricBands, maxByOrd[ord]);
+      if (band == null) {
+        unbanded++;
+      }
+      else {
+        bandCounts.merge(band, 1L, Long::sum);
+      }
+      heap.add(ord);
+      if (heap.size() > limit) {
+        heap.poll();
+      }
+    }
+
+    List<Integer> ordered = new ArrayList<>(heap);
+    ordered.sort(rankedOrdComparator(maxByOrd, ascending));
+    List<RankedGroup> groups = new ArrayList<>(ordered.size());
+    for (int ord : ordered) {
+      float value = maxByOrd[ord];
+      groups.add(new RankedGroup(
+          globalGroups.lookupOrd(ord).utf8ToString(),
+          Float.isNaN(value) ? null : value));
+    }
+    return new RankedGroupsResult(groups, distinct, true, bandCounts, unbanded);
+  }
+
+  /**
+   * Next matched ordinal at or after {@code from}, or {@code ordCount} once none remain. The bit set is
+   * allocated with at least one bit even for an empty term dictionary, so {@code from} is range-checked
+   * here rather than handed to a lookup that rejects it.
+   */
+  private static int nextSeenOrd(final FixedBitSet seen, final int from, final int ordCount) {
+    return from >= ordCount ? ordCount : seen.nextSetBit(from);
+  }
+
+  /** Best-first: metric-less groups always last, then metric by direction, then ordinal ascending. */
+  private static Comparator<Integer> rankedOrdComparator(final float[] maxByOrd, final boolean ascending) {
+    return (left, right) -> {
+      int leftOrd = left;
+      int rightOrd = right;
+      float leftValue = maxByOrd[leftOrd];
+      float rightValue = maxByOrd[rightOrd];
+      boolean leftMissing = Float.isNaN(leftValue);
+      boolean rightMissing = Float.isNaN(rightValue);
+      if (leftMissing || rightMissing) {
+        if (leftMissing && rightMissing) {
+          return Integer.compare(leftOrd, rightOrd);
+        }
+        return leftMissing ? 1 : -1;
+      }
+      int byMetric = ascending
+          ? Float.compare(leftValue, rightValue)
+          : Float.compare(rightValue, leftValue);
+      return byMetric != 0 ? byMetric : Integer.compare(leftOrd, rightOrd);
+    };
+  }
+
+  /** Half-open {@code [min, max)} band containing {@code value}, or null when unscored / out of range. */
+  private static String bandFor(final Map<String, float[]> metricBands, final float value) {
+    if (Float.isNaN(value)) {
+      return null;
+    }
+    for (Map.Entry<String, float[]> band : metricBands.entrySet()) {
+      float[] bounds = band.getValue();
+      if (value >= bounds[0] && value < bounds[1]) {
+        return band.getKey();
+      }
+    }
+    return null;
   }
 
   @Override

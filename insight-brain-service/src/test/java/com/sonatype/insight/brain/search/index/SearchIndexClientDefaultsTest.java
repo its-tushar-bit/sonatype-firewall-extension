@@ -154,4 +154,11 @@ public class SearchIndexClientDefaultsTest
     assertThatExceptionOfType(UnsupportedOperationException.class)
         .isThrownBy(client::getCurrentUserContextIdsWithReadPermission);
   }
+
+  @Test
+  public void rankGroupsByMaxMetricIsUnsupportedByDefault() {
+    assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> client
+        .rankGroupsByMaxMetric("itemType:SECURITY_VULNERABILITY", "vulnerabilityId",
+            "vulnerabilitySeverity", 25, false, Map.of()));
+  }
 }

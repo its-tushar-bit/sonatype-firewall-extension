@@ -492,6 +492,43 @@ public class HybridSearchIndexClient
   }
 
   @Override
+  public RankedGroupsResult rankGroupsByMaxMetric(
+      final String metricQuery,
+      final String groupField,
+      final String metricField,
+      final int limit,
+      final boolean ascending,
+      final Map<String, float[]> metricBands)
+  {
+    Exception primaryException = null;
+    try {
+      return primaryClient.rankGroupsByMaxMetric(
+          metricQuery, groupField, metricField, limit, ascending, metricBands);
+    }
+    catch (Exception e) {
+      log.warn("Failed to rank groups from primary client, falling back to secondary", e);
+      primaryException = e;
+    }
+
+    try {
+      RankedGroupsResult result = secondaryClient.rankGroupsByMaxMetric(
+          metricQuery, groupField, metricField, limit, ascending, metricBands);
+      log.debug("Ranked groups completed successfully using secondary client (fallback)");
+      return result;
+    }
+    catch (Exception e) {
+      log.error("Failed to rank groups from both primary and secondary clients", e);
+      if (primaryException instanceof ConflictException conflictException) {
+        throw conflictException;
+      }
+      throw new SearchIndexException(
+          "Ranked groups failed on both primary and secondary clients. Primary error: " +
+              primaryException.getMessage() + ", Secondary error: " + e.getMessage(),
+          e);
+    }
+  }
+
+  @Override
   public Map<String, Long> countDistinctGroupedBy(
       final String metricQuery,
       final String groupField,

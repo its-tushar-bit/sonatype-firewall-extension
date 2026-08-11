@@ -208,7 +208,8 @@ public class VulnerabilitiesListResourceTest
     assertThat(body.vulnerabilities).allMatch(row -> band.equals(row.severity));
     assertThat(body.facets.severities.keySet())
         .contains("critical", "high", "medium", "low", "none");
-    assertThat(body.facets.severities.get(band)).isEqualTo(all.facets.severities.get(band));
+    // Selecting a band must not zero the others, or the rail would offer nothing to widen to.
+    assertThat(body.facets.severities).isEqualTo(all.facets.severities);
   }
 
   @Test

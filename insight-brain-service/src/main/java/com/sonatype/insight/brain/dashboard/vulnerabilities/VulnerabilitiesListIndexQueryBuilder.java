@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dashboard.vulnerabilities;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -62,6 +63,31 @@ final class VulnerabilitiesListIndexQueryBuilder
     String safe = DashboardIndexDimensionQueryBuilder.escapeLuceneTerm(vulnerabilityId.trim());
     return FieldIdentifier.ITEM_TYPE.label + ":" + ItemType.SECURITY_VULNERABILITY.name()
         + " AND " + FieldIdentifier.VULNERABILITY_ID.label + ":" + safe;
+  }
+
+  /**
+   * Narrows {@code baseQuery} to the supplied vulnerability ids, so a hydration read touches only the
+   * documents behind an already-chosen set of rows. Each id is escaped as a Lucene term the same way
+   * every other clause here escapes its values, so an id is never re-parsed as query syntax.
+   *
+   * @return {@code baseQuery} unchanged when no usable id is supplied
+   */
+  String restrictToVulnerabilityIds(final String baseQuery, final Collection<String> vulnerabilityIds) {
+    if (vulnerabilityIds == null || vulnerabilityIds.isEmpty()) {
+      return baseQuery;
+    }
+    List<String> escapedIds = new ArrayList<>(vulnerabilityIds.size());
+    for (String vulnerabilityId : vulnerabilityIds) {
+      if (StringUtils.isBlank(vulnerabilityId)) {
+        continue;
+      }
+      escapedIds.add(DashboardIndexDimensionQueryBuilder.escapeLuceneTerm(vulnerabilityId.trim()));
+    }
+    if (escapedIds.isEmpty()) {
+      return baseQuery;
+    }
+    String clause = FieldIdentifier.VULNERABILITY_ID.label + ":(" + String.join(" ", escapedIds) + ")";
+    return StringUtils.isBlank(baseQuery) ? clause : baseQuery + " AND " + clause;
   }
 
   /**

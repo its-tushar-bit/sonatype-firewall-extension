@@ -27,6 +27,12 @@ public class VulnerabilitiesListFacetsDTO
   /** Component format / ecosystem → distinct vulnerability count. */
   public Map<String, Long> ecosystems = new LinkedHashMap<>();
 
+  /** False when ecosystem counts are derived from a bounded sample rather than the full result set. */
+  public Boolean ecosystemsExact;
+
+  /** False when the backend counts the vulnerabilities in each band by estimation. */
+  public Boolean severitiesExact;
+
   /**
    * Catalog: CWE id → count from HDS aggregations when present. Omitted (null) when the backend
    * does not return a {@code cwes} aggregation so the rail can hide the section.

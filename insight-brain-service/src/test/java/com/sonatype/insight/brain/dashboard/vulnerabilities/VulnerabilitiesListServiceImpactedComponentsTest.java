@@ -63,7 +63,8 @@ public class VulnerabilitiesListServiceImpactedComponentsTest
             new DashboardIndexDimensionQueryBuilder(organizationDAO, configuration)),
         requestValidator,
         catalogListService,
-        scopeFacetsBuilder);
+        scopeFacetsBuilder,
+        configuration);
   }
 
   @Test

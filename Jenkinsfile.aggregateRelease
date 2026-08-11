@@ -22,6 +22,7 @@ pipeline {
     booleanParam(name: 'skipCheckout', defaultValue: false, description: 'Skip: Checkout release branch')
     booleanParam(name: 'skipSetVersion', defaultValue: false, description: 'Skip: Set release version')
     booleanParam(name: 'skipBuild', defaultValue: false, description: 'Skip: Build release artifacts')
+    booleanParam(name: 'skipReleaseScan', defaultValue: false, description: 'Skip: Lifecycle release-stage IQ evaluation (WARNING: skipping causes storeLifecycleSboms to publish a stale report)')
     booleanParam(name: 'skipDeploy', defaultValue: false, description: 'Skip: Deploy Maven artifacts')
     booleanParam(name: 'skipTag', defaultValue: false, description: 'Skip: Create release tag')
     booleanParam(name: 'skipPublish', defaultValue: false, description: 'Skip: Publish to staging repository')
@@ -112,6 +113,55 @@ pipeline {
                 mvn config, ' -pl :nexus-iq-server jreleaser:assemble'
               }
             }
+          }
+        }
+      }
+    }
+
+    stage('Lifecycle release scan') {
+      when {
+        expression { !params.skipReleaseScan }
+      }
+      steps {
+        dir('insight-brain') {
+          script {
+            def reachabilityConfig = [
+                javaAnalysis: [
+                    enable: true,
+                    includes: [
+                        [pattern: 'nexus-iq-server/target/insight-brain-service-*.jar']
+                    ],
+                    entrypointStrategy: 'JAVA_MAIN',
+                    namespaces: [
+                        [namespace: 'com.sonatype.insight']
+                    ]
+                ],
+                jsAnalysis: [
+                    enable: true,
+                    node: [
+                        executable: "${env.WORKSPACE}/insight-brain/insight-brain-frontend/node/node"
+                    ],
+                    projectDirectory: 'insight-brain-frontend',
+                    sourceFiles: [
+                        [pattern: 'src/main/**']
+                    ],
+                    excludeFiles: [
+                        [pattern: 'src/test/**']
+                    ]
+                ]
+            ]
+            nexusPolicyEvaluation(
+                iqStage: 'release',
+                iqApplication: 'insight-brain',
+                iqScanPatterns: [[scanPattern: 'insight-brain-frontend/target/webpack-modules']],
+                iqModuleExcludes: [
+                    [moduleExclude: '**/test/**'],
+                    [moduleExclude: '**/test-classes/**/module.xml']
+                ],
+                failBuildOnNetworkError: true,
+                reachability: reachabilityConfig,
+                unstableBuildOnScanningWarnings: false
+            )
           }
         }
       }
@@ -219,6 +269,9 @@ pipeline {
       }
       steps {
         script {
+          if (params.skipReleaseScan) {
+            unstable "Lifecycle release scan was skipped; the report consumed by storeLifecycleSboms may be stale."
+          }
           storeLifecycleSboms('insight-brain', "${FULL_RELEASE_VERSION}", IQ_BASEURL)
         }
       }

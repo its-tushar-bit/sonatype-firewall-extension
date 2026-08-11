@@ -12,6 +12,17 @@ public class SearchIndexException
     super(e);
   }
 
+  /**
+   * Wraps a non-{@link Exception} {@link Throwable} cause. Used to convert a JVM memory-mapped read
+   * fault (an {@link InternalError} surfaced as "unsafe memory access") raised during a Lucene index
+   * read into a per-request search failure, keeping the {@link Error} chained as the cause instead
+   * of letting it escape the request thread and trip the JVM's automatic-shutdown-on-fatal-error
+   * handler (CLM-44515).
+   */
+  public SearchIndexException(final Throwable cause) {
+    super(cause);
+  }
+
   public SearchIndexException(final String message, final Exception e) {
     super(message, e);
   }

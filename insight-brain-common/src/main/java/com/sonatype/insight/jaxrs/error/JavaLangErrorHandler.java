@@ -78,6 +78,23 @@ public class JavaLangErrorHandler
       return null;
     }
 
+    // Explicit per-request opt-out. A fault that implements NonFatalRequestFault has been
+    // classified by the layer that raised it as confined to a single request -- the canonical case
+    // (CLM-44515) is a memory-mapped Lucene search read that hit a mapped-page SIGBUS, which
+    // HotSpot surfaces as an "unsafe memory access" InternalError after safely recovering. It
+    // surfaces as an HTTP 5xx for the offending request only and must not be able to terminate the
+    // JVM (DoS via a user-supplied advanced-search query). This check runs before the
+    // VirtualMachineError branch and does not walk the cause, so the marker short-circuits even
+    // though it wraps a VirtualMachineError (the InternalError) as its cause. The marker is only
+    // ever worn by faults the raising layer has proven request-scoped (see
+    // com.sonatype.insight.brain.search.lucene.SearchMmapFaultAspect, which matches the specific
+    // mmap read fault at the Lucene search-read boundary), so nothing genuinely JVM-fatal hides
+    // beneath it. Every other mmap/Unsafe consumer -- and the Lucene writer/merge path -- is
+    // unaffected: such a fault stays fatal exactly as before.
+    if (exception instanceof NonFatalRequestFault) {
+      return null;
+    }
+
     if (exception instanceof VirtualMachineError) {
       return (Error) exception;
     }

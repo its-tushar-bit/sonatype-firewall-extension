@@ -4,9 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { apiFetch, API_PREFIX } from './apiFetch';
+import { apiFetch, API_PREFIX, ApiError } from './apiFetch';
 import { makeKeylessTtlCache } from './ttlCache';
-import type { SecurityEventDocument } from '@guide/ui-core/types';
+import type { SecurityEventDocument, SecurityEventDetailDocument } from '@guide/ui-core/types';
 import type { ReadonlySearchParams } from '@guide/ui-core/adapters';
 
 /** Aggregations type matching ui-core's Record<string, Record<string, number>>. */
@@ -71,4 +71,22 @@ export function fetchSecurityEventBrowseAggregations(): Promise<Aggregations | n
 /** @internal Resets the in-memory browse-aggregations cache. Test-only. */
 export function _resetBrowseAggregationsCacheForTests(): void {
   browseAggregationsCache.reset();
+}
+
+/**
+ * Fetches a single security event's full advisory from GET /api/v2/guide/security-events/{id}.
+ * Resolves null for a blank id or an HTTP 404 (unknown/removed event) so callers can render a
+ * not-found state; other errors propagate for the page's error boundary. Mirrors
+ * {@code getVulnerabilityDetails}.
+ */
+export async function getSecurityEventDetails(
+  eventId: string
+): Promise<SecurityEventDetailDocument | null> {
+  if (!eventId.trim()) return null;
+  return apiFetch<SecurityEventDetailDocument | null>(
+    `${API_PREFIX}/security-events/${encodeURIComponent(eventId)}`
+  ).catch((e: unknown) => {
+    if (e instanceof ApiError && e.status === 404) return null;
+    throw e;
+  });
 }

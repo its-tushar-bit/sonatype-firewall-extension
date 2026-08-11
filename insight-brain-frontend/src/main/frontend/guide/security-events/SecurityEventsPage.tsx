@@ -113,7 +113,7 @@ export function SecurityEventsPage() {
             limit={limit}
             moduleName="security-events-page"
             renderLinkWrapper={({ event, children }) => (
-              <Link to={`/security-event/${event.eventId}`} className="unstyled-link">
+              <Link to={`/security-event/${encodeURIComponent(event.eventId)}`} className="unstyled-link">
                 {children}
               </Link>
             )}

@@ -7,8 +7,10 @@ import {
   searchSecurityEvents,
   fetchSecurityEventBrowseAggregations,
   _resetBrowseAggregationsCacheForTests,
+  getSecurityEventDetails,
 } from 'GuideRoot/api/securityEventsBackend';
 import * as apiFetchModule from 'GuideRoot/api/apiFetch';
+import { ApiError } from 'GuideRoot/api/apiFetch';
 
 jest.mock('GuideRoot/api/apiFetch', () => ({
   ...jest.requireActual('GuideRoot/api/apiFetch'),
@@ -73,6 +75,64 @@ describe('securityEventsBackend', () => {
       const second = await fetchSecurityEventBrowseAggregations();
       expect(second).toEqual({ bySeverityCategory: { Critical: 3 } });
       expect(mockApiFetch).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('getSecurityEventDetails', () => {
+    const detail = {
+      eventId: 'sonatype-2024-0001',
+      title: 'Malicious package xyz',
+      overview: 'A malicious package was published to npm.',
+      publishedDate: '2024-01-01T00:00:00Z',
+      lastUpdatedDate: '2024-01-02T00:00:00Z',
+      eventSeverityCategory: 'Critical',
+      eventThreatType: 'MALICIOUS_OSS',
+      detail: 'Detailed analysis.',
+      guidance: 'Remove it.',
+      advisoryReferenceIds: [],
+      cwes: [],
+      malwareThreatTypes: [],
+      malwareAttackVectors: [],
+    };
+
+    it('fetches the detail endpoint with the encoded event id', async () => {
+      mockApiFetch.mockResolvedValue(detail);
+
+      const result = await getSecurityEventDetails('sonatype-2024-0001');
+
+      expect(mockApiFetch).toHaveBeenCalledWith(
+        '/api/v2/guide/security-events/sonatype-2024-0001'
+      );
+      expect(result).toEqual(detail);
+    });
+
+    it('encodes ids containing special characters', async () => {
+      mockApiFetch.mockResolvedValue(detail);
+
+      await getSecurityEventDetails('a/b c');
+
+      expect(mockApiFetch).toHaveBeenCalledWith('/api/v2/guide/security-events/a%2Fb%20c');
+    });
+
+    it('returns null without fetching when the id is blank', async () => {
+      const result = await getSecurityEventDetails('   ');
+
+      expect(result).toBeNull();
+      expect(mockApiFetch).not.toHaveBeenCalled();
+    });
+
+    it('returns null on HTTP 404', async () => {
+      mockApiFetch.mockRejectedValue(new ApiError('Not Found', 404, 'Not Found'));
+
+      const result = await getSecurityEventDetails('missing');
+
+      expect(result).toBeNull();
+    });
+
+    it('rethrows non-404 errors', async () => {
+      mockApiFetch.mockRejectedValue(new ApiError('Boom', 500, 'Server Error'));
+
+      await expect(getSecurityEventDetails('boom')).rejects.toThrow('Boom');
     });
   });
 });

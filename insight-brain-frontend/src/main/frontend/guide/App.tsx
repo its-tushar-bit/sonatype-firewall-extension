@@ -20,6 +20,7 @@ import { ErrorBoundary } from './layout/ErrorBoundary';
 import { ComponentsSearchPage } from './components/ComponentsSearchPage';
 import { VulnerabilitiesPage } from './vulnerabilities/VulnerabilitiesPage';
 import { SecurityEventsPage } from './security-events/SecurityEventsPage';
+import { SecurityEventDetailLayout } from './security-events/SecurityEventDetailLayout';
 import { VulnerabilityDetailLayout } from './vulnerabilities/VulnerabilityDetailLayout';
 import { SecurityDetailsTab } from './vulnerabilities/detail/SecurityDetailsTab';
 import { ComponentsImpactedTab } from './vulnerabilities/detail/ComponentsImpactedTab';
@@ -77,6 +78,7 @@ function AuthGate() {
                           <Route path="sonatype-research" element={<SonatypeResearchTab />} />
                         </Route>
                         <Route path="/security-events" element={<SecurityEventsPage />} />
+                        <Route path="/security-event/:eventId" element={<SecurityEventDetailLayout />} />
                         <Route
                           path="/search"
                           element={

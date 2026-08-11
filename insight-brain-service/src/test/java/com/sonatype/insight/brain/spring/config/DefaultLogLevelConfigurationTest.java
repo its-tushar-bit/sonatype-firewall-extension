@@ -57,6 +57,8 @@ public class DefaultLogLevelConfigurationTest
     assertLoggerLevel("com.sonatype.insight.brain.policy.evaluator.queue.EvaluationQueueProducer", Level.INFO);
     assertLoggerLevel("com.sonatype.insight.brain.policy.evaluator.queue.EvaluationQueueConsumer", Level.INFO);
     assertLoggerLevel("org.glassfish.jersey.internal.inject.Providers", Level.ERROR);
+    assertLoggerLevel("org.spdx.core.SimpleUriValue", Level.ERROR);
+    assertLoggerLevel("org.spdx.library.model.SimpleUriValue", Level.ERROR);
   }
 
   @Test
@@ -131,6 +133,8 @@ public class DefaultLogLevelConfigurationTest
     trackLogger("com.sonatype.insight.brain.policy.evaluator.queue.EvaluationQueueProducer");
     trackLogger("com.sonatype.insight.brain.policy.evaluator.queue.EvaluationQueueConsumer");
     trackLogger("org.glassfish.jersey.internal.inject.Providers");
+    trackLogger("org.spdx.core.SimpleUriValue");
+    trackLogger("org.spdx.library.model.SimpleUriValue");
 
     DefaultLogLevelConfiguration config = new DefaultLogLevelConfiguration();
     config.defaultLogLevelInitializer(insightConfig).afterSingletonsInstantiated();

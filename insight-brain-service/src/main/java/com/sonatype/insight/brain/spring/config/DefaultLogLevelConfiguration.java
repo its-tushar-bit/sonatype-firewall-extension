@@ -43,7 +43,15 @@ public class DefaultLogLevelConfiguration
       "com.sonatype.insight.brain.policy.evaluator.queue.EvaluationQueueProducer", Level.INFO,
       "com.sonatype.insight.brain.policy.evaluator.queue.EvaluationQueueConsumer", Level.INFO,
       // https://github.com/eclipse-ee4j/jersey/issues/3700
-      "org.glassfish.jersey.internal.inject.Providers", Level.ERROR);
+      "org.glassfish.jersey.internal.inject.Providers", Level.ERROR,
+      // The SPDX library logs a WARN for any externalRef whose referenceType is not one of its
+      // registered types (e.g. category OTHER with type "repository"). This is cosmetic: the SBOM
+      // is still parsed and evaluated correctly, no component/vulnerability data is dropped.
+      // Suppress the WARN noise while keeping ERROR visible. The emitting class name differs across
+      // java-spdx-library versions (org.spdx.core.SimpleUriValue in 2.x, org.spdx.library.model in
+      // 1.x), so both are covered defensively. CLM-36307
+      "org.spdx.core.SimpleUriValue", Level.ERROR,
+      "org.spdx.library.model.SimpleUriValue", Level.ERROR);
 
   @Bean
   @Order(Ordered.LOWEST_PRECEDENCE)

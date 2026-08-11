@@ -9,14 +9,7 @@
  * Distinct from app-scoped {@link componentDetailHref}.
  * Used by estate detail tab/Overview self-links and My Scan Data list cards (CLM-43960).
  */
-export type EstateComponentTab =
-  | 'overview'
-  | 'legal'
-  | 'vulnerabilities'
-  | 'versions'
-  | 'violations'
-  | 'applications'
-  | 'organizations';
+export type EstateComponentTab = 'overview' | 'vulnerabilities' | 'violations' | 'applications';
 
 export function estateComponentDetailHref(componentHash: string, tab: EstateComponentTab = 'overview'): string {
   const encoded = encodeURIComponent(componentHash);

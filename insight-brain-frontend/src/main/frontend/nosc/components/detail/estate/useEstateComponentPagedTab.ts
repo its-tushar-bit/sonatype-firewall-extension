@@ -37,7 +37,7 @@ export type UseEstateComponentPagedTabResult<TRow> = {
 };
 
 /**
- * Shared paged fetch for estate Component Detail list tabs (Violations / Apps / Orgs).
+ * Shared paged fetch for estate Component Detail list tabs (Violations / Applications).
  * Hash-keyed + page-sized only — never materializes the estate client-side.
  */
 export function useEstateComponentPagedTab<TRow>(
@@ -49,7 +49,15 @@ export function useEstateComponentPagedTab<TRow>(
   const [total, setTotal] = useState(0);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [page, setPage] = useState(0);
+  const [trackedHash, setTrackedHash] = useState(componentHash);
   const [retryToken, setRetryToken] = useState(0);
+
+  // Reset pagination synchronously when the reviewed component changes so a prior
+  // page index cannot fetch an empty page for the next hash.
+  if (componentHash !== trackedHash) {
+    setTrackedHash(componentHash);
+    setPage(0);
+  }
 
   const load = useCallback(
     async (pageIndex: number, signal: AbortSignal): Promise<void> => {

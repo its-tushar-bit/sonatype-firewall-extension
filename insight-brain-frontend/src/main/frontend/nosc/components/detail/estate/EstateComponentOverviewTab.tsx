@@ -172,13 +172,6 @@ export function EstateComponentOverviewTab(): JSX.Element {
         >
           View applications →
         </RadixLink>
-        <RadixLink
-          size="2"
-          href={estateComponentDetailHref(componentHash, 'organizations')}
-          data-testid="nosc-estate-component-overview-organizations-link"
-        >
-          View organizations →
-        </RadixLink>
       </Flex>
     </Flex>
   );

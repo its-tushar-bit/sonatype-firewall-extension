@@ -53,8 +53,7 @@ export function EstateComponentVulnerabilitiesTab(): JSX.Element {
     return (
       <Flex direction="column" gap="3" align="start" mt="4" data-testid="nosc-estate-component-vulnerabilities-error">
         <Text size="2" color="red">
-          Vulnerability details are temporarily unavailable. Policy Violations, Applications, and Organizations remain
-          available.
+          Vulnerability details are temporarily unavailable. Policy Violations and Applications remain available.
         </Text>
         <Button size="2" variant="soft" onClick={retryHds} data-testid="nosc-estate-component-vulnerabilities-retry">
           Retry

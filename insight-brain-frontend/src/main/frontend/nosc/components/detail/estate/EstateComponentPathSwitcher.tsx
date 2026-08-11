@@ -7,8 +7,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { ReactElement } from 'react';
 import axios from 'axios';
 import { Button, Flex, Link as RadixLink, Text } from '@radix-ui/themes';
-import { getApplicationReportDeepLinkUrl } from 'MainRoot/util/CLMLocation';
-import { formatLastSeen } from './estateComponentDetailUtils';
+import { applicationUsageReportHref, formatLastSeen } from './estateComponentDetailUtils';
 import { COMPONENT_USAGE_PAGE_SIZE, fetchComponentUsageReports } from './estateComponentUsageApi';
 import type { ComponentUsageApplicationRow, ComponentUsageReportRow } from './estateComponentUsageApi';
 
@@ -102,11 +101,10 @@ export function EstateComponentPathSwitcher({
     (application) => application.applicationId === selectedApplicationId
   );
   const selectedReport = selectableReports.find((report) => report.reportId === selectedReportId);
-  const selectedApplicationPublicId = selectedApplication?.applicationPublicId?.trim();
-  const reportHref =
-    selectedApplicationPublicId && selectedReport?.reportId
-      ? getApplicationReportDeepLinkUrl(selectedApplicationPublicId, selectedReport.reportId)
-      : null;
+  const reportHref = applicationUsageReportHref(
+    selectedApplication?.applicationPublicId,
+    selectedReport?.reportId
+  );
 
   return (
     <Flex direction="column" gap="2" data-testid="nosc-estate-component-path-switcher">

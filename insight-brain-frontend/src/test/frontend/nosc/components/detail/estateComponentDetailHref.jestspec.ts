@@ -19,10 +19,8 @@ describe('estateComponentDetailHref', () => {
   });
 
   it('builds each non-overview tab segment', () => {
-    expect(estateComponentDetailHref('h1', 'legal')).toBe('#/components/h1/legal');
     expect(estateComponentDetailHref('h1', 'vulnerabilities')).toBe('#/components/h1/vulnerabilities');
-    expect(estateComponentDetailHref('h1', 'versions')).toBe('#/components/h1/versions');
+    expect(estateComponentDetailHref('h1', 'violations')).toBe('#/components/h1/violations');
     expect(estateComponentDetailHref('h1', 'applications')).toBe('#/components/h1/applications');
-    expect(estateComponentDetailHref('h1', 'organizations')).toBe('#/components/h1/organizations');
   });
 });

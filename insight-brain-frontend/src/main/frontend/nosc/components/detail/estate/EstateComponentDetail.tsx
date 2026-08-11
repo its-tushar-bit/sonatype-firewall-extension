@@ -39,20 +39,13 @@ const HEADER_COUNT_PAGE_SIZE = 1;
 
 const ESTATE_COMPONENT_TABS = [
   { value: 'overview', label: 'Overview', testId: 'nosc-estate-component-tab-overview' },
-  { value: 'legal', label: 'Legal', testId: 'nosc-estate-component-tab-legal' },
   {
     value: 'vulnerabilities',
     label: 'Vulnerabilities',
     testId: 'nosc-estate-component-tab-vulnerabilities',
   },
-  { value: 'versions', label: 'Versions', testId: 'nosc-estate-component-tab-versions' },
   { value: 'violations', label: 'Policy Violations', testId: 'nosc-estate-component-tab-violations' },
   { value: 'applications', label: 'Applications', testId: 'nosc-estate-component-tab-applications' },
-  {
-    value: 'organizations',
-    label: 'Organizations',
-    testId: 'nosc-estate-component-tab-organizations',
-  },
 ] as const;
 
 function paramAsString(value: unknown): string | undefined {
@@ -252,8 +245,7 @@ export default function EstateComponentDetail(): ReactElement {
               {componentHash}
             </Text>
             <Text size="2" color="red">
-              Component catalog details could not be loaded. Policy Violations, Applications, and Organizations remain
-              available.
+              Component catalog details could not be loaded. Policy Violations and Applications remain available.
             </Text>
             <Button size="2" variant="soft" onClick={startHdsLoad} data-testid="nosc-estate-component-header-retry">
               Retry details

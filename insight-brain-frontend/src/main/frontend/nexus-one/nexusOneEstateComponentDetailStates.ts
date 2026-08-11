@@ -7,10 +7,7 @@ import { ReactStateDeclaration } from '@uirouter/react';
 import EstateComponentDetail from 'MainRoot/nosc/components/detail/estate/EstateComponentDetail';
 import {
   EstateComponentApplicationsRoute,
-  EstateComponentLegalRoute,
-  EstateComponentOrganizationsRoute,
   EstateComponentOverviewRoute,
-  EstateComponentVersionsRoute,
   EstateComponentVulnerabilitiesRoute,
   EstateComponentViolationsRoute,
 } from 'MainRoot/nosc/components/detail/estate/estateComponentTabRoutes';
@@ -44,21 +41,9 @@ export function nexusOneEstateComponentDetailStates(): ReactStateDeclaration[] {
       data: { title: ESTATE_COMPONENT_DETAIL_TITLE },
     },
     {
-      name: estateComponentDetailStateNameForTab('legal'),
-      url: '/legal',
-      component: EstateComponentLegalRoute,
-      data: { title: ESTATE_COMPONENT_DETAIL_TITLE },
-    },
-    {
       name: estateComponentDetailStateNameForTab('vulnerabilities'),
       url: '/vulnerabilities',
       component: EstateComponentVulnerabilitiesRoute,
-      data: { title: ESTATE_COMPONENT_DETAIL_TITLE },
-    },
-    {
-      name: estateComponentDetailStateNameForTab('versions'),
-      url: '/versions',
-      component: EstateComponentVersionsRoute,
       data: { title: ESTATE_COMPONENT_DETAIL_TITLE },
     },
     {
@@ -71,12 +56,6 @@ export function nexusOneEstateComponentDetailStates(): ReactStateDeclaration[] {
       name: estateComponentDetailStateNameForTab('applications'),
       url: '/applications',
       component: EstateComponentApplicationsRoute,
-      data: { title: ESTATE_COMPONENT_DETAIL_TITLE },
-    },
-    {
-      name: estateComponentDetailStateNameForTab('organizations'),
-      url: '/organizations',
-      component: EstateComponentOrganizationsRoute,
       data: { title: ESTATE_COMPONENT_DETAIL_TITLE },
     },
   ];

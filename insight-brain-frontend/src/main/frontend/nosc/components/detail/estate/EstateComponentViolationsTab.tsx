@@ -3,15 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import type { FormEvent } from 'react';
 import axios from 'axios';
-import { Badge, Card, Flex, Inset, Link as RadixLink, Table, Text } from '@radix-ui/themes';
+import { Badge, Button, Card, Flex, Inset, Link as RadixLink, Table, Text, TextField } from '@radix-ui/themes';
 import { AsyncPageState } from 'MainRoot/nosc/components/AsyncPageState';
 import { Pagination } from 'MainRoot/nosc/components/Pagination';
-import {
-  buildViolationsListRequest,
-  VIOLATIONS_PAGE_SIZE,
-} from 'MainRoot/nosc/violations/violationsListApi';
+import { buildViolationsListRequest, VIOLATIONS_PAGE_SIZE } from 'MainRoot/nosc/violations/violationsListApi';
 import { violationDetailHref } from 'MainRoot/nosc/violations/violationDetailHref';
 import type { ViolationRow, ViolationsListResponse } from 'MainRoot/nosc/violations/violationListTypes';
 import { getViolationsListUrl } from 'MainRoot/util/CLMLocation';
@@ -28,6 +26,11 @@ function policyViolationHref(policyViolationId: string | undefined): string | nu
 
 export function EstateComponentViolationsTab(): JSX.Element {
   const { componentHash } = useEstateComponentDetailShellContext();
+  const [searchComponentHash, setSearchComponentHash] = useState(componentHash);
+  const [searchInput, setSearchInput] = useState('');
+  const [committedSearch, setCommittedSearch] = useState('');
+  const currentSearchInput = searchComponentHash === componentHash ? searchInput : '';
+  const currentCommittedSearch = searchComponentHash === componentHash ? committedSearch : '';
 
   const fetchPage = useCallback(
     async (pageIndex: number, signal: AbortSignal) => {
@@ -38,8 +41,9 @@ export function EstateComponentViolationsTab(): JSX.Element {
           pageSize: VIOLATIONS_PAGE_SIZE,
           includeFacets: false,
           componentHash,
+          search: currentCommittedSearch,
         }),
-        { signal },
+        { signal }
       );
       return {
         rows: data.violations ?? [],
@@ -47,19 +51,58 @@ export function EstateComponentViolationsTab(): JSX.Element {
         hasNextPage: Boolean(data.hasNextPage),
       };
     },
-    [componentHash],
+    [componentHash, currentCommittedSearch]
   );
 
-  const { loading, error, rows, total, hasNextPage, page, setPage, onRetry } =
-    useEstateComponentPagedTab<ViolationRow>({
+  const { loading, error, rows, total, hasNextPage, page, setPage, onRetry } = useEstateComponentPagedTab<ViolationRow>(
+    {
       componentHash,
       endpointLabel: 'dashboard/violations/list',
       fetchPage,
       loadErrorMessage: 'Could not load policy violations for this component.',
-    });
+    }
+  );
+
+  useEffect(() => {
+    setSearchComponentHash(componentHash);
+    setSearchInput('');
+    setCommittedSearch('');
+  }, [componentHash]);
+
+  function onSearchSubmit(event: FormEvent<HTMLFormElement>): void {
+    event.preventDefault();
+    setSearchComponentHash(componentHash);
+    setPage(0);
+    setCommittedSearch(currentSearchInput.trim());
+  }
 
   return (
     <Flex direction="column" gap="3" mt="4">
+      <form onSubmit={onSearchSubmit}>
+        <Flex gap="2" align="end" wrap="wrap">
+          <Flex direction="column" gap="1">
+            <Text size="1" color="gray" as="label" htmlFor="estate-component-violations-search">
+              Search policy violations
+            </Text>
+            <TextField.Root
+              id="estate-component-violations-search"
+              placeholder="Search policy violations…"
+              value={currentSearchInput}
+              onChange={(event) => {
+                setSearchComponentHash(componentHash);
+                setSearchInput(event.target.value);
+                if (searchComponentHash !== componentHash) {
+                  setCommittedSearch('');
+                }
+              }}
+              data-testid="nosc-estate-component-violations-search"
+            />
+          </Flex>
+          <Button type="submit" size="2" variant="soft">
+            Search violations
+          </Button>
+        </Flex>
+      </form>
       <AsyncPageState
         loading={loading}
         error={error}
@@ -84,6 +127,8 @@ export function EstateComponentViolationsTab(): JSX.Element {
                     <Table.ColumnHeaderCell>Threat</Table.ColumnHeaderCell>
                     <Table.ColumnHeaderCell>Policy</Table.ColumnHeaderCell>
                     <Table.ColumnHeaderCell>Application</Table.ColumnHeaderCell>
+                    <Table.ColumnHeaderCell>Category</Table.ColumnHeaderCell>
+                    <Table.ColumnHeaderCell>Stage</Table.ColumnHeaderCell>
                     <Table.ColumnHeaderCell>State</Table.ColumnHeaderCell>
                   </Table.Row>
                 </Table.Header>
@@ -107,11 +152,7 @@ export function EstateComponentViolationsTab(): JSX.Element {
                         </Table.Cell>
                         <Table.Cell>
                           {href ? (
-                            <RadixLink
-                              size="2"
-                              href={href}
-                              data-testid="nosc-estate-component-violations-row-link"
-                            >
+                            <RadixLink size="2" href={href} data-testid="nosc-estate-component-violations-row-link">
                               {label}
                             </RadixLink>
                           ) : (
@@ -122,6 +163,12 @@ export function EstateComponentViolationsTab(): JSX.Element {
                         </Table.Cell>
                         <Table.Cell>
                           <Text size="2">{row.applicationName || row.applicationPublicId || '—'}</Text>
+                        </Table.Cell>
+                        <Table.Cell>
+                          <Text size="2">{row.threatCategory || '—'}</Text>
+                        </Table.Cell>
+                        <Table.Cell>
+                          <Text size="2">{row.stage || '—'}</Text>
                         </Table.Cell>
                         <Table.Cell>
                           <Text size="2">{row.state || '—'}</Text>

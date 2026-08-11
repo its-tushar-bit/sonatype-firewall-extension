@@ -4,17 +4,15 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import type { EstateComponentTab } from 'MainRoot/nosc/components/detail/estateComponentDetailHref';
+import { getApplicationReportDeepLinkUrl } from 'MainRoot/util/CLMLocation';
 
 export const NEXUS_ONE_ESTATE_COMPONENT_DETAIL_PARENT_STATE = 'nexusOneEstateComponentDetail';
 
 export const ESTATE_COMPONENT_TAB_IDS: readonly EstateComponentTab[] = [
   'overview',
-  'legal',
   'vulnerabilities',
-  'versions',
   'violations',
   'applications',
-  'organizations',
 ] as const;
 
 const TAB_SET = new Set<string>(ESTATE_COMPONENT_TAB_IDS);
@@ -43,7 +41,7 @@ export function truncatedComponentHash(hash: string): string {
   return `${hash.slice(0, 8)}…`;
 }
 
-/** Format where-used last-seen epoch millis for Applications / Organizations tables. */
+/** Format where-used last-seen epoch millis for Applications tables. */
 export function formatLastSeen(epochMillis: number | undefined): string {
   if (typeof epochMillis !== 'number' || !Number.isFinite(epochMillis)) {
     return '—';
@@ -53,4 +51,17 @@ export function formatLastSeen(epochMillis: number | undefined): string {
   } catch {
     return '—';
   }
+}
+
+/** Classic report deep-link for Path / Applications expand rows. */
+export function applicationUsageReportHref(
+  applicationPublicId: string | undefined,
+  reportId: string | undefined
+): string | null {
+  const publicId = applicationPublicId?.trim();
+  const scanId = reportId?.trim();
+  if (!publicId || !scanId) {
+    return null;
+  }
+  return getApplicationReportDeepLinkUrl(publicId, scanId);
 }

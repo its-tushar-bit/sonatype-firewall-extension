@@ -4,31 +4,18 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { EstateComponentOverviewTab } from './EstateComponentOverviewTab';
-import { EstateComponentLegalTab } from './EstateComponentLegalTab';
 import { EstateComponentVulnerabilitiesTab } from './EstateComponentVulnerabilitiesTab';
-import { EstateComponentVersionExplorerTab } from './EstateComponentVersionExplorerTab';
 import { EstateComponentViolationsTab } from './EstateComponentViolationsTab';
 import { EstateComponentApplicationsTab } from './EstateComponentApplicationsTab';
-import { EstateComponentOrganizationsTab } from './EstateComponentOrganizationsTab';
 
 /** UI-Router child route: Overview tab (CLM-43961). */
 export function EstateComponentOverviewRoute(): JSX.Element {
   return <EstateComponentOverviewTab />;
 }
 
-/** UI-Router child route: Legal tab. */
-export function EstateComponentLegalRoute(): JSX.Element {
-  return <EstateComponentLegalTab />;
-}
-
 /** UI-Router child route: Vulnerabilities tab. */
 export function EstateComponentVulnerabilitiesRoute(): JSX.Element {
   return <EstateComponentVulnerabilitiesTab />;
-}
-
-/** UI-Router child route: Versions tab. */
-export function EstateComponentVersionsRoute(): JSX.Element {
-  return <EstateComponentVersionExplorerTab />;
 }
 
 /** UI-Router child route: Policy Violations tab. */
@@ -39,9 +26,4 @@ export function EstateComponentViolationsRoute(): JSX.Element {
 /** UI-Router child route: Applications where-used tab. */
 export function EstateComponentApplicationsRoute(): JSX.Element {
   return <EstateComponentApplicationsTab />;
-}
-
-/** UI-Router child route: Organizations where-used tab. */
-export function EstateComponentOrganizationsRoute(): JSX.Element {
-  return <EstateComponentOrganizationsTab />;
 }

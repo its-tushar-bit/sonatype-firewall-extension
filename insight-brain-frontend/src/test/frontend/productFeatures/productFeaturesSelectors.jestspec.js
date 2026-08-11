@@ -446,17 +446,4 @@ describe('productFeaturesSelectors', () => {
       expect(selectIsEnterprisePreviewMode(mockState)).toBe(false);
     });
   });
-
-  describe('selectIsCatalogFederationEnabled', () => {
-    const { selectIsCatalogFederationEnabled } = require('MainRoot/productFeatures/productFeaturesSelectors');
-
-    it('returns true when the catalog-federation feature flag is on', () => {
-      const state = assocPath(['productFeatures', 'productFeatures', 'catalog-federation'], true, mockState);
-      expect(selectIsCatalogFederationEnabled(state)).toBe(true);
-    });
-
-    it('returns false when the catalog-federation flag is absent (default)', () => {
-      expect(selectIsCatalogFederationEnabled(mockState)).toBe(false);
-    });
-  });
 });

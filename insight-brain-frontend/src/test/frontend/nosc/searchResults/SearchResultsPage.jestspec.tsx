@@ -68,23 +68,11 @@ function response(over: Partial<ResultsResponse> = {}): ResultsResponse {
   };
 }
 
-/**
- * Seed the product-features slice so selectIsCatalogFederationEnabled resolves
- * without a network fetch. `catalog-federation` gates the Sonatype Catalog corpus;
- * with it off the page clamps `?source=catalog` back to local.
- */
-function featuresState({ catalogFederation = true }: { catalogFederation?: boolean } = {}) {
-  const productFeatures: Record<string, boolean> = {};
-  if (catalogFederation) productFeatures['catalog-federation'] = true;
-  return { productFeatures: { productFeatures, loading: false, loadError: null } };
-}
-
-function renderPage(opts: { catalogFederation?: boolean } = {}) {
+function renderPage() {
   return render(
     <Theme>
       <SearchResultsPage />
-    </Theme>,
-    { preloadedState: featuresState(opts) }
+    </Theme>
   );
 }
 
@@ -544,39 +532,7 @@ describe('SearchResultsPage (CLM-42453 server pagination + tabCounts + inline fi
     expect(mock.history.get[0].url ?? '').toContain('source=catalog');
   });
 
-  it('clamps ?source=catalog to local when CATALOG_FEDERATION is off', async () => {
-    // A bookmarked or hand-typed ?source=catalog URL must not reach a corpus the
-    // flag withholds, so the page clamps the param instead of trusting it.
-    mockParams = { q: 'log4j', source: 'catalog' };
-    renderPage({ catalogFederation: false });
-    await waitFor(() => expect(mock.history.get.length).toBeGreaterThan(0));
-    const url = mock.history.get[0].url ?? '';
-    expect(url).toContain('source=local');
-    expect(url).not.toContain('source=catalog');
-  });
-
-  it('keeps the IQ-only tabs when a clamped ?source=catalog falls back to local', async () => {
-    mockParams = { q: 'log4j', source: 'catalog' };
-    renderPage({ catalogFederation: false });
-    expect(await screen.findByTestId('nosc-search-tab-all')).toBeInTheDocument();
-    expect(screen.getByTestId('nosc-search-tab-APPLICATION')).toBeInTheDocument();
-    expect(screen.getByTestId('nosc-search-tab-VIOLATION')).toBeInTheDocument();
-    expect(screen.getByTestId('nosc-search-tab-WAIVER')).toBeInTheDocument();
-  });
-
-  it('omits the clamped source from tab navigation when CATALOG_FEDERATION is off', async () => {
-    const user = userEvent.setup();
-    mockParams = { q: 'log4j', source: 'catalog' };
-    renderPage({ catalogFederation: false });
-    await user.click(await screen.findByTestId('nosc-search-tab-COMPONENT'));
-    expect(mockGo).toHaveBeenCalledWith(
-      'nexusOneSearch',
-      expect.objectContaining({ source: undefined }),
-      undefined
-    );
-  });
-
-  it('preserves source=catalog across tab changes when CATALOG_FEDERATION is on', async () => {
+  it('preserves source=catalog across tab changes', async () => {
     const user = userEvent.setup();
     mockParams = { q: 'log4j', source: 'catalog' };
     renderPage();

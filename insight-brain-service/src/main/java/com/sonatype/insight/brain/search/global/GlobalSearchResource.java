@@ -45,8 +45,9 @@ import jakarta.ws.rs.core.Response;
  * receive {@code 403}.
  *
  * <p>
- * The {@code source=catalog} parameter value is separately gated by the {@code CATALOG_FEDERATION}
- * feature flag, so the catalog data source is offered only where the deployment has switched it on.
+ * The {@code source=catalog} parameter value serves the shared public Guide/HDS catalog corpus. It is
+ * base Nexus One functionality available with any valid IQ license on both single-tenant and MTIQ
+ * deployments, so it needs no gate beyond {@code PREVIEW_NEXUS_ONE_UI}.
  */
 @Named
 @Singleton
@@ -116,7 +117,6 @@ public class GlobalSearchResource
     verifyReadOnAnyContext();
     final String validated = validateQuery(q);
     final SearchSource parsedSource = validateSource(source);
-    verifyCatalogSourceAllowed(parsedSource);
     return suggestService.suggest(validated, parsedSource);
   }
 
@@ -177,7 +177,6 @@ public class GlobalSearchResource
     final int parsedPage = validatePage(page);
     final int parsedPageSize = validatePageSize(pageSize);
     final SearchSource parsedSource = validateSource(source);
-    verifyCatalogSourceAllowed(parsedSource);
     final String validatedSort = validateSort(sort);
     final boolean facetsRequested = Boolean.TRUE.equals(includeFacets);
     final boolean tabCountsRequested = Boolean.TRUE.equals(includeTabCounts);
@@ -274,29 +273,6 @@ public class GlobalSearchResource
   private static void verifyPreviewUiEnabled() {
     if (!SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.isEnabled()) {
       throw new NotFoundException("Not Found");
-    }
-  }
-
-  /**
-   * Enforce the {@code CATALOG_FEDERATION} flag on {@code ?source=catalog} so the backend agrees with
-   * the frontend rather than trusting the UI's source clamp. The flag defaults off, so a request naming
-   * the catalog source while it is off is rejected here and never reaches HDS.
-   *
-   * <p>
-   * 400 (not 404) because the endpoint itself is present and the IQ-local source is fully served; only
-   * this one parameter value is unavailable. The gate lives at the request boundary rather than on the
-   * catalog client's entitlement check: entitlement answers "is this deployment licensed for catalog
-   * data" -- always yes, catalog federation is base functionality on any license and on MTIQ -- whereas
-   * this flag answers "is the catalog source offered on this deployment", which is the question the
-   * frontend asks before it renders the source toggle. That is why {@code entitled()} in
-   * {@code GlobalSearchSuggestCatalogClientImpl} and {@code GlobalSearchResultsCatalogClientImpl}
-   * returns an unconditional true: this method is the deployment-level gate, not those.
-   */
-  private static void verifyCatalogSourceAllowed(final SearchSource parsedSource) {
-    if (parsedSource == SearchSource.CATALOG
-        && !SystemConfigurationPropertyFeature.CATALOG_FEDERATION.isEnabled())
-    {
-      throw new BadRequestException("catalog source is not enabled");
     }
   }
 

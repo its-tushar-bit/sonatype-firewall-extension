@@ -39,9 +39,8 @@ public interface GlobalSearchSuggestCatalogClient
    * <p>
    * Catalog federation is base Nexus One functionality, so implementations MUST NOT gate on a license
    * feature or on tenancy: it is available with any valid IQ license on both single-tenant and MTIQ
-   * deployments. The {@code PREVIEW_NEXUS_ONE_UI} feature checked upstream in the resource is the kill-switch for
-   * this surface; the default-off {@code CATALOG_FEDERATION} toggle gates the catalog browse endpoint
-   * only and MUST NOT be read here.
+   * deployments. The {@code PREVIEW_NEXUS_ONE_UI} feature checked upstream in the resource is the sole
+   * kill-switch for this surface.
    */
   boolean isEnabled();
 }

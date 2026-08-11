@@ -160,7 +160,6 @@ public class ConfigFeaturesResourceTest
         SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.getId(),
         SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_REDIRECT_UI_ENABLED.getId(),
         SystemConfigurationPropertyFeature.SLO_VIOLATION_FEED.getId(),
-        SystemConfigurationPropertyFeature.CATALOG_FEDERATION.getId(),
       })).toArray(String[]::new);
 
   @Before

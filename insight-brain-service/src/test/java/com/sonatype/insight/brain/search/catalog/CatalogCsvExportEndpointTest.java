@@ -31,7 +31,6 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeatureTestSupport;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
-import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.search.global.GlobalSearchRequest;
 import com.sonatype.insight.brain.search.global.GlobalSearchResult;
 import com.sonatype.insight.brain.search.global.IqLocalSearchService;
@@ -43,8 +42,6 @@ import com.sonatype.insight.brain.search.lucene.LowerCaseKeywordAnalyzer;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.PermissionService;
-import com.sonatype.insight.brain.tenancy.TenantUtil;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
@@ -97,7 +94,6 @@ public class CatalogCsvExportEndpointTest
   public void setUp() throws Exception {
     SystemConfigurationPropertyFeatureTestSupport.install();
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
-    SystemConfigurationPropertyFeature.CATALOG_FEDERATION.setEnabled(true);
 
     directory = new ByteBuffersDirectory();
     final Map<String, Analyzer> perField = new HashMap<>();
@@ -136,13 +132,8 @@ public class CatalogCsvExportEndpointTest
         .thenAnswer(inv -> runRealSearch(inv.getArgument(0)));
 
     final SearchApiClient searchApiClient = mock(SearchApiClient.class);
-    final ProductLicense productLicense = mock(ProductLicense.class);
-    when(productLicense.hasFeature(LicensedFeature.GUIDE_SEARCH)).thenReturn(true);
-    final TenantUtil tenantUtil = mock(TenantUtil.class);
-    when(tenantUtil.isMultiTenant()).thenReturn(false);
     final IqLocalSearchService iq = new IqLocalSearchService(searchIndexClient);
-    final CatalogService service =
-        new CatalogService(iq, searchApiClient, searchIndexClient, productLicense, tenantUtil);
+    final CatalogService service = new CatalogService(iq, searchApiClient, searchIndexClient);
 
     currentUser = mock(CurrentUser.class);
     permissionService = mock(PermissionService.class);

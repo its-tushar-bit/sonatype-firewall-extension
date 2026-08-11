@@ -33,8 +33,6 @@ public class CatalogResourceAuthzTest
   @Before
   public void enableGlobalSearch() {
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
-    // Left OFF so the catalog source degrades gracefully without exercising an HDS/catalog backend.
-    SystemConfigurationPropertyFeature.CATALOG_FEDERATION.setEnabled(false);
     grantReadPermission(org.getId());
   }
 
@@ -70,7 +68,5 @@ public class CatalogResourceAuthzTest
     assertThat(response.getStatusCode()).isEqualTo(200);
     CatalogResponse body = response.getBody(CatalogResponse.class);
     assertThat(body.entityType()).isEqualTo("COMPONENT");
-    // CATALOG_FEDERATION is off, so the catalog source is served degraded rather than calling HDS.
-    assertThat(body.catalogAvailable()).isFalse();
   }
 }

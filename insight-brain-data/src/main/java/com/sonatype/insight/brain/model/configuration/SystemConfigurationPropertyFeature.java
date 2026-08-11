@@ -64,11 +64,6 @@ public enum SystemConfigurationPropertyFeature
   PREVIEW_NEXUS_ONE_UI_DISABLE_SWITCH_FEEDBACK(
       SystemConfigurationProperty.PREVIEW_NEXUS_ONE_UI_DISABLE_SWITCH_FEEDBACK,
       false),
-  /**
-   * Gates the federated catalog source (Guide/HDS) of the catalog search endpoint. Default OFF; when
-   * off the catalog source degrades gracefully and only the IQ-local source is served.
-   */
-  CATALOG_FEDERATION(SystemConfigurationProperty.CATALOG_FEDERATION, false),
   CROWD_INTEGRATION(SystemConfigurationProperty.CROWD_INTEGRATION, true),
   WEBHOOK_CONFIGURATION(SystemConfigurationProperty.WEBHOOK_CONFIGURATION, true),
   PRODUCT_LICENSE_CONFIGURATION(SystemConfigurationProperty.PRODUCT_LICENSE_CONFIGURATION, true),

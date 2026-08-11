@@ -125,13 +125,12 @@ public class FeaturePropertiesInfoTest
   @Test
   public void testGetFeatureConfigPropertiesJson_defaultFeatureConfig() throws IOException {
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
-    assertThat(featureConfigNode.size()).isEqualTo(79);
+    assertThat(featureConfigNode.size()).isEqualTo(78);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
               "ADVANCED_SEARCH_CONFIGURATION": true,
               "ADVANCED_SEARCH_ENABLED": false,
-              "CATALOG_FEDERATION": false,
               "alpForSbomManager": false,
               "API_PAGE": true,
               "AUTOMATIC_APPLICATION_CONFIGURATION": true,
@@ -225,13 +224,12 @@ public class FeaturePropertiesInfoTest
 
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
 
-    assertThat(featureConfigNode.size()).isEqualTo(79);
+    assertThat(featureConfigNode.size()).isEqualTo(78);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
               "ADVANCED_SEARCH_CONFIGURATION": true,
               "ADVANCED_SEARCH_ENABLED": true,
-              "CATALOG_FEDERATION": false,
               "alpForSbomManager": false,
               "API_PAGE": true,
               "AUTOMATIC_APPLICATION_CONFIGURATION": true,

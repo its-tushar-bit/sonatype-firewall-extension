@@ -33,8 +33,6 @@ import com.sonatype.insight.brain.guide.api.dto.GuideComponentSearchRequest;
 import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilityDocument;
 import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilitySearchRequest;
 import com.sonatype.insight.brain.guide.core.SearchApiClient;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
-import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.search.RowFacetValues;
 import com.sonatype.insight.brain.search.catalog.CatalogLocalRequestBuilder.LocalQuery;
 import com.sonatype.insight.brain.search.catalog.CatalogResponse.CatalogFacetBucket;
@@ -53,10 +51,8 @@ import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.MetricAggregationResult;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
-import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.brain.utils.ThreatLevel;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -222,23 +218,15 @@ public class CatalogService
 
   private final SearchIndexClient searchIndexClient;
 
-  private final ProductLicense productLicense;
-
-  private final TenantUtil tenantUtil;
-
   @Inject
   public CatalogService(
       final IqLocalSearchService iqLocalSearchService,
       final SearchApiClient searchApiClient,
-      final SearchIndexClient searchIndexClient,
-      final ProductLicense productLicense,
-      final TenantUtil tenantUtil)
+      final SearchIndexClient searchIndexClient)
   {
     this.iqLocalSearchService = iqLocalSearchService;
     this.searchApiClient = searchApiClient;
     this.searchIndexClient = searchIndexClient;
-    this.productLicense = productLicense;
-    this.tenantUtil = tenantUtil;
   }
 
   /**
@@ -291,22 +279,19 @@ public class CatalogService
     final List<String> warnings = catalogWarnings(request);
     // widen to long before multiply to avoid int overflow at large page numbers
     final int offset = (int) Math.min((long) (page - 1) * pageSize, Integer.MAX_VALUE);
-    // Validate/build the backend request FIRST, before any availability/entitlement short-circuit,
-    // so a malformed filter is a consistent 400 regardless of flag or license state (rather than a
-    // degraded-200 when off but a 400 when on).
+    // Build the backend request first so a malformed filter is a consistent 400. Catalog federation is
+    // base Nexus One functionality served with any valid IQ license on both single-tenant and MTIQ
+    // deployments (HDS is already a hard runtime dependency of IQ), so there is no availability or
+    // entitlement short-circuit here; the endpoint is reached only after CatalogResource's
+    // PREVIEW_NEXUS_ONE_UI and read-on-any-context checks. The HDS calls below go through the
+    // catalog-federation SearchApiClient methods, which report no Guide usage/consumption telemetry:
+    // base browse traffic is not counted as Guide-licensed credit consumption.
     final GuideComponentSearchRequest componentRequest = entityType == CatalogEntityType.COMPONENT
         ? CatalogRequestBuilder.component(request.getFilters(), offset, pageSize)
         : null;
     final GuideVulnerabilitySearchRequest vulnerabilityRequest = entityType == CatalogEntityType.VULNERABILITY
         ? CatalogRequestBuilder.vulnerability(request.getFilters(), offset, pageSize)
         : null;
-    // Availability + entitlement gate. A feature flag is not an entitlement: mirror the rule
-    // SearchLicenseFilter enforces on the Guide API (deny multi-tenant, require GUIDE_SEARCH) so the
-    // catalog leg cannot expose HDS data to an unentitled or MTIQ caller. Denials degrade to the
-    // same catalog-unavailable body the flag-off path returns rather than leaking a 403 mid-response.
-    if (!SystemConfigurationPropertyFeature.CATALOG_FEDERATION.isEnabled() || !catalogEntitled()) {
-      return CatalogResponse.catalogUnavailable(entityType, page, pageSize, warnings);
-    }
     try {
       return switch (entityType) {
         case COMPONENT -> catalogComponents(componentRequest, request.isIncludeFacets(), page, pageSize, warnings);
@@ -323,15 +308,6 @@ public class CatalogService
     }
   }
 
-  /**
-   * Mirrors {@link com.sonatype.insight.brain.security.SearchLicenseFilter}'s Guide-API gate: deny on
-   * multi-tenant (MTIQ) deployments and require the {@link LicensedFeature#GUIDE_SEARCH} feature. The
-   * catalog leg calls the same HDS-backed store the filter guards, so it applies the identical rule.
-   */
-  private boolean catalogEntitled() {
-    return !tenantUtil.isMultiTenant() && productLicense.hasFeature(LicensedFeature.GUIDE_SEARCH);
-  }
-
   private CatalogResponse catalogComponents(
       final GuideComponentSearchRequest componentRequest,
       final boolean includeFacets,
@@ -339,7 +315,7 @@ public class CatalogService
       final int pageSize,
       final List<String> warnings)
   {
-    final ApiSearchResponse<ComponentDocument> response = searchApiClient.searchComponents(componentRequest);
+    final ApiSearchResponse<ComponentDocument> response = searchApiClient.searchCatalogComponents(componentRequest);
     final List<CatalogRow> rows = collect(response.hits(), GuideComponentDocument.class,
         CatalogRowMapper::catalogComponent, CatalogEntityType.COMPONENT);
     return catalogResponse(CatalogEntityType.COMPONENT, page, pageSize, response.total(), rows,
@@ -354,7 +330,7 @@ public class CatalogService
       final List<String> warnings)
   {
     final ApiSearchResponse<VulnerabilityDocument> response =
-        searchApiClient.searchVulnerabilities(vulnerabilityRequest);
+        searchApiClient.searchCatalogVulnerabilities(vulnerabilityRequest);
     final List<CatalogRow> rows = collect(response.hits(), GuideVulnerabilityDocument.class,
         CatalogRowMapper::catalogVulnerability, CatalogEntityType.VULNERABILITY);
     return catalogResponse(CatalogEntityType.VULNERABILITY, page, pageSize, response.total(), rows,

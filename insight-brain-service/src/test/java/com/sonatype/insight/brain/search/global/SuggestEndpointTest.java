@@ -76,9 +76,6 @@ public class SuggestEndpointTest
   public void setUp() {
     SystemConfigurationPropertyFeatureTestSupport.install();
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
-    // CATALOG_FEDERATION defaults off; the resource rejects ?source=catalog while it is off, so the
-    // catalog-source cases below must switch it on.
-    SystemConfigurationPropertyFeature.CATALOG_FEDERATION.setEnabled(true);
 
     iqLocal = new FakeIqLocal();
     GlobalSearchSuggestCatalogClient catalog =
@@ -113,20 +110,7 @@ public class SuggestEndpointTest
   }
 
   @Test
-  public void catalogFederationOff_catalogSourceRejected_withoutReachingHds() {
-    // The frontend hides the catalog toggle when CATALOG_FEDERATION is off; the backend must enforce the
-    // same flag rather than trust that clamp, or a hand-crafted ?source=catalog reaches HDS anyway.
-    SystemConfigurationPropertyFeature.CATALOG_FEDERATION.setEnabled(false);
-
-    assertThatThrownBy(() -> resource.suggest("alpha", "catalog"))
-        .isInstanceOf(BadRequestException.class);
-    verifyNoInteractions(hdsClient);
-  }
-
-  @Test
-  public void catalogFederationOff_localSourceStillServed() {
-    // The flag gates only the catalog source; the default local source is unaffected.
-    SystemConfigurationPropertyFeature.CATALOG_FEDERATION.setEnabled(false);
+  public void localSource_served() {
     iqLocal.add(row(SuggestItemType.APPLICATION, "app-1", "App One", SearchSource.LOCAL));
 
     SuggestResponse response = resource.suggest("alpha", "local");

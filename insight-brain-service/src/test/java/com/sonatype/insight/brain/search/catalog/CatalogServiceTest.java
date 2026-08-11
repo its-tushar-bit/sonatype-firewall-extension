@@ -44,7 +44,6 @@ import com.sonatype.insight.brain.guide.core.SearchApiClient;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeatureTestSupport;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
-import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.search.global.GlobalSearchRequest;
 import com.sonatype.insight.brain.search.global.GlobalSearchResult;
 import com.sonatype.insight.brain.search.global.IqLocalSearchService;
@@ -56,8 +55,6 @@ import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
-import com.sonatype.insight.brain.tenancy.TenantUtil;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -83,17 +80,12 @@ public class CatalogServiceTest
 
   private SearchApiClient searchApiClient;
 
-  private ProductLicense productLicense;
-
-  private TenantUtil tenantUtil;
-
   private CatalogService service;
 
   @Before
   public void setUp() {
     SystemConfigurationPropertyFeatureTestSupport.install();
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
-    SystemConfigurationPropertyFeature.CATALOG_FEDERATION.setEnabled(true);
 
     searchIndexClient = mock(SearchIndexClient.class);
     when(searchIndexClient.isSearchPreviewEnabled()).thenReturn(true);
@@ -111,12 +103,8 @@ public class CatalogServiceTest
         .thenReturn(new MetricAggregationResult(0L, Map.of()));
 
     searchApiClient = mock(SearchApiClient.class);
-    productLicense = mock(ProductLicense.class);
-    when(productLicense.hasFeature(LicensedFeature.GUIDE_SEARCH)).thenReturn(true);
-    tenantUtil = mock(TenantUtil.class);
-    when(tenantUtil.isMultiTenant()).thenReturn(false);
     IqLocalSearchService iq = new IqLocalSearchService(searchIndexClient);
-    service = new CatalogService(iq, searchApiClient, searchIndexClient, productLicense, tenantUtil);
+    service = new CatalogService(iq, searchApiClient, searchIndexClient);
   }
 
   @After
@@ -129,7 +117,7 @@ public class CatalogServiceTest
     GuideComponentDocument doc = new GuideComponentDocument(
         "npm", null, "@scope", "react", "18.0.0", null, List.of(), List.of("ui"), true, 90, 5.5,
         Instant.parse("2024-01-01T00:00:00Z"), false, null, null);
-    when(searchApiClient.searchComponents(any()))
+    when(searchApiClient.searchCatalogComponents(any()))
         .thenReturn(new GuideComponentSearchResponse(List.<ComponentDocument>of(doc), 1, 0, 25, null));
 
     CatalogResponse response = service.search(CatalogEntityType.COMPONENT, SearchSource.CATALOG, request(Map.of()));
@@ -146,7 +134,7 @@ public class CatalogServiceTest
     GuideVulnerabilityDocument doc = new GuideVulnerabilityDocument(
         "CVE-2021-44228", List.of(), "Log4Shell", 10.0, 10.0, List.of("CWE-502"), List.of(),
         List.of("maven"), false, true, 0.97, "NVD", Instant.parse("2021-12-10T00:00:00Z"), null);
-    when(searchApiClient.searchVulnerabilities(any()))
+    when(searchApiClient.searchCatalogVulnerabilities(any()))
         .thenReturn(new GuideVulnerabilitySearchResponse(List.<VulnerabilityDocument>of(doc), 1, 0, 25, null));
 
     CatalogResponse response =
@@ -179,7 +167,7 @@ public class CatalogServiceTest
 
   @Test
   public void catalogSource_catalogSourceDown_returnsCatalogUnavailable_notLocalRows() {
-    when(searchApiClient.searchComponents(any()))
+    when(searchApiClient.searchCatalogComponents(any()))
         .thenThrow(new GuideApiException(Response.Status.BAD_GATEWAY, "down"));
 
     CatalogResponse response = service.search(CatalogEntityType.COMPONENT, SearchSource.CATALOG, request(Map.of()));
@@ -187,16 +175,6 @@ public class CatalogServiceTest
     assertThat(response.catalogAvailable()).isFalse();
     assertThat(response.rows()).isEmpty();
     assertThat(response.warnings()).contains("catalog source is unavailable");
-    verify(searchIndexClient, never()).searchGlobal(any());
-  }
-
-  @Test
-  public void catalogSource_catalogFederationFlagOff_returnsCatalogUnavailable() {
-    SystemConfigurationPropertyFeature.CATALOG_FEDERATION.setEnabled(false);
-    CatalogResponse response = service.search(CatalogEntityType.COMPONENT, SearchSource.CATALOG, request(Map.of()));
-    assertThat(response.catalogAvailable()).isFalse();
-    assertThat(response.rows()).isEmpty();
-    verify(searchApiClient, never()).searchComponents(any());
     verify(searchIndexClient, never()).searchGlobal(any());
   }
 
@@ -214,7 +192,7 @@ public class CatalogServiceTest
     assertThat(response.catalogAvailable()).isTrue();
     assertThat(response.rows()).hasSize(1);
     assertThat(response.rows().get(0).getSource()).isEqualTo("local");
-    verify(searchApiClient, never()).searchComponents(any());
+    verify(searchApiClient, never()).searchCatalogComponents(any());
   }
 
   @Test
@@ -229,7 +207,7 @@ public class CatalogServiceTest
   @Test
   public void catalogSource_facetsFromAggregations() {
     Map<String, Map<String, Long>> aggs = Map.of("ecosystem", Map.of("npm", 3L, "maven", 2L));
-    when(searchApiClient.searchComponents(any()))
+    when(searchApiClient.searchCatalogComponents(any()))
         .thenReturn(new GuideComponentSearchResponse(List.of(), 5, 0, 25, aggs));
 
     CatalogRequest req = new CatalogRequest("COMPONENT", "catalog", Map.of(), 1, 25, null, null, true);
@@ -266,7 +244,7 @@ public class CatalogServiceTest
 
   @Test
   public void catalogSource_sortAndSearchAfter_recordedAsWarnings() {
-    when(searchApiClient.searchComponents(any()))
+    when(searchApiClient.searchCatalogComponents(any()))
         .thenReturn(new GuideComponentSearchResponse(List.of(), 0, 0, 25, null));
     CatalogRequest req = new CatalogRequest("COMPONENT", "catalog", Map.of(), 1, 25, "name", "cursor", false);
 
@@ -295,7 +273,7 @@ public class CatalogServiceTest
 
   @Test
   public void catalogSource_totalAtCap_reportedInexact() {
-    when(searchApiClient.searchComponents(any()))
+    when(searchApiClient.searchCatalogComponents(any()))
         .thenReturn(new GuideComponentSearchResponse(List.of(), 10_000, 0, 25, null));
     CatalogResponse response = service.search(CatalogEntityType.COMPONENT, SearchSource.CATALOG, request(Map.of()));
     assertThat(response.totalEstimate()).isEqualTo(10_000);
@@ -304,7 +282,7 @@ public class CatalogServiceTest
 
   @Test
   public void catalogSource_cvssRangeFilter_isAccepted() {
-    when(searchApiClient.searchComponents(any()))
+    when(searchApiClient.searchCatalogComponents(any()))
         .thenReturn(new GuideComponentSearchResponse(List.of(), 0, 0, 25, null));
     CatalogRequest req = new CatalogRequest(
         "COMPONENT", "catalog", Map.of("cvss", List.of(7.0, 10.0)), 1, 25, null, null, false);
@@ -320,7 +298,7 @@ public class CatalogServiceTest
     when(malformed.hits()).thenReturn(null);
     when(malformed.total()).thenReturn(0L);
     when(malformed.aggregations()).thenReturn(null);
-    when(searchApiClient.searchComponents(any())).thenReturn(malformed);
+    when(searchApiClient.searchCatalogComponents(any())).thenReturn(malformed);
 
     CatalogResponse response = service.search(CatalogEntityType.COMPONENT, SearchSource.CATALOG, request(Map.of()));
 
@@ -330,7 +308,7 @@ public class CatalogServiceTest
 
   @Test
   public void catalogSource_backendRuntimeException_degradesToCatalogUnavailable_not500() {
-    when(searchApiClient.searchComponents(any())).thenThrow(new IllegalStateException("transport failure"));
+    when(searchApiClient.searchCatalogComponents(any())).thenThrow(new IllegalStateException("transport failure"));
 
     CatalogResponse response = service.search(CatalogEntityType.COMPONENT, SearchSource.CATALOG, request(Map.of()));
 
@@ -340,7 +318,8 @@ public class CatalogServiceTest
 
   @Test
   public void catalogUnavailable_reportsInexactTotal() {
-    SystemConfigurationPropertyFeature.CATALOG_FEDERATION.setEnabled(false);
+    when(searchApiClient.searchCatalogComponents(any()))
+        .thenThrow(new GuideApiException(Response.Status.BAD_GATEWAY, "down"));
     CatalogResponse response = service.search(CatalogEntityType.COMPONENT, SearchSource.CATALOG, request(Map.of()));
     assertThat(response.catalogAvailable()).isFalse();
     assertThat(response.totalEstimate()).isZero();
@@ -349,7 +328,8 @@ public class CatalogServiceTest
 
   @Test
   public void catalogUnavailable_carriesSortAndSearchAfterWarnings() {
-    SystemConfigurationPropertyFeature.CATALOG_FEDERATION.setEnabled(false);
+    when(searchApiClient.searchCatalogComponents(any()))
+        .thenThrow(new GuideApiException(Response.Status.BAD_GATEWAY, "down"));
     CatalogRequest req = new CatalogRequest("COMPONENT", "catalog", Map.of(), 1, 25, "name", "cursor", false);
     CatalogResponse response = service.search(CatalogEntityType.COMPONENT, SearchSource.CATALOG, req);
     assertThat(response.warnings()).contains("catalog source is unavailable");
@@ -376,7 +356,7 @@ public class CatalogServiceTest
 
   @Test
   public void catalogSource_pageSize150_isAccepted() {
-    when(searchApiClient.searchComponents(any()))
+    when(searchApiClient.searchCatalogComponents(any()))
         .thenReturn(new GuideComponentSearchResponse(List.of(), 0, 0, 150, null));
     CatalogRequest req = new CatalogRequest("COMPONENT", "catalog", Map.of(), 1, 150, null, null, false);
     CatalogResponse response = service.search(CatalogEntityType.COMPONENT, SearchSource.CATALOG, req);
@@ -402,7 +382,7 @@ public class CatalogServiceTest
     GuideComponentDocument doc = new GuideComponentDocument(
         "npm", null, null, "react", "18.0.0", null, List.of(), List.of(), true, 90, 5.5,
         null, false, null, null);
-    when(searchApiClient.searchComponents(any()))
+    when(searchApiClient.searchCatalogComponents(any()))
         .thenReturn(new GuideComponentSearchResponse(List.<ComponentDocument>of(doc), 1, 0, 25, null));
     CatalogResponse response = service.search(CatalogEntityType.COMPONENT, SearchSource.CATALOG, request(Map.of()));
     assertThat(response.rows().get(0).getFields()).containsKey("latestMaxCvss");
@@ -536,7 +516,7 @@ public class CatalogServiceTest
     Throwable thrown = catchThrowable(() -> service.search(CatalogEntityType.COMPONENT, SearchSource.CATALOG, req));
     assertThat(thrown).isInstanceOf(BadRequestException.class);
     assertThat(new ErrorResponseGenerator().mapExceptionAndLog(thrown).getStatusCode()).isEqualTo(400);
-    verify(searchApiClient, never()).searchComponents(any());
+    verify(searchApiClient, never()).searchCatalogComponents(any());
   }
 
   @Test
@@ -550,7 +530,7 @@ public class CatalogServiceTest
     when(response.hits()).thenReturn(List.of(wrongType));
     when(response.total()).thenReturn(1L);
     when(response.aggregations()).thenReturn(null);
-    when(searchApiClient.searchComponents(any())).thenReturn(response);
+    when(searchApiClient.searchCatalogComponents(any())).thenReturn(response);
 
     ch.qos.logback.classic.Logger logger =
         (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(CatalogService.class);
@@ -603,37 +583,22 @@ public class CatalogServiceTest
   }
 
   @Test
-  public void catalogSource_unlicensedSingleTenant_deniesCatalogLeg_noHdsCall() {
-    when(productLicense.hasFeature(LicensedFeature.GUIDE_SEARCH)).thenReturn(false);
-    CatalogResponse response = service.search(CatalogEntityType.COMPONENT, SearchSource.CATALOG, request(Map.of()));
-    assertThat(response.catalogAvailable()).isFalse();
-    assertThat(response.rows()).isEmpty();
-    verify(searchApiClient, never()).searchComponents(any());
-  }
-
-  @Test
-  public void catalogSource_multiTenant_deniesCatalogLeg_noHdsCall() {
-    when(tenantUtil.isMultiTenant()).thenReturn(true);
-    CatalogResponse response = service.search(CatalogEntityType.COMPONENT, SearchSource.CATALOG, request(Map.of()));
-    assertThat(response.catalogAvailable()).isFalse();
-    assertThat(response.rows()).isEmpty();
-    verify(searchApiClient, never()).searchComponents(any());
-  }
-
-  @Test
-  public void catalogSource_licensedSingleTenant_allowsCatalogLeg() {
-    when(searchApiClient.searchComponents(any()))
+  public void catalogSource_reachesCatalogLeg() {
+    // Catalog federation is base functionality: the catalog leg is reached and served with any valid
+    // IQ license, independent of Guide licensing or tenancy.
+    when(searchApiClient.searchCatalogComponents(any()))
         .thenReturn(new GuideComponentSearchResponse(List.of(), 0, 0, 25, null));
     CatalogResponse response = service.search(CatalogEntityType.COMPONENT, SearchSource.CATALOG, request(Map.of()));
     assertThat(response.catalogAvailable()).isTrue();
-    verify(searchApiClient).searchComponents(any());
+    // Base catalog browse must use the unmetered catalog-federation lookup, never the credit-consuming
+    // searchComponents path, so Nexus One browsing reports no Guide usage/consumption.
+    verify(searchApiClient).searchCatalogComponents(any());
+    verify(searchApiClient, never()).searchComponents(any());
   }
 
   @Test
-  public void catalogSource_malformedFilter_mapsTo400_evenWhenFederationOff() {
-    // Request validation runs before the availability/entitlement short-circuit, so a malformed
-    // filter is a consistent 400 regardless of the CATALOG_FEDERATION flag state.
-    SystemConfigurationPropertyFeature.CATALOG_FEDERATION.setEnabled(false);
+  public void catalogSource_malformedFilter_mapsTo400() {
+    // Request validation runs before the HDS call, so a malformed filter is a consistent 400.
     CatalogRequest req = new CatalogRequest(
         "COMPONENT", "catalog", Map.of("bogusKey", List.of("x")), 1, 25, null, null, false);
     Throwable thrown = catchThrowable(() -> service.search(CatalogEntityType.COMPONENT, SearchSource.CATALOG, req));
@@ -758,7 +723,7 @@ public class CatalogServiceTest
     Throwable thrown = catchThrowable(() -> service.search(CatalogEntityType.COMPONENT, SearchSource.CATALOG, req));
     assertThat(thrown).isInstanceOf(BadRequestException.class);
     assertThat(new ErrorResponseGenerator().mapExceptionAndLog(thrown).getStatusCode()).isEqualTo(400);
-    verify(searchApiClient, never()).searchComponents(any());
+    verify(searchApiClient, never()).searchCatalogComponents(any());
   }
 
   @Test
@@ -774,7 +739,7 @@ public class CatalogServiceTest
 
   @Test
   public void catalogSource_termsFilterAtCap_isAccepted() {
-    when(searchApiClient.searchComponents(any()))
+    when(searchApiClient.searchCatalogComponents(any()))
         .thenReturn(new GuideComponentSearchResponse(List.of(), 0, 0, 25, null));
     List<String> atCap = manyValues(CatalogRequestBuilder.MAX_TERMS_PER_FILTER);
     CatalogRequest req = new CatalogRequest(
@@ -787,7 +752,7 @@ public class CatalogServiceTest
   public void malwareBooleanScalar_acceptedOnBothSources() {
     // {"malware": true} (JSON boolean) must be accepted on catalog AND local, not a source-dependent
     // type contract. Catalog routes it through yesNoBool; local validateShapes now accepts a boolean.
-    when(searchApiClient.searchVulnerabilities(any()))
+    when(searchApiClient.searchCatalogVulnerabilities(any()))
         .thenReturn(new GuideVulnerabilitySearchResponse(List.of(), 0, 0, 25, null));
     when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
         .thenReturn(new GlobalSearchResult(List.of(), 0, List.of()));
@@ -805,7 +770,7 @@ public class CatalogServiceTest
 
   @Test
   public void malwareStringScalar_acceptedOnBothSources() {
-    when(searchApiClient.searchVulnerabilities(any()))
+    when(searchApiClient.searchCatalogVulnerabilities(any()))
         .thenReturn(new GuideVulnerabilitySearchResponse(List.of(), 0, 0, 25, null));
     when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
         .thenReturn(new GlobalSearchResult(List.of(), 0, List.of()));
@@ -1044,7 +1009,7 @@ public class CatalogServiceTest
         "COMPONENT", "catalog", Map.of("applications", List.of("My App")), 1, 25, null, null, false);
     Throwable thrown = catchThrowable(() -> service.search(CatalogEntityType.COMPONENT, SearchSource.CATALOG, req));
     assertThat(thrown).isInstanceOf(BadRequestException.class);
-    verify(searchApiClient, never()).searchComponents(any());
+    verify(searchApiClient, never()).searchCatalogComponents(any());
   }
 
   @Test

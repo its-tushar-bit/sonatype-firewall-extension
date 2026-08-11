@@ -98,7 +98,7 @@ describe('SearchOmnibar accessibility across panel states', () => {
       {
         preloadedState: {
           productFeatures: {
-            productFeatures: { 'catalog-federation': true },
+            productFeatures: {},
             loading: false,
             loadError: null,
           },

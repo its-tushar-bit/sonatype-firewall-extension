@@ -4,12 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { Box, Flex, IconButton, Select, TextField } from '@radix-ui/themes';
 import { ActionIcons } from 'MainRoot/nosc/icons';
 import { TOP_NAV_HEIGHT_PX } from 'MainRoot/nosc/shell/previewShellLayout';
-import { selectIsCatalogFederationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { useGlobalSearch } from 'MainRoot/nosc/search/useGlobalSearch';
 import { isSearchEntityType, SearchEntityType, SearchRow, SearchSource } from 'MainRoot/nosc/search/searchTypes';
 import {
@@ -112,16 +109,6 @@ type MenuItem =
   | { readonly kind: 'recent'; readonly id: string; readonly recentIndex: number };
 
 export function SearchOmnibar(): JSX.Element {
-  const dispatch = useDispatch();
-  // The CATALOG_FEDERATION gate on the data-source toggle reads the product-features
-  // slice, so make sure it is loaded regardless of which page mounted the shell.
-  useEffect(() => {
-    dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded());
-  }, [dispatch]);
-  // The product-features selectors come from untyped JS, so coerce to boolean
-  // here rather than letting `unknown` leak into JSX conditionals.
-  const isCatalogEnabled = !!useSelector(selectIsCatalogFederationEnabled);
-
   const [query, setQuery] = useState('');
   const [source, setSource] = useState<SearchSource>(DEFAULT_SEARCH_SOURCE);
   const [panelOpen, setPanelOpen] = useState(false);
@@ -140,23 +127,16 @@ export function SearchOmnibar(): JSX.Element {
 
   const { entries: recentEntries, record: recordRecent } = useRecentSearches();
 
-  // When CATALOG_FEDERATION is off the select offers only "My Scan Data", so
-  // clamp defensively in case the flag flips off while catalog is selected.
-  const effectiveSource: SearchSource = isCatalogEnabled ? source : 'local';
-
   // No warnings destructured: /rest/search/suggest carries none, so the panel has
   // nothing to surface. The full results page renders warnings from /rest/search/results.
   const { loading, loadError, bestMatch, groups } = useGlobalSearch(query, {
     mode: 'typeahead',
-    source: effectiveSource,
+    source,
   });
 
   const trimmedQuery = query.trim();
 
-  const rows = useMemo(
-    () => flattenSuggestRows(bestMatch, groups, effectiveSource),
-    [bestMatch, groups, effectiveSource]
-  );
+  const rows = useMemo(() => flattenSuggestRows(bestMatch, groups, source), [bestMatch, groups, source]);
 
   const panelState: SearchPanelState = derivePanelState({
     panelOpen,
@@ -171,15 +151,15 @@ export function SearchOmnibar(): JSX.Element {
   const countsByType = useMemo(() => {
     const counts: Partial<Record<SearchEntityType, number>> = {};
     for (const group of groups) {
-      if (!isTypeVisibleForSource(group.type, effectiveSource)) continue;
+      if (!isTypeVisibleForSource(group.type, source)) continue;
       counts[group.type] = group.rows.length;
     }
     return counts;
-  }, [groups, effectiveSource]);
+  }, [groups, source]);
 
   const tabs = useMemo(
-    () => buildPanelTabs(effectiveSource, countsByType, rows.length),
-    [effectiveSource, countsByType, rows.length]
+    () => buildPanelTabs(source, countsByType, rows.length),
+    [source, countsByType, rows.length]
   );
 
   // A query carrying itemType: tokens has already narrowed by type, so the strip
@@ -190,8 +170,8 @@ export function SearchOmnibar(): JSX.Element {
   // to All and the strip stays visible rather than hiding it to advertise a
   // narrowing that was not applied.
   const servableTokens = useMemo(
-    () => tokens.filter((token) => isTypeVisibleForSource(token, effectiveSource)),
-    [tokens, effectiveSource]
+    () => tokens.filter((token) => isTypeVisibleForSource(token, source)),
+    [tokens, source]
   );
   const hideTabs = servableTokens.length > 0;
   const effectiveActiveTab = useMemo(() => {
@@ -265,7 +245,7 @@ export function SearchOmnibar(): JSX.Element {
   // the full results page.
   useEffect(() => {
     setHighlight(0);
-  }, [panelState, effectiveActiveTab, trimmedQuery, effectiveSource]);
+  }, [panelState, effectiveActiveTab, trimmedQuery, source]);
 
   const handleHighlightById = useCallback(
     (id: string): void => {
@@ -291,9 +271,9 @@ export function SearchOmnibar(): JSX.Element {
       if (!trimmed) return;
       recordRecent(trimmed);
       closePanel();
-      router.stateService.go('nexusOneSearch', searchResultsStateParams(trimmed, effectiveSource));
+      router.stateService.go('nexusOneSearch', searchResultsStateParams(trimmed, source));
     },
-    [closePanel, effectiveSource, recordRecent]
+    [closePanel, source, recordRecent]
   );
 
   // A row activation jumps to an entity rather than performing a search, so the
@@ -566,7 +546,7 @@ export function SearchOmnibar(): JSX.Element {
         {/* Header row. The data-source select and filter toggle belong to the
             expanded card only — closed, this row is the field alone. */}
         <Flex gap="2" width="100%" flexShrink="0" pt={open ? '3' : '0'} px={open ? '3' : '0'}>
-          {open && isCatalogEnabled && (
+          {open && (
             <Select.Root
               value={source}
               size="2"
@@ -734,7 +714,7 @@ export function SearchOmnibar(): JSX.Element {
 
                 {/* Catalog narrows the tab set, so say why once results (or the
                     lack of them) are on screen. */}
-                {effectiveSource === 'catalog' &&
+                {source === 'catalog' &&
                   (panelState === 'loaded' || panelState === 'loaded-empty') && <CatalogScopeHint />}
 
                 <PanelFooter syntaxDocsUrl={SYNTAX_DOCS_URL} />

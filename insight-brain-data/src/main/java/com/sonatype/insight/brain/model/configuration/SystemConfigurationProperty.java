@@ -74,12 +74,6 @@ public class SystemConfigurationProperty
   public static final String PREVIEW_NEXUS_ONE_UI_DISABLE_SWITCH_FEEDBACK =
       "PREVIEW_NEXUS_ONE_UI_DISABLE_SWITCH_FEEDBACK";
 
-  /**
-   * Gates the federated catalog source (Guide/HDS) of the catalog search endpoint. Default OFF (row
-   * absent). See {@link SystemConfigurationPropertyFeature#CATALOG_FEDERATION}.
-   */
-  public static final String CATALOG_FEDERATION = "CATALOG_FEDERATION";
-
   public static final String CROWD_INTEGRATION = "CROWD_INTEGRATION";
 
   public static final String WEBHOOK_CONFIGURATION = "WEBHOOK_CONFIGURATION";

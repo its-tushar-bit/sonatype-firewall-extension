@@ -15,8 +15,6 @@ import com.sonatype.insight.brain.guide.api.dto.GuideComponentDocument;
 import com.sonatype.insight.brain.guide.api.dto.GuideGlobalSearchResponse;
 import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilityDocument;
 import com.sonatype.insight.brain.guide.api.error.GuideApiException;
-import com.sonatype.insight.brain.guide.telemetry.GuideOperationType;
-import com.sonatype.insight.brain.guide.telemetry.GuideUsageEvent;
 import com.sonatype.insight.brain.search.global.GlobalSearchCursor;
 import com.sonatype.insight.brain.search.global.GlobalSearchSortAllowlist;
 import com.sonatype.insight.brain.search.global.GlobalSearchTenancy;
@@ -56,10 +54,7 @@ import org.springframework.context.annotation.Primary;
  * product license, so no license-feature or tenancy gate is applied here.
  * <p>
  * The only gate on this leg is the {@code PREVIEW_NEXUS_ONE_UI} feature, enforced upstream by
- * {@code GlobalSearchResource#verifyPreviewUiEnabled()}. The admin {@code CATALOG_FEDERATION} toggle
- * is NOT consulted: it defaults to off ({@code enabledWhenAbsent = false}) and gates only the catalog
- * browse endpoint ({@code CatalogService#searchCatalog}), so reading it here would leave global search's
- * catalog rows dark on every deployment that has not explicitly switched it on.
+ * {@code GlobalSearchResource#verifyPreviewUiEnabled()}.
  *
  * <h3>Failure handling</h3>
  *
@@ -220,16 +215,12 @@ public class GlobalSearchResultsCatalogClientImpl
   }
 
   /**
-   * Performs the raw HDS call. Carries the {@link GuideUsageEvent} annotation so the AspectJ advice
-   * only sees the request DTO (not the raw query) and only records on actual success — exceptions
-   * propagate to {@link #searchResults(ResultsRequest)} for degrade handling.
-   * <p>
-   * Reported as {@link GuideOperationType#CATALOG_FEDERATION_SEARCH}, not
-   * {@link GuideOperationType#GLOBAL_SEARCH}: this leg is base functionality reachable with any valid IQ
-   * license, so downstream usage analytics must be able to tell it apart from Guide-licensed traffic.
+   * Performs the raw HDS call. Emits NO Guide usage/consumption telemetry: catalog federation is base
+   * Nexus One functionality (served with any valid IQ license on single-tenant and MTIQ) and must not
+   * be counted as Guide-licensed credit consumption. Exceptions propagate to
+   * {@link #searchResults(ResultsRequest)} for degrade handling.
    */
-  @GuideUsageEvent(operationType = GuideOperationType.CATALOG_FEDERATION_SEARCH)
-  GuideGlobalSearchResponse callCatalogGlobalSearch(final ResultsRequest request, final long offset) {
+  private GuideGlobalSearchResponse callCatalogGlobalSearch(final ResultsRequest request, final long offset) {
     final Multimap<String, String> params = ArrayListMultimap.create();
     params.put("query", request.getQ());
     params.put("limit", String.valueOf(request.getPageSize()));
@@ -242,11 +233,9 @@ public class GlobalSearchResultsCatalogClientImpl
    * on both single-tenant and MTIQ deployments, so no license-feature or tenancy check applies.
    *
    * <p>
-   * Entitlement is not the gate that decides whether the catalog source is offered. That is the
-   * default-off {@code CATALOG_FEDERATION} flag, enforced on {@code ?source=catalog} by
-   * {@code GlobalSearchResource.verifyCatalogSourceAllowed}; this leg is additionally killed by
-   * {@code PREVIEW_NEXUS_ONE_UI} in the same resource. Both live at the request boundary, so this
-   * method answering "licensed?" rather than "offered?" is the whole split.
+   * Whether the catalog source is offered is decided upstream by {@code PREVIEW_NEXUS_ONE_UI},
+   * enforced at the request boundary by {@code GlobalSearchResource.verifyPreviewUiEnabled}; this
+   * method answers only "licensed?", which is always yes.
    */
   private boolean entitled() {
     return true;

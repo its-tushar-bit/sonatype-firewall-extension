@@ -23,7 +23,6 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeatureTestSupport;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
-import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.search.global.GlobalSearchRequest;
 import com.sonatype.insight.brain.search.global.GlobalSearchResult;
 import com.sonatype.insight.brain.search.global.IqLocalSearchService;
@@ -31,8 +30,6 @@ import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.PermissionService;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
-import com.sonatype.insight.brain.tenancy.TenantUtil;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.After;
 import org.junit.Before;
@@ -59,7 +56,6 @@ public class CatalogEndpointTest
   public void setUp() {
     SystemConfigurationPropertyFeatureTestSupport.install();
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
-    SystemConfigurationPropertyFeature.CATALOG_FEDERATION.setEnabled(true);
 
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
     when(searchIndexClient.isSearchPreviewEnabled()).thenReturn(true);
@@ -71,12 +67,8 @@ public class CatalogEndpointTest
         .thenReturn(new GlobalSearchResult(List.of(), 0, List.of()));
 
     searchApiClient = mock(SearchApiClient.class);
-    ProductLicense productLicense = mock(ProductLicense.class);
-    when(productLicense.hasFeature(LicensedFeature.GUIDE_SEARCH)).thenReturn(true);
-    TenantUtil tenantUtil = mock(TenantUtil.class);
-    when(tenantUtil.isMultiTenant()).thenReturn(false);
     IqLocalSearchService iq = new IqLocalSearchService(searchIndexClient);
-    CatalogService service = new CatalogService(iq, searchApiClient, searchIndexClient, productLicense, tenantUtil);
+    CatalogService service = new CatalogService(iq, searchApiClient, searchIndexClient);
 
     currentUser = mock(CurrentUser.class);
     permissionService = mock(PermissionService.class);
@@ -94,7 +86,7 @@ public class CatalogEndpointTest
     GuideComponentDocument doc = new GuideComponentDocument(
         "npm", null, null, "react", "18.0.0", null, List.of(), List.of(), true, 90, 1.0,
         null, false, null, null);
-    when(searchApiClient.searchComponents(any()))
+    when(searchApiClient.searchCatalogComponents(any()))
         .thenReturn(new GuideComponentSearchResponse(List.<ComponentDocument>of(doc), 1, 0, 25, null));
     CatalogResponse response = resource.search(
         new CatalogRequest("COMPONENT", "catalog", Map.of(), 1, 25, null, null, false));

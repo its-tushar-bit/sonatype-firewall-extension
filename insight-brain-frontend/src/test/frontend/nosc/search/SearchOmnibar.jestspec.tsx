@@ -44,21 +44,15 @@ function registerState(name: string, url: string): void {
 const SEARCH_QUERY = 'log4j';
 const SUGGEST_RE = /\/rest\/search\/suggest/;
 
-/**
- * Seed the product-features slice so the CATALOG_FEDERATION selector is populated
- * without a network fetch. `catalog-federation` gates the "Sonatype Catalog" option.
- */
 /** Signed-in user these tests run as; recent searches are stored under this account's key. */
 const TEST_USERNAME = 'test-user';
 
 /** The recent-searches localStorage key for the signed-in test user. */
 const RECENT_KEY = recentSearchesStorageKey(TEST_USERNAME) as string;
 
-function featuresState({ catalogFederation = true }: { catalogFederation?: boolean } = {}) {
-  const productFeatures: Record<string, boolean> = {};
-  if (catalogFederation) productFeatures['catalog-federation'] = true;
+function featuresState() {
   return {
-    productFeatures: { productFeatures, loading: false, loadError: null },
+    productFeatures: { productFeatures: {}, loading: false, loadError: null },
     // Recent searches are keyed by account, so the omnibar needs a signed-in user
     // to read or write any history.
     userSession: { data: { username: TEST_USERNAME }, loading: false, error: null },
@@ -174,12 +168,12 @@ describe('SearchOmnibar', () => {
     mock.restore();
   });
 
-  const renderInTheme = (opts: { catalogFederation?: boolean } = {}) =>
+  const renderInTheme = () =>
     render(
       <Theme>
         <SearchOmnibar />
       </Theme>,
-      { preloadedState: featuresState(opts) }
+      { preloadedState: featuresState() }
     );
 
   // -------------------------------------------------------------------------
@@ -187,7 +181,7 @@ describe('SearchOmnibar', () => {
   // -------------------------------------------------------------------------
   describe('collapsed (unfocused)', () => {
     it('renders the search field alone, with no data-source select and no filter toggle', () => {
-      renderInTheme({ catalogFederation: true });
+      renderInTheme();
       expect(getSearchInput()).toHaveValue('');
       expect(screen.queryByTestId('nosc-search-datasource')).not.toBeInTheDocument();
       expect(screen.queryByTestId('nosc-search-filter-toggle')).not.toBeInTheDocument();
@@ -222,7 +216,7 @@ describe('SearchOmnibar', () => {
   describe('focus expands into the panel', () => {
     it('reveals the data-source select and filter toggle inside the expanded card', async () => {
       const user = userEvent.setup();
-      renderInTheme({ catalogFederation: true });
+      renderInTheme();
       await user.click(getSearchInput());
 
       const dialog = await findOpenPanel();
@@ -247,14 +241,6 @@ describe('SearchOmnibar', () => {
       await user.click(getSearchInput());
       await screen.findByTestId('nosc-search-panel-footer');
       expect(screen.getByTestId('nosc-search-syntax-link')).toBeInTheDocument();
-    });
-
-    it('omits the data-source select when CATALOG_FEDERATION is disabled', async () => {
-      const user = userEvent.setup();
-      renderInTheme({ catalogFederation: false });
-      await user.click(getSearchInput());
-      await findOpenPanel();
-      expect(screen.queryByTestId('nosc-search-datasource')).not.toBeInTheDocument();
     });
   });
 
@@ -797,7 +783,7 @@ describe('SearchOmnibar', () => {
       // The popper bail-out must precede the shortcut branch: otherwise Cmd-K
       // refocuses the input and Radix dismisses the select the user is using.
       const user = userEvent.setup();
-      renderInTheme({ catalogFederation: true });
+      renderInTheme();
       await user.click(getSearchInput());
       await user.click(await screen.findByLabelText('Search data source'));
       const option = await screen.findByRole('option', { name: 'Sonatype Catalog' });
@@ -874,7 +860,7 @@ describe('SearchOmnibar', () => {
       // popper wrapper as "inside", otherwise picking the option closes the panel
       // before the selection registers and the source never switches.
       const user = userEvent.setup();
-      renderInTheme({ catalogFederation: true });
+      renderInTheme();
 
       await user.type(getSearchInput(), SEARCH_QUERY);
       await screen.findByTestId('nosc-search-results-view');
@@ -892,7 +878,7 @@ describe('SearchOmnibar', () => {
 
     it('explains the reduced tab set once catalog results are on screen', async () => {
       const user = userEvent.setup();
-      renderInTheme({ catalogFederation: true });
+      renderInTheme();
 
       await user.click(getSearchInput());
       await user.click(screen.getByLabelText('Search data source'));
@@ -905,7 +891,7 @@ describe('SearchOmnibar', () => {
 
     it('does not show the catalog hint while searching my scan data', async () => {
       const user = userEvent.setup();
-      renderInTheme({ catalogFederation: true });
+      renderInTheme();
       await user.type(getSearchInput(), SEARCH_QUERY);
       await screen.findByTestId('nosc-search-results-view');
       expect(screen.queryByTestId('nosc-search-catalog-hint')).not.toBeInTheDocument();
@@ -913,7 +899,7 @@ describe('SearchOmnibar', () => {
 
     it('hides tabs and rows for entity types the catalog cannot serve', async () => {
       const user = userEvent.setup();
-      renderInTheme({ catalogFederation: true });
+      renderInTheme();
 
       await user.click(getSearchInput());
       await user.click(screen.getByLabelText('Search data source'));
@@ -930,7 +916,7 @@ describe('SearchOmnibar', () => {
 
     it('carries source=catalog into the results-page state params', async () => {
       const user = userEvent.setup();
-      renderInTheme({ catalogFederation: true });
+      renderInTheme();
 
       await user.click(getSearchInput());
       await user.click(screen.getByLabelText('Search data source'));
@@ -947,7 +933,7 @@ describe('SearchOmnibar', () => {
       // tab to select; the mixed All list must not render under a hidden tab strip
       // pretending the narrowing was applied.
       const user = userEvent.setup();
-      renderInTheme({ catalogFederation: true });
+      renderInTheme();
 
       await user.click(getSearchInput());
       await user.click(screen.getByLabelText('Search data source'));

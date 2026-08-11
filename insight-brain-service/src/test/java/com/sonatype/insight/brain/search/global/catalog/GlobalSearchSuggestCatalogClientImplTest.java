@@ -12,7 +12,6 @@ import com.sonatype.insight.brain.guide.api.dto.GuideComponentDocument;
 import com.sonatype.insight.brain.guide.api.dto.GuideGlobalSearchResponse;
 import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilityDocument;
 import com.sonatype.insight.brain.guide.telemetry.GuideUsageEvent;
-import com.sonatype.insight.brain.guide.telemetry.GuideUsageIdentifiers;
 import com.sonatype.insight.brain.search.global.SearchSource;
 import com.sonatype.insight.brain.search.global.SuggestItemType;
 import com.sonatype.insight.brain.search.global.SuggestRow;
@@ -235,23 +234,16 @@ public class GlobalSearchSuggestCatalogClientImplTest
   }
 
   @Test
-  public void telemetryAnnotation_isOnInnerHelper_notPublicSuggest() throws NoSuchMethodException {
+  public void catalogSuggest_reportsNoUsageTelemetry() throws NoSuchMethodException {
+    // Catalog federation is base Nexus One functionality and must not be counted as Guide-licensed
+    // credit consumption, so neither the public suggest nor the inner HDS helper carries a
+    // @GuideUsageEvent — this leg emits no usage/consumption telemetry at all.
     Method publicSuggest = GlobalSearchSuggestCatalogClientImpl.class.getMethod("suggest", CatalogSuggestRequest.class);
     assertThat(publicSuggest.getAnnotation(GuideUsageEvent.class)).isNull();
 
     Method inner = GlobalSearchSuggestCatalogClientImpl.class.getDeclaredMethod(
         "callCatalogGlobalSearch", CatalogSuggestRequest.class);
-    assertThat(inner.getAnnotation(GuideUsageEvent.class)).isNotNull();
-  }
-
-  @Test
-  public void catalogSuggestRequest_doesNotLeakQueryToUsageExtractor() {
-    // GuideUsageIdentifiers.extract returns the first non-blank String arg OR a value from
-    // .purl()/.id() accessors. CatalogSuggestRequest exposes only .query() and .limit(), so when
-    // handed as a single Object[] arg it must yield null — no telemetry leakage.
-    CatalogSuggestRequest request = new CatalogSuggestRequest("hello world", 6);
-    String extracted = GuideUsageIdentifiers.extract(new Object[]{request});
-    assertThat(extracted).isNull();
+    assertThat(inner.getAnnotation(GuideUsageEvent.class)).isNull();
   }
 
   private static GuideComponentDocument component(

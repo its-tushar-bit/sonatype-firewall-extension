@@ -125,6 +125,26 @@ public class SearchApiClientImpl
   @Authorize(permission = Permission.READ)
   @Override
   public ApiSearchResponse<ComponentDocument> searchComponents(GuideComponentSearchRequest request) {
+    return doSearchComponents(request);
+  }
+
+  // No @GuideUsageEvent: catalog federation is base Nexus One functionality and does not report Guide
+  // usage/consumption telemetry. No @Authorize either: RBAC for the catalog browse surface is enforced
+  // once at the resource (CatalogResource.verifyReadOnAnyContext — READ on ANY context), and the catalog
+  // corpus is unscoped public Guide/HDS data. A method-level @Authorize(READ) here resolves against the
+  // ROOT org, so a caller with READ on only a child org/app would be denied; that exception is swallowed
+  // by CatalogService's catch and wrongly surfaced as catalogAvailable:false. The sibling catalog legs
+  // (global-search, VulnerabilitiesCatalogListService) carry no such gate.
+  @Override
+  public ApiSearchResponse<ComponentDocument> searchCatalogComponents(GuideComponentSearchRequest request) {
+    return doSearchComponents(request);
+  }
+
+  // Shared core between the Guide-licensed searchComponents (annotated COMPONENT_LOOKUP) and the
+  // unmetered searchCatalogComponents. Deliberately private and un-annotated: the @GuideUsageEvent
+  // pointcut is execution-based (AspectJ CTW), so the annotation lives on the entry point that should
+  // report usage and this core stays silent. Do NOT call an annotated sibling from here.
+  private ApiSearchResponse<ComponentDocument> doSearchComponents(GuideComponentSearchRequest request) {
     try {
       return withLicenseRefreshOn402("rest/search/components",
           () -> hdsClient.getWithMultimap(
@@ -210,6 +230,22 @@ public class SearchApiClientImpl
   @Authorize(permission = Permission.READ)
   @Override
   public ApiSearchResponse<VulnerabilityDocument> searchVulnerabilities(GuideVulnerabilitySearchRequest request) {
+    return doSearchVulnerabilities(request);
+  }
+
+  // No @GuideUsageEvent and no @Authorize: base Nexus One catalog browse does not report Guide
+  // usage/consumption, and RBAC is enforced once at the resource (READ on any context). See
+  // searchCatalogComponents for why a method-level @Authorize(READ) here would be wrong.
+  @Override
+  public ApiSearchResponse<VulnerabilityDocument> searchCatalogVulnerabilities(
+      GuideVulnerabilitySearchRequest request)
+  {
+    return doSearchVulnerabilities(request);
+  }
+
+  // See doSearchComponents: shared un-annotated core; the annotated searchVulnerabilities reports
+  // VULNERABILITY_LOOKUP, the unmetered searchCatalogVulnerabilities reports nothing.
+  private ApiSearchResponse<VulnerabilityDocument> doSearchVulnerabilities(GuideVulnerabilitySearchRequest request) {
     try {
       return withLicenseRefreshOn402("rest/search/vulnerabilities",
           () -> hdsClient.getWithMultimap(

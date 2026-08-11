@@ -4,7 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useSelector } from 'react-redux';
 import { useCurrentStateAndParams } from '@uirouter/react';
 import {
   Box,
@@ -37,9 +36,7 @@ import { clickHrefFor } from 'MainRoot/nosc/search/searchClickTargets';
 import { FilterBar, FilterInsertRequest } from 'MainRoot/nosc/search/FilterBar';
 import { computeFilterInsert, useFocusInputWithCaret } from 'MainRoot/nosc/search/searchFilterInsert';
 import { WarningPill } from 'MainRoot/nosc/search/WarningPill';
-import { selectIsCatalogFederationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
-  DEFAULT_SEARCH_SOURCE,
   HIDDEN_TABS_FOR_DATA_SOURCE,
   isTabHiddenForSource,
   parseSearchSource,
@@ -82,9 +79,7 @@ import { SearchResultsList } from 'MainRoot/nosc/searchResults/SearchResultsList
  *     only sent when the badges are not already cached. When counts are absent the
  *     active tab's count is merged over the last-seen fallback so other tabs keep
  *     their badge across switches.
- *   - `?source=catalog` targets the shared catalog and hides the IQ-only tabs. It is
- *     clamped to local when CATALOG_FEDERATION is off, so a hand-typed URL cannot
- *     query a corpus the flag withholds.
+ *   - `?source=catalog` targets the shared catalog and hides the IQ-only tabs.
  */
 
 /** Rows per page. AC: server-paginated at 25/page with next/prev controls. */
@@ -120,12 +115,8 @@ export function SearchResultsPage(): JSX.Element {
   const query = typeof params.q === 'string' ? params.q : '';
   const tabParam = typeof params.tab === 'string' && params.tab ? params.tab : 'all';
   // Round-trip the omnibar data source so Enter → /search?source=catalog keeps
-  // searching the catalog corpus (and shared links stay honest). Clamped to the
-  // local default when CATALOG_FEDERATION is off, the same way the omnibar clamps
-  // its own effectiveSource: a bookmarked or hand-typed ?source=catalog URL must
-  // not query a corpus the flag intentionally withholds.
-  const isCatalogEnabled = useSelector(selectIsCatalogFederationEnabled);
-  const source: SearchSource = isCatalogEnabled ? parseSearchSource(params.source) : DEFAULT_SEARCH_SOURCE;
+  // searching the catalog corpus (and shared links stay honest).
+  const source: SearchSource = parseSearchSource(params.source);
   const activeTab = resolveActiveTab(tabParam, source);
 
   // 1-indexed page from the URL, clamped to >= 1.

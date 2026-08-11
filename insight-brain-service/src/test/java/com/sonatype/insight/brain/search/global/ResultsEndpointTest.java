@@ -189,20 +189,7 @@ public class ResultsEndpointTest
   }
 
   @Test
-  public void catalogFederationOff_catalogSourceRejected_withoutReachingTheCatalogLeg() {
-    // The frontend hides the catalog data source when CATALOG_FEDERATION is off. The backend must enforce
-    // the same flag rather than trust that clamp: a hand-crafted ?source=catalog must be rejected at the
-    // boundary instead of dispatching to the catalog leg (and from there to HDS).
-    SystemConfigurationPropertyFeature.CATALOG_FEDERATION.setEnabled(false);
-
-    assertThatThrownBy(() -> resource.getResults("q", "COMPONENT", 1, 25, null, null, "catalog", null, null))
-        .isInstanceOf(jakarta.ws.rs.BadRequestException.class);
-    assertThat(catalog.searchCalls).isZero();
-  }
-
-  @Test
-  public void catalogFederationOn_catalogSourceReachesTheCatalogLeg() {
-    SystemConfigurationPropertyFeature.CATALOG_FEDERATION.setEnabled(true);
+  public void catalogSource_reachesTheCatalogLeg() {
     catalog.enabled = true;
 
     ResultsResponse response = (ResultsResponse) resource
@@ -210,14 +197,12 @@ public class ResultsEndpointTest
         .getEntity();
 
     assertThat(response.getTab()).isEqualTo(Tab.COMPONENT);
-    // The flag is on and the fake reports the catalog reachable, so the dispatcher consults the leg.
+    // The fake reports the catalog reachable, so the dispatcher consults the leg.
     assertThat(catalog.searchCalls).isPositive();
   }
 
   @Test
-  public void catalogFederationOff_localSourceStillServed() {
-    // The flag gates only the catalog source; the default local source is unaffected.
-    SystemConfigurationPropertyFeature.CATALOG_FEDERATION.setEnabled(false);
+  public void localSource_served() {
     iq.registerRow(Tab.APPLICATION,
         ResultRow.builder().type("APPLICATION").source(SearchSource.LOCAL.value()).id("a1").title("App 1").build());
 

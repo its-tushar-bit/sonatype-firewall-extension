@@ -66,15 +66,15 @@ public class CatalogResource
   }
 
   /**
-   * Status matrix for the three "unavailable" conditions:
+   * Status matrix for the "unavailable" conditions:
    * <ul>
    * <li>{@code PREVIEW_NEXUS_ONE_UI} feature off &rarr; 404: the whole endpoint is hidden, so an
    * unreachable route is reported rather than an empty result.</li>
-   * <li>{@code CATALOG_FEDERATION} feature off &rarr; 200 with a degraded body
-   * ({@code catalogAvailable=false}): the endpoint is reachable but the catalog source is turned
-   * off, so the caller gets a well-formed "no catalog" response instead of an error.</li>
+   * <li>catalog (Guide/HDS) backend failure &rarr; 200 with a degraded body
+   * ({@code catalogAvailable=false}): the endpoint is reachable but the upstream catalog source is
+   * unavailable, so the caller gets a well-formed "no catalog" response instead of an error.</li>
    * <li>SBOM-Manager-only local tenant &rarr; 404: this endpoint is Lifecycle-only, so a tenant
-   * whose license fails the mode check is treated as not-found, matching the flag-off route.</li>
+   * whose license fails the mode check is treated as not-found.</li>
    * </ul>
    */
   @POST

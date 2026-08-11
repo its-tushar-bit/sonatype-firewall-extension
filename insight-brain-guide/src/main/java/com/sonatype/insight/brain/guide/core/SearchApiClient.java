@@ -102,6 +102,22 @@ public interface SearchApiClient
   ApiSearchResponse<VulnerabilityDocument> searchVulnerabilities(GuideVulnerabilitySearchRequest request);
 
   /**
+   * Search components for the catalog-federation (Nexus One) leg. Behaves exactly like
+   * {@link #searchComponents}, but reports NO Guide usage/consumption telemetry. Catalog federation is
+   * base Nexus One functionality available with any valid IQ license, so its HDS traffic must not be
+   * counted as Guide-licensed credit consumption. Guide-licensed callers (the Guide REST API) keep
+   * using {@link #searchComponents}.
+   */
+  ApiSearchResponse<ComponentDocument> searchCatalogComponents(GuideComponentSearchRequest request);
+
+  /**
+   * Search vulnerabilities for the catalog-federation (Nexus One) leg. Behaves exactly like
+   * {@link #searchVulnerabilities}, but reports NO Guide usage/consumption telemetry; see
+   * {@link #searchCatalogComponents} for the rationale.
+   */
+  ApiSearchResponse<VulnerabilityDocument> searchCatalogVulnerabilities(GuideVulnerabilitySearchRequest request);
+
+  /**
    * Global search across components and vulnerabilities.
    */
   ApiSearchResponse<SearchResult> globalSearch(GuideGlobalSearchRequest request);

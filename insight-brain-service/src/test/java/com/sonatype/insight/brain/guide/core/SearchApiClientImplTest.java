@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.guide.core;
 
+import java.lang.reflect.Method;
 import java.time.Instant;
 import java.util.List;
 import java.util.LinkedHashMap;
@@ -42,7 +43,9 @@ import com.sonatype.insight.brain.guide.api.dto.RecommendedVersionInfo;
 import com.sonatype.insight.brain.guide.api.error.GuideApiException;
 import com.sonatype.insight.brain.guide.api.error.GuideLicenseUnavailableException;
 import com.sonatype.insight.brain.guide.api.error.GuideNotFoundException;
+import com.sonatype.insight.brain.guide.telemetry.GuideUsageEvent;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
@@ -659,6 +662,64 @@ public class SearchApiClientImplTest
     assertThatThrownBy(() -> underTest.searchVulnerabilities(request))
         .isInstanceOf(GuideApiException.class)
         .hasMessageContaining("Failed to retrieve vulnerability search results");
+  }
+
+  @Test
+  public void catalogSearchMethods_reportNoUsageTelemetry_andCarryNoRootScopedAuthorize() throws NoSuchMethodException {
+    // The PR's guarantee (catalog browse consumes no Guide credit) rests on these two methods NOT
+    // carrying @GuideUsageEvent. They also must NOT carry a method-level @Authorize: it resolves
+    // against the root org and would degrade a child-org-only caller to catalogAvailable:false. The
+    // Guide REST API variants keep their @GuideUsageEvent. A future re-add of either annotation on the
+    // catalog methods fails this test.
+    Method catalogComponents =
+        SearchApiClientImpl.class.getMethod("searchCatalogComponents", GuideComponentSearchRequest.class);
+    Method catalogVulns =
+        SearchApiClientImpl.class.getMethod("searchCatalogVulnerabilities", GuideVulnerabilitySearchRequest.class);
+    assertThat(catalogComponents.getAnnotation(GuideUsageEvent.class)).isNull();
+    assertThat(catalogComponents.getAnnotation(Authorize.class)).isNull();
+    assertThat(catalogVulns.getAnnotation(GuideUsageEvent.class)).isNull();
+    assertThat(catalogVulns.getAnnotation(Authorize.class)).isNull();
+
+    assertThat(SearchApiClientImpl.class.getMethod("searchComponents", GuideComponentSearchRequest.class)
+        .getAnnotation(GuideUsageEvent.class)).isNotNull();
+    assertThat(SearchApiClientImpl.class.getMethod("searchVulnerabilities", GuideVulnerabilitySearchRequest.class)
+        .getAnnotation(GuideUsageEvent.class)).isNotNull();
+  }
+
+  @Test
+  public void searchCatalogComponents_delegatesToSameHdsPathAsSearchComponents() {
+    // The catalog-federation variant behaves like searchComponents but reports no usage telemetry;
+    // it must hit the identical HDS component-search endpoint and return its response.
+    GuideComponentSearchRequest request = new GuideComponentSearchRequest(
+        "react", null, null, null, null,
+        null, null, null, null, null,
+        null, null, null, null, null, null, null, null, null, null);
+
+    Multimap<String, String> expectedParams = ArrayListMultimap.create();
+    expectedParams.put("query", "react");
+
+    GuideComponentSearchResponse expected = new GuideComponentSearchResponse(List.of(), 0, 0, 20, null);
+    when(hdsClient.getWithMultimap(GuideComponentSearchResponse.class, "rest/search/components",
+        expectedParams)).thenReturn(expected);
+
+    assertThat(underTest.searchCatalogComponents(request)).isSameAs(expected);
+  }
+
+  @Test
+  public void searchCatalogVulnerabilities_delegatesToSameHdsPathAsSearchVulnerabilities() {
+    GuideVulnerabilitySearchRequest request = new GuideVulnerabilitySearchRequest(
+        "log4j", null, null, null, null,
+        null, null, null, null, null,
+        null, null, null, null, null, null, null);
+
+    Multimap<String, String> expectedParams = ArrayListMultimap.create();
+    expectedParams.put("query", "log4j");
+
+    GuideVulnerabilitySearchResponse expected = new GuideVulnerabilitySearchResponse(List.of(), 0, 0, 20, null);
+    when(hdsClient.getWithMultimap(GuideVulnerabilitySearchResponse.class, "rest/search/vulnerabilities",
+        expectedParams)).thenReturn(expected);
+
+    assertThat(underTest.searchCatalogVulnerabilities(request)).isSameAs(expected);
   }
 
   @Test

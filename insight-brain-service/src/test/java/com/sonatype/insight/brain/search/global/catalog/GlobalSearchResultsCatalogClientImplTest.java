@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.search.global.catalog;
 
+import java.lang.reflect.Method;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -15,7 +16,7 @@ import com.sonatype.insight.brain.guide.api.dto.GuideComponentDocument;
 import com.sonatype.insight.brain.guide.api.dto.GuideComponentLicense;
 import com.sonatype.insight.brain.guide.api.dto.GuideGlobalSearchResponse;
 import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilityDocument;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.guide.telemetry.GuideUsageEvent;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeatureTestSupport;
 import com.sonatype.insight.brain.search.global.ResultRow;
 import com.sonatype.insight.brain.search.global.ResultsRequest;
@@ -340,18 +341,23 @@ public class GlobalSearchResultsCatalogClientImplTest
   }
 
   @Test
-  public void isEnabled_true_whenCatalogFederationToggleOff() {
-    // CATALOG_FEDERATION defaults to OFF (enabledWhenAbsent = false) and gates only the catalog BROWSE
-    // endpoint. Reading it here would leave global search's catalog rows dark on every deployment that
-    // has not explicitly switched it on, so this leg must ignore it -- PREVIEW_NEXUS_ONE_UI is the kill-switch.
-    SystemConfigurationPropertyFeature.CATALOG_FEDERATION.setEnabled(false);
-
+  public void isEnabled_alwaysTrue() {
+    // Catalog federation is base functionality; this leg is gated only by PREVIEW_NEXUS_ONE_UI
+    // upstream at the resource, so it is always enabled here.
     assertThat(client.isEnabled()).isTrue();
   }
 
   @Test
-  public void searchResults_catalogFederationToggleOff_stillReachesHds() {
-    SystemConfigurationPropertyFeature.CATALOG_FEDERATION.setEnabled(false);
+  public void catalogResults_reportsNoUsageTelemetry() throws NoSuchMethodException {
+    // Catalog federation must not be counted as Guide-licensed credit consumption, so the HDS call
+    // helper carries no @GuideUsageEvent. Pins the contract so a future re-add fails this test.
+    Method inner = GlobalSearchResultsCatalogClientImpl.class.getDeclaredMethod(
+        "callCatalogGlobalSearch", ResultsRequest.class, long.class);
+    assertThat(inner.getAnnotation(GuideUsageEvent.class)).isNull();
+  }
+
+  @Test
+  public void searchResults_reachesHds() {
     when(hdsClient.getWithMultimap(eq(GuideGlobalSearchResponse.class), any(), any()))
         .thenReturn(responseWithTotal(1L, component("a")));
 

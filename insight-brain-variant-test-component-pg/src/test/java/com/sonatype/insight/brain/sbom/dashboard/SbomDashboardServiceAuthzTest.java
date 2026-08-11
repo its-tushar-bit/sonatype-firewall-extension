@@ -9,9 +9,6 @@ import java.util.Date;
 import java.util.List;
 import jakarta.inject.Inject;
 
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
-import com.sonatype.insight.brain.common.test.SlowTest;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.thirdpartyscans.RecentImportedSbomsDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.RecentVulnerabilitiesDTO;
@@ -21,27 +18,27 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.VulnerabilitiesThreadLevelMetricDTO;
-import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.brain.variant.AbstractComponentPgAuthzTest;
+import com.sonatype.insight.brain.variant.ComponentPgTest;
 import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 
 import org.apache.commons.lang3.time.DateUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
+@ComponentPgTest
 public class SbomDashboardServiceAuthzTest
-    extends AbstractServiceAuthzTest
+    extends AbstractComponentPgAuthzTest
 {
   @Inject
   private SbomDashboardService service;
 
   private ThirdPartyFileCoordinate component;
 
-  @Before
+  @BeforeEach
   public void before() {
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     component =
@@ -60,8 +57,6 @@ public class SbomDashboardServiceAuthzTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetRecentHighPriorityVulnerabilities_Authorized() {
     grantReadPermission(app.getId());
 
@@ -120,8 +115,6 @@ public class SbomDashboardServiceAuthzTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetSbomReleaseStatus_Authorized() {
     grantReadPermission(app.getId());
 
@@ -174,8 +167,6 @@ public class SbomDashboardServiceAuthzTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetRecentImportSboms_Authorized() {
     grantReadPermission(app.getId());
 
@@ -247,8 +238,6 @@ public class SbomDashboardServiceAuthzTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetVulnerabilitiesByThreatLevel_Authorized() {
     grantReadPermission(app.getId());
 

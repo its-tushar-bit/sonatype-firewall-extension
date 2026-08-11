@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.sbom.components;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -14,10 +12,8 @@ import java.util.Collections;
 import java.util.Date;
 import jakarta.inject.Inject;
 
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.migration.DisplayNameForFileCoordinateAsyncDbMigration;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -30,7 +26,8 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.model.thirdpartyscans.VulnerabilityAnalysisForSbomVersion;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.variant.AbstractComponentPgTest;
+import com.sonatype.insight.brain.variant.ComponentPgTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
@@ -39,9 +36,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType.CPE_MATCH;
@@ -52,11 +48,11 @@ import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityRese
 import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.VENDOR_RESEARCH;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@Category(SlowTest.class)
+@ComponentPgTest
 public class SbomComponentsServiceTest
-    extends AbstractComponentTest
+    extends AbstractComponentPgTest
 {
   @Inject
   private SbomComponentsService service;
@@ -71,7 +67,7 @@ public class SbomComponentsServiceTest
 
   private Organization org;
 
-  @Before
+  @BeforeEach
   public void before() {
     org = tempEntity.newOrganization();
     app = tempEntity.newApplicationWithParent(org);
@@ -352,9 +348,9 @@ public class SbomComponentsServiceTest
     ThirdPartyFileCoordinate component =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1");
 
-    assertThrows("Could not find application with id anyApp",
-        NotFoundException.class,
-        () -> service.getSbomComponentDetails("anyApp", sbomMetadata.getSbomVersion(), component.getHash()));
+    assertThrows(NotFoundException.class,
+        () -> service.getSbomComponentDetails("anyApp", sbomMetadata.getSbomVersion(), component.getHash()),
+        "Could not find application with id anyApp");
   }
 
   @Test
@@ -365,9 +361,9 @@ public class SbomComponentsServiceTest
     ThirdPartyFileCoordinate component =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1");
 
-    assertThrows("Could not find SBOM version anySbomVersion for application " + app.getId(),
-        NotFoundException.class,
-        () -> service.getSbomComponentDetails(app.getId(), "anySbomVersion", component.getHash()));
+    assertThrows(NotFoundException.class,
+        () -> service.getSbomComponentDetails(app.getId(), "anySbomVersion", component.getHash()),
+        "Could not find SBOM version anySbomVersion for application " + app.getId());
   }
 
   @Test
@@ -378,9 +374,9 @@ public class SbomComponentsServiceTest
             thirdPartyFile.getFilename());
     tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1");
 
-    assertThrows("Could not find component by hash anyHash",
-        NotFoundException.class,
-        () -> service.getSbomComponentDetails(app.getId(), sbomMetadata.getSbomVersion(), "anyHash"));
+    assertThrows(NotFoundException.class,
+        () -> service.getSbomComponentDetails(app.getId(), sbomMetadata.getSbomVersion(), "anyHash"),
+        "Could not find component by hash anyHash");
   }
 
   @Test
@@ -476,8 +472,6 @@ public class SbomComponentsServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetSbomMetadataSuccessful() {
     Application application = tempEntity.newApplicationWithParent();
     ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan();
@@ -512,8 +506,6 @@ public class SbomComponentsServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetBomPageMetadata_DisplayName_NotMigrated() {
     migrationTrackerDAO.deleteById(DisplayNameForFileCoordinateAsyncDbMigration.class.getSimpleName());
     assertThat(migrationTrackerDAO.isTrackerPresent(DisplayNameForFileCoordinateAsyncDbMigration.class.getSimpleName()))
@@ -533,8 +525,6 @@ public class SbomComponentsServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetBomPageMetadata_DisplayName_Migrated() {
     assertThat(migrationTrackerDAO.isTrackerPresent(DisplayNameForFileCoordinateAsyncDbMigration.class.getSimpleName()))
         .isTrue();

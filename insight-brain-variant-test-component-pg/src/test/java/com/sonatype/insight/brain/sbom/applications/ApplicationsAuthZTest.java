@@ -5,17 +5,13 @@
  */
 package com.sonatype.insight.brain.sbom.applications;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.util.Date;
 import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomApplicationListSummaryDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomApplicationSummaryDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomApplicationsSortableField;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
@@ -23,26 +19,26 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
-import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.brain.variant.AbstractComponentPgAuthzTest;
+import com.sonatype.insight.brain.variant.ComponentPgTest;
 import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
+@ComponentPgTest
 public class ApplicationsAuthZTest
-    extends AbstractServiceAuthzTest
+    extends AbstractComponentPgAuthzTest
 {
   @Inject
   private SbomApplicationsService applicationService;
 
   private Policy policy;
 
-  @Before
+  @BeforeEach
   public void before() {
     policy = tempEntity.newPolicy(org);
   }
@@ -66,8 +62,6 @@ public class ApplicationsAuthZTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetApplications_Authorized() {
     grantReadPermission(app.getId());
 

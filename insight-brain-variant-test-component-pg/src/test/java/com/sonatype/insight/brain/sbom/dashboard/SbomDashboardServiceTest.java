@@ -10,10 +10,7 @@ import static com.sonatype.insight.brain.utils.SbomMetadataBuilder.newSbomMetada
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.sonatype.insight.brain.api.v2.dto.SbomsAnalyzedMetricsDTO;
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.thirdpartyscans.ApiSbomApplicationsHistoryMetricDTO;
@@ -26,20 +23,20 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.VulnerabilitiesThreadLevelMetricDTO;
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.variant.AbstractComponentPgTest;
+import com.sonatype.insight.brain.variant.ComponentPgTest;
 import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import jakarta.inject.Inject;
 import java.util.Date;
 import java.util.List;
 import org.apache.commons.lang3.time.DateUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-@Category(SlowTest.class)
+@ComponentPgTest
 public class SbomDashboardServiceTest
-    extends AbstractComponentTest
+    extends AbstractComponentPgTest
 {
   @Inject
   private SbomDashboardService service;
@@ -51,14 +48,12 @@ public class SbomDashboardServiceTest
 
   private Organization org;
 
-  @Before
+  @BeforeEach
   public void before() {
     org = tempEntity.newOrganization();
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetRecentHighPriorityVulnerabilities() {
     app = tempEntity.newApplicationWithParent(org);
 
@@ -269,16 +264,12 @@ public class SbomDashboardServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetRecentHighPriorityVulnerabilities_Noapps() {
     List<RecentVulnerabilitiesDTO> listOfRecentVulnerabilitiesDTO = service.getRecentHighPriorityVulnerabilities();
     assertThat(listOfRecentVulnerabilitiesDTO).hasSize(0);
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetSbomReleaseStatus() {
     app = tempEntity.newApplicationWithParent(org);
 
@@ -457,16 +448,12 @@ public class SbomDashboardServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetRecentImportSboms_Noapps() {
     List<RecentImportedSbomsDTO> listOfRecentVulnerabilitiesDTO = service.getRecentSbomsImported();
     assertThat(listOfRecentVulnerabilitiesDTO).isEmpty();
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetRecentImportSboms() {
     app = tempEntity.newApplicationWithParent(org);
 

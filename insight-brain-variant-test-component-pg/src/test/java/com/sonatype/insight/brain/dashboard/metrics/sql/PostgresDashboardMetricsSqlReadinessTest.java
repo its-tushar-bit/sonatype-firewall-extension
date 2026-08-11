@@ -10,15 +10,13 @@ import java.sql.Statement;
 
 import jakarta.inject.Inject;
 
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.variant.AbstractComponentPgTest;
+import com.sonatype.insight.brain.variant.ComponentPgTest;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsSqlReadinessState.INVALID;
 import static com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsSqlReadinessState.MISSING;
@@ -26,22 +24,21 @@ import static com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsS
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-@PostgresTest
-@Category(PostgresTestCategory.class)
+@ComponentPgTest
 public class PostgresDashboardMetricsSqlReadinessTest
-    extends AbstractComponentTest
+    extends AbstractComponentPgTest
 {
   private static final String INDEX_NAME = "policy_violation_app_stage_open_unfixed_idx";
 
   @Inject
   private OperationalDataStore operationalDataStore;
 
-  @Before
+  @BeforeEach
   public void dropReadinessIndex() throws Exception {
     dropIndex();
   }
 
-  @After
+  @AfterEach
   public void restoreReadinessIndex() throws Exception {
     dropIndex();
     createIndex();

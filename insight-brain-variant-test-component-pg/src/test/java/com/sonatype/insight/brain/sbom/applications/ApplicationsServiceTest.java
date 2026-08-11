@@ -9,12 +9,10 @@ import java.util.Date;
 import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomApplicationListSummaryDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomApplicationSummaryDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomApplicationsSortableField;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -23,24 +21,23 @@ import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.variant.AbstractComponentPgTest;
+import com.sonatype.insight.brain.variant.ComponentPgTest;
 import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.apache.commons.lang3.time.DateUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import com.sonatype.insight.brain.common.test.SlowTest;
-import org.junit.experimental.categories.Category;
 
-@Category(SlowTest.class)
+@ComponentPgTest
 public class ApplicationsServiceTest
-    extends AbstractComponentTest
+    extends AbstractComponentPgTest
 {
   private Application app;
 
@@ -54,7 +51,7 @@ public class ApplicationsServiceTest
   @Inject
   private ApplicationDAO appDao;
 
-  @Before
+  @BeforeEach
   public void before() throws Exception {
     org = tempEntity.newOrganization();
     app = tempEntity.newApplicationWithParent(org);
@@ -75,8 +72,6 @@ public class ApplicationsServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetApplications_NoSbom() {
     tempEntity.newApplicationWithParent();
 
@@ -89,8 +84,6 @@ public class ApplicationsServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetApplications_WithResults() {
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withApplicationId(app.getId())
@@ -163,8 +156,6 @@ public class ApplicationsServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetApplications_WithResults_ApplicationNameFilter() {
     Application application = tempEntity.newApplicationWithParent();
     application.setName("new-appName");
@@ -263,8 +254,6 @@ public class ApplicationsServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetApplications_WithResults_SortByReleaseStatusPercentage() {
     Application application = tempEntity.newApplicationWithParent();
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)

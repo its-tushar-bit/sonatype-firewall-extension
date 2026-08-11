@@ -12,11 +12,8 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.telemetry.HistoricalTelemetryStateDAO;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -24,7 +21,8 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.variant.AbstractComponentPgTest;
+import com.sonatype.insight.brain.variant.ComponentPgTest;
 import com.sonatype.insight.brain.telemetry.HistoricalTelemetryService.Status;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -33,14 +31,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import org.apache.commons.lang3.time.DateUtils;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
-@Category(SlowTest.class)
+@ComponentPgTest
 public class HistoricalPolicyViolationTelemetryServiceTest
-    extends AbstractComponentTest
+    extends AbstractComponentPgTest
 {
   @Inject
   private HistoricalTelemetryStateDAO historicalTelemetryStateDAO;
@@ -60,8 +57,6 @@ public class HistoricalPolicyViolationTelemetryServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testCollectAndSendPolicyViolationTelemetry_invalidStatus_postgres() {
     testCollectAndSendPolicyViolationTelemetry_invalidStatus();
   }
@@ -143,8 +138,6 @@ public class HistoricalPolicyViolationTelemetryServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testCollectAndSendPolicyViolationTelemetry_postgres() {
     testCollectAndSendPolicyViolationTelemetry();
   }

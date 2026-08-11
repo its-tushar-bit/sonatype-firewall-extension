@@ -13,6 +13,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.test.context.TestExecutionListeners;
+import org.springframework.test.context.event.ApplicationEventsTestExecutionListener;
+import org.springframework.test.context.event.EventPublishingTestExecutionListener;
+import org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener;
+import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
+import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
+import org.springframework.test.context.web.ServletTestExecutionListener;
 
 /**
  * Marks a JUnit 5 component test that runs against the shared, reused Spring {@code
@@ -41,6 +48,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @Target(ElementType.TYPE)
 @Inherited
 @ExtendWith(ComponentTestPgHarnessExtension.class)
+@TestExecutionListeners(
+    listeners = {
+      ServletTestExecutionListener.class,
+      ApplicationEventsTestExecutionListener.class,
+      DependencyInjectionTestExecutionListener.class,
+      TransactionalTestExecutionListener.class,
+      SqlScriptsTestExecutionListener.class,
+      EventPublishingTestExecutionListener.class
+    },
+    inheritListeners = false)
 public @interface ComponentPgTest
 {
 }

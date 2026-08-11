@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -31,7 +29,6 @@ import com.sonatype.insight.brain.api.v2.dto.ApiOwnerDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiPullRequestResults;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService.METHOD;
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
@@ -39,7 +36,6 @@ import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppInstallationStat
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.git.EnhancedPullRequestResult;
 import com.sonatype.insight.brain.git.GitApiFactory;
@@ -57,7 +53,8 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.security.PasswordHandler;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.variant.AbstractComponentPgTest;
+import com.sonatype.insight.brain.variant.ComponentPgTest;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
@@ -80,10 +77,9 @@ import com.sonatype.nexus.scm.github.dto.GithubRateLimitResponse;
 import com.sonatype.nexus.scm.github.dto.GithubRateLimitsResponse;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
@@ -111,9 +107,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@Category(SlowTest.class)
+@ComponentPgTest
 public class ApiSourceControlServiceTest
-    extends AbstractComponentTest
+    extends AbstractComponentPgTest
 {
   private static final String VALID_URL = "https://example.com/organization/project";
 
@@ -184,7 +180,7 @@ public class ApiSourceControlServiceTest
   @Mock
   private GitApiFactory gitApiFactory;
 
-  @Before
+  @BeforeEach
   public void setupBeanOverrides() {
     ScmRepoVisibilityService testScmRepoVisibilityService =
         new ScmRepoVisibilityService(lookup(FeaturesService.class), mockGitClientFactory);
@@ -203,7 +199,7 @@ public class ApiSourceControlServiceTest
     applyBeanFieldOverride(SourceControlRepositoryUtils.class, "gitApiFactory", gitApiFactory);
   }
 
-  @Before
+  @BeforeEach
   public void setup() {
     org = tempEntity.newOrganization();
     rootOrgSourcecontrol = tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
@@ -1436,8 +1432,6 @@ public class ApiSourceControlServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetCompositeSourceControlByApplicationId_postgres() {
     final SourceControl sourceControl = new SourceControl.Builder()
         .setOwnerId(app.getId())
@@ -1468,8 +1462,6 @@ public class ApiSourceControlServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetCompositeSourceControlByApplicationId_DoesNotExist_postgres() {
     final SourceControl sourceControl = sourceControlService.getCompositeSourceControlByApplicationId("Fake ID");
     assertThat(sourceControl).isNull();
@@ -1514,8 +1506,6 @@ public class ApiSourceControlServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetCompositeSourceControlByApplicationId_nLevelOwnerHierarchy_postgres() {
     Organization org1 = tempEntity.newOrganization();
     Organization org2 = tempEntity.newOrganization(org1);

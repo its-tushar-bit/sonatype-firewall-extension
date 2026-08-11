@@ -26,7 +26,7 @@ import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.AdditionalMatchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -60,7 +60,6 @@ import com.sonatype.insight.brain.api.experimental.ApiVulnerabilityReachabilityS
 import com.sonatype.insight.brain.api.experimental.PurlIdentifiersWithVulnerabilities;
 import com.sonatype.insight.brain.api.experimental.ReachableComponentVulnerabilities;
 import com.sonatype.insight.brain.api.experimental.ReachableComponentVulnerabilities.PresentReachableComponentVulnerabilities;
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AggregateFileDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerComponentLicenseDAO;
@@ -168,7 +167,8 @@ import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.model.configuration.scanhealth.ScanHealthConfigDTO;
 import com.sonatype.insight.brain.scanhealth.ScanHealthService;
 import com.sonatype.insight.brain.security.CurrentUser;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.variant.AbstractComponentPgTest;
+import com.sonatype.insight.brain.variant.ComponentPgTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -207,27 +207,23 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.junit.After;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
-
-import org.junit.Before;
-import org.junit.Ignore;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.model.OwnerType.APPLICATION;
 import static com.sonatype.insight.brain.model.OwnerType.ORGANIZATION;
-import com.sonatype.insight.brain.common.test.SlowTest;
 
-@Category(SlowTest.class)
+@ComponentPgTest
 public class ScanPolicyEvaluatorTest
-    extends AbstractComponentTest
+    extends AbstractComponentPgTest
 {
   private static final Logger log = LoggerFactory.getLogger(ScanPolicyEvaluatorTest.class);
 
@@ -316,18 +312,25 @@ public class ScanPolicyEvaluatorTest
 
   private TelemetrySender mockTelemetrySender;
 
-  @After
+  @AfterEach
   public void after() {
-    if (handler != null) {
-      asyncEventBus.unregister(handler);
+    try {
+      if (handler != null) {
+        asyncEventBus.unregister(handler);
+      }
+      if (policyAlertHandler != null) {
+        asyncEventBus.unregister(policyAlertHandler);
+      }
     }
-    if (policyAlertHandler != null) {
-      asyncEventBus.unregister(policyAlertHandler);
+    finally {
+      // Reset every feature flag toggled by individual tests back to its default so it cannot leak into
+      // sibling classes: this module runs the whole cohort in one fork with a single reused Spring context.
+      SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+      SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
     }
-    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
   }
 
-  @Before
+  @BeforeEach
   public void setup() {
     organization = tempEntity.newOrganization();
     application = tempEntity.newApplication(organization.getId());
@@ -6800,9 +6803,7 @@ public class ScanPolicyEvaluatorTest
     assertThat(results.allViolations).isEmpty();
   }
 
-  @Ignore("On-demand performance benchmark for DB batching optimizations")
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
+  @Disabled("On-demand performance benchmark for DB batching optimizations")
   @Test
   public void testPerformPolicyEvaluation_BatchingPerformance() throws Exception {
     int numPolicies = 20;

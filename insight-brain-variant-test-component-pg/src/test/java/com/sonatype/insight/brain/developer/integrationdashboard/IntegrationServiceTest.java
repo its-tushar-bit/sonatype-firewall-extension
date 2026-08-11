@@ -14,9 +14,6 @@ import static org.mockito.Mockito.verify;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
-import com.sonatype.insight.brain.common.test.SlowTest;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.developer.integrationdashboard.api.IntegrationStatusDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -25,7 +22,8 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.variant.AbstractComponentPgTest;
+import com.sonatype.insight.brain.variant.ComponentPgTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -36,16 +34,15 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
-@Category(SlowTest.class)
+@ComponentPgTest
 public class IntegrationServiceTest
-    extends AbstractComponentTest
+    extends AbstractComponentPgTest
 {
   @Mock
   private TelemetrySender telemetrySender;
@@ -82,8 +79,6 @@ public class IntegrationServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetIntegrationSummaries_InvalidPageOrPageSizeThrowsException_postgres() {
     assertThatThrownBy(() -> integrationService.getIntegrationStatuses(-1, 100, null, null, null, null))
         .isInstanceOf(BadRequestException.class)
@@ -159,8 +154,6 @@ public class IntegrationServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetIntegrationSummaries_Pagination_postgres() {
     setUpAppsWithBuildStageRisk();
 
@@ -268,8 +261,6 @@ public class IntegrationServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetIntegrationSummaries_Pagination_PageSizeGreaterThanResult_postgres() {
     setUpAppsWithBuildStageRisk();
 
@@ -337,8 +328,6 @@ public class IntegrationServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetIntegrationSummaries_Pagination_PageNumGreaterThanResult_postgres() {
     setUpAppsWithBuildStageRisk();
 
@@ -390,8 +379,6 @@ public class IntegrationServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetIntegrationSummaries_OrderByName_postgres() {
     setUpAppsWithBuildStageRisk();
 
@@ -466,8 +453,6 @@ public class IntegrationServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetIntegrationSummaries_OrderByLastCommit_postgres() {
     setUpAppsWithBuildStageRisk();
 
@@ -565,8 +550,6 @@ public class IntegrationServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetIntegrationSummaries_OrderByLastEvaluation_postgres() {
     setUpAppsWithBuildStageRisk();
 
@@ -766,8 +749,6 @@ public class IntegrationServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetIntegrationSummaries_FilterOnName_postgres() {
     final Organization org = tempEntity.newOrganization();
     app1 = tempEntity.newApplication("SeaL", "app1", org.getId());
@@ -837,8 +818,6 @@ public class IntegrationServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetIntegrationSummaries_FilterOnScmIntegrationStatus_postgres() throws Exception {
     setUpAppsWithBuildStageRisk();
     final String repoUrl = "https://example.com/organization/project";
@@ -901,8 +880,6 @@ public class IntegrationServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetIntegrationSummaries_FilterOnCiIntegrationStatus_postgres() {
     setUpAppsWithBuildStageRisk();
     tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_BUILD, "scan-id-3",
@@ -963,8 +940,6 @@ public class IntegrationServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetIntegrationSummaries_SetCICDStatus_postgres() {
     setUpAppsWithBuildStageRisk();
     tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_BUILD, "scan-id-3",
@@ -1055,8 +1030,6 @@ public class IntegrationServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetIntegrationSummaries_SetAutoSourceControlFeedbackStatus_postgres() throws Exception {
     setUpAppsWithBuildStageRisk();
 
@@ -1166,8 +1139,6 @@ public class IntegrationServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetIntegrationSummaries_SetLastCommit_postgres() {
     setUpAppsWithBuildStageRisk();
 
@@ -1278,8 +1249,6 @@ public class IntegrationServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetIntegrationSummaries_SetLastEvaluation_postgres() {
     setUpAppsWithBuildStageRisk();
 
@@ -1404,8 +1373,6 @@ public class IntegrationServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetIntegrationSummaries_SetTotalRisk_postgres() {
     setUpAppsWithBuildStageRisk();
 
@@ -1509,8 +1476,6 @@ public class IntegrationServiceTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetIntegrationSummaries_SetPrioritiesReportStatusAndScanId_Postgres() {
     setUpAppsWithBuildStageRisk();
     final long now = System.currentTimeMillis();

@@ -19,6 +19,7 @@ import { NotFoundPage } from './layout/NotFoundPage';
 import { ErrorBoundary } from './layout/ErrorBoundary';
 import { ComponentsSearchPage } from './components/ComponentsSearchPage';
 import { VulnerabilitiesPage } from './vulnerabilities/VulnerabilitiesPage';
+import { SecurityEventsPage } from './security-events/SecurityEventsPage';
 import { VulnerabilityDetailLayout } from './vulnerabilities/VulnerabilityDetailLayout';
 import { SecurityDetailsTab } from './vulnerabilities/detail/SecurityDetailsTab';
 import { ComponentsImpactedTab } from './vulnerabilities/detail/ComponentsImpactedTab';
@@ -75,6 +76,7 @@ function AuthGate() {
                           <Route path="components-impacted" element={<ComponentsImpactedTab />} />
                           <Route path="sonatype-research" element={<SonatypeResearchTab />} />
                         </Route>
+                        <Route path="/security-events" element={<SecurityEventsPage />} />
                         <Route
                           path="/search"
                           element={

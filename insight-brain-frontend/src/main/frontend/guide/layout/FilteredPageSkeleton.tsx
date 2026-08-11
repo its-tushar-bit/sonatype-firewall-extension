@@ -5,10 +5,15 @@
  */
 
 import { Box, Flex, Skeleton } from '@radix-ui/themes';
-import { PageLayout, ComponentCardSkeleton, VulnerabilityResultCardSkeleton } from '@guide/ui-core';
+import {
+  PageLayout,
+  ComponentCardSkeleton,
+  VulnerabilityResultCardSkeleton,
+  SecurityEventCardSkeleton,
+} from '@guide/ui-core';
 import { tokens, MAX_SKELETON_CARDS } from '@guide/ui-core/utils';
 
-type SkeletonVariant = 'components' | 'vulnerabilities' | 'search';
+type SkeletonVariant = 'components' | 'vulnerabilities' | 'search' | 'security-events';
 
 interface FilteredPageSkeletonProps {
   variant: SkeletonVariant;
@@ -117,8 +122,13 @@ export function FilteredPageSkeleton({ variant }: FilteredPageSkeletonProps) {
     );
   }
 
-  const titleWidth = variant === 'vulnerabilities' ? '220px' : '180px';
-  const CardSkeleton = variant === 'vulnerabilities' ? VulnerabilityResultCardSkeleton : ComponentCardSkeleton;
+  const titleWidth = variant === 'vulnerabilities' || variant === 'security-events' ? '220px' : '180px';
+  const CardSkeleton =
+    variant === 'vulnerabilities'
+      ? VulnerabilityResultCardSkeleton
+      : variant === 'security-events'
+        ? SecurityEventCardSkeleton
+        : ComponentCardSkeleton;
 
   return (
     <PageLayout aria-busy="true">

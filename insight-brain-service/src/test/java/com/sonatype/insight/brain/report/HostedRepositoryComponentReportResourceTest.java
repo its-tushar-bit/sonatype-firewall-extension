@@ -10,7 +10,6 @@ import java.io.IOException;
 import jakarta.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.dataaccess.repository.HostedRepositoryComponentDAO;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.report.pdf.PdfGeneratorService;
@@ -29,6 +28,18 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * Unit tests for {@link HostedRepositoryComponentReportResource}. Verifies each read handler
+ * resolves the HRC through {@link HostedRepositoryComponentDAO#getByIdNotNull(String)} and
+ * delegates to the same Owner-scoped service method as the App path.
+ * <p>
+ * {@code reevaluatePolicy} is covered in {@code HostedComponentScanQueueConsumerTest}
+ * ({@code hostedReevaluateResource_*}) rather than here, against a real database. A Mockito
+ * delegation assertion cannot distinguish the two wirings that matter for that handler:
+ * {@code getByIdNotNull(hrcId).getId()} and a bare {@code hrcId} produce the same argument, because
+ * {@code getByIdNotNull} is a primary-key lookup. Only exercising an unknown id — which must 404
+ * from the DAO before any evaluation work starts — pins that the lookup is load-bearing.
+ */
 @RunWith(MockitoJUnitRunner.class)
 public class HostedRepositoryComponentReportResourceTest
 {
@@ -56,7 +67,13 @@ public class HostedRepositoryComponentReportResourceTest
 
   @Before
   public void setUp() {
-    SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.setEnabled(true);
+    // AspectJ compile-time weaving inserts a @HasFeature aspect on the resource class and an
+    // @Authorize aspect on its service-call sites. Both fire during Mockito unit tests that
+    // bypass the Spring proxy. Disabling enforcement short-circuits both to the mocked service
+    // call — see SecurityAspectControl's javadoc for the intended use. This also covers
+    // @HasFeature(HOSTED_REPOSITORY_EVALUATION), so the feature must not be toggled here:
+    // SystemConfigurationPropertyFeature.setEnabled reaches for a statically injected
+    // SystemConfigurationPropertyDAO that a plain MockitoJUnitRunner never wires.
     SecurityAspectControl.disableEnforcement();
     hrc = new HostedRepositoryComponent("repo-1", "path/lib.jar", "hash-abc");
     hrc.setId(HRC_ID);
@@ -66,7 +83,6 @@ public class HostedRepositoryComponentReportResourceTest
   @After
   public void tearDown() {
     SecurityAspectControl.enableEnforcement();
-    SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.setEnabled(false);
   }
 
   @Test

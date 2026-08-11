@@ -638,6 +638,9 @@ public class AuthorizationCheckerTest
     ctx.put(Key.HOSTED_REPOSITORY_COMPONENT_ID, "missing-hrc");
     UserPrincipal userPrincipal = newPrincipal(user);
 
+    // Message must include both the "Hosted Repository Component" display name (from
+    // entityNameForIdKey / entityNameForType) and the offending id so admins get a
+    // self-contained error.
     assertThatThrownBy(() -> checker.isPermitted(userPrincipal, Permission.READ, ctx))
         .isInstanceOf(NotFoundException.class)
         .hasMessageContaining("Hosted Repository Component")
@@ -646,6 +649,8 @@ public class AuthorizationCheckerTest
 
   @Test
   public void testIsPermitted_WithMissingHostedRepositoryComponentOwner_MessageMentionsHrcType() {
+    // Sibling of the OwnerType branch (line 384 of AuthorizationChecker) — when the owner is
+    // an HOSTED_REPOSITORY_COMPONENT type + missing id, the error surfaces the type name.
     User user = tempEntity.newUser();
     Role role = tempEntity.newRole(false, Permission.READ);
     newMembershipMapping(user, Organization.ROOT_ORGANIZATION_ID, role.getId());

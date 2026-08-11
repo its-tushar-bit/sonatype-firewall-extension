@@ -718,7 +718,7 @@ public class ScanPolicyEvaluator
             for (AutoPolicyWaiver autoPolicyWaiver : prefetchedAutoPolicyWaivers) {
               if (canEvaluateWithAutoWaiver(autoPolicyWaiver, policyViolation)) {
                 boolean violationShouldBeAutoWaived = evaluateAutoPolicyWaiver(
-                    appId,
+                    owner,
                     component,
                     policyViolation,
                     autoPolicyWaiver,
@@ -1489,8 +1489,14 @@ public class ScanPolicyEvaluator
     try {
       ReportEntry summaryEntry = summaryReportEntry;
       if (summaryEntry == null) {
+        // Resolved as an Owner, not an Application: hosted-repository components own their scans, so an
+        // Application-only lookup throws for every hosted evaluation and the count silently falls back to 0.
+        Owner reportOwner = ownerDAO.getById(policyEvaluation.getOwnerId());
+        if (reportOwner == null) {
+          throw new NotFoundException("Owner with ID " + policyEvaluation.getOwnerId() + " does not exist.");
+        }
         LifecycleReport applicationReport =
-            reportService.getReport(policyEvaluation.getOwnerId(), policyEvaluation.getScanId());
+            reportService.getReportForOwnerNoAuth(reportOwner, policyEvaluation.getScanId());
         summaryEntry = applicationReport.getEntry(SUMMARY_JSON.getName());
       }
       if (summaryEntry != null) {
@@ -1813,7 +1819,7 @@ public class ScanPolicyEvaluator
   }
 
   private boolean evaluateAutoPolicyWaiver(
-      final String appId,
+      final Owner owner,
       final Component component,
       final PolicyViolation policyViolation,
       final AutoPolicyWaiver autoPolicyWaiver,
@@ -1832,12 +1838,12 @@ public class ScanPolicyEvaluator
       return false;
     }
 
-    return shouldAutoWaiveBasedOnScopesAndOperator(appId, component, policyViolation, autoPolicyWaiver, stageId, scanId,
-        hasReachabilityData);
+    return shouldAutoWaiveBasedOnScopesAndOperator(owner, component, policyViolation, autoPolicyWaiver, stageId,
+        scanId, hasReachabilityData);
   }
 
   private boolean shouldAutoWaiveBasedOnScopesAndOperator(
-      final String appId,
+      final Owner owner,
       final Component component,
       final PolicyViolation policyViolation,
       final AutoPolicyWaiver autoPolicyWaiver,
@@ -1858,7 +1864,7 @@ public class ScanPolicyEvaluator
     final boolean isNoPathForwardConfigured = isNoPathForwardConfigured(autoPolicyWaiver, component);
     boolean hasNoPathForward = false;
     if (isNoPathForwardConfigured) {
-      hasNoPathForward = !componentHasPathForward(appId, component, stageId, scanId);
+      hasNoPathForward = !componentHasPathForward(owner, component, stageId, scanId);
       if (autoPolicyWaiver.getScopesOperatorAny() && hasNoPathForward) {
         return true;
       }
@@ -1910,12 +1916,12 @@ public class ScanPolicyEvaluator
   }
 
   private boolean componentHasPathForward(
-      final String appId,
+      final Owner owner,
       final Component component,
       final String stageId,
       final String scanId)
   {
-    return pathForwardInspector.containsUpgradeableVersion(component.getComponentIdentifier(), appId, stageId, scanId);
+    return pathForwardInspector.containsUpgradeableVersion(component.getComponentIdentifier(), owner, stageId, scanId);
   }
 
   private List<AutoPolicyWaiverExclusion> getApplicableAutoPolicyWaiverExclusions(

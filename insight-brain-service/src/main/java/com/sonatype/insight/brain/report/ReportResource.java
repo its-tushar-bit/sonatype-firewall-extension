@@ -366,13 +366,11 @@ public class ReportResource
    * {@link #reevaluatePolicyStatus(String, String) the status endpoint} with the receipt's status id until
    * the result is {@code COMPLETED} or {@code FAILED}.
    * <p>
-   * Note: {@code async=true} is ignored for hosted scans, which always re-evaluate synchronously and return
-   * {@code 200 OK} with an empty body (no {@link PolicyEvaluationReceipt}). API consumers that rely on the
-   * {@code 202} status code to choose a polling strategy must account for this.
-   * <p>
-   * Note: {@code skipAutoWaivers} is also silently ignored for hosted scans — the hosted re-evaluation path
-   * ({@code RepositoryPolicyEvaluator#evaluate}) does not support it, so auto-waivers are always applied for hosted
-   * scans regardless of this flag.
+   * This endpoint serves Application-owned scans only: it resolves its owner with
+   * {@code applicationDAO.getByPublicIdNotNull}, so a hosted-repository artifact cannot reach it. Hosted
+   * re-evaluation is served by {@link HostedRepositoryComponentReportResource#reevaluatePolicy}, which
+   * accepts neither {@code async} nor {@code skipAutoWaivers} — see CLM-45065 for converging the two
+   * surfaces before the hosted UI is wired.
    */
   @POST
   @Path("{scanId}/reevaluatePolicy")
@@ -410,7 +408,7 @@ public class ReportResource
       return Response.status(Status.ACCEPTED).entity(receipt).build();
     }
 
-    PolicyEvaluation policyEvaluation = reportService.reUploadScanToHds(application.getId(), scanId, clientUserAgent);
+    PolicyEvaluation policyEvaluation = reportService.reUploadScanToHds(application, scanId, clientUserAgent);
     Stage stage = new Stage(policyEvaluation.getStageTypeId());
     scanPolicyEvaluator.evaluate(application, scanId, stage, policyEvaluation.getScanTriggerType(),
         policyEvaluation.getClientScanType(), skipAutoWaivers);

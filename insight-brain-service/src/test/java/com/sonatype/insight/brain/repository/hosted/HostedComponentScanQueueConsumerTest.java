@@ -22,21 +22,29 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.mock.hds.HttpResponseProcessor;
 
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Response;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.repository.HostedComponentScanQueueDAO;
+import com.sonatype.insight.brain.dataaccess.repository.HostedRepositoryComponentDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.HostedComponentScanQueue;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.queue.AbstractPollDispatchQueueConsumer;
@@ -44,6 +52,7 @@ import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.After;
 import org.junit.Before;
@@ -51,6 +60,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.awaitility.Awaitility.await;
 
 public class HostedComponentScanQueueConsumerTest
@@ -79,6 +89,27 @@ public class HostedComponentScanQueueConsumerTest
 
   @Inject
   private com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO policyEvaluationDAO;
+
+  @Inject
+  private HostedRepositoryComponentDAO hostedRepositoryComponentDAO;
+
+  @Inject
+  private com.sonatype.insight.brain.dataaccess.ApplicationDAO applicationDAO;
+
+  @Inject
+  private com.sonatype.insight.brain.report.ReportService reportService;
+
+  @Inject
+  private com.sonatype.insight.brain.report.ReportDataStore reportDataStore;
+
+  @Inject
+  private com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO policyViolationDAO;
+
+  @Inject
+  private com.sonatype.insight.brain.continuousmonitoring.RepositoryContinuousMonitoringFlowProcessor continuousMonitoringFlowProcessor;
+
+  @Inject
+  private com.sonatype.insight.brain.report.HostedRepositoryComponentReportResource hostedRepositoryComponentReportResource;
 
   @Before
   public void setUpTest() {
@@ -351,124 +382,49 @@ public class HostedComponentScanQueueConsumerTest
   }
 
   @Test
-  public void executeJob_stampsComponentIdOnRepositoryComponent() throws Exception {
-    HostedComponentScanQueue job = insertPendingJobWithScanXml(
-        "repo-upsert", "comp-upsert-1",
-        "pkg:maven/com.example/my-lib@1.0.0", null,
-        "com/example/my-lib/1.0.0/my-lib-1.0.0.jar", "abc123def456ghi7", "maven2");
-
-    ScanReceipt receipt = new ScanReceipt();
-    receipt.setScanId("scan-upsert");
-    hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
-    mockPolicyEvaluatorHdsResponse("abc123def456ghi7");
-
-    consumer.disableForTesting = false;
-    consumer.run();
-
-    await().atMost(10, TimeUnit.SECONDS)
-        .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
-            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
-
-    ProxyRepositoryComponent rc = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
-        job.getRepositoryId(), "com/example/my-lib/1.0.0/my-lib-1.0.0.jar");
-    assertThat(rc).isNotNull();
-    assertThat(rc.getHash()).isEqualTo("abc123def456ghi7");
-    assertThat(rc.getComponentId()).isEqualTo("comp-upsert-1");
-    assertThat(rc.getLastEvaluationTime()).isNotNull();
-  }
-
-  @Test
   public void executeJob_updatesExistingRepositoryComponentOnResubmit() throws Exception {
-    // First upload — creates the row
+    String pathname = "com/example/lib/1.0/lib-1.0.jar";
+
+    // First upload — creates the hosted_repository_component row
     HostedComponentScanQueue job1 = insertPendingJobWithScanXml(
         "repo-update", "comp-update-1", null, null,
-        "com/example/lib/1.0/lib-1.0.jar", "hash_v1", "maven2");
+        pathname, "hash_v1", "maven2");
+    String scanId1 = "scan-v1";
     ScanReceipt receipt = new ScanReceipt();
-    receipt.setScanId("scan-v1");
+    receipt.setScanId(scanId1);
     hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
-    mockPolicyEvaluatorHdsResponse("hash_v1");
+    URL zippedReport1 = ReportHelper.zipReport("/ScanServiceTest/report", tempDir);
+    hdsMockServer.respondWith(zippedReport1).atUri("rest/application/analysis/" + scanId1);
     consumer.disableForTesting = false;
     consumer.run();
-    await().atMost(10, TimeUnit.SECONDS)
+    await().atMost(15, TimeUnit.SECONDS)
         .untilAsserted(() -> assertThat(queueDAO.getById(job1.getId()).getStatus())
             .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
     consumer.disableForTesting = true;
     hdsMockServer.reset();
 
-    // Second upload — same pathname, different hash
+    // Second upload — same repository × pathname, different hash and componentId
     HostedComponentScanQueue job2 = insertPendingJobWithScanXml(
         "repo-update", "comp-update-2", null, null,
-        "com/example/lib/1.0/lib-1.0.jar", "hash_v2", "maven2");
-    receipt.setScanId("scan-v2");
+        pathname, "hash_v2", "maven2");
+    String repositoryId = job2.getRepositoryId();
+    String scanId2 = "scan-v2";
+    receipt.setScanId(scanId2);
     hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
-    mockPolicyEvaluatorHdsResponse("hash_v2");
+    URL zippedReport2 = ReportHelper.zipReport("/ScanServiceTest/report", tempDir);
+    hdsMockServer.respondWith(zippedReport2).atUri("rest/application/analysis/" + scanId2);
     consumer.disableForTesting = false;
     consumer.run();
-    await().atMost(10, TimeUnit.SECONDS)
+    await().atMost(15, TimeUnit.SECONDS)
         .untilAsserted(() -> assertThat(queueDAO.getById(job2.getId()).getStatus())
             .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
 
-    ProxyRepositoryComponent rc = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
-        job2.getRepositoryId(), "com/example/lib/1.0/lib-1.0.jar");
-    assertThat(rc.getHash()).isEqualTo("hash_v2");
-    assertThat(rc.getComponentId()).isEqualTo("comp-update-2");
-  }
-
-  @Test
-  public void executeJob_stampsComponentIdRegardlessOfPurl() throws Exception {
-    // The consumer no longer parses the PURL to set ComponentIdentifier —
-    // that comes from HDS evaluation data. The job's componentId is always
-    // stamped onto the proxy_repository_component row via stampNxrmComponentId().
-    HostedComponentScanQueue job = insertPendingJobWithScanXml(
-        "repo-purl", "comp-purl-1",
-        "pkg:maven/org.apache.commons/commons-lang3@3.12.0", null,
-        "org/apache/commons/commons-lang3/3.12.0/commons-lang3-3.12.0.jar", "purl_hash_001", "maven2");
-
-    ScanReceipt receipt = new ScanReceipt();
-    receipt.setScanId("scan-purl");
-    hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
-    mockPolicyEvaluatorHdsResponse("purl_hash_001");
-    consumer.disableForTesting = false;
-    consumer.run();
-
-    await().atMost(10, TimeUnit.SECONDS)
-        .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
-            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
-
-    ProxyRepositoryComponent rc = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
-        job.getRepositoryId(),
-        "org/apache/commons/commons-lang3/3.12.0/commons-lang3-3.12.0.jar");
-    assertThat(rc).isNotNull();
-    assertThat(rc.getHash()).isEqualTo("purl_hash_001");
-    assertThat(rc.getComponentId()).isEqualTo("comp-purl-1");
-  }
-
-  @Test
-  public void executeJob_completesSuccessfullyWhenScanHasNoMatchingComponent() throws Exception {
-    // Scan job completes even when HDS evaluation finds no matching component for the pathname.
-    // The proxy_repository_component row is still created by the evaluator (with hash from scan XML),
-    // and componentId is stamped from the job.
-    HostedComponentScanQueue job = insertPendingJobWithScanXml(
-        "repo-nomatch", "comp-nomatch",
-        null, null,
-        "com/example/unknown/1.0/unknown-1.0.jar", "nomatch_hash_001", "maven2");
-
-    ScanReceipt receipt = new ScanReceipt();
-    receipt.setScanId("scan-nomatch");
-    hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
-    mockPolicyEvaluatorHdsResponse("nomatch_hash_001");
-    consumer.disableForTesting = false;
-    consumer.run();
-
-    await().atMost(10, TimeUnit.SECONDS)
-        .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
-            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
-
-    ProxyRepositoryComponent rc = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
-        job.getRepositoryId(), "com/example/unknown/1.0/unknown-1.0.jar");
-    assertThat(rc).isNotNull();
-    assertThat(rc.getHash()).isEqualTo("nomatch_hash_001");
-    assertThat(rc.getComponentId()).isEqualTo("comp-nomatch");
+    HostedRepositoryComponent hrc = getHrc(repositoryId, pathname);
+    assertThat(hrc)
+        .as("hosted_repository_component row for %s should be updated in place on resubmit", pathname)
+        .isNotNull();
+    assertThat(hrc.getHash()).isEqualTo("hash_v2");
+    assertThat(hrc.getComponentId()).isEqualTo("comp-update-2");
   }
 
   @Test
@@ -493,72 +449,47 @@ public class HostedComponentScanQueueConsumerTest
   }
 
   @Test
-  public void executeJob_withNullApplication_usesRepositoryUploadPathAndDoesNotStampScanId() throws Exception {
-    // Unparsable scan content → componentInfo == null → application == null → Repository-typed upload branch
-    HostedComponentScanQueue job = insertPendingJob("repo-null-app");
-
-    ScanReceipt receipt = new ScanReceipt();
-    receipt.setScanId("scan-null-app");
-    hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
-
-    consumer.disableForTesting = false;
-    consumer.run();
-
-    await().atMost(10, TimeUnit.SECONDS)
-        .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
-            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
-
-    // HDS was called (Repository-typed upload path hits the same endpoint)
-    assertThat(hdsMockServer.getCapturedRequestHttpHeaders(ScanUploader.HDS_PATH)).isNotNull();
-
-    // scan_id must NOT be stamped — stampScanId is only called when application != null
-    ProxyRepositoryComponent rc = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
-        job.getRepositoryId(), "scan-content");
-    if (rc != null) {
-      assertThat(rc.getScanId()).isNull();
-    }
-  }
-
-  @Test
-  public void executeJob_withValidApplication_stampsScandIdOnRepositoryComponent() throws Exception {
-    // Create a non-root org with a linked repository so resolveOrganizationId returns non-null
+  public void executeJob_withOrgLinkedRepository_createsHrcAndPolicyEvaluation() throws Exception {
+    // Org-linked repository (has a related Organization) — exercises the same resolver/SPE
+    // pipeline as a repository with no org linkage.
     Organization org = tempEntity.newOrganizationWithRepositoryManager("test-org-scanid");
+    String pathname = "com/example/lib/1.0/lib-1.0.jar";
 
-    // Valid scan XML → application created → upload branch → stampScanId called
     HostedComponentScanQueue job = insertPendingJobWithScanXmlForOrg(
         org, "comp-scanid",
         "pkg:maven/com.example/lib@1.0.0", null,
-        "com/example/lib/1.0/lib-1.0.jar", "scanid_hash_001", "maven2");
+        pathname, "scanid_hash_001", "maven2");
 
+    String scanId = "scan-id-stamped";
     ScanReceipt receipt = new ScanReceipt();
-    receipt.setScanId("scan-id-stamped");
+    receipt.setScanId(scanId);
     hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
-    mockPolicyEvaluatorHdsResponse("scanid_hash_001");
+    URL zippedReport = ReportHelper.zipReport("/ScanServiceTest/report", tempDir);
+    hdsMockServer.respondWith(zippedReport).atUri("rest/application/analysis/" + scanId);
 
     consumer.disableForTesting = false;
     consumer.run();
 
-    await().atMost(10, TimeUnit.SECONDS)
+    await().atMost(15, TimeUnit.SECONDS)
         .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
             .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
 
-    ProxyRepositoryComponent rc = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
-        job.getRepositoryId(), "com/example/lib/1.0/lib-1.0.jar");
-    assertThat(rc).isNotNull();
-    assertThat(rc.getScanId()).isEqualTo("scan-id-stamped");
+    HostedRepositoryComponent hrc = getHrc(job.getRepositoryId(), pathname);
+    assertThat(hrc).as("hosted_repository_component row for the org-linked repository upload").isNotNull();
+    assertThat(hrc.getComponentId()).isEqualTo("comp-scanid");
 
     // CLM-41693: also verify the policy_evaluation row was tagged with HOSTED_REPOSITORY_SCANNING
     // (end-to-end DB assertion that complements the telemetry unit tests in
-    // HostedComponentScanQueueConsumerTelemetryTest). The synthetic appId is generated inside
-    // the consumer, so we look up the policy_evaluation row by scanId via getAllLast().
+    // HostedComponentScanQueueConsumerTelemetryTest).
     com.sonatype.insight.brain.model.policy.PolicyEvaluation pe = policyEvaluationDAO.getAllLast()
         .stream()
-        .filter(p -> "scan-id-stamped".equals(p.getScanId()))
+        .filter(p -> hrc.getId().equals(p.getOwnerId()))
         .findFirst()
         .orElse(null);
     assertThat(pe)
-        .as("policy_evaluation row should be created for scanId=scan-id-stamped")
+        .as("policy_evaluation row keyed on the HRC's owner id")
         .isNotNull();
+    assertThat(pe.getScanId()).isEqualTo(scanId);
     assertThat(pe.getScanTriggerType())
         .as("scan_trigger_type column must be HOSTED_REPOSITORY_SCANNING (CLM-41693)")
         .isEqualTo(com.sonatype.insight.brain.model.policy.ScanTriggerType.HOSTED_REPOSITORY_SCANNING);
@@ -566,27 +497,679 @@ public class HostedComponentScanQueueConsumerTest
 
   @Test
   public void executeJob_usesPolicyEvaluationStageFromJob() throws Exception {
+    String pathname = "com/example/lib/1.0/lib-1.0.jar";
     HostedComponentScanQueue job = insertPendingJobWithScanXml(
         "repo-stage", "comp-stage",
         "pkg:maven/com.example/lib@1.0.0", "source",
-        "com/example/lib/1.0/lib-1.0.jar", "stage_hash_001", "maven2");
+        pathname, "stage_hash_001", "maven2");
+
+    String scanId = "scan-stage-test";
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId(scanId);
+    hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
+    URL zippedReport = ReportHelper.zipReport("/ScanServiceTest/report", tempDir);
+    hdsMockServer.respondWith(zippedReport).atUri("rest/application/analysis/" + scanId);
+    consumer.disableForTesting = false;
+    consumer.run();
+
+    await().atMost(15, TimeUnit.SECONDS)
+        .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
+            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
+
+    // The job's policyEvaluationStage ("source") must be the stage actually passed to
+    // ScanPolicyEvaluator.evaluate — confirmed via the persisted policy_evaluation row.
+    com.sonatype.insight.brain.model.policy.PolicyEvaluation pe = policyEvaluationDAO.getAllLast()
+        .stream()
+        .filter(p -> scanId.equals(p.getScanId()))
+        .findFirst()
+        .orElse(null);
+    assertThat(pe).as("policy_evaluation row for scanId=%s", scanId).isNotNull();
+    assertThat(pe.getStageTypeId())
+        .as("stage from the job's policyEvaluationStage must reach ScanPolicyEvaluator unchanged")
+        .isEqualTo("source");
+  }
+
+  // ---- HostedRepositoryComponentResolver / ScanPolicyEvaluator pipeline (CLM-43710) ----
+
+  @Test
+  public void executeJob_happyPath_createsHrcAndPolicyEvaluationKeyedOnIt() throws Exception {
+    String pathname = "tomcat-util-5.5.23.jar";
+    String hash = "1249e25aebb15358bedd";
+    HostedComponentScanQueue job = insertPendingJobWithScanXml(
+        "repo-hrc-happy", "comp-hrc-happy",
+        "pkg:maven/tomcat/tomcat-util@5.5.23", null,
+        pathname, hash, "maven2");
+
+    String scanId = "scan-hrc-happy-1";
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId(scanId);
+    hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
+
+    URL zippedReport = ReportHelper.zipReport("/ScanServiceTest/report", tempDir);
+    hdsMockServer.respondWith(zippedReport).atUri("rest/application/analysis/" + scanId);
+
+    consumer.disableForTesting = false;
+    consumer.run();
+
+    await().atMost(15, TimeUnit.SECONDS)
+        .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
+            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
+    assertThat(queueDAO.getById(job.getId()).getRetryCount()).isEqualTo(0);
+
+    HostedRepositoryComponent hrc = getHrc(job.getRepositoryId(), pathname);
+    assertThat(hrc).as("hosted_repository_component row for the uploaded artifact").isNotNull();
+    assertThat(hrc.getHash()).isEqualTo(hash);
+    assertThat(hrc.getComponentId()).isEqualTo("comp-hrc-happy");
+
+    com.sonatype.insight.brain.model.policy.PolicyEvaluation pe = policyEvaluationDAO.getAllLast()
+        .stream()
+        .filter(p -> hrc.getId().equals(p.getOwnerId()))
+        .findFirst()
+        .orElse(null);
+    assertThat(pe)
+        .as("policy_evaluation row keyed on the HRC's owner id")
+        .isNotNull();
+    assertThat(pe.getScanId()).isEqualTo(scanId);
+    assertThat(pe.getScanTriggerType())
+        .as("scan_trigger_type column must be HOSTED_REPOSITORY_SCANNING (CLM-41693)")
+        .isEqualTo(com.sonatype.insight.brain.model.policy.ScanTriggerType.HOSTED_REPOSITORY_SCANNING);
+
+    // resolver.pinOwnerComponent ran after evaluation and found a match for the outer artifact.
+    HostedRepositoryComponent pinned = getHrc(job.getRepositoryId(), pathname);
+    assertThat(pinned.getOwnerComponentId())
+        .as("owner_component_id should be pinned once ScanPolicyEvaluator inserts the matching row")
+        .isNotNull();
+  }
+
+  @Test
+  public void executeJob_emptyComponentInfos_uploadsViaRepositoryAndSkipsResolverAndEvaluator() throws Exception {
+    // Unparsable scan content -> componentInfos is empty -> upload via repository Owner and bail
+    // before resolver.getOrCreate / ScanPolicyEvaluator are ever invoked.
+    HostedComponentScanQueue job = insertPendingJob("repo-empty-infos");
 
     ScanReceipt receipt = new ScanReceipt();
-    receipt.setScanId("scan-stage-test");
+    receipt.setScanId("scan-empty-infos");
     hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
-    mockPolicyEvaluatorHdsResponse("stage_hash_001");
+
     consumer.disableForTesting = false;
     consumer.run();
 
     await().atMost(10, TimeUnit.SECONDS)
         .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
             .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
+    assertThat(queueDAO.getById(job.getId()).getRetryCount()).isEqualTo(0);
 
-    // Verify the stage was stored and used — confirmed by job completing without error
-    assertThat(queueDAO.getById(job.getId()).getPolicyEvaluationStage()).isEqualTo("source");
+    // Upload still happened via the repository pipeline (HDS audit trail preserved).
+    assertThat(hdsMockServer.getCapturedRequestHttpHeaders(ScanUploader.HDS_PATH)).isNotNull();
+
+    // No HRC row was created — resolver.getOrCreate was never reached on this bail path.
+    assertThat(getHrc(job.getRepositoryId(), "scan-content"))
+        .as("no hosted_repository_component row should exist when componentInfos is empty")
+        .isNull();
+
+    // No policy_evaluation row was produced either — ScanPolicyEvaluator was never invoked.
+    boolean anyEvaluationForScan = policyEvaluationDAO.getAllLast()
+        .stream()
+        .anyMatch(p -> "scan-empty-infos".equals(p.getScanId()));
+    assertThat(anyEvaluationForScan)
+        .as("no policy_evaluation row should exist for the empty-componentInfos bail path")
+        .isFalse();
+  }
+
+  @Test
+  public void executeJob_normalizesUnderscoreStageToHyphen() throws Exception {
+    // CLM-42079: normalizeStage canonicalizes NXRM's "STAGE_RELEASE" to "stage-release" before it
+    // is passed to ScanUploader/ScanPolicyEvaluator.
+    HostedComponentScanQueue job = insertPendingJobWithScanXml(
+        "repo-stage-normalize", "comp-stage-normalize",
+        "pkg:maven/com.example/lib@1.0.0", "STAGE_RELEASE",
+        "com/example/lib/1.0/lib-1.0.jar", "stage_norm_hash_001", "maven2");
+
+    String scanId = "scan-stage-normalize-1";
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId(scanId);
+    hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
+
+    URL zippedReport = ReportHelper.zipReport("/ScanServiceTest/report", tempDir);
+    hdsMockServer.respondWith(zippedReport).atUri("rest/application/analysis/" + scanId);
+
+    consumer.disableForTesting = false;
+    consumer.run();
+
+    await().atMost(15, TimeUnit.SECONDS)
+        .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
+            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
+
+    com.sonatype.insight.brain.model.policy.PolicyEvaluation pe = policyEvaluationDAO.getAllLast()
+        .stream()
+        .filter(p -> scanId.equals(p.getScanId()))
+        .findFirst()
+        .orElse(null);
+    assertThat(pe).as("policy_evaluation row for the normalized-stage scan").isNotNull();
+    assertThat(pe.getStageTypeId())
+        .as("normalizeStage must canonicalize STAGE_RELEASE to stage-release before evaluation")
+        .isEqualTo("stage-release");
+  }
+
+  // ---- Format-carveout collapse gate, driven via the Continuous Monitoring refresh path ----
+  //
+  // The KEEP_NESTED_FORMATS_FOR_IDENTIFIED_OUTER / ALWAYS_COLLAPSE_TO_OUTER_FORMATS gate lives
+  // inside mirrorNestedComponentViolationsFromApplicationEvaluation, which is reached only from
+  // ReportService.refreshHostedComponentAfterEvaluation (Continuous Monitoring, via
+  // RepositoryContinuousMonitoringFlowProcessor). These two tests drive the gate through
+  // refreshHostedComponentAfterEvaluation directly, seeding the outer proxy_repository_component
+  // row with the matchStateId the gate reads, since that row is populated by an earlier
+  // evaluation cycle rather than by refreshHostedComponentAfterEvaluation itself.
+  // refreshHostedComponentAfterEvaluation's saveOverlayFiles step reads bom.json from a
+  // report.zip that must already be cached on local disk for (application, scanId) — in
+  // production this is populated by the original evaluation cycle that produced the outer row,
+  // so the tests pre-fetch it the same way via reportDataStore.downloadReport beforehand.
+
+  @Test
+  public void refreshHostedComponentAfterEvaluation_identifiedOuterGate_mavenFormat_collapsesToOneComponent() throws Exception {
+    // CLM-40943: when the outer artifact was identified (matchStateId != UNKNOWN) by an earlier
+    // evaluation and the repository's format is not in the keep-nested set, the gate collapses
+    // the component to one row and cleans up stale inner-pathname violations.
+    String outerPathname = "outer-maven.jar";
+    String innerPathname = outerPathname + "!/inner-maven.jar";
+    String scanId = "scan-identified-outer-gate";
+    String stageTypeId = "build";
+
+    Application application = tempEntity.newApplication(tempEntity.newOrganization().getId());
+    Repository repository = enableMonitoring(
+        tempEntity.newRepository(UUID.randomUUID().toString(), "repo-identified-outer-gate", "maven2"));
+    ProxyRepositoryComponent outerComponent = seedOuterComponent(
+        repository, outerPathname, MatchState.EXACT, "outer-hash-ident1",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1.0"), scanId, 2);
+    seedInnerViolation(repository, application, innerPathname, "inner-hash-ident1",
+        ComponentIdentifier.createMavenCoordinates("g", "b", "1.0"));
+
+    mockPolicyEvaluatorHdsResponseForHashes(outerComponent.getHash());
+    URL zippedReport = ReportHelper.zipReport("/ScanServiceTest/report", tempDir);
+    hdsMockServer.respondWith(zippedReport).atUri("rest/application/analysis/" + scanId);
+    reportDataStore.downloadReport(application, scanId, (sid, r, aid) -> {
+    });
+
+    reportService.refreshHostedComponentAfterEvaluation(
+        outerComponent, repository, application, application.getId(), scanId, stageTypeId, false);
+
+    ProxyRepositoryComponent updatedOuter =
+        proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), outerPathname);
+    assertThat(updatedOuter.getComponentCount())
+        .as("identified-outer gate forces the outer row's componentCount to 1")
+        .isEqualTo(1);
+
+    List<ProxyRepositoryPolicyViolation> remaining = proxyRepositoryPolicyViolationDAO
+        .getActiveByRepositoryIdAndPathnameOrInnerPathnames(repository.getId(), outerPathname);
+    assertThat(remaining)
+        .as("stale inner-pathname violation is deleted once the gate collapses the component")
+        .noneMatch(v -> innerPathname.equals(v.getPathname()));
+  }
+
+  @Test
+  public void refreshHostedComponentAfterEvaluation_alwaysCollapse_rubygems_unknownOuter_collapsesToOneComponent() throws Exception {
+    // CLM-42119: rubygems collapses to one component regardless of the outer's persisted match
+    // state — ALWAYS_COLLAPSE_TO_OUTER_FORMATS fires even when the outer is UNKNOWN.
+    String outerPathname = "outer.gem";
+    String innerPathname = outerPathname + "!/inner.gem";
+    String scanId = "scan-always-collapse-rubygems";
+    String stageTypeId = "build";
+
+    Application application = tempEntity.newApplication(tempEntity.newOrganization().getId());
+    Repository repository = enableMonitoring(
+        tempEntity.newRepository(UUID.randomUUID().toString(), "repo-always-collapse-rubygems", "rubygems"));
+    ProxyRepositoryComponent outerComponent = seedOuterComponent(
+        repository, outerPathname, MatchState.UNKNOWN, "outer-hash-ruby1",
+        ComponentIdentifier.createRubyGemsCoordinates("outer-gem", "1.0", "ruby"), scanId, 2);
+    seedInnerViolation(repository, application, innerPathname, "inner-hash-ruby1",
+        ComponentIdentifier.createRubyGemsCoordinates("inner-gem", "1.0", "ruby"));
+
+    mockPolicyEvaluatorHdsResponseUnknown(outerComponent.getHash());
+    URL zippedReport = ReportHelper.zipReport("/ScanServiceTest/report", tempDir);
+    hdsMockServer.respondWith(zippedReport).atUri("rest/application/analysis/" + scanId);
+    reportDataStore.downloadReport(application, scanId, (sid, r, aid) -> {
+    });
+
+    reportService.refreshHostedComponentAfterEvaluation(
+        outerComponent, repository, application, application.getId(), scanId, stageTypeId, false);
+
+    ProxyRepositoryComponent updatedOuter =
+        proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), outerPathname);
+    assertThat(updatedOuter.getComponentCount())
+        .as("always-collapse gate forces the outer row's componentCount to 1 even when outer is UNKNOWN")
+        .isEqualTo(1);
+
+    List<ProxyRepositoryPolicyViolation> remaining = proxyRepositoryPolicyViolationDAO
+        .getActiveByRepositoryIdAndPathnameOrInnerPathnames(repository.getId(), outerPathname);
+    assertThat(remaining)
+        .as("stale inner-pathname violation is deleted once the gate collapses the component")
+        .noneMatch(v -> innerPathname.equals(v.getPathname()));
   }
 
   // ---- Helpers -------------------------------------------------------------
+
+  /**
+   * Manual Re-Evaluate and Continuous Monitoring both re-upload the original binary's scan, reading it
+   * via {@code ScanPersistenceService.getScan(hrc.getId(), scanId)}. The upload path must therefore
+   * retain the scan under the HRC's own id once HDS has assigned the canonical scan id.
+   */
+  @Test
+  public void executeJob_retainsScanUnderHrcOwnerIdForReEvaluation() throws Exception {
+    Organization org = tempEntity.newOrganizationWithRepositoryManager("test-org-retain-scan");
+    String pathname = "com/example/lib/1.0/retained-1.0.jar";
+
+    HostedComponentScanQueue job = insertPendingJobWithScanXmlForOrg(
+        org, "comp-retain",
+        "pkg:maven/com.example/retained@1.0.0", null,
+        pathname, "retain_hash_001", "maven2");
+
+    String scanId = "scan-id-retained";
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId(scanId);
+    hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
+    URL zippedReport = ReportHelper.zipReport("/ScanServiceTest/report", tempDir);
+    hdsMockServer.respondWith(zippedReport).atUri("rest/application/analysis/" + scanId);
+
+    consumer.disableForTesting = false;
+    consumer.run();
+
+    await().atMost(15, TimeUnit.SECONDS)
+        .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
+            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
+
+    HostedRepositoryComponent hrc = getHrc(job.getRepositoryId(), pathname);
+    assertThat(hrc).isNotNull();
+
+    ScanEntity retained = scanPersistenceService.getScan(hrc.getId(), scanId);
+    assertThat(retained.exists())
+        .as("scan retained under (hrc.getId()=%s, scanId=%s) for re-evaluation", hrc.getId(), scanId)
+        .isTrue();
+  }
+
+  /**
+   * The upload path writes no scan state onto {@code proxy_repository_component}: a hosted
+   * artifact's evaluation history lives in {@code policy_evaluation} under its
+   * {@link com.sonatype.insight.brain.model.repository.HostedRepositoryComponent} owner, which is
+   * where both continuous monitoring and Manual Re-Evaluate read it from. Leaving {@code scan_id}
+   * untouched keeps the Firewall-owned table free of hosted-pipeline writes.
+   */
+  @Test
+  public void executeJob_doesNotStampScanIdOnProxyRepositoryComponent() throws Exception {
+    Organization org = tempEntity.newOrganizationWithRepositoryManager("test-org-no-stamp-scan-id");
+    String pathname = "com/example/lib/1.0/unstamped-1.0.jar";
+    String hash = "stamp_hash_001";
+
+    HostedComponentScanQueue job = insertPendingJobWithScanXmlForOrg(
+        org, "comp-stamp",
+        "pkg:maven/com.example/stamped@1.0.0", null,
+        pathname, hash, "maven2");
+
+    // The Firewall evaluation path inserts this row when the artifact is first proxied, leaving
+    // scan_id null. The hosted upload must leave it that way.
+    tempEntity.newRepositoryComponent(
+        repositoryDAO.getByIdNotNull(job.getRepositoryId()), pathname, MatchState.EXACT, hash);
+    assertThat(
+        proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(job.getRepositoryId(), pathname).getScanId())
+            .as("precondition: the Firewall-inserted row starts with a null scan_id")
+            .isNull();
+
+    String scanId = "scan-id-stamped";
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId(scanId);
+    hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
+    URL zippedReport = ReportHelper.zipReport("/ScanServiceTest/report", tempDir);
+    hdsMockServer.respondWith(zippedReport).atUri("rest/application/analysis/" + scanId);
+
+    consumer.disableForTesting = false;
+    consumer.run();
+
+    await().atMost(15, TimeUnit.SECONDS)
+        .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
+            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
+
+    ProxyRepositoryComponent component =
+        proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(job.getRepositoryId(), pathname);
+    assertThat(component)
+        .as("proxy_repository_component row for pathname=%s", pathname)
+        .isNotNull();
+    assertThat(component.getScanId())
+        .as("hosted upload leaves scan_id alone; the scan pointer lives in policy_evaluation")
+        .isNull();
+
+    // The evaluation the hosted pipeline actually wrote is HRC-owned and carries the scan id.
+    HostedRepositoryComponent hrc;
+    try (TransactionContext tx = hostedRepositoryComponentDAO.createTransactionContext()) {
+      hrc = hostedRepositoryComponentDAO.getByRepositoryIdAndPathname(tx, job.getRepositoryId(), pathname);
+    }
+    assertThat(hrc)
+        .as("upload resolves an HRC owner for the artifact")
+        .isNotNull();
+    assertThat(policyEvaluationDAO.getLastByOwnerIdAndScanId(hrc.getId(), scanId))
+        .as("the scan pointer continuous monitoring reads: policy_evaluation under the HRC owner")
+        .isNotNull();
+  }
+
+  /**
+   * select2-3.2.jar as reported inside {@code /ScanServiceTest/report}'s bom.json — an inner
+   * component of the outer scanned artifact, carrying zero CVEs in that fixture's security.json.
+   */
+  private static final String INNER_PATHNAME = "select2-3.2.jar";
+
+  private static final String INNER_HASH = "f2e35e4a21f07d25710f";
+
+  private static final String NEW_INNER_CVE = "CVE-2026-NEW-INNER-CVE";
+
+  @Test
+  public void manualReEvaluate_surfacesNewlyDisclosedInnerComponentVulnerability() throws Exception {
+    String outerPathname = "tomcat-util-5.5.23.jar";
+    String outerHash = "1249e25aebb15358bedd";
+    HostedComponentScanQueue job = insertPendingJobWithScanXml(
+        "repo-manual-inner-cve", "comp-manual-inner-cve",
+        "pkg:maven/tomcat/tomcat-util@5.5.23", null,
+        outerPathname, outerHash, "maven2");
+
+    String scanId = "scan-manual-inner-cve";
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId(scanId);
+    hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
+    URL zippedReport = ReportHelper.zipReport("/ScanServiceTest/report", tempDir);
+    hdsMockServer.respondWith(zippedReport).atUri("rest/application/analysis/" + scanId);
+
+    consumer.disableForTesting = false;
+    consumer.run();
+    await().atMost(15, TimeUnit.SECONDS)
+        .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
+            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
+    consumer.disableForTesting = true;
+
+    HostedRepositoryComponent hrc = getHrc(job.getRepositoryId(), outerPathname);
+    assertThat(hrc).as("hosted_repository_component row for the outer artifact").isNotNull();
+
+    tempEntity.newPolicy(hrc, 5, com.sonatype.insight.brain.model.policy.LogicalOperator.AND,
+        new com.sonatype.insight.brain.model.policy.Condition(
+            com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType.ID,
+            ">=", "0"));
+
+    // Before: the inner component's hash carries no active violation at the initial scan.
+    assertThat(policyViolationDAO.getActiveByOwnerIdAndStageIdAndHash(
+        hrc.getId(), ComplianceStageType.ID, INNER_HASH))
+            .as("no violation for the inner component before the new CVE is disclosed")
+            .isEmpty();
+
+    // HDS discloses a new CVE against the inner component. Manual Re-Evaluate re-uploads the
+    // stored scan under a fresh temporary scanId (ReportService#reUploadScanToHds), fetches the
+    // analysis report keyed on that fresh id, then moves the resulting report back under the
+    // original scanId — so both the upload receipt and the analysis report need re-stubbing.
+    hdsMockServer.reset();
+    String reUploadScanId = "scan-manual-inner-cve-reupload";
+    ScanReceipt reUploadReceipt = new ScanReceipt();
+    reUploadReceipt.setScanId(reUploadScanId);
+    hdsMockServer.respondWith(reUploadReceipt).atUri(ScanUploader.HDS_PATH);
+    URL updatedReport =
+        ReportHelper.zipReport("/HostedRepoInnerCveDiscoveryTest/report-with-new-inner-cve", tempDir);
+    hdsMockServer.respondWith(updatedReport).atUri("rest/application/analysis/" + reUploadScanId);
+
+    reportService.reevaluateHostedComponent(hrc.getId(), scanId);
+
+    List<com.sonatype.insight.brain.model.policy.PolicyViolation> after =
+        policyViolationDAO.getActiveByOwnerIdAndStageIdAndHash(hrc.getId(), ComplianceStageType.ID, INNER_HASH);
+    policyViolationDAO.loadConstraintFacts(after);
+    assertThat(after)
+        .as("violation for the newly-disclosed inner CVE should exist after Re-Evaluate")
+        .anyMatch(v -> v.getConstraintFacts().stream().anyMatch(f -> f.toString().contains(NEW_INNER_CVE)));
+  }
+
+  @Test
+  public void continuousMonitoring_surfacesNewlyDisclosedInnerComponentVulnerability() throws Exception {
+    String outerPathname = "tomcat-util-5.5.23.jar";
+    String outerHash = "1249e25aebb15358bedd";
+
+    // Continuous monitoring only processes hosted repositories (RepositoryContinuousMonitoring-
+    // FlowProcessor drops any other type), so this test seeds a hosted repository directly rather
+    // than the proxy-type default used by the plain insertPendingJobWithScanXml(String, ...) overload.
+    Repository repository = enableMonitoring(
+        tempEntity.newHostedRepository(tempEntity.newRepositoryManager(), "repo-cm-inner-cve", "maven2", false));
+    HostedComponentScanQueue job = insertPendingJobWithScanXml(
+        repository, "comp-cm-inner-cve",
+        "pkg:maven/tomcat/tomcat-util@5.5.23", null,
+        outerPathname, outerHash, "maven2");
+
+    String initialScanId = "scan-cm-inner-cve-initial";
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId(initialScanId);
+    hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
+    URL zippedReport = ReportHelper.zipReport("/ScanServiceTest/report", tempDir);
+    hdsMockServer.respondWith(zippedReport).atUri("rest/application/analysis/" + initialScanId);
+
+    consumer.disableForTesting = false;
+    consumer.run();
+    await().atMost(15, TimeUnit.SECONDS)
+        .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
+            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
+    consumer.disableForTesting = true;
+
+    HostedRepositoryComponent hrc = getHrc(job.getRepositoryId(), outerPathname);
+    assertThat(hrc).as("hosted_repository_component row for the outer artifact").isNotNull();
+
+    tempEntity.newPolicy(hrc, 5, com.sonatype.insight.brain.model.policy.LogicalOperator.AND,
+        new com.sonatype.insight.brain.model.policy.Condition(
+            com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType.ID,
+            ">=", "0"));
+
+    // Continuous monitoring's per-component lookup (getByRepositoryIdAndHash) reads a
+    // proxy_repository_component row keyed on (repositoryId, hash). The hosted upload path does not
+    // write that table, so seed the row the way Firewall would when it proxied the same artifact,
+    // then set the identified-outer verdict this scenario needs.
+    ProxyRepositoryComponent outer = tempEntity.newRepositoryComponent(
+        repository, outerPathname, MatchState.EXACT, outerHash);
+    outer.setMatchStateId(MatchState.EXACT.getId());
+    outer.setScanId(initialScanId);
+    outer.setLastEvaluationStage(ComplianceStageType.ID);
+    try (TransactionContext tx = proxyRepositoryComponentDAO.createTransactionContext()) {
+      tx.begin();
+      proxyRepositoryComponentDAO.update(tx, outer);
+      tx.commit();
+    }
+
+    // Before: the inner component's hash carries no active violation at the initial scan.
+    assertThat(policyViolationDAO.getActiveByOwnerIdAndStageIdAndHash(
+        hrc.getId(), ComplianceStageType.ID, INNER_HASH))
+            .as("no violation for the inner component before the new CVE is disclosed")
+            .isEmpty();
+
+    // HDS discloses a new CVE against the inner component. CM re-uploads the cloned scan under a
+    // FRESH scanId, so the mocked upload receipt and the updated report are both keyed on that
+    // fresh id rather than the original.
+    hdsMockServer.reset();
+    String freshScanId = "scan-cm-inner-cve-fresh";
+    ScanReceipt freshReceipt = new ScanReceipt();
+    freshReceipt.setScanId(freshScanId);
+    hdsMockServer.respondWith(freshReceipt).atUri(ScanUploader.HDS_PATH);
+    URL updatedReport =
+        ReportHelper.zipReport("/HostedRepoInnerCveDiscoveryTest/report-with-new-inner-cve", tempDir);
+    hdsMockServer.respondWith(updatedReport).atUri("rest/application/analysis/" + freshScanId);
+
+    com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringQueueItem queueItem =
+        tempEntity.newContinuousMonitoringHostedRepoQueueItem(job.getRepositoryId(), outerHash, 0L);
+    continuousMonitoringFlowProcessor.process(queueItem);
+
+    // After: asserted on the HRC's owner id (not the original or fresh scanId), matching how
+    // every other caller of policy_violation discovers CM's evaluation.
+    await().atMost(15, TimeUnit.SECONDS).untilAsserted(() -> {
+      List<com.sonatype.insight.brain.model.policy.PolicyViolation> after =
+          policyViolationDAO.getActiveByOwnerIdAndStageIdAndHash(hrc.getId(), ComplianceStageType.ID, INNER_HASH);
+      policyViolationDAO.loadConstraintFacts(after);
+      assertThat(after)
+          .as("violation for the newly-disclosed inner CVE should exist after a CM cycle")
+          .anyMatch(v -> v.getConstraintFacts().stream().anyMatch(f -> f.toString().contains(NEW_INNER_CVE)));
+    });
+  }
+
+  /**
+   * Re-Evaluate for a hosted-repo artifact is served by
+   * {@code rest/report/hostedRepositoryComponent/{hrcId}/{scanId}/reevaluatePolicy}, whose
+   * {@code hrcId} path parameter is the owner id that {@code policy_evaluation} rows are keyed on.
+   * Driving the resource handler — rather than {@code ReportService} directly — is what proves the
+   * REST surface reaches the HRC-owned evaluation path.
+   */
+  @Test
+  public void hostedReevaluateResource_reEvaluatesUnderHrcOwner() throws Exception {
+    Organization org = tempEntity.newOrganizationWithRepositoryManager("test-org-reeval-resource");
+    String pathname = "com/example/lib/1.0/reeval-resource-1.0.jar";
+
+    HostedComponentScanQueue job = insertPendingJobWithScanXmlForOrg(
+        org, "comp-reeval-resource",
+        "pkg:maven/com.example/reeval@1.0.0", null,
+        pathname, "reeval_resource_hash", "maven2");
+
+    String scanId = "scan-reeval-resource";
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId(scanId);
+    hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
+    URL zippedReport = ReportHelper.zipReport("/ScanServiceTest/report", tempDir);
+    hdsMockServer.respondWith(zippedReport).atUri("rest/application/analysis/" + scanId);
+
+    consumer.disableForTesting = false;
+    consumer.run();
+
+    await().atMost(15, TimeUnit.SECONDS)
+        .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
+            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
+
+    HostedRepositoryComponent hrc = getHrc(job.getRepositoryId(), pathname);
+    assertThat(hrc).isNotNull();
+    assertThat(policyEvaluationDAO.getLastByOwnerIdAndScanId(hrc.getId(), scanId))
+        .as("the upload keys policy_evaluation on the HRC, which is the owner id the resource takes")
+        .isNotNull();
+
+    hdsMockServer.reset();
+    String reUploadScanId = "scan-reeval-resource-reupload";
+    ScanReceipt reUploadReceipt = new ScanReceipt();
+    reUploadReceipt.setScanId(reUploadScanId);
+    hdsMockServer.respondWith(reUploadReceipt).atUri(ScanUploader.HDS_PATH);
+    hdsMockServer.respondWith(ReportHelper.zipReport("/ScanServiceTest/report", tempDir))
+        .atUri("rest/application/analysis/" + reUploadScanId);
+
+    Response response = hostedRepositoryComponentReportResource.reevaluatePolicy(hrc.getId(), scanId);
+
+    assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+    assertThat(policyEvaluationDAO.getLastByOwnerIdAndScanId(hrc.getId(), scanId))
+        .as("re-evaluation keeps the canonical scanId under the HRC owner")
+        .isNotNull();
+  }
+
+  /**
+   * A hosted artifact that the Firewall never proxied gets no {@code proxy_repository_component} row
+   * from the hosted upload path: that table is Firewall-owned, and the artifact's identity lives on
+   * {@code hosted_repository_component}. The evaluation must still complete, so the missing row costs
+   * only the Components list — which CLM-45066 repoints at the HRC table.
+   */
+  @Test
+  public void executeJob_createsNoFirewallComponentRowForAHostedOnlyArtifact() throws Exception {
+    Organization org = tempEntity.newOrganizationWithRepositoryManager("test-org-no-proxy-row");
+    String pathname = "com/example/lib/1.0/hosted-only-1.0.jar";
+    String hash = "hash_noproxy_01";
+
+    HostedComponentScanQueue job = insertPendingJobWithScanXmlForOrg(
+        org, "comp-noproxy",
+        "pkg:maven/com.example/hosted-only@1.0.0", null,
+        pathname, hash, "maven2");
+
+    String scanId = "scan-id-noproxy";
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId(scanId);
+    hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
+    URL zippedReport = ReportHelper.zipReport("/ScanServiceTest/report", tempDir);
+    hdsMockServer.respondWith(zippedReport).atUri("rest/application/analysis/" + scanId);
+
+    consumer.disableForTesting = false;
+    consumer.run();
+
+    await().atMost(15, TimeUnit.SECONDS)
+        .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
+            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
+
+    assertThat(proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(job.getRepositoryId(), pathname))
+        .as("the hosted path must not create a Firewall component row for this pathname")
+        .isNull();
+
+    // The evaluation still happened — under the HRC owner, which is where every hosted reader looks.
+    HostedRepositoryComponent hrc;
+    try (TransactionContext tx = hostedRepositoryComponentDAO.createTransactionContext()) {
+      hrc = hostedRepositoryComponentDAO.getByRepositoryIdAndPathname(tx, job.getRepositoryId(), pathname);
+    }
+    assertThat(hrc)
+        .as("the artifact's identity lives on hosted_repository_component instead")
+        .isNotNull();
+    assertThat(policyEvaluationDAO.getLastByOwnerIdAndScanId(hrc.getId(), scanId))
+        .as("the scan was evaluated and its pointer recorded under the HRC owner")
+        .isNotNull();
+
+    // The Components API still answers — it simply does not list this artifact. The UI keeps calling
+    // it until CLM-45066 repoints it, so it must return a page rather than raise.
+    assertThat(proxyRepositoryComponentDAO.getByRepositoryIdPaged(job.getRepositoryId(), null, 50, 0))
+        .as("the hosted artifact is absent from the Components page, which still renders")
+        .noneMatch(c -> pathname.equals(c.getPathname()));
+  }
+
+  /**
+   * The handler passes {@code getByIdNotNull(hrcId).getId()} rather than {@code hrcId} itself, so an
+   * unknown id must 404 from the DAO before any evaluation work starts. Pins that the lookup is
+   * load-bearing: passing the path parameter straight through would reach
+   * {@code reevaluateHostedComponent} and surface as a different error from a different layer.
+   */
+  @Test
+  public void hostedReevaluateResource_rejectsUnknownHrcIdBeforeEvaluating() {
+    assertThatExceptionOfType(com.sonatype.insight.error.exception.NotFoundException.class)
+        .isThrownBy(() -> hostedRepositoryComponentReportResource.reevaluatePolicy("no-such-hrc", "no-such-scan"))
+        .withMessageContaining("no-such-hrc");
+  }
+
+  private HostedRepositoryComponent getHrc(final String repositoryId, final String pathname) {
+    try (TransactionContext tx = hostedRepositoryComponentDAO.createTransactionContext()) {
+      return hostedRepositoryComponentDAO.getByRepositoryIdAndPathname(tx, repositoryId, pathname);
+    }
+  }
+
+  /**
+   * Seeds an outer {@code proxy_repository_component} row with the given match state, as if an
+   * earlier evaluation cycle had already identified (or failed to identify) it — the mirror
+   * step's collapse gate reads this pre-existing row rather than producing it itself.
+   */
+  private ProxyRepositoryComponent seedOuterComponent(
+      final Repository repository,
+      final String pathname,
+      final MatchState matchState,
+      final String hash,
+      final ComponentIdentifier componentIdentifier,
+      final String scanId,
+      final int initialComponentCount)
+  {
+    ProxyRepositoryComponent outer = tempEntity.newRepositoryComponent(
+        repository.getId(), matchState, pathname, hash, componentIdentifier, false);
+    outer.setScanId(scanId);
+    outer.setComponentCount(initialComponentCount);
+    try (TransactionContext tx = proxyRepositoryComponentDAO.createTransactionContext()) {
+      tx.begin();
+      proxyRepositoryComponentDAO.update(tx, outer);
+      tx.commit();
+    }
+    return outer;
+  }
+
+  /**
+   * Seeds a pre-existing inner-pathname (outerPath + "!/" + innerPath) violation for the gate's cleanup step to delete.
+   */
+  private ProxyRepositoryPolicyViolation seedInnerViolation(
+      final Repository repository,
+      final Application application,
+      final String innerPathname,
+      final String hash,
+      final ComponentIdentifier componentIdentifier)
+  {
+    Policy policy = tempEntity.newPolicy(application, 5);
+    return tempEntity.newRepositoryPolicyViolation(repository, policy, innerPathname, componentIdentifier, hash);
+  }
 
   private void mockPolicyEvaluatorHdsResponse(final String hash) {
     mockPolicyEvaluatorHdsResponseForHashes(hash);
@@ -706,12 +1289,29 @@ public class HostedComponentScanQueueConsumerTest
       final String format) throws Exception
   {
     Repository repo = enableMonitoring(tempEntity.newRepository(repoName));
+    return insertPendingJobWithScanXml(repo, componentId, purl, policyEvaluationStage, pathname, sha1, format);
+  }
+
+  /**
+   * Variant of {@link #insertPendingJobWithScanXml(String, String, String, String, String, String, String)}
+   * that accepts an already-created repository, so callers needing a specific {@code RepositoryType}
+   * (e.g. hosted, for Continuous Monitoring) can seed it themselves before the job is queued.
+   */
+  private HostedComponentScanQueue insertPendingJobWithScanXml(
+      final Repository repo,
+      final String componentId,
+      final String purl,
+      final String policyEvaluationStage,
+      final String pathname,
+      final String sha1,
+      final String format) throws Exception
+  {
     tempEntity.newRepositoryComponent(repo.getId());
 
     // Write minimal scan XML as plain bytes (Jersey decompresses gzip before writing to temp file)
     String scanXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
         "<scan version=\"2.24\">\n" +
-        "<repository id=\"" + repo.getId() + "\" name=\"" + repoName + "\" format=\"" + format + "\"/>\n" +
+        "<repository id=\"" + repo.getId() + "\" name=\"" + repo.getPublicId() + "\" format=\"" + format + "\"/>\n" +
         "<dir path=\"" + pathname + "\" sha1=\"" + sha1 + "\" sha512=\"ignored\">\n</dir>\n" +
         "</scan>";
 
@@ -792,392 +1392,6 @@ public class HostedComponentScanQueueConsumerTest
         repo.getId());
     queueDAO.insert(job);
     return job;
-  }
-
-  // ---- Archive-of-archives fan-out (CLM-40943) ----
-
-  @Test
-  public void executeJob_archiveOfArchivesScan_keepsOneOuterRowAndDeletesInnerRows() throws Exception {
-    // Archive-of-archives upload (a .zip the scanner unpacked into two inner .jar files): the
-    // Components page should still show just ONE row — the outer .zip (mirroring today's UX where
-    // every uploaded artifact is one row). The inner-pathname rows that the policy evaluator
-    // creates as it walks the multi-component request are deleted post-evaluation; the inner
-    // pathname violations stay in proxy_repository_policy_violation so the outer's report can roll
-    // them up via HostedReportFileBuilder.
-    String outerPath = "com/example/bundle/1.0/bundle-1.0.zip";
-    String outerHash = "outer_zip_hash_001a";
-    String[] innerPaths = {
-      "log4j-core-2.14.1.jar",
-      "commons-cli-1.9.0.jar"
-    };
-    String[] innerHashes = {
-      "inner_log4j_hash_01",
-      "inner_cli_hash_001a"
-    };
-
-    HostedComponentScanQueue job = insertPendingJobWithMultiComponentScanXml(
-        "repo-archive-fanout", "comp-archive-1",
-        outerPath, outerHash, innerPaths, innerHashes, "maven2");
-
-    ScanReceipt receipt = new ScanReceipt();
-    receipt.setScanId("scan-archive-1");
-    hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
-    // The consumer now sends ALL components (outer + inners) in one evaluation request, so the
-    // HDS mock must return one entry per request component.
-    mockPolicyEvaluatorHdsResponseForHashes(outerHash, innerHashes[0], innerHashes[1]);
-
-    consumer.disableForTesting = false;
-    consumer.run();
-
-    await().atMost(15, TimeUnit.SECONDS)
-        .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
-            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
-
-    // The outer artifact survives — keyed on the literal .zip path.
-    ProxyRepositoryComponent outerRow = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
-        job.getRepositoryId(), outerPath);
-    assertThat(outerRow).as("outer .zip row").isNotNull();
-
-    // The inner-pathname rows are deleted post-evaluation so the Components page only shows the
-    // outer artifact (one row per uploaded file).
-    ProxyRepositoryComponent innerLog4j = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
-        job.getRepositoryId(), outerPath + "!/" + innerPaths[0]);
-    assertThat(innerLog4j).as("inner log4j row should have been deleted").isNull();
-
-    ProxyRepositoryComponent innerCli = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
-        job.getRepositoryId(), outerPath + "!/" + innerPaths[1]);
-    assertThat(innerCli).as("inner commons-cli row should have been deleted").isNull();
-  }
-
-  /**
-   * Companion test for {@link #executeJob_archiveOfArchivesScan_keepsOneOuterRowAndDeletesInnerRows}:
-   * verifies the OTHER half of the fan-out invariant — that inner-pathname
-   * {@code proxy_repository_policy_violation} rows survive even when the matching
-   * {@code proxy_repository_component} row is deleted, AND that the new DAO method
-   * {@code getActiveByRepositoryIdAndPathnameOrInnerPathnames} returns them all under the outer's
-   * pathname. This is what {@code ReportService.saveOverlayFiles} relies on to roll inner
-   * violations into the outer's synthesised {@code policythreats.json}.
-   * <p>
-   * The real evaluator only persists violations when policies match, but this test exercises the
-   * persistence-layer contract directly: seed inner-pathname violation rows, delete inner
-   * proxy_repository_component rows the way the consumer would, then assert the DAO surfaces them.
-   * No HDS / queue / Drools required — the same code path the production saveOverlayFiles
-   * recovery hits is hit here.
-   */
-  @Test
-  public void rolledUpViolationsByOuterPathname_returnsBothOuterAndInnerPathnameViolations() throws Exception {
-    Repository repo = tempEntity.newRepository("repo-rollup");
-    String outerPath = "com/example/bundle/1.0/bundle-1.0.zip";
-    String innerLog4j = outerPath + "!/log4j-core-2.14.1.jar";
-    String innerCli = outerPath + "!/commons-cli-1.9.0.jar";
-
-    tempEntity.newRepositoryPolicyViolation(repo.getId(), 2, outerPath, null);
-    tempEntity.newRepositoryPolicyViolation(repo.getId(), 10, innerLog4j, false, "p-cve", "Security-Critical", null);
-    tempEntity.newRepositoryPolicyViolation(repo.getId(), 1, innerCli, false, "p-arch", "Architecture-Quality", null);
-
-    java.util.List<com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation> rolledUp =
-        proxyRepositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnameOrInnerPathnames(repo.getId(), outerPath);
-
-    assertThat(rolledUp)
-        .as("rolled-up query returns the outer pathname's violations and every inner-pathname violation")
-        .extracting(com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation::getPathname)
-        .containsExactlyInAnyOrder(outerPath, innerLog4j, innerCli);
-  }
-
-  /**
-   * CLM-40943 — guards against the dev-tenant {@code component_count == NULL} regression.
-   * After a successful single-jar evaluation the eager stamp must have set
-   * {@code component_count} from the scanner's {@code
-   *
-  <dir>
-   * } count, independent of whether the
-   * later HDS-bom refinement ran (the bom read is best-effort and silently no-ops on
-   * S3-backed tenant storage that hasn't propagated the report yet). Asserting non-null here
-   * is the strongest cheap test we can write end-to-end — if the eager stamp ever regresses,
-   * this test fails immediately on a normal happy-path scan.
-   */
-  @Test
-  public void executeJob_eagerStampsComponentCountAfterEvaluation() throws Exception {
-    String pathname = "com/example/eager/1.0/eager-1.0.jar";
-    HostedComponentScanQueue job = insertPendingJobWithScanXml(
-        "repo-eager", "comp-eager-1",
-        "pkg:maven/com.example/eager@1.0.0", null,
-        pathname, "eagerhash00000001", "maven2");
-
-    ScanReceipt receipt = new ScanReceipt();
-    receipt.setScanId("scan-eager");
-    hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
-    mockPolicyEvaluatorHdsResponse("eagerhash00000001");
-
-    consumer.disableForTesting = false;
-    consumer.run();
-
-    await().atMost(10, TimeUnit.SECONDS)
-        .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
-            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
-
-    ProxyRepositoryComponent rc = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
-        job.getRepositoryId(), pathname);
-    assertThat(rc).isNotNull();
-    assertThat(rc.getComponentCount())
-        .as("eager stamp from componentInfos.size() must leave component_count non-null even if HDS bom refinement no-ops")
-        .isNotNull()
-        .isGreaterThanOrEqualTo(1);
-  }
-
-  // ---- Identified-outer gate (CLM-40943, PR 16421 review by Bhavat) ----
-
-  /**
-   * Identified-outer gate fires for non-keep-set formats: when HDS returns a non-UNKNOWN match
-   * state for the outer artifact AND the repository format is NOT in
-   * {@code KEEP_NESTED_FORMATS_FOR_IDENTIFIED_OUTER} (maven2 is not), the consumer collapses the
-   * report to a single component view — {@code componentCount=1} on the outer row, and any
-   * stale inner-pathname {@code proxy_repository_component} rows from a prior run are deleted.
-   * Mirrors the iq-cli single-file scan output for the same binary.
-   */
-  @Test
-  public void executeJob_identifiedOuterGate_mavenFormat_collapsesToOneComponent() throws Exception {
-    String outerPath = "com/example/identified/1.0/identified-1.0.zip";
-    String outerHash = "identifiedouter0001";
-    String[] innerPaths = {"log4j-core-2.14.1.jar", "commons-cli-1.9.0.jar"};
-    String[] innerHashes = {"inner_log4j_hash_id1", "inner_cli_hash_id1"};
-
-    HostedComponentScanQueue job = insertPendingJobWithMultiComponentScanXml(
-        "repo-identified-maven", "comp-identified-1",
-        outerPath, outerHash, innerPaths, innerHashes, "maven2");
-
-    ScanReceipt receipt = new ScanReceipt();
-    receipt.setScanId("scan-identified-1");
-    hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
-    // MatchState.EXACT for the outer triggers the identified-outer gate; inners get EXACT too
-    // (the gate only consults the outer's match state).
-    mockPolicyEvaluatorHdsResponseForHashes(outerHash, innerHashes[0], innerHashes[1]);
-
-    consumer.disableForTesting = false;
-    consumer.run();
-
-    await().atMost(15, TimeUnit.SECONDS)
-        .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
-            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
-
-    ProxyRepositoryComponent outerRow = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
-        job.getRepositoryId(), outerPath);
-    assertThat(outerRow).as("outer row").isNotNull();
-    assertThat(outerRow.getComponentCount())
-        .as("identified-outer gate (non-keep-set format) collapses to componentCount=1")
-        .isEqualTo(1);
-
-    // Inner pathname proxy_repository_component rows are deleted (matches existing fan-out cleanup).
-    assertThat(proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
-        job.getRepositoryId(), outerPath + "!/" + innerPaths[0]))
-            .as("inner log4j row should not survive identified-outer gate")
-            .isNull();
-    assertThat(proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
-        job.getRepositoryId(), outerPath + "!/" + innerPaths[1]))
-            .as("inner commons-cli row should not survive identified-outer gate")
-            .isNull();
-  }
-
-  /**
-   * CLM-42119 regression guard: the identified-outer collapse gate fires unconditionally
-   * for {@code rubygems} — even when HDS returns {@link MatchState#UNKNOWN} on the outer
-   * — because iq-cli's rubygems scanner treats a {@code .gem} archive as opaque and
-   * surfaces exactly one row regardless of what the archive bundles. Without this behavior
-   * a CM scan of a custom gem (e.g. {@code bundled-gem-app-1.0.0.gem} bundling vendored
-   * copies of rack/nokogiri/actionpack) drills into HDS's expanded view and reports 5
-   * components while an iq-cli scan of the same file reports 1.
-   * <p>
-   * Symmetric to {@link #executeJob_identifiedOuterGate_mavenFormat_collapsesToOneComponent}
-   * which exercises the collapse-on-identified path; this test exercises the collapse-on-
-   * unknown path for a format in {@code ALWAYS_COLLAPSE_TO_OUTER_FORMATS}.
-   */
-  @Test
-  public void executeJob_alwaysCollapse_rubygems_unknownOuter_collapsesToOneComponent() throws Exception {
-    String outerPath = "gems/bundled-gem-app-1.0.0.gem";
-    String outerHash = "bundledgemapp0001";
-    String[] innerPaths = {"vendor/cache/rack-2.0.6.gem", "vendor/cache/nokogiri-1.8.2.gem"};
-    String[] innerHashes = {"rack_hash_042119", "nokogiri_hash_042119"};
-
-    HostedComponentScanQueue job = insertPendingJobWithMultiComponentScanXml(
-        "repo-rubygems-nested", "comp-bundled-gem",
-        outerPath, outerHash, innerPaths, innerHashes, "rubygems");
-
-    ScanReceipt receipt = new ScanReceipt();
-    receipt.setScanId("scan-bundled-gem-1");
-    hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
-    // UNKNOWN outer — the always-collapse behavior kicks in via the rubygems format carveout,
-    // NOT via HDS identifying the outer. This distinguishes the fix from the existing
-    // "identified outer + non-keep format" collapse path.
-    mockPolicyEvaluatorHdsResponseUnknown(outerHash, innerHashes[0], innerHashes[1]);
-
-    consumer.disableForTesting = false;
-    consumer.run();
-
-    await().atMost(15, TimeUnit.SECONDS)
-        .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
-            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
-
-    ProxyRepositoryComponent outerRow = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
-        job.getRepositoryId(), outerPath);
-    assertThat(outerRow).as("outer rubygems row").isNotNull();
-    assertThat(outerRow.getComponentCount())
-        .as("rubygems always-collapse: componentCount=1 regardless of UNKNOWN match state — "
-            + "matches iq-cli single-file behavior for opaque .gem archives")
-        .isEqualTo(1);
-
-    // Inner-pathname rows deleted by the collapse cleanup — same behavior as the identified-
-    // outer maven test above.
-    assertThat(proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
-        job.getRepositoryId(), outerPath + "!/" + innerPaths[0]))
-            .as("inner rack row should not survive rubygems always-collapse")
-            .isNull();
-    assertThat(proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
-        job.getRepositoryId(), outerPath + "!/" + innerPaths[1]))
-            .as("inner nokogiri row should not survive rubygems always-collapse")
-            .isNull();
-  }
-
-  /**
-   * Idempotency: re-running the same job (e.g. a producer-cycle replay after a restart) must
-   * not double-count or duplicate rows. The proxy_repository_component is unique on
-   * {@code (repository_id, pathname)}, so a re-run UPSERT-style should leave exactly one outer
-   * row, not two. Verifies the executeJob path is idempotent on the outer row identity.
-   */
-  @Test
-  public void executeJob_replayingSameJob_keepsExactlyOneOuterRow() throws Exception {
-    String outerPath = "com/example/replay/1.0/replay-1.0.zip";
-    String outerHash = "replayouterhash01";
-    String[] innerPaths = {"lib-a.jar"};
-    String[] innerHashes = {"replay_inner_a"};
-
-    HostedComponentScanQueue job1 = insertPendingJobWithMultiComponentScanXml(
-        "repo-replay", "comp-replay",
-        outerPath, outerHash, innerPaths, innerHashes, "maven2");
-
-    ScanReceipt receipt = new ScanReceipt();
-    receipt.setScanId("scan-replay-1");
-    hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
-    mockPolicyEvaluatorHdsResponseForHashes(outerHash, innerHashes[0]);
-
-    consumer.disableForTesting = false;
-    consumer.run();
-
-    await().atMost(15, TimeUnit.SECONDS)
-        .untilAsserted(() -> assertThat(queueDAO.getById(job1.getId()).getStatus())
-            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
-
-    // First pass result.
-    ProxyRepositoryComponent afterFirstRun = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
-        job1.getRepositoryId(), outerPath);
-    assertThat(afterFirstRun).as("outer row after first run").isNotNull();
-
-    // Re-run via a second job with the same outer pathname (simulates producer-cycle replay).
-    HostedComponentScanQueue job2 = insertPendingJobWithMultiComponentScanXml(
-        "repo-replay", "comp-replay-2",
-        outerPath, outerHash, innerPaths, innerHashes, "maven2");
-
-    ScanReceipt receipt2 = new ScanReceipt();
-    receipt2.setScanId("scan-replay-2");
-    hdsMockServer.respondWith(receipt2).atUri(ScanUploader.HDS_PATH);
-    mockPolicyEvaluatorHdsResponseForHashes(outerHash, innerHashes[0]);
-
-    consumer.run();
-
-    await().atMost(15, TimeUnit.SECONDS)
-        .untilAsserted(() -> assertThat(queueDAO.getById(job2.getId()).getStatus())
-            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
-
-    // Note: insertPendingJobWithMultiComponentScanXml creates a new Repository, so job1 and job2
-    // live in different repos. We verify each repo has exactly one outer row, not two — i.e.
-    // each individual evaluation is internally consistent and doesn't duplicate the outer.
-    ProxyRepositoryComponent afterSecondRun = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
-        job2.getRepositoryId(), outerPath);
-    assertThat(afterSecondRun).as("outer row after replay run").isNotNull();
-    assertThat(afterSecondRun.getComponentCount())
-        .as("replay should not regress componentCount to NULL")
-        .isNotNull();
-  }
-
-  // ---- CLM-42118 follow-up regression guard ----
-
-  /**
-   * Regression guard for CLM-42118 and the follow-up commit on CLM-41737's branch: the
-   * proxy_repository_component.component_count column MUST be stamped from HDS's
-   * {@code data.json.totalArtifactCount} via an unconditional UPDATE — not from
-   * {@code bom.json.aaData.length} via {@code raiseComponentCountIfHigher}.
-   * <p>
-   * The bug this test guards: prior behavior stamped {@code max(scanner_count, bom.aaData.length)}
-   * using raise-only semantics, which for pub .tar.gz (scanner enumerates ~39 files inside) let
-   * the scanner's over-count lock in even though HDS identified only 4 real components. The
-   * drill-in Build Report reads {@code data.json.totalArtifactCount} directly (4), producing a
-   * list-page vs report-page divergence.
-   * <p>
-   * Fixture: scan.xml with 1 outer {@code
-   *
-  <dir>
-   * } (scanner-count = 1); HDS report bundle whose
-   * {@code data.json.totalArtifactCount = 4} and {@code bom.aaData.length = 0}. If the code
-   * regresses to raise-only + scanner source, {@code component_count} lands on 1. If it regresses
-   * to reading {@code bom.aaData.length}, it lands on 0. Only the correct behavior (unconditional
-   * stamp from {@code totalArtifactCount}) produces 4.
-   * <p>
-   * The outer is mocked as UNKNOWN so the identified-outer collapse gate (deferred to a
-   * follow-up ticket) does not fire and rewrite the count to 1. Empty {@code bom.aaData} keeps
-   * {@code ScanPolicyEvaluator}'s drill-down path a no-op so the mirror method's ScanPolicyEvaluator
-   * call completes without producing policy_violation rows — isolating this test to the count
-   * stamp behavior.
-   */
-  @Test
-  public void executeJob_stampsComponentCountFromDataJsonTotalArtifactCount() throws Exception {
-    // Zero-retry config so the mirror's rethrow surfaces the job into FAILED quickly (~1s) instead
-    // of the default 3 attempts (~15-30s). This test doesn't care whether the job COMPLETED — it
-    // asserts on the DB stamp, which happens in saveReportFiles BEFORE the mirror runs. The mirror
-    // itself is expected to fail here because the minimal report bundle intentionally omits files
-    // ScanPolicyEvaluator would need (index.html for embedOwnerPublicId, etc.); that's a
-    // deliberate simplification for this test, not the fix's behavior in production.
-    setQueueConfig(
-        "{\"enabled\":true,\"workerThreadsPerTenant\":1,\"pollIntervalMilliseconds\":30000,"
-            + "\"maxQueuedRows\":10,\"maxRetries\":0}");
-
-    String pathname = "com/example/postfix/1.0/postfix-1.0.jar";
-    String outerHash = "postfix_hash_00001";
-    HostedComponentScanQueue job = insertPendingJobWithScanXml(
-        "repo-postfix-count", "comp-postfix-count",
-        "pkg:maven/com.example/postfix@1.0.0", null,
-        pathname, outerHash, "maven2");
-
-    String scanId = "scan-postfix-count-1";
-    ScanReceipt receipt = new ScanReceipt();
-    receipt.setScanId(scanId);
-    hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
-
-    // Outer as UNKNOWN — skips the identified-outer collapse gate so the drill path (where this
-    // test's stamp change lives) is exercised.
-    mockPolicyEvaluatorHdsResponseUnknown(outerHash);
-
-    // Report bundle with data.json.totalArtifactCount=4 and bom.aaData.length=0.
-    URL zippedReport = ReportHelper.zipReport(
-        "/HostedComponentScanQueueConsumerTest/postProcessingFixReport", tempDir);
-    hdsMockServer.respondWith(zippedReport).atUri("rest/application/analysis/" + scanId);
-
-    consumer.disableForTesting = false;
-    consumer.run();
-
-    // Assert on the stamp itself — happens in saveReportFiles on the first (and only, given
-    // maxRetries=0) attempt. Regardless of whether the job ultimately COMPLETED or FAILED, the
-    // component_count must reflect HDS's data.json.totalArtifactCount.
-    await().atMost(15, TimeUnit.SECONDS)
-        .untilAsserted(() -> {
-          ProxyRepositoryComponent rc = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
-              job.getRepositoryId(), pathname);
-          assertThat(rc).as("outer proxy_repository_component row").isNotNull();
-          assertThat(rc.getComponentCount())
-              .as("component_count must be stamped from data.json.totalArtifactCount (=4). "
-                  + "If this reads 1, the stamp regressed to raise-only + scanner-count source. "
-                  + "If this reads 0, the stamp regressed to reading bom.aaData.length. "
-                  + "If null, saveReportFiles never reached the stamp — check HDS mock wiring.")
-              .isEqualTo(4);
-        });
   }
 
   // ---- CLM-42122 monitoring-disabled guard tests (from origin/main) ----

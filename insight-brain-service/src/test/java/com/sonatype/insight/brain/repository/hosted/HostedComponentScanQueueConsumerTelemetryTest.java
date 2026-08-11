@@ -109,6 +109,9 @@ public class HostedComponentScanQueueConsumerTelemetryTest
   private TelemetrySender telemetrySender;
 
   @Mock
+  private HostedRepositoryComponentResolver resolver;
+
+  @Mock
   private ShutdownHandler shutdownHandler;
 
   private HostedComponentScanQueueConsumer consumer;
@@ -134,6 +137,7 @@ public class HostedComponentScanQueueConsumerTelemetryTest
         applicationComponentDAO,
         telemetryUtils,
         telemetrySender,
+        resolver,
         shutdownHandler);
   }
 

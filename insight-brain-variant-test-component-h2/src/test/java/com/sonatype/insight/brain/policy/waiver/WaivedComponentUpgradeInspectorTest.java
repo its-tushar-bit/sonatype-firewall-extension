@@ -415,6 +415,9 @@ public class WaivedComponentUpgradeInspectorTest
             .setAssociatedPackageUrl(DUMMY_PURL);
     tempEntity.newWaiver(waiver);
 
+    // Inspector now dispatches to the ownerId-only remediation entry which resolves the
+    // OwnerType internally via OwnerDAO. This test asserts the HRC waiver does not NPE
+    // and that the remediation service is invoked exactly once with the HRC's ownerId.
     assertThatCode(() -> waivedComponentUpgradeInspector.run()).doesNotThrowAnyException();
 
     verify(apiComponentRemediationService).getSuggestedRemediationForComponentNoAuthz(
@@ -441,6 +444,7 @@ public class WaivedComponentUpgradeInspectorTest
 
     waivedComponentUpgradeInspector.run();
 
+    // 3 waivers across 3 policies → remediation invoked once per waiver via the ownerId-only entry.
     verify(apiComponentRemediationService, Mockito.times(3)).getSuggestedRemediationForComponentNoAuthz(
         any(ApiComponentDTOV2.class), eq(app.getId()),
         isNull(), isNull(), isNull(), isNull(), anyBoolean());
@@ -456,6 +460,11 @@ public class WaivedComponentUpgradeInspectorTest
         .setComponentMatchStrategy(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT)
         .setAssociatedPackageUrl(DUMMY_PURL));
 
+    // Ownership resolution now happens inside the remediation service (ownerId-only entry).
+    // For an unresolvable ownerId, ApiComponentRemediationService.getSuggestedRemediationForComponentNoAuthz
+    // returns null and the inspector treats a null remediation as "no upgrade available" —
+    // so the waiver stays unmarked. The remediation service IS invoked (unlike the previous
+    // scope-crept eager-map behavior); the assertion is on the resulting waiver state.
     assertThatCode(() -> waivedComponentUpgradeInspector.run()).doesNotThrowAnyException();
 
     verify(apiComponentRemediationService, Mockito.times(1)).getSuggestedRemediationForComponentNoAuthz(

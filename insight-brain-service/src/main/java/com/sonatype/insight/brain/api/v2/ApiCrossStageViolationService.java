@@ -130,8 +130,17 @@ public class ApiCrossStageViolationService
     }
 
     ReachabilityStatus reachabilityStatus = constituentViolation.getReachabilityStatus();
-    Application app = applicationService.getApplicationByIdForRead(constituentViolation.getOwnerId());
-    Organization org = organizationDAO.getById(app.getOrganizationId());
+    // Null for a hosted-repository-component owner: this API is Application-shaped.
+    //
+    // The owner type is resolved before the lookup rather than relying on getApplicationByIdForRead
+    // returning null. That method carries @Authorize with an APPLICATION_ID authz context, and the
+    // aspect resolves the context before the body runs — for a non-Application owner id it throws
+    // "Application with ID ... does not exist." So handing it an HRC id 404s the whole request and the
+    // null-handling below can never run.
+    Application app = ownerDAO.getById(constituentViolation.getOwnerId()) instanceof Application
+        ? applicationService.getApplicationByIdForRead(constituentViolation.getOwnerId())
+        : null;
+    Organization org = app == null ? null : organizationDAO.getById(app.getOrganizationId());
     Policy policy = policyDAO.getById(constituentViolation.getPolicyId());
     Owner policyOwner = policy == null ? null : ownerDAO.getById(policy.getOwnerId());
 
@@ -277,9 +286,9 @@ public class ApiCrossStageViolationService
 
     dto.policyViolationId = firstViolation.getId();
     dto.reachabilityStatus = reachabilityStatus;
-    dto.applicationPublicId = app.getPublicId();
-    dto.applicationName = app.getName();
-    dto.organizationName = org.getName();
+    dto.applicationPublicId = app == null ? null : app.getPublicId();
+    dto.applicationName = app == null ? null : app.getName();
+    dto.organizationName = org == null ? null : org.getName();
     dto.hrcId = null;
     dto.threatLevel = firstViolation.getThreatLevel();
     dto.policyId = firstViolation.getPolicyId();

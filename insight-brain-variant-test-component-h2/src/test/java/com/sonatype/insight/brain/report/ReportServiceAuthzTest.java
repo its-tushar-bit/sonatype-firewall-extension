@@ -89,6 +89,17 @@ public class ReportServiceAuthzTest
         .isThrownBy(() -> reportService.processBrowseReport(app, "unrealId", "path"));
   }
 
+  // ---- HRC-owner authz tests ----
+  //
+  // Sibling tests to the Application-scoped tests above. The Owner-scoped getReportMetadata and
+  // processBrowseReport methods are annotated with @Authorize(READ) and resolve Permission via the
+  // Owner's own id when the owner is a HostedRepositoryComponent, so read permission on the HRC id
+  // — not the parent repository or application — is what gates access. These tests lock that
+  // contract in.
+  //
+  // getReport(Owner, String) is deliberately absent here: it carries no @Authorize of its own, so
+  // it enforces nothing to assert against. Its callers gate access at the HTTP boundary.
+
   @Test
   public void testGetReportMetadata_Hrc_Unauthenticated() throws Exception {
     HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);

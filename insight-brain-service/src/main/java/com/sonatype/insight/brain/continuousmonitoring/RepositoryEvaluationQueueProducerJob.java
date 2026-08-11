@@ -17,7 +17,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringFlowType;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringHostedRepoItem;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringQueueItem;
-import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import jakarta.inject.Inject;
@@ -56,7 +56,7 @@ import static com.sonatype.insight.brain.jooq.generated.ods.tables.ContinuousMon
 @Named
 @Singleton
 public class RepositoryEvaluationQueueProducerJob
-    extends AbstractContinuousMonitoringProducerJob<ProxyRepositoryComponent>
+    extends AbstractContinuousMonitoringProducerJob<HostedRepositoryComponent>
 {
   public static final String NAME = "RepositoryEvaluationQueueProducerJob";
 
@@ -81,7 +81,7 @@ public class RepositoryEvaluationQueueProducerJob
   }
 
   @Override
-  protected EligibilitySelector<ProxyRepositoryComponent> getEligibilitySelector() {
+  protected EligibilitySelector<HostedRepositoryComponent> getEligibilitySelector() {
     return eligibilitySelector;
   }
 
@@ -103,12 +103,12 @@ public class RepositoryEvaluationQueueProducerJob
   }
 
   @Override
-  protected int enqueueBatch(final List<ProxyRepositoryComponent> candidates, final Instant cycleStart) {
+  protected int enqueueBatch(final List<HostedRepositoryComponent> candidates, final Instant cycleStart) {
     List<ContinuousMonitoringQueueItem> parents = new ArrayList<>(candidates.size());
     List<ContinuousMonitoringHostedRepoItem> satellites = new ArrayList<>(candidates.size());
     List<String> parentIds = new ArrayList<>(candidates.size());
     for (int i = 0; i < candidates.size(); i++) {
-      ProxyRepositoryComponent rc = candidates.get(i);
+      HostedRepositoryComponent rc = candidates.get(i);
       String queueId = UUID.randomUUID().toString();
       parents.add(new ContinuousMonitoringQueueItem(
           queueId,

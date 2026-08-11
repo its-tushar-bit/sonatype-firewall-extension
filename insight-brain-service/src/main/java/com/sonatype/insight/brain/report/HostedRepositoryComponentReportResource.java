@@ -11,6 +11,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -22,17 +23,25 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dataaccess.repository.HostedRepositoryComponentDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.report.pdf.PdfGeneratorService;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 
 /**
- * HRC-scoped sibling of {@link ReportResource}. Read handlers dispatch through the same
- * Owner-scoped service methods as the App path. The write handlers (reevaluate) are added in
- * CLM-43710, when the reevaluation pipeline is rewritten onto {@code ScanPolicyEvaluator}.
+ * HRC-scoped sibling of {@link ReportResource}. Read handlers and {@link #reevaluatePolicy}
+ * dispatch through the same Owner-scoped service methods as the App path.
+ * Authorization for the read handlers lives on the service methods they delegate to, not on the
+ * handlers themselves: the Owner-typed {@code ReportService} and {@code PdfGeneratorService} read
+ * methods carry {@code @Authorize(READ)} with {@code @AuthzContext(Key.OWNER)}.
+ * {@link #reevaluatePolicy} is the exception and carries its own handler-level {@code @Authorize} —
+ * see that method for why.
  */
 @Named
 @Singleton
@@ -51,6 +60,8 @@ public class HostedRepositoryComponentReportResource
   public static final String PRINT_PATH = "{scanId}/printReport";
 
   public static final String SBOM_PRINT_PATH = "sbom/{sbomVersion}/printReport";
+
+  public static final String REEVALUATE_PATH = "{scanId}/reevaluatePolicy";
 
   private final ReportService reportService;
 
@@ -115,7 +126,24 @@ public class HostedRepositoryComponentReportResource
     return pdfGeneratorService.printSbomReport(hostedRepositoryComponentDAO.getByIdNotNull(hrcId), sbomVersion);
   }
 
-  // TODO CLM-43710: add the HRC reevaluatePolicy / reevaluatePolicyStatus write handlers here.
-  // The reevaluation pipeline is rewritten onto ScanPolicyEvaluator.evaluate(hrc, ...) in that
-  // ticket; the HRC-scoped POST/status endpoints land alongside it.
+  /**
+   * Re-evaluates a hosted-repository component's scan against current policy.
+   * <p>
+   * The permission is enforced here rather than on the service method, gating on the raw
+   * {@code hrcId} via {@link Key#HOSTED_REPOSITORY_COMPONENT_ID} so the check runs <em>before</em>
+   * {@code getByIdNotNull} — an unauthorized caller gets {@code 403} rather than a {@code 404} that
+   * would disclose whether the component exists.
+   */
+  @POST
+  @Path(REEVALUATE_PATH)
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  @Audited(AuditEvent.EVALUATE_APPLICATION)
+  @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_EVALUATION)
+  public Response reevaluatePolicy(
+      @AuthzContext(Key.HOSTED_REPOSITORY_COMPONENT_ID) @PathParam("hrcId") final String hrcId,
+      @PathParam("scanId") final String scanId) throws IOException
+  {
+    reportService.reevaluateHostedComponent(hostedRepositoryComponentDAO.getByIdNotNull(hrcId).getId(), scanId);
+    return Response.ok().build();
+  }
 }

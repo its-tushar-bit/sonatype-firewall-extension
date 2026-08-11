@@ -14,7 +14,7 @@ import jakarta.inject.Named;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
-import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
@@ -71,7 +71,7 @@ public class ScanUploadService
 
   public ScanReceipt upload(
       ScanEntity scanEntity,
-      Application app,
+      Owner owner,
       String stageTypeId,
       ClientScanType clientScanType,
       String clientUserAgent,
@@ -81,7 +81,7 @@ public class ScanUploadService
   {
     return upload(
         scanEntity,
-        app,
+        owner,
         stageTypeId,
         clientScanType,
         clientUserAgent,
@@ -93,7 +93,7 @@ public class ScanUploadService
 
   public ScanReceipt upload(
       ScanEntity scanEntity,
-      Application app,
+      Owner owner,
       String stageTypeId,
       ClientScanType clientScanType,
       String clientUserAgent,
@@ -102,22 +102,22 @@ public class ScanUploadService
       ScanContext scanContext,
       boolean isWebUIRequest) throws IOException
   {
-    if (scanEntity == null || app == null) {
-      throw new IllegalArgumentException("scanFile and application is required for scan uploads");
+    if (scanEntity == null || owner == null) {
+      throw new IllegalArgumentException("scanFile and owner is required for scan uploads");
     }
     ThirdPartyScanContext thirdPartyScanContext =
-        getThirdPartyScanContext(scanRequestId, scanEntity, app, stageTypeId, scanContext);
+        getThirdPartyScanContext(scanRequestId, scanEntity, owner, stageTypeId, scanContext);
     if (thirdPartyScanTelemetryData != null) {
       thirdPartyScanTelemetryData.put("scan_file_type", thirdPartyScanContext.getScanType().name());
     }
     ScanReceipt scanReceipt;
     if (ClientScanType.SONATYPE_THIRD_PARTY.equals(clientScanType)) {
       scanReceipt =
-          filterAndUpload(scanEntity, app, stageTypeId, clientUserAgent, thirdPartyScanContext,
+          filterAndUpload(scanEntity, owner, stageTypeId, clientUserAgent, thirdPartyScanContext,
               thirdPartyScanTelemetryData, isWebUIRequest);
     }
     else {
-      scanReceipt = uploader.upload(scanEntity, app, stageTypeId, clientUserAgent, thirdPartyScanContext,
+      scanReceipt = uploader.upload(scanEntity, owner, stageTypeId, clientUserAgent, thirdPartyScanContext,
           isWebUIRequest);
       if (ComplianceStageType.ID.equals(stageTypeId) && StringUtils.isNotEmpty(scanRequestId)) {
         thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanReceipt.getScanId());
@@ -131,19 +131,19 @@ public class ScanUploadService
   // visible for testing
   ScanReceipt filterAndUpload(
       ScanEntity scanEntity,
-      Application app,
+      Owner owner,
       String stageTypeId,
       String clientUserAgent,
       ThirdPartyScanContext thirdPartyScanContext,
       TelemetryData thirdPartyScanTelemetryData,
       boolean isWebUIRequest) throws IOException
   {
-    ScanEntity tempScanEntity = scanPersistenceService.createTempScan(app.getId());
+    ScanEntity tempScanEntity = scanPersistenceService.createTempScan(owner.getId());
 
     String scanRequestId =
         scanResultsProcessor.filterAndSaveData(scanEntity, tempScanEntity, thirdPartyScanContext,
             thirdPartyScanTelemetryData);
-    ScanReceipt scanReceipt = uploader.upload(tempScanEntity, app, stageTypeId, clientUserAgent,
+    ScanReceipt scanReceipt = uploader.upload(tempScanEntity, owner, stageTypeId, clientUserAgent,
         thirdPartyScanContext, isWebUIRequest);
     thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanReceipt.getScanId());
     saveContainerUriPaths(stageTypeId, thirdPartyScanContext);
@@ -199,7 +199,7 @@ public class ScanUploadService
   private ThirdPartyScanContext getThirdPartyScanContext(
       final String scanRequestId,
       final ScanEntity scanEntity,
-      final Application app,
+      final Owner owner,
       final String stageTypeId,
       final ScanContext scanContext)
   {
@@ -209,7 +209,7 @@ public class ScanUploadService
         ThirdPartySbomMetadata sbomMetadata =
             thirdPartySbomMetadataDAO.getByThirdPartyFileId(scan.getThirdPartyFileId());
         ThirdPartyScanContext thirdPartyScanContext =
-            new ThirdPartyScanContext(scanRequestId, app.getId(), SbomScanType.valueOf(sbomMetadata.getScanType()),
+            new ThirdPartyScanContext(scanRequestId, owner.getId(), SbomScanType.valueOf(sbomMetadata.getScanType()),
                 scanEntity, stageTypeId);
         thirdPartyScanContext.setThirdPartyFileId(sbomMetadata.getThirdPartyFileId());
         thirdPartyScanContext.setSbomFileName(sbomMetadata.getFilename());
@@ -224,7 +224,7 @@ public class ScanUploadService
 
     String newScanRequestId = UUID.randomUUID().toString().replace("-", "");
     ThirdPartyScanContext thirdPartyScanContext =
-        new ThirdPartyScanContext(newScanRequestId, app.getId(), SbomScanType.SBOM, scanEntity, stageTypeId);
+        new ThirdPartyScanContext(newScanRequestId, owner.getId(), SbomScanType.SBOM, scanEntity, stageTypeId);
     if (scanContext != null) {
       thirdPartyScanContext.setApplicationVersion(scanContext.applicationVersion());
       thirdPartyScanContext.setIsValid(scanContext.isValid());

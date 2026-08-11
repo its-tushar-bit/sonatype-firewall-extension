@@ -775,6 +775,14 @@ public class ApiSpdxServiceTest
     }
   }
 
+  // ---- HRC-owner tests ----
+  //
+  // Full happy-path SPDX generation for HRC owners requires the HRC scan pipeline to persist a
+  // report file — an integration path that doesn't have an isolated fixture yet. Until it does,
+  // these tests pin the NotFound contract for the Owner-scoped overloads so a future refactor
+  // can't accidentally return an empty response or a different exception for a missing HRC
+  // report.
+
   @Test(expected = NotFoundException.class)
   public void testGetByScanId_Hrc_NotFound() {
     Repository repository = tempEntity.newRepository();

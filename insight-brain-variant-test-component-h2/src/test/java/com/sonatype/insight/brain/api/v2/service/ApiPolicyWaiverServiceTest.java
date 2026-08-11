@@ -71,6 +71,7 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -1792,6 +1793,89 @@ public class ApiPolicyWaiverServiceTest
     assertTelemetry(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID);
     assertWaiverTelemetry(OwnerType.REPOSITORY_CONTAINER, proxyRepositoryPolicyViolation,
         policyWaiverDAO.getByOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID).get(0));
+  }
+
+  /**
+   * Builds a {@link PolicyViolation} owned directly by the given hosted repository component, mirroring
+   * how {@code com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator} records violations found
+   * while scanning hosted repository components.
+   */
+  private PolicyViolation newHostedRepositoryComponentPolicyViolation(HostedRepositoryComponent hrc) {
+    ComponentIdentifier componentIdentifier =
+        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "java");
+    PolicyEvaluation hrcPolicyEvaluation =
+        tempEntity.newPolicyEvaluation(hrc.getId(), BuildStageType.ID, "scanId-" + hrc.getId());
+    return tempEntity.newPolicyViolation(hrcPolicyEvaluation, policy, componentIdentifier, "h1", "r1");
+  }
+
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_HostedRepositoryComponent() {
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    PolicyViolation hrcPolicyViolation = newHostedRepositoryComponentPolicyViolation(hrc);
+
+    apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.HOSTED_REPOSITORY_COMPONENT, hrc.getId(),
+        hrcPolicyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+
+    assertNotExpiringPolicyWaiver(hrc.getId(), "waiver comment", "testuser", "Test User",
+        hrcPolicyViolation.getHash(), hrcPolicyViolation.getConstraintFactsJson(), EXACT_COMPONENT,
+        componentPurl.getPackageUrl(), null);
+    assertTelemetry(OwnerType.HOSTED_REPOSITORY_COMPONENT, hrc.getId());
+    assertWaiverTelemetry(OwnerType.HOSTED_REPOSITORY_COMPONENT, hrcPolicyViolation,
+        policyWaiverDAO.getByOwnerId(hrc.getId()).get(0));
+  }
+
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_HostedRepositoryComponentAncestor() {
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    PolicyViolation hrcPolicyViolation = newHostedRepositoryComponentPolicyViolation(hrc);
+
+    apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.REPOSITORY_CONTAINER,
+        RepositoryContainer.REPOSITORY_CONTAINER_ID, hrcPolicyViolation.getId(),
+        new ApiWaiverOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+
+    assertNotExpiringPolicyWaiver(RepositoryContainer.REPOSITORY_CONTAINER_ID, "waiver comment", "testuser",
+        "Test User", hrcPolicyViolation.getHash(), hrcPolicyViolation.getConstraintFactsJson(), EXACT_COMPONENT,
+        componentPurl.getPackageUrl(), null);
+    assertTelemetry(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    assertWaiverTelemetry(OwnerType.REPOSITORY_CONTAINER, hrcPolicyViolation,
+        policyWaiverDAO.getByOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID).get(0));
+  }
+
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_HostedRepositoryComponentIntermediateOrganizationDoesNotMatch() {
+    // Repository ownership hierarchy walks HRC -> Repository -> RepositoryManager -> RepositoryContainer ->
+    // root Organization; intermediate Organizations are not part of that chain, so a waiver scoped to an
+    // Organization other than the root does not apply to hosted repository component violations.
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    PolicyViolation hrcPolicyViolation = newHostedRepositoryComponentPolicyViolation(hrc);
+    Organization intermediateOrg = tempEntity.newOrganization();
+
+    assertThatThrownBy(
+        () -> apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.ORGANIZATION,
+            intermediateOrg.getId(), hrcPolicyViolation.getId(),
+            new ApiWaiverOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false)))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Invalid owner id: " + intermediateOrg.getId());
+  }
+
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_HostedRepositoryComponentNonParent() {
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    PolicyViolation hrcPolicyViolation = newHostedRepositoryComponentPolicyViolation(hrc);
+
+    Repository otherRepository = tempEntity.newRepository();
+    HostedRepositoryComponent otherHrc = tempEntity.newHostedRepositoryComponent(otherRepository);
+
+    assertThatThrownBy(
+        () -> apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.HOSTED_REPOSITORY_COMPONENT,
+            otherHrc.getId(), hrcPolicyViolation.getId(),
+            new ApiWaiverOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false)))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Invalid owner id: " + otherHrc.getId());
   }
 
   @Test

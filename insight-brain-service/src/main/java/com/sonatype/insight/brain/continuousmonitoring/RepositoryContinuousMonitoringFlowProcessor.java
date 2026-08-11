@@ -5,25 +5,34 @@
  */
 package com.sonatype.insight.brain.continuousmonitoring;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.function.BinaryOperator;
+import java.util.stream.Collectors;
 
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
+import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.continuousmonitoring.ContinuousMonitoringHostedRepoItemDAO;
-import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.HostedRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
-import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringFlowType;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringHostedRepoItem;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringQueueItem;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
-import com.sonatype.insight.brain.report.ReportService;
-import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
-import com.sonatype.insight.brain.repository.hosted.ApplicationForHostedRepositoryComponentService;
+import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
+import com.sonatype.insight.brain.repository.hosted.HostedRepositoryComponentResolver;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
+import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.scan.model.ClientScanType;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.Nullable;
@@ -36,17 +45,22 @@ import org.slf4j.LoggerFactory;
 
 /**
  * {@link ContinuousMonitoringFlowProcessor} for the Hosted Repo flow (CLM-40039 Section 6.3).
- * Resolves the satellite row to (repositoryId, componentHash), re-asserts that the repository is
+ * Resolves the satellite row to (repositoryId, componentHash) and re-asserts that the repository is
  * a monitoring-enabled hosted repository owned by the current tenant (defense in depth on the
- * shared executor surface — Section 4.3 / STRIDE Section 9), then re-evaluates the component
- * via {@link RepositoryPolicyEvaluator#evaluateForMonitoring}. The evaluator updates
- * {@code last_evaluation_time} as part of evaluation.
+ * shared executor surface — Section 4.3 / STRIDE Section 9).
  * <p>
- * <b>CLM-42136:</b> after the outer evaluation, {@link #refreshHostedComponentOverlays} mirrors
- * nested-component violations and regenerates the on-disk Build Report overlay files
- * ({@code policythreats.json}, {@code bom.json}, {@code data.json}) so the Application Report
- * page and Latest Evaluations feed reflect the freshly-evaluated state rather than the initial
- * scan snapshot.
+ * Each component matching the hash is then re-evaluated independently: a
+ * {@link HostedRepositoryComponent} owner is resolved (get-or-create) via
+ * {@link HostedRepositoryComponentResolver}, the scan stored under that owner is cloned into a temp
+ * entity and uploaded to HDS as a fresh primary scan, and
+ * {@link ScanPolicyEvaluator#evaluateForMonitoring} evaluates the fresh scanId against the owner —
+ * the same Drools pipeline Lifecycle applications use. The evaluator updates
+ * {@code last_evaluation_time} as part of evaluation. Finally
+ * {@link HostedRepositoryComponentResolver#pinOwnerComponent} stamps {@code owner_component_id} on
+ * the resulting violations.
+ * <p>
+ * A failure on one component is confined to that component: each stage records a distinct
+ * {@code cm-*} drop metric and continues with the next component rather than aborting the batch.
  * <p>
  * Note: This processor does NOT call {@code stampComponentId} on the
  * {@code proxy_repository_policy_violation} table. That method is specific to NXRM-hosted repositories
@@ -71,33 +85,41 @@ public class RepositoryContinuousMonitoringFlowProcessor
 
   private final RepositoryDAO repositoryDAO;
 
-  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
-
-  private final RepositoryPolicyEvaluator repositoryPolicyEvaluator;
-
-  private final ReportService reportService;
-
-  private final ApplicationForHostedRepositoryComponentService applicationForHostedRepositoryComponentService;
+  private final HostedRepositoryComponentDAO hostedRepositoryComponentDAO;
 
   private final MeterRegistry meterRegistry;
+
+  private final HostedRepositoryComponentResolver resolver;
+
+  private final ScanPersistenceService scanPersistenceService;
+
+  private final ScanUploader scanUploader;
+
+  private final ScanPolicyEvaluator scanPolicyEvaluator;
+
+  private final PolicyEvaluationDAO policyEvaluationDAO;
 
   @Inject
   public RepositoryContinuousMonitoringFlowProcessor(
       final ContinuousMonitoringHostedRepoItemDAO hostedRepoItemDAO,
       final RepositoryDAO repositoryDAO,
-      final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
-      final RepositoryPolicyEvaluator repositoryPolicyEvaluator,
-      final ReportService reportService,
-      final ApplicationForHostedRepositoryComponentService applicationForHostedRepositoryComponentService,
-      @Nullable final MeterRegistry meterRegistry)
+      final HostedRepositoryComponentDAO hostedRepositoryComponentDAO,
+      @Nullable final MeterRegistry meterRegistry,
+      final HostedRepositoryComponentResolver resolver,
+      final ScanPersistenceService scanPersistenceService,
+      final ScanUploader scanUploader,
+      final ScanPolicyEvaluator scanPolicyEvaluator,
+      final PolicyEvaluationDAO policyEvaluationDAO)
   {
     this.hostedRepoItemDAO = hostedRepoItemDAO;
     this.repositoryDAO = repositoryDAO;
-    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
-    this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
-    this.reportService = reportService;
-    this.applicationForHostedRepositoryComponentService = applicationForHostedRepositoryComponentService;
+    this.hostedRepositoryComponentDAO = hostedRepositoryComponentDAO;
     this.meterRegistry = meterRegistry;
+    this.resolver = resolver;
+    this.scanPersistenceService = scanPersistenceService;
+    this.scanUploader = scanUploader;
+    this.scanPolicyEvaluator = scanPolicyEvaluator;
+    this.policyEvaluationDAO = policyEvaluationDAO;
   }
 
   /**
@@ -179,8 +201,10 @@ public class RepositoryContinuousMonitoringFlowProcessor
       return;
     }
 
-    List<ProxyRepositoryComponent> components =
-        proxyRepositoryComponentDAO.getByRepositoryIdAndHash(repository.getId(), componentHash);
+    List<HostedRepositoryComponent> components;
+    try (TransactionContext tx = hostedRepositoryComponentDAO.createTransactionContext()) {
+      components = hostedRepositoryComponentDAO.getByRepositoryIdAndHash(tx, repository.getId(), componentHash);
+    }
     if (components.isEmpty()) {
       log.info("Continuous monitoring (hosted_repo): no components for repository={} hash={}; dropping queueId={}.",
           repository.getId(), componentHash, queueId);
@@ -188,98 +212,158 @@ public class RepositoryContinuousMonitoringFlowProcessor
       return;
     }
 
-    String repoFormat = repository.getFormat();
-    if (repoFormat == null) {
-      log.warn("Continuous monitoring (hosted_repo): repository {} has no format; dropping queueId={}.",
-          repository.getId(), queueId);
-      recordDrop("repository-no-format");
-      return;
-    }
+    // The artifact's scan history lives in policy_evaluation, so the scan to re-upload and the stage to
+    // evaluate it against both come from its latest evaluation. Fetched for the whole batch up front:
+    // getLastByOwnerIds takes a Set precisely so this costs one round trip rather than one per component
+    // (any number of pathnames can share a content hash, so the batch is unbounded in principle).
+    //
+    // last_policy_evaluation is unique on (owner_id, stage_type_id), so an artifact uploaded at more than
+    // one stage — the stage is per-request on the NXRM scan payload — has one row per stage here. Keep the
+    // most recent by evaluation time so the stage this cycle refreshes is the one the artifact was
+    // evaluated at last, rather than whichever row the unordered query happened to return.
+    Map<String, PolicyEvaluation> lastEvaluationsByOwnerId = policyEvaluationDAO
+        .getLastByOwnerIds(components.stream().map(HostedRepositoryComponent::getId).collect(Collectors.toSet()))
+        .stream()
+        .filter(e -> e.getOwnerId() != null)
+        .collect(Collectors.toMap(
+            PolicyEvaluation::getOwnerId,
+            e -> e,
+            BinaryOperator.maxBy(Comparator.comparing(
+                PolicyEvaluation::getTime,
+                Comparator.nullsFirst(Comparator.naturalOrder())))));
 
-    String stage = components.stream()
-        .map(ProxyRepositoryComponent::getLastEvaluationStage)
-        .filter(s -> s != null)
-        .findFirst()
-        .orElse(ComplianceStageType.ID);
+    for (HostedRepositoryComponent hrc : components) {
+      String componentPathname = hrc.getPathname();
 
-    RepositoryComponentEvaluationDataRequestList request =
-        new RepositoryComponentEvaluationDataRequestList(RepositoryPolicyEvaluator.CONTINUOUS_MONITORING_CAUSE);
-    for (ProxyRepositoryComponent component : components) {
-      if (component.getHash() != null && component.getPathname() != null) {
-        request.components.add(new RepositoryComponentEvaluationDataRequest(
-            repoFormat,
-            component.getPathname(),
-            component.getHash()));
+      // An artifact with no evaluation yet has nothing to monitor — the same condition PolicyMonitor
+      // treats as "nothing to monitor" for an application with no scan for its monitored stage.
+      PolicyEvaluation lastEvaluation = lastEvaluationsByOwnerId.get(hrc.getId());
+      if (lastEvaluation == null || lastEvaluation.getScanId() == null) {
+        log.info("Continuous monitoring (hosted_repo): no evaluation to monitor for repository={} pathname={}; "
+            + "skipping.", repository.getId(), componentPathname);
+        recordDrop("cm-no-previous-evaluation");
+        continue;
+      }
+      String componentScanId = lastEvaluation.getScanId();
+      String stage = lastEvaluation.getStageTypeId() != null
+          ? lastEvaluation.getStageTypeId()
+          : ComplianceStageType.ID;
+
+      ScanEntity tempScanEntity = null;
+      try {
+        try {
+          tempScanEntity = scanPersistenceService.createTempScan(hrc.getId());
+        }
+        catch (Exception e) {
+          log.warn("Continuous monitoring (hosted_repo): temp-scan create failed for repository={} "
+              + "pathname={}; skipping. err={}", repository.getId(), componentPathname, e.getMessage(), e);
+          recordDrop("cm-temp-scan-create-failed");
+          continue;
+        }
+        try {
+          cloneLatestScanFile(tempScanEntity, hrc, componentScanId, stage);
+        }
+        catch (Exception e) {
+          log.warn("Continuous monitoring (hosted_repo): clone-scan failed for repository={} pathname={} "
+              + "scanId={}; skipping. err={}",
+              repository.getId(), componentPathname, componentScanId, e.getMessage(), e);
+          recordDrop("cm-clone-scan-failed");
+          continue;
+        }
+
+        ScanReceipt receipt;
+        try {
+          receipt = scanUploader.upload(tempScanEntity, hrc, stage, null, null, true);
+        }
+        catch (Exception e) {
+          log.warn("Continuous monitoring (hosted_repo): scan-upload failed for repository={} pathname={} "
+              + "scanId={}; skipping. err={}",
+              repository.getId(), componentPathname, componentScanId, e.getMessage(), e);
+          recordDrop("cm-upload-failed");
+          continue;
+        }
+
+        String freshScanId = receipt.getScanId();
+        try {
+          scanPolicyEvaluator.evaluateForMonitoring(
+              hrc, freshScanId, new Stage(stage),
+              ScanTriggerType.HOSTED_REPOSITORY_SCANNING, ClientScanType.SONATYPE);
+        }
+        catch (Exception e) {
+          log.warn("Continuous monitoring (hosted_repo): evaluation failed for repository={} pathname={} "
+              + "freshScanId={}; skipping. err={}",
+              repository.getId(), componentPathname, freshScanId, e.getMessage(), e);
+          recordDrop("cm-evaluation-failed");
+          continue;
+        }
+
+        resolver.pinOwnerComponent(hrc, freshScanId, stage);
+
+        // Finalize the clone under the fresh scanId rather than discarding it. The evaluation just
+        // persisted names this scanId, and both the next monitoring cycle and Manual Re-Evaluate read
+        // the scan back by it — a pointer to a deleted file leaves monitoring stranded and makes
+        // Re-Evaluate fail on a missing scan. Ownership transfers to the datastore here, so the
+        // finally-block delete must not also run: null the local reference on success.
+        scanPersistenceService.moveTempScan(tempScanEntity, hrc.getId(), freshScanId);
+        tempScanEntity = null;
+
+      }
+      catch (Exception e) {
+        log.warn("Continuous monitoring (hosted_repo): unexpected failure for repository={} pathname={}; "
+            + "skipping. err={}", repository.getId(), componentPathname, e.getMessage(), e);
+        recordDrop("cm-unexpected-failure");
+      }
+      finally {
+        if (tempScanEntity != null) {
+          try {
+            scanPersistenceService.deleteScan(tempScanEntity);
+          }
+          catch (Exception e) {
+            log.warn("Continuous monitoring (hosted_repo): failed to delete cloned scan for repository={} "
+                + "pathname={}; err={}", repository.getId(), componentPathname, e.getMessage(), e);
+          }
+        }
       }
     }
-    if (request.components.isEmpty()) {
-      recordDrop("no-evaluatable-components");
-      log.info(
-          "Continuous monitoring (hosted_repo): no evaluatable components for repository={}, hash={}, queueId={}; dropping.",
-          repository.getId(), componentHash, queueId);
-      return;
-    }
-
-    repositoryPolicyEvaluator.evaluateForMonitoring(repository, request, stage);
-
-    refreshHostedComponentOverlays(repository, components, stage);
   }
 
   /**
-   * Post-evaluation Build Report refresh (CLM-42136). Runs after
-   * {@link RepositoryPolicyEvaluator#evaluateForMonitoring} has refreshed the outer's
-   * {@code proxy_repository_policy_violation} rows. For each component in the batch, delegates to
-   * {@link ReportService#refreshHostedComponentAfterEvaluation} which mirrors nested-component
-   * violations and regenerates the on-disk overlay files ({@code policythreats.json},
-   * {@code bom.json}, {@code data.json}). Without this step the outer's report would carry
-   * stale inner-pathname violations from the initial scan.
+   * Clones the artifact's stored {@code scan.xml.gz} into {@code tempScanEntity}, following the pointer
+   * forward if a concurrent evaluation moved it.
    * <p>
-   * Per-component failures are logged, counted on the drop meter, and swallowed — a single
-   * failing component must not poison the rest of the batch, and the queue item's outer
-   * evaluation has already succeeded.
+   * Every primary evaluation deletes the scan file of the evaluation it supersedes
+   * ({@code ScanPolicyEvaluator.deletePreviousScanFile}), so a monitoring cycle can find the file it
+   * intended to copy already gone — the id was read before the copy, and an upload or another cycle can
+   * land in between. Rather than dropping the component for a cycle, re-read the owner's latest primary
+   * evaluation and copy that instead; only a source that is still the latest is a genuine failure. This
+   * mirrors {@code PolicyMonitor.cloneScanFile}, which handles the same race on the Lifecycle path.
+   *
+   * @param tempScanEntity the temp entity to copy into
+   * @param hrc the artifact being monitored, and the owner the scan is stored under
+   * @param scanId the scan the caller intended to clone
+   * @param stageTypeId the stage whose latest primary evaluation identifies a newer scan
    */
-  private void refreshHostedComponentOverlays(
-      final Repository repository,
-      final List<ProxyRepositoryComponent> components,
-      final String stage)
+  private void cloneLatestScanFile(
+      final ScanEntity tempScanEntity,
+      final HostedRepositoryComponent hrc,
+      final String scanId,
+      final String stageTypeId)
   {
-    for (ProxyRepositoryComponent component : components) {
-      String componentScanId = component.getScanId();
-      String componentPathname = component.getPathname();
-      if (componentScanId == null || componentPathname == null) {
-        // Component is missing the identifiers we need to address its overlay files on disk.
-        // Log + drop-meter so this doesn't hide silently if it starts happening at scale.
-        log.info("Continuous monitoring (hosted_repo): skipping overlay refresh for repository={} "
-            + "pathname={} scanId={}; missing identifier.",
-            repository.getId(), componentPathname, componentScanId);
-        recordDrop("overlay-refresh-missing-identifier");
-        continue;
-      }
+    String sourceScanId = scanId;
+    while (true) {
       try {
-        Application application = applicationForHostedRepositoryComponentService
-            .getOrCreateApplication(repository.getId(), componentPathname);
-        if (application == null) {
-          // getOrCreateApplication returns null when the repository has no valid organization
-          // (root-org lookup would fail). Distinguishing this from a mid-refresh exception keeps
-          // the drop reason unambiguous for operators.
-          log.warn("Continuous monitoring (hosted_repo): synthetic application unavailable for "
-              + "repository={} pathname={} scanId={}; skipping overlay refresh.",
-              repository.getId(), componentPathname, componentScanId);
-          recordDrop("overlay-refresh-no-application");
-          continue;
-        }
-        // persistPolicyEvaluationRow=false — the mirror step invoked by
-        // refreshHostedComponentAfterEvaluation already persists a policy_evaluation row via
-        // ScanPolicyEvaluator; the extra insert this flag controls is only useful on the
-        // Re-Evaluate button path.
-        reportService.refreshHostedComponentAfterEvaluation(
-            component, repository, application, application.getId(), componentScanId, stage, false);
+        scanPersistenceService.copyScanFile(scanPersistenceService.getScan(hrc.getId(), sourceScanId), tempScanEntity);
+        return;
       }
       catch (Exception e) {
-        log.warn("Continuous monitoring (hosted_repo): post-evaluation refresh failed for repository={}"
-            + " pathname={} scanId={}; DB is fresh but Build Report files remain stale until next refresh.",
-            repository.getId(), componentPathname, componentScanId, e);
-        recordDrop("overlay-refresh-failed");
+        PolicyEvaluation latest = policyEvaluationDAO.getLastPrimaryByOwnerIdAndStageId(hrc.getId(), stageTypeId);
+        if (latest == null || latest.getScanId() == null || sourceScanId.equals(latest.getScanId())) {
+          throw new IllegalStateException("Could not clone scan " + sourceScanId + " for hrcId=" + hrc.getId()
+              + "; it is still the latest primary scan for stage " + stageTypeId, e);
+        }
+        log.debug("Continuous monitoring (hosted_repo): scan {} for hrcId={} was superseded mid-clone; "
+            + "retrying with {}", sourceScanId, hrc.getId(), latest.getScanId());
+        sourceScanId = latest.getScanId();
       }
     }
   }

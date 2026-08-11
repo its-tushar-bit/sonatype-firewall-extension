@@ -181,7 +181,7 @@ public class AsyncReevaluationService
         final long start = System.currentTimeMillis();
 
         PolicyEvaluation policyEvaluation =
-            reportService.reUploadScanToHds(application.getId(), scanId, clientUserAgent);
+            reportService.reUploadScanToHds(application, scanId, clientUserAgent);
         Stage stage = new Stage(policyEvaluation.getStageTypeId());
         ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage,
             policyEvaluation.getScanTriggerType(), policyEvaluation.getClientScanType(), skipAutoWaivers);

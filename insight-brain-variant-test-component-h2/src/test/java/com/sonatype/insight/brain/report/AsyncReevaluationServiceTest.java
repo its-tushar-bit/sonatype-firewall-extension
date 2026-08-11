@@ -101,7 +101,7 @@ public class AsyncReevaluationServiceTest
 
     PolicyEvaluation reUploaded = new PolicyEvaluation();
     reUploaded.setStageTypeId("build");
-    when(reportService.reUploadScanToHds(APP_ID, SCAN_ID, USER_AGENT)).thenReturn(reUploaded);
+    when(reportService.reUploadScanToHds(same(application), eq(SCAN_ID), eq(USER_AGENT))).thenReturn(reUploaded);
 
     ScanPolicyEvaluatorResults results = new ScanPolicyEvaluatorResults();
     results.evaluation = new PolicyEvaluation();
@@ -141,7 +141,7 @@ public class AsyncReevaluationServiceTest
 
     PolicyEvaluation reUploaded = new PolicyEvaluation();
     reUploaded.setStageTypeId("build");
-    when(reportService.reUploadScanToHds(APP_ID, SCAN_ID, USER_AGENT)).thenAnswer(invocation -> {
+    when(reportService.reUploadScanToHds(same(application), eq(SCAN_ID), eq(USER_AGENT))).thenAnswer(invocation -> {
       // Signal that the task is in flight, then block until graceful shutdown has been requested. If graceful
       // shutdown interrupted us (i.e. used shutdownNow), this await would throw InterruptedException and the task
       // would end FAILED instead of COMPLETED.
@@ -184,7 +184,8 @@ public class AsyncReevaluationServiceTest
   public void testStartReevaluation_EvaluationFails_PersistsFailedResultWithMappedReason() throws Exception {
     PersistedPolicyEvaluationPollingResult persisted = stubPendingPollingResult();
 
-    when(reportService.reUploadScanToHds(APP_ID, SCAN_ID, USER_AGENT)).thenThrow(new RuntimeException("boom"));
+    when(reportService.reUploadScanToHds(same(application), eq(SCAN_ID), eq(USER_AGENT)))
+        .thenThrow(new RuntimeException("boom"));
     when(errorResponseGenerator.mapException(any())).thenReturn(new ErrorResponse(500, "mapped reason"));
 
     runReevaluationToCompletion();
@@ -202,7 +203,8 @@ public class AsyncReevaluationServiceTest
   public void testStartReevaluation_CatchBlockThrows_StillPersistsFailedResult() throws Exception {
     PersistedPolicyEvaluationPollingResult persisted = stubPendingPollingResult();
 
-    when(reportService.reUploadScanToHds(APP_ID, SCAN_ID, USER_AGENT)).thenThrow(new RuntimeException("boom"));
+    when(reportService.reUploadScanToHds(same(application), eq(SCAN_ID), eq(USER_AGENT)))
+        .thenThrow(new RuntimeException("boom"));
     when(errorResponseGenerator.mapException(any())).thenThrow(new RuntimeException("mapper exploded"));
 
     runReevaluationToCompletion();
@@ -222,7 +224,7 @@ public class AsyncReevaluationServiceTest
 
     // Interruption surfaces wrapped: a blocking call throws InterruptedException, which the evaluation stack
     // re-throws as an unchecked exception carrying it as the cause.
-    when(reportService.reUploadScanToHds(APP_ID, SCAN_ID, USER_AGENT))
+    when(reportService.reUploadScanToHds(same(application), eq(SCAN_ID), eq(USER_AGENT)))
         .thenThrow(new RuntimeException("interrupted", new InterruptedException("interrupted")));
     when(errorResponseGenerator.mapException(any())).thenReturn(new ErrorResponse(500, "mapped reason"));
 
@@ -244,7 +246,7 @@ public class AsyncReevaluationServiceTest
 
     // Simulate a real forced-shutdown interrupt: set the running thread's interrupt flag, as shutdownNow() would,
     // so the finally has a flag to clear before the blocking DB write.
-    when(reportService.reUploadScanToHds(APP_ID, SCAN_ID, USER_AGENT)).thenAnswer(invocation -> {
+    when(reportService.reUploadScanToHds(same(application), eq(SCAN_ID), eq(USER_AGENT))).thenAnswer(invocation -> {
       Thread.currentThread().interrupt();
       throw new RuntimeException("interrupted", new InterruptedException("interrupted"));
     });
@@ -276,7 +278,7 @@ public class AsyncReevaluationServiceTest
 
     PolicyEvaluation reUploaded = new PolicyEvaluation();
     reUploaded.setStageTypeId("build");
-    when(reportService.reUploadScanToHds(APP_ID, SCAN_ID, USER_AGENT)).thenReturn(reUploaded);
+    when(reportService.reUploadScanToHds(same(application), eq(SCAN_ID), eq(USER_AGENT))).thenReturn(reUploaded);
     ScanPolicyEvaluatorResults results = new ScanPolicyEvaluatorResults();
     results.evaluation = new PolicyEvaluation();
     results.allViolations = List.of();

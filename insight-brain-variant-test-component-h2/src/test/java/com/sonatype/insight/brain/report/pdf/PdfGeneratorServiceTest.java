@@ -406,6 +406,14 @@ public class PdfGeneratorServiceTest
     testCallable_AllowConcurrentExecution(callable, answerConsumer);
   }
 
+  // ---- HRC-owner tests ----
+  //
+  // Full happy-path PDF generation for HRC owners requires the HRC scan pipeline to persist a
+  // report file — an integration path that doesn't have an isolated fixture yet. Until it does,
+  // these tests pin the NotFound contract for the Owner-scoped overloads so a future refactor
+  // can't accidentally return an empty PDF response or a different exception for a missing HRC
+  // report.
+
   @Test
   public void testPrintReport_Hrc_NotFound() {
     Repository repository = tempEntity.newRepository();
@@ -420,6 +428,9 @@ public class PdfGeneratorServiceTest
     Repository repository = tempEntity.newRepository();
     HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
 
+    // generateReport goes through apiReportDataServiceV2.getPolicyViolationsDataNoAuth which
+    // resolves the underlying report via ReportService.getReport — a missing HRC report must
+    // surface as NotFound.
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> pdfGeneratorService.generateReport(hrc, "no-such-scan"));
   }
@@ -429,6 +440,7 @@ public class PdfGeneratorServiceTest
     Repository repository = tempEntity.newRepository();
     HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
 
+    // No third_party_sbom_metadata row for this HRC + sbomVersion → NotFound.
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> pdfGeneratorService.printSbomReport(hrc, "1.0"));
   }

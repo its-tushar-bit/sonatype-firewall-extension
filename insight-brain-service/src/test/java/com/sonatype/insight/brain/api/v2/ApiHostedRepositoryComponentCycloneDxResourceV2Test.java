@@ -32,6 +32,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * Unit tests for {@link ApiHostedRepositoryComponentCycloneDxResourceV2}. Each handler is the
+ * HRC-scoped sibling of {@link ApiCycloneDxResourceV2}; it resolves the HRC through the DAO and
+ * delegates to the same {@link ApiCycloneDxServiceV2} method as the App path with the requested
+ * CycloneDX version and media type.
+ */
 @RunWith(MockitoJUnitRunner.class)
 public class ApiHostedRepositoryComponentCycloneDxResourceV2Test
 {
@@ -55,6 +61,10 @@ public class ApiHostedRepositoryComponentCycloneDxResourceV2Test
   @Before
   public void setUp() {
     SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.setEnabled(true);
+    // AspectJ compile-time weaving inserts a @HasFeature aspect on the resource class and an
+    // @Authorize aspect on its service-call sites. Both fire during Mockito unit tests that
+    // bypass the Spring proxy. Disable enforcement here so the aspects short-circuit to the
+    // mocked service call — see SecurityAspectControl's javadoc for the intended use.
     SecurityAspectControl.disableEnforcement();
     hrc = new HostedRepositoryComponent("repo-1", "path/lib.jar", "hash-abc");
     hrc.setId(HRC_ID);
@@ -66,6 +76,8 @@ public class ApiHostedRepositoryComponentCycloneDxResourceV2Test
     SecurityAspectControl.enableEnforcement();
     SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.setEnabled(false);
   }
+
+  // ---- getLatest (default XML/1.1) ----
 
   @Test
   public void getLatest_delegatesWithXmlAndVersion11() {
@@ -79,6 +91,8 @@ public class ApiHostedRepositoryComponentCycloneDxResourceV2Test
     verify(hostedRepositoryComponentDAO).getByIdNotNull(HRC_ID);
     verify(apiCycloneDxService).getLatest(hrc, STAGE_ID, MediaType.APPLICATION_XML, Version.VERSION_11);
   }
+
+  // ---- getLatestWithVersion ----
 
   @Test
   public void getLatestWithVersion_xmlHeader_delegatesWithXml() {
@@ -108,6 +122,8 @@ public class ApiHostedRepositoryComponentCycloneDxResourceV2Test
     verify(apiCycloneDxService).getLatest(hrc, STAGE_ID, MediaType.APPLICATION_JSON, version);
   }
 
+  // ---- getByReportId (default XML/1.1) ----
+
   @Test
   public void getByReportId_delegatesWithXmlAndVersion11() {
     Response expected = mock(Response.class);
@@ -120,6 +136,8 @@ public class ApiHostedRepositoryComponentCycloneDxResourceV2Test
     verify(hostedRepositoryComponentDAO).getByIdNotNull(HRC_ID);
     verify(apiCycloneDxService).getByScanId(hrc, REPORT_ID, MediaType.APPLICATION_XML, Version.VERSION_11);
   }
+
+  // ---- getByReportIdWithVersion ----
 
   @Test
   public void getByReportIdWithVersion_xmlHeader_delegatesWithXml() {

@@ -26,6 +26,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * Unit tests for {@link ApiHostedRepositoryComponentSpdxResource}. Both handlers are HRC-scoped
+ * siblings of the {@link ApiSpdxResource} counterparts; each resolves the HRC through the DAO
+ * and forwards {@code format}, {@code generateCycloneDx}, and {@code spdxVersion} to
+ * {@link ApiSpdxService} verbatim.
+ */
 @RunWith(MockitoJUnitRunner.class)
 public class ApiHostedRepositoryComponentSpdxResourceTest
 {
@@ -53,6 +59,10 @@ public class ApiHostedRepositoryComponentSpdxResourceTest
   @Before
   public void setUp() {
     SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.setEnabled(true);
+    // AspectJ compile-time weaving inserts a @HasFeature aspect on the resource class and an
+    // @Authorize aspect on its service-call sites. Both fire during Mockito unit tests that
+    // bypass the Spring proxy. Disable enforcement here so the aspects short-circuit to the
+    // mocked service call — see SecurityAspectControl's javadoc for the intended use.
     SecurityAspectControl.disableEnforcement();
     hrc = new HostedRepositoryComponent("repo-1", "path/lib.jar", "hash-abc");
     hrc.setId(HRC_ID);

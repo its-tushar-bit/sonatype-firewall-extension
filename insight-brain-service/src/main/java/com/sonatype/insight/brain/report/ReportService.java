@@ -57,14 +57,18 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.HostedRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
+import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.repository.hosted.HostedComponentScanQueueConsumer;
+import com.sonatype.insight.brain.repository.hosted.HostedRepositoryComponentResolver;
 import com.sonatype.insight.brain.repository.hosted.HostedReportFileBuilder;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
@@ -225,6 +229,12 @@ public class ReportService
 
   private final ClusterLockManager clusterLockManager;
 
+  private final HostedRepositoryComponentDAO hostedRepositoryComponentDAO;
+
+  private final HostedRepositoryComponentResolver resolver;
+
+  private final Provider<ScanPolicyEvaluator> scanPolicyEvaluatorProvider;
+
   @Inject
   public ReportService(
       final PolicyEvaluationDAO policyEvaluationDAO,
@@ -263,7 +273,10 @@ public class ReportService
       final InnerSourceCleanupPendingService innerSourceCleanupPendingService,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       final HostedComponentScanQueueConsumer hostedComponentScanQueueConsumer,
-      final ClusterLockManager clusterLockManager)
+      final ClusterLockManager clusterLockManager,
+      final HostedRepositoryComponentDAO hostedRepositoryComponentDAO,
+      final HostedRepositoryComponentResolver resolver,
+      final Provider<ScanPolicyEvaluator> scanPolicyEvaluatorProvider)
   {
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.configuration = configuration;
@@ -302,6 +315,9 @@ public class ReportService
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.hostedComponentScanQueueConsumer = hostedComponentScanQueueConsumer;
     this.clusterLockManager = clusterLockManager;
+    this.hostedRepositoryComponentDAO = hostedRepositoryComponentDAO;
+    this.resolver = resolver;
+    this.scanPolicyEvaluatorProvider = scanPolicyEvaluatorProvider;
   }
 
   @WithSpan
@@ -415,6 +431,45 @@ public class ReportService
   private static boolean isHostedScanTriggerType(final ScanTriggerType scanTriggerType) {
     return ScanTriggerType.HOSTED_REPOSITORY_SCANNING == scanTriggerType
         || ScanTriggerType.REPOSITORY_MANAGER == scanTriggerType;
+  }
+
+  /**
+   * Re-evaluate a hosted-repository component. Called from
+   * {@link HostedRepositoryComponentReportResource#reevaluatePolicy}, its only caller — the
+   * Application-scoped {@code ReportResource} evaluates Applications only. Runs synchronously on
+   * the caller's request thread.
+   * <p>
+   * Looks up the existing {@link PolicyEvaluation} row for {@code scanId} to recover the
+   * {@link HostedRepositoryComponent} owner and stage, re-uploads the stored scan to HDS under
+   * the same canonical {@code scanId}, re-runs {@link ScanPolicyEvaluator} against the refreshed
+   * report, and re-pins {@code owner_component_id} on the HRC. A pin miss is logged and swallowed
+   * by {@link HostedRepositoryComponentResolver#pinOwnerComponent} — it does not fail the
+   * re-evaluation.
+   *
+   * @param ownerId the {@link HostedRepositoryComponent} id owning the existing policy evaluation
+   *          for {@code scanId}.
+   */
+  public void reevaluateHostedComponent(final String ownerId, final String scanId) throws IOException {
+    PolicyEvaluation pe = policyEvaluationDAO.getLastByOwnerIdAndScanId(ownerId, scanId);
+    if (pe == null) {
+      throw new NotFoundException(
+          "Policy evaluation for scan " + scanId + " does not exist on the server.");
+    }
+
+    HostedRepositoryComponent hrc = hostedRepositoryComponentDAO.getById(pe.getOwnerId());
+    if (hrc == null) {
+      throw new NotFoundException(
+          "Scan " + scanId + " does not have an underlying hosted-repository component; cannot re-evaluate.");
+    }
+
+    reUploadScanToHds(hrc, scanId, null);
+
+    scanPolicyEvaluatorProvider.get()
+        .evaluate(
+            hrc, scanId, new Stage(pe.getStageTypeId()),
+            ScanTriggerType.HOSTED_REPOSITORY_SCANNING, ClientScanType.SONATYPE, false);
+
+    resolver.pinOwnerComponent(hrc, scanId, pe.getStageTypeId());
   }
 
   /**
@@ -567,6 +622,19 @@ public class ReportService
   @WithSpan
   public LifecycleReport getReport(final String appId, final String scanId) {
     return getReportNoAuth(applicationDAO.getByIdNotNull(appId), scanId);
+  }
+
+  /**
+   * Returns the stored report for an {@link Owner} without an authorization check.
+   * <p>
+   * For internal evaluation paths that already hold a resolved owner, including background monitoring
+   * threads that carry no user subject and so cannot satisfy the {@code @Authorize} on
+   * {@link #getReport(Owner, String)}. Unlike {@link #getReport(String, String)} this accepts a
+   * hosted-repository component, which owns its scans after the CLM-43710 ownership cutover.
+   */
+  @WithSpan
+  public LifecycleReport getReportForOwnerNoAuth(final Owner owner, final String scanId) {
+    return getReportNoAuth(owner, scanId);
   }
 
   /**
@@ -1805,19 +1873,27 @@ public class ReportService
    * that enrichment exactly once under the canonical {@code scanId} (e.g. via the evaluator path's
    * {@code fetchReport(scanId)}) before the report is consumed. Skipping that follow-up step silently yields a
    * report missing enrichment data such as reachability markers (cf. CLM-38947).
+   * <p>
+   * Owner-agnostic: serves both a Lifecycle {@link Application} and a
+   * {@link HostedRepositoryComponent}. Everything it touches — the evaluation lookup, the scan store, the
+   * HDS upload, and the report store — is keyed on the owner id, so neither branch needs owner-type logic.
    */
   @WithSpan
-  public PolicyEvaluation reUploadScanToHds(String appId, String scanId, String clientUserAgent) throws IOException {
+  public PolicyEvaluation reUploadScanToHds(
+      final Owner owner,
+      final String scanId,
+      final String clientUserAgent) throws IOException
+  {
     // First call to ensure the scanId is audited even on failure.
     AuditData.get().setScanId(scanId);
-    Application application = applicationDAO.getById(appId);
-    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(appId, scanId);
+    final String ownerId = owner.getId();
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(ownerId, scanId);
 
     if (policyEvaluation == null) {
       throw new BadRequestException("Policy evaluation for scan " + scanId + " does not exist on the server.");
     }
 
-    final ScanEntity scanEntity = scanPersistenceService.getScan(appId, scanId);
+    final ScanEntity scanEntity = scanPersistenceService.getScan(ownerId, scanId);
     final String stageTypeId = policyEvaluation.getStageTypeId();
     final Stage stage = new Stage(stageTypeId);
     final ScanTriggerType scanTriggerType = policyEvaluation.getScanTriggerType();
@@ -1830,6 +1906,10 @@ public class ReportService
     // restores the dependency-graph processing path so "View Dependency Tree" stays enabled after
     // re-evaluation (CLM-37563). For SBOMs that originally failed validation under SKIP_SBOM_IMPORT_VALIDATION,
     // propagating false avoids re-running validation that would throw on a known-invalid SBOM.
+    //
+    // Keyed on scanId rather than owner type, so it is correct for every Owner: a hosted-repository
+    // artifact has no third-party SBOM metadata, which yields isValid=true and a null specification —
+    // an empty ScanContext carrying no SBOM assumptions.
     final ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByScanId(scanId);
     final boolean isValid = sbomMetadata == null || sbomMetadata.getIsValid();
     final ScanContext scanContext = new ScanContext.Builder()
@@ -1837,10 +1917,10 @@ public class ReportService
         .isValid(isValid)
         .build();
 
-    ScanReceipt scanReceipt = scanUploadService.upload(scanEntity, application, stage.getStageTypeId(),
+    ScanReceipt scanReceipt = scanUploadService.upload(scanEntity, owner, stage.getStageTypeId(),
         clientScanType,
         clientUserAgent,
-        telemetryUtils.buildThirdPartyScanTelemetryData(application.getId(), stage, stageTypeId,
+        telemetryUtils.buildThirdPartyScanTelemetryData(ownerId, stage, stageTypeId,
             scanTriggerType, clientUserAgent),
         null /* scanRequestId */, scanContext, true);
     // Call again after upload to ensure the scanId is set to the original value, not the temporary new one.
@@ -1855,24 +1935,24 @@ public class ReportService
       throw new RuntimeException("Scan " + scanId + " interrupted while waiting for report re-generation.", e);
     }
 
-    Map<String, ReportEntry> preservedThirdPartyEntries = readThirdPartyEntriesFromReport(application, scanId);
+    Map<String, ReportEntry> preservedThirdPartyEntries = readThirdPartyEntriesFromReport(owner, scanId);
 
     String tempScanId = scanReceipt.getScanId();
     // Materialize the HDS-regenerated report under tempScanId without running applyChanges or the
     // SBOM-data merge. The caller is responsible for triggering that enrichment exactly once under the
     // canonical scanId: today ReportResource.reevaluatePolicy does so via the evaluator path's
     // fetchReport(scanId) after this method returns.
-    materializeReportFromHds(application, tempScanId, preservedThirdPartyEntries);
-    reportDataStore.moveLifecycleReport(appId, tempScanId, scanId);
+    materializeReportFromHds(owner, tempScanId, preservedThirdPartyEntries);
+    reportDataStore.moveLifecycleReport(ownerId, tempScanId, scanId);
     return policyEvaluation;
   }
 
   private Map<String, ReportEntry> readThirdPartyEntriesFromReport(
-      final Application application,
+      final Owner owner,
       final String scanId)
   {
     try {
-      LifecycleReport originalReport = reportDataStore.getLifecycleReport(application, scanId);
+      LifecycleReport originalReport = reportDataStore.getLifecycleReport(owner, scanId);
       if (originalReport.exists()) {
         List<String> entryNames = List.of(
             THIRD_PARTY_BOM_JSON.getName(),

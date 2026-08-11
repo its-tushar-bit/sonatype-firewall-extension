@@ -20,8 +20,12 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
@@ -345,16 +349,50 @@ public class ScanUploadServiceTest
   public void testUpload_MissingRequiredArguments() {
     ScanEntity scanEntity = createScanFile(app, TemporaryEntity.uuid().substring(0, 10));
     String stageTypeId = ComplianceStageType.ID;
-    // null app
+    // null owner
     assertThatExceptionOfType(IllegalArgumentException.class)
-        .isThrownBy(() -> service.upload(scanEntity, null, stageTypeId, null, null, null, null, false));
+        .isThrownBy(() -> service.upload(scanEntity, null, stageTypeId, null, null, null, null, false))
+        .withMessageContaining("owner");
     // null scanFile
     assertThatExceptionOfType(IllegalArgumentException.class)
-        .isThrownBy(() -> service.upload(null, app, stageTypeId, null, null, null, null, false));
+        .isThrownBy(() -> service.upload(null, app, stageTypeId, null, null, null, null, false))
+        .withMessageContaining("scanFile");
   }
 
-  private ScanEntity createScanFile(Application app, String scanId) {
-    File scanFile = work.getScanFile(app.getId(), scanId);
+  /**
+   * The upload pipeline is {@link Owner}-typed so hosted-repository artifacts evaluate through the same
+   * path as applications. Verifies the owner id threaded into the temp-scan and third-party-scan context
+   * comes from the {@link HostedRepositoryComponent}, not from an application.
+   */
+  @Test
+  public void testUpload_hostedRepositoryComponentOwner() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager);
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+
+    ScanEntity scanEntity = createScanFile(hrc, TemporaryEntity.uuid().substring(0, 10));
+    String stageTypeId = ComplianceStageType.ID;
+    String scanId = TemporaryEntity.uuid().substring(0, 10);
+
+    ScanReceipt mockReceipt = new ScanReceipt();
+    mockReceipt.setScanId(scanId);
+    ArgumentCaptor<ThirdPartyScanContext> contextCaptor = ArgumentCaptor.forClass(ThirdPartyScanContext.class);
+    when(scanUploader.upload(any(ScanEntity.class), eq(hrc), eq(stageTypeId), eq(null), contextCaptor.capture(),
+        eq(false))).thenReturn(mockReceipt);
+
+    ScanReceipt uploadReceipt =
+        service.upload(scanEntity, hrc, stageTypeId, null, null, thirdPartyScanTelemetryData, null, false);
+
+    assertThat(uploadReceipt).isEqualTo(mockReceipt);
+    verify(scanUploader, times(1))
+        .upload(any(ScanEntity.class), eq(hrc), eq(stageTypeId), eq(null), any(), eq(false));
+    // The owner id carried into the scan context is the HRC's, so downstream persistence keys on the
+    // hosted-repository component rather than a synthetic application.
+    assertThat(contextCaptor.getValue().getApplicationId()).isEqualTo(hrc.getId());
+  }
+
+  private ScanEntity createScanFile(Owner owner, String scanId) {
+    File scanFile = work.getScanFile(owner.getId(), scanId);
     try {
       Files.createDirectories(scanFile.getParentFile().toPath());
       Files.writeString(scanFile.toPath(), "test");
@@ -362,7 +400,7 @@ public class ScanUploadServiceTest
     catch (IOException e) {
       throw new RuntimeException(e);
     }
-    return new FileScanEntity(scanFile.toPath(), app.getId());
+    return new FileScanEntity(scanFile.toPath(), owner.getId());
   }
 
   private TelemetryData buildThirdPartyScanTelemetryData() {

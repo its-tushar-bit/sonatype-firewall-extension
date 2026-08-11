@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.repository.hosted;
 
 import java.io.ByteArrayInputStream;
-import java.nio.file.FileAlreadyExistsException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -19,7 +18,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.service.AdminTask;
-import jakarta.annotation.Nonnull;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Provider;
@@ -35,8 +33,6 @@ import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.api.v2.service.ConfigurationListener;
 import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.HostedComponentScanQueueDAO;
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -47,12 +43,12 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.report.LifecycleReport;
@@ -242,6 +238,8 @@ public class HostedComponentScanQueueConsumer
 
   private final TelemetrySender telemetrySender;
 
+  private final HostedRepositoryComponentResolver resolver;
+
   final TenantReference<HostedComponentScanQueueConfig> configs;
 
   @Inject
@@ -264,6 +262,7 @@ public class HostedComponentScanQueueConsumer
       final OwnerComponentDAO applicationComponentDAO,
       final TelemetryUtils telemetryUtils,
       final TelemetrySender telemetrySender,
+      final HostedRepositoryComponentResolver resolver,
       final ShutdownHandler shutdownHandler)
   {
     super(CONSUMER_NAME, shutdownHandler);
@@ -285,6 +284,7 @@ public class HostedComponentScanQueueConsumer
     this.applicationComponentDAO = applicationComponentDAO;
     this.telemetryUtils = telemetryUtils;
     this.telemetrySender = telemetrySender;
+    this.resolver = resolver;
     this.configs = new TenantReference<>(this::loadConfig);
   }
 
@@ -337,7 +337,7 @@ public class HostedComponentScanQueueConsumer
     String repositoryId = job.getRepositoryId();
 
     // A queued job can outlive its repo's monitoring being disabled or the repo being deleted; drop it
-    // rather than scan a stale repo (CLM-42122).
+    // rather than scan a stale repo.
     Repository repository = repositoryDAO.getById(repositoryId);
     if (repository == null) {
       log.info("Hosted component scan: repository {} no longer exists; dropping scan job id={}.",
@@ -350,51 +350,25 @@ public class HostedComponentScanQueueConsumer
       return;
     }
 
-    ScanEntity scanEntity = scanPersistenceServiceProvider.get().getScanByName(repositoryId, job.getScanFileId());
+    ScanEntity scanEntity =
+        scanPersistenceServiceProvider.get().getScanByName(repositoryId, job.getScanFileId());
     if (scanEntity == null) {
       throw new IllegalStateException(
           "Scan file not found: repositoryId=" + repositoryId + ", scanFileId=" + job.getScanFileId());
     }
 
-    // The scanner emits one <dir> per archive it recognised. For a single-jar upload that's one
-    // entry; for an archive-of-archives upload (e.g. a .zip containing multiple .jar files) it's
-    // one entry per inner artifact. The first <dir> is always the outer artifact (the thing the
-    // user uploaded); any subsequent <dir>s are inner artifacts the scanner discovered inside it.
-    // We process the outer artifact as the single proxy_repository_component row (so the Components page
-    // shows one row per uploaded artifact) but pass ALL components — outer + inners — into the
-    // policy evaluator so violations get persisted for every inner pathname too. Inner-pathname
-    // proxy_repository_component rows are deleted post-eval so the Components page stays clean; the
-    // inner-pathname proxy_repository_policy_violation rows survive and feed the synthesised
-    // policythreats.json so drilling into the outer's report shows per-inner findings.
     List<ScanComponentInfo> componentInfos = ScanXmlParser.extractComponentInfos(scanEntity);
-    // Visibility for outsized archives: a normal hosted upload produces a handful of inner
-    // components; anything north of HIGH_COMPONENT_COUNT_THRESHOLD is unusual and worth flagging
-    // (could be a deeply nested archive, a recursive zip, or a misconfigured scanner). We don't
-    // truncate the list — silently dropping inner findings would hide real CVEs and make the
-    // gap impossible to debug from logs alone — but we want ops to see the count so they can
-    // correlate with downstream timing/memory pressure.
     if (componentInfos.size() > HIGH_COMPONENT_COUNT_THRESHOLD) {
       log.warn("Archive scan job id={} unpacked into {} components (threshold={}). Processing all but "
           + "this is unusual; investigate if it correlates with degraded eval performance.",
           job.getId(), componentInfos.size(), HIGH_COMPONENT_COUNT_THRESHOLD);
     }
 
-    // CLM-42079: NXRM's scan-queue payload sends stage in inconsistent casing/format —
-    // "RELEASE", "release", "BUILD", "STAGE_RELEASE" (underscore), and occasionally NULL.
-    // IQ's canonical stage IDs are all-lowercase with hyphens ("release", "build",
-    // "stage-release"). A raw toLowerCase() lets "RELEASE"/"release" through unchanged but
-    // leaves "STAGE_RELEASE" as "stage_release" (INVALID — hyphen, not underscore) which
-    // silently mis-routes policy evaluation. NULL falls back to compliance stage today, which
-    // masks NXRM configuration issues in telemetry (Dariush 2026-07-01: 29,952 stage-release
-    // vs 124 build in production despite build being the configured stage). normalizeStage()
-    // canonicalizes the value and logs at WARN when the fallback fires so ops can spot the
-    // NXRM-side gap.
     String stage = normalizeStage(job.getPolicyEvaluationStage(), job.getId());
 
     if (componentInfos.isEmpty()) {
-      // No usable <dir> in the scan file. Still upload via the repository pipeline so HDS has the
-      // raw scan record (matches today's behaviour for non-archive scans that fail to parse), then
-      // bail — no application, no evaluation, no report.
+      // Preserve HDS audit trail for scans the scanner couldn't parse: upload via the repository
+      // pipeline so HDS still has the raw scan, then bail without evaluation.
       ScanReceipt scanReceipt = scanUploaderProvider.get()
           .upload(scanEntity, repository, stage, null, null, true);
       log.warn("Could not extract any component info from scan file for job id={}; uploaded via repository pipeline"
@@ -403,169 +377,24 @@ public class HostedComponentScanQueueConsumer
       return;
     }
 
-    ScanComponentInfo outerComponentInfo = componentInfos.get(0);
+    ScanComponentInfo outer = componentInfos.get(0);
 
-    // Get or create the synthetic application keyed on the OUTER pathname only — one app per
-    // uploaded artifact, matching today's UX (the Components page lists the artifact once).
-    com.sonatype.insight.brain.model.Application application =
-        applicationForHostedComponentService.getOrCreateApplication(repositoryId, outerComponentInfo.pathname());
+    HostedRepositoryComponent hrc = resolver.getOrCreate(
+        repositoryId, outer.pathname(), outer.hash(), job.getComponentId());
 
-    ScanReceipt scanReceipt;
-    if (application != null) {
-      scanReceipt = scanUploaderProvider.get().upload(scanEntity, application, stage, null, null, true);
-      log.debug("Uploaded scan via application pipeline, job id={}, scanId={}, appPublicId={}, pathname={}",
-          job.getId(), scanReceipt.getScanId(), application.getPublicId(), outerComponentInfo.pathname());
-    }
-    else {
-      scanReceipt = scanUploaderProvider.get().upload(scanEntity, repository, stage, null, null, true);
-      // WARN, not DEBUG — getOrCreateApplication should always succeed in normal operation. A
-      // null return means the synthetic-application creation failed (org missing, permission
-      // issue, race during cleanup), and the scan falls back to the repository pipeline which
-      // generates a different report shape downstream. Ops needs to see this in production logs
-      // to correlate with missing per-component reports in the UI.
-      log.warn("No synthetic application for hosted scan, job id={}, scanId={}, pathname={}; "
-          + "falling back to repository upload pipeline (per-component report links will be unavailable).",
-          job.getId(), scanReceipt.getScanId(), outerComponentInfo.pathname());
-    }
+    ScanReceipt receipt = scanUploaderProvider.get()
+        .upload(scanEntity, hrc, stage, null, null, true);
 
-    // Evaluate ALL components (outer + every inner) in a single request. The evaluator persists
-    // one proxy_repository_component row + one batch of proxy_repository_policy_violation rows per request
-    // entry. We delete the inner proxy_repository_component rows immediately afterwards (see below) so
-    // the Components page only ever shows the outer artifact.
-    evaluatePolicies(job, repositoryId, componentInfos, stage);
+    // Manual Re-Evaluate and Continuous Monitoring both re-read this via
+    // ScanPersistenceService.getScan(hrc.getId(), scanId).
+    storeScanForReEvaluate(scanEntity, hrc.getId(), receipt.getScanId());
 
-    stampStage(repositoryId, outerComponentInfo.pathname(), stage.toLowerCase());
+    scanPolicyEvaluatorProvider.get()
+        .evaluate(
+            hrc, receipt.getScanId(), new Stage(stage.toLowerCase()),
+            ScanTriggerType.HOSTED_REPOSITORY_SCANNING, ClientScanType.SONATYPE, false);
 
-    // Eagerly raise component_count from the scanner's view (componentInfos.size()). On runtimes
-    // where the HDS report's bom.json is not immediately available after downloadReport (S3-
-    // backed tenant storage with network latency), the bom-based count stamp inside
-    // saveReportFiles silently no-ops and the column would otherwise stay NULL forever. This
-    // eager raise guarantees a useful floor value lands every time. Both this call and the later
-    // saveReportFiles refinement go through raiseComponentCountIfHigher, so neither path can
-    // regress the column to a smaller value — including on re-scans where the scanner count is
-    // smaller than a previously HDS-refined value.
-    stampComponentCount(repositoryId, outerComponentInfo.pathname(), componentInfos.size());
-
-    persistApplicationLinkedReportFiles(
-        repositoryId, scanEntity, outerComponentInfo, application, scanReceipt, stage);
-
-    // CLM-40943: Nested-component policy violations via ScanPolicyEvaluator + mirror.
-    //
-    // The repository-evaluation pipeline (evaluatePolicies above) only writes a single
-    // proxy_repository_policy_violation row for the outer artifact, because the scanner emits a
-    // single <dir> for archives whose container format it cannot crack natively (npm .tgz,
-    // pypi sdist/wheel, helm charts, go module zips, etc.) and HDS's firewall purpose returns
-    // only outer-scope match data.
-    //
-    // The Lifecycle-evaluation pipeline already does the right thing for the same scan: it
-    // runs full Drools policy evaluation against every component HDS identified in bom.json
-    // (outer + every nested), producing one policy_violation row per (component × policy).
-    // Hosted-repo doesn't normally invoke that path because its persistence boundary is
-    // proxy_repository_policy_violation, not policy_violation.
-    //
-    // Solution: invoke ScanPolicyEvaluator on the synthetic application IQ already created
-    // for this hosted upload — same Drools logic that runs for "Evaluate a binary" in the UI —
-    // then mirror each resulting policy_violation row into proxy_repository_policy_violation,
-    // skipping the row that corresponds to the outer (evaluatePolicies already handled that
-    // and the existing data is the source of truth for quarantine + firewall behaviour).
-    //
-    // Format-agnostic: any format HDS identifies nested components for (npm confirmed; pypi,
-    // helm, go, nuget, rubygems pending HDS support per format) gets per-inner violations.
-    // Must run AFTER persistApplicationLinkedReportFiles so report.zip is on disk —
-    // ScanPolicyEvaluator reads bom.json/security.json/licenses.json from it.
-    if (application != null && scanReceipt != null) {
-      mirrorNestedComponentViolationsFromApplicationEvaluation(
-          job.getId(),
-          repositoryId,
-          outerComponentInfo.pathname(),
-          outerComponentInfo.hash(),
-          application,
-          scanReceipt.getScanId(),
-          stage,
-          job.getComponentId());
-    }
-
-    // CLM-41693 / CLM-42079: Emit APPLICATION_EVALUATION_COMPONENT_COUNTS telemetry with
-    // scan_trigger_type=HOSTED_REPOSITORY_SCANNING so telemetry consumers can distinguish
-    // hosted repository scans from other scan trigger types (CLI, IDE, WEB_UI, etc.).
-    //
-    // Fires AFTER mirrorNestedComponentViolationsFromApplicationEvaluation so we can read the
-    // final component_count that the UI will display — same authoritative value the Hosted
-    // Repository build report shows in its "N COMPONENTS" header. This closes the discrepancy
-    // reported in CLM-42079 where telemetry emitted the raw scanner count (e.g. 6 for an
-    // ansible.tar.gz with 5 unknown nested files) while the report showed 1 (identified-outer
-    // gate collapsed to a single component).
-    //
-    // Guarded on application != null because the application-id is a required attribute of this
-    // telemetry event and is not available on the repository-upload fallback path above
-    // (uploadForRepository). scanReceipt is guaranteed non-null after either upload branch (both
-    // throw on failure), but kept as a defensive guard against future refactors.
-    if (application != null && scanReceipt != null) {
-      int effectiveCount = readEffectiveComponentCount(repositoryId, outerComponentInfo.pathname(),
-          componentInfos.size());
-      sendHostedScanEvaluationTelemetry(
-          scanReceipt.getScanId(), application.getId(), stage, componentInfos, effectiveCount);
-    }
-
-    if (componentInfos.size() > 1) {
-      deleteInnerRepositoryComponentRows(repositoryId, componentInfos);
-      log.info("Processed archive-of-archives scan for job id={}: outer pathname={} retained, {} inner rows deleted",
-          job.getId(), outerComponentInfo.pathname(), componentInfos.size() - 1);
-    }
-  }
-
-  /**
-   * Returns the authoritative {@code proxy_repository_component.component_count} for the outer artifact
-   * — the value the Hosted Repository UI header displays as "N COMPONENTS". Used by telemetry
-   * to keep {@code number_of_components} attribute in lockstep with what users see in the report.
-   * <p>
-   * Falls back to {@code fallbackCount} (typically the scanner's {@code componentInfos.size()})
-   * when the row is missing or the column is NULL — either would only happen on a race with a
-   * concurrent delete or before the stamp landed, both indicating something already went wrong
-   * upstream where the fallback is a reasonable last-resort value that matches historical
-   * telemetry behaviour.
-   */
-  private int readEffectiveComponentCount(
-      final String repositoryId,
-      final String pathname,
-      final int fallbackCount)
-  {
-    try {
-      ProxyRepositoryComponent row = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repositoryId, pathname);
-      if (row != null && row.getComponentCount() != null) {
-        return row.getComponentCount();
-      }
-    }
-    catch (Exception e) {
-      log.warn("Failed to read final component_count for telemetry pathname={}: {}; falling back to {}",
-          pathname, e.getMessage(), fallbackCount);
-    }
-    return fallbackCount;
-  }
-
-  /**
-   * Eagerly raises {@code component_count} on the outer artifact's {@code proxy_repository_component}
-   * row to the scanner's {@code componentInfos.size()} — but ONLY if that value is higher than
-   * whatever is already stored (or the column is NULL). The same atomic-monotonic semantics that
-   * {@code saveReportFiles}'s HDS-bom refinement uses, applied here too: this means a re-scan
-   * cannot transiently regress a column from an HDS-refined-up value (e.g. 185) back to the
-   * scanner's smaller count (e.g. 3) and then have to be re-raised. The first scan establishes a
-   * floor; subsequent scans only ever raise. Failures are logged but don't fail the job.
-   */
-  private void stampComponentCount(
-      final String repositoryId,
-      final String pathname,
-      final int count)
-  {
-    try (TransactionContext tx = proxyRepositoryComponentDAO.createTransactionContext()) {
-      tx.begin();
-      proxyRepositoryComponentDAO.raiseComponentCountIfHigher(tx, repositoryId, pathname, count);
-      tx.commit();
-    }
-    catch (Exception e) {
-      log.warn("Failed to eagerly raise component_count={} for pathname={}: {}",
-          count, pathname, e.getMessage(), e);
-    }
+    resolver.pinOwnerComponent(hrc, receipt.getScanId(), stage.toLowerCase());
   }
 
   /**
@@ -655,227 +484,6 @@ public class HostedComponentScanQueueConsumer
       }
     }
     return false;
-  }
-
-  /**
-   * Persists the synthetic-application linkage and the HDS report files for an evaluated component.
-   * <p>
-   * Stamps {@code scanId} on {@code repository_component}, persists the policy_evaluation row, and downloads
-   * the HDS report bundle so the report link is clickable in the UI.
-   *
-   * @param scanReceipt non-null receipt produced by a successful
-   *          {@link com.sonatype.insight.brain.hds.ScanUploader} upload — the upload either returns
-   *          a receipt or throws, so callers don't need to null-guard
-   */
-  private void persistApplicationLinkedReportFiles(
-      final String repositoryId,
-      final ScanEntity scanEntity,
-      final ScanComponentInfo componentInfo,
-      final com.sonatype.insight.brain.model.Application application,
-      @Nonnull final ScanReceipt scanReceipt,
-      final String stage)
-  {
-    if (componentInfo == null) {
-      return;
-    }
-    if (application != null) {
-      stampScanId(repositoryId, componentInfo.pathname(), scanReceipt.getScanId());
-      storeScanForReEvaluate(scanEntity, application.getId(), scanReceipt.getScanId());
-      createPolicyEvaluationRecord(application.getId(), scanReceipt.getScanId(), stage);
-      saveReportFiles(application, componentInfo.pathname(), scanReceipt.getScanId());
-    }
-    else {
-      log.warn(
-          "Could not get/create synthetic application for repositoryId={} pathname={}, report navigation will not be available",
-          repositoryId, componentInfo.pathname());
-    }
-  }
-
-  private void saveReportFiles(final Application application, final String pathname, final String scanId) {
-    try {
-      // Download HDS report zip so the report page works immediately on first open.
-      // Reuse the returned LifecycleReport for bom.json — avoids re-opening the zip.
-      LifecycleReport downloadedReport = null;
-      try {
-        downloadedReport = reportDataStoreProvider.get().downloadReport(application, scanId, (sid, r, aid) -> {
-        });
-      }
-      catch (FileAlreadyExistsException ignored) {
-        // concurrent call already downloaded it — fine
-      }
-
-      // Patch bom.json displayName — HDS omits it for repository scans; PDF generator requires it.
-      // Also dedupe bom.aaData for identified rows with duplicate (format+coords) identity —
-      // HDS occasionally returns two matchState=exact rows for the same component (the npm
-      // self-mirror pattern: HDS's content-hash entry + the file-SHA1 entry both surface for
-      // an npm tarball uploaded to a hosted repo). LC's iq-cli already dedupes via
-      // ScanPolicyEvaluator so its report shows 1 row; deduping here aligns the hosted view.
-      // The dedupe is keep-first, which preserves aaData[0].hash — the join key extractBomOuterHash
-      // reads below and patchBomKeepOuterOnly uses for the outer-gate trim.
-      // Keep patched bytes to reuse for component count — avoids a second bom.json fetch.
-      byte[] patchedBom = null;
-      try {
-        LifecycleReport reportToRead = downloadedReport != null
-            ? downloadedReport
-            : reportDataStoreProvider.get().getLifecycleReport(application, scanId);
-        ReportEntry bomEntry = reportToRead != null ? reportToRead.getEntry("bom.json") : null;
-        if (bomEntry != null) {
-          byte[] displayNamed = HostedReportFileBuilder.patchBomDisplayName(bomEntry.buf);
-          patchedBom = HostedReportFileBuilder.dedupeBomIdentifiedRows(displayNamed);
-          lifecycleReportPersistenceService.saveReportFile(application.getId(), scanId, "bom.json",
-              new ByteArrayInputStream(patchedBom));
-        }
-      }
-      catch (Exception ex) {
-        log.warn("Failed to patch/dedupe bom.json for scanId={}: {}", scanId, ex.getMessage());
-      }
-
-      // Save policythreats.json only — HDS data.json has the real totalArtifactCount
-      // (number of internal components found inside the artifact). Overriding it with
-      // our generated version (hardcoded to 1) would mask the true component count.
-      ProxyRepositoryComponent comp = proxyRepositoryComponentDAO.getByScanId(scanId);
-      // For an archive-of-archives upload the evaluator persisted N policy_violation rows: one
-      // batch keyed on the outer pathname (outer.zip) plus one batch per inner pathname
-      // (outer.zip!/inner.jar). The Components page only shows the outer row, so the synthesised
-      // policythreats.json that backs the outer's report must include violations from BOTH the
-      // outer pathname AND any inner pathname under it.
-      List<ProxyRepositoryPolicyViolation> violations = List.of();
-      if (comp != null && comp.getPathname() != null) {
-        violations = proxyRepositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnameOrInnerPathnames(
-            comp.getRepositoryId(), comp.getPathname());
-        Repository repositoryForFormat = repositoryDAO.getById(comp.getRepositoryId());
-        String repoFormatForOuterFilter =
-            repositoryForFormat != null ? repositoryForFormat.getFormat() : null;
-        violations = HostedReportFileBuilder.excludeOuterViolationsForFormat(
-            comp, violations, repoFormatForOuterFilter,
-            HostedReportFileBuilder.resolveComponentUnknownPolicy(policyDAO, application.getId()));
-      }
-      // CLM-40943: extract bom.json's outer hash so policythreats.json + data.json use the same
-      // hash bom.json carries for the outer entry. For npm/nuget/pub formats the file SHA1 (which
-      // is what ProxyRepositoryPolicyViolation.hash stores) differs from HDS's identification hash
-      // (what bom.json carries), and the LC Application Report body table joins on bom's hash.
-      // Without aligning, the body shows the outer with zero violations attached even when the
-      // pill header reports many. Formats whose file SHA1 already equals HDS's hash (maven, pypi,
-      // rubygems, conda, helm, r) get the same hash from both sources — no-op for those.
-      String bomOuterHashOverride = extractBomOuterHash(patchedBom);
-      for (String fileName : List.of("policythreats.json")) {
-        byte[] content = HostedReportFileBuilder.build(fileName, comp, violations, bomOuterHashOverride);
-        lifecycleReportPersistenceService.saveReportFile(application.getId(), scanId, fileName,
-            new ByteArrayInputStream(content));
-      }
-
-      // CLM-42117/42118/42119/42120/41737 (was CLM-40943): the full patchDataJsonPolicyCounts
-      // recompute is intentionally NOT called here — recomputing policyCounts[] from IQ-side
-      // rolled-up violations diverged from HDS's view for bundled archives (CLM-42119 rubygems)
-      // and inflated the Critical/Severe/Moderate pills. HDS's raw policyCounts[] flows through
-      // untouched so those threat pills match a same-file Lifecycle scan.
-      //
-      // policyComponentCount is different — HDS OMITS the field entirely for non-nested single
-      // artifacts (Maven, PyPI single, RubyGems single, R CRAN). When absent, the frontend
-      // header pill "Affecting N components" (ReportStatusBar.jsx:21,90) falls back to 0 even
-      // when violations exist. The if-absent stamp below is scoped to that single field and
-      // uses the same violation-dedup as policythreats.json so the two files stay consistent
-      // by construction. It no-ops for formats where HDS already wrote the field.
-      try {
-        LifecycleReport reportForPatch = downloadedReport != null
-            ? downloadedReport
-            : reportDataStoreProvider.get().getLifecycleReport(application, scanId);
-        ReportEntry dataEntryForPatch = reportForPatch != null ? reportForPatch.getEntry("data.json") : null;
-        if (dataEntryForPatch != null && dataEntryForPatch.buf != null) {
-          byte[] patched = HostedReportFileBuilder.patchDataJsonPolicyComponentCountIfAbsent(
-              dataEntryForPatch.buf, comp, violations, bomOuterHashOverride);
-          if (patched != dataEntryForPatch.buf) {
-            lifecycleReportPersistenceService.saveReportFile(application.getId(), scanId, "data.json",
-                new ByteArrayInputStream(patched));
-          }
-        }
-      }
-      catch (Exception ex) {
-        log.warn("Failed to patch data.json.policyComponentCount for scanId={}: {}",
-            scanId, ex.getMessage());
-      }
-
-      // CLM-42117 (npm 200%-identified fix): patch data.json.knownArtifactCount to reflect
-      // the deduped bom's known-match count. HDS's raw data.json occasionally reports
-      // knownArtifactCount greater than totalArtifactCount for formats that produce the
-      // duplicate-bom-row pattern (npm content-hash + file-SHA1 both surface as
-      // matchState=exact for the same coordinate — e.g. dot-prop-4.2.0.tgz gives total=1 but
-      // known=2). The dedupe pass on bom.json above already collapses the duplicate rows;
-      // this patch aligns data.json so the header's "N% identified" percentage matches the
-      // deduped bom and never exceeds 100%.
-      //
-      // Reads from patchedBom (which has already been deduped) so the count reflects the
-      // trimmed aaData. No-op when knownArtifactCount already equals the deduped count.
-      if (patchedBom != null) {
-        try {
-          LifecycleReport reportForKnown = downloadedReport != null
-              ? downloadedReport
-              : reportDataStoreProvider.get().getLifecycleReport(application, scanId);
-          ReportEntry dataEntryForKnown = reportForKnown != null ? reportForKnown.getEntry("data.json") : null;
-          if (dataEntryForKnown != null && dataEntryForKnown.buf != null) {
-            int dedupedKnown = HostedReportFileBuilder.countKnownMatchesInBom(patchedBom);
-            byte[] patched = HostedReportFileBuilder.patchDataJsonKnownArtifactCountOnly(
-                dataEntryForKnown.buf, dedupedKnown);
-            if (patched != dataEntryForKnown.buf) {
-              lifecycleReportPersistenceService.saveReportFile(application.getId(), scanId, "data.json",
-                  new ByteArrayInputStream(patched));
-            }
-          }
-        }
-        catch (Exception ex) {
-          log.warn("Failed to patch data.json.knownArtifactCount for scanId={}: {}",
-              scanId, ex.getMessage());
-        }
-      }
-
-      // CLM-42118 (follow-up to CLM-41737): stamp component_count from HDS's
-      // data.json.totalArtifactCount — the same field the drill-in Build Report header
-      // renders — so the Hosted Repos list COMPONENTS column and the Build Report agree.
-      //
-      // Prior behavior read bom.json.aaData.length via raiseComponentCountIfHigher, which
-      // (a) can disagree with totalArtifactCount when HDS expands manifest-derived deps into
-      // data.json but not into bom (rubygems, npm: list-page 2 vs report-page 5), and (b) is
-      // raise-only, so the scanner's over-count from executeJob's eager stamp wins when it
-      // exceeds HDS's true component count (pub .tar.gz: 39 file entries scanned vs 4
-      // identified → list-page 39 vs report-page 4).
-      //
-      // Unconditional stamp is safe here because HDS is authoritative once its report has
-      // downloaded successfully; the scanner-count eager stamp is only meaningful as a
-      // fallback for the case where HDS's report never arrives (S3 latency, etc.), and in
-      // that case control never reaches this line — the enclosing try's outer catch has
-      // already logged the download/read failure.
-      if (comp != null) {
-        try {
-          LifecycleReport reportForCount = downloadedReport != null
-              ? downloadedReport
-              : reportDataStoreProvider.get().getLifecycleReport(application, scanId);
-          ReportEntry dataEntry = reportForCount != null ? reportForCount.getEntry("data.json") : null;
-          if (dataEntry != null && dataEntry.buf != null) {
-            JsonNode dataJson = MAPPER.readTree(dataEntry.buf);
-            JsonNode totalNode = dataJson.path("totalArtifactCount");
-            if (totalNode.isNumber() && totalNode.asInt() >= 0) {
-              int hdsCount = totalNode.asInt();
-              try (TransactionContext tx = proxyRepositoryComponentDAO.createTransactionContext()) {
-                tx.begin();
-                proxyRepositoryComponentDAO.stampComponentCount(
-                    tx, comp.getRepositoryId(), comp.getPathname(), hdsCount);
-                tx.commit();
-              }
-            }
-          }
-        }
-        catch (Exception ex) {
-          log.warn("Failed to stamp component_count from data.json.totalArtifactCount for scanId={}: {}",
-              scanId, ex.getMessage());
-        }
-      }
-
-      log.debug("Saved report files for hosted component appId={} scanId={}", application.getId(), scanId);
-    }
-    catch (Exception e) {
-      log.warn("Failed to save report files for hosted component appId={} scanId={}: {}",
-          application.getId(), scanId, e.getMessage());
-    }
   }
 
   /**
@@ -1298,83 +906,6 @@ public class HostedComponentScanQueueConsumer
       // hiccup (HDS blip, queue full) that has nothing to do with the scan itself. See CLM-41693.
       log.warn("Failed to send hosted scan evaluation telemetry scanId={} appId={}: {}",
           scanId, applicationId, e.getMessage(), e);
-    }
-  }
-
-  private void createPolicyEvaluationRecord(final String appId, final String scanId, final String stageTypeId) {
-    try (TransactionContext tx = policyEvaluationDAO.createTransactionContext()) {
-      tx.begin();
-      if (policyEvaluationDAO.getLastByOwnerIdAndScanId(tx, appId, scanId) == null) {
-        PolicyEvaluation pe = PolicyEvaluation.createForHostedComponent(appId, stageTypeId, scanId, false);
-        policyEvaluationDAO.insert(tx, pe);
-        log.debug("Created policy_evaluation record appId={} scanId={}", appId, scanId);
-      }
-      tx.commit();
-    }
-    catch (Exception e) {
-      log.warn("Failed to create policy_evaluation record appId={} scanId={}: {}", appId, scanId, e.getMessage(), e);
-    }
-  }
-
-  private void stampStage(final String repositoryId, final String pathname, final String stage) {
-    try (TransactionContext tx = proxyRepositoryComponentDAO.createTransactionContext()) {
-      tx.begin();
-      proxyRepositoryComponentDAO.stampLastEvaluationStage(tx, repositoryId, pathname, stage);
-      tx.commit();
-    }
-    catch (Exception e) {
-      log.warn("Failed to stamp stage for pathname={}: {}", pathname, e.getMessage(), e);
-    }
-  }
-
-  private void stampScanId(final String repositoryId, final String pathname, final String scanId) {
-    try (TransactionContext tx = proxyRepositoryComponentDAO.createTransactionContext()) {
-      tx.begin();
-      proxyRepositoryComponentDAO.stampScanId(tx, repositoryId, pathname, scanId);
-      tx.commit();
-    }
-    catch (Exception e) {
-      log.warn("Failed to stamp scan_id for pathname={}: {}", pathname, e.getMessage(), e);
-    }
-  }
-
-  private void evaluatePolicies(
-      final HostedComponentScanQueue job,
-      final String repositoryId,
-      final List<ScanComponentInfo> componentInfos,
-      final String stageTypeId)
-  {
-    Repository repository = repositoryDAO.getById(repositoryId);
-    if (repository == null) {
-      throw new IllegalStateException(
-          "Repository not found for policy evaluation: repositoryId=" + repositoryId
-              + ", job id=" + job.getId());
-    }
-
-    RepositoryComponentEvaluationDataRequestList request =
-        new RepositoryComponentEvaluationDataRequestList("INITIAL_SCAN");
-    for (ScanComponentInfo info : componentInfos) {
-      request.components.add(new RepositoryComponentEvaluationDataRequest(
-          info.format() != null ? info.format() : repository.getFormat(),
-          info.pathname(),
-          info.hash()));
-    }
-
-    repositoryPolicyEvaluatorProvider.get()
-        .evaluate(repository, request, false /* withQuarantine */, null, stageTypeId);
-    log.debug("Policy evaluation completed for job id={}, components={} (outer + {} inner)",
-        job.getId(), componentInfos.size(),
-        Math.max(0, componentInfos.size() - 1));
-
-    // Stamp NXRM componentId on the outer pathname AND on every inner-pathname violation row
-    // (outer.zip!/inner.jar) the evaluator just persisted. The Components page is keyed on the
-    // outer (we delete the inner proxy_repository_component rows next), but downstream code that
-    // joins on proxy_repository_policy_violation.component_id — waivers-by-component, quarantine-by-
-    // component — needs the column populated on the inner rows too. Skipping this would create
-    // a silent gap where component-keyed waivers don't match inner-artifact violations.
-    if (job.getComponentId() != null && !componentInfos.isEmpty()) {
-      ScanComponentInfo outer = componentInfos.get(0);
-      stampNxrmComponentIdOnOuterAndInnerPathnames(repositoryId, outer.pathname(), job.getComponentId());
     }
   }
 
@@ -1820,68 +1351,6 @@ public class HostedComponentScanQueueConsumer
       }
     }
     return violation.getHash() != null ? violation.getHash() : "unknown";
-  }
-
-  /**
-   * Removes the {@code proxy_repository_component} rows the evaluator created for inner artifact
-   * pathnames (those containing the {@code !/} separator). The inner-pathname
-   * {@code proxy_repository_policy_violation} rows are intentionally left in place — they feed the
-   * outer artifact's synthesised {@code policythreats.json} so drilling into the outer report
-   * surfaces every inner finding.
-   */
-  private void deleteInnerRepositoryComponentRows(
-      final String repositoryId,
-      final List<ScanComponentInfo> componentInfos)
-  {
-    if (componentInfos.size() <= 1) {
-      return;
-    }
-    // Collect inner-pathname list once; the DAO batches into IN-clause chunks internally so an
-    // archive with N inner artifacts costs ⌈N/threshold⌉ DELETEs, not 2N (the old SELECT+DELETE
-    // per inner). Cascades to quarantined_component_access via the same IN clause.
-    List<String> innerPathnames = new java.util.ArrayList<>(componentInfos.size() - 1);
-    for (int i = 1; i < componentInfos.size(); i++) {
-      innerPathnames.add(componentInfos.get(i).pathname());
-    }
-    try (TransactionContext tx = proxyRepositoryComponentDAO.createTransactionContext()) {
-      tx.begin();
-      proxyRepositoryComponentDAO.deleteByRepositoryIdAndPathnames(tx, repositoryId, innerPathnames);
-      tx.commit();
-    }
-    catch (Exception e) {
-      // Don't fail the job — at worst the Components page shows extra inner-pathname rows the
-      // user can ignore. The outer row + report are unaffected.
-      log.warn("Failed to delete inner proxy_repository_component rows for repositoryId={}: {}",
-          repositoryId, e.getMessage(), e);
-    }
-  }
-
-  /**
-   * Stamps {@code component_id} on the outer artifact's {@code proxy_repository_component} row AND on
-   * every active violation row whose pathname is either the outer pathname OR an inner-pathname
-   * under it ({@code outer.zip!/inner.jar}). The {@code proxy_repository_component} side is intentionally
-   * outer-only because the inner proxy_repository_component rows are deleted in
-   * {@link #deleteInnerRepositoryComponentRows}; the violation side covers both so future
-   * component-id-keyed code paths (waivers, quarantine) match inner-artifact findings too.
-   */
-  private void stampNxrmComponentIdOnOuterAndInnerPathnames(
-      final String repositoryId,
-      final String outerPathname,
-      final String componentId)
-  {
-    try (TransactionContext tx = proxyRepositoryComponentDAO.createTransactionContext()) {
-      tx.begin();
-      proxyRepositoryComponentDAO.stampComponentId(tx, repositoryId, outerPathname, componentId);
-      proxyRepositoryPolicyViolationDAO.stampComponentIdOnPathnameOrInnerPathnames(
-          tx, repositoryId, outerPathname, componentId);
-      tx.commit();
-      log.debug("Stamped component_id={} on proxy_repository_component (outer) and "
-          + "proxy_repository_policy_violation (outer + inner pathnames) for pathname={}",
-          componentId, outerPathname);
-    }
-    catch (Exception e) {
-      log.warn("Failed to stamp component_id for pathname={}: {}", outerPathname, e.getMessage(), e);
-    }
   }
 
   @Override

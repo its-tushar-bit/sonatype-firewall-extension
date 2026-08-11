@@ -11,8 +11,8 @@ import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.continuousmonitoring.EligibilityCursor;
 import com.sonatype.insight.brain.dataaccess.continuousmonitoring.Page;
-import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
-import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
+import com.sonatype.insight.brain.dataaccess.repository.HostedRepositoryComponentDAO;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Before;
@@ -31,15 +31,15 @@ import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for {@link HostedRepoEligibilitySelector} (CLM-40039 §6.1, CLM-41005 keyset).
- * Verifies the selector forwards the cursor + cycleStart to the DAO, builds the next cursor from
- * the last row of the returned page, sets {@code hasMore} on saturated pages, and propagates the
- * end-of-stream {@code Page.empty()} that stops the producer.
+ * Verifies the selector forwards the cursor to the DAO, builds the next cursor from the last row of
+ * the returned page, sets {@code hasMore} on saturated pages, and propagates the end-of-stream
+ * {@code Page.empty()} that stops the producer.
  */
 @RunWith(MockitoJUnitRunner.class)
 public class HostedRepoEligibilitySelectorTest
 {
   @Mock
-  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
+  private HostedRepositoryComponentDAO hostedRepositoryComponentDAO;
 
   @Mock
   private TransactionContext tx;
@@ -48,81 +48,80 @@ public class HostedRepoEligibilitySelectorTest
 
   @Before
   public void setup() {
-    when(proxyRepositoryComponentDAO.createTransactionContext()).thenReturn(tx);
-    underTest = new HostedRepoEligibilitySelector(proxyRepositoryComponentDAO);
+    when(hostedRepositoryComponentDAO.createTransactionContext()).thenReturn(tx);
+    underTest = new HostedRepoEligibilitySelector(hostedRepositoryComponentDAO);
   }
 
+  /**
+   * The cursor reaches the DAO unchanged. {@code cycleStart} is deliberately not forwarded: candidates
+   * carry no evaluation timestamp, so there is nothing on this table to filter against it.
+   */
   @Test
-  public void testFetchPage_passesCursorAndCycleStartToDao() {
-    // Millisecond-truncated Instant so the round-trip through Date.from() preserves equality
-    // (Date.from(Instant) truncates nanoseconds — breaks Date.equals on nanosecond clocks).
-    Instant cycleStart = Instant.ofEpochMilli(System.currentTimeMillis());
+  public void testFetchPage_passesCursorToDao() {
     EligibilityCursor cursorIn = new EligibilityCursor(new Date(1000L), "in-id");
-    ProxyRepositoryComponent row = newComponent("row-id", new Date(2000L));
-    when(proxyRepositoryComponentDAO.getMonitoringEligiblePage(any(TransactionContext.class), any(Date.class), anyInt(),
+    HostedRepositoryComponent row = newComponent("row-id");
+    when(hostedRepositoryComponentDAO.getMonitoringEligiblePage(any(TransactionContext.class), anyInt(),
         any(EligibilityCursor.class))).thenReturn(List.of(row));
 
-    Page<ProxyRepositoryComponent> page = underTest.fetchPage(cursorIn, 100, cycleStart);
+    Page<HostedRepositoryComponent> page = underTest.fetchPage(cursorIn, 100, Instant.now());
 
     assertThat(page.rows()).containsExactly(row);
     ArgumentCaptor<EligibilityCursor> cursorCaptor = ArgumentCaptor.forClass(EligibilityCursor.class);
-    ArgumentCaptor<Date> cycleStartCaptor = ArgumentCaptor.forClass(Date.class);
-    verify(proxyRepositoryComponentDAO).getMonitoringEligiblePage(any(TransactionContext.class),
-        cycleStartCaptor.capture(), eq(100), cursorCaptor.capture());
+    verify(hostedRepositoryComponentDAO).getMonitoringEligiblePage(any(TransactionContext.class), eq(100),
+        cursorCaptor.capture());
     assertThat(cursorCaptor.getValue()).isEqualTo(cursorIn);
-    assertThat(cycleStartCaptor.getValue()).isEqualTo(Date.from(cycleStart));
   }
 
+  /**
+   * The keyset is the primary key alone — this table has no timestamp — so the next cursor carries the
+   * last row's id and a constant filler time (EligibilityCursor requires a non-null Date).
+   */
   @Test
-  public void testFetchPage_nextCursorIsLastRowKey() {
-    ProxyRepositoryComponent first = newComponent("id-A", new Date(3000L));
-    ProxyRepositoryComponent last = newComponent("id-B", new Date(2000L));
-    when(proxyRepositoryComponentDAO.getMonitoringEligiblePage(any(), any(), anyInt(), any()))
-        .thenReturn(List.of(first, last));
+  public void testFetchPage_nextCursorIsLastRowId() {
+    when(hostedRepositoryComponentDAO.getMonitoringEligiblePage(any(), anyInt(), any()))
+        .thenReturn(List.of(newComponent("id-A"), newComponent("id-B")));
 
-    Page<ProxyRepositoryComponent> page = underTest.fetchPage(null, 100, Instant.now());
+    Page<HostedRepositoryComponent> page = underTest.fetchPage(null, 100, Instant.now());
 
-    assertThat(page.nextCursor())
-        .isEqualTo(new EligibilityCursor(new Date(2000L), "id-B"));
+    assertThat(page.nextCursor()).isEqualTo(new EligibilityCursor(new Date(0L), "id-B"));
   }
 
   @Test
   public void testFetchPage_hasMoreTrueWhenPageIsSaturated() {
     // size == limit ⇒ probably more rows; the next fetch returns empty if not.
-    when(proxyRepositoryComponentDAO.getMonitoringEligiblePage(any(), any(), anyInt(), any()))
-        .thenReturn(List.of(newComponent("id-1", new Date(1L)), newComponent("id-2", new Date(2L))));
+    when(hostedRepositoryComponentDAO.getMonitoringEligiblePage(any(), anyInt(), any()))
+        .thenReturn(List.of(newComponent("id-1"), newComponent("id-2")));
 
-    Page<ProxyRepositoryComponent> page = underTest.fetchPage(null, 2, Instant.now());
+    Page<HostedRepositoryComponent> page = underTest.fetchPage(null, 2, Instant.now());
 
     assertThat(page.hasMore()).isTrue();
   }
 
   @Test
   public void testFetchPage_hasMoreFalseOnShortPage() {
-    when(proxyRepositoryComponentDAO.getMonitoringEligiblePage(any(), any(), anyInt(), any()))
-        .thenReturn(List.of(newComponent("id-1", new Date(1L))));
+    when(hostedRepositoryComponentDAO.getMonitoringEligiblePage(any(), anyInt(), any()))
+        .thenReturn(List.of(newComponent("id-1")));
 
-    Page<ProxyRepositoryComponent> page = underTest.fetchPage(null, 100, Instant.now());
+    Page<HostedRepositoryComponent> page = underTest.fetchPage(null, 100, Instant.now());
 
     assertThat(page.hasMore()).isFalse();
   }
 
   @Test
   public void testFetchPage_returnsEmptyPageWhenDaoReturnsEmpty() {
-    when(proxyRepositoryComponentDAO.getMonitoringEligiblePage(any(), any(), anyInt(), any()))
+    when(hostedRepositoryComponentDAO.getMonitoringEligiblePage(any(), anyInt(), any()))
         .thenReturn(List.of());
 
-    Page<ProxyRepositoryComponent> page = underTest.fetchPage(null, 1000, Instant.now());
+    Page<HostedRepositoryComponent> page = underTest.fetchPage(null, 1000, Instant.now());
 
     assertThat(page.rows()).isEmpty();
     assertThat(page.nextCursor()).isNull();
     assertThat(page.hasMore()).isFalse();
   }
 
-  private static ProxyRepositoryComponent newComponent(final String id, final Date time) {
-    ProxyRepositoryComponent c = new ProxyRepositoryComponent();
+  private static HostedRepositoryComponent newComponent(final String id) {
+    HostedRepositoryComponent c = new HostedRepositoryComponent();
     c.setId(id);
-    c.setTime(time);
     return c;
   }
 }

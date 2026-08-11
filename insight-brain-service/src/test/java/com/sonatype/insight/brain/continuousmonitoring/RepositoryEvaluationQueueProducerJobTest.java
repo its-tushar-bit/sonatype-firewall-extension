@@ -17,7 +17,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringFlowType;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringHostedRepoItem;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringQueueItem;
-import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.After;
@@ -96,12 +96,8 @@ public class RepositoryEvaluationQueueProducerJobTest
 
   @Test
   public void testEnqueueBatchProducesAlignedParentAndSatelliteRowsAndCommits() {
-    ProxyRepositoryComponent c1 = new ProxyRepositoryComponent();
-    c1.setRepositoryId("repo-A");
-    c1.setHash("hash-A");
-    ProxyRepositoryComponent c2 = new ProxyRepositoryComponent();
-    c2.setRepositoryId("repo-B");
-    c2.setHash("hash-B");
+    HostedRepositoryComponent c1 = new HostedRepositoryComponent("repo-A", "a.jar", "hash-A");
+    HostedRepositoryComponent c2 = new HostedRepositoryComponent("repo-B", "b.jar", "hash-B");
     when(eligibilitySelector.fetchPage(any(), any(Integer.class), any(Instant.class)))
         .thenReturn(new Page<>(List.of(c1, c2), new EligibilityCursor(new java.util.Date(2L), "id-2"), false));
 

@@ -16,12 +16,11 @@ import jakarta.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
-import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.lqa.LqaFormat;
 
@@ -33,19 +32,15 @@ public class PathForwardInspector
 
   private final ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
 
-  private final ApplicationDAO applicationDAO;
-
   private final Map<ComponentIdentifier, Boolean> violatedComponentMap = new ConcurrentHashMap<>();
 
   @Inject
   public PathForwardInspector(
       final ComponentInfoService componentInfoService,
-      final ComponentDetailsLoaderFactory componentDetailsLoaderFactory,
-      final ApplicationDAO applicationDAO)
+      final ComponentDetailsLoaderFactory componentDetailsLoaderFactory)
   {
     this.componentInfoService = componentInfoService;
     this.componentDetailsLoaderFactory = componentDetailsLoaderFactory;
-    this.applicationDAO = applicationDAO;
     componentInfoService.setToolName("ci");
   }
 
@@ -55,7 +50,7 @@ public class PathForwardInspector
 
   public boolean containsUpgradeableVersion(
       final ComponentIdentifier componentIdentifier,
-      final String appId,
+      final Owner owner,
       final String stageId,
       final String scanId)
   {
@@ -68,10 +63,9 @@ public class PathForwardInspector
       return hasPathForward;
     }
 
-    Application app = applicationDAO.getByIdNotNull(appId);
-    ComponentDetailsLoader componentDetailsLoader = componentDetailsLoaderFactory.newInstance(app);
+    ComponentDetailsLoader componentDetailsLoader = componentDetailsLoaderFactory.newInstance(owner);
     List<ComponentDetailsDTO> componentDetailsDTOList =
-        componentInfoService.getComponentDetailsForAllVersionsNoAuth(app,
+        componentInfoService.getComponentDetailsForAllVersionsNoAuth(owner,
             componentIdentifier, stageId, null, scanId, null, componentDetailsLoader, true).getLeft();
 
     int currentComponentIndex = findCurrentComponentIndex(componentDetailsDTOList, componentIdentifier);

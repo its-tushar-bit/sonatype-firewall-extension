@@ -480,7 +480,14 @@ public class UserInterfaceLinksResourceTest
     assertRedirect(response, "assets/index.html#/firewall/repository/repo%20id/result");
   }
 
-  // The HTML-shaped HRC handlers intentionally 404 until the frontend Lifecycle Report SPA states land.
+  // ---- HRC ui/links handlers ----
+  //
+  // 5 sibling handlers to the Application-side redirect handlers. Coverage locks in three
+  // shapes: (a) linkToHostedRepositoryComponentPdf redirects to the live HRC PDF REST
+  // endpoint; (b) linkToHostedRepositoryComponentLatestReport 404s cleanly when no scan
+  // has been recorded yet; (c) the three HTML-shaped handlers return 404 until the
+  // frontend Lifecycle Report states land so callers get a clear NOT_FOUND
+  // instead of a silent redirect to a non-existent SPA state.
 
   @Test
   public void testLinkToHostedRepositoryComponentPdf_redirectsToHrcRestEndpoint() throws Exception {

@@ -24,7 +24,10 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
+import com.sonatype.insight.brain.dataaccess.repository.HostedRepositoryComponentDAO;
+import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.repository.hosted.HostedComponentScanQueueConsumer;
+import com.sonatype.insight.brain.repository.hosted.HostedRepositoryComponentResolver;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -116,6 +119,12 @@ public class ReportServiceDataTest
         daoFactory.createLicenseDAO(), null, null, licenseThreatGroupDAO, null, null, null, multiLicenseDAO, null, null,
         null, null, null, null, null, null, null, null, null, null, null, null, null, null,
         Mockito.mock(HostedComponentScanQueueConsumer.class),
-        Mockito.mock(ClusterLockManager.class));
+        Mockito.mock(ClusterLockManager.class),
+        Mockito.mock(HostedRepositoryComponentDAO.class),
+        Mockito.mock(HostedRepositoryComponentResolver.class),
+        // A lambda rather than a Mockito double: the constructor stores the Provider itself, so a
+        // stub-free mock and a lambda behave identically here, and the lambda cannot be mistaken
+        // for a mock candidate by type-matching injection machinery.
+        () -> Mockito.mock(ScanPolicyEvaluator.class));
   }
 }

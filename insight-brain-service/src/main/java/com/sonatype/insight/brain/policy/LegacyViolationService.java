@@ -267,6 +267,11 @@ public class LegacyViolationService
 
   public boolean isLegacyViolationEnabled(TransactionContext tx, String appId, String stageTypeId) {
     Application app = applicationDAO.getById(tx, appId);
+    if (app == null) {
+      // Legacy (grandfathered) violations are an Application-only concept; owners that are not
+      // backed by an Application (e.g. HostedRepositoryComponent) never have them enabled.
+      return false;
+    }
     Boolean enabled = app.isLegacyViolationEnabled();
     String parentOrgId = app.getOrganizationId();
     while (parentOrgId != null) {

@@ -231,6 +231,14 @@ public class ApiReportMetadataServiceV2Test
     assertThat(response.getData().getApplicationPublicId()).isEqualTo(specificPublicId);
   }
 
+  // ---- HRC-owner tests ----
+  //
+  // getMetadata takes an Owner and populates ApiReportMetadataResponseDto from the underlying
+  // policy_evaluation row. When the owner is an HRC, applicationId is the HRC id and
+  // applicationPublicId reads through Owner.getPublicId — which returns the HRC id (HRCs have
+  // no separate public id). These tests pin the HRC-owner contract on the happy path and the
+  // NotFound surface.
+
   @Test
   public void getMetadata_Hrc_ReturnsFieldsWithHrcIdAsBothInternalAndPublicId() {
     Repository repository = tempEntity.newRepository();
@@ -245,6 +253,7 @@ public class ApiReportMetadataServiceV2Test
 
     assertThat(response).isNotNull();
     assertThat(response.getData().getScanId()).isEqualTo(scanId);
+    // For HRCs the internal id and the public id are the same value — the HRC id itself.
     assertThat(response.getData().getApplicationId()).isEqualTo(hrc.getId());
     assertThat(response.getData().getApplicationPublicId()).isEqualTo(hrc.getId());
     assertThat(response.getData().getOwnerType()).isEqualTo("hosted_repository_component");

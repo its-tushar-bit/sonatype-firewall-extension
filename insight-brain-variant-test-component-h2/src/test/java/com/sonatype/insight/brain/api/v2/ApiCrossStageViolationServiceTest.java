@@ -18,6 +18,8 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -669,5 +671,32 @@ public class ApiCrossStageViolationServiceTest
       assertThat(stageData.mostRecentScanId).isEqualTo(expectedScanId);
       assertThat(stageData.actionTypeId).isEqualTo(expectedActionTypeId);
     });
+  }
+
+  /**
+   * The cross-stage DTO reports {@code applicationPublicId}, {@code applicationName} and
+   * {@code organizationName}, all sourced from an {@link Application}. A
+   * {@link HostedRepositoryComponent} owner has no Application backing it — its ownership chain runs
+   * through {@link Repository} rather than {@link Organization} — so the violation is still served
+   * and those three fields are left null, rather than the whole lookup failing.
+   */
+  @Test
+  public void testGetCrossStageViolationByConstituentId_hostedRepositoryComponentOwner_servesDtoWithNullAppFields() {
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    PolicyEvaluation hrcEval =
+        tempEntity.newPolicyEvaluation(hrc.getId(), Stage.ID_BUILD, "hrc-scan-1", baseDate);
+    PolicyViolation hrcViolation =
+        tempEntity.newPolicyViolation(hrcEval, policy, COMPONENT_IDENTIFIER, "hrc-hash", "vuln1");
+
+    ApiCrossStageViolationDTOV2 dto = service.getCrossStageViolationByConstituentId(hrcViolation.getId());
+
+    // Served, not 404 — the Application-shaped fields are simply absent for an HRC owner.
+    assertThat(dto).isNotNull();
+    assertThat(dto.applicationPublicId).isNull();
+    assertThat(dto.applicationName).isNull();
+    assertThat(dto.organizationName).isNull();
+    // The violation itself is still fully reported.
+    assertThat(dto.policyName).isEqualTo(policy.getName());
   }
 }

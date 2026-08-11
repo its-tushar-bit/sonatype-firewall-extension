@@ -5,31 +5,38 @@
  */
 package com.sonatype.insight.brain.continuousmonitoring;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
+import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.continuousmonitoring.ContinuousMonitoringHostedRepoItemDAO;
-import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.HostedRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
-import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringFlowType;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringHostedRepoItem;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringQueueItem;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
-import com.sonatype.insight.brain.report.ReportService;
-import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
-import com.sonatype.insight.brain.repository.hosted.ApplicationForHostedRepositoryComponentService;
+import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
+import com.sonatype.insight.brain.repository.hosted.HostedRepositoryComponentResolver;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
+import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.scan.model.ClientScanType;
 
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -37,17 +44,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for {@link RepositoryContinuousMonitoringFlowProcessor} (CLM-40039 Section 6.3).
  * Confirms the processor (a) drops queue items whose state is no longer eligible — defense-in-depth
- * checks beyond the producer's filter — and (b) builds an evaluation request that carries all
- * components for the (repository, hash) pair through to {@link RepositoryPolicyEvaluator}.
+ * checks beyond the producer's filter — and (b) monitors each hosted-repository component sharing the
+ * queued (repository, hash) pair independently, cloning its stored scan and re-evaluating it through
+ * {@link ScanPolicyEvaluator#evaluateForMonitoring}, so one bad candidate never stops its siblings.
  */
 @RunWith(MockitoJUnitRunner.class)
 public class RepositoryContinuousMonitoringFlowProcessorTest
@@ -65,19 +77,25 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
   private RepositoryDAO repositoryDAO;
 
   @Mock
-  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
-
-  @Mock
-  private RepositoryPolicyEvaluator repositoryPolicyEvaluator;
-
-  @Mock
-  private ReportService reportService;
-
-  @Mock
-  private ApplicationForHostedRepositoryComponentService applicationForHostedRepositoryComponentService;
+  private HostedRepositoryComponentDAO hostedRepositoryComponentDAO;
 
   @Mock
   private TransactionContext tx;
+
+  @Mock
+  private HostedRepositoryComponentResolver resolver;
+
+  @Mock
+  private ScanPersistenceService scanPersistenceService;
+
+  @Mock
+  private ScanUploader scanUploader;
+
+  @Mock
+  private ScanPolicyEvaluator scanPolicyEvaluator;
+
+  @Mock
+  private PolicyEvaluationDAO policyEvaluationDAO;
 
   private SimpleMeterRegistry meterRegistry;
 
@@ -86,11 +104,13 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
   @Before
   public void setup() {
     when(hostedRepoItemDAO.createTransactionContext()).thenReturn(tx);
+    when(hostedRepositoryComponentDAO.createTransactionContext()).thenReturn(tx);
     meterRegistry = new SimpleMeterRegistry();
     underTest =
-        new RepositoryContinuousMonitoringFlowProcessor(hostedRepoItemDAO, repositoryDAO, proxyRepositoryComponentDAO,
-            repositoryPolicyEvaluator, reportService, applicationForHostedRepositoryComponentService,
-            meterRegistry);
+        new RepositoryContinuousMonitoringFlowProcessor(hostedRepoItemDAO, repositoryDAO,
+            hostedRepositoryComponentDAO, meterRegistry, resolver, scanPersistenceService, scanUploader,
+            scanPolicyEvaluator, policyEvaluationDAO);
+    stubEvaluationsFromComponentIds();
   }
 
   @Test
@@ -104,7 +124,6 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
 
     underTest.process(queueItem());
 
-    verify(repositoryPolicyEvaluator, never()).evaluateForMonitoring(any(), any(), any());
     assertDropMetric("satellite-missing", 1L);
   }
 
@@ -124,7 +143,6 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
 
     underTest.process(queueItem());
 
-    verify(repositoryPolicyEvaluator, never()).evaluateForMonitoring(any(), any(), any());
     verify(repositoryDAO, never()).getById(any());
     assertDropMetric("satellite-null-repository-id", 1L);
   }
@@ -140,7 +158,6 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
 
     underTest.process(queueItem());
 
-    verify(repositoryPolicyEvaluator, never()).evaluateForMonitoring(any(), any(), any());
     verify(repositoryDAO, never()).getById(any());
     assertDropMetric("satellite-null-component-hash", 1L);
   }
@@ -152,7 +169,6 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
 
     underTest.process(queueItem());
 
-    verify(repositoryPolicyEvaluator, never()).evaluateForMonitoring(any(), any(), any());
     assertDropMetric("repository-deleted", 1L);
   }
 
@@ -164,7 +180,6 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
 
     underTest.process(queueItem());
 
-    verify(repositoryPolicyEvaluator, never()).evaluateForMonitoring(any(), any(), any());
     assertDropMetric("repository-not-hosted", 1L);
   }
 
@@ -176,7 +191,6 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
 
     underTest.process(queueItem());
 
-    verify(repositoryPolicyEvaluator, never()).evaluateForMonitoring(any(), any(), any());
     assertDropMetric("monitoring-disabled", 1L);
   }
 
@@ -185,26 +199,36 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
     stubSatellite();
     Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
     when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
-    when(proxyRepositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of());
+    when(hostedRepositoryComponentDAO.getByRepositoryIdAndHash(tx, REPO_ID, HASH)).thenReturn(List.of());
 
     underTest.process(queueItem());
 
-    verify(repositoryPolicyEvaluator, never()).evaluateForMonitoring(any(), any(), any());
     assertDropMetric("no-components-for-hash", 1L);
   }
 
+  /**
+   * A repository with no {@code format} is still monitored. The per-component path resolves an owner,
+   * uploads the cloned scan and evaluates it — none of which takes a format — so a format-null
+   * repository has no reason to be excluded. Dropping it here would silently disable monitoring for
+   * those repositories on every cycle.
+   */
   @Test
-  public void testProcess_dropsWhenRepositoryFormatIsMissing() {
+  public void process_repositoryWithoutFormat_isStillMonitored() throws Exception {
     stubSatellite();
-    Repository repo = repository(REPO_ID, RepositoryType.hosted, true, null);
-    when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
-    when(proxyRepositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH))
-        .thenReturn(List.of(component(HASH, "/x.jar", null)));
+    when(repositoryDAO.getById(REPO_ID)).thenReturn(repository(REPO_ID, RepositoryType.hosted, true, null));
+    HostedRepositoryComponent hrc = component(HASH, "a.tgz", "stage-release", "s-a");
+    when(hostedRepositoryComponentDAO.getByRepositoryIdAndHash(tx, REPO_ID, HASH)).thenReturn(List.of(hrc));
+    ScanEntity tempScan = mock(ScanEntity.class);
+    when(scanPersistenceService.getScan(any(), any())).thenReturn(mock(ScanEntity.class));
+    when(scanPersistenceService.createTempScan(any())).thenReturn(tempScan);
+    when(scanUploader.upload(eq(tempScan), eq(hrc), eq("stage-release"), any(), any(), eq(true)))
+        .thenReturn(scanReceipt("fresh-1"));
 
     underTest.process(queueItem());
 
-    verify(repositoryPolicyEvaluator, never()).evaluateForMonitoring(any(), any(), any());
-    assertDropMetric("repository-no-format", 1L);
+    verify(scanPolicyEvaluator).evaluateForMonitoring(eq(hrc), eq("fresh-1"), eq(new Stage("stage-release")),
+        eq(ScanTriggerType.HOSTED_REPOSITORY_SCANNING), eq(ClientScanType.SONATYPE));
+    assertThat(meterRegistry.getMeters()).isEmpty();
   }
 
   @Test
@@ -212,201 +236,380 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
     stubSatellite();
     Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
     when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
-    // Components exist for the hash, but every one is missing either hash or pathname so
-    // request.components ends up empty — the 9th drop branch (no-evaluatable-components).
-    ProxyRepositoryComponent nullPath = component(HASH, null, null);
-    ProxyRepositoryComponent nullHash = component(null, "/x.jar", null);
-    when(proxyRepositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(nullPath, nullHash));
+    // Candidates exist for the hash but neither has an evaluation to re-upload. There is no batch
+    // pre-flight gate any more: each is dropped on its own, so the count is per component.
+    HostedRepositoryComponent neitherEvaluated = component(HASH, "a.tgz", "stage-release", null);
+    HostedRepositoryComponent norThisOne = component(HASH, "b.tgz", "stage-release", null);
+    when(hostedRepositoryComponentDAO.getByRepositoryIdAndHash(tx, REPO_ID, HASH))
+        .thenReturn(List.of(neitherEvaluated, norThisOne));
 
     underTest.process(queueItem());
 
-    verify(repositoryPolicyEvaluator, never()).evaluateForMonitoring(any(), any(), any());
-    assertDropMetric("no-evaluatable-components", 1L);
+    assertDropMetric("cm-no-previous-evaluation", 2L);
   }
 
   @Test
-  public void processBuildsEvaluationRequestWithContinuousMonitoringCause() {
+  public void process_happyPath_perComponentUploadEvaluateAndPin() throws Exception {
     stubSatellite();
     Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
     when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
-    ProxyRepositoryComponent c1 = component(HASH, "lib/a.jar", "stage-release");
-    ProxyRepositoryComponent c2 = component(HASH, "lib/b.jar", null);
-    when(proxyRepositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(c1, c2));
+    HostedRepositoryComponent hrc1 = component(HASH, "a.tgz", "stage-release", "s-a");
+    HostedRepositoryComponent hrc2 = component(HASH, "b.tgz", "stage-release", "s-b");
+    HostedRepositoryComponent hrc3 = component(HASH, "c.tgz", "stage-release", "s-c");
+    when(hostedRepositoryComponentDAO.getByRepositoryIdAndHash(tx, REPO_ID, HASH))
+        .thenReturn(List.of(hrc1, hrc2, hrc3));
+    ScanEntity sourceScan = mock(ScanEntity.class);
+    ScanEntity tempScan = mock(ScanEntity.class);
+    when(scanPersistenceService.getScan(any(), any())).thenReturn(sourceScan);
+    when(scanPersistenceService.createTempScan(any())).thenReturn(tempScan);
+    when(scanUploader.upload(eq(tempScan), eq(hrc1), eq("stage-release"), any(), any(), eq(true)))
+        .thenReturn(scanReceipt("fresh-1"));
+    when(scanUploader.upload(eq(tempScan), eq(hrc2), eq("stage-release"), any(), any(), eq(true)))
+        .thenReturn(scanReceipt("fresh-2"));
+    when(scanUploader.upload(eq(tempScan), eq(hrc3), eq("stage-release"), any(), any(), eq(true)))
+        .thenReturn(scanReceipt("fresh-3"));
 
     underTest.process(queueItem());
 
-    ArgumentCaptor<RepositoryComponentEvaluationDataRequestList> captor =
-        ArgumentCaptor.forClass(RepositoryComponentEvaluationDataRequestList.class);
-    verify(repositoryPolicyEvaluator).evaluateForMonitoring(any(Repository.class), captor.capture(),
-        any(String.class));
-    RepositoryComponentEvaluationDataRequestList actual = captor.getValue();
-    assertThat(actual.cause).isEqualTo(RepositoryPolicyEvaluator.CONTINUOUS_MONITORING_CAUSE);
-    assertThat(actual.components).hasSize(2);
-  }
-
-  @Test
-  public void processSkipsComponentsMissingHashOrPathname() {
-    stubSatellite();
-    Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
-    when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
-    ProxyRepositoryComponent good = component(HASH, "lib/good.jar", null);
-    ProxyRepositoryComponent missingPath = component(HASH, null, null);
-    when(proxyRepositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(good, missingPath));
-
-    underTest.process(queueItem());
-
-    ArgumentCaptor<RepositoryComponentEvaluationDataRequestList> captor =
-        ArgumentCaptor.forClass(RepositoryComponentEvaluationDataRequestList.class);
-    verify(repositoryPolicyEvaluator).evaluateForMonitoring(any(Repository.class), captor.capture(),
-        any(String.class));
-    assertThat(captor.getValue().components).hasSize(1);
-  }
-
-  @Test
-  public void processRefreshesOverlaysAfterEvaluation() throws Exception {
-    stubSatellite();
-    Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
-    when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
-    ProxyRepositoryComponent c = component(HASH, "lib/a.jar", "stage-release", "scan-1");
-    when(proxyRepositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(c));
-    Application app = application("app-1");
-    when(applicationForHostedRepositoryComponentService.getOrCreateApplication(REPO_ID, "lib/a.jar"))
-        .thenReturn(app);
-
-    underTest.process(queueItem());
-
-    verify(repositoryPolicyEvaluator).evaluateForMonitoring(any(Repository.class),
-        any(RepositoryComponentEvaluationDataRequestList.class), any(String.class));
-    // CM must NOT persist a new policy_evaluation row on every cycle (would bloat Latest Evaluations),
-    // so persistPolicyEvaluationRow=false. ReportService does the mirror + overlay writes internally.
-    verify(reportService).refreshHostedComponentAfterEvaluation(
-        eq(c), eq(repo), eq(app), eq("app-1"), eq("scan-1"), eq("stage-release"), eq(false));
-  }
-
-  @Test
-  public void processSkipsRefreshWhenScanIdIsNull() throws Exception {
-    stubSatellite();
-    Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
-    when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
-    // Component was never NXRM-scanned so no scanId exists — nothing on disk to refresh.
-    ProxyRepositoryComponent c = component(HASH, "lib/a.jar", null, null);
-    when(proxyRepositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(c));
-
-    underTest.process(queueItem());
-
-    verify(repositoryPolicyEvaluator).evaluateForMonitoring(any(Repository.class),
-        any(RepositoryComponentEvaluationDataRequestList.class), any(String.class));
-    verify(reportService, never()).refreshHostedComponentAfterEvaluation(
-        any(), any(), any(), any(), any(), any(), anyBoolean());
-    verify(applicationForHostedRepositoryComponentService, never()).getOrCreateApplication(any(), any());
-  }
-
-  @Test
-  public void processSwallowsRefreshExceptionAndContinuesBatch() throws Exception {
-    stubSatellite();
-    Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
-    when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
-    ProxyRepositoryComponent c1 = component(HASH, "lib/a.jar", null, "scan-1");
-    ProxyRepositoryComponent c2 = component(HASH, "lib/b.jar", null, "scan-2");
-    when(proxyRepositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(c1, c2));
-    Application app1 = application("app-1");
-    Application app2 = application("app-2");
-    when(applicationForHostedRepositoryComponentService.getOrCreateApplication(REPO_ID, "lib/a.jar"))
-        .thenReturn(app1);
-    when(applicationForHostedRepositoryComponentService.getOrCreateApplication(REPO_ID, "lib/b.jar"))
-        .thenReturn(app2);
-    doThrow(new RuntimeException("disk full")).when(reportService)
-        .refreshHostedComponentAfterEvaluation(
-            eq(c1), any(Repository.class), eq(app1), eq("app-1"), eq("scan-1"), any(), anyBoolean());
-
-    underTest.process(queueItem());
-
-    // First component blew up; second must still be attempted so a single bad component doesn't
-    // poison the whole CM batch.
-    verify(reportService).refreshHostedComponentAfterEvaluation(
-        eq(c1), eq(repo), eq(app1), eq("app-1"), eq("scan-1"), any(), eq(false));
-    verify(reportService).refreshHostedComponentAfterEvaluation(
-        eq(c2), eq(repo), eq(app2), eq("app-2"), eq("scan-2"), any(), eq(false));
-    assertDropMetric("overlay-refresh-failed", 1L);
+    verify(scanPolicyEvaluator).evaluateForMonitoring(eq(hrc1), eq("fresh-1"), eq(new Stage("stage-release")),
+        eq(ScanTriggerType.HOSTED_REPOSITORY_SCANNING), eq(ClientScanType.SONATYPE));
+    verify(scanPolicyEvaluator).evaluateForMonitoring(eq(hrc2), eq("fresh-2"), eq(new Stage("stage-release")),
+        eq(ScanTriggerType.HOSTED_REPOSITORY_SCANNING), eq(ClientScanType.SONATYPE));
+    verify(scanPolicyEvaluator).evaluateForMonitoring(eq(hrc3), eq("fresh-3"), eq(new Stage("stage-release")),
+        eq(ScanTriggerType.HOSTED_REPOSITORY_SCANNING), eq(ClientScanType.SONATYPE));
+    verify(resolver).pinOwnerComponent(hrc1, "fresh-1", "stage-release");
+    verify(resolver).pinOwnerComponent(hrc2, "fresh-2", "stage-release");
+    verify(resolver).pinOwnerComponent(hrc3, "fresh-3", "stage-release");
+    assertThat(meterRegistry.getMeters()).isEmpty();
   }
 
   /**
-   * CLM-42136 (F1): {@code getOrCreateApplication} returns null when the repository has no
-   * valid parent organization (root-org lookup would fail). We must not NPE on
-   * {@code application.getId()} — instead skip the component with a dedicated drop metric
-   * so operators can distinguish this case from a mid-refresh exception.
+   * Every primary evaluation deletes the scan file it supersedes, so the scan a cycle read the id for can
+   * be gone by the time it copies. Following the owner's latest primary evaluation forward recovers the
+   * cycle instead of dropping the component until the next day.
    */
   @Test
-  public void processSkipsRefreshWhenApplicationCannotBeCreated() throws Exception {
+  public void process_sourceScanSupersededMidClone_retriesWithTheNewerScan() throws Exception {
     stubSatellite();
-    Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
-    when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
-    ProxyRepositoryComponent c = component(HASH, "lib/a.jar", null, "scan-1");
-    when(proxyRepositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(c));
-    when(applicationForHostedRepositoryComponentService.getOrCreateApplication(REPO_ID, "lib/a.jar"))
-        .thenReturn(null);
+    when(repositoryDAO.getById(REPO_ID)).thenReturn(repository(REPO_ID, RepositoryType.hosted, true, "maven2"));
+    HostedRepositoryComponent hrc = component(HASH, "a.tgz", "stage-release", "stale-scan");
+    when(hostedRepositoryComponentDAO.getByRepositoryIdAndHash(tx, REPO_ID, HASH)).thenReturn(List.of(hrc));
+    ScanEntity staleScan = mock(ScanEntity.class);
+    ScanEntity newerScan = mock(ScanEntity.class);
+    ScanEntity tempScan = mock(ScanEntity.class);
+    when(scanPersistenceService.createTempScan(hrc.getId())).thenReturn(tempScan);
+    when(scanPersistenceService.getScan(hrc.getId(), "stale-scan")).thenReturn(staleScan);
+    when(scanPersistenceService.getScan(hrc.getId(), "newer-scan")).thenReturn(newerScan);
+    // The file behind the id the caller held has already been deleted; the newer one copies fine.
+    doThrow(new java.io.IOException("no such file")).when(scanPersistenceService)
+        .copyScanFile(staleScan, tempScan);
+    when(policyEvaluationDAO.getLastPrimaryByOwnerIdAndStageId(hrc.getId(), "stage-release"))
+        .thenReturn(policyEvaluation("newer-scan"));
+    when(scanUploader.upload(eq(tempScan), eq(hrc), eq("stage-release"), any(), any(), eq(true)))
+        .thenReturn(scanReceipt("fresh-1"));
 
     underTest.process(queueItem());
 
-    verify(reportService, never()).refreshHostedComponentAfterEvaluation(
-        any(), any(), any(), any(), any(), any(), anyBoolean());
-    assertDropMetric("overlay-refresh-no-application", 1L);
+    verify(scanPersistenceService).copyScanFile(newerScan, tempScan);
+    verify(scanPolicyEvaluator).evaluateForMonitoring(eq(hrc), eq("fresh-1"), eq(new Stage("stage-release")),
+        eq(ScanTriggerType.HOSTED_REPOSITORY_SCANNING), eq(ClientScanType.SONATYPE));
+    assertThat(meterRegistry.getMeters()).isEmpty();
   }
 
   /**
-   * CLM-42136 (F5): the refresh loop must record a drop metric when a component is missing
-   * its scanId or pathname, rather than silently continuing. Previously the {@code continue}
-   * was silent, leaving no signal for operators.
+   * The retry must terminate. When the unreadable scan is still the owner's latest primary evaluation
+   * there is nothing newer to follow, so the component is dropped for this cycle rather than looping.
    */
   @Test
-  public void processRecordsDropMetricWhenComponentMissingIdentifier() throws Exception {
+  public void process_sourceScanUnreadableAndStillLatest_dropsWithoutLooping() throws Exception {
     stubSatellite();
-    Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
-    when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
-    // Two components in the batch: one has a valid pathname but no scanId (never persisted to
-    // a scan file yet), one is a valid target for refresh. Only the first should be dropped.
-    ProxyRepositoryComponent noScanId = component(HASH, "lib/a.jar", null, null);
-    ProxyRepositoryComponent good = component(HASH, "lib/b.jar", null, "scan-b");
-    when(proxyRepositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(noScanId, good));
-    when(applicationForHostedRepositoryComponentService.getOrCreateApplication(REPO_ID, "lib/b.jar"))
-        .thenReturn(application("app-b"));
+    when(repositoryDAO.getById(REPO_ID)).thenReturn(repository(REPO_ID, RepositoryType.hosted, true, "maven2"));
+    HostedRepositoryComponent hrc = component(HASH, "a.tgz", "stage-release", "s-a");
+    when(hostedRepositoryComponentDAO.getByRepositoryIdAndHash(tx, REPO_ID, HASH)).thenReturn(List.of(hrc));
+    ScanEntity sourceScan = mock(ScanEntity.class);
+    ScanEntity tempScan = mock(ScanEntity.class);
+    when(scanPersistenceService.createTempScan(hrc.getId())).thenReturn(tempScan);
+    when(scanPersistenceService.getScan(hrc.getId(), "s-a")).thenReturn(sourceScan);
+    doThrow(new java.io.IOException("no such file")).when(scanPersistenceService)
+        .copyScanFile(sourceScan, tempScan);
+    when(policyEvaluationDAO.getLastPrimaryByOwnerIdAndStageId(hrc.getId(), "stage-release"))
+        .thenReturn(policyEvaluation("s-a"));
 
     underTest.process(queueItem());
 
-    assertDropMetric("overlay-refresh-missing-identifier", 1L);
-    verify(reportService).refreshHostedComponentAfterEvaluation(
-        eq(good), eq(repo), any(), eq("app-b"), eq("scan-b"), any(), eq(false));
-    verify(reportService, never()).refreshHostedComponentAfterEvaluation(
-        eq(noScanId), any(), any(), any(), any(), any(), anyBoolean());
+    verify(scanPersistenceService, times(1)).copyScanFile(sourceScan, tempScan);
+    verify(scanUploader, never()).upload(any(), any(HostedRepositoryComponent.class), any(), any(), any(),
+        anyBoolean());
+    assertDropMetric("cm-clone-scan-failed", 1L);
+  }
+
+  /**
+   * The pointer advance is only meaningful if a scan actually exists under the scanId it names. The clone
+   * uploaded to HDS must therefore be finalized under the fresh scanId rather than deleted with the temp
+   * entity: the next cycle clones the scan back by that id, and Manual Re-Evaluate reads it to re-upload.
+   * Advancing the pointer while discarding the file strands monitoring *and* makes Re-Evaluate fail on a
+   * missing scan — worse than never advancing it.
+   */
+  @Test
+  public void process_finalizesTheClonedScanUnderTheFreshScanId() throws Exception {
+    stubSatellite();
+    when(repositoryDAO.getById(REPO_ID)).thenReturn(repository(REPO_ID, RepositoryType.hosted, true, "maven2"));
+    HostedRepositoryComponent hrc = component(HASH, "a.tgz", "stage-release", "s-a");
+    when(hostedRepositoryComponentDAO.getByRepositoryIdAndHash(tx, REPO_ID, HASH)).thenReturn(List.of(hrc));
+    ScanEntity tempScan = mock(ScanEntity.class);
+    when(scanPersistenceService.getScan(any(), any())).thenReturn(mock(ScanEntity.class));
+    when(scanPersistenceService.createTempScan(any())).thenReturn(tempScan);
+    when(scanUploader.upload(eq(tempScan), eq(hrc), eq("stage-release"), any(), any(), eq(true)))
+        .thenReturn(scanReceipt("fresh-1"));
+
+    underTest.process(queueItem());
+
+    verify(scanPersistenceService).moveTempScan(tempScan, hrc.getId(), "fresh-1");
+    verify(scanPersistenceService, never()).deleteScan(tempScan);
+    assertThat(meterRegistry.getMeters()).isEmpty();
+  }
+
+  /**
+   * Replaces the former {@code cm-scan-id-stamp-failed} case: there is no pointer to advance any more,
+   * because the scan to clone is read from {@code policy_evaluation}. The property that still matters is
+   * that a failure in one component's post-evaluation bookkeeping — here finalizing the clone — does not
+   * stop the next component from being monitored.
+   */
+  @Test
+  public void process_finalizeFailsForOneComponent_othersStillEvaluate() throws Exception {
+    stubSatellite();
+    when(repositoryDAO.getById(REPO_ID)).thenReturn(repository(REPO_ID, RepositoryType.hosted, true, "maven2"));
+    HostedRepositoryComponent hrc1 = component(HASH, "a.tgz", "stage-release", "s-a");
+    HostedRepositoryComponent hrc2 = component(HASH, "b.tgz", "stage-release", "s-b");
+    when(hostedRepositoryComponentDAO.getByRepositoryIdAndHash(tx, REPO_ID, HASH))
+        .thenReturn(List.of(hrc1, hrc2));
+    ScanEntity tempScan1 = mock(ScanEntity.class);
+    ScanEntity tempScan2 = mock(ScanEntity.class);
+    when(scanPersistenceService.getScan(any(), any())).thenReturn(mock(ScanEntity.class));
+    when(scanPersistenceService.createTempScan(hrc1.getId())).thenReturn(tempScan1);
+    when(scanPersistenceService.createTempScan(hrc2.getId())).thenReturn(tempScan2);
+    when(scanUploader.upload(eq(tempScan1), eq(hrc1), eq("stage-release"), any(), any(), eq(true)))
+        .thenReturn(scanReceipt("fresh-1"));
+    when(scanUploader.upload(eq(tempScan2), eq(hrc2), eq("stage-release"), any(), any(), eq(true)))
+        .thenReturn(scanReceipt("fresh-2"));
+    doThrow(new java.io.IOException("move boom")).when(scanPersistenceService)
+        .moveTempScan(tempScan1, hrc1.getId(), "fresh-1");
+
+    underTest.process(queueItem());
+
+    // Both were evaluated; only the first one's bookkeeping failed, and it was counted, not rethrown.
+    verify(scanPolicyEvaluator).evaluateForMonitoring(eq(hrc1), eq("fresh-1"), eq(new Stage("stage-release")),
+        eq(ScanTriggerType.HOSTED_REPOSITORY_SCANNING), eq(ClientScanType.SONATYPE));
+    verify(scanPolicyEvaluator).evaluateForMonitoring(eq(hrc2), eq("fresh-2"), eq(new Stage("stage-release")),
+        eq(ScanTriggerType.HOSTED_REPOSITORY_SCANNING), eq(ClientScanType.SONATYPE));
+    verify(scanPersistenceService).moveTempScan(tempScan2, hrc2.getId(), "fresh-2");
+    assertDropMetric("cm-unexpected-failure", 1L);
+  }
+
+  /**
+   * No {@code temp-*} clone may outlive the cycle — one per component per cycle would grow without
+   * bound. On the success path the clone is retired by being finalized under the fresh scanId, one per
+   * component, so nothing is left behind and the scan the evaluation names is on disk. (The failure
+   * paths retire it by deletion instead — see the tests below.)
+   */
+  @Test
+  public void process_finalizesEachComponentsOwnClone() throws Exception {
+    stubSatellite();
+    Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
+    when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
+    HostedRepositoryComponent hrc1 = component(HASH, "a.tgz", "stage-release", "s-a");
+    HostedRepositoryComponent hrc2 = component(HASH, "b.tgz", "stage-release", "s-b");
+    when(hostedRepositoryComponentDAO.getByRepositoryIdAndHash(tx, REPO_ID, HASH)).thenReturn(List.of(hrc1, hrc2));
+    ScanEntity tempScan1 = mock(ScanEntity.class);
+    ScanEntity tempScan2 = mock(ScanEntity.class);
+    when(scanPersistenceService.getScan(any(), any())).thenReturn(mock(ScanEntity.class));
+    when(scanPersistenceService.createTempScan(hrc1.getId())).thenReturn(tempScan1);
+    when(scanPersistenceService.createTempScan(hrc2.getId())).thenReturn(tempScan2);
+    when(scanUploader.upload(any(), eq(hrc1), any(), any(), any(), eq(true))).thenReturn(scanReceipt("fresh-1"));
+    when(scanUploader.upload(any(), eq(hrc2), any(), any(), any(), eq(true))).thenReturn(scanReceipt("fresh-2"));
+
+    underTest.process(queueItem());
+
+    // Each component's own clone is finalized under its own fresh scanId -- not just one of them, and
+    // not some other entity. Neither is left as a temp entity, and neither is discarded.
+    verify(scanPersistenceService).moveTempScan(tempScan1, hrc1.getId(), "fresh-1");
+    verify(scanPersistenceService).moveTempScan(tempScan2, hrc2.getId(), "fresh-2");
+    verify(scanPersistenceService, never()).deleteScan(tempScan1);
+    verify(scanPersistenceService, never()).deleteScan(tempScan2);
+    // The evaluation still succeeded: cleanup must not turn a good cycle into a drop.
+    verify(resolver).pinOwnerComponent(hrc1, "fresh-1", "stage-release");
+    verify(resolver).pinOwnerComponent(hrc2, "fresh-2", "stage-release");
+    assertThat(meterRegistry.getMeters()).isEmpty();
+  }
+
+  /**
+   * The failure branches use {@code continue}, which bypasses any cleanup placed at the end of the
+   * loop body; the clone must still be deleted when a stage fails.
+   */
+  @Test
+  public void process_deletesClonedScanWhenEvaluationFails() throws Exception {
+    stubSatellite();
+    Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
+    when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
+    HostedRepositoryComponent hrc1 = component(HASH, "a.tgz", "stage-release", "s-a");
+    when(hostedRepositoryComponentDAO.getByRepositoryIdAndHash(tx, REPO_ID, HASH)).thenReturn(List.of(hrc1));
+    ScanEntity tempScan = mock(ScanEntity.class);
+    when(scanPersistenceService.getScan(any(), any())).thenReturn(mock(ScanEntity.class));
+    when(scanPersistenceService.createTempScan(hrc1.getId())).thenReturn(tempScan);
+    when(scanUploader.upload(any(), eq(hrc1), any(), any(), any(), eq(true))).thenReturn(scanReceipt("fresh-1"));
+    doThrow(new java.io.IOException("evaluation boom")).when(scanPolicyEvaluator)
+        .evaluateForMonitoring(eq(hrc1), any(), any(), any(), any());
+
+    underTest.process(queueItem());
+
+    verify(scanPersistenceService).deleteScan(tempScan);
+    assertDropMetric("cm-evaluation-failed", 1L);
   }
 
   @Test
-  public void processRefreshesOverlaysForEachComponentInBatch() throws Exception {
+  public void process_singleComponentEvaluationFails_othersContinue() throws Exception {
     stubSatellite();
     Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
     when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
-    ProxyRepositoryComponent c1 = component(HASH, "lib/a.jar", null, "scan-1");
-    ProxyRepositoryComponent c2 = component(HASH, "lib/b.jar", null, "scan-2");
-    ProxyRepositoryComponent c3 = component(HASH, "lib/c.jar", null, "scan-3");
-    when(proxyRepositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(c1, c2, c3));
-    Application app1 = application("app-1");
-    Application app2 = application("app-2");
-    Application app3 = application("app-3");
-    when(applicationForHostedRepositoryComponentService.getOrCreateApplication(REPO_ID, "lib/a.jar"))
-        .thenReturn(app1);
-    when(applicationForHostedRepositoryComponentService.getOrCreateApplication(REPO_ID, "lib/b.jar"))
-        .thenReturn(app2);
-    when(applicationForHostedRepositoryComponentService.getOrCreateApplication(REPO_ID, "lib/c.jar"))
-        .thenReturn(app3);
+    HostedRepositoryComponent hrc1 = component(HASH, "a.tgz", "stage-release", "s-a");
+    HostedRepositoryComponent hrc2 = component(HASH, "b.tgz", "stage-release", "s-b");
+    when(hostedRepositoryComponentDAO.getByRepositoryIdAndHash(tx, REPO_ID, HASH)).thenReturn(List.of(hrc1, hrc2));
+    when(scanPersistenceService.getScan(any(), any())).thenReturn(mock(ScanEntity.class));
+    when(scanPersistenceService.createTempScan(any())).thenReturn(mock(ScanEntity.class));
+    when(scanUploader.upload(any(), eq(hrc1), any(), any(), any(), eq(true))).thenReturn(scanReceipt("fresh-1"));
+    when(scanUploader.upload(any(), eq(hrc2), any(), any(), any(), eq(true))).thenReturn(scanReceipt("fresh-2"));
+    doThrow(new java.io.IOException("evaluation boom")).when(scanPolicyEvaluator)
+        .evaluateForMonitoring(eq(hrc1), any(), any(), any(), any());
 
     underTest.process(queueItem());
 
-    verify(reportService).refreshHostedComponentAfterEvaluation(
-        eq(c1), eq(repo), eq(app1), eq("app-1"), eq("scan-1"), any(), eq(false));
-    verify(reportService).refreshHostedComponentAfterEvaluation(
-        eq(c2), eq(repo), eq(app2), eq("app-2"), eq("scan-2"), any(), eq(false));
-    verify(reportService).refreshHostedComponentAfterEvaluation(
-        eq(c3), eq(repo), eq(app3), eq("app-3"), eq("scan-3"), any(), eq(false));
+    verify(scanPolicyEvaluator).evaluateForMonitoring(eq(hrc2), eq("fresh-2"), any(), any(), any());
+    verify(resolver, never()).pinOwnerComponent(eq(hrc1), any(), any());
+    verify(resolver).pinOwnerComponent(hrc2, "fresh-2", "stage-release");
+    assertDropMetric("cm-evaluation-failed", 1L);
+  }
+
+  @Test
+  public void process_cloneScanFileFails_dropsAndContinues() throws Exception {
+    stubSatellite();
+    Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
+    when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
+    HostedRepositoryComponent hrc = component(HASH, "a.tgz", "stage-release", "s-a");
+    when(hostedRepositoryComponentDAO.getByRepositoryIdAndHash(tx, REPO_ID, HASH)).thenReturn(List.of(hrc));
+    when(scanPersistenceService.getScan(any(), any())).thenReturn(mock(ScanEntity.class));
+    when(scanPersistenceService.createTempScan(any())).thenReturn(mock(ScanEntity.class));
+    doThrow(new java.io.IOException("clone boom")).when(scanPersistenceService)
+        .copyScanFile(any(), any());
+
+    underTest.process(queueItem());
+
+    assertDropMetric("cm-clone-scan-failed", 1L);
+    verify(scanUploader, never()).upload(any(), any(), any(), any(), any(), anyBoolean());
+    verify(scanPolicyEvaluator, never()).evaluateForMonitoring(any(), any(), any(), any(), any());
+  }
+
+  @Test
+  public void process_uploadFails_dropsAndContinues() throws Exception {
+    stubSatellite();
+    Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
+    when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
+    HostedRepositoryComponent hrc = component(HASH, "a.tgz", "stage-release", "s-a");
+    when(hostedRepositoryComponentDAO.getByRepositoryIdAndHash(tx, REPO_ID, HASH)).thenReturn(List.of(hrc));
+    when(scanPersistenceService.getScan(any(), any())).thenReturn(mock(ScanEntity.class));
+    when(scanPersistenceService.createTempScan(any())).thenReturn(mock(ScanEntity.class));
+    doThrow(new java.io.IOException("upload boom")).when(scanUploader)
+        .upload(any(), any(), any(), any(), any(), anyBoolean());
+
+    underTest.process(queueItem());
+
+    assertDropMetric("cm-upload-failed", 1L);
+    verify(scanPolicyEvaluator, never()).evaluateForMonitoring(any(), any(), any(), any(), any());
+  }
+
+  /**
+   * Replaces the former {@code cm-resolver-failed} case: candidates now arrive as
+   * hosted-repository components, so there is no get-or-create step left to fail. The equivalent
+   * "this candidate cannot be monitored" condition is having no evaluation to re-upload, and it must
+   * skip only its own component.
+   */
+  @Test
+  public void process_componentWithNoPreviousEvaluation_dropsAndContinues() throws Exception {
+    stubSatellite();
+    when(repositoryDAO.getById(REPO_ID)).thenReturn(repository(REPO_ID, RepositoryType.hosted, true, "maven2"));
+    HostedRepositoryComponent neverEvaluated = component(HASH, "a.tgz", "stage-release", null);
+    HostedRepositoryComponent evaluated = component(HASH, "b.tgz", "stage-release", "s-b");
+    when(hostedRepositoryComponentDAO.getByRepositoryIdAndHash(tx, REPO_ID, HASH))
+        .thenReturn(List.of(neverEvaluated, evaluated));
+    ScanEntity tempScan = mock(ScanEntity.class);
+    when(scanPersistenceService.getScan(any(), any())).thenReturn(mock(ScanEntity.class));
+    when(scanPersistenceService.createTempScan(any())).thenReturn(tempScan);
+    when(scanUploader.upload(eq(tempScan), eq(evaluated), any(), any(), any(), eq(true)))
+        .thenReturn(scanReceipt("fresh-b"));
+
+    underTest.process(queueItem());
+
+    assertDropMetric("cm-no-previous-evaluation", 1L);
+    verify(scanPolicyEvaluator).evaluateForMonitoring(eq(evaluated), eq("fresh-b"), any(), any(), any());
+    verify(scanPolicyEvaluator, never()).evaluateForMonitoring(eq(neverEvaluated), any(), any(), any(), any());
+  }
+
+  /**
+   * {@code last_policy_evaluation} is unique on {@code (owner_id, stage_type_id)}, so an artifact that has
+   * been uploaded at more than one stage — the stage is per-request on the NXRM scan payload — has one row
+   * per stage, and {@code getLastByOwnerIds} applies no stage filter and no {@code ORDER BY}. The cycle must
+   * refresh the stage the artifact was evaluated at most recently rather than whichever row the query
+   * happened to return, so the choice cannot depend on result order.
+   * <p>
+   * Returned oldest-last here: a merge that keeps the later element would pick the stale build row.
+   */
+  @Test
+  public void process_ownerEvaluatedAtTwoStages_monitorsTheMostRecentStage() throws Exception {
+    stubSatellite();
+    when(repositoryDAO.getById(REPO_ID)).thenReturn(repository(REPO_ID, RepositoryType.hosted, true, "maven2"));
+    HostedRepositoryComponent hrc = component(HASH, "a.tgz", "stage-release", "s-release");
+    when(hostedRepositoryComponentDAO.getByRepositoryIdAndHash(tx, REPO_ID, HASH)).thenReturn(List.of(hrc));
+
+    PolicyEvaluation newerRelease = policyEvaluation("s-release");
+    newerRelease.setOwnerId(hrc.getId());
+    newerRelease.setStageTypeId("stage-release");
+    newerRelease.setTime(new Date(2_000L));
+    PolicyEvaluation olderBuild = policyEvaluation("s-build");
+    olderBuild.setOwnerId(hrc.getId());
+    olderBuild.setStageTypeId("stage-build");
+    olderBuild.setTime(new Date(1_000L));
+    when(policyEvaluationDAO.getLastByOwnerIds(anySet())).thenReturn(List.of(newerRelease, olderBuild));
+
+    ScanEntity tempScan = mock(ScanEntity.class);
+    when(scanPersistenceService.getScan(any(), any())).thenReturn(mock(ScanEntity.class));
+    when(scanPersistenceService.createTempScan(any())).thenReturn(tempScan);
+    when(scanUploader.upload(any(), eq(hrc), any(), any(), any(), eq(true))).thenReturn(scanReceipt("fresh-a"));
+
+    underTest.process(queueItem());
+
+    verify(scanPolicyEvaluator).evaluateForMonitoring(
+        eq(hrc), eq("fresh-a"), eq(new Stage("stage-release")), any(), any());
+    verify(scanPolicyEvaluator, never()).evaluateForMonitoring(
+        any(), any(), eq(new Stage("stage-build")), any(), any());
+  }
+
+  @Test
+  public void process_pinOwnerComponentMiss_stillNoDropMetric() throws Exception {
+    // resolver.pinOwnerComponent swallows misses internally (WARN + dedicated pin-miss metric on
+    // HostedRepositoryComponentResolver); the caller here does not add its own drop metric when
+    // pin returns cleanly.
+    stubSatellite();
+    Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
+    when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
+    HostedRepositoryComponent hrc = component(HASH, "a.tgz", "stage-release", "s-a");
+    when(hostedRepositoryComponentDAO.getByRepositoryIdAndHash(tx, REPO_ID, HASH)).thenReturn(List.of(hrc));
+    when(scanPersistenceService.getScan(any(), any())).thenReturn(mock(ScanEntity.class));
+    when(scanPersistenceService.createTempScan(any())).thenReturn(mock(ScanEntity.class));
+    when(scanUploader.upload(any(), eq(hrc), any(), any(), any(), eq(true))).thenReturn(scanReceipt("fresh-a"));
+
+    underTest.process(queueItem());
+
+    verify(resolver).pinOwnerComponent(hrc, "fresh-a", "stage-release");
+    assertThat(meterRegistry.getMeters()).isEmpty();
   }
 
   // --- helpers -----------------------------------------------------------
@@ -446,28 +649,61 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
             .isEqualTo((double) expected);
   }
 
-  private static ProxyRepositoryComponent component(final String hash, final String pathname, final String stage) {
+  private static HostedRepositoryComponent component(final String hash, final String pathname, final String stage) {
     return component(hash, pathname, stage, null);
   }
 
-  private static ProxyRepositoryComponent component(
+  /**
+   * Pure factory — deliberately does no stubbing, because call sites nest it inside
+   * {@code thenReturn(...)} where stubbing would corrupt Mockito's in-progress stubbing.
+   * <p>
+   * The stage and the scan to re-upload now come from {@code policy_evaluation} rather than from the
+   * candidate row, so the intended pair is encoded into the id and served by the single default set up
+   * in {@link #stubEvaluationsFromComponentIds()}.
+   */
+  private static HostedRepositoryComponent component(
       final String hash,
       final String pathname,
       final String stage,
       final String scanId)
   {
-    ProxyRepositoryComponent c = new ProxyRepositoryComponent();
-    c.setRepositoryId(REPO_ID);
-    c.setHash(hash);
-    c.setPathname(pathname);
-    c.setLastEvaluationStage(stage);
-    c.setScanId(scanId);
+    HostedRepositoryComponent c = new HostedRepositoryComponent(REPO_ID, pathname, hash);
+    c.setId("hrc|" + pathname + "|" + (stage == null ? "" : stage) + "|" + (scanId == null ? "" : scanId));
     return c;
   }
 
-  private static Application application(final String id) {
-    Application app = new Application();
-    app.setId(id);
-    return app;
+  /**
+   * One lenient default covering every candidate: the processor batches this call for the whole page, so
+   * decode every id in the set and return one evaluation per candidate that was built with a scanId.
+   * Candidates built without one contribute no row, which is what "never evaluated" looks like.
+   */
+  private void stubEvaluationsFromComponentIds() {
+    lenient().when(policyEvaluationDAO.getLastByOwnerIds(anySet())).thenAnswer(inv -> {
+      Set<String> ids = inv.getArgument(0);
+      List<PolicyEvaluation> evaluations = new ArrayList<>();
+      for (String id : ids) {
+        String[] parts = id.split("\\|", -1);
+        if (parts.length < 4 || parts[3].isEmpty()) {
+          continue;
+        }
+        PolicyEvaluation evaluation = policyEvaluation(parts[3]);
+        evaluation.setOwnerId(id);
+        evaluation.setStageTypeId(parts[2].isEmpty() ? null : parts[2]);
+        evaluations.add(evaluation);
+      }
+      return evaluations;
+    });
+  }
+
+  private static ScanReceipt scanReceipt(final String scanId) {
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId(scanId);
+    return receipt;
+  }
+
+  private static PolicyEvaluation policyEvaluation(final String scanId) {
+    PolicyEvaluation policyEvaluation = new PolicyEvaluation();
+    policyEvaluation.setScanId(scanId);
+    return policyEvaluation;
   }
 }

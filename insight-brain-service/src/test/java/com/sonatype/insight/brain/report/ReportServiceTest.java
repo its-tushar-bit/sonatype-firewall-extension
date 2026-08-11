@@ -403,6 +403,28 @@ public class ReportServiceTest
   @Inject
   private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
+  @Inject
+  private com.sonatype.insight.brain.dataaccess.repository.HostedRepositoryComponentDAO hostedRepositoryComponentDAO;
+
+  @Inject
+  private com.sonatype.insight.brain.repository.hosted.HostedRepositoryComponentResolver hostedRepositoryComponentResolver;
+
+  // Deliberately not a `@Mock Provider<ScanPolicyEvaluator>` field: this test extends
+  // AbstractComponentTest/SpringInjectedTest, whose mock-substitution machinery matches mock
+  // candidates against bean fields by raw erased type. A raw-typed `Provider` mock is
+  // indistinguishable from any other `Provider<?>`-typed field elsewhere in the injected object
+  // graph (e.g. LicenseThreatGroupDAO's internal Provider<LicenseThreatGroupLicenseDAO>) and would
+  // get spliced into it by mistake. Wrapping a plain (non-Mockito) Provider around a `@Mock`
+  // ScanPolicyEvaluator avoids the field itself ever being a Mockito double.
+  @Mock
+  private com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator scanPolicyEvaluator;
+
+  private final jakarta.inject.Provider<com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator> scanPolicyEvaluatorProvider =
+      () -> scanPolicyEvaluator;
+
+  @Inject
+  private com.sonatype.insight.brain.dataaccess.OwnerComponentDAO ownerComponentDAO;
+
   @Before
   public void before() {
     thirdPartyDataServiceSpy = createThirdPartyDataServiceSpy();
@@ -460,7 +482,8 @@ public class ReportServiceTest
         scanPersistenceService, proxyRepositoryComponentDAO, null, null, null, null, null,
         innerSourceCleanupPendingService, thirdPartySbomMetadataDAO,
         mock(com.sonatype.insight.brain.repository.hosted.HostedComponentScanQueueConsumer.class),
-        mock(com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager.class));
+        mock(com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager.class),
+        hostedRepositoryComponentDAO, hostedRepositoryComponentResolver, scanPolicyEvaluatorProvider);
   }
 
   @Test
@@ -1480,7 +1503,7 @@ public class ReportServiceTest
     String clientUserAgent = "userAgent";
 
     assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> reportService.reUploadScanToHds(app.getId(), nonExistentScanId, clientUserAgent))
+        .isThrownBy(() -> reportService.reUploadScanToHds(app, nonExistentScanId, clientUserAgent))
         .withMessage("Policy evaluation for scan " + nonExistentScanId + " does not exist on the server.");
   }
 
@@ -1517,7 +1540,7 @@ public class ReportServiceTest
     assertThat(getEntityContents(bomFileBeforeReUpload)).isNotEqualTo("{}\n");
     assertThat(getEntityContents(indexFileBeforeReUpload)).isNotEqualTo("<html></html>");
 
-    reportService.reUploadScanToHds(app.getId(), scanId, clientUserAgent);
+    reportService.reUploadScanToHds(app, scanId, clientUserAgent);
 
     var bomFileAfterReUpload = lifecycleReportPersistenceService
         .getReportEntity(app.getId(), scanId, BOM_JSON.getName());
@@ -1525,6 +1548,137 @@ public class ReportServiceTest
         .getReportEntity(app.getId(), scanId, INDEX_HTML.getName());
     assertThat(getEntityContents(bomFileAfterReUpload)).isEqualTo("{}\n");
     assertThat(getEntityContents(indexFileAfterReUpload)).isEqualTo("<html></html>");
+  }
+
+  // ---- reevaluateHostedComponent (Manual Re-Evaluate on a hosted-repository component, CLM-43710) ----
+
+  private com.sonatype.insight.brain.model.repository.HostedRepositoryComponent newHrcWithReport(
+      String hrcScanId) throws IOException
+  {
+    com.sonatype.insight.brain.model.repository.RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    com.sonatype.insight.brain.model.repository.Repository repository = tempEntity.newRepository(repositoryManager);
+    com.sonatype.insight.brain.model.repository.HostedRepositoryComponent hrc =
+        tempEntity.newHostedRepositoryComponent(repository);
+    tempEntity.newPolicyEvaluation(hrc.getId(), BuildStageType.ID, hrcScanId);
+    ScanHelper.createDummyScanFile(insightWork, hrc.getId(), hrcScanId);
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report", hrc.getId(), hrcScanId);
+    return hrc;
+  }
+
+  private void stubReUpload(String hrcId, String newScanId) throws IOException {
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(newScanId);
+    doReturn(scanReceipt).when(mockScanUploadService)
+        .upload(any(), any(), eq(StageTypes.BUILD.getId()), any(), any(), any(), any(), any(), anyBoolean());
+    // Mock the re-uploaded report so the report-file-move step has something to move.
+    ReportHelper.saveMockReport(insightWork, tempDir, "/LifecycleReportPersistenceServiceTest/report", hrcId,
+        newScanId);
+  }
+
+  @Test
+  public void testReevaluateHostedComponent_throwsWhenPolicyEvaluationMissing() {
+    ReportService reportService = createReportService();
+    String nonExistentScanId = "nonExistentHostedScanId";
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> reportService.reevaluateHostedComponent("some-hrc-id", nonExistentScanId))
+        .withMessage("Policy evaluation for scan " + nonExistentScanId + " does not exist on the server.");
+  }
+
+  @Test
+  public void testReevaluateHostedComponent_throwsWhenOwnerIsAnApplication() {
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
+    ReportService reportService = createReportService();
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> reportService.reevaluateHostedComponent(app.getId(), scanId))
+        .withMessage("Scan " + scanId
+            + " does not have an underlying hosted-repository component; cannot re-evaluate.");
+  }
+
+  @Test
+  public void testReevaluateHostedComponent_reUploadsAndReEvaluatesUnderCanonicalOwnerAndStage() throws Exception {
+    String hrcScanId = "hrcScanId";
+    com.sonatype.insight.brain.model.repository.HostedRepositoryComponent hrc = newHrcWithReport(hrcScanId);
+    stubReUpload(hrc.getId(), "hrcScanId-temp");
+    ReportService reportService = createReportService();
+
+    reportService.reevaluateHostedComponent(hrc.getId(), hrcScanId);
+
+    verify(scanPolicyEvaluator).evaluate(
+        argThat(owner -> owner instanceof com.sonatype.insight.brain.model.repository.HostedRepositoryComponent
+            && hrc.getId()
+                .equals(((com.sonatype.insight.brain.model.repository.HostedRepositoryComponent) owner).getId())),
+        eq(hrcScanId), eq(new com.sonatype.clm.dto.model.policy.Stage(BuildStageType.ID)),
+        eq(ScanTriggerType.HOSTED_REPOSITORY_SCANNING),
+        eq(com.sonatype.insight.scan.model.ClientScanType.SONATYPE), eq(false));
+  }
+
+  @Test
+  public void testReevaluateHostedComponent_pinMissDoesNotFailReEvaluation() throws Exception {
+    // No owner_component row exists for this HRC's hash/stage — pinOwnerComponent will miss.
+    // The re-evaluation must still complete: no exception escapes, and the policy_evaluation row
+    // that reevaluateHostedComponent read from is left intact (pin miss is not a re-evaluation failure).
+    String hrcScanId = "hrcScanIdPinMiss";
+    com.sonatype.insight.brain.model.repository.HostedRepositoryComponent hrc = newHrcWithReport(hrcScanId);
+    stubReUpload(hrc.getId(), "hrcScanIdPinMiss-temp");
+    ReportService reportService = createReportService();
+
+    reportService.reevaluateHostedComponent(hrc.getId(), hrcScanId);
+
+    com.sonatype.insight.brain.model.repository.HostedRepositoryComponent reloaded =
+        hostedRepositoryComponentDAO.getById(hrc.getId());
+    assertThat(reloaded.getOwnerComponentId()).isNull();
+    assertThat(policyEvaluationDAO.getLastByOwnerIdAndScanId(hrc.getId(), hrcScanId)).isNotNull();
+  }
+
+  @Test
+  public void testReevaluateHostedComponent_pinHitSetsOwnerComponentId() throws Exception {
+    String hrcScanId = "hrcScanIdPinHit";
+    com.sonatype.insight.brain.model.repository.HostedRepositoryComponent hrc = newHrcWithReport(hrcScanId);
+    com.sonatype.insight.brain.model.OwnerComponent oc = new com.sonatype.insight.brain.model.OwnerComponent(
+        hrc.getId(), BuildStageType.ID, new java.util.Date(), hrc.getHash(),
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1.0"),
+        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), false, null);
+    ownerComponentDAO.insert(oc);
+    stubReUpload(hrc.getId(), "hrcScanIdPinHit-temp");
+    ReportService reportService = createReportService();
+
+    reportService.reevaluateHostedComponent(hrc.getId(), hrcScanId);
+
+    com.sonatype.insight.brain.model.repository.HostedRepositoryComponent reloaded =
+        hostedRepositoryComponentDAO.getById(hrc.getId());
+    assertThat(reloaded.getOwnerComponentId()).isEqualTo(oc.getId());
+  }
+
+  @Test
+  public void testReevaluateHostedComponent_propagatesPolicyEvaluatorIOException() throws Exception {
+    String hrcScanId = "hrcScanIdIoFailure";
+    com.sonatype.insight.brain.model.repository.HostedRepositoryComponent hrc = newHrcWithReport(hrcScanId);
+    stubReUpload(hrc.getId(), "hrcScanIdIoFailure-temp");
+    doThrow(new IOException("HDS unavailable")).when(scanPolicyEvaluator)
+        .evaluate(any(), any(), any(), any(), any(), anyBoolean());
+    ReportService reportService = createReportService();
+
+    assertThatExceptionOfType(IOException.class)
+        .isThrownBy(() -> reportService.reevaluateHostedComponent(hrc.getId(), hrcScanId))
+        .withMessage("HDS unavailable");
+  }
+
+  @Test
+  public void testReevaluateHostedComponent_propagatesStaleScanBadRequestExceptionUnwrapped() throws Exception {
+    // CLM-25312: ScanPolicyEvaluator throws an unchecked BadRequestException for out-of-date scans.
+    // reevaluateHostedComponent must let it propagate as-is, not wrap it as a RuntimeException.
+    String hrcScanId = "hrcScanIdStale";
+    com.sonatype.insight.brain.model.repository.HostedRepositoryComponent hrc = newHrcWithReport(hrcScanId);
+    stubReUpload(hrc.getId(), "hrcScanIdStale-temp");
+    doThrow(new BadRequestException("Scan " + hrcScanId + " is out of date")).when(scanPolicyEvaluator)
+        .evaluate(any(), any(), any(), any(), any(), anyBoolean());
+    ReportService reportService = createReportService();
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> reportService.reevaluateHostedComponent(hrc.getId(), hrcScanId))
+        .withMessage("Scan " + hrcScanId + " is out of date");
   }
 
   @Test
@@ -1552,7 +1706,7 @@ public class ReportServiceTest
     ReportHelper.saveMockReport(insightWork, tempDir,
         "/LifecycleReportPersistenceServiceTest/report", app.getId(), newScanId);
 
-    reportService.reUploadScanToHds(app.getId(), scanId, browserUserAgent);
+    reportService.reUploadScanToHds(app, scanId, browserUserAgent);
 
     verify(mockScanUploadService).upload(
         any(),
@@ -1592,7 +1746,7 @@ public class ReportServiceTest
     ReportHelper.saveMockReport(insightWork, tempDir,
         "/LifecycleReportPersistenceServiceTest/report", app.getId(), newScanId);
 
-    reportService.reUploadScanToHds(app.getId(), scanId, clientUserAgent);
+    reportService.reUploadScanToHds(app, scanId, clientUserAgent);
 
     verify(mockScanUploadService).upload(
         any(),
@@ -1633,7 +1787,7 @@ public class ReportServiceTest
     ReportHelper.saveMockReport(insightWork, tempDir,
         "/LifecycleReportPersistenceServiceTest/report", app.getId(), newScanId);
 
-    reportService.reUploadScanToHds(app.getId(), scanId, clientUserAgent);
+    reportService.reUploadScanToHds(app, scanId, clientUserAgent);
 
     verify(mockScanUploadService).upload(
         any(),
@@ -1714,7 +1868,7 @@ public class ReportServiceTest
     ReportHelper.saveMockReport(insightWork, tempDir,
         "/LifecycleReportPersistenceServiceTest/report", app.getId(), newScanId);
 
-    reportService.reUploadScanToHds(app.getId(), scanId, clientUserAgent);
+    reportService.reUploadScanToHds(app, scanId, clientUserAgent);
 
     verify(mockScanUploadService).upload(
         any(),
@@ -1753,7 +1907,7 @@ public class ReportServiceTest
     String thirdPartySecurityBefore = getEntityContents(
         lifecycleReportPersistenceService.getReportEntity(app.getId(), scanId, THIRD_PARTY_SECURITY_JSON.getName()));
 
-    reportService.reUploadScanToHds(app.getId(), scanId, clientUserAgent);
+    reportService.reUploadScanToHds(app, scanId, clientUserAgent);
 
     assertThat(getEntityContents(
         lifecycleReportPersistenceService.getReportEntity(app.getId(), scanId, THIRD_PARTY_BOM_JSON.getName())))
@@ -1782,7 +1936,7 @@ public class ReportServiceTest
             anyBoolean());
     mockReportDownloader.mockDownloadReport(newScanId, "/LifecycleReportPersistenceServiceTest/report");
 
-    reportService.reUploadScanToHds(app.getId(), scanId, clientUserAgent);
+    reportService.reUploadScanToHds(app, scanId, clientUserAgent);
 
     verify(thirdPartyDataServiceSpy).getScanData(eq(newScanId));
   }
@@ -1804,7 +1958,7 @@ public class ReportServiceTest
             anyBoolean());
     mockReportDownloader.mockDownloadReport(newScanId, "/LifecycleReportPersistenceServiceTest/report");
 
-    reportService.reUploadScanToHds(app.getId(), scanId, clientUserAgent);
+    reportService.reUploadScanToHds(app, scanId, clientUserAgent);
 
     String thirdPartyBomAfter = getEntityContents(
         lifecycleReportPersistenceService.getReportEntity(app.getId(), scanId, THIRD_PARTY_BOM_JSON.getName()));
@@ -1831,7 +1985,7 @@ public class ReportServiceTest
             anyBoolean());
     mockReportDownloader.mockDownloadReport(newScanId, "/LifecycleReportPersistenceServiceTest/report");
 
-    reportService.reUploadScanToHds(app.getId(), scanId, clientUserAgent);
+    reportService.reUploadScanToHds(app, scanId, clientUserAgent);
 
     String licenseContents = getEntityContents(
         lifecycleReportPersistenceService.getReportEntity(app.getId(), scanId, THIRD_PARTY_LICENSE_JSON.getName()));
@@ -1868,7 +2022,7 @@ public class ReportServiceTest
     ReportHelper.saveMockReport(insightWork, tempDir,
         "/LifecycleReportPersistenceServiceTest/report", app.getId(), tempScanId);
 
-    reportService.reUploadScanToHds(app.getId(), scanId, clientUserAgent);
+    reportService.reUploadScanToHds(app, scanId, clientUserAgent);
 
     // reUploadScanToHds must not enrich under the transient tempScanId.
     verify(thirdPartyDataServiceSpy, never())
@@ -2059,6 +2213,14 @@ public class ReportServiceTest
     }
   }
 
+  // ---- HRC-owner tests for Owner-scoped read methods ----
+  //
+  // Sibling coverage to the App-side tests earlier in this file. Building the full HRC scan
+  // fixture (report zip on disk + HDS mocks) is deferred until the HRC scan pipeline supports
+  // isolated integration fixtures. Until then, these tests pin the NotFound contract on the
+  // Owner overloads of getReport, getReportMetadata, and processBrowseReport so a future
+  // refactor can't swap the exception type when the owner is an HRC.
+
   @Test
   public void testGetReport_Hrc_NoReport_NoEvaluation_ThrowsNotFound() {
     Repository repository = tempEntity.newRepository();
@@ -2078,6 +2240,8 @@ public class ReportServiceTest
     tempEntity.newPolicyEvaluation(hrc.getId(), BuildStageType.ID, hrcScanId);
     ReportService reportService = createReportService();
 
+    // Mirror of the App-side "evaluation exists but report is missing" branch: getReport throws
+    // NotFound with the "obsolete/purged" phrasing, keyed on the HRC's owner id.
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> reportService.getReport(hrc, hrcScanId))
         .withMessageContaining(hrc.getId())
@@ -2091,6 +2255,8 @@ public class ReportServiceTest
     HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
     ReportService reportService = createReportService();
 
+    // For non-Application owners getReportMetadata routes through buildOwnerMetadata → getReport,
+    // so a missing report surfaces the "Could not find a report" NotFound.
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> reportService.getReportMetadata(hrc, "no-such-scan"))
         .withMessage("Could not find a report with ID no-such-scan");

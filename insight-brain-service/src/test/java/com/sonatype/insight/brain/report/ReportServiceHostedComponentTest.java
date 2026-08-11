@@ -155,12 +155,6 @@ public class ReportServiceHostedComponentTest
   private com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   @Mock
-  private com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator repositoryPolicyEvaluator;
-
-  @Mock
-  private jakarta.inject.Provider<com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator> repositoryPolicyEvaluatorProvider;
-
-  @Mock
   private LifecycleReportPersistenceService lifecycleReportPersistenceService;
 
   @Mock
@@ -171,6 +165,10 @@ public class ReportServiceHostedComponentTest
 
   @Before
   public void setUp() {
+    // AspectJ compile-time weaving inserts an @Authorize aspect at every call site of an
+    // @Authorize'd method (e.g. getReportMetadata). Under Mockito the AuthorizationChecker
+    // is not wired, so the aspect throws "No SecurityManager accessible". Disable enforcement
+    // for the duration of these unit tests; the aspect short-circuits to the target method.
     SecurityAspectControl.disableEnforcement();
 
     // Post CLM-41904 merge: reevaluateHostedComponent wraps evaluate → mirror → saveOverlay →

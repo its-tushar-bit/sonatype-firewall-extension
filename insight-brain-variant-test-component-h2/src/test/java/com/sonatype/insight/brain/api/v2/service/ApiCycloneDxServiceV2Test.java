@@ -1387,6 +1387,14 @@ public class ApiCycloneDxServiceV2Test
     return ref;
   }
 
+  // ---- HRC-owner tests ----
+  //
+  // Full happy-path CycloneDX generation for HRC owners requires the HRC scan pipeline to
+  // persist a report file — an integration path that doesn't have an isolated fixture yet.
+  // Until it does, these tests pin the NotFound contract for the Owner-scoped overloads so a
+  // future refactor can't accidentally return an empty BOM or a different exception for a
+  // missing HRC report.
+
   @Test
   public void testGetByScanId_Hrc_NotFound() {
     Repository repository = tempEntity.newRepository();
@@ -1412,6 +1420,8 @@ public class ApiCycloneDxServiceV2Test
     Repository repository = tempEntity.newRepository();
     HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
 
+    // buildBom is the internal builder used by both getByScanId and getLatest — it must
+    // surface the same NotFound exception on a missing report.
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> service.buildBom(hrc, "no-such-scan", Version.VERSION_11, null));
   }

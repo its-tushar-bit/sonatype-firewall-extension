@@ -50,6 +50,7 @@ describe('SidebarNavigation', () => {
     });
     expect(screen.getByRole('link', { name: 'Components' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Vulnerabilities' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Security Events' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'MCP' })).toBeInTheDocument();
   });
 
@@ -65,6 +66,21 @@ describe('SidebarNavigation', () => {
     });
     expect(screen.getByRole('link', { name: 'Components' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Vulnerabilities' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Security Events' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'MCP' })).toBeInTheDocument();
+  });
+
+  it('shows the Security Events item routing to the list, with no gate', async () => {
+    jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue([]);
+
+    renderSidebar();
+
+    await waitFor(() => {
+      expect(screen.getByRole('link', { name: 'Security Events' })).toBeInTheDocument();
+    });
+    expect(screen.getByRole('link', { name: 'Security Events' })).toHaveAttribute(
+      'href',
+      '#/security-events'
+    );
   });
 });

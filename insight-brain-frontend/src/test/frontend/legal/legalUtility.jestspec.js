@@ -440,15 +440,30 @@ describe('legalUtility', function () {
       expect(subtitleString).not.toContain('root org');
       expect(subtitle.props.children.length).toEqual(3);
       expect(subtitle.props.children[0].props.children[1].props.children).toEqual('org');
+      expect(subtitle.props.children[0].props.children[2].props.children).toEqual('/');
       expect(subtitle.props.children[1].props.children[1].props.children).toEqual('app');
+      expect(subtitle.props.children[1].props.children[2].props.children).toEqual('/');
       expect(subtitle.props.children[2].props.children[1].props.children).toEqual('testComponent');
+      // Last element should not have separator (condition is false, so children[2] is false)
+      expect(subtitle.props.children[2].props.children[2]).toBeFalsy();
     });
 
     it('creates a subtitle from only root org that includes `root org` + component name and nothing else', function () {
       let subtitle = createSubtitle(availableScopesOnlyRoot, component);
       expect(subtitle.props.children.length).toEqual(2);
       expect(subtitle.props.children[0].props.children[1].props.children).toEqual('root org');
+      expect(subtitle.props.children[0].props.children[2].props.children).toEqual('/');
       expect(subtitle.props.children[1].props.children[1].props.children).toEqual('testComponent');
+      // Last element should not have separator (condition is false, so children[2] is false)
+      expect(subtitle.props.children[1].props.children[2]).toBeFalsy();
+    });
+
+    it('creates a subtitle with single element that has no separator', function () {
+      let subtitle = createSubtitle(availableScopesOnlyRoot, null);
+      expect(subtitle.props.children.length).toEqual(1);
+      expect(subtitle.props.children[0].props.children[1].props.children).toEqual('root org');
+      // Single element is also last element, so no separator
+      expect(subtitle.props.children[0].props.children[2]).toBeFalsy();
     });
   });
 });

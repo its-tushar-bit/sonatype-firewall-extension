@@ -34,10 +34,18 @@ export function createSubtitle(availableScopes, component) {
   return (
     <div className="nx-page-title__description">
       {availableScopeValuesReversed.map((availableScope, index) => {
+        const isLast = index === availableScopeValuesReversed.length - 1;
         return (
           <span key={index} className="iq-violation-details__subtitle-part">
             <NxFontAwesomeIcon icon={setScopeIcon(availableScope)} />
             <span>{availableScope.name}</span>
+            {/* Breadcrumb separator: "/" for UI hierarchy (org/app/component).
+                Component coordinates use " : " (name : version) per componentDisplay(). */}
+            {!isLast && (
+              <span className="iq-violation-details__subtitle-separator" aria-hidden="true">
+                /
+              </span>
+            )}
           </span>
         );
       })}

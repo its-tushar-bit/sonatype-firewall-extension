@@ -51,6 +51,13 @@ export default function ComponentOverviewTile(props) {
     return 'In Progress';
   };
 
+  const reviewProgress = () => {
+    if (obligations.length === 0) {
+      return 'N/A';
+    }
+    return `${reviewedCount}/${obligations.length} complete`;
+  };
+
   const lastUpdatedObligation =
     obligations.length === 0
       ? null
@@ -168,7 +175,7 @@ export default function ComponentOverviewTile(props) {
               <div className="license-component-overview__review-progress">
                 <dt className="nx-read-only__label">Review Progress</dt>
                 <dd id="component-overview-tile-review-progress" className="nx-read-only__data">
-                  {reviewedCount}/{obligations.length} complete
+                  {reviewProgress()}
                 </dd>
               </div>
               <div className="license-component-overview__fulfilled">

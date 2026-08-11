@@ -175,20 +175,29 @@ function ViolationCard({
                 {policyLabel}
               </Text>
             )}
-            {v.organizationName && (
+            {(v.organizationName || v.applicationName) && (
               <Flex align="center" gap="1">
-                <DomainIcons.Organizations size={12} color="var(--gray-9)" aria-hidden />
-                <Text size="1" color="gray">
-                  {v.organizationName}
-                </Text>
-              </Flex>
-            )}
-            {v.applicationName && (
-              <Flex align="center" gap="1">
-                <DomainIcons.Applications size={12} color="var(--gray-9)" aria-hidden />
-                <Text size="1" color="gray">
-                  {v.applicationName}
-                </Text>
+                {v.organizationName && (
+                  <>
+                    <DomainIcons.Organizations size={12} color="var(--gray-9)" aria-hidden />
+                    <Text size="1" color="gray">
+                      {v.organizationName}
+                    </Text>
+                    {v.applicationName && (
+                      <Text size="1" color="gray" aria-hidden="true">
+                        /
+                      </Text>
+                    )}
+                  </>
+                )}
+                {v.applicationName && (
+                  <>
+                    <DomainIcons.Applications size={12} color="var(--gray-9)" aria-hidden />
+                    <Text size="1" color="gray">
+                      {v.applicationName}
+                    </Text>
+                  </>
+                )}
               </Flex>
             )}
             {v.stage && (

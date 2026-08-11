@@ -97,6 +97,30 @@ describe('ViolationCardGrid (CLM-42259)', () => {
     expect(within(card).getByText('Build')).toBeInTheDocument();
   });
 
+  it('shows organization and application separated by "/" (CLM-44264)', () => {
+    renderGrid([OPEN_CRITICAL]);
+    const card = screen.getByTestId('violation-card');
+    expect(within(card).getByText('Java-team')).toBeInTheDocument();
+    expect(within(card).getByText('/')).toBeInTheDocument();
+    expect(within(card).getByText('Apple - Java')).toBeInTheDocument();
+  });
+
+  it('shows only organization when application is absent', () => {
+    const orgOnly: ViolationRow = { ...OPEN_CRITICAL, applicationName: undefined };
+    renderGrid([orgOnly]);
+    const card = screen.getByTestId('violation-card');
+    expect(within(card).getByText('Java-team')).toBeInTheDocument();
+    expect(within(card).queryByText('/')).not.toBeInTheDocument();
+  });
+
+  it('shows only application when organization is absent', () => {
+    const appOnly: ViolationRow = { ...OPEN_CRITICAL, organizationName: undefined };
+    renderGrid([appOnly]);
+    const card = screen.getByTestId('violation-card');
+    expect(within(card).getByText('Apple - Java')).toBeInTheDocument();
+    expect(within(card).queryByText('/')).not.toBeInTheDocument();
+  });
+
   it('falls back to identifier coordinates for the version when componentVersion is absent', () => {
     renderGrid([OPEN_COORDS_ONLY]);
     const card = screen.getByTestId('violation-card');

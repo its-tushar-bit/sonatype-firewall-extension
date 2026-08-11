@@ -161,6 +161,11 @@
   font-weight: normal;
   margin: 0 var(--nx-spacing-2x) 0 0;
 
+  .iq-violation-details__subtitle-separator {
+    margin: 0 var(--nx-spacing-2x);
+    color: var(--nx-color-text-secondary);
+  }
+
   .iq-inverse-icon-wrapper {
     @include nx-container-helpers.container-horizontal;
 

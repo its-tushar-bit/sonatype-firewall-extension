@@ -33,8 +33,6 @@ public class JobClassNameTest
     insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.scheduler.NonConcurrentTestJob",
         "NonConcurrentTestJob");
     insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.scheduler.TestJob", "TestJob");
-    insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.service.AdminServletTest$TestBlockJob",
-        "TestBlockJob");
     insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.component.RepositoryIdentifiedComponentPurger",
         "RepositoryIdentifiedComponentPurger");
     insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.git.PullRequestCommentPurger",

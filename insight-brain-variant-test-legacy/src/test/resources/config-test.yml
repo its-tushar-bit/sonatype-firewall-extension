@@ -1,0 +1,20 @@
+importReferencePoliciesFromHDS: false
+
+logging:
+  level: INFO
+  loggers:
+    "com.sonatype": DEBUG
+    "com.sonatype.insight.audit":
+      appenders:
+        - type: file
+          currentLogFilename: ./log/audit.log
+          archivedLogFilenamePattern: ./log/audit-%d.log.gz
+          archivedFileCount: 50
+    "org.apache.directory": ERROR
+    "org.apache.http.headers": DEBUG
+    "org.eclipse.jetty.server.HttpChannel": INFO
+    "com.sonatype.insight.brain.concurrent.PerpetualLockManager": TRACE
+    "com.sonatype.insight.brain.security.FIPSModeDetector": TRACE
+  appenders:
+    - type: console
+      logFormat: "%date %-5level [%thread] %logger - %msg%n"

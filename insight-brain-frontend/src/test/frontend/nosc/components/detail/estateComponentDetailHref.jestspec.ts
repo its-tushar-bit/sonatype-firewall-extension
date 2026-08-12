@@ -3,7 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { estateComponentDetailHref } from 'MainRoot/nosc/components/detail/estateComponentDetailHref';
+import {
+  estateComponentDetailHref,
+  estateComponentPathFromScan,
+} from 'MainRoot/nosc/components/detail/estateComponentDetailHref';
 
 describe('estateComponentDetailHref', () => {
   it('builds overview URL for a hash', () => {
@@ -34,5 +37,61 @@ describe('estateComponentDetailHref', () => {
     ).toBe(
       '#/components/abc123/applications?organizationId=org-1&applicationId=app-1&reportId=report-1'
     );
+  });
+});
+
+describe('estateComponentPathFromScan', () => {
+  it('returns undefined for scan-only context (Path pin would not stick)', () => {
+    expect(estateComponentPathFromScan('scan-1')).toBeUndefined();
+    expect(estateComponentPathFromScan(null)).toBeUndefined();
+    expect(estateComponentPathFromScan('   ')).toBeUndefined();
+  });
+
+  it('returns undefined when org or app is missing', () => {
+    expect(
+      estateComponentPathFromScan('scan-1', {
+        organizationId: 'org-1',
+      })
+    ).toBeUndefined();
+    expect(
+      estateComponentPathFromScan('scan-1', {
+        applicationId: 'app-1',
+      })
+    ).toBeUndefined();
+  });
+
+  it('pins reportId only with both org and app internal ids', () => {
+    expect(
+      estateComponentPathFromScan('scan-1', {
+        organizationId: 'org-1',
+        applicationId: 'app-1',
+      })
+    ).toEqual({
+      organizationId: 'org-1',
+      applicationId: 'app-1',
+      reportId: 'scan-1',
+    });
+  });
+
+  it('trims whitespace-only extras via the pin gate', () => {
+    expect(
+      estateComponentPathFromScan('scan-1', {
+        organizationId: '  ',
+        applicationId: 'app-1',
+      })
+    ).toBeUndefined();
+  });
+
+  it('allows org+app pin without a scan id', () => {
+    expect(
+      estateComponentPathFromScan(undefined, {
+        organizationId: 'org-1',
+        applicationId: 'app-1',
+      })
+    ).toEqual({
+      organizationId: 'org-1',
+      applicationId: 'app-1',
+      reportId: undefined,
+    });
   });
 });

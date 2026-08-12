@@ -134,7 +134,7 @@ describe('ViolationDetail', () => {
     );
     expect(within(rail).getByRole('link', { name: 'demo-component' })).toHaveAttribute(
       'href',
-      '#/applications/demo-app/components/component-hash',
+      '#/components/component-hash',
     );
     // Vulnerability id is absent until the summary loads — stays a non-link placeholder.
     expect(within(rail).getByText('Vulnerability')).toBeInTheDocument();

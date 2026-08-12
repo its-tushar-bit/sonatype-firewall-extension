@@ -867,7 +867,7 @@ describe('ApplicationDetail (CLM-39709 / P1-F7c)', () => {
       });
     });
 
-    it('row "View →" link goes to the native component detail page', async () => {
+    it('row "View →" link goes to estate component detail with Path context', async () => {
       mockHappyPath(axiosMock);
       renderAppDetail('components');
       const table = await screen.findByTestId('nosc-app-detail-components-table');
@@ -875,8 +875,23 @@ describe('ApplicationDetail (CLM-39709 / P1-F7c)', () => {
       // First row in the fixture is log4j-core with hash=abc123.
       expect(links[0]).toHaveAttribute(
         'href',
-        `#/applications/${PUBLIC_ID}/components/abc123?scanId=${SCAN_ID}`,
+        `#/components/abc123?organizationId=org-1&applicationId=${INTERNAL_ID}&reportId=${SCAN_ID}`,
       );
+      expect(links[0]).toHaveAccessibleName(/View .+ details/);
+    });
+
+    it('row "View →" uses hash-only when organizationId is absent (Path pin would not stick)', async () => {
+      axiosMock.onGet(getApplicationUrl(PUBLIC_ID)).reply(200, {
+        ...APPLICATION_FIXTURE,
+        organizationId: undefined,
+      });
+      axiosMock.onGet(getApplicationReportsUrl(INTERNAL_ID)).reply(200, REPORTS_FIXTURE);
+      axiosMock.onGet(getReportPolicyThreatsUrl(PUBLIC_ID, SCAN_ID)).reply(200, POLICY_THREATS_FIXTURE);
+      axiosMock.onGet(getApplicationReportRawUrl(PUBLIC_ID, SCAN_ID)).reply(200, RAW_REPORT_FIXTURE);
+      renderAppDetail('components');
+      const table = await screen.findByTestId('nosc-app-detail-components-table');
+      const links = within(table).getAllByTestId('nosc-app-detail-components-row-link');
+      expect(links[0]).toHaveAttribute('href', '#/components/abc123');
     });
 
     it('page-level full report link stays in the NOUX application-report embed', async () => {

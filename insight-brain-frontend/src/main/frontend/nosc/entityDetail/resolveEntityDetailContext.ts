@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { componentDetailHref } from 'MainRoot/nosc/components/detail/componentDetailHref';
+import { estateComponentDetailHref } from 'MainRoot/nosc/components/detail/estateComponentDetailHref';
 import { vulnerabilityDetailHref } from 'MainRoot/nosc/vulnerabilities/detail/vulnerabilityDetailHref';
 import { violationDetailHref } from 'MainRoot/nosc/violations/violationDetailHref';
 import type {
@@ -50,7 +50,7 @@ function isAvailableFor(kind: EntityKind, input: EntityDetailContextInput): bool
     case 'application':
       return Boolean(input.applicationPublicId);
     case 'component':
-      return Boolean(input.applicationPublicId && input.componentHash);
+      return Boolean(input.componentHash);
     case 'violation':
       return Boolean(input.policyViolationId);
     case 'vulnerability':
@@ -87,10 +87,11 @@ function hrefFor(kind: EntityKind, input: EntityDetailContextInput): string | nu
       );
     }
     case 'component': {
-      if (!input.applicationPublicId || !input.componentHash) {
+      if (!input.componentHash) {
         return null;
       }
-      return componentDetailHref(input.applicationPublicId, input.componentHash, input.scanId);
+      // Hash-only: entity rail lacks Path internal org/app ids required for a sticky pin.
+      return estateComponentDetailHref(input.componentHash);
     }
     case 'violation': {
       if (!input.policyViolationId) {

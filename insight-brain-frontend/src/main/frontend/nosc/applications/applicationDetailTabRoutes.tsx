@@ -112,6 +112,10 @@ export function ApplicationDetailComponentsRoute(): JSX.Element {
       status={effectiveStatus}
       publicId={shell.publicId}
       scanId={scanId}
+      pathContext={{
+        organizationId: shell.appData?.organizationId,
+        applicationId: shell.applicationInternalId,
+      }}
       violationCountByHash={violationCountByHash}
       onRetry={shell.retryRaw}
     />

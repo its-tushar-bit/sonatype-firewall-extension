@@ -6,8 +6,12 @@
 
 /**
  * Estate (hash-primary) Component Detail href helper (CLM-43961).
- * Distinct from app-scoped {@link componentDetailHref}.
- * Used by estate detail tab/Overview self-links and My Scan Data list cards (CLM-43960).
+ * Used by estate detail tab/Overview self-links, My Scan Data list cards (CLM-43960),
+ * and inbound NOSC entity links (CLM-44814).
+ *
+ * Path query pins stick only when both organizationId and applicationId are present.
+ * A lone reportId/scanId is omitted — PathSwitcher would otherwise auto-select an
+ * unrelated first org/app and overwrite the report.
  */
 export type EstateComponentTab = 'overview' | 'vulnerabilities' | 'violations' | 'applications';
 
@@ -36,6 +40,28 @@ function appendPathContextQuery(href: string, pathContext?: EstateComponentPathC
   }
   const query = params.toString();
   return query ? `${href}?${query}` : href;
+}
+
+/**
+ * Map inbound NOSC scan context onto estate Path query params when the owning
+ * org and app internal ids are already known (no lookups).
+ * Policy-evaluation scan ids are the Path {@code reportId}.
+ */
+export function estateComponentPathFromScan(
+  scanId?: string | null,
+  extras?: Omit<EstateComponentPathContext, 'reportId'>
+): EstateComponentPathContext | undefined {
+  const organizationId = extras?.organizationId?.trim() || undefined;
+  const applicationId = extras?.applicationId?.trim() || undefined;
+  // Without both owners, Path auto-select discards reportId — omit rather than mislead.
+  if (!organizationId || !applicationId) {
+    return undefined;
+  }
+  return {
+    organizationId,
+    applicationId,
+    reportId: scanId?.trim() || undefined,
+  };
 }
 
 export function estateComponentDetailHref(

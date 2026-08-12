@@ -9,7 +9,7 @@ import { useCurrentStateAndParams, useRouter } from '@uirouter/react';
 import { Badge, Box, Button, Card, Flex, Grid, Heading, Link as RadixLink, Text, Tooltip } from '@radix-ui/themes';
 import { ActionIcons } from 'MainRoot/nosc/icons';
 import { ViolationThreatBadge } from 'MainRoot/nosc/violations/ViolationThreatBadge';
-import { componentDetailHref } from 'MainRoot/nosc/components/detail/componentDetailHref';
+import { estateComponentDetailHref } from 'MainRoot/nosc/components/detail/estateComponentDetailHref';
 import { vulnerabilityDetailHref } from 'MainRoot/nosc/vulnerabilities/detail/vulnerabilityDetailHref';
 import {
   selectViolationDetailIdentityState,
@@ -60,9 +60,8 @@ function componentHref(details: ViolationDetailsDTO): string | undefined {
   if (!details.hash) {
     return undefined;
   }
-
-  const scanId = getMostRecentScanId(details.stageData);
-  return componentDetailHref(details.applicationPublicId, details.hash, scanId);
+  // Hash-only: violation DTOs expose applicationPublicId, not Path internal org/app ids.
+  return estateComponentDetailHref(details.hash);
 }
 
 function formatFirstSeen(openTime: string): string | undefined {

@@ -37,9 +37,7 @@ describe('resolveEntityDetailContext', () => {
     expect(chain.nodes.find((n) => n.kind === 'application')?.href).toBe(
       '#/applications/my-app?stageId=build&scanId=scan-1',
     );
-    expect(chain.nodes.find((n) => n.kind === 'component')?.href).toBe(
-      '#/applications/my-app/components/abc?scanId=scan-1',
-    );
+    expect(chain.nodes.find((n) => n.kind === 'component')?.href).toBe('#/components/abc');
     expect(chain.nodes.find((n) => n.kind === 'vulnerability')?.href).toBe(
       '#/vulnerabilities/CVE-2021-44228/applications?applicationPublicId=my-app&componentHash=abc&violationId=pv-1&scanId=scan-1',
     );
@@ -83,9 +81,7 @@ describe('resolveEntityDetailContext', () => {
 
     if (current === 'application') {
       expect(chain.nodes.find((n) => n.kind === 'violation')?.href).toBe(expectedSiblingHref);
-      expect(chain.nodes.find((n) => n.kind === 'component')?.href).toBe(
-        '#/applications/my-app/components/abc?scanId=scan-1',
-      );
+      expect(chain.nodes.find((n) => n.kind === 'component')?.href).toBe('#/components/abc');
       expect(chain.nodes.find((n) => n.kind === 'vulnerability')?.href).toBe(
         '#/vulnerabilities/CVE-2021-44228/applications?applicationPublicId=my-app&componentHash=abc&violationId=pv-1&scanId=scan-1',
       );
@@ -112,5 +108,16 @@ describe('resolveEntityDetailContext', () => {
     expect(chain.nodes.find((n) => n.kind === 'vulnerability')?.href).toBe(
       '#/vulnerabilities/CVE%2F1%202/applications?applicationPublicId=a%2Fb+c&componentHash=h%2Fash&violationId=pv%2F1+2&scanId=scan+id',
     );
+  });
+
+  it('links component rail nodes to estate detail when only a hash is available', () => {
+    const chain = resolveEntityDetailContext({
+      current: 'violation',
+      componentHash: 'solo-hash',
+      policyViolationId: 'pv-1',
+      scanId: 'scan-9',
+    });
+    expect(chain.nodes.find((n) => n.kind === 'component')?.isAvailable).toBe(true);
+    expect(chain.nodes.find((n) => n.kind === 'component')?.href).toBe('#/components/solo-hash');
   });
 });

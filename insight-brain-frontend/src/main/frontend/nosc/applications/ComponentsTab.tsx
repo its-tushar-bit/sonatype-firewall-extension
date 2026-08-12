@@ -20,7 +20,11 @@ import { LoadingSkeleton } from 'MainRoot/nosc/components/LoadingSkeleton';
 import { Pagination } from 'MainRoot/nosc/components/Pagination';
 import { RawReportComponent } from './applicationDetailTypes';
 import { LargeScanBanner } from './LargeScanBanner';
-import { componentDetailHref } from 'MainRoot/nosc/components/detail/componentDetailHref';
+import {
+  estateComponentDetailHref,
+  estateComponentPathFromScan,
+  type EstateComponentPathContext,
+} from 'MainRoot/nosc/components/detail/estateComponentDetailHref';
 import { nouxApplicationReportHref } from 'MainRoot/nosc/routing/nouxNavigation';
 import {
   COMPONENTS_PAGE_SIZE,
@@ -48,8 +52,7 @@ import {
  *   4. Violations — active count from policythreats.json.
  *   5. License — effectiveLicenses joined.
  *   6. Direct — direct vs transitive dependency.
- *   7. Actions — link to Classic component report (no Nexus One
- *      detail page — deferred until Guide ships per user note).
+ *   7. Actions — estate Component Detail with Path query context (CLM-44814).
  *
  * Plus search filter + 20-row pagination, mirroring the Violations
  * tab UX.
@@ -59,6 +62,8 @@ interface ComponentsTabProps {
   status: 'idle' | 'loading' | 'ready' | 'error';
   publicId: string;
   scanId: string | null;
+  /** Optional Path pin (org/app internal ids) for estate deep-links. */
+  pathContext?: Omit<EstateComponentPathContext, 'reportId'>;
   /** hash → active violation count, computed from policythreats.json. */
   violationCountByHash: Record<string, number>;
   onRetry: () => void;
@@ -69,6 +74,7 @@ export function ComponentsTab({
   status,
   publicId,
   scanId,
+  pathContext,
   violationCountByHash,
   onRetry,
 }: ComponentsTabProps): JSX.Element {
@@ -270,10 +276,15 @@ export function ComponentsTab({
                       {scanId && c.hash ? (
                         <RadixLink
                           size="2"
-                          href={componentDetailHref(publicId, c.hash, scanId)}
+                          href={estateComponentDetailHref(
+                            c.hash,
+                            'overview',
+                            estateComponentPathFromScan(scanId, pathContext),
+                          )}
                           data-testid="nosc-app-detail-components-row-link"
+                          aria-label={`View ${deriveComponentName(c)} details`}
                         >
-                          View →
+                          View <span aria-hidden="true">→</span>
                         </RadixLink>
                       ) : (
                         <Text size="2" color="gray">

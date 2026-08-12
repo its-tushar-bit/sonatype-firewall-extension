@@ -279,8 +279,23 @@ export default function EstateComponentDetail(): ReactElement {
     [blastRadiusCounts, componentHash, details, displayName, hdsStatus, resolvedPathSelection, startHdsLoad]
   );
 
-  const breadcrumb = useMemo(
-    () => (
+  // Reuse PathSwitcher page-0 rows already in memory — no extra fetch for breadcrumb names.
+  const pinnedApplication = useMemo(() => {
+    const applicationId = resolvedPathSelection.applicationId?.trim();
+    if (!applicationId) {
+      return undefined;
+    }
+    return applicationsUsage.applications.find((app) => app.applicationId === applicationId);
+  }, [applicationsUsage.applications, resolvedPathSelection.applicationId]);
+
+  const breadcrumb = useMemo(() => {
+    const applicationPublicId = pinnedApplication?.applicationPublicId?.trim();
+    const applicationLabel =
+      pinnedApplication?.applicationName?.trim()
+      || applicationPublicId
+      || resolvedPathSelection.applicationId;
+
+    return (
       <Flex align="center" gap="2" data-testid="nosc-estate-component-breadcrumb">
         <RadixLink size="2" color="gray" href={stateService.href(NEXUS_ONE_COMPONENTS_STATE_NAME)}>
           <Flex align="center" gap="1">
@@ -288,6 +303,23 @@ export default function EstateComponentDetail(): ReactElement {
             Components
           </Flex>
         </RadixLink>
+        {applicationPublicId && applicationLabel && (
+          <>
+            <Text size="2" color="gray">
+              /
+            </Text>
+            <RadixLink
+              size="2"
+              color="gray"
+              href={stateService.href('nexusOneApplicationsDetail.overview', {
+                publicId: applicationPublicId,
+              })}
+              data-testid="nosc-estate-component-breadcrumb-application"
+            >
+              {applicationLabel}
+            </RadixLink>
+          </>
+        )}
         <Text size="2" color="gray">
           /
         </Text>
@@ -295,9 +327,8 @@ export default function EstateComponentDetail(): ReactElement {
           {displayName}
         </Text>
       </Flex>
-    ),
-    [displayName, stateService]
-  );
+    );
+  }, [displayName, pinnedApplication, resolvedPathSelection.applicationId, stateService]);
 
   const header = useMemo(
     () => (

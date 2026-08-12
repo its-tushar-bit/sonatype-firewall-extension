@@ -80,7 +80,6 @@ import { nexusOneSettingsStates } from 'MainRoot/nexus-one/nexusOneSettingsState
 import { nexusOneApplicationDetailStates } from 'MainRoot/nexus-one/nexusOneApplicationDetailStates';
 import { nexusOneApplicationReportStates } from 'MainRoot/nexus-one/nexusOneApplicationReportStates';
 import { nexusOneViolationDetailStates } from 'MainRoot/nexus-one/nexusOneViolationDetailStates';
-import { nexusOneComponentDetailStates } from 'MainRoot/nexus-one/nexusOneComponentDetailStates';
 import { nexusOneEstateComponentDetailStates } from 'MainRoot/nexus-one/nexusOneEstateComponentDetailStates';
 import { nexusOneVulnerabilityDetailStates } from 'MainRoot/nexus-one/nexusOneVulnerabilityDetailStates';
 import BaseUrlConfiguration from 'MainRoot/configuration/baseUrl/BaseUrlConfiguration';
@@ -242,12 +241,6 @@ router.stateRegistry.register({
     featureEnabled: selectIsHostedRepositoryEvaluationEnabled,
   },
 } as ReactStateDeclaration);
-
-// Native Component detail (CLM-42767) — register before app-detail tab children
-// are matched for the same /applications/{id}/components prefix where possible.
-nexusOneComponentDetailStates().forEach((state) => {
-  router.stateRegistry.register(state);
-});
 
 // Application detail: abstract parent shell + one child state per tab (CLM-40901).
 nexusOneApplicationDetailStates().forEach((state) => {

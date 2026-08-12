@@ -15,7 +15,6 @@ import {
   getPolicyWaiverReasonsUrl,
   getViolationDetailsUrl,
 } from 'MainRoot/util/CLMLocation';
-import { componentDetailHref } from 'MainRoot/nosc/components/detail/componentDetailHref';
 import { vulnerabilityDetailHref } from 'MainRoot/nosc/vulnerabilities/detail/vulnerabilityDetailHref';
 import { _setBaseUrlForTesting, setBaseUrl } from 'MainRoot/util/urlUtil';
 import { installRadixJsdomShims } from 'TestRoot/nosc/shell/radixJsdomShims';
@@ -156,7 +155,7 @@ describe('OverviewTab', () => {
     expect(screen.getByTestId('nosc-violation-detail-first-seen')).toBeInTheDocument();
     expect(within(overview).getByRole('link', { name: 'demo-component' })).toHaveAttribute(
       'href',
-      componentDetailHref('demo-app', 'component-hash', 'scan-1'),
+      '#/components/component-hash',
     );
     expect(within(screen.getByTestId('nosc-violation-detail-cve')).getByRole('link', { name: 'CVE-2026-0001' })).toHaveAttribute(
       'href',

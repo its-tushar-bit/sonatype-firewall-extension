@@ -490,6 +490,25 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
   }
 
   @Test
+  public void process_tempScanCreateFails_dropsAndContinues() throws Exception {
+    stubSatellite();
+    Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
+    when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
+    HostedRepositoryComponent hrc = component(HASH, "a.tgz", "stage-release", "s-a");
+    when(hostedRepositoryComponentDAO.getByRepositoryIdAndHash(tx, REPO_ID, HASH)).thenReturn(List.of(hrc));
+    // No getScan stub: createTempScan is the first call in the per-component try block, so it throws
+    // before the clone step ever reads the source scan.
+    when(scanPersistenceService.createTempScan(any())).thenThrow(new java.io.IOException("temp-scan boom"));
+
+    underTest.process(queueItem());
+
+    assertDropMetric("cm-temp-scan-create-failed", 1L);
+    verify(scanPersistenceService, never()).copyScanFile(any(), any());
+    verify(scanUploader, never()).upload(any(), any(), any(), any(), any(), anyBoolean());
+    verify(scanPolicyEvaluator, never()).evaluateForMonitoring(any(), any(), any(), any(), any());
+  }
+
+  @Test
   public void process_cloneScanFileFails_dropsAndContinues() throws Exception {
     stubSatellite();
     Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");

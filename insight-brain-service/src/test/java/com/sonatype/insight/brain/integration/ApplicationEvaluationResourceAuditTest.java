@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.integration;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.util.function.Consumer;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
@@ -22,7 +19,6 @@ import com.sonatype.insight.scan.model.ClientScanType;
 import org.junit.Before;
 import org.junit.Test;
 
-@Category(SlowTest.class)
 public class ApplicationEvaluationResourceAuditTest
     extends AbstractAuditTest
 {

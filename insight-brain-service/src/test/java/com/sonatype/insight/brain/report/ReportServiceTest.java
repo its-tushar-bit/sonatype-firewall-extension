@@ -29,7 +29,6 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.cpematching.CpeMatchingConfigurationService;
 import com.sonatype.insight.brain.dashboard.H2ApplicationRiskService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -116,7 +115,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
@@ -168,7 +166,6 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.cpematching.CpeMatchingConfigurationService;
 import com.sonatype.insight.brain.dashboard.H2ApplicationRiskService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -271,7 +268,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
@@ -728,7 +724,6 @@ public class ReportServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testGetReportMetadataWithoutDeveloperDashboardFeature() throws Exception {
     final String scanId1 = "ScanId1";
     final String scanId2 = "ScanId2";
@@ -817,7 +812,6 @@ public class ReportServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testGetReportMetadata_repositoryManagerTrigger_noDeveloperDashboard_totalRiskIsMinusOne() throws Exception {
     final String scanId1 = "ScanIdRM";
     productLicense.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
@@ -836,7 +830,6 @@ public class ReportServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testGetReportMetadata_hrcOwner_totalRiskIsMinusOne() throws Exception {
     final String scanId1 = "ScanIdHrc";
     productLicense.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
@@ -858,7 +851,6 @@ public class ReportServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testGetReportMetadataWithDeveloperDashboardFeature() throws Exception {
     final String scanId1 = "ScanId1";
     final String scanId2 = "ScanId2";

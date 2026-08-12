@@ -14,7 +14,6 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
 import com.sonatype.insight.brain.TestProductLicenseManager;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.TelemetryId;
@@ -46,14 +45,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.sonatype.licensing.product.ProductLicenseKey;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
-@Category(SlowTest.class)
 public class MultiTenantTelemetrySenderLicenseFingerprintTest
     extends AbstractMultiTenantTest
 {

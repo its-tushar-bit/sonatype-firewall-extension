@@ -5,16 +5,13 @@
  */
 package com.sonatype.insight.brain.search;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.search.SearchIndexRuleAnnotations.LuceneTest;
 
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-@Category(SlowTest.class)
 public class SearchIndexRuleAndFixturesTest
 {
   @Rule

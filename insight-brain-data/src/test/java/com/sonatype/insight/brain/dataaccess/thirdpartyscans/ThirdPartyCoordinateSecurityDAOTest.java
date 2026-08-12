@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -49,7 +47,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 
-@Category(SlowTest.class)
 public class ThirdPartyCoordinateSecurityDAOTest
     extends AbstractDbDAOTest
 {

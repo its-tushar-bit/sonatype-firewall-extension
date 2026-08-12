@@ -6,17 +6,14 @@
 
 package com.sonatype.insight.brain.report;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 public class FileLifecycleReportPersistenceServiceMultiTenantTest
     extends AbstractLifecycleReportPersistenceServiceMultiTenantTest
 {

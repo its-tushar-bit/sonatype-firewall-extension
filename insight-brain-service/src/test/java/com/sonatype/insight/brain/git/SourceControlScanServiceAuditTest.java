@@ -12,7 +12,6 @@ import static org.mockito.Mockito.when;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditEvent;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.model.Application;
@@ -32,10 +31,8 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 import jakarta.inject.Inject;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.mockito.Mock;
 
-@Category(SlowTest.class)
 public class SourceControlScanServiceAuditTest
     extends AbstractComponentAuditTest
 {

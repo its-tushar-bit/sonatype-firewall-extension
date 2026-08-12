@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Arrays;
@@ -49,7 +47,6 @@ import com.google.common.collect.ImmutableSet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-@Category(SlowTest.class)
 public class ProxyRepositoryPolicyViolationDAOTest
     extends AbstractDbDAOTest
 {

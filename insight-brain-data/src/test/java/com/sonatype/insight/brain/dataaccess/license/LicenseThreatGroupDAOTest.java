@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.NameableDAOTest;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -834,10 +833,10 @@ public class LicenseThreatGroupDAOTest
    * all of their
    * obligations in a single round-trip within a generous wall-clock ceiling — a smoke ceiling to catch a catastrophic
    * plan regression, NOT a tight SLA (per CLAUDE.md section 6). PostgreSQL-only because the parser-depth overflow it
-   * guards against is PostgreSQL-specific; tagged {@link SlowTest} so it stays out of the fast/CI suite.
+   * guards against is PostgreSQL-specific.
    */
   @Test
-  @Category({PostgresTestCategory.class, SlowTest.class})
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetCandidateComponentObligationsByOwner_scalesToTensOfThousands_Postgres() {
     // The historical row-value (format, coords) IN-list overflowed PostgreSQL's parser recursion stack in the tens of

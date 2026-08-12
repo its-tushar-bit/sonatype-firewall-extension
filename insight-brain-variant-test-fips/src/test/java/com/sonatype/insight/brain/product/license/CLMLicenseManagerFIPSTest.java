@@ -20,10 +20,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-import org.junit.experimental.categories.Category;
-
-@Category(SlowTest.class)
 public class CLMLicenseManagerFIPSTest
     extends CLMLicenseManagerTest
 {

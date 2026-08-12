@@ -37,7 +37,6 @@ import com.sonatype.insight.brain.PolicyEvaluationHelper;
 import com.sonatype.insight.brain.api.v2.dto.ApiSbomStatusDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomVersionsApplicationSortableField;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
@@ -119,7 +118,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.xmlunit.assertj.XmlAssert;
 
-@Category({SlowTest.class, PostgresTestCategory.class})
+@Category(PostgresTestCategory.class)
 @PostgresTest
 @ContextConfiguration(classes = ApiSbomServiceTest.ExistingFilesHelperTestConfig.class)
 public class ApiSbomServiceTest

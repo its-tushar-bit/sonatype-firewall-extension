@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.security.SecurityAspectControl;
 
 import java.io.IOException;
@@ -30,7 +28,6 @@ import static com.sonatype.insight.brain.telemetry.RealmTelemetryCollector.SAML_
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 public class MultiTenantRealmTelemetryCollectorTest
     extends AbstractMultiTenantDatabaseTest
 {

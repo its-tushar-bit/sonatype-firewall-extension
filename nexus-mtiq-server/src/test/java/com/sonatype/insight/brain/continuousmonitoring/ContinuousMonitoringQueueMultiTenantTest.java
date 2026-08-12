@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.continuousmonitoring;
 import java.util.Date;
 import java.util.List;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.continuousmonitoring.ContinuousMonitoringHostedRepoItemDAO;
 import com.sonatype.insight.brain.dataaccess.continuousmonitoring.ContinuousMonitoringQueueItemDAO;
 import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
@@ -19,7 +18,6 @@ import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ContinuousMonitoringHostedRepoItem.CONTINUOUS_MONITORING_HOSTED_REPO_ITEM;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
@@ -32,7 +30,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * rows. This is the regression net for the schema-per-tenant assumption that the queue inherits
  * by virtue of running through {@link com.sonatype.insight.brain.db.datastore.OperationalDataStore}.
  */
-@Category(SlowTest.class)
 public class ContinuousMonitoringQueueMultiTenantTest
     extends AbstractMultiTenantDatabaseTest
 {

@@ -34,7 +34,6 @@ import com.sonatype.insight.brain.StaticInjectionTestHelper;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.DAOFactory;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.TestDAOFactory;
@@ -107,7 +106,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
-import org.junit.experimental.categories.Category;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 import org.quartz.spi.JobFactory;
@@ -146,7 +144,6 @@ import static org.mockito.Mockito.when;
  * the shared parts into a composable rule or helper rather than introducing another inheritance
  * layer.
  */
-@Category(SlowTest.class)
 public abstract class AbstractIqUiTest
     extends AbstractPlaywrightTest
 {

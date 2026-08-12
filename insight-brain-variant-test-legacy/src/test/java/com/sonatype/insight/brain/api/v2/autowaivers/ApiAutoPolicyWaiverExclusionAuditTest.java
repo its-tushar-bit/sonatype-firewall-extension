@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.api.v2.dto.autowaivers.ApiAutoPolicyWaiverExcl
 import com.sonatype.insight.brain.api.v2.dto.autowaivers.ApiAutoPolicyWaiverExclusionResponseDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -36,10 +35,8 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 @SuppressWarnings("deprecation")
-@Category(SlowTest.class)
 public class ApiAutoPolicyWaiverExclusionAuditTest
     extends AbstractAuditTest
 {

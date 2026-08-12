@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.repository.hosted;
 
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -18,7 +17,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 /**
  * Authorization tests for HostedComponentResource.
@@ -26,7 +24,6 @@ import org.junit.experimental.categories.Category;
  *
  * @since 1.203
  */
-@Category(SlowTest.class)
 public class HostedComponentResourceAuthzTest
     extends AbstractResourceAuthzTest
 {

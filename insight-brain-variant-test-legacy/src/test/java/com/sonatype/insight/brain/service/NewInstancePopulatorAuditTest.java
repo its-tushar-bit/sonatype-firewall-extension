@@ -17,10 +17,7 @@ import com.sonatype.insight.brain.policy.PolicyExportResult;
 
 import org.junit.Before;
 import org.junit.Test;
-import com.sonatype.insight.brain.common.test.SlowTest;
-import org.junit.experimental.categories.Category;
 
-@Category(SlowTest.class)
 public class NewInstancePopulatorAuditTest
     extends AbstractPolicyImportAuditTest
 {

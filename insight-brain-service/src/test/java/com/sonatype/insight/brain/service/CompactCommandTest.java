@@ -11,7 +11,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
@@ -20,7 +19,6 @@ import com.sonatype.insight.test.LogOutput;
 
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -33,7 +31,6 @@ public class CompactCommandTest
 
   @Test
   @H2DiskTest(suppressMigrations = true, copyExistingDatabase = "CompactCommandTest")
-  @Category(SlowTest.class)
   public void testRun_Compact_H2Database() throws Exception {
     Path databaseFile = Paths.get(getDatabasePath().getAbsolutePath(), "ods.h2.db");
     final long originalSize = Files.size(databaseFile);

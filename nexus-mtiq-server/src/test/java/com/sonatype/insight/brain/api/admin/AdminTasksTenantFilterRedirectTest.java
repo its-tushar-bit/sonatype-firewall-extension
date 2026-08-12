@@ -12,16 +12,13 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.shutdown.TestShutdownHandler;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.mockito.Mock;
 
-@Category(SlowTest.class)
 public class AdminTasksTenantFilterRedirectTest
     extends AbstractMultiTenantBaseIntegrationTest
 {

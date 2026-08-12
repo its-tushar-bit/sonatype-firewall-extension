@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.thirdparty;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -32,7 +31,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
@@ -42,7 +40,6 @@ import org.springframework.test.context.ContextConfiguration;
  * {@code saveSbomManagerBinaryFromScan}. Tests for the user-upload path ({@code saveSbomManagerSbomOrBinary}) live in
  * {@code PendingSbomMetadataCleanerTest} and {@code SbomImportServiceTest}.
  */
-@Category(SlowTest.class)
 @ContextConfiguration(classes = ThirdPartyPersistenceServiceTest.ExistingFilesHelperTestConfig.class)
 public class ThirdPartyPersistenceServiceTest
     extends AbstractComponentTest

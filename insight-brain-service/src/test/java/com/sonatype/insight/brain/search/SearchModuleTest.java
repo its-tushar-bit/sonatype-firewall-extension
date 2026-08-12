@@ -7,19 +7,16 @@ package com.sonatype.insight.brain.search;
 
 import jakarta.inject.Inject;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.search.SearchIndexRuleAnnotations.LuceneTest;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.lucene.LuceneSearchIndexClient;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;
 
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.springframework.test.annotation.DirtiesContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class SearchModuleTest
     extends BrainInjectedTest

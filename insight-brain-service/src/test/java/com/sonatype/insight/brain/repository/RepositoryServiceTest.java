@@ -90,10 +90,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-import org.junit.experimental.categories.Category;
-
-@Category(SlowTest.class)
 public class RepositoryServiceTest
     extends AbstractComponentTest
 {

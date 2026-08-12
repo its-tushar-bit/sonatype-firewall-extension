@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
@@ -15,12 +14,10 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.quartz.Scheduler;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 
-@Category(SlowTest.class)
 public class MtiqShutdownTest
     extends AbstractMultiTenantBaseIntegrationTest
 {

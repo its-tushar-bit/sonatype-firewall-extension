@@ -21,7 +21,6 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.base.Throwables;
 import com.google.gson.Gson;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
@@ -92,14 +91,12 @@ import org.cyclonedx.model.Component;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.mockito.Mock;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
 import org.w3c.dom.Document;
 
-@Category(SlowTest.class)
 @ContextConfiguration(classes = ThirdPartyScanResultsProcessorTest.ExistingFilesHelperTestConfig.class)
 public class ThirdPartyScanResultsProcessorTest
     extends AbstractComponentTest

@@ -34,10 +34,7 @@ import static org.apache.commons.io.FileUtils.deleteDirectory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import com.sonatype.insight.brain.common.test.SlowTest;
-import org.junit.experimental.categories.Category;
 
-@Category(SlowTest.class)
 @ContextConfiguration(classes = LuceneSearchServiceTest.LuceneSearchServiceTestConfiguration.class)
 public class LuceneSearchServiceTest
     extends AbstractSearchServiceTest

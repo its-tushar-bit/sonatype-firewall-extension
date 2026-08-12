@@ -17,7 +17,6 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.ConditionTypesTestHelper;
 import com.sonatype.insight.brain.dataaccess.DAOFactory;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
@@ -52,12 +51,10 @@ import java.util.Objects;
 import java.util.Set;
 import org.junit.Before;
 import org.junit.Rule;
-import org.junit.experimental.categories.Category;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
 
-@Category(SlowTest.class)
 @ContextConfiguration(classes = AbstractPolicyEvaluationTest.PolicyEvaluationTestConfiguration.class)
 public abstract class AbstractPolicyEvaluationTest
     extends SpringInjectedTest

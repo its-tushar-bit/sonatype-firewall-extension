@@ -21,7 +21,6 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.audit.ApplicationCategoryAuditDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
@@ -55,12 +54,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static com.sonatype.insight.brain.policy.PolicyResource.NOTIFICATIONS_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 public class PolicyResourceAuditTest
     extends AbstractPolicyImportAuditTest
 {

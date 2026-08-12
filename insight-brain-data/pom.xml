@@ -275,7 +275,7 @@
           <execution>
             <id>default-test</id>
             <configuration>
-              <excludedGroups>PostgresTestCategory,SlowTest</excludedGroups>
+              <excludedGroups>PostgresTestCategory</excludedGroups>
             </configuration>
           </execution>
           <!-- Run Postgres tests together to avoid fixture thrashing -->
@@ -286,7 +286,6 @@
             </goals>
             <configuration>
               <groups>PostgresTestCategory</groups>
-              <excludedGroups>SlowTest</excludedGroups>
             </configuration>
           </execution>
         </executions>

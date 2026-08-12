@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import jakarta.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
@@ -24,7 +21,6 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 public class RepoManResourceTest
     extends AbstractResourceTest
 {

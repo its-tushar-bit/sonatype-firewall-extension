@@ -29,8 +29,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
 
 /**
  * This class tests that the actual, current reference policy document can be imported successfully into IQ.
@@ -40,7 +38,6 @@ import com.sonatype.insight.brain.common.test.SlowTest;
  * hard-coded assumptions about the policy file contents. Mainly, that the number of entities in the JSON matches the
  * number of entities in the database tables after the import.
  */
-@Category(SlowTest.class)
 public class ReferencePolicyImportIntegrationTest
     extends AbstractBrainServiceIntegrationTest
 {

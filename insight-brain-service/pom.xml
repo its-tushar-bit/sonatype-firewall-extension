@@ -890,11 +890,11 @@
             in insight-brain-variant-test-component-h2, which forces junit-jupiter-api (and transitively
             junit-platform-commons) onto this module's TEST classpath. Without this pin, Failsafe auto-detects
             the JUnit Platform provider and runs the remaining JUnit 4 tests via the Vintage engine, which
-            exposes @Category(SlowTest)/@Category(PostgresTestCategory) only as their fully-qualified tag names
-            and silently breaks the short-name -DexcludedGroups=SlowTest / <excludedGroups> exclusions (letting
-            @Category(SlowTest) tests such as QuartzJobStoreTXTest run in the fast Failsafe buckets and fail).
-            Pinning the JUnit 4 provider keeps this module's vintage tests and their category exclusions
-            behaving as they do on main. Keep this version aligned with the maven-failsafe-plugin version.
+            exposes @Category(PostgresTestCategory) only as its fully-qualified tag name and silently breaks
+            the short-name <groups>/<excludedGroups>PostgresTestCategory</excludedGroups> partitioning (letting
+            @Category(PostgresTestCategory) tests run in the standard Failsafe bucket). Pinning the JUnit 4
+            provider keeps this module's vintage tests and their category partitioning behaving correctly.
+            Keep this version aligned with the maven-failsafe-plugin version.
           -->
           <dependency>
             <groupId>org.apache.maven.surefire</groupId>
@@ -938,7 +938,6 @@
             </goals>
             <configuration>
               <groups>PostgresTestCategory</groups>
-              <excludedGroups>SlowTest</excludedGroups>
             </configuration>
           </execution>
           <!-- Run remaining integration tests second -->
@@ -948,7 +947,7 @@
               <goal>integration-test</goal>
             </goals>
             <configuration>
-              <excludedGroups>PostgresTestCategory,SlowTest</excludedGroups>
+              <excludedGroups>PostgresTestCategory</excludedGroups>
             </configuration>
           </execution>
           <!-- Verify all results -->

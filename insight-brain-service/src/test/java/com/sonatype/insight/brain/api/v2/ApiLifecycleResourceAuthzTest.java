@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.v2;
 
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
@@ -15,7 +14,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 /**
  * Authorization tests for ApiLifecycleResource.
@@ -29,7 +27,6 @@ import org.junit.experimental.categories.Category;
  *
  * @since 1.203
  */
-@Category(SlowTest.class)
 public class ApiLifecycleResourceAuthzTest
     extends AbstractResourceAuthzTest
 {

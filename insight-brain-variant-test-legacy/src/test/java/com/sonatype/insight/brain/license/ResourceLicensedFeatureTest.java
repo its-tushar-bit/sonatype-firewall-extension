@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.license;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
@@ -94,7 +91,6 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 public class ResourceLicensedFeatureTest
     extends AbstractResourceTest
 {

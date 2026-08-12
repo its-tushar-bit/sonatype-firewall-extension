@@ -100,11 +100,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import com.sonatype.insight.brain.common.test.SlowTest;
-import org.junit.experimental.categories.Category;
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 
-@Category(SlowTest.class)
 public class ScmOnboardingServiceTest
     extends AbstractComponentTest
 {

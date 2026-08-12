@@ -9,14 +9,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.networking.SslProperties;
 import org.junit.After;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
-@Category(SlowTest.class)
 public class LandingResourceTest
     extends AbstractResourceTest
 {

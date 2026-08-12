@@ -47,10 +47,6 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-import org.junit.experimental.categories.Category;
-
-@Category(SlowTest.class)
 public class TelemetrySenderTest
     extends AbstractComponentTest
 {

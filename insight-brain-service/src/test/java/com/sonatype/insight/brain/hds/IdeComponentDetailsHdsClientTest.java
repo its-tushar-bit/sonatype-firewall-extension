@@ -11,7 +11,6 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.Configuration;
@@ -27,7 +26,6 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -126,7 +124,6 @@ public class IdeComponentDetailsHdsClientTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testSocketTimeout_usesDedicatedTimeoutNotGlobalDefault() throws Exception {
     // Uses the property's own minimum (1s) rather than the 20s default so this test runs in a few
     // seconds instead of ~50s, while still proving a dedicated (not the 180s global) timeout is in effect.
@@ -169,7 +166,6 @@ public class IdeComponentDetailsHdsClientTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testConnectTimeout_usesDedicatedTimeoutNotGlobalDefault() throws Exception {
     // 192.0.2.1 is in TEST-NET-1 (RFC 5737), reserved for documentation and guaranteed unroutable on
     // real networks - packets are silently dropped rather than refused, so the connect attempt hangs
@@ -359,15 +355,14 @@ public class IdeComponentDetailsHdsClientTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testCircuitBreaker_closesAfterCooldownAndSuccessfulProbe() throws Exception {
     // IdeComponentDetailsHdsClient's breaker cooldown is a hardcoded 30s (CIRCUIT_BREAKER_COOLDOWN),
     // not injectable - CircuitBreakerTest already covers the cooldown-elapses-then-closes transition
     // in isolation with short durations, so this test's purpose is narrower: prove relay()'s override
     // actually wires recordSuccess()/recordFailure() into *this* client's breaker end-to-end, not just
     // that CircuitBreaker's own logic works. Requires a real 30s+ wait since the cooldown isn't
-    // parameterized per-test - tagged @Category(SlowTest.class) (see HdsClientTest, PingHdsClientTest)
-    // so -DexcludedGroups=SlowTest builds skip it without affecting this class's other, fast tests.
+    // parameterized per-test (see HdsClientTest, PingHdsClientTest for similar real-time-wait tests);
+    // this test is slower than the rest of this class's fast tests but does not affect their runtime.
     AtomicInteger requestCount = new AtomicInteger();
     handler = new HttpServlet()
     {

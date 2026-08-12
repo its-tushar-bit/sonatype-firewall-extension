@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.operational.check;
 import java.sql.Connection;
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
@@ -20,7 +19,6 @@ import com.sonatype.insight.brain.operational.check.AdminHealthCheckEndpoint.Hea
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -33,7 +31,6 @@ import static org.mockito.Mockito.when;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(MockitoJUnitRunner.class)
-@Category(SlowTest.class)
 abstract class AbstractExistingDbConnectionAdminHealthCheckEndpointTest
     extends AbstractDatabaseTest
 {

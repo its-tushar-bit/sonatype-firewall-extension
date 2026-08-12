@@ -86,11 +86,8 @@ mvn verify
 # Run specific test class
 mvn verify -Dtest=HdsClientTest -Dit.test=HdsClientTest
 
-# Run integration tests (slow)
+# Run integration tests
 mvn verify
-
-# Skip slow tests
-mvn verify -DexcludedGroups=SlowTest
 ```
 
 ### Configuration Files

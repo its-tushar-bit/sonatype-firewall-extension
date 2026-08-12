@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -30,7 +27,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-@Category(SlowTest.class)
 public class MultiTenantRepositoryConfigurationCollectorTest
     extends AbstractMultiTenantDatabaseTest
 {

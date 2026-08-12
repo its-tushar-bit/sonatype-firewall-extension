@@ -45,10 +45,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.sonatype.insight.brain.artifactory.ArtifactoryClient.TEST_SHA256;
 import static org.assertj.core.api.Assertions.assertThat;
-import com.sonatype.insight.brain.common.test.SlowTest;
-import org.junit.experimental.categories.Category;
 
-@Category(SlowTest.class)
 public class ApiArtifactoryConnectionResourceTest
     extends AbstractResourceTest
 {

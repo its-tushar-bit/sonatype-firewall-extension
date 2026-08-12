@@ -9,7 +9,6 @@ import java.sql.Connection;
 import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.TemporaryTableHelperTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Organization;
@@ -33,7 +32,6 @@ public class PostgresApplicationRiskServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testGet_With65kApps() throws Exception {
     Organization organization = tempEntity.newOrganization();
 

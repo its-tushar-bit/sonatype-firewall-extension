@@ -39,7 +39,7 @@ import org.junit.Test;
  * Exercises the resource layer's authz gate and JAX-RS status mapping (403/404/400 via
  * {@link ErrorResponseGenerator}). Anonymous callers are rejected upstream by the Shiro requireAuth
  * filter with 401 before they reach this resource, so there is no null-principal path to drive here;
- * that 401 contract is pinned by the full-stack REST harness in the {@code SlowTest} suite. Service
+ * that 401 contract is pinned by the full-stack REST harness integration tests. Service
  * behaviour (row mapping, warnings, paging, license 404) is covered by {@link CatalogServiceTest}.
  */
 public class CatalogEndpointTest

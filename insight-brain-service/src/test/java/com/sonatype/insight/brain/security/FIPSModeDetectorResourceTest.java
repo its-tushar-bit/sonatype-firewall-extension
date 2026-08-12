@@ -16,10 +16,7 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_MODE_ENABLED_ENV;
 import static org.assertj.core.api.Assertions.assertThat;
-import com.sonatype.insight.brain.common.test.SlowTest;
-import org.junit.experimental.categories.Category;
 
-@Category(SlowTest.class)
 public class FIPSModeDetectorResourceTest
     extends AbstractResourceTest
 {

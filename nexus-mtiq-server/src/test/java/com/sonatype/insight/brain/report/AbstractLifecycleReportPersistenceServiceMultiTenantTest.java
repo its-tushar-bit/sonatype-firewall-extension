@@ -13,14 +13,12 @@ import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.testing.FunctionUtils.PredicateWithException;
 
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static com.sonatype.insight.brain.report.LifecycleReportPersistenceServiceTestHelper.APPLICATION_ID;
 import static com.sonatype.insight.brain.report.LifecycleReportPersistenceServiceTestHelper.SCAN_ID;
@@ -30,7 +28,6 @@ import static com.sonatype.insight.brain.testing.FunctionUtils.wrapException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@Category(SlowTest.class)
 public abstract class AbstractLifecycleReportPersistenceServiceMultiTenantTest
     extends AbstractMultiTenantBaseIntegrationTest
 {

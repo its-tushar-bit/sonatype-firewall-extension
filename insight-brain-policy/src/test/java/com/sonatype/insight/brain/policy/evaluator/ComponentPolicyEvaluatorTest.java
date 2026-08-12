@@ -58,11 +58,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.joda.time.DateTime;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-
-@Category(SlowTest.class)
 public class ComponentPolicyEvaluatorTest
     extends AbstractPolicyEvaluationTest
 {

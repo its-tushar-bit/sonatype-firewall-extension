@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.configuration.webhook;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -36,9 +34,6 @@ import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEven
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.WAIVER_REQUEST;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.experimental.categories.Category;
-
-@Category(SlowTest.class)
 public class WebhookResourceTest
     extends AbstractResourceTest
 {

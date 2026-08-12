@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.api.admin;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.util.List;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -19,7 +16,6 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 public class TenantResourceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {

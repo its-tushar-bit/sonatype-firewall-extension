@@ -90,10 +90,6 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-import org.junit.experimental.categories.Category;
-
-@Category(SlowTest.class)
 public class RepositoryMatcherTest
     extends AbstractComponentTest
 {

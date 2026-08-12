@@ -8,17 +8,14 @@ package com.sonatype.insight.brain.organization;
 import java.util.List;
 
 import com.sonatype.insight.brain.HttpRequest;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 public class OrganizationMoveResourceTest
     extends AbstractResourceTest
 {

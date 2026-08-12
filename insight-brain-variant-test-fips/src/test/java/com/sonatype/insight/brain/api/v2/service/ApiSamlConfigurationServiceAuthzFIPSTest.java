@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 
 import org.junit.After;
@@ -18,7 +15,6 @@ import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_MODE_ENABLED_E
 import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastleFipsProvider;
 import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastleFipsProvider;
 
-@Category(SlowTest.class)
 public class ApiSamlConfigurationServiceAuthzFIPSTest
     extends ApiSamlConfigurationServiceAuthzTest
 {

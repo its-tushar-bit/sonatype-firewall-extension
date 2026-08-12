@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.configuration.saml;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
@@ -28,7 +25,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@Category(SlowTest.class)
 public class SamlConfigurationServiceTest
     extends AbstractComponentTest
 {

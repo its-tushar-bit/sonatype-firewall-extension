@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.security.oauth2;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -28,7 +25,6 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 public class OnPremJwtTokenTest
     extends AbstractResourceTest
 {

@@ -5,14 +5,11 @@
  */
 package com.sonatype.insight.brain.api.admin.service;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 public class MultiTenantActiveRequestCounterFilterTest
 {
   private final MultiTenantActiveRequestCounterFilter multiTenantActiveRequestCounterFilter =

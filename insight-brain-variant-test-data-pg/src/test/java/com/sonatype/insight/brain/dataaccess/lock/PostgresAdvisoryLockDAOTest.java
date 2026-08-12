@@ -15,7 +15,6 @@ import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.test.LogOutput;
 
@@ -33,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @PostgresTest
-@Category({SlowTest.class, PostgresTestCategory.class})
+@Category(PostgresTestCategory.class)
 public class PostgresAdvisoryLockDAOTest
     extends AbstractDataTest
 {

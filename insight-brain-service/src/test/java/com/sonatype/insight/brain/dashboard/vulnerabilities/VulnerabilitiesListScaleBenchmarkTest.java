@@ -13,7 +13,6 @@ import java.util.Locale;
 import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -23,7 +22,6 @@ import com.sonatype.insight.brain.search.lucene.LuceneSearchIndexClient;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +39,6 @@ import org.slf4j.LoggerFactory;
  * stays fixed, which is the shape that isolates scan cost. Estate size comes from
  * {@code -Dvulnerabilities.benchmark.apps=N}; the default is small so an accidental run is cheap.
  */
-@Category(SlowTest.class)
 public class VulnerabilitiesListScaleBenchmarkTest
     extends AbstractComponentTest
 {

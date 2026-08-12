@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.NameableDAOTest;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -56,7 +55,6 @@ import static org.mockito.Mockito.when;
 /**
  * @since 1.9
  */
-@Category(SlowTest.class)
 public class TagDAOTest
     extends NameableDAOTest<Tag>
 {

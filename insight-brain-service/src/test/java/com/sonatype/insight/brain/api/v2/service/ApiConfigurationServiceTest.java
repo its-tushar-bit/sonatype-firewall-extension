@@ -71,10 +71,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ContextConfiguration;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-import org.junit.experimental.categories.Category;
-
-@Category(SlowTest.class)
 @ContextConfiguration(classes = ApiConfigurationServiceTest.ApiConfigurationServiceTestConfiguration.class)
 public class ApiConfigurationServiceTest
     extends AbstractComponentTest

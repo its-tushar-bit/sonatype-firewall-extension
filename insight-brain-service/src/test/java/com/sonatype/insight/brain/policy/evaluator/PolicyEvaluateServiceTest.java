@@ -45,7 +45,6 @@ import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.clm.dto.model.signature.VulnerabilitySignatureAnalysisDTO;
 import com.sonatype.insight.brain.PolicyEvaluationHelper;
 import com.sonatype.insight.brain.TestProductLicenseManager;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -141,7 +140,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -306,7 +304,6 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testEvaluate() throws Exception {
     setBaseUrl("http://localhost");
     createJiraConfiguration(null);
@@ -363,7 +360,6 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testEvaluate_PolicyThreatLevelCounts() throws Exception {
     Policy policy = tempEntity.newPolicy(app, 1, LogicalOperator.AND,
         new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
@@ -461,7 +457,6 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testEvaluate_NotificationEmailModel() throws Exception {
     tempEntity.newPolicy(app, 8, LogicalOperator.AND,
         new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "5"));
@@ -517,7 +512,6 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testEvaluate_ReEvaluateNotifications() throws Exception {
     Policy policy = tempEntity.newPolicy(app, 8, LogicalOperator.AND,
         new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
@@ -561,20 +555,17 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testEvaluateWithPolling_CI() throws Exception {
     testEvaluateWithPolling(LicensedFeature.CI_INTEGRATION, IntegrationType.CI,
         ScanTriggerType.CONTINUOUS_INTEGRATION);
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testEvaluateWithPolling_CLI() throws Exception {
     testEvaluateWithPolling(LicensedFeature.CLI_INTEGRATION, IntegrationType.CLI, ScanTriggerType.CLI);
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testEvaluateWithPolling_RepoManager() throws Exception {
     testEvaluateWithPolling(LicensedFeature.RM_STAGING_INTEGRATION, IntegrationType.RM,
         ScanTriggerType.REPOSITORY_MANAGER);
@@ -652,7 +643,6 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testEvaluateWithPolling_sendThirdPartyScanUsageTelemetry() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
 
@@ -1000,7 +990,6 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testEvaluateWithPolling_PollEvaluationResult_Success() throws Exception {
     String scanId = simulateReportIsAvailable();
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
@@ -1067,7 +1056,6 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testEvaluateWithPolling_AppPublicIdCaseInsensitive() throws Exception {
     Application app = tempEntity.newApplicationWithParent("THE-public-ID");
     ScanReceipt scanReceipt = new ScanReceipt();
@@ -1276,7 +1264,6 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testEvaluateWithPolling_WithReachableVulnerability_And_CompletedComponentAnalysis() throws Exception {
     PolicyEvaluationReceipt componentAnalyzeEvaluationReceipt = analyzeComponentsWithPolling();
 
@@ -1326,7 +1313,6 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testEvaluateWithPolling_WithoutReachableVulnerability_And_CompletedComponentAnalysis() throws Exception {
     PolicyEvaluationReceipt componentAnalyzeEvaluationReceipt = analyzeComponentsWithPolling();
 
@@ -1705,7 +1691,6 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void scanAndEvaluate_invokesSbomPersister_whenAllConditionsMet() throws Exception {
     String scanId = simulateReportIsAvailable();
     ScanReceipt scanReceipt = new ScanReceipt();
@@ -1736,7 +1721,6 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void scanAndEvaluate_clearsReceiptBomUrl_whenPersisterReturnsNull() throws Exception {
     String scanId = simulateReportIsAvailable();
     ScanReceipt scanReceipt = new ScanReceipt();
@@ -1764,7 +1748,6 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void scanAndEvaluate_skipsSbomPersister_whenClientScanTypeIsSonatype() throws Exception {
     String scanId = simulateReportIsAvailable();
     ScanReceipt scanReceipt = new ScanReceipt();
@@ -1783,7 +1766,6 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void scanAndEvaluate_skipsSbomPersister_whenIntegrationIsNotCli() throws Exception {
     // Non-CLI THIRD_PARTY uploads (Jenkins, RM) at compliance stage already have an SBOM in the
     // scan stream that ThirdPartyScanResultsProcessor saves; we must not derive again here or
@@ -1805,7 +1787,6 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void scanAndEvaluate_skipsSbomPersister_whenStageIsBuild() throws Exception {
     String scanId = simulateReportIsAvailable();
     ScanReceipt scanReceipt = new ScanReceipt();
@@ -1824,7 +1805,6 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void scanAndEvaluate_invokesSbomPersister_whenScanContextNull() throws Exception {
     // Gate relaxed in Task 20: -av is optional. When scanContext is null the persister
     // should be called with applicationVersion=null so trySaveInLoop falls back to a timestamp.
@@ -1856,7 +1836,6 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void scanAndEvaluate_invokesSbomPersister_whenApplicationVersionNull() throws Exception {
     // Gate relaxed in Task 20: -av is optional. When scanContext is present but applicationVersion
     // is null the persister should still be called with applicationVersion=null.
@@ -1889,7 +1868,6 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void scanAndEvaluate_skipsSbomPersister_whenSbomManagerLicenseMissing() throws Exception {
     testProductLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
 
@@ -1910,7 +1888,6 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void scanAndEvaluate_logsCapReachedWarn_andSkipsPersister_whenCapReached() throws Exception {
     // Set max sboms to 0 so the cap is immediately reached
     testProductLicense.setMaxSbom(0);

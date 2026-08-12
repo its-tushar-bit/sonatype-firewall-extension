@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.proprietary;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.regex.Pattern;
@@ -26,9 +24,7 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.Assert.assertProprietaryConfig;
 import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.experimental.categories.Category;
 
-@Category(SlowTest.class)
 public class ProprietaryConfigResourceTest
     extends AbstractResourceTest
 {

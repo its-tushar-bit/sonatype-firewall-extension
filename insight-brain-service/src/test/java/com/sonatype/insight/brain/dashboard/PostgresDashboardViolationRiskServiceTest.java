@@ -9,7 +9,6 @@ import java.sql.Connection;
 import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.TemporaryTableHelperTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 
@@ -32,7 +31,6 @@ public class PostgresDashboardViolationRiskServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testGet_With65kApps() throws Exception {
     try (Connection connection = databaseContainerRule.getOperationalDataStore().getDataSource().getConnection()) {
       // insert 65k+ applications so that we are above the threshold for using a temporary table

@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.tag;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.ApiApplicationCategoryResource;
@@ -23,7 +20,6 @@ import static com.sonatype.insight.brain.Assert.assertTag;
 import static com.sonatype.insight.brain.tag.TagService.fromDTO;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 public class ApiApplicationCategoryResourceTest
     extends AbstractResourceTest
 {

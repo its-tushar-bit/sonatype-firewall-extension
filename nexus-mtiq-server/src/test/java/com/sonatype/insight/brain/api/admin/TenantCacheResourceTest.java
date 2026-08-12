@@ -9,7 +9,6 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.AdminApiPaths;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.component.RepositoryIdentifiedComponentCache;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
@@ -23,9 +22,6 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.experimental.categories.Category;
-
-@Category(SlowTest.class)
 public class TenantCacheResourceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {

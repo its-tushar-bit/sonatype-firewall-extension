@@ -18,19 +18,16 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.migrations.LegacyDataStoreMigrator;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-@Category(SlowTest.class)
 public class PolicyViolationMigratorTest
     extends AbstractDatabaseTest
 {
@@ -195,7 +192,6 @@ public class PolicyViolationMigratorTest
 
   @Test
   @H2DiskTest(suppressMigrations = true)
-  @Category(SlowTest.class)
   public void testMigrate_Basics() throws Exception {
     List<PolicyViolation> violations = migrate("basics");
     assertThat(violations).hasSize(3);
@@ -211,7 +207,6 @@ public class PolicyViolationMigratorTest
 
   @Test
   @H2DiskTest(suppressMigrations = true)
-  @Category(SlowTest.class)
   public void testMigrate_OpenToWaived() throws Exception {
     List<PolicyViolation> violations = migrate("open-to-waived");
     assertThat(violations).hasSize(1);
@@ -222,7 +217,6 @@ public class PolicyViolationMigratorTest
 
   @Test
   @H2DiskTest(suppressMigrations = true)
-  @Category(SlowTest.class)
   public void testMigrate_OpenToWaivedToFixed() throws Exception {
     List<PolicyViolation> violations = migrate("open-to-waived-to-fixed");
     assertThat(violations).hasSize(1);
@@ -233,7 +227,6 @@ public class PolicyViolationMigratorTest
 
   @Test
   @H2DiskTest(suppressMigrations = true)
-  @Category(SlowTest.class)
   public void testMigrate_OpenToWaivedToOpen() throws Exception {
     List<PolicyViolation> violations = migrate("open-to-waived-to-open");
     assertThat(violations).hasSize(2);
@@ -247,7 +240,6 @@ public class PolicyViolationMigratorTest
 
   @Test
   @H2DiskTest(suppressMigrations = true)
-  @Category(SlowTest.class)
   public void testMigrate_OpenToFixed() throws Exception {
     List<PolicyViolation> violations = migrate("open-to-fixed");
     assertThat(violations).hasSize(1);
@@ -258,7 +250,6 @@ public class PolicyViolationMigratorTest
 
   @Test
   @H2DiskTest(suppressMigrations = true)
-  @Category(SlowTest.class)
   public void testMigrate_OpenToFixedToOpen() throws Exception {
     List<PolicyViolation> violations = migrate("open-to-fixed-to-open");
     assertThat(violations).hasSize(2);
@@ -272,7 +263,6 @@ public class PolicyViolationMigratorTest
 
   @Test
   @H2DiskTest(suppressMigrations = true)
-  @Category(SlowTest.class)
   public void testMigrate_LatestViolationState() throws Exception {
     List<PolicyViolation> violations = migrate("latest-violation-state");
     assertThat(violations).hasSize(1);
@@ -283,7 +273,6 @@ public class PolicyViolationMigratorTest
 
   @Test
   @H2DiskTest(suppressMigrations = true)
-  @Category(SlowTest.class)
   public void testMigrate_InitialWaiverInfo() throws Exception {
     List<PolicyViolation> violations = migrate("initial-waiver-info");
     assertThat(violations).hasSize(1);
@@ -294,7 +283,6 @@ public class PolicyViolationMigratorTest
 
   @Test
   @H2DiskTest(suppressMigrations = true)
-  @Category(SlowTest.class)
   public void testMigrate_ObsoleteReevaluation() throws Exception {
     List<PolicyViolation> violations = migrate("obsolete-reevaluation");
     assertThat(violations).isEmpty();
@@ -302,7 +290,6 @@ public class PolicyViolationMigratorTest
 
   @Test
   @H2DiskTest(suppressMigrations = true)
-  @Category(SlowTest.class)
   public void testMigrate_BrokenViolation() {
     assertThatExceptionOfType(UncheckedIOException.class)
         .isThrownBy(() -> migrate("broken-violation"))

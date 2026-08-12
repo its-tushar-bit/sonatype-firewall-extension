@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.util.Collections;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -33,7 +30,6 @@ import org.junit.After;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-@Category(SlowTest.class)
 public class TelemetryStatusResourceTest
     extends AbstractResourceTest
 {

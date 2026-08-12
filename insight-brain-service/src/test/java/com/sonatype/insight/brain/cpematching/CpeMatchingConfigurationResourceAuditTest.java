@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.cpematching;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.audit.AuditDTO;
@@ -20,9 +18,7 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.PublicApiPaths.CPE_MATCHING_CONFIGURATION_RESOURCE_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.experimental.categories.Category;
 
-@Category(SlowTest.class)
 public class CpeMatchingConfigurationResourceAuditTest
     extends AbstractAuditTest
 {

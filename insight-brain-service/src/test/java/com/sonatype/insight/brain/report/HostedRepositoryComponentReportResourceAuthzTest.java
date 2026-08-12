@@ -12,9 +12,6 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
-
-import com.sonatype.insight.brain.common.test.SlowTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -26,7 +23,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * {@link ReportResource#reevaluatePolicy} requires. {@link Permission#WRITE} ("Edit IQ Elements")
  * is a separately assignable permission that must not by itself authorize an evaluation.
  */
-@Category(SlowTest.class)
 public class HostedRepositoryComponentReportResourceAuthzTest
     extends AbstractResourceAuthzTest
 {

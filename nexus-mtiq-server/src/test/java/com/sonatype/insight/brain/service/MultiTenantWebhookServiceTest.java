@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.service;
 
 import java.util.EnumSet;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.configuration.webhook.WebhookService;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
@@ -22,9 +21,6 @@ import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEven
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 
-import org.junit.experimental.categories.Category;
-
-@Category(SlowTest.class)
 public class MultiTenantWebhookServiceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {

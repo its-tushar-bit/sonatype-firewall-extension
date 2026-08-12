@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.repository;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -66,7 +64,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
-@Category(SlowTest.class)
 public class ProxyRepositoryComponentDAOTest
     extends AbstractDbDAOTest
 {

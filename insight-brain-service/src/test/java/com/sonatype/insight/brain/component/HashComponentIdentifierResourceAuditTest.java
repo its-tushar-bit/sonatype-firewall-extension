@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.component;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
@@ -19,9 +17,7 @@ import com.sonatype.insight.brain.service.AbstractAuditTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
-@Category(SlowTest.class)
 public class HashComponentIdentifierResourceAuditTest
     extends AbstractAuditTest
 {

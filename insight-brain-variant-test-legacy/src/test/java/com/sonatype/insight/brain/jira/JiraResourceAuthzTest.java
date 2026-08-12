@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.jira;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.util.Collections;
 import java.util.HashMap;
 
@@ -19,7 +16,6 @@ import org.junit.Test;
 
 import static org.mockito.Mockito.when;
 
-@Category(SlowTest.class)
 public class JiraResourceAuthzTest
     extends AbstractResourceAuthzTest
 {

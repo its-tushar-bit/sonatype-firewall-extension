@@ -192,8 +192,8 @@ mvnd clean install -Pquick
 ### Running Tests
 
 ```bash
-# Fast tests only (< 100ms per test)
-mvn test -DexcludedGroups=SlowTest
+# Run tests
+mvn test
 
 # Skip functional tests (faster)
 mvn test -Dskip-functional-test

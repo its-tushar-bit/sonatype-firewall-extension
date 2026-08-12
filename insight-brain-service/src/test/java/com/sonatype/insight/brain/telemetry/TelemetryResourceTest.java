@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.telemetry;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.spring.config.SecurityConfiguration;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -15,9 +14,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import java.net.HttpCookie;
 import java.util.Arrays;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
-@Category(SlowTest.class)
 public class TelemetryResourceTest
     extends AbstractResourceTest
 {

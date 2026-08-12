@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.sourcecontrol;
 import java.util.Date;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.concurrent.PerpetualLockManager;
 import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
@@ -24,7 +23,6 @@ import com.sonatype.insight.brain.testing.BrainInjectedTest;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.quartz.JobExecutionContext;
 
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_IN_PROGRESS;
@@ -40,7 +38,6 @@ import static org.mockito.Mockito.when;
  * {@link com.sonatype.insight.brain.tenancy.AllTenantsJob}
  * tenant-iteration framework (which is exercised by the dedicated MTIQ integration test).
  */
-@Category(SlowTest.class)
 public class SourceControlStaleEventResetJobIntegrationTest
     extends BrainInjectedTest
 {

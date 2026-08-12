@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.service;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dashboard.ApplicationRiskService;
 import com.sonatype.insight.brain.dashboard.DashboardComponentRiskService;
 import com.sonatype.insight.brain.dashboard.DashboardViolationRiskService;
@@ -51,7 +50,6 @@ public class DbBasedModuleTest
 
   @Test
   @H2DiskTest
-  @Category(SlowTest.class)
   public void h2DiskTest() {
     assertThat(dashboardViolationRiskService).isInstanceOf(H2DashboardViolationRiskService.class);
     assertThat(dashboardComponentRiskService).isInstanceOf(H2ComponentRiskService.class);

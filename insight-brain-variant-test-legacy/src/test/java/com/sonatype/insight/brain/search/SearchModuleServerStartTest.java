@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.search;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.search.index.HybridSearchIndexClient;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.lucene.LuceneSearchIndexClient;
@@ -17,9 +16,7 @@ import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.brain.testing.SpringTestInsightBrainService;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
-@Category(SlowTest.class)
 public class SearchModuleServerStartTest
     extends AbstractBrainServiceIntegrationTest
 {

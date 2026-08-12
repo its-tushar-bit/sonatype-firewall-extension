@@ -17,7 +17,6 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
 import com.sonatype.insight.brain.TestProductLicenseManager;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.rule.DatabaseContainerRule;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
@@ -52,7 +51,6 @@ import org.jooq.impl.DSL;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.mockito.Mockito;
 import org.quartz.CronTrigger;
 import org.quartz.DailyTimeIntervalTrigger;
@@ -78,7 +76,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
 
-@Category(SlowTest.class)
 @ContextConfiguration(classes = TaskSchedulerTest.TaskSchedulerTestConfiguration.class)
 public class TaskSchedulerTest
     extends AbstractComponentTest

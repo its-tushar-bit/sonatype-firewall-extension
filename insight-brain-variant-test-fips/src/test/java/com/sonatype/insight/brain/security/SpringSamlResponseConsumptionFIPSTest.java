@@ -5,13 +5,10 @@
  */
 package com.sonatype.insight.brain.security;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.junit.experimental.categories.Category;
 
 import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_MODE_ENABLED_ENV;
 import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastleFipsProvider;
@@ -22,7 +19,6 @@ import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastl
  * verification) with the Bouncy Castle FIPS provider active, guarding against crypto-library regressions in
  * FIPS mode after the Keycloak&rarr;Spring Security SAML migration (CLM-42790).
  */
-@Category(SlowTest.class)
 public class SpringSamlResponseConsumptionFIPSTest
     extends SpringSamlResponseConsumptionTest
 {

@@ -29,10 +29,7 @@ import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.*;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import com.sonatype.insight.brain.common.test.SlowTest;
-import org.junit.experimental.categories.Category;
 
-@Category(SlowTest.class)
 public class ApiConfigFeaturesServiceTest
     extends AbstractComponentTest
 {

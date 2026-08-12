@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Set;
 
 import com.sonatype.insight.brain.AbstractDataTest;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
@@ -26,7 +25,6 @@ import com.sonatype.insight.brain.model.security.UserPrincipal;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runner.RunWith;
@@ -52,7 +50,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * This test now benchmarks that unified code path.
  * </p>
  */
-@Category(SlowTest.class)
 @RunWith(Parameterized.class)
 public class AuthorizationCheckerPerformanceTest
     extends AbstractDataTest

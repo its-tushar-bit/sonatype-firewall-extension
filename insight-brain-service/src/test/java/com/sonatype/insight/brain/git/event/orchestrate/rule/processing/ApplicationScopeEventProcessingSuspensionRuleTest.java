@@ -8,13 +8,11 @@ package com.sonatype.insight.brain.git.event.orchestrate.rule.processing;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.nexus.scm.api.access.control.ExclusiveAccessRequestTimeoutException;
 
 import org.apache.http.client.HttpResponseException;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static com.sonatype.insight.brain.git.event.EventTestUtils.createEvent;
 import static com.sonatype.insight.brain.git.event.EventTestUtils.createEventForApp;
@@ -93,7 +91,6 @@ public class ApplicationScopeEventProcessingSuspensionRuleTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testCanPushEvent_suspensionExpires() throws InterruptedException {
     // given: the suspension rule in a suspended state for an application (with shortened suspension times for testing)
     ApplicationScopeEventProcessingSuspensionRule eventProcessingSuspensionRule =

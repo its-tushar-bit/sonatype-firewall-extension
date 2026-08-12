@@ -13,7 +13,6 @@ import java.nio.file.Files;
 import java.sql.Connection;
 
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
@@ -64,7 +63,6 @@ import org.jooq.impl.DSL;
 
 @RunWith(MockitoJUnitRunner.class)
 @H2DiskTest
-@Category(SlowTest.class)
 public class DbMigrationCommandTest
 {
   @Rule
@@ -188,7 +186,6 @@ public class DbMigrationCommandTest
 
   @Test
   @H2DiskTest(suppressMigrations = true, copyExistingDatabase = "DbMigrationCommandTest/h2")
-  @Category(SlowTest.class)
   public void testRun_IgnoresMigrationDisabled_ByEnvironmentVariable() {
     environmentVariables.set(DatabaseMigrations.NXIQ_SCHEMA_MIGRATION, "false");
     when(dbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
@@ -202,7 +199,6 @@ public class DbMigrationCommandTest
 
   @Test
   @H2DiskTest(suppressMigrations = true, copyExistingDatabase = "DbMigrationCommandTest/h2")
-  @Category(SlowTest.class)
   public void testRun_IgnoresMigrationDisabled_BySystemConfigurationProperty() {
     initH2DatabaseToDesiredVersion(
         OperationalDataStore.LOCK_TABLE_DATABASE_VERSION,
@@ -222,7 +218,6 @@ public class DbMigrationCommandTest
 
   @Test
   @H2DiskTest(suppressMigrations = true, copyExistingDatabase = "DbMigrationCommandTest/h2")
-  @Category(SlowTest.class)
   public void testInitializeDatabases_MigrationDisabled_ByEnvironmentVariable_WithoutTables() {
     environmentVariables.set(DatabaseMigrations.NXIQ_SCHEMA_MIGRATION, "false");
 
@@ -237,7 +232,6 @@ public class DbMigrationCommandTest
 
   @Test
   @H2DiskTest(suppressMigrations = true)
-  @Category(SlowTest.class)
   public void testInitializeDatabases_MigrationEnabled_ByEnvironmentVariable_WithoutTables() {
     environmentVariables.set(DatabaseMigrations.NXIQ_SCHEMA_MIGRATION, "true");
 
@@ -249,7 +243,6 @@ public class DbMigrationCommandTest
 
   @Test
   @H2DiskTest(suppressMigrations = true, copyExistingDatabase = "DbMigrationCommandTest/h2")
-  @Category(SlowTest.class)
   public void testInitializeDatabases_MigrationDisabled_ByEnvironmentVariable_WithTables() {
     initH2DatabaseToDesiredVersion(
         OperationalDataStore.LOCK_TABLE_DATABASE_VERSION,
@@ -268,7 +261,6 @@ public class DbMigrationCommandTest
 
   @Test
   @H2DiskTest(suppressMigrations = true, copyExistingDatabase = "DbMigrationCommandTest/h2")
-  @Category(SlowTest.class)
   public void testInitializeDatabases_MigrationEnabled_ByEnvironmentVariable_WithTables() {
     initH2DatabaseToDesiredVersion(OperationalDataStore.LOCK_TABLE_DATABASE_VERSION,
         DatabaseName.ods,
@@ -283,7 +275,6 @@ public class DbMigrationCommandTest
 
   @Test
   @H2DiskTest(suppressMigrations = true, copyExistingDatabase = "DbMigrationCommandTest/h2")
-  @Category(SlowTest.class)
   public void testInitializeDatabases_MigrationDisabled_BySystemConfigurationProperty_WithTables() {
     initH2DatabaseToDesiredVersion(OperationalDataStore.LOCK_TABLE_DATABASE_VERSION,
         DatabaseName.ods,
@@ -302,7 +293,6 @@ public class DbMigrationCommandTest
 
   @Test
   @H2DiskTest(suppressMigrations = true, copyExistingDatabase = "DbMigrationCommandTest/h2")
-  @Category(SlowTest.class)
   public void testInitializeDatabases_MigrationEnabled_BySystemConfigurationProperty_WithTables() {
     initH2DatabaseToDesiredVersion(OperationalDataStore.LOCK_TABLE_DATABASE_VERSION,
         DatabaseName.ods,
@@ -318,7 +308,6 @@ public class DbMigrationCommandTest
 
   @Test
   @H2DiskTest(suppressMigrations = true)
-  @Category(SlowTest.class)
   public void testInitializeDatabases_MigrationDisabled_ByEnvironmentVariable_NewDataSource() {
     environmentVariables.set(DatabaseMigrations.NXIQ_SCHEMA_MIGRATION, "false");
 
@@ -329,7 +318,6 @@ public class DbMigrationCommandTest
 
   @Test
   @H2DiskTest(suppressMigrations = true)
-  @Category(SlowTest.class)
   public void testInitializeDatabases_MigrationEnabled_ByEnvironmentVariable_NewDataSource() {
     environmentVariables.set(DatabaseMigrations.NXIQ_SCHEMA_MIGRATION, "true");
 
@@ -340,7 +328,6 @@ public class DbMigrationCommandTest
 
   @Test
   @H2DiskTest(suppressMigrations = true, copyExistingDatabase = "DbMigrationCommandTest/h2")
-  @Category(SlowTest.class)
   public void testRun_H2_WithoutTables() {
     // 85 is a historical ODS version relating to consent for the IQ 1.45 upgrade. See CLM-29089.
     assertThat(readDatabaseVersion(getDatabaseVersionFile(databaseContainerRule.getOperationalDataStore()))).isEqualTo(
@@ -363,7 +350,6 @@ public class DbMigrationCommandTest
 
   @Test
   @H2DiskTest(suppressMigrations = true, copyExistingDatabase = "DbMigrationCommandTest/h2")
-  @Category(SlowTest.class)
   public void testRun_H2_WithTables() {
     initH2DatabaseToDesiredVersion(OperationalDataStore.LOCK_TABLE_DATABASE_VERSION,
         DatabaseName.ods,

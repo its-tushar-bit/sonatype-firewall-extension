@@ -22,8 +22,6 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.OwnerType.APPLICATION;
 import static com.sonatype.insight.brain.model.OwnerType.ORGANIZATION;
-import com.sonatype.insight.brain.common.test.SlowTest;
-import org.junit.experimental.categories.Category;
 
 /**
  * Audit tests for ApiCiConfigurationResource.
@@ -32,7 +30,6 @@ import org.junit.experimental.categories.Category;
  *
  * @since 1.201
  */
-@Category(SlowTest.class)
 public class ApiCiConfigurationResourceAuditTest
     extends AbstractAuditTest
 {

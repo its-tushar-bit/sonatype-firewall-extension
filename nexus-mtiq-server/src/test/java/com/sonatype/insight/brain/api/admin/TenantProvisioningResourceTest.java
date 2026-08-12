@@ -9,18 +9,15 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
-import com.sonatype.insight.brain.common.test.SlowTest;
 
 import org.apache.commons.lang3.exception.UncheckedException;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_CONFIG_PATH;
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_PROVISIONING_PATH;
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 public class TenantProvisioningResourceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {

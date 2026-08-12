@@ -150,12 +150,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
-import org.junit.experimental.categories.Category;
-
-@Category(SlowTest.class)
 public class ComponentInfoServiceTest
     extends AbstractComponentTest
 {

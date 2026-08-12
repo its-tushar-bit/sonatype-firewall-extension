@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -63,7 +60,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@Category(SlowTest.class)
 public class ScanUploadServiceTest
     extends AbstractBrainServiceIntegrationTest
 {

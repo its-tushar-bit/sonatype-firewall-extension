@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.security;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
@@ -19,7 +16,6 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 public class MultiTenantRolePermissionDAOTest
     extends AbstractMultiTenantDatabaseTest
 {

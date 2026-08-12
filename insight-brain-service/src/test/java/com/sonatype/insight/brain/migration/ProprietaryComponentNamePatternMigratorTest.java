@@ -11,7 +11,6 @@ import java.sql.ResultSet;
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.migrations.LegacyDataStoreMigrator;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
@@ -22,7 +21,6 @@ import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 public class ProprietaryComponentNamePatternMigratorTest
     extends AbstractDatabaseTest
 {
@@ -57,7 +55,6 @@ public class ProprietaryComponentNamePatternMigratorTest
 
   @Test
   @H2DiskTest(suppressMigrations = true)
-  @Category(SlowTest.class)
   public void testMigrate_H2() throws Exception {
     populateH2Database("data_before");
     testMigrate();

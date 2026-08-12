@@ -18,10 +18,7 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.PublicApiPaths.LICENSE_LEGAL_RESOURCE_PATH_V2;
 import static org.assertj.core.api.Assertions.assertThat;
-import com.sonatype.insight.brain.common.test.SlowTest;
-import org.junit.experimental.categories.Category;
 
-@Category(SlowTest.class)
 public class ApiLegalAttributionReportTemplateResourceV2Test
     extends AbstractResourceTest
 {

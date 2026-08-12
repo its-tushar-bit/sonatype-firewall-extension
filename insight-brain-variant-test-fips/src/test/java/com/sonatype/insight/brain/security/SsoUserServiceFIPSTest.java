@@ -10,14 +10,11 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.junit.experimental.categories.Category;
 
 import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_MODE_ENABLED_ENV;
 import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastleFipsProvider;
 import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastleFipsProvider;
-import com.sonatype.insight.brain.common.test.SlowTest;
 
-@Category(SlowTest.class)
 public class SsoUserServiceFIPSTest
     extends SsoUserServiceTest
 {

@@ -20,9 +20,6 @@ import com.sonatype.insight.test.LogOutput;
 
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
-
-import com.sonatype.insight.brain.common.test.SlowTest;
 
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_MAVEN;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_PYPI;
@@ -34,7 +31,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@Category(SlowTest.class)
 /**
  * @since 1.140
  */

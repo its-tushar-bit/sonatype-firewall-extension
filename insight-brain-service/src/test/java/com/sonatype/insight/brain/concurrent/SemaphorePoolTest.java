@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.concurrent;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -15,7 +13,6 @@ import com.sonatype.insight.brain.git.VerifiableLoggingTestBase;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +21,6 @@ import static java.lang.Thread.sleep;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.ThrowableAssert.catchThrowable;
 
-@Category(SlowTest.class)
 public class SemaphorePoolTest
     extends VerifiableLoggingTestBase
 {

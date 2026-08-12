@@ -10,7 +10,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.service.ApiReverseProxyAuthenticationConfigurationService;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
@@ -19,9 +18,7 @@ import com.sonatype.insight.test.networking.SslProperties;
 import java.net.HttpCookie;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
-@Category(SlowTest.class)
 public class AntiCsrfFilterTest
     extends AbstractBrainServiceIntegrationTest
 {

@@ -14,10 +14,7 @@ import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Test;
-import com.sonatype.insight.brain.common.test.SlowTest;
-import org.junit.experimental.categories.Category;
 
-@Category(SlowTest.class)
 public class ApiAdvancedSearchResourceV2AuditTest
     extends AbstractAuditTest
 {

@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.util.List;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
@@ -30,7 +27,6 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 public class ApiHashComponentIdentifierResourceTest
     extends AbstractResourceTest
 {

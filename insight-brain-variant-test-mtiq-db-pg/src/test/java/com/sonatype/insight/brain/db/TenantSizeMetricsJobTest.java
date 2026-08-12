@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.db;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -24,7 +22,6 @@ import org.quartz.JobExecutionContext;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-@Category(SlowTest.class)
 public class TenantSizeMetricsJobTest
     extends AbstractMultiTenantDatabaseTest
 {

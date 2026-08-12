@@ -11,11 +11,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,7 +21,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-@Category(SlowTest.class)
 public class TenantScheduledThreadPoolExecutorTest
 {
   private final int interval = 1;

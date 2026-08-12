@@ -15,7 +15,6 @@ import java.sql.Statement;
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2InMemoryTest;
@@ -30,7 +29,6 @@ import org.junit.experimental.categories.Category;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-@Category(SlowTest.class)
 public class DatabaseRuleAndFixturesTest
 {
   @Rule(order = 1)
@@ -44,7 +42,6 @@ public class DatabaseRuleAndFixturesTest
 
   @Test
   @H2InMemoryTest(customSettings = "DATABASE_TO_UPPER=FALSE;LOCK_TIMEOUT=10000;MV_STORE=FALSE")
-  @Category(SlowTest.class)
   public void testRegularDatabaseFixture_withCustomDBSettings() throws SQLException {
     assertDatabaseConfig("jdbc:h2:mem:tempInMemoryDatabase;DATABASE_TO_UPPER=FALSE;LOCK_TIMEOUT=10000;MV_STORE=FALSE",
         "sa", "");
@@ -53,7 +50,6 @@ public class DatabaseRuleAndFixturesTest
 
   @Test
   @H2InMemoryTest(cleanDatabase = true)
-  @Category(SlowTest.class)
   public void testRegularDatabaseFixture_withCleanDatabase() throws SQLException {
     assertDatabaseConfig("jdbc:h2:mem:tempInMemoryDatabase;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1",
         "sa", "");
@@ -62,7 +58,6 @@ public class DatabaseRuleAndFixturesTest
 
   @Test
   @H2DiskTest
-  @Category(SlowTest.class)
   public void testH2Disk() throws SQLException {
     assertDatabaseConfig(
         "jdbc:h2:.*ods;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000;MV_STORE=FALSE",

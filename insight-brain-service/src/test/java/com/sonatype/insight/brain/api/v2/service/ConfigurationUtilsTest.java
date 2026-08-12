@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,7 +38,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-@Category(SlowTest.class)
 public class ConfigurationUtilsTest
     extends AbstractComponentTest
 {

@@ -26,14 +26,9 @@ import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionTy
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
-
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@Category(SlowTest.class)
 public class CoordinatesConditionTypeTest
     extends AbstractPolicyEvaluationTest
 {

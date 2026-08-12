@@ -13,19 +13,16 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.organization.OrganizationResource;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
-@Category(SlowTest.class)
 public class MultiTenantThrowableHandlerResourceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {

@@ -15,10 +15,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
-import com.sonatype.insight.brain.common.test.SlowTest;
-import org.junit.experimental.categories.Category;
 
-@Category(SlowTest.class)
 public class RepositoryServiceAuthzTest
     extends AbstractRepositoryServiceAuthzTest
 {

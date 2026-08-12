@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.db.dao;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.model.security.TenantMetadata;
 
@@ -16,7 +13,6 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 public class TenantMetadataDAOTest
     extends AbstractMultiTenantDatabaseTest
 {

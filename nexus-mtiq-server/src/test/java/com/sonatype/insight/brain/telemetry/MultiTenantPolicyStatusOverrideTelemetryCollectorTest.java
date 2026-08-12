@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -28,7 +25,6 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 public class MultiTenantPolicyStatusOverrideTelemetryCollectorTest
     extends AbstractMultiTenantDatabaseTest
 {

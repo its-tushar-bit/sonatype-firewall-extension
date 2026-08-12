@@ -61,11 +61,8 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.quartz.JobExecutionContext;
 import org.slf4j.MDC;
-import com.sonatype.insight.brain.common.test.SlowTest;
-import org.junit.experimental.categories.Category;
 import org.sonatype.licensing.LicensingException;
 
-@Category(SlowTest.class)
 public class CLMLicenseManagerTest
     extends AbstractComponentTest
 {

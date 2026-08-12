@@ -117,8 +117,7 @@ edit that file and commit it alongside the reformatted code.
 
 ## Running Tests ##
 
-**Running fast tests only**: We categorize tests as "slow" when they average over 100ms per test case. To run only
-the fast tests locally you can pass `-DexcludedGroups=SlowTest`
+**Running tests**: run `mvn verify` for the full suite add `-D skip-functional-test` to skip the expensive functional tests (see below).
 
 **Prerequisite**: some tests use Docker to connect to an external service (e.g. a PostgreSQL database). To run all tests successfully, you will need to [install Docker Engine](https://docs.docker.com/install/). Alternatively, you can skip the Docker tests by setting the property `docker.optional` to `true` in your Maven `settings.xml`.
 

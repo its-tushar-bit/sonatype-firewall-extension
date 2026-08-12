@@ -19,7 +19,6 @@ import static org.mockito.Mockito.verify;
 
 import com.sonatype.insight.brain.auth.MultiTenantAuth0ApiSupplier;
 import com.sonatype.insight.brain.auth.MultiTenantAuth0ManagementService;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.db.DatabaseUtil;
@@ -42,7 +41,6 @@ import java.util.Set;
 import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.JobKey;
@@ -52,7 +50,6 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
-@Category(SlowTest.class)
 public class DeleteTenantsJobTest
     extends AbstractMultiTenantBaseIntegrationTest
 {

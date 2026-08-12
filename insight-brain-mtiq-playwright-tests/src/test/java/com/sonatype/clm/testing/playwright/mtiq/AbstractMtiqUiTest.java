@@ -27,7 +27,6 @@ import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.api.admin.service.TenantProvisioningService;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.auth.MultiTenantAuth0ApiSupplier;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.DAOFactory;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.TestDAOFactory;
@@ -72,7 +71,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
-import org.junit.experimental.categories.Category;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,7 +87,6 @@ import static org.mockito.Mockito.when;
  * and bootstraps an embedded multi-tenant IQ server in a static initializer, provisioning a fresh
  * tenant per test via {@link TenantProvisioningService}. Requires PostgreSQL — MTIQ cannot run on H2.
  */
-@Category(SlowTest.class)
 public abstract class AbstractMtiqUiTest
     extends AbstractPlaywrightTest
 {

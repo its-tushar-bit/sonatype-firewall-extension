@@ -7,11 +7,9 @@ package com.sonatype.insight.brain.git.event.orchestrate.rule.processing;
 
 import java.util.Date;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -68,7 +66,6 @@ public class PerformanceThrottlingRuleTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testOnEventProcessed_performanceDegradedThenSuspensionExpired() throws Exception {
     // given: simulate degraded performance for the status update event
     PerformanceThrottlingRule rule = new PerformanceThrottlingRule();

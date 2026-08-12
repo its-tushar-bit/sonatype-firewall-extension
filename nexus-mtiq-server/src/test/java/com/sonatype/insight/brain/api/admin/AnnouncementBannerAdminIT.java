@@ -14,7 +14,6 @@ import java.util.concurrent.TimeUnit;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.configuration.AnnouncementBannerResource;
 import com.sonatype.insight.brain.logging.MultiTenantAuditLogAppenderFactory;
 import com.sonatype.insight.brain.model.configuration.AnnouncementBanner;
@@ -23,7 +22,6 @@ import com.sonatype.insight.brain.tenancy.Tenant;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_ANNOUNCEMENT_BANNER_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,7 +30,6 @@ import static org.awaitility.Awaitility.await;
 /**
  * Full-stack integration test for the announcement banner admin API.
  */
-@Category(SlowTest.class)
 public class AnnouncementBannerAdminIT
     extends AbstractMultiTenantBaseIntegrationTest
 {

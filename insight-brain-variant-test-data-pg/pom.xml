@@ -159,7 +159,7 @@
       <artifactId>insight-brain-db</artifactId>
       <type>test-jar</type>
     </dependency>
-    <!-- Common test fixtures (SlowTest/PostgresTestCategory markers, helpers). -->
+    <!-- Common test fixtures (PostgresTestCategory marker, helpers). -->
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-common</artifactId>

@@ -11,7 +11,6 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.AdminApiPaths;
 import com.sonatype.insight.brain.api.admin.TenantResource;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesResource;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dashboard.ApplicationRiskService;
 import com.sonatype.insight.brain.dashboard.DashboardComponentRiskService;
 import com.sonatype.insight.brain.dashboard.DashboardViolationRiskService;
@@ -24,10 +23,8 @@ import com.sonatype.insight.brain.security.MultiTenantEncryptionKeyStore;
 import com.sonatype.insight.brain.tenancy.MultiTenantTenantManagedInitializer;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
-@Category(SlowTest.class)
 public class MultiTenantInsightBrainServiceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {

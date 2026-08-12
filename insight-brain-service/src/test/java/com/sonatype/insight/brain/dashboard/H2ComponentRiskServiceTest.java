@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -33,14 +31,12 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.common.collect.Sets;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static com.sonatype.insight.brain.dashboard.PolicyViolationDTOTestUtils.assertPolicyViolationDTO;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @H2InMemoryTest
-@Category(SlowTest.class)
 public class H2ComponentRiskServiceTest
     extends AbstractComponentRiskServiceTest
 {

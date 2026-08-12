@@ -6,8 +6,7 @@
 @Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
 
 /**
- This feature branch Jenkinsfile is intended for validation rather than producing releasable artifacts. It by default
- excludes "slow" tests which are test classes that take longer than 50 seconds to run. Heavy tests are distributed
+ This feature branch Jenkinsfile is intended for validation rather than producing releasable artifacts. It distributes heavy tests
  across multiple agents to maximize parallelization.
 
  All of these optimizations can be toggled using Build with Parameters.
@@ -63,21 +62,14 @@
  │
  ▼
  ┌───────────────────────────────────────────────────────────────────────────────────────────────┐
- │  6. TEST - SLOW (conditional: includeSlowTests)                        ║ PARALLEL ║           │
- ├──────────────────────────────────────────────┬────────────────────────────────────────────────┤
- │  Slow Tests - Backend                        │  Slow Tests - MTIQ                             │
- └──────────────────────────────────────────────┴────────────────────────────────────────────────┘
- │
- ▼
- ┌───────────────────────────────────────────────────────────────────────────────────────────────┐
- │  7. COLLECT RESULTS                                                                           │
+ │  6. COLLECT RESULTS                                                                           │
  │     • junit: Collect test reports (surefire, failsafe, jest)                                  │
  │     • archiveArtifacts: Test report files                                                     │
  └───────────────────────────────────────────────────────────────────────────────────────────────┘
  │
  ▼
  ┌───────────────────────────────────────────────────────────────────────────────────────────────┐
- │  8. BUILD MTIQ IMAGE                                          ║ CONDITIONAL ║                 │
+ │  7. BUILD MTIQ IMAGE                                          ║ CONDITIONAL ║                 │
  │     When: mtiqImagePushEnabled OR *_mtiq job                                                  │
  │     • Build Docker image                                                                      │
  │     • Push to RSC registry                                                                    │
@@ -97,7 +89,6 @@
  ╠═══════════════════════════════════════════════════════════════════════════════════════════════╣
  ║  -T 1C       = 100% of CPU cores (16 threads on 16-core)                                      ║
  ║  -T 2        = 2 Maven threads                                                                ║
- ║  SlowTest    = Tests >100s excluded by default (param: includeSlowTests)                      ║
  ║  FE          = insight-brain-frontend                                                         ║
  ║  MTIQ        = nexus-mtiq-server (Multi-Tenant IQ)                                            ║
  ║  agent: iq-large = Runs on separate distributed agent                                          ║
@@ -147,7 +138,6 @@ pipeline {
           echo "Pipeline Configuration:"
           echo "  Branch: ${env.BRANCH_NAME ?: gitBranch(env)}"
           echo "  Bundling enabled: ${isBundlingEnabled()}"
-          echo "  Include slow tests: ${params.includeSlowTests}"
 
           env.BUILD_DIR = env.WORKSPACE
 
@@ -464,47 +454,6 @@ pipeline {
       }
     }
 
-    stage('Test - Slow') {
-      when {
-        expression { params.includeSlowTests }
-      }
-      parallel {
-        stage('Slow Tests - Backend') {
-          steps {
-            script {
-              dir(env.BUILD_DIR) {
-                withSonatypeDockerRegistry() {
-                  withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/",
-                           "TESTCONTAINERS_RYUK_DISABLED=true"]) {
-                    def opts = buildSlowTestMavenOptions('!insight-brain-frontend,!nexus-mtiq-server,!insight-brain-variant-test-mtiq-fips')
-                    mvnDirectForTests(opts, 'surefire:test failsafe:integration-test failsafe:verify')
-                  }
-                }
-              }
-            }
-          }
-        }
-
-        stage('Slow Tests - MTIQ') {
-          steps {
-            script {
-              dir(env.BUILD_DIR) {
-                withSonatypeDockerRegistry() {
-                  withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/",
-                           "TESTCONTAINERS_RYUK_DISABLED=true"]) {
-                    // insight-brain-variant-test-mtiq-fips boots the multi-tenant server (embedded PG, MTIQ beans);
-                    // it belongs in the MTIQ lane, not the backend lane which excludes nexus-mtiq-server.
-                    def opts = buildSlowTestMavenOptions('nexus-mtiq-server,insight-brain-variant-test-mtiq-fips')
-                    mvnDirectForTests(opts, 'surefire:test failsafe:integration-test failsafe:verify')
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
     stage('Collect Results') {
       when {
         expression { return true } // Always run to collect results even if tests fail
@@ -556,7 +505,7 @@ pipeline {
                 allowEmptyArchive: true,
                 fingerprint: false
             )
-            // Single recordCoverage call merges XML reports from all distributed agents + slow tests
+            // Single recordCoverage call merges XML reports from all distributed agents
             recordCoverage(tools: [[parser: 'JACOCO', pattern: '**/target/site/jacoco/jacoco.xml']])
           }
         }
@@ -651,8 +600,8 @@ void configureBranchJob() {
       choice(
           name: 'buildMode',
           choices: ['FEATURE', 'MAIN'],
-          description: 'Build mode: FEATURE excludes SlowTest and uses build caching. ' +
-              'MAIN runs all tests including SlowTest, no caching. ' +
+          description: 'Build mode: FEATURE uses build caching. ' +
+              'MAIN runs all tests, no caching. ' +
               'Both modes run the Playwright functional/UI sanity suite; the Playwright regression ' +
               'suite is controlled separately by skipPlaywrightRegressionTests. ' +
               'Changing this requires a new build to take effect.'
@@ -675,9 +624,6 @@ void configureBranchJob() {
           description: 'If checked will create bundled artifacts (shade, jreleaser, MTIQ assembly). Required for ' +
               'releases and MTIQ image push.',
           name: 'bundlingEnabled'),
-      booleanParam(defaultValue: false,
-          description: 'If checked will include slow tests (tests taking >100 seconds)',
-          name: 'includeSlowTests'),
 
       booleanParam(name: 'skipPlaywrightTests', defaultValue: false,
           description: 'Skip: Playwright Functional Tests (insight-brain-playwright-test)'),
@@ -820,41 +766,6 @@ void mvnDirectForTests(String mavenOptions, String goals) {
       sh mvnCmdLine
     }
   }
-}
-
-/**
- * Build Maven options string for SlowTest category tests.
- */
-String buildSlowTestMavenOptions(String moduleList) {
-  def opts = []
-
-  opts << "--no-transfer-progress"
-  opts << "-T 1"
-  opts << "-pl '${moduleList}'"
-  opts << "-D skip-functional-test"
-  opts << "-D build.number=${env.BUILD_NUMBER}"
-
-  // Test configuration
-  opts << "-Dfailsafe.runOrder=alphabetical"
-  opts << "-Dfailsafe.rerunFailingTestsCount=2"
-  opts << "-Dfailsafe.failOnFlakeCount=5"
-  opts << "-Dsurefire.runOrder=alphabetical"
-  opts << "-Dsurefire.rerunFailingTestsCount=2"
-  opts << "-Dsurefire.failOnFlakeCount=5"
-
-  // Include ONLY SlowTest category
-  opts << "-Dgroups=SlowTest"
-
-  // Docker registry
-  opts << "-Ddocker.registry=${sonatypeDockerRegistryId()}"
-
-  // Error handling
-  opts << "-e"
-  opts << "-C"
-  opts << "-fae"
-  opts << "-Dmaven.test.failure.ignore"
-
-  return opts.join(' ')
 }
 
 String mtiqImageVersion() {
@@ -1337,11 +1248,8 @@ String buildDistributedSurefireTestMavenOptions() {
   opts << "-Dsurefire.rerunFailingTestsCount=2"
   opts << "-Dsurefire.failOnFlakeCount=5"
 
-  // Excluded test groups - exclude PostgresTestCategory (run separately) and SlowTest
+  // Excluded test groups - exclude PostgresTestCategory (run separately)
   def excludedGroups = ['PostgresTestCategory']
-  if (!params.includeSlowTests) {
-    excludedGroups << "SlowTest"
-  }
   if (!params.runRefPolicyImportIntTest) {
     excludedGroups << "ReferencePolicyImportIntegrationTest"
   }
@@ -1384,9 +1292,6 @@ String buildDistributedPostgresTestMavenOptions() {
 
   // Excluded test groups
   def excludedGroups = []
-  if (!params.includeSlowTests) {
-    excludedGroups << "SlowTest"
-  }
   if (!params.runRefPolicyImportIntTest) {
     excludedGroups << "ReferencePolicyImportIntegrationTest"
   }
@@ -1428,9 +1333,6 @@ String buildDistributedMtiqTestMavenOptions() {
 
   // Excluded test groups
   def excludedGroups = []
-  if (!params.includeSlowTests) {
-    excludedGroups << "SlowTest"
-  }
   if (!params.runRefPolicyImportIntTest) {
     excludedGroups << "ReferencePolicyImportIntegrationTest"
   }
@@ -1522,9 +1424,6 @@ String buildDistributedTestMavenOptions(List<String> additionalExcludedGroups, S
 
   // Excluded test groups
   def excludedGroups = [] + additionalExcludedGroups
-  if (!params.includeSlowTests) {
-    excludedGroups << "SlowTest"
-  }
   if (!params.runRefPolicyImportIntTest) {
     excludedGroups << "ReferencePolicyImportIntegrationTest"
   }

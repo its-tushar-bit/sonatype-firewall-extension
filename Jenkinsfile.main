@@ -183,7 +183,7 @@ void configureBranchJob() {
           name: 'buildMode',
           choices: ['MAIN', 'FEATURE'],
           description: 'Build mode: MAIN runs all tests including functional tests, no caching. ' +
-              'FEATURE excludes functional tests and SlowTest, uses build caching. ' +
+              'FEATURE excludes functional tests, uses build caching. ' +
               'Changing this requires a new build to take effect.'
       ),
       booleanParam(defaultValue: mtiqImagePushEnabledByDefault,

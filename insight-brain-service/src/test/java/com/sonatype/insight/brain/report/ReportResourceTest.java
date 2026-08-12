@@ -105,10 +105,7 @@ import static com.sonatype.insight.mock.hds.HdsMockServer.RestServlet.SCAN_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
 
-@Category(SlowTest.class)
 public class ReportResourceTest
     extends AbstractResourceTest
 {

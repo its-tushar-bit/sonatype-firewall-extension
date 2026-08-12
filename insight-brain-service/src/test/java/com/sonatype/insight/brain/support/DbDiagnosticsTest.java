@@ -16,12 +16,10 @@ import org.junit.experimental.categories.Category;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import com.sonatype.insight.brain.common.test.SlowTest;
 
 /**
  * @since 1.27
  */
-@Category(SlowTest.class)
 public class DbDiagnosticsTest
     extends AbstractDatabaseTest
 {

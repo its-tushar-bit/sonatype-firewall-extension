@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -57,7 +55,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
-@Category(SlowTest.class)
 public class SourceControlDAOTest
     extends AbstractDbDAOTest
 {

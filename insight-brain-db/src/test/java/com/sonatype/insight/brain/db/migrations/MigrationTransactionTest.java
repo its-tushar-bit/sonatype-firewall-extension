@@ -11,12 +11,10 @@ import java.sql.Statement;
 
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 
@@ -35,7 +33,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * The H2 test validates the DBCP2 pool behavior and serves as documentation
  * of intent, but does not directly test PostgreSQL JDBC behavior.
  */
-@Category(SlowTest.class)
 public class MigrationTransactionTest
     extends AbstractDatabaseTest
 {

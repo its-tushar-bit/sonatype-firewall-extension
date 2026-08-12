@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -72,7 +70,6 @@ import static com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAOTes
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-@Category(SlowTest.class)
 public class PolicyViolationDAOTest
     extends AbstractDbDAOTest
 {

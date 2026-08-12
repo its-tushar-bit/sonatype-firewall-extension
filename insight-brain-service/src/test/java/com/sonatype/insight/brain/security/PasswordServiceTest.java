@@ -13,7 +13,6 @@ import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastl
 import static com.sonatype.insight.brain.security.PasswordService.ITERATIONS_PARAM;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.testing.SpringTestInsightBrainService;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -29,9 +28,7 @@ import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.junit.experimental.categories.Category;
 
-@Category(SlowTest.class)
 public class PasswordServiceTest
     extends AbstractComponentTest
 {

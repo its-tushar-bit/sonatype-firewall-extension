@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.datastore.DataStoreProvider;
@@ -24,7 +23,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.junit.experimental.categories.Category;
 import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -62,7 +60,6 @@ public class DatabaseMigrationsTest
   @H2DiskTest(
       suppressMigrations = true,
       copyExistingDatabase = "DatabaseMigrationsTest/testMigrate_ByEnvironmentVariable")
-  @Category(SlowTest.class)
   public void testMigrate_MigrationDisabled_ByEnvironmentVariable() throws Exception {
     environmentVariables.set(DatabaseMigrations.NXIQ_SCHEMA_MIGRATION, "false");
 
@@ -77,7 +74,6 @@ public class DatabaseMigrationsTest
   @H2DiskTest(
       suppressMigrations = true,
       copyExistingDatabase = "DatabaseMigrationsTest/testMigrate_ByEnvironmentVariable")
-  @Category(SlowTest.class)
   public void testMigrate_ForceEnableMigration_OverridesEnvironmentVariable() {
     try {
       DatabaseMigrations.setForceEnableMigration(true);
@@ -99,7 +95,6 @@ public class DatabaseMigrationsTest
   @H2DiskTest(
       suppressMigrations = true,
       copyExistingDatabase = "DatabaseMigrationsTest/testMigrate_ByEnvironmentVariable")
-  @Category(SlowTest.class)
   public void testMigrate_MigrationEnabled_ByEnvironmentVariable() {
     environmentVariables.set(DatabaseMigrations.NXIQ_SCHEMA_MIGRATION, "true");
 
@@ -116,7 +111,6 @@ public class DatabaseMigrationsTest
       suppressMigrations = true,
       copyExistingDatabase = "DatabaseMigrationsTest/" +
           "testMigrate_MigrationDisabled_BySystemConfigurationProperty")
-  @Category(SlowTest.class)
   public void testMigrate_MigrationDisabled_BySystemConfigurationProperty() throws Exception {
     assertThat(
         DatabaseUtil.systemConfigurationPropertyTableExists(databaseRule.getOperationalDataStore().getDataSource(),
@@ -136,7 +130,6 @@ public class DatabaseMigrationsTest
       suppressMigrations = true,
       copyExistingDatabase = "DatabaseMigrationsTest/" +
           "testMigrate_MigrationDisabled_BySystemConfigurationProperty")
-  @Category(SlowTest.class)
   public void testMigrate_ForceEnableMigration_OverridesSystemConfigurationProperty() {
     try {
       DatabaseMigrations.setForceEnableMigration(true);
@@ -162,7 +155,6 @@ public class DatabaseMigrationsTest
       suppressMigrations = true,
       copyExistingDatabase = "DatabaseMigrationsTest/" +
           "testMigrate_MigrationEnabled_BySystemConfigurationProperty")
-  @Category(SlowTest.class)
   public void testMigrate_MigrationEnabled_BySystemConfigurationProperty() {
     DataSource dataSource = databaseRule.getOperationalDataStore().getDataSource();
     assertThat(DatabaseUtil.systemConfigurationPropertyTableExists(dataSource, OperationalDataStore.ID)).isTrue();
@@ -179,7 +171,6 @@ public class DatabaseMigrationsTest
 
   @Test
   @H2DiskTest
-  @Category(SlowTest.class)
   public void testDesiredSchemaVersionMet() {
     DatabaseMigrations databaseMigrations = new DatabaseMigrations(databaseRule);
 
@@ -194,7 +185,6 @@ public class DatabaseMigrationsTest
       suppressMigrations = true,
       // re-use this simple test database that needs migrations
       copyExistingDatabase = "DatabaseMigrationsTest/testMigrate_ByEnvironmentVariable")
-  @Category(SlowTest.class)
   public void testDesiredSchemaVersionUnmet() {
     LegacyDatabaseMigrator legacyMigrator = new LegacyDatabaseMigrator(databaseRule);
     LegacyDatabaseMigrator spyMigrator = Mockito.spy(legacyMigrator);
@@ -211,7 +201,6 @@ public class DatabaseMigrationsTest
   @Test
   @H2DiskTest(
       suppressMigrations = true)
-  @Category(SlowTest.class)
   public void testDesiredSchemaVersionNoSchema() {
     LegacyDatabaseMigrator legacyMigrator = new LegacyDatabaseMigrator(databaseRule);
     LegacyDatabaseMigrator spyMigrator = Mockito.spy(legacyMigrator);

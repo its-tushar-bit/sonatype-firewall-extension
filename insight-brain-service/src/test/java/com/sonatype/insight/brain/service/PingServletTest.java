@@ -12,10 +12,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import com.sonatype.insight.brain.common.test.SlowTest;
-import org.junit.experimental.categories.Category;
 
-@Category(SlowTest.class)
 public class PingServletTest
     extends AbstractResourceTest
 {

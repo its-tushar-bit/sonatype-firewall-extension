@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -16,7 +15,6 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,7 +22,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Unit tests for {@link PolicyInternalDAO#getAncestorOrDescendantWithPolicyNameMatching} — the bulk
  * hierarchy query that replaces the N+1 recursive traversal (CLM-38233).
  */
-@Category(SlowTest.class)
 public class PolicyInternalDAOHierarchyTest
     extends AbstractDbDAOTest
 {

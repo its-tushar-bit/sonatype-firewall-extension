@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.util.Comparator;
 import java.util.List;
 
@@ -19,7 +16,6 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-@Category(SlowTest.class)
 public class ComponentCategoryDAOTest
     extends AbstractDbDAOTest
 {

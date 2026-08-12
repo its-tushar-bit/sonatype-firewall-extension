@@ -11,13 +11,11 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import jakarta.inject.Inject;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static com.sonatype.insight.brain.scan.datastore.ScanPersistenceServiceTestHelper.APPLICATION_ID;
 import static com.sonatype.insight.brain.scan.datastore.ScanPersistenceServiceTestHelper.SCAN_ID;
@@ -253,7 +251,6 @@ public abstract class AbstractScanPersistenceServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testScanEntity_getLastModifiedTime() throws Exception {
     helper.saveMockScan();
     long startTime = System.currentTimeMillis();

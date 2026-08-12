@@ -284,7 +284,6 @@ private void runUnitTestPartition(String stageName, String regex) {
   String args = "-pl '!nexus-mtiq-server,!insight-brain-frontend,!insight-brain-playwright-test'"
   args += " -Dtest=%regex[${regex}]"
   args += " -Dit.test=%regex[${regex}]"
-  args += " -DexcludedGroups=SlowTest"
   args += " -DdetectTestEntityLeaks"
   args += " -Dfailsafe.rerunFailingTestsCount=2 -Dfailsafe.failOnFlakeCount=5"
   args += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
@@ -298,7 +297,6 @@ private void runUnitTestPartition(String stageName, String regex) {
 private void runMtiqUnitTests() {
   echo 'Running partition: MTIQ Unit and Integration Tests'
   String args = '-pl com.sonatype.insight.brain:nexus-mtiq-server'
-  args += ' -DexcludedGroups=SlowTest'
   args += ' -DdetectTestEntityLeaks'
   args += ' -Dfailsafe.rerunFailingTestsCount=2 -Dfailsafe.failOnFlakeCount=5'
   args += " -Ddocker.registry=${sonatypeDockerRegistryId()}"

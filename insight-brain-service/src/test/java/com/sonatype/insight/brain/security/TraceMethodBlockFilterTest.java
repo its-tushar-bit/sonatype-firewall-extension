@@ -6,15 +6,12 @@
 package com.sonatype.insight.brain.security;
 
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.service.AssetPaths;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.brain.version.VersionResource;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
-@Category(SlowTest.class)
 public class TraceMethodBlockFilterTest
     extends AbstractBrainServiceIntegrationTest
 {

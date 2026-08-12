@@ -5,12 +5,8 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import jakarta.inject.Inject;
 
-@Category(SlowTest.class)
 public class H2ApplicationRiskServiceAuthzTest
     extends AbstractApplicationRiskServiceAuthzTest
 {

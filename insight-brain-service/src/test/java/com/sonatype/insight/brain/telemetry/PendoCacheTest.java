@@ -14,7 +14,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.tenancy.Tenant;
@@ -28,7 +27,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.mockito.Mock;
 
 public class PendoCacheTest
@@ -123,7 +121,6 @@ public class PendoCacheTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testGetJs_MultiTenant_Expiration() throws Exception {
     PendoCache pendoCache = new PendoCache(objectMapper, mockHdsClient, Duration.ofSeconds(2));
 
@@ -215,7 +212,6 @@ public class PendoCacheTest
   }
 
   @Test
-  @Category(SlowTest.class)
   public void testGetCustomerTelemetryProperties_MultiTenant_Expiration() throws Exception {
     PendoCache pendoCache = new PendoCache(objectMapper, mockHdsClient, Duration.ofSeconds(2));
 

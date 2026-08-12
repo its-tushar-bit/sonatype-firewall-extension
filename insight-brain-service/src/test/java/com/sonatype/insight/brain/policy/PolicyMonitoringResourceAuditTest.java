@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.policy;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
@@ -22,7 +19,6 @@ import com.sonatype.insight.brain.service.AbstractAuditTest;
 import org.junit.Before;
 import org.junit.Test;
 
-@Category(SlowTest.class)
 public class PolicyMonitoringResourceAuditTest
     extends AbstractAuditTest
 {

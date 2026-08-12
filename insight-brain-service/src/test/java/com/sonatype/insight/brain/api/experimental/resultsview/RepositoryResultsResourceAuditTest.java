@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.api.experimental.resultsview;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -18,7 +15,6 @@ import com.sonatype.insight.brain.service.AbstractAuditTest;
 import org.junit.Before;
 import org.junit.Test;
 
-@Category(SlowTest.class)
 public class RepositoryResultsResourceAuditTest
     extends AbstractAuditTest
 {

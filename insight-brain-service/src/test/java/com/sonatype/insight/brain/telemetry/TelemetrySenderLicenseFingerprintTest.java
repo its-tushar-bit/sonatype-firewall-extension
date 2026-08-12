@@ -9,19 +9,16 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 /**
  * Special test for {@link TelemetrySender} to check that the license fingerprint is added as the `X-CLM-Token` header
  * by {@link HdsClient}. Has to be separate from {@link TelemetrySenderTest} as the HdsClient cannot be mocked out.
  */
-@Category(SlowTest.class)
 public class TelemetrySenderLicenseFingerprintTest
     extends AbstractBrainServiceIntegrationTest
 {

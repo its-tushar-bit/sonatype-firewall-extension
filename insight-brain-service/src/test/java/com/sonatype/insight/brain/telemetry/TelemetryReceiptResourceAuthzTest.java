@@ -7,16 +7,13 @@ package com.sonatype.insight.brain.telemetry;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 public class TelemetryReceiptResourceAuthzTest
     extends AbstractResourceAuthzTest
 {

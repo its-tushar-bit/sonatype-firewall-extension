@@ -7,16 +7,13 @@ package com.sonatype.insight.brain.landing;
 
 import jakarta.ws.rs.core.HttpHeaders;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 public class IndexCacheControlFilterTest
     extends AbstractResourceTest
 {

@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.v2;
 
 import com.sonatype.clm.dto.model.repository.RepositoryType;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
@@ -17,11 +16,9 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 public class ApiLifecycleResourceTest
     extends AbstractResourceTest
 {

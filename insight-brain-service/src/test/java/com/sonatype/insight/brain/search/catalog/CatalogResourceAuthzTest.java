@@ -11,14 +11,12 @@ import java.util.Map;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 /**
  * Drives the catalog endpoint through the real REST/Shiro/Jackson stack to pin the authz matrix:
@@ -26,7 +24,6 @@ import org.junit.experimental.categories.Category;
  * and 200 (authorized). Status-mapping edge cases (404/400) are covered by the fast
  * {@link CatalogEndpointTest}; service behaviour by {@link CatalogServiceTest}.
  */
-@Category(SlowTest.class)
 public class CatalogResourceAuthzTest
     extends AbstractResourceAuthzTest
 {

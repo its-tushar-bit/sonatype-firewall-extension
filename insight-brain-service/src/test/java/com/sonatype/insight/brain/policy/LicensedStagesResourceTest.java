@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.policy;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.policy.StageType;
@@ -18,7 +15,6 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 public class LicensedStagesResourceTest
     extends AbstractResourceTest
 {

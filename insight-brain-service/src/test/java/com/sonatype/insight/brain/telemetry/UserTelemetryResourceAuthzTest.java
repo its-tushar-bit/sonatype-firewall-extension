@@ -11,13 +11,10 @@ import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.junit.Before;
 import org.junit.Test;
-import com.sonatype.insight.brain.common.test.SlowTest;
-import org.junit.experimental.categories.Category;
 
 /**
  * Anonymous access allowed
  */
-@Category(SlowTest.class)
 public class UserTelemetryResourceAuthzTest
     extends AbstractResourceAuthzTest
 {

@@ -9,7 +9,6 @@ import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -19,13 +18,11 @@ import com.sonatype.insight.test.LogOutput;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @H2DiskTest
-@Category(SlowTest.class)
 public class ResetAdminCommandAuditTest
     extends AbstractDataTest
     implements AuditTestSupport

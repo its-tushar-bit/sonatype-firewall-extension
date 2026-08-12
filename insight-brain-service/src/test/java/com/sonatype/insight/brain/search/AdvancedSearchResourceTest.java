@@ -19,10 +19,7 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.search.AdvancedSearchResource.RESOURCE_PATH;
 import static com.sonatype.insight.brain.search.AdvancedSearchResource.STATUS_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
 
-@Category(SlowTest.class)
 public class AdvancedSearchResourceTest
     extends AbstractResourceTest
 {

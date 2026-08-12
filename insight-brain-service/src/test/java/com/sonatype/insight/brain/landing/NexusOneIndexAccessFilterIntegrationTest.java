@@ -8,15 +8,12 @@ package com.sonatype.insight.brain.landing;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 
 import org.junit.After;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
-@Category(SlowTest.class)
 public class NexusOneIndexAccessFilterIntegrationTest
     extends AbstractBrainServiceIntegrationTest
 {

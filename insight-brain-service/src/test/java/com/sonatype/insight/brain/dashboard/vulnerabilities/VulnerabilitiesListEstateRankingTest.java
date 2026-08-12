@@ -13,7 +13,6 @@ import java.util.Locale;
 import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -24,7 +23,6 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Zipper;
 
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 /**
  * Proves the list ranks over the whole estate rather than over a leading sample of documents
@@ -41,7 +39,6 @@ import org.junit.experimental.categories.Category;
  * Slow by nature rather than by neglect: the estate has to clear the sample bound for the assertion
  * to mean anything, and indexing that many documents is most of the runtime.
  */
-@Category(SlowTest.class)
 public class VulnerabilitiesListEstateRankingTest
     extends AbstractComponentTest
 {

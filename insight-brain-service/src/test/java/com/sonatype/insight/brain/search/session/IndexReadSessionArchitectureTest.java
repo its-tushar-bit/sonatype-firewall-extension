@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.search.session;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.search.lucene.LuceneIndexReadSession;
 import com.sonatype.insight.brain.search.lucene.LuceneSearchIndexClient;
 import com.sonatype.insight.brain.search.lucene.LuceneSearcherManagerHolder;
@@ -18,9 +17,7 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.store.Directory;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
-@Category(SlowTest.class)
 public class IndexReadSessionArchitectureTest
 {
   @Test

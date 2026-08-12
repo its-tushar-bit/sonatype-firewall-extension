@@ -28,10 +28,7 @@ import org.cyclonedx.model.Property;
 import org.junit.Test;
 
 import static com.sonatype.clm.dto.model.repository.container.image.FirewallContainerImageUtils.SONATYPE_NEXUS_REPOSITORY_BASE_URL_PROPERTY_NAME;
-import com.sonatype.insight.brain.common.test.SlowTest;
-import org.junit.experimental.categories.Category;
 
-@Category(SlowTest.class)
 public class RepositoryResourceAuditTest
     extends AbstractRepositoryResourceAuditTest
 {

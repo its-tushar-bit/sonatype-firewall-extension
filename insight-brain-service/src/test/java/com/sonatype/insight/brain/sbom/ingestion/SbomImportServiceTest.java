@@ -84,10 +84,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-import org.junit.experimental.categories.Category;
-
-@Category(SlowTest.class)
 @ContextConfiguration(classes = SbomImportServiceTest.ExistingFilesHelperTestConfig.class)
 public class SbomImportServiceTest
     extends AbstractComponentTest

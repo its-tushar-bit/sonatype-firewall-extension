@@ -12,7 +12,6 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.organization.OrganizationResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -21,12 +20,10 @@ import com.sonatype.insight.brain.service.Configuration;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
-@Category(SlowTest.class)
 public class ThrowableHandlerResourceTest
     extends AbstractResourceTest
 {

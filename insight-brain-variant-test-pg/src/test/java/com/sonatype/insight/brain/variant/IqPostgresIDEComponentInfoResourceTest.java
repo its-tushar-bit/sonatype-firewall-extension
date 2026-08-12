@@ -195,7 +195,7 @@ class IqPostgresIDEComponentInfoResourceTest
   }
 
   /**
-   * Fast test proving the resource is wired to the breaker-protected client (not SlowTest, runs on PR builds).
+   * Fast test proving the resource is wired to the breaker-protected client (runs on PR builds).
    * A wiring regression (e.g., constructor no longer sets @Named("ideComponentDetails") client) would let
    * this test fail: 5+ HDS failures would not trip the breaker because the resource would be using the
    * default unprotected HdsClient instead.

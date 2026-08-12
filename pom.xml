@@ -26,6 +26,12 @@
 
     <!-- Avoid missing property exception for plugins that append to argLine. -->
     <argLine/>
+    <!-- JaCoCo agent VM arg for the variant-test modules. Empty by default so the tuned
+         one-box/perf test forks are byte-identical to a no-coverage build. The coverage
+         profiles (buildsupport-coverage / buildsupport-sonar-coverage) set this via a
+         dedicated prepare-agent execution; each variant module references @{jacocoVariantArgLine}
+         in its inline failsafe argLine. See insight-brain-variant-test-*/pom.xml. -->
+    <jacocoVariantArgLine/>
     <!-- JFR profiling args - set via -Djfr.args=... to enable flight recording -->
     <jfr.args/>
 
@@ -178,6 +184,7 @@
     <module>insight-brain-variant-test-mtiq</module>
     <module>insight-brain-variant-test-legacy</module>
     <module>insight-brain-variant-test-fips</module>
+    <module>insight-brain-variant-test-coverage</module>
     <module>nexus-iq-diagnostics</module>
     <module>insight-brain-functional-test-common</module>
     <module>insight-brain-playwright-test</module>
@@ -1855,6 +1862,17 @@
                 </goals>
               </execution>
               <execution>
+                <!-- Sets jacocoVariantArgLine so insight-brain-variant-test-* modules run the
+                     agent (they hardcode a curated failsafe argLine and reference this token). -->
+                <id>variant-prepare-agent</id>
+                <goals>
+                  <goal>prepare-agent</goal>
+                </goals>
+                <configuration>
+                  <propertyName>jacocoVariantArgLine</propertyName>
+                </configuration>
+              </execution>
+              <execution>
                 <id>report</id>
                 <phase>verify</phase>
                 <goals>
@@ -1874,6 +1892,13 @@
        class files (major version 69).
        -->
       <id>buildsupport-sonar-coverage</id>
+      <properties>
+        <!-- Import the variant-test coverage aggregate (relocated tests' exec attributed to
+             production classes) alongside each module's own per-module report, so coverage from
+             the insight-brain-variant-test-* modules is counted. The aggregate is a fixed reactor
+             path; the per-module path interpolates to each module's own target at scan time. -->
+        <sonar.coverage.jacoco.xmlReportPaths>${maven.multiModuleProjectDirectory}/insight-brain-variant-test-coverage/target/site/jacoco-aggregate/jacoco.xml,${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+      </properties>
       <build>
         <plugins>
           <plugin>
@@ -1886,6 +1911,17 @@
                 <goals>
                   <goal>prepare-agent</goal>
                 </goals>
+              </execution>
+              <execution>
+                <!-- Sets jacocoVariantArgLine so insight-brain-variant-test-* modules run the
+                     agent (they hardcode a curated failsafe argLine and reference this token). -->
+                <id>variant-prepare-agent</id>
+                <goals>
+                  <goal>prepare-agent</goal>
+                </goals>
+                <configuration>
+                  <propertyName>jacocoVariantArgLine</propertyName>
+                </configuration>
               </execution>
               <execution>
                 <id>default-report</id>

@@ -68,9 +68,12 @@
           <shutdown>kill</shutdown>
           <!--
             Inline add-opens (Spring Boot 4 on JDK 25 needs these) plus a byte-buddy agent for Mockito.
-            No @{argLine}: this module is excluded from JaCoCo coverage.
+            @{jacocoVariantArgLine} carries the JaCoCo agent under the coverage profiles
+            (buildsupport-coverage / -sonar-coverage); it is empty otherwise, so normal and
+            one-box/perf runs keep this exact, tuned argLine.
           -->
           <argLine>
+            @{jacocoVariantArgLine}
             --add-opens=java.base/java.lang=ALL-UNNAMED
             --add-opens=java.base/java.util=ALL-UNNAMED
             --add-opens=java.base/java.security=ALL-UNNAMED

@@ -53,7 +53,13 @@
           <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
           <forkedProcessExitTimeoutInSeconds>30</forkedProcessExitTimeoutInSeconds>
           <shutdown>kill</shutdown>
+          <!--
+            @{jacocoVariantArgLine} carries the JaCoCo agent under the coverage profiles
+            (buildsupport-coverage / -sonar-coverage); it is empty otherwise, so normal and
+            one-box/perf runs keep this exact, tuned argLine.
+          -->
           <argLine>
+            @{jacocoVariantArgLine}
             --add-opens=java.base/java.lang=ALL-UNNAMED
             --add-opens=java.base/java.util=ALL-UNNAMED
             --add-opens=java.base/java.security=ALL-UNNAMED

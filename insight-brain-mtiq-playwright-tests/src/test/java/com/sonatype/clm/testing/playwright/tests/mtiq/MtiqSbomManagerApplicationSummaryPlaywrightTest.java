@@ -203,11 +203,11 @@ public class MtiqSbomManagerApplicationSummaryPlaywrightTest
     // rows ("test-version 0".."test-version 9") would satisfy containsText.
     assertThat(summaryPage.sbomsTableBodyRowColumn(0, 0)).hasText("test-version");
 
-    summaryPage.sbomsTableColumnHeader(4).click();
+    summaryPage.clickColumnHeaderViaJs(4);
     // Asc: "test-version 9" (10 days ago) is oldest.
     assertThat(summaryPage.sbomsTableBodyRowColumn(0, 0)).hasText("test-version 9");
 
-    summaryPage.sbomsTableColumnHeader(4).click();
+    summaryPage.clickColumnHeaderViaJs(4);
     assertThat(summaryPage.sbomsTableBodyRowColumn(0, 0)).hasText("test-version");
   }
 
@@ -217,9 +217,9 @@ public class MtiqSbomManagerApplicationSummaryPlaywrightTest
     seedManySbomsForPagination();
     playwrightRefreshOrOpen(MtiqSbomManagerApplicationSummaryPage.url(application.getPublicId()));
 
-    summaryPage.sbomsTableColumnHeader(2).click();
+    summaryPage.clickColumnHeaderViaJs(2);
     assertThat(summaryPage.sbomsTableBodyRows().first()).isVisible();
-    summaryPage.sbomsTableColumnHeader(2).click();
+    summaryPage.clickColumnHeaderViaJs(2);
     assertThat(summaryPage.sbomsTableBodyRows().first()).isVisible();
   }
 

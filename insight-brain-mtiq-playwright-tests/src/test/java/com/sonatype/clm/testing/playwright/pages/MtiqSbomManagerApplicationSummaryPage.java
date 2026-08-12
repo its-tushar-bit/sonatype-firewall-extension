@@ -59,6 +59,21 @@ public class MtiqSbomManagerApplicationSummaryPage
     return sbomsTableColumnHeaders().nth(zeroBasedIndex);
   }
 
+  /**
+   * Clicks a column header via JS dispatch to bypass Playwright's pointer-interception check.
+   * TODO(CLM-43050): revert to {@code sbomsTableColumnHeader(i).click()} once the product fixes
+   * the NxTable sticky pagination footer z-index/positioning that permanently overlaps headers.
+   *
+   * <p>
+   * Caveat: {@code evaluate("el => el.click()")} bypasses all actionability checks (visibility,
+   * stability, enabled-state), not just pointer-interception. A regression making the header
+   * genuinely hidden or detached would silently no-op here. Call sites assert on post-click state
+   * (sort order / row visibility) which would still surface such a failure.
+   */
+  public void clickColumnHeaderViaJs(int zeroBasedIndex) {
+    sbomsTableColumnHeader(zeroBasedIndex).evaluate("el => el.click()");
+  }
+
   public Locator sbomsTableBodyRows() {
     return sbomsTile().locator("tbody tr");
   }

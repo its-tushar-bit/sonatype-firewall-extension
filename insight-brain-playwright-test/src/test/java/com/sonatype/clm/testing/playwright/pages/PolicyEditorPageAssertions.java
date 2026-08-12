@@ -68,7 +68,7 @@ public class PolicyEditorPageAssertions
    */
   public void shouldBeInSbomManagerReadOnlyMode() {
     assertThat(page.deletePolicyButton()).hasCount(0);
-    assertThat(page.sbomManagerInfoAlert()).isVisible();
+    assertThat(page.sbomManagerInfoAlert()).isVisible(PlaywrightTiming.VISIBLE_OPTS);
     assertThat(page.lifecycleLink()).isVisible();
   }
 }

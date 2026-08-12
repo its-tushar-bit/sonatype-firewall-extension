@@ -67,10 +67,11 @@ public class HeaderComponent
   }
 
   /**
-   * Open the user dropdown menu and click logout.
+   * Open the user dropdown menu, wait for the menu to stabilize, then click logout.
+   * Reuses {@link #openUserMenu()} which guards against the dropdown animation race.
    */
   public void logout() {
-    userMenuDropdownToggle().click();
+    openUserMenu();
     logoutButton().click();
   }
 

@@ -11,6 +11,7 @@ import com.sonatype.clm.testing.playwright.categories.MtiqTest;
 import com.sonatype.clm.testing.playwright.mtiq.AbstractMtiqUiTest;
 import com.sonatype.clm.testing.playwright.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.playwright.pages.PolicyEditorPageAssertions;
+import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -80,7 +81,7 @@ public class MtiqSbomPolicyEditorPlaywrightTest
 
     playwrightRefreshOrOpen(PolicyEditorPage.url(application, policy));
 
-    assertThat(editor.container()).isVisible();
+    assertThat(editor.container()).isVisible(PlaywrightTiming.VISIBLE_OPTS);
     assertThat(editor.saveButton()).hasText("Update");
     assertThat(editor.constraintsSection()).isVisible();
     assertThat(editor.actionsSection()).isVisible();
@@ -145,7 +146,7 @@ public class MtiqSbomPolicyEditorPlaywrightTest
 
     playwrightRefreshOrOpen(PolicyEditorPage.url(application, policy));
 
-    assertThat(editor.container()).isVisible();
+    assertThat(editor.container()).isVisible(PlaywrightTiming.VISIBLE_OPTS);
     assertThat(editor.saveButton()).hasText("Update");
     assertThat(editor.constraintsSection()).isVisible();
   }

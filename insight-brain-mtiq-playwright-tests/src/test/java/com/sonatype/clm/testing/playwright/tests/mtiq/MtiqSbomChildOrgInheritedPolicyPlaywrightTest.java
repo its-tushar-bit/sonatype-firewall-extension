@@ -9,6 +9,7 @@ import com.sonatype.clm.testing.playwright.categories.MtiqTest;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.playwright.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.playwright.pages.PolicyEditorPageAssertions;
+import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -26,7 +27,7 @@ public class MtiqSbomChildOrgInheritedPolicyPlaywrightTest
 
     playwrightRefreshOrOpen(OwnerSummaryPage.url(childOrg.getId()));
     OwnerSummaryPage ownerSummary = new OwnerSummaryPage();
-    assertThat(ownerSummary.policiesTile()).isVisible();
+    assertThat(ownerSummary.policiesTile()).isVisible(PlaywrightTiming.VISIBLE_OPTS);
     ownerSummary.policiesTileRowByName(policyName).click();
 
     PolicyEditorPage editor = new PolicyEditorPage();

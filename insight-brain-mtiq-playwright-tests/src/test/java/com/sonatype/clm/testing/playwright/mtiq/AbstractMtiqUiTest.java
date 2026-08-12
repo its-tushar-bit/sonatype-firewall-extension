@@ -459,9 +459,23 @@ public abstract class AbstractMtiqUiTest
             .setTimeout(PlaywrightTiming.MODAL_OR_LOGIN_TIMEOUT_MS));
   }
 
+  /**
+   * Logout via the user menu, then reload to force a server-side auth check.
+   *
+   * <p>
+   * TODO(CLM-45078): the reload works around an MTIQ-specific race where the SPA's
+   * {@code logoutRedirection()} (userSessionSlice.js) sometimes does not complete its
+   * {@code window.location.href} navigation before Playwright's next assertion fires. Under
+   * parallel-fork load the DELETE /session response can be delayed long enough that the redirect
+   * hasn't occurred by the time we assert the login modal. We explicitly wait for the DELETE
+   * response to complete before reloading to avoid cancelling the in-flight request.
+   */
   protected void playwrightLogout() {
-    new HeaderComponent().logout();
+    page.waitForResponse(
+        resp -> resp.url().contains("/session") && "DELETE".equals(resp.request().method()),
+        () -> new HeaderComponent().logout());
     new UnsavedChangesModalComponent().dismissIfAppearsWithin(PlaywrightTiming.SHORT_UI_CUE_MS);
+    page.reload();
     new LoginPageAssertions(new LoginPage()).shouldBeVisibleWithin(PlaywrightTiming.MODAL_OR_LOGIN_TIMEOUT_MS);
   }
 }

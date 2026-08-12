@@ -11,6 +11,15 @@ workspaceZip = 'workspace.zip'
 // ref is not tag-quarantined.
 buildkitImageDigest = 'sha256:2f5adac4ecd194d9f8c10b7b5d7bceb5186853db1b26e5abd3a657af0b7e26ec'
 
+// IQ application the MTIQ container image is evaluated against. Separate from the 'insight-brain'
+// application used by the source scan so the image's OS violations stay out of the source report.
+mtiqImageIqApplication = 'docker-nexus-iq-server-mtiq'
+
+// One named buildx builder per agent, shared by the scan build and the RSC/ECR pushes so they
+// share a layer cache. buildx create without a name makes a new builder — and a cold cache — on
+// every call.
+mtiqBuildxBuilder = 'mtiq-buildx'
+
 configureBranchJob()
 make(
     // 2024-05-03: We are using c6i.2xlarge EC2 instances. I tried c6i.4xlarge with "--threads 8" and there was no difference.
@@ -112,6 +121,11 @@ make(
     onSuccess: {
         postBuild()
     },
+    // UNSTABLE publishes too, so a warn-level policy violation still yields an image in RSC rather
+    // than starving the branch of images while waivers are settled. This does not put an unstable
+    // image on the release path: postBuild()'s own isSuccess guard keeps the ECR push and the
+    // shared-dev deploy to SUCCESS builds only, and shared-dev is what gets promoted to prod-mirror
+    // and then to prod.
     onUnstable: {
         postBuild()
     }
@@ -278,7 +292,7 @@ void pushMTIQDockerImage(boolean pushMtiqImage, String imageVersion) {
         if (pushMtiqImage) {
           pushOption = " --push "
         }
-        sh "docker buildx create --use --driver-opt image=${sonatypeDockerRegistryId()}/moby/buildkit@${buildkitImageDigest}"
+        ensureMtiqBuildxBuilder()
         sh "docker buildx build --platform=linux/amd64,linux/arm64 " +
             " --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} " +
             " --build-arg IQ_SERVER_VERSION=${iqVersion} " +
@@ -303,6 +317,134 @@ void pushMTIQImageToEcr() {
   } catch (Exception e) {
     echo "WARNING: ECR push failed (non-fatal): ${e.message}"
   }
+}
+
+/** Local-only tag for the image handed to the container scan. Never pushed to any registry. */
+String mtiqScanImageTag() {
+  return "mtiq-server-scan:${env.BUILD_NUMBER}"
+}
+
+/**
+ * Create or re-select the shared buildx builder, pinned to the digest-referenced buildkit image
+ * because Firewall quarantines every moby/buildkit tag.
+ *
+ * Idempotent: create fails if the builder already exists on this agent, in which case we select it.
+ */
+void ensureMtiqBuildxBuilder() {
+  sh """docker buildx create --name ${mtiqBuildxBuilder} --use \\
+        --driver-opt image=${sonatypeDockerRegistryId()}/moby/buildkit@${buildkitImageDigest} \\
+        || docker buildx use ${mtiqBuildxBuilder}"""
+}
+
+/**
+ * Build the MTIQ image that the policy evaluation scans.
+ *
+ * The Dockerfile COPYs the jreleaser jlink assemblies for both architectures, so they are built
+ * first. pushMTIQDockerImage() builds them again for the multi-arch push; the two run on separate
+ * code paths and neither can rely on the other having happened.
+ *
+ * Single-platform (linux/amd64): buildx --load cannot load a multi-platform result into the classic
+ * docker image store. The Ubuntu package set is the same on arm64, so the OS component list — and
+ * therefore the violation set — is the same.
+ *
+ * @param scanImage local tag of the image to build
+ */
+void buildMtiqScanImage(String scanImage) {
+  String iqVersion = getMavenProjectVersion('.')
+  echo "Building MTIQ image for scanning: ${scanImage} (iqVersion='${iqVersion}')"
+
+  mvn jreleaserConfig(""), ' -pl :insight-brain -Pjdks -Pjenkins'
+  mvn jreleaserConfig(""), ' -pl :nexus-mtiq-server jreleaser:assemble'
+
+  dir('nexus-mtiq-server') {
+    withSonatypeDockerRegistry() {
+      ensureMtiqBuildxBuilder()
+      sh "docker buildx build --platform=linux/amd64 " +
+          " --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} " +
+          " --build-arg IQ_SERVER_VERSION=${iqVersion} " +
+          " --load " +
+          " --tag ${scanImage} ."
+    }
+  }
+}
+
+/**
+ * IQ lifecycle stage for the image evaluation, matching the stage the shared library passes to the
+ * source scan's iqPolicyEvaluation closure: 'build' on main, 'develop' on every other branch. IQ
+ * retains one evaluation per application and stage, so this keeps branch builds — including
+ * buildMode=MAIN ones — from overwriting the evaluation main recorded.
+ *
+ * This duplicates the library's own branch-to-stage mapping rather than reading it, because the
+ * scan runs in the parallel block, before the closure that receives that value is invoked.
+ */
+String mtiqImageIqStage() {
+  return isDeployBranch(env, 'main') ? 'build' : 'develop'
+}
+
+/**
+ * Evaluate the built MTIQ image against IQ policy.
+ *
+ * The IQ stage action is the only gate here. Fail throws: the build goes FAILURE, which reaches
+ * neither onSuccess nor onUnstable, so nothing is published. Warn neither throws nor marks the build
+ * UNSTABLE (unstableBuildOnScanningWarnings: false, per CLM-44494), so a warn-level finding is
+ * reported and the image publishes everywhere a green build does — including shared-dev. A finding
+ * that must not reach shared-dev has to be Fail at the build stage, or waived.
+ *
+ * @param scanImage local tag of the image to evaluate
+ */
+void evaluateMtiqImagePolicy(String scanImage) {
+  // Evaluate from an empty directory. Run from the workspace root and the scanner also picks up
+  // the module jars in target/, mixing the source application's components into the image report.
+  // dir() only sets the working directory for nested steps; it does not create the directory, and
+  // nexusPolicyEvaluation fails if its basedir is absent.
+  String scanDir = 'mtiq-container-scan'
+  sh "mkdir -p ${scanDir}"
+  dir(scanDir) {
+    // nexusPolicyEvaluation blocks in "Waiting for policy evaluation to complete..." with no
+    // timeout of its own, so a stalled IQ evaluation parks this branch indefinitely and holds the
+    // agent. Convert the expiry into an ordinary failure so it travels the same path as a policy
+    // violation, and rethrow everything else: a human abort has to keep taking effect immediately.
+    try {
+      timeout(time: 20, unit: 'MINUTES') {
+        nexusPolicyEvaluation(
+            iqApplication: mtiqImageIqApplication,
+            iqStage: mtiqImageIqStage(),
+            iqScanPatterns: [[scanPattern: "container:${scanImage}"]],
+            failBuildOnNetworkError: true,
+            // CLM-44494: warn-level findings must not mark the build UNSTABLE. Matches the four
+            // source-scan calls aligned in #16896. The consequence is that the IQ stage action is
+            // the only gate on this image: Warn reports and publishes, Fail blocks everything.
+            unstableBuildOnScanningWarnings: false)
+      }
+    }
+    catch (org.jenkinsci.plugins.workflow.steps.FlowInterruptedException e) {
+      if (isMtiqEvaluationTimeout(e)) {
+        error 'MTIQ image policy evaluation did not complete within 20 minutes'
+      }
+      throw e
+    }
+  }
+}
+
+/**
+ * Whether a pipeline interruption came from the evaluation timeout rather than from an abort.
+ *
+ * @param e the interruption thrown into the evaluation
+ * @return true when the timeout expired
+ */
+boolean isMtiqEvaluationTimeout(org.jenkinsci.plugins.workflow.steps.FlowInterruptedException e) {
+  return e.causes.any {
+    it instanceof org.jenkinsci.plugins.workflow.steps.TimeoutStepExecution.ExceededTimeout
+  }
+}
+
+/**
+ * Drop the local scan image from the agent's docker daemon. Tolerates the image being absent.
+ *
+ * @param scanImage local tag of the image to remove
+ */
+void removeMtiqScanImage(String scanImage) {
+  sh "docker image rm -f ${scanImage} || true"
 }
 
 Map<String, ?> jreleaserConfig(String mavenOptions, String pomFile = null, String javaVersion = 'OpenJDK 25') {
@@ -346,15 +488,56 @@ void runBuildAndParallelSteps(Map<String, ?> mavenCommon, String keystoreCredId,
 }
 
 /**
- * Returns Docker stages to be run in parallel with tests.
- * For main-style builds (Jenkinsfile.main), Docker steps are handled in postBuild actions.
+ * Returns the MTIQ image build + IQ container scan, to run in parallel with the test stages.
  *
- * @param zipFiles
- * @return Empty map - Docker steps handled in postBuild for main-style builds
+ * Main-style builds always build and evaluate the image, matching shouldRunPolicyEvaluation() for
+ * the source scan: there is no parameter to opt out. Publishing is a separate decision that
+ * isMtiqImagePushEnabled() owns, so a build that publishes nothing is still evaluated.
+ *
+ * The branch runs two stages so a failure names its own cause: `Build MTIQ Image` for
+ * the image build, `Evaluate MTIQ Image Policy` for the policy evaluation.
+ *
+ * The branch deliberately does NOT allocate a node(). It runs on the enclosing (main) agent, which
+ * gives it three things the test branches cannot have:
+ *   - the existing workspace, so nexus-mtiq-server/target/ is already populated by Build & Test and
+ *     no copyRepo()/unzip is needed;
+ *   - the same agent postBuild() later pushes from, so the buildx layer cache carries over
+ *     (jenkins/ecr-helpers.groovy requires pushToEcrCached() to run on the build's agent);
+ *   - no contention, because every test branch allocates its own node and leaves this one idle.
+ *
+ * For the same reason the branch must never call deleteDir(): it shares the main workspace, which
+ * postBuild() still needs.
+ *
+ * @param zipFiles unused; the signature matches getParallelTests() for symmetry at the call site
+ * @return single-entry map of stage name to stage closure
  */
 Map<String, Closure> getDockerSteps(List<String> zipFiles) {
-  // Docker image build/push is handled in postBuild for main-style builds
-  return [:]
+  String scanImage = mtiqScanImageTag()
+  return ['Build & Scan MTIQ Image': {
+    // catchError marks the build FAILURE without throwing out of parallel(), so this branch is
+    // reported red while the stages that follow the parallel block — Static Analysis, Collect
+    // Distribution Files and the source scan in Evaluate Policies — still run to completion. An
+    // exception allowed to escape instead would unwind the enclosing sequential flow and skip all
+    // three. Publishing is withheld either way, because a FAILURE build reaches neither onSuccess
+    // nor onUnstable.
+    //
+    // catchInterruptions stays false so a human abort still stops the build at once. The evaluation
+    // converts its own timeout into an ordinary failure, so nothing here needs to catch
+    // interruptions.
+    catchError(buildResult: 'FAILURE', message: 'MTIQ container scan failed', catchInterruptions: false) {
+      try {
+        stage('Build MTIQ Image') {
+          buildMtiqScanImage(scanImage)
+        }
+        stage('Evaluate MTIQ Image Policy') {
+          evaluateMtiqImagePolicy(scanImage)
+        }
+      }
+      finally {
+        removeMtiqScanImage(scanImage)
+      }
+    }
+  }]
 }
 
 Map<String, Closure> getParallelTests(List <String> zips) {

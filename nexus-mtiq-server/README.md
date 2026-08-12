@@ -14,6 +14,15 @@ MTIQ runs in cloudy (k8s) so we package the application as a docker image. You c
 multiple platforms. The MTIQ docker images require the jreleaser assemblies, which is the MTIQ application JAR bundled with the JDK. Because
 this package isn't quick to build, it's not created for any standard maven goals.
 
+CI builds this image and evaluates it against
+Sonatype IQ policy as the `docker-nexus-iq-server-mtiq` application (`Jenkinsfile.main`,
+`buildMtiqScanImage()` / `evaluateMtiqImagePolicy()`). The IQ stage action is the only gate: a policy
+set to `Fail` blocks the build and publishes nothing, while one left at `Warn` is reported and the
+image still publishes to RSC and ECR and promotes to shared-dev (per CLM-44494 the evaluation does not
+mark the build UNSTABLE). The evaluation covers the Ubuntu OS packages read from the image's dpkg
+database and the Java libraries the assembly ships as discrete jars; the JRE itself is a jlink runtime
+the scanner cannot enumerate.
+
 ### Build the assemblies
 From the root of the `insight-brain` repository
 ```shell

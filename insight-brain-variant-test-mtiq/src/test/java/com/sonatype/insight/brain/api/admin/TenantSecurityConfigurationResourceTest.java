@@ -18,136 +18,134 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelper;
 import com.sonatype.insight.brain.api.admin.dto.SecurityConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;
-import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
-import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.variant.MtiqTest;
+import com.sonatype.insight.brain.variant.MtiqTestContext;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_SECURITY_CONFIG_PATH;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SAML_ENABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
-public class TenantSecurityConfigurationResourceTest
-    extends AbstractMultiTenantBaseIntegrationTest
+/**
+ * MTIQ variant conversion of {@code TenantSecurityConfigurationResourceTest} (which extended
+ * {@code AbstractMultiTenantBaseIntegrationTest}). Retains the exact original simple name/package because
+ * {@link #getEncodedIdPMetadataXml()} resolves its fixture via {@code getClass().getSimpleName()}.
+ */
+@MtiqTest
+class TenantSecurityConfigurationResourceTest
 {
+  private MtiqTestContext ctx;
+
   @Test
-  public void shouldUpdateSamlConfigurationAndGrantAdminPermissions() throws Exception {
-    String tenantSlug = generateTestTenantName();
-    provisionTenant(tenantSlug, (tenant) -> {
-      systemConfigurationPropertyDAO.set(SAML_ENABLED, Boolean.toString(true));
-    });
+  void shouldUpdateSamlConfigurationAndGrantAdminPermissions() throws Exception {
+    ctx.testAsTestTenant(
+        t -> ctx.lookup(com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO.class)
+            .set(SAML_ENABLED, Boolean.toString(true)));
 
-    HttpResponse response = updateSamlConfigurationAndGrantAdminPermissions(tenantSlug).put();
+    HttpResponse response = updateSamlConfigurationAndGrantAdminPermissions(ctx.tenantSlug()).put();
 
-    assertResponseStatus(204, response);
+    ctx.assertResponseStatus(204, response);
   }
 
   @Test
-  public void updateSamlConfigurationAndGrantAdminPermissions_shouldSend400_whenTenantIsGlobal() throws Exception {
+  void updateSamlConfigurationAndGrantAdminPermissions_shouldSend400_whenTenantIsGlobal() throws Exception {
     HttpResponse response = updateSamlConfigurationAndGrantAdminPermissions("global").put();
 
-    assertResponseStatus(400, response);
+    ctx.assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Invalid tenant");
   }
 
   @Test
-  public void updateSamlConfigurationAndGrantAdminPermissions_shouldSend404_whenTenantDoesntExist() throws Exception {
+  void updateSamlConfigurationAndGrantAdminPermissions_shouldSend404_whenTenantDoesntExist() throws Exception {
     HttpResponse response = updateSamlConfigurationAndGrantAdminPermissions("tenant7").put();
-    assertResponseStatus(404, response);
+    ctx.assertResponseStatus(404, response);
     assertThat(response.getBodyText()).isEqualTo("Tenant doesn't exist");
   }
 
   @Test
-  public void shouldUpdateSamlConfiguration() throws Exception {
-    String tenantSlug = generateTestTenantName();
-    provisionTenant(tenantSlug, (tenant) -> {
-      systemConfigurationPropertyDAO.set(SAML_ENABLED, Boolean.toString(true));
-    });
+  void shouldUpdateSamlConfiguration() throws Exception {
+    ctx.testAsTestTenant(
+        t -> ctx.lookup(com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO.class)
+            .set(SAML_ENABLED, Boolean.toString(true)));
 
-    HttpResponse response = updateSamlConfiguration(tenantSlug).put();
+    HttpResponse response = updateSamlConfiguration(ctx.tenantSlug()).put();
 
-    assertResponseStatus(204, response);
+    ctx.assertResponseStatus(204, response);
   }
 
   @Test
-  public void updateSamlConfiguration_shouldSend400_whenTenantIsGlobal() throws Exception {
+  void updateSamlConfiguration_shouldSend400_whenTenantIsGlobal() throws Exception {
     HttpResponse response = updateSamlConfiguration("global").put();
 
-    assertResponseStatus(400, response);
+    ctx.assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Invalid tenant");
   }
 
   @Test
-  public void updateSamlConfiguration_shouldSend404_whenTenantDoesntExist() throws Exception {
+  void updateSamlConfiguration_shouldSend404_whenTenantDoesntExist() throws Exception {
     HttpResponse response = updateSamlConfiguration("tenant7").put();
-    assertResponseStatus(404, response);
+    ctx.assertResponseStatus(404, response);
     assertThat(response.getBodyText()).isEqualTo("Tenant doesn't exist");
   }
 
   @Test
-  public void shouldGrantAdminPermissionForAdmins() throws Exception {
-    String tenantSlug = generateTestTenantName();
-    provisionTenant(tenantSlug);
+  void shouldGrantAdminPermissionForAdmins() throws Exception {
+    HttpResponse response = grantAdminPermissionForAdmins(ctx.tenantSlug()).put();
 
-    HttpResponse response = grantAdminPermissionForAdmins(tenantSlug).put();
-
-    assertResponseStatus(204, response);
+    ctx.assertResponseStatus(204, response);
   }
 
   @Test
-  public void grantAdminPermissionForAdmins_shouldSend400_whenTenantIsGlobal() throws Exception {
+  void grantAdminPermissionForAdmins_shouldSend400_whenTenantIsGlobal() throws Exception {
     HttpResponse response = grantAdminPermissionForAdmins("global").put();
 
-    assertResponseStatus(400, response);
+    ctx.assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Invalid tenant");
   }
 
   @Test
-  public void grantAdminPermissionForAdmins_shouldSend404_whenTenantDoesntExist() throws Exception {
+  void grantAdminPermissionForAdmins_shouldSend404_whenTenantDoesntExist() throws Exception {
     HttpResponse response = grantAdminPermissionForAdmins("tenant7").put();
-    assertResponseStatus(404, response);
+    ctx.assertResponseStatus(404, response);
     assertThat(response.getBodyText()).isEqualTo("Tenant doesn't exist");
   }
 
   @Test
-  public void shouldGetAdminEmails() throws Exception {
-    String tenantSlug = generateTestTenantName();
-    provisionTenant(tenantSlug);
-    grantAdminPermissionForAdmins(tenantSlug).put(); // seed admin@local.com
+  void shouldGetAdminEmails() throws Exception {
+    grantAdminPermissionForAdmins(ctx.tenantSlug()).put(); // seed admin@local.com
 
-    HttpResponse response = getAdminEmails(tenantSlug).get();
+    HttpResponse response = getAdminEmails(ctx.tenantSlug()).get();
 
-    assertResponseStatus(200, response);
+    ctx.assertResponseStatus(200, response);
     assertThat(response.getBodyText()).contains("admin@local.com");
   }
 
   @Test
-  public void getAdminEmails_shouldSend400_whenTenantIsGlobal() throws Exception {
+  void getAdminEmails_shouldSend400_whenTenantIsGlobal() throws Exception {
     HttpResponse response = getAdminEmails("global").get();
 
-    assertResponseStatus(400, response);
+    ctx.assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Invalid tenant");
   }
 
   @Test
-  public void getAdminEmails_shouldSend404_whenTenantDoesntExist() throws Exception {
+  void getAdminEmails_shouldSend404_whenTenantDoesntExist() throws Exception {
     HttpResponse response = getAdminEmails("tenant7").get();
-    assertResponseStatus(404, response);
+    ctx.assertResponseStatus(404, response);
     assertThat(response.getBodyText()).isEqualTo("Tenant doesn't exist");
   }
 
   private HttpRequest getAdminEmails(String tenant) throws Exception {
-    return adminRestRequest(
+    return ctx.adminRestRequest(
         ADMIN_TENANT_SECURITY_CONFIG_PATH + TenantSecurityConfigurationResource.GRANT_ADMIN_PERMISSIONS_PATH)
-            .parameter(tenant)
-            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt("local/"));
+        .parameter(tenant)
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt("local/"));
   }
 
   private HttpRequest updateSamlConfigurationAndGrantAdminPermissions(String tenant) throws Exception {
-    HttpRequest request = adminRestRequest(ADMIN_TENANT_SECURITY_CONFIG_PATH)
+    HttpRequest request = ctx.adminRestRequest(ADMIN_TENANT_SECURITY_CONFIG_PATH)
         .parameter(tenant)
         .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt("local/"));
 
@@ -157,10 +155,10 @@ public class TenantSecurityConfigurationResourceTest
   }
 
   private HttpRequest updateSamlConfiguration(String tenant) throws Exception {
-    HttpRequest request = adminRestRequest(
+    HttpRequest request = ctx.adminRestRequest(
         ADMIN_TENANT_SECURITY_CONFIG_PATH + TenantSecurityConfigurationResource.UPDATE_SAML_CONFIGURATION_PATH)
-            .parameter(tenant)
-            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt("local/"));
+        .parameter(tenant)
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt("local/"));
 
     SecurityConfigurationDTO securityConfiguration = createSecurityConfigurationDTO();
 
@@ -168,10 +166,10 @@ public class TenantSecurityConfigurationResourceTest
   }
 
   private HttpRequest grantAdminPermissionForAdmins(String tenant) throws Exception {
-    HttpRequest request = adminRestRequest(
+    HttpRequest request = ctx.adminRestRequest(
         ADMIN_TENANT_SECURITY_CONFIG_PATH + TenantSecurityConfigurationResource.GRANT_ADMIN_PERMISSIONS_PATH)
-            .parameter(tenant)
-            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt("local/"));
+        .parameter(tenant)
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt("local/"));
 
     List<String> emails = Arrays.asList("admin@local.com");
 

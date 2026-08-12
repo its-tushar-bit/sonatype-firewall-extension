@@ -3,42 +3,37 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.v2.service;
+package com.sonatype.insight.brain.variant;
 
-import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.ApiLegacyViolationResource;
 import com.sonatype.insight.brain.api.v2.dto.ApiLegacyViolationStatusDTO;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Multi-tenant integration tests for the legacy violations public API.
- * Verifies that operations are scoped to the calling tenant and that an
- * application's publicId from one tenant is not accessible from another tenant.
+ * MTIQ variant conversion of {@code MtiqApiLegacyViolationResourceTest} (which extended
+ * {@code AbstractMultiTenantBaseIntegrationTest}). Verifies that operations against the legacy violations public
+ * API are scoped to the calling tenant and that an application's publicId from one tenant is not accessible from
+ * another tenant. No base class; an injected {@link MtiqTestContext} supplies the reused multi-tenant server, a
+ * fresh per-test tenant, and REST/tenant access.
  */
-@Category(SlowTest.class)
-public class MtiqApiLegacyViolationResourceTest
-    extends AbstractMultiTenantBaseIntegrationTest
+@MtiqTest
+class MtiqApiLegacyViolationResourceTest
 {
-  @Override
-  protected HttpRequest restRequest() {
-    return super.restRequest().auth();
-  }
+  // Injected by MtiqServerExtension: the reused multi-tenant server + a fresh per-test tenant context.
+  private MtiqTestContext ctx;
 
   @Test
-  public void testListLegacyViolations_ScopedToCallingTenant() {
-    testAsTestTenant(tenant -> {
-      Application app = tenantTemporaryEntity.newApplicationWithParent();
+  void testListLegacyViolations_ScopedToCallingTenant() {
+    ctx.testAsTestTenant(tenant -> {
+      Application app = ctx.tempEntity().newApplicationWithParent();
 
-      HttpResponse response = restRequest()
+      HttpResponse response = ctx.restRequest()
           .path(PublicApiPaths.LEGACY_VIOLATIONS_PATH_V2)
           .path(ApiLegacyViolationResource.APPLICATION_PATH)
           .parameter(app.getPublicId())
@@ -49,16 +44,16 @@ public class MtiqApiLegacyViolationResourceTest
   }
 
   @Test
-  public void testListLegacyViolations_AppFromOtherTenantNotVisible() {
+  void testListLegacyViolations_AppFromOtherTenantNotVisible() {
     final String[] otherTenantAppPublicId = new String[1];
 
-    testAsGlobal(global -> {
-      Application app = tenantTemporaryEntity.newApplicationWithParent();
+    ctx.testAsGlobal(global -> {
+      Application app = ctx.tempEntity().newApplicationWithParent();
       otherTenantAppPublicId[0] = app.getPublicId();
     });
 
-    testAsTestTenant(tenant -> {
-      HttpResponse response = restRequest()
+    ctx.testAsTestTenant(tenant -> {
+      HttpResponse response = ctx.restRequest()
           .path(PublicApiPaths.LEGACY_VIOLATIONS_PATH_V2)
           .path(ApiLegacyViolationResource.APPLICATION_PATH)
           .parameter(otherTenantAppPublicId[0])
@@ -69,11 +64,11 @@ public class MtiqApiLegacyViolationResourceTest
   }
 
   @Test
-  public void testGetConfig_ScopedToCallingTenant() {
-    testAsTestTenant(tenant -> {
-      Application app = tenantTemporaryEntity.newApplicationWithParent();
+  void testGetConfig_ScopedToCallingTenant() {
+    ctx.testAsTestTenant(tenant -> {
+      Application app = ctx.tempEntity().newApplicationWithParent();
 
-      HttpResponse response = restRequest()
+      HttpResponse response = ctx.restRequest()
           .path(PublicApiPaths.LEGACY_VIOLATIONS_CONFIG_PATH_V2)
           .path("application/{ownerId}")
           .parameter(app.getPublicId())
@@ -84,16 +79,16 @@ public class MtiqApiLegacyViolationResourceTest
   }
 
   @Test
-  public void testGetConfig_AppFromOtherTenantNotVisible() {
+  void testGetConfig_AppFromOtherTenantNotVisible() {
     final String[] otherTenantAppPublicId = new String[1];
 
-    testAsGlobal(global -> {
-      Application app = tenantTemporaryEntity.newApplicationWithParent();
+    ctx.testAsGlobal(global -> {
+      Application app = ctx.tempEntity().newApplicationWithParent();
       otherTenantAppPublicId[0] = app.getPublicId();
     });
 
-    testAsTestTenant(tenant -> {
-      HttpResponse response = restRequest()
+    ctx.testAsTestTenant(tenant -> {
+      HttpResponse response = ctx.restRequest()
           .path(PublicApiPaths.LEGACY_VIOLATIONS_CONFIG_PATH_V2)
           .path("application/{ownerId}")
           .parameter(otherTenantAppPublicId[0])
@@ -104,14 +99,14 @@ public class MtiqApiLegacyViolationResourceTest
   }
 
   @Test
-  public void testSetConfig_ScopedToCallingTenant() {
-    testAsTestTenant(tenant -> {
-      Application app = tenantTemporaryEntity.newApplicationWithParent();
+  void testSetConfig_ScopedToCallingTenant() {
+    ctx.testAsTestTenant(tenant -> {
+      Application app = ctx.tempEntity().newApplicationWithParent();
 
       ApiLegacyViolationStatusDTO request = new ApiLegacyViolationStatusDTO();
       request.enabled = true;
 
-      HttpResponse response = restRequest()
+      HttpResponse response = ctx.restRequest()
           .path(PublicApiPaths.LEGACY_VIOLATIONS_CONFIG_PATH_V2)
           .path("application/{ownerId}")
           .parameter(app.getPublicId())
@@ -123,19 +118,19 @@ public class MtiqApiLegacyViolationResourceTest
   }
 
   @Test
-  public void testSetConfig_AppFromOtherTenantNotMutable() {
+  void testSetConfig_AppFromOtherTenantNotMutable() {
     final String[] otherTenantAppPublicId = new String[1];
 
-    testAsGlobal(global -> {
-      Application app = tenantTemporaryEntity.newApplicationWithParent();
+    ctx.testAsGlobal(global -> {
+      Application app = ctx.tempEntity().newApplicationWithParent();
       otherTenantAppPublicId[0] = app.getPublicId();
     });
 
-    testAsTestTenant(tenant -> {
+    ctx.testAsTestTenant(tenant -> {
       ApiLegacyViolationStatusDTO request = new ApiLegacyViolationStatusDTO();
       request.enabled = true;
 
-      HttpResponse response = restRequest()
+      HttpResponse response = ctx.restRequest()
           .path(PublicApiPaths.LEGACY_VIOLATIONS_CONFIG_PATH_V2)
           .path("application/{ownerId}")
           .parameter(otherTenantAppPublicId[0])
@@ -147,16 +142,16 @@ public class MtiqApiLegacyViolationResourceTest
   }
 
   @Test
-  public void testGrant_AppFromOtherTenantNotMutable() {
+  void testGrant_AppFromOtherTenantNotMutable() {
     final String[] otherTenantAppPublicId = new String[1];
 
-    testAsGlobal(global -> {
-      Application app = tenantTemporaryEntity.newApplicationWithParent();
+    ctx.testAsGlobal(global -> {
+      Application app = ctx.tempEntity().newApplicationWithParent();
       otherTenantAppPublicId[0] = app.getPublicId();
     });
 
-    testAsTestTenant(tenant -> {
-      HttpResponse response = restRequest()
+    ctx.testAsTestTenant(tenant -> {
+      HttpResponse response = ctx.restRequest()
           .path(PublicApiPaths.LEGACY_VIOLATIONS_PATH_V2)
           .path(ApiLegacyViolationResource.GRANT_PATH)
           .parameter(otherTenantAppPublicId[0])
@@ -167,16 +162,16 @@ public class MtiqApiLegacyViolationResourceTest
   }
 
   @Test
-  public void testRevoke_AppFromOtherTenantNotMutable() {
+  void testRevoke_AppFromOtherTenantNotMutable() {
     final String[] otherTenantAppPublicId = new String[1];
 
-    testAsGlobal(global -> {
-      Application app = tenantTemporaryEntity.newApplicationWithParent();
+    ctx.testAsGlobal(global -> {
+      Application app = ctx.tempEntity().newApplicationWithParent();
       otherTenantAppPublicId[0] = app.getPublicId();
     });
 
-    testAsTestTenant(tenant -> {
-      HttpResponse response = restRequest()
+    ctx.testAsTestTenant(tenant -> {
+      HttpResponse response = ctx.restRequest()
           .path(PublicApiPaths.LEGACY_VIOLATIONS_PATH_V2)
           .path(ApiLegacyViolationResource.REVOKE_PATH)
           .parameter(otherTenantAppPublicId[0])

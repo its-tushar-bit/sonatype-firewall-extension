@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.admin;
+package com.sonatype.insight.brain.variant;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -14,15 +14,13 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.db.rule.MultiTenantDatabaseContainerRule;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
-import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 import com.sonatype.insight.brain.tenancy.Tenant;
-import com.sonatype.insight.brain.common.test.SlowTest;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_CONFIG_FEATURES_PATH;
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_SAAS_LIFECYCLE_SCM_ENABLED;
@@ -30,10 +28,16 @@ import static com.sonatype.insight.brain.model.configuration.SystemConfiguration
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_ENABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
-public class ConfigFeaturesResourceTest
-    extends AbstractMultiTenantBaseIntegrationTest
+/**
+ * MTIQ variant conversion of {@code ConfigFeaturesResourceTest} (which extended
+ * {@code AbstractMultiTenantBaseIntegrationTest}). No base class; an injected {@link MtiqTestContext} supplies the
+ * reused multi-tenant server, a fresh per-test tenant context, and REST/lookup access.
+ */
+@MtiqTest
+class MtiqConfigFeaturesResourceTest
 {
+  private MtiqTestContext ctx;
+
   private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   private TemporaryEntity privateGlobalTemporaryEntity;
@@ -162,115 +166,115 @@ public class ConfigFeaturesResourceTest
         SystemConfigurationPropertyFeature.SLO_VIOLATION_FEED.getId(),
       })).toArray(String[]::new);
 
-  @Before
-  public void before() {
-    systemConfigurationPropertyDAO = lookup(SystemConfigurationPropertyDAO.class);
+  @BeforeEach
+  void before() {
+    systemConfigurationPropertyDAO = ctx.lookup(SystemConfigurationPropertyDAO.class);
 
     // This test mucks with the system properties in the global schema. Use TemporaryEntity to clean it up (see #after)
-    testAsGlobal(g -> {
-      privateGlobalTemporaryEntity = new TemporaryEntity(databaseContainerRule);
+    ctx.testAsGlobal(g -> {
+      privateGlobalTemporaryEntity = new TemporaryEntity(MultiTenantDatabaseContainerRule.getInstance());
       privateGlobalTemporaryEntity.before();
     });
   }
 
-  @After
-  public void after() {
-    testAsGlobal(g -> {
+  @AfterEach
+  void after() {
+    ctx.testAsGlobal(g -> {
       privateGlobalTemporaryEntity.after();
     });
   }
 
   @Test
-  public void testFeatures_asGlobal() throws Exception {
+  void testFeatures_asGlobal() throws Exception {
     HttpResponse response = callConfigFeaturesEndpoint(Tenant.GLOBAL_TENANT.tenantSlug).get();
-    assertResponseStatus(200, response);
+    ctx.assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
 
     assertThat(features).containsExactlyInAnyOrder(defaultGlobalTenantEnabledFeatures);
   }
 
   @Test
-  public void testFeatures_asTenant() throws Exception {
-    Tenant testTenant = getTestTenant();
+  void testFeatures_asTenant() throws Exception {
+    Tenant testTenant = ctx.getTestTenant();
     HttpResponse response = callConfigFeaturesEndpoint(testTenant.tenantSlug).get();
-    assertResponseStatus(200, response);
+    ctx.assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
 
     assertThat(features).containsExactlyInAnyOrder(defaultTenantEnabledFeatures);
   }
 
   @Test
-  public void testFeatures_all_asGlobal() throws Exception {
+  void testFeatures_all_asGlobal() throws Exception {
     HttpResponse response = callConfigFeaturesEndpoint(Tenant.GLOBAL_TENANT.tenantSlug)
         .path("all")
         .get();
-    assertResponseStatus(200, response);
+    ctx.assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
 
     assertThat(features).containsExactlyInAnyOrder(allFeatures);
   }
 
   @Test
-  public void testFeatures_all_asTenant() throws Exception {
-    Tenant testTenant = getTestTenant();
+  void testFeatures_all_asTenant() throws Exception {
+    Tenant testTenant = ctx.getTestTenant();
     HttpResponse response = callConfigFeaturesEndpoint(testTenant.tenantSlug)
         .path("all")
         .get();
-    assertResponseStatus(200, response);
+    ctx.assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
 
     assertThat(features).containsExactlyInAnyOrder(allFeatures);
   }
 
   @Test
-  public void testDeleteFeature_asGlobal_alsoDisablesTenantFeatures() throws Exception {
-    testAsGlobal(global -> {
+  void testDeleteFeature_asGlobal_alsoDisablesTenantFeatures() throws Exception {
+    ctx.testAsGlobal(global -> {
       assertThat(systemConfigurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNull();
     });
-    testAsTestTenant(tenant -> {
+    ctx.testAsTestTenant(tenant -> {
       assertThat(systemConfigurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNull();
     });
 
     HttpResponse response = callConfigFeaturesEndpoint(Tenant.GLOBAL_TENANT.tenantSlug)
         .path("dashboard")
         .delete();
-    assertResponseStatus(204, response);
+    ctx.assertResponseStatus(204, response);
 
-    testAsGlobal(global -> {
+    ctx.testAsGlobal(global -> {
       assertThat(systemConfigurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNotNull();
     });
-    testAsTestTenant(tenant -> {
+    ctx.testAsTestTenant(tenant -> {
       assertThat(systemConfigurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNotNull();
     });
 
     response = callConfigFeaturesEndpoint(Tenant.GLOBAL_TENANT.tenantSlug).get();
-    assertResponseStatus(200, response);
+    ctx.assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
     assertThat(features).doesNotContain(SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId());
 
-    response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug).get();
-    assertResponseStatus(200, response);
+    response = callConfigFeaturesEndpoint(ctx.getTestTenant().tenantSlug).get();
+    ctx.assertResponseStatus(200, response);
     features = response.getBody(String[].class);
     assertThat(features).doesNotContain(SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId());
   }
 
   @Test
-  public void testDeleteFeature_asTenant() throws Exception {
-    testAsTestTenant(tenant -> {
+  void testDeleteFeature_asTenant() throws Exception {
+    ctx.testAsTestTenant(tenant -> {
       assertThat(systemConfigurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNull();
     });
 
-    HttpResponse response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug)
+    HttpResponse response = callConfigFeaturesEndpoint(ctx.getTestTenant().tenantSlug)
         .path("dashboard")
         .delete();
-    assertResponseStatus(204, response);
+    ctx.assertResponseStatus(204, response);
 
-    testAsTestTenant(tenant -> {
+    ctx.testAsTestTenant(tenant -> {
       assertThat(systemConfigurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNotNull();
     });
 
-    response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug).get();
-    assertResponseStatus(200, response);
+    response = callConfigFeaturesEndpoint(ctx.getTestTenant().tenantSlug).get();
+    ctx.assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
 
     List<String> expected = new LinkedList<>(Arrays.asList(defaultTenantEnabledFeatures));
@@ -280,124 +284,124 @@ public class ConfigFeaturesResourceTest
   }
 
   @Test
-  public void testDeleteFeature_asInvalidTenant() throws Exception {
+  void testDeleteFeature_asInvalidTenant() throws Exception {
     String notTenantSlug = "not-a-tenant";
     HttpResponse response = callConfigFeaturesEndpoint(notTenantSlug)
         .path("dashboard")
         .delete();
 
-    assertResponseStatus(404, response);
+    ctx.assertResponseStatus(404, response);
     assertThat(response.getBodyText()).isEqualTo(String.format("Tenant %s does not exist", notTenantSlug));
   }
 
   @Test
-  public void testEnableFeature_asGlobal_alsoEnablesTenantFeatures() throws Exception {
+  void testEnableFeature_asGlobal_alsoEnablesTenantFeatures() throws Exception {
     HttpResponse response = callConfigFeaturesEndpoint(Tenant.GLOBAL_TENANT.tenantSlug)
         .path("dashboard")
         .delete();
-    assertResponseStatus(204, response);
+    ctx.assertResponseStatus(204, response);
 
-    testAsGlobal(global -> {
+    ctx.testAsGlobal(global -> {
       assertThat(systemConfigurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNotNull();
     });
-    testAsTestTenant(tenant -> {
+    ctx.testAsTestTenant(tenant -> {
       assertThat(systemConfigurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNotNull();
     });
 
     response = callConfigFeaturesEndpoint(Tenant.GLOBAL_TENANT.tenantSlug)
         .path("dashboard")
         .post();
-    assertResponseStatus(204, response);
+    ctx.assertResponseStatus(204, response);
 
-    testAsGlobal(global -> {
+    ctx.testAsGlobal(global -> {
       assertThat(systemConfigurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNull();
     });
-    testAsTestTenant(tenant -> {
+    ctx.testAsTestTenant(tenant -> {
       assertThat(systemConfigurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNull();
     });
 
     response = callConfigFeaturesEndpoint(Tenant.GLOBAL_TENANT.tenantSlug).get();
-    assertResponseStatus(200, response);
+    ctx.assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
     assertThat(features).contains(SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId());
 
-    response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug).get();
-    assertResponseStatus(200, response);
+    response = callConfigFeaturesEndpoint(ctx.getTestTenant().tenantSlug).get();
+    ctx.assertResponseStatus(200, response);
     features = response.getBody(String[].class);
     assertThat(features).contains(SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId());
   }
 
   @Test
-  public void testEnableFeature_asTenant() throws Exception {
-    HttpResponse response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug)
+  void testEnableFeature_asTenant() throws Exception {
+    HttpResponse response = callConfigFeaturesEndpoint(ctx.getTestTenant().tenantSlug)
         .path("dashboard")
         .delete();
-    assertResponseStatus(204, response);
+    ctx.assertResponseStatus(204, response);
 
-    testAsTestTenant(tenant -> {
+    ctx.testAsTestTenant(tenant -> {
       assertThat(systemConfigurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNotNull();
     });
 
-    response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug)
+    response = callConfigFeaturesEndpoint(ctx.getTestTenant().tenantSlug)
         .path("dashboard")
         .post();
-    assertResponseStatus(204, response);
+    ctx.assertResponseStatus(204, response);
 
-    testAsTestTenant(tenant -> {
+    ctx.testAsTestTenant(tenant -> {
       assertThat(systemConfigurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNull();
     });
 
-    response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug).get();
-    assertResponseStatus(200, response);
+    response = callConfigFeaturesEndpoint(ctx.getTestTenant().tenantSlug).get();
+    ctx.assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
 
     assertThat(features).containsExactlyInAnyOrder(defaultTenantEnabledFeatures);
   }
 
   @Test
-  public void testEnableFeature_asInvalidTenant() throws Exception {
+  void testEnableFeature_asInvalidTenant() throws Exception {
     String notTenantSlug = "not-a-tenant";
     HttpResponse response = callConfigFeaturesEndpoint(notTenantSlug)
         .path("dashboard")
         .post();
 
-    assertResponseStatus(404, response);
+    ctx.assertResponseStatus(404, response);
     assertThat(response.getBodyText()).isEqualTo(String.format("Tenant %s does not exist", notTenantSlug));
   }
 
   @Test
-  public void testEnableFeature_saasLifecycleScmEnabled_asTenant() throws Exception {
-    testAsTestTenant(tenant -> {
+  void testEnableFeature_saasLifecycleScmEnabled_asTenant() throws Exception {
+    ctx.testAsTestTenant(tenant -> {
       assertThat(systemConfigurationPropertyDAO.getByName(SAAS_LIFECYCLE_SCM_ENABLED)).isNull();
     });
 
-    HttpResponse response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug).get();
-    assertResponseStatus(200, response);
+    HttpResponse response = callConfigFeaturesEndpoint(ctx.getTestTenant().tenantSlug).get();
+    ctx.assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
 
     assertThat(features).contains(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.getId());
   }
 
   @Test
-  public void testEnableFeature_saasLifecycleScmDisabled_asTenant() throws Exception {
-    HttpResponse response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug)
+  void testEnableFeature_saasLifecycleScmDisabled_asTenant() throws Exception {
+    HttpResponse response = callConfigFeaturesEndpoint(ctx.getTestTenant().tenantSlug)
         .path(FEATURE_SAAS_LIFECYCLE_SCM_ENABLED)
         .delete();
-    assertResponseStatus(204, response);
+    ctx.assertResponseStatus(204, response);
 
-    testAsTestTenant(tenant -> {
+    ctx.testAsTestTenant(tenant -> {
       assertThat(systemConfigurationPropertyDAO.getByName(SAAS_LIFECYCLE_SCM_ENABLED)).isNotNull();
     });
 
-    response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug).get();
-    assertResponseStatus(200, response);
+    response = callConfigFeaturesEndpoint(ctx.getTestTenant().tenantSlug).get();
+    ctx.assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
 
     assertThat(features).doesNotContain(SAAS_LIFECYCLE_SCM_ENABLED);
   }
 
   private HttpRequest callConfigFeaturesEndpoint(String tenantSlug) {
-    return adminRestRequest(ADMIN_TENANT_CONFIG_FEATURES_PATH)
+    return ctx.adminRestRequest(ADMIN_TENANT_CONFIG_FEATURES_PATH)
         .parameter(tenantSlug);
   }
 }

@@ -6,10 +6,8 @@ logging:
     "com.sonatype": DEBUG
     "com.sonatype.insight.audit":
       appenders:
-        - type: file
-          currentLogFilename: ./log/audit.log
-          archivedLogFilenamePattern: ./log/audit-%d.log.gz
-          archivedFileCount: 50
+        - type: mtiq-audit-log
+          auditLogBasePath: "./target/test-audit-logs"
     "org.apache.directory": ERROR
     "org.apache.http.headers": DEBUG
     "org.eclipse.jetty.server.HttpChannel": INFO

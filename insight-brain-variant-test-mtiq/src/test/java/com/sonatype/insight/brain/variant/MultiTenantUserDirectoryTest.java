@@ -3,39 +3,37 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.users;
+package com.sonatype.insight.brain.variant;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.security.UserDirectory;
-import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationResourceTest;
+import com.sonatype.insight.brain.users.MultiTenantUserDirectory;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-import org.junit.experimental.categories.Category;
-
-@Category(SlowTest.class)
-public class MultiTenantUserDirectoryTest
-    extends AbstractMultiTenantBaseIntegrationResourceTest
+@MtiqTest
+class MultiTenantUserDirectoryTest
 {
-  UserDirectory userDirectory;
+  private MtiqTestContext ctx;
 
-  @Before
-  public void setup() {
-    userDirectory = super.getTestCLMServer().getCLMServer().getInstance(UserDirectory.class);
+  private UserDirectory userDirectory;
+
+  @BeforeEach
+  void setup() {
+    userDirectory = ctx.lookup(UserDirectory.class);
   }
 
   @Test
-  public void testMultiTenantImpl() {
+  void testMultiTenantImpl() {
     // ensure correct class is wired up for UserDirectory
     assertThat(userDirectory).isInstanceOf(MultiTenantUserDirectory.class);
   }
 
   @Test
-  public void testIsGroupSearchDisabled_thirdPartyIdp() {
+  void testIsGroupSearchDisabled_thirdPartyIdp() {
     // "group search disabled" means that the system is in a configuration where not all possible user groups
     // can be found via search. This is the case with a third party IdP because we cannot search the third party IdP
     // for groups that we havent' seen yet
@@ -43,9 +41,10 @@ public class MultiTenantUserDirectoryTest
   }
 
   @Test
-  public void testIsGroupSearchDisabled_sonatypeIdp() {
-    tenantTemporaryEntity.newSystemConfigurationProperty(SystemConfigurationProperty.SSO_IDP_MANAGED_BY_SONATYPE,
-        String.valueOf(true));
+  void testIsGroupSearchDisabled_sonatypeIdp() {
+    ctx.testAsTestTenant(t -> ctx.tempEntity()
+        .newSystemConfigurationProperty(
+            SystemConfigurationProperty.SSO_IDP_MANAGED_BY_SONATYPE, String.valueOf(true)));
 
     assertThat(userDirectory.isGroupSearchDisabled()).isFalse();
   }

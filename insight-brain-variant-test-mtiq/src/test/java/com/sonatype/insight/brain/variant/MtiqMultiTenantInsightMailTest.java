@@ -3,46 +3,51 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.service;
+package com.sonatype.insight.brain.variant;
 
 import java.util.List;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.brain.service.InsightMail;
+import com.sonatype.insight.brain.service.MultiTenantInsightMail;
 import com.sonatype.insight.brain.test.MailboxTestUtil;
 
 import jakarta.mail.Message;
 import jakarta.mail.Session;
 import org.apache.commons.mail2.core.EmailConstants;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import org.junit.experimental.categories.Category;
-
-@Category(SlowTest.class)
-public class MultiTenantInsightMailTest
-    extends AbstractMultiTenantBaseIntegrationTest
+/**
+ * MTIQ variant conversion of {@code MultiTenantInsightMailTest} (which extended
+ * {@code AbstractMultiTenantBaseIntegrationTest}). No base class, an injected {@link MtiqTestContext} supplies the
+ * reused multi-tenant server, a fresh per-test tenant context, and lookup access.
+ */
+@MtiqTest
+class MtiqMultiTenantInsightMailTest
 {
+  private MtiqTestContext ctx;
+
   private PasswordHandler passwordHandler;
 
   private MailConfigurationDAO mailConfigurationDAO;
 
   private MultiTenantInsightMail underTest;
 
-  @Before
-  public void setup() {
-    passwordHandler = lookup(PasswordHandler.class);
-    mailConfigurationDAO = lookup(MailConfigurationDAO.class);
-    underTest = (MultiTenantInsightMail) getTestCLMServer().getCLMServer().getInstance(InsightMail.class);
+  @BeforeEach
+  void setup() {
+    passwordHandler = ctx.lookup(PasswordHandler.class);
+    mailConfigurationDAO = ctx.lookup(MailConfigurationDAO.class);
+    underTest = (MultiTenantInsightMail) ctx.lookup(InsightMail.class);
   }
 
   @Test
-  public void testSendHtml_WhenExistsCustomMailConfigForTenant() throws Exception {
+  void testSendHtml_WhenExistsCustomMailConfigForTenant() throws Exception {
     MailConfiguration mailConfiguration = new MailConfiguration();
     mailConfiguration.setHostname("mail.example.com");
     mailConfiguration.setPort(12345);
@@ -56,7 +61,7 @@ public class MultiTenantInsightMailTest
   }
 
   @Test
-  public void testSendHtml_WhenOnlyExistsGlobalMailConfig() throws Exception {
+  void testSendHtml_WhenOnlyExistsGlobalMailConfig() throws Exception {
     MailConfiguration mailConfiguration = new MailConfiguration();
     mailConfiguration.setHostname("mailglobal.example.com");
     mailConfiguration.setPort(123);
@@ -65,18 +70,18 @@ public class MultiTenantInsightMailTest
     String encryptedPassword = passwordHandler.encryptPassword("testPassword");
     mailConfiguration.setPassword(encryptedPassword.toCharArray());
     mailConfiguration.setSystemEmail("noreplyglobal@example.com");
-    testAsGlobal(g -> mailConfigurationDAO.set(mailConfiguration));
+    ctx.testAsGlobal(g -> mailConfigurationDAO.set(mailConfiguration));
 
     try {
       testSendHtml_MailConfigured(mailConfiguration);
     }
     finally {
-      testAsGlobal(g -> mailConfigurationDAO.delete());
+      ctx.testAsGlobal(g -> mailConfigurationDAO.delete());
     }
   }
 
   @Test
-  public void testSendHtml_MailConfigurationNull() {
+  void testSendHtml_MailConfigurationNull() {
     assertThatExceptionOfType(IllegalStateException.class)
         .isThrownBy(
             () -> underTest.sendHtml("testuser@example.com", "testSubject", "testMessage"))

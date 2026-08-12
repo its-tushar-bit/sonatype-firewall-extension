@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.service.banning.rest.internal;
+package com.sonatype.insight.brain.variant;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -15,21 +15,26 @@ import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.UserResource;
 import com.sonatype.insight.brain.security.UserService.ChangePasswordDTO;
 import com.sonatype.insight.brain.security.UserService.FindMembersDTO;
-import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
-import com.sonatype.insight.brain.common.test.SlowTest;
 
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
-public class MultiTenantUserResourceTest
-    extends AbstractMultiTenantBaseIntegrationTest
+/**
+ * MTIQ variant conversion of {@code MultiTenantUserResourceTest} (which extended
+ * {@code AbstractMultiTenantBaseIntegrationTest}). Verifies that the single-tenant {@link UserResource}
+ * CRUD endpoints are banned under MTIQ, while member lookup remains available. No base class, an injected
+ * {@link MtiqTestContext} supplies the reused multi-tenant server, a fresh per-test tenant, and REST/lookup
+ * access. Requests route to the test tenant via the shared tenant slug.
+ */
+@MtiqTest
+class MtiqUserResourceTest
 {
-  @Override
-  protected HttpRequest restRequest() {
-    return super.restRequest().path(UserResource.RESOURCE_PATH);
+  // Injected by MtiqServerExtension: the reused multi-tenant server + a fresh per-test tenant context.
+  private MtiqTestContext ctx;
+
+  private HttpRequest restRequest() {
+    return ctx.restRequest().path(UserResource.RESOURCE_PATH);
   }
 
   private HttpRequest findRequest(OwnerType ownerType, String ownerId, String query) {
@@ -37,68 +42,72 @@ public class MultiTenantUserResourceTest
   }
 
   @Test
-  public void test_getAll_shouldBeBanned() throws Exception {
+  void test_getAll_shouldBeBanned() throws Exception {
     HttpResponse response = restRequest().get();
-    assertResponseStatus(404, response);
+    ctx.assertResponseStatus(404, response);
   }
 
   @Test
-  public void test_addUser_shouldBeBanned() throws Exception {
+  void test_addUser_shouldBeBanned() throws Exception {
     User user = new User("testCRUD", "testCRUDPassword", "testCRUDFirstName", "testCRUDLastName",
         "testCRUD@sonatype.com");
     HttpResponse response = restRequest().body(user).post();
-    assertResponseStatus(404, response);
+    ctx.assertResponseStatus(404, response);
   }
 
   @Test
-  public void test_updateUser_shouldBeBanned() throws Exception {
+  void test_updateUser_shouldBeBanned() throws Exception {
     User user = new User("testCRUD", "testCRUDPassword", "testCRUDFirstName", "testCRUDLastName",
         "testCRUD@sonatype.com");
     HttpResponse response = restRequest().body(user).put();
-    assertResponseStatus(404, response);
+    ctx.assertResponseStatus(404, response);
   }
 
   @Test
-  public void test_deleteUser_shouldBeBanned() throws Exception {
+  void test_deleteUser_shouldBeBanned() throws Exception {
     HttpResponse response = restRequest().path("{userId}").parameter("user-id").delete();
-    assertResponseStatus(404, response);
+    ctx.assertResponseStatus(404, response);
   }
 
   @Test
-  public void test_changeMyPassword_shouldBeBanned() throws Exception {
+  void test_changeMyPassword_shouldBeBanned() throws Exception {
     ChangePasswordDTO dto = new ChangePasswordDTO();
     dto.oldPassword = "badPass";
     dto.newPassword = "doesntmatter";
 
     HttpRequest request = restRequest().path(UserResource.MY_PASSWORD_PATH);
     HttpResponse response = request.body(dto).put();
-    assertResponseStatus(404, response);
+    ctx.assertResponseStatus(404, response);
   }
 
   @Test
-  public void test_resetPassword_shouldBeBanned() throws Exception {
+  void test_resetPassword_shouldBeBanned() throws Exception {
     HttpResponse response = restRequest().path(UserResource.RESET_PASSWORD_PATH).parameter("user-id").put();
-    assertResponseStatus(404, response);
+    ctx.assertResponseStatus(404, response);
   }
 
   @Test
-  public void test_shouldDisplayDefaultPasswordWarning_shouldBeBanned() throws Exception {
+  void test_shouldDisplayDefaultPasswordWarning_shouldBeBanned() throws Exception {
     HttpRequest request = restRequest();
     HttpResponse response = request.path(UserResource.SHOULD_DISPLAY_DEFAULT_PASSWORD_WARNING).get();
-    assertResponseStatus(404, response);
+    ctx.assertResponseStatus(404, response);
   }
 
   @Test
-  public void test_findMembersForGlobalRoles() throws Exception {
+  void test_findMembersForGlobalRoles() throws Exception {
     HttpResponse response = findRequest(OwnerType.GLOBAL, "global", User.ADMIN_USERNAME + "*").get();
-    assertMember(response, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "IQ Server");
+    assertMember(response, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost",
+        "IQ Server");
   }
 
   @Test
-  public void test_findMembersForNonGlobalRoles() throws Exception {
-    Organization org = tenantTemporaryEntity.newOrganization();
+  void test_findMembersForNonGlobalRoles() throws Exception {
+    Organization[] orgHolder = new Organization[1];
+    ctx.testAsTestTenant(test -> orgHolder[0] = ctx.tempEntity().newOrganization());
+    Organization org = orgHolder[0];
     HttpResponse response = findRequest(OwnerType.ORGANIZATION, org.getId(), User.ADMIN_USERNAME + "*").get();
-    assertMember(response, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "IQ Server");
+    assertMember(response, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost",
+        "IQ Server");
   }
 
   private void assertMember(
@@ -110,7 +119,7 @@ public class MultiTenantUserResourceTest
       String email,
       String realm)
   {
-    assertResponseStatus(200, response);
+    ctx.assertResponseStatus(200, response);
 
     FindMembersDTO dto = response.getBody(FindMembersDTO.class);
 

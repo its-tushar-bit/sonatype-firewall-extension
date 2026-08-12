@@ -3,9 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.logging;
-
-import com.sonatype.insight.brain.common.test.SlowTest;
+package com.sonatype.insight.brain.variant;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,19 +15,17 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationResourceTest;
+import com.sonatype.insight.brain.logging.MultiTenantAuditLogAppenderFactory;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import org.apache.commons.io.FileUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-
-import org.junit.experimental.categories.Category;
 
 /*
  * WARNING:
@@ -37,10 +33,12 @@ import org.junit.experimental.categories.Category;
  * This means the audit logs may contain stuff logged by previous tests,
  * so don't expect the audit logs to contain only the lines logged from the tests in this class.
  */
-@Category(SlowTest.class)
-public class MultiTenantAuditLogAppenderFactoryTest
-    extends AbstractMultiTenantBaseIntegrationResourceTest
+@MtiqTest
+class MultiTenantAuditLogAppenderFactoryTest
 {
+  // Injected by MtiqServerExtension: the reused multi-tenant server + a fresh per-test tenant context.
+  private MtiqTestContext ctx;
+
   private static final String GLOBAL_START_LOG_LINE =
       "{\"timestamp\":\"2026-04-22T15:00:00Z\",\"username\":\"*SYSTEM\",\"domain\":\"server\","
           + "\"type\":\"start\",\"data\":{\"marker\":\"global-start\"}}";
@@ -50,9 +48,10 @@ public class MultiTenantAuditLogAppenderFactoryTest
           + "\"domain\":\"governance.organization\",\"type\":\"create\","
           + "\"data\":{\"organizationId\":\"org-id\",\"organizationName\":\"orgName\"}}";
 
-  @Before
-  public void setUp() throws Exception {
-    Path tenantAuditLog = Paths.get(MultiTenantAuditLogAppenderFactory.getAuditLogFileName(getTestTenant().tenantSlug));
+  @BeforeEach
+  void setUp() throws Exception {
+    Path tenantAuditLog =
+        Paths.get(MultiTenantAuditLogAppenderFactory.getAuditLogFileName(ctx.getTestTenant().tenantSlug));
     Files.createDirectories(tenantAuditLog.getParent());
     Files.writeString(tenantAuditLog, TENANT_ORG_CREATE_LOG_LINE + System.lineSeparator(), StandardCharsets.UTF_8);
 
@@ -63,38 +62,38 @@ public class MultiTenantAuditLogAppenderFactoryTest
   }
 
   @Test
-  public void testAuditLogsAreSeparatedByTenant() throws Exception {
+  void testAuditLogsAreSeparatedByTenant() throws Exception {
     String expectedSystemStartLogText = "\"username\":\"*SYSTEM\",\"domain\":\"server\",\"type\":\"start\"";
     assertLogContains(Tenant.GLOBAL_TENANT.tenantSlug, expectedSystemStartLogText);
-    assertLogDoesNotContain(getTestTenant().tenantSlug, expectedSystemStartLogText);
+    assertLogDoesNotContain(ctx.getTestTenant().tenantSlug, expectedSystemStartLogText);
 
     String expectedOrgCreateLogText = "\"username\":\"admin\",\"domain\":\"governance.organization\","
         + "\"type\":\"create\",\"data\":{\"organizationId\":\"org-id\",\"organizationName\":\"orgName\"}";
     assertLogDoesNotContain(Tenant.GLOBAL_TENANT.tenantSlug, expectedOrgCreateLogText);
-    assertLogContains(getTestTenant().tenantSlug, expectedOrgCreateLogText);
+    assertLogContains(ctx.getTestTenant().tenantSlug, expectedOrgCreateLogText);
   }
 
   @Test
-  public void testAuditLogLinesAreAllJson() throws Exception {
+  void testAuditLogLinesAreAllJson() throws Exception {
     assertLogLinesAreJson(Tenant.GLOBAL_TENANT.tenantSlug);
-    assertLogLinesAreJson(getTestTenant().tenantSlug);
+    assertLogLinesAreJson(ctx.getTestTenant().tenantSlug);
   }
 
   @Test
-  public void testGetAuditLogFiles_NoFilesForTheRange() throws Exception {
+  void testGetAuditLogFiles_NoFilesForTheRange() throws Exception {
     List<File> auditLogFiles = MultiTenantAuditLogAppenderFactory.getAuditLogFiles(LocalDate.of(2024, 2, 4),
         LocalDate.of(2024, 2, 4));
     assertThat(auditLogFiles).isEmpty();
   }
 
   @Test
-  public void testGetAuditLogFiles_WhenTheRangeIsToday() throws Exception {
+  void testGetAuditLogFiles_WhenTheRangeIsToday() throws Exception {
     List<File> auditLogFiles = MultiTenantAuditLogAppenderFactory.getAuditLogFiles(LocalDate.now(), LocalDate.now());
 
     assertThat(auditLogFiles).hasSize(1);
     // The path for audit logs is configured in src/test/resources/config-test.yml
     assertThat(auditLogFiles.get(0).getAbsolutePath().replace('\\', '/'))
-        .endsWith("target/test-audit-logs/" + getTestTenant().tenantSlug + "/log/audit.log");
+        .endsWith("target/test-audit-logs/" + ctx.getTestTenant().tenantSlug + "/log/audit.log");
   }
 
   private void assertLogContains(String tenantSlug, String value) {

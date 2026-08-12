@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.security.oauth2;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -20,31 +18,30 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.configuration.oauth2.OAuth2Configuration;
 import com.sonatype.insight.brain.security.UserSessionResource;
 import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
-import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
+import com.sonatype.insight.brain.variant.MtiqTest;
+import com.sonatype.insight.brain.variant.MtiqTestContext;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.experimental.categories.Category;
-
-@Category(SlowTest.class)
-public class MultiTenantJwtTokenTest
-    extends AbstractMultiTenantBaseIntegrationTest
+@MtiqTest
+class MultiTenantJwtTokenTest
 {
+  private MtiqTestContext ctx;
+
   private OAuth2ConfigurationDAO oAuth2ConfigurationDAO;
 
   private JWTGenerator jwtGenerator = new JWTGenerator();
 
-  @Before
-  public void setUp() {
-    oAuth2ConfigurationDAO = lookup(OAuth2ConfigurationDAO.class);
+  @BeforeEach
+  void setUp() {
+    oAuth2ConfigurationDAO = ctx.lookup(OAuth2ConfigurationDAO.class);
   }
 
-  @Override
-  protected HttpRequest restRequest() {
-    return super.restRequest().path(UserSessionResource.RESOURCE_PATH);
+  private HttpRequest restRequest() {
+    return ctx.restRequest().path(UserSessionResource.RESOURCE_PATH);
   }
 
   protected HttpRequest requestWithToken(String token) {
@@ -52,7 +49,7 @@ public class MultiTenantJwtTokenTest
   }
 
   @Test
-  public void testValidJWT() {
+  void testValidJWT() {
     final String sub = "bob";
     final String issuer = "https://an-idp.com";
     final String username = "bob-the-ruler";
@@ -62,7 +59,7 @@ public class MultiTenantJwtTokenTest
     final List<String> groups = Arrays.asList("admin", "dev", "other");
     final String orgId = "my-org-id";
 
-    testAsTestTenant(tenant -> {
+    ctx.testAsTestTenant(tenant -> {
       // Enable OAuth feature
       SystemConfigurationPropertyFeature.OAUTH2_ENABLED.setEnabled(true);
 
@@ -76,7 +73,7 @@ public class MultiTenantJwtTokenTest
 
       HttpResponse response = requestWithToken(token).get();
 
-      assertResponseStatus(200, response);
+      ctx.assertResponseStatus(200, response);
       AuthenticationStatus status = response.getBody(AuthenticationStatus.class);
       assertThat(status.isAuthenticated()).isTrue();
       assertThat(status.getUsername()).isEqualTo(username);
@@ -86,7 +83,7 @@ public class MultiTenantJwtTokenTest
   }
 
   @Test
-  public void testExpiredJWT() {
+  void testExpiredJWT() {
     final String sub = "bob";
     final String issuer = "https://another-idp.com";
     final String username = "bob-the-ruler";
@@ -96,7 +93,7 @@ public class MultiTenantJwtTokenTest
     final List<String> groups = Arrays.asList("admin", "dev", "other");
     final String orgId = "my-org-id";
 
-    testAsTestTenant(tenant -> {
+    ctx.testAsTestTenant(tenant -> {
       // Enable OAuth feature
       SystemConfigurationPropertyFeature.OAUTH2_ENABLED.setEnabled(true);
 
@@ -111,12 +108,12 @@ public class MultiTenantJwtTokenTest
 
       HttpResponse response = requestWithToken(token).get();
 
-      assertResponseStatus(401, response);
+      ctx.assertResponseStatus(401, response);
     });
   }
 
   @Test
-  public void testWrongOrgId() {
+  void testWrongOrgId() {
     final String sub = "bob";
     final String issuer = "https://third-idp.com";
     final String username = "bob-the-ruler";
@@ -126,7 +123,7 @@ public class MultiTenantJwtTokenTest
     final List<String> groups = Arrays.asList("admin", "dev", "other");
     final String orgId = "my-org-id";
 
-    testAsTestTenant(tenant -> {
+    ctx.testAsTestTenant(tenant -> {
       // Enable OAuth feature
       SystemConfigurationPropertyFeature.OAUTH2_ENABLED.setEnabled(true);
 
@@ -140,7 +137,7 @@ public class MultiTenantJwtTokenTest
 
       HttpResponse response = requestWithToken(token).get();
 
-      assertResponseStatus(401, response);
+      ctx.assertResponseStatus(401, response);
     });
   }
 

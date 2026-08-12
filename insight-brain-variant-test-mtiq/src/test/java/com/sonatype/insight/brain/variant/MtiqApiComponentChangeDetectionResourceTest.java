@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.v2;
+package com.sonatype.insight.brain.variant;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,17 +23,12 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.ComponentChangeDetectionConfigurationDAO;
 import com.sonatype.insight.brain.malware.defense.ApiMalwareComponentEvaluationRequestList.ApiMalwareComponentEvaluationRequest;
 import com.sonatype.insight.brain.model.ComponentChangeDetectionEvent;
-import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 import com.sonatype.insight.license.model.LicensedFeature;
-import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.stream.Collectors;
 import org.joda.time.DateTime;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_CONFIG_PATH;
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_CONFIG_FEATURES_PATH;
@@ -45,44 +40,51 @@ import static com.sonatype.insight.brain.model.configuration.SystemConfiguration
 import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@Category(SlowTest.class)
-public class MtiqApiComponentChangeDetectionResourceTest
-    extends AbstractMultiTenantBaseIntegrationTest
+/**
+ * MTIQ variant conversion of {@code MtiqApiComponentChangeDetectionResourceTest} (which extended
+ * {@code AbstractMultiTenantBaseIntegrationTest}). Pure tenant-scoped REST config/event CRUD: no base class, an
+ * injected {@link MtiqTestContext} supplies the reused multi-tenant server, a fresh per-test tenant, and
+ * REST/lookup access. Requests route to the test tenant via the shared tenant slug.
+ */
+@MtiqTest
+class MtiqApiComponentChangeDetectionResourceTest
 {
   private static final String COMPONENT_CHANGE_CONFIGURATION_PATH =
       COMPONENT_CHANGE_DETECTION_RESOURCE_PATH + "/" + CONFIGURATION_PATH;
 
   private static final String COMPONENT_CHANGE_EVENT_PATH = COMPONENT_CHANGE_DETECTION_RESOURCE_PATH + "/" + EVENT_PATH;
 
+  // Injected by MtiqServerExtension: the reused multi-tenant server + a fresh per-test tenant context.
+  private MtiqTestContext ctx;
+
   private String tenantSlug;
 
-  @Before
-  public void setUp() throws Exception {
-    tenantSlug = getTestTenant().tenantSlug;
+  @BeforeEach
+  void setUp() throws Exception {
+    tenantSlug = ctx.getTestTenant().tenantSlug;
     enableFeatureFlagAndLicense(tenantSlug);
   }
 
   @Test
-  public void testAddComponents() throws Exception {
+  void testAddComponents() throws Exception {
     HttpResponse response = addComponentsRequest().post();
-    assertResponseStatus(204, response);
+    ctx.assertResponseStatus(204, response);
   }
 
   @Test
-  public void testAddComponents_unauthenticated() throws Exception {
+  void testAddComponents_unauthenticated() throws Exception {
     HttpResponse response = addComponentsRequest().anon().post();
-    assertResponseStatus(401, response);
+    ctx.assertResponseStatus(401, response);
   }
 
   @Test
-  public void testAddComponents_exceedsMaxComponents() throws Exception {
+  void testAddComponents_exceedsMaxComponents() throws Exception {
     configureComponentChangeDetectionMaxComponents(tenantSlug, 1);
 
     HttpResponse response = addComponentsRequest().post();
     List<Map<String, String>> components = response.getBodyList();
 
-    assertResponseStatus(200, response);
+    ctx.assertResponseStatus(200, response);
     assertThat(components).hasSize(1);
     assertThat(components.get(0)).contains(
         entry("hash", "a13168d8f7c3b9c9a899"),
@@ -90,21 +92,23 @@ public class MtiqApiComponentChangeDetectionResourceTest
   }
 
   @Test
-  public void testGetComponentChangeDetectionEvents_unauthenticated() throws Exception {
+  void testGetComponentChangeDetectionEvents_unauthenticated() throws Exception {
     HttpResponse response = componentChangeDetectionEventRequest().anon().get();
-    assertResponseStatus(401, response);
+    ctx.assertResponseStatus(401, response);
   }
 
   @Test
-  public void testGetAndDeleteComponentChangeDetectionEvents() throws Exception {
+  void testGetAndDeleteComponentChangeDetectionEvents() throws Exception {
     Date dateTimeMinusTenDays = Date.from(Instant.now().minus(10, ChronoUnit.DAYS).truncatedTo(ChronoUnit.SECONDS));
     Date dateTimeMinusThreeDays = Date.from(Instant.now().minus(3, ChronoUnit.DAYS).truncatedTo(ChronoUnit.SECONDS));
     String nowMinusFiveDays = Instant.now().minus(5, ChronoUnit.DAYS).truncatedTo(ChronoUnit.SECONDS).toString();
     String now = Instant.now().truncatedTo(ChronoUnit.SECONDS).toString();
 
-    tenantTemporaryEntity.newComponentChangeDetectionEvent("purl1", "demo-1", dateTimeMinusTenDays);
-    tenantTemporaryEntity.newComponentChangeDetectionEvent("purl2", "demo-2", dateTimeMinusThreeDays);
-    tenantTemporaryEntity.newComponentChangeDetectionEvent("purl3", "demo-3", dateTimeMinusThreeDays);
+    ctx.testAsTestTenant(t -> {
+      ctx.tempEntity().newComponentChangeDetectionEvent("purl1", "demo-1", dateTimeMinusTenDays);
+      ctx.tempEntity().newComponentChangeDetectionEvent("purl2", "demo-2", dateTimeMinusThreeDays);
+      ctx.tempEntity().newComponentChangeDetectionEvent("purl3", "demo-3", dateTimeMinusThreeDays);
+    });
 
     HttpResponse response = componentChangeDetectionEventRequest().get();
     List<ComponentChangeDetectionEvent> responseList = getBodyByTypeReference(response.getBodyBytes(),
@@ -112,17 +116,17 @@ public class MtiqApiComponentChangeDetectionResourceTest
         {
         });
 
-    assertResponseStatus(200, response);
+    ctx.assertResponseStatus(200, response);
     assertThat(responseList).hasSize(3);
     assertThat(getPurls(responseList)).contains("purl1", "purl2", "purl3");
 
     response = componentChangeDetectionEventRequest().query("timestamp", nowMinusFiveDays).post();
 
-    assertResponseStatus(200, response);
+    ctx.assertResponseStatus(200, response);
 
     response = componentChangeDetectionEventRequest().get();
 
-    assertResponseStatus(200, response);
+    ctx.assertResponseStatus(200, response);
     responseList = getBodyByTypeReference(response.getBodyBytes(),
         new TypeReference<List<ComponentChangeDetectionEvent>>()
         {
@@ -133,11 +137,11 @@ public class MtiqApiComponentChangeDetectionResourceTest
 
     response = componentChangeDetectionEventRequest().query("timestamp", now).post();
 
-    assertResponseStatus(200, response);
+    ctx.assertResponseStatus(200, response);
 
     response = componentChangeDetectionEventRequest().get();
 
-    assertResponseStatus(200, response);
+    ctx.assertResponseStatus(200, response);
     responseList = getBodyByTypeReference(response.getBodyBytes(),
         new TypeReference<List<ComponentChangeDetectionEvent>>()
         {
@@ -161,18 +165,18 @@ public class MtiqApiComponentChangeDetectionResourceTest
   }
 
   @Test
-  public void testDeleteComponentChangeDetectionEvents_unauthenticated() throws Exception {
+  void testDeleteComponentChangeDetectionEvents_unauthenticated() throws Exception {
     HttpResponse response = componentChangeDetectionEventRequest()
         .query("timestamp", DateTime.now().toString("yyyy-MM-dd'T'HH:mm:ss'Z'"))
         .anon()
         .post();
-    assertResponseStatus(401, response);
+    ctx.assertResponseStatus(401, response);
   }
 
   @Test
-  public void testAddComponents_invalidPurlSent() throws Exception {
+  void testAddComponents_invalidPurlSent() throws Exception {
     ComponentChangeDetectionConfigurationDAO configurationDAO;
-    configurationDAO = lookup(ComponentChangeDetectionConfigurationDAO.class);
+    configurationDAO = ctx.lookup(ComponentChangeDetectionConfigurationDAO.class);
 
     List<ApiMalwareComponentEvaluationRequest> components = Arrays.asList(
         new ApiMalwareComponentEvaluationRequest("a13168d8f7c3b9c9a899",
@@ -183,18 +187,18 @@ public class MtiqApiComponentChangeDetectionResourceTest
             "pkg:pypi/aiobotocore@2.4.0"));
 
     HttpResponse response =
-        restRequest().path(COMPONENT_CHANGE_CONFIGURATION_PATH).body(components, MediaType.APPLICATION_JSON).post();
-    assertResponseStatus(204, response);
+        ctx.restRequest().path(COMPONENT_CHANGE_CONFIGURATION_PATH).body(components, MediaType.APPLICATION_JSON).post();
+    ctx.assertResponseStatus(204, response);
     assertThat(configurationDAO.getCount()).isEqualTo(1);
   }
 
   private void enableFeatureFlagAndLicense(final String tenantSlug) throws Exception {
-    adminRestRequest(ADMIN_TENANT_CONFIG_FEATURES_PATH)
+    ctx.adminRestRequest(ADMIN_TENANT_CONFIG_FEATURES_PATH)
         .parameter(tenantSlug)
         .path(COMPONENT_CHANGE_DETECTION_API)
         .post();
 
-    setFeatures(LicensedFeature.FIREWALL);
+    ctx.setFeatures(LicensedFeature.FIREWALL);
   }
 
   private void configureComponentChangeDetectionMaxComponents(
@@ -204,7 +208,7 @@ public class MtiqApiComponentChangeDetectionResourceTest
     Map<String, Object> propertyConfiguration =
         Collections.singletonMap(COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS, maxComponents);
 
-    adminRestRequest(ADMIN_CONFIG_PATH)
+    ctx.adminRestRequest(ADMIN_CONFIG_PATH)
         .parameter(tenantSlug)
         .body(propertyConfiguration)
         .put();
@@ -216,12 +220,12 @@ public class MtiqApiComponentChangeDetectionResourceTest
             "pkg:maven/org.sonatype/maven-policy-demo@1.1.0?type=jar"),
         new ApiMalwareComponentEvaluationRequest("b24568d8f7c3b0n9a8n3",
             "pkg:maven/org.sonatype/maven-policy-demo@2.2.0?type=jar"));
-    return restRequest()
+    return ctx.restRequest()
         .path(COMPONENT_CHANGE_CONFIGURATION_PATH)
         .body(components, MediaType.APPLICATION_JSON);
   }
 
   private HttpRequest componentChangeDetectionEventRequest() {
-    return restRequest().path(COMPONENT_CHANGE_EVENT_PATH);
+    return ctx.restRequest().path(COMPONENT_CHANGE_EVENT_PATH);
   }
 }

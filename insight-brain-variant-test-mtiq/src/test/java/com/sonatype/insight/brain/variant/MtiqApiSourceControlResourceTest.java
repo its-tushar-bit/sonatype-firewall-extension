@@ -3,33 +3,34 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.v2.service;
-
-import jakarta.inject.Inject;
+package com.sonatype.insight.brain.variant;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiSourceControlAdapter;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
-import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
-import com.sonatype.insight.brain.common.test.SlowTest;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_CONFIG_FEATURES_PATH;
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_SAAS_LIFECYCLE_SCM_ENABLED;
 
-@Category(SlowTest.class)
-public class MtiqApiSourceControlResourceTest
-    extends AbstractMultiTenantBaseIntegrationTest
+/**
+ * MTIQ variant conversion of {@code MtiqApiSourceControlResourceTest} (which extended
+ * {@code AbstractMultiTenantBaseIntegrationTest}). No base class, an injected {@link MtiqTestContext} supplies the
+ * reused multi-tenant server, a fresh per-test tenant context, and REST/lookup access.
+ */
+@MtiqTest
+class MtiqApiSourceControlResourceTest
 {
-  @Inject
+  private MtiqTestContext ctx;
+
   private ApiSourceControlAdapter apiSourceControlAdapter;
 
   private static final String OWNER_TYPE = "{ownerType:application|organization}";
@@ -38,105 +39,104 @@ public class MtiqApiSourceControlResourceTest
 
   private static final String BY_OWNER = OWNER_TYPE + "/" + OWNER_ID;
 
-  @Before
-  public void setup() {
-    apiSourceControlAdapter = lookup(ApiSourceControlAdapter.class);
+  @BeforeEach
+  void setup() {
+    apiSourceControlAdapter = ctx.lookup(ApiSourceControlAdapter.class);
   }
 
-  @Override
-  protected HttpRequest restRequest() {
-    return super.restRequest().path(PublicApiPaths.SOURCE_CONTROL_PATH_V2).auth();
+  private HttpRequest restRequest() {
+    return ctx.restRequest().path(PublicApiPaths.SOURCE_CONTROL_PATH_V2).auth();
   }
 
   @Test
-  public void testMtiqSupportsGithub() {
-    testAsTestTenant(tenant -> {
+  void testMtiqSupportsGithub() {
+    ctx.testAsTestTenant(tenant -> {
       HttpResponse response = sendSourceControlConfigWithProvider(SourceControlProvider.GITHUB);
-      assertResponseStatus(200, response);
+      ctx.assertResponseStatus(200, response);
     });
   }
 
   @Test
-  public void testMtiqSupportsAzure() {
-    testAsTestTenant(tenant -> {
+  void testMtiqSupportsAzure() {
+    ctx.testAsTestTenant(tenant -> {
       HttpResponse response = sendSourceControlConfigWithProvider(SourceControlProvider.AZURE);
-      assertResponseStatus(200, response);
+      ctx.assertResponseStatus(200, response);
     });
   }
 
   @Test
-  public void testMtiqSupportsBitBucket() {
-    testAsTestTenant(tenant -> {
+  void testMtiqSupportsBitBucket() {
+    ctx.testAsTestTenant(tenant -> {
       HttpResponse response = sendSourceControlConfigWithProvider(SourceControlProvider.BITBUCKET);
-      assertResponseStatus(200, response);
+      ctx.assertResponseStatus(200, response);
     });
   }
 
   @Test
-  public void testMtiqSupportsGitlab() {
-    testAsTestTenant(tenant -> {
+  void testMtiqSupportsGitlab() {
+    ctx.testAsTestTenant(tenant -> {
       HttpResponse response = sendSourceControlConfigWithProvider(SourceControlProvider.GITLAB);
-      assertResponseStatus(200, response);
+      ctx.assertResponseStatus(200, response);
     });
   }
 
   @Test
-  public void testMtiqDoesNotSupportGithubWithoutFeatureEnabled() {
-    testAsTestTenant(tenant -> {
+  void testMtiqDoesNotSupportGithubWithoutFeatureEnabled() {
+    ctx.testAsTestTenant(tenant -> {
       HttpResponse response = callConfigFeaturesEndpoint(tenant.tenantSlug)
           .path(FEATURE_SAAS_LIFECYCLE_SCM_ENABLED)
           .delete();
-      assertResponseStatus(204, response);
+      ctx.assertResponseStatus(204, response);
 
       response = sendSourceControlConfigWithProvider(SourceControlProvider.GITHUB);
-      assertResponseStatus(404, response);
+      ctx.assertResponseStatus(404, response);
     });
   }
 
   @Test
-  public void testMtiqDoesNotSupportAzureWithoutFeatureEnabled() {
-    testAsTestTenant(tenant -> {
+  void testMtiqDoesNotSupportAzureWithoutFeatureEnabled() {
+    ctx.testAsTestTenant(tenant -> {
       HttpResponse response = callConfigFeaturesEndpoint(tenant.tenantSlug)
           .path(FEATURE_SAAS_LIFECYCLE_SCM_ENABLED)
           .delete();
-      assertResponseStatus(204, response);
+      ctx.assertResponseStatus(204, response);
 
       response = sendSourceControlConfigWithProvider(SourceControlProvider.AZURE);
-      assertResponseStatus(404, response);
+      ctx.assertResponseStatus(404, response);
     });
   }
 
   @Test
-  public void testMtiqDoesNotSupportGitlabWithoutFeatureEnabled() {
-    testAsTestTenant(tenant -> {
+  void testMtiqDoesNotSupportGitlabWithoutFeatureEnabled() {
+    ctx.testAsTestTenant(tenant -> {
       HttpResponse response = callConfigFeaturesEndpoint(tenant.tenantSlug)
           .path(FEATURE_SAAS_LIFECYCLE_SCM_ENABLED)
           .delete();
-      assertResponseStatus(204, response);
+      ctx.assertResponseStatus(204, response);
 
       response = sendSourceControlConfigWithProvider(SourceControlProvider.GITLAB);
-      assertResponseStatus(404, response);
+      ctx.assertResponseStatus(404, response);
     });
   }
 
   @Test
-  public void testMtiqDoesNotSupportBitBucketWithoutFeatureEnabled() {
-    testAsTestTenant(tenant -> {
+  void testMtiqDoesNotSupportBitBucketWithoutFeatureEnabled() {
+    ctx.testAsTestTenant(tenant -> {
       HttpResponse response = callConfigFeaturesEndpoint(tenant.tenantSlug)
           .path(FEATURE_SAAS_LIFECYCLE_SCM_ENABLED)
           .delete();
-      assertResponseStatus(204, response);
+      ctx.assertResponseStatus(204, response);
 
       response = sendSourceControlConfigWithProvider(SourceControlProvider.BITBUCKET);
-      assertResponseStatus(404, response);
+      ctx.assertResponseStatus(404, response);
     });
   }
 
-  private HttpResponse sendSourceControlConfigWithProvider(SourceControlProvider gitlab) throws Exception {
-    Organization org = tenantTemporaryEntity.newOrganization();
+  private HttpResponse sendSourceControlConfigWithProvider(final SourceControlProvider provider) throws Exception {
+    Organization org = ctx.tempEntity().newOrganization();
 
     ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
-        new SourceControl.Builder().setProvider(gitlab)
+        new SourceControl.Builder().setProvider(provider)
             .setOwnerId(org.getId())
             .setToken("token")
             .setCommitStatusEnabled(false)
@@ -149,8 +149,8 @@ public class MtiqApiSourceControlResourceTest
         .post();
   }
 
-  private HttpRequest callConfigFeaturesEndpoint(String tenantSlug) {
-    return adminRestRequest(ADMIN_TENANT_CONFIG_FEATURES_PATH)
+  private HttpRequest callConfigFeaturesEndpoint(final String tenantSlug) {
+    return ctx.adminRestRequest(ADMIN_TENANT_CONFIG_FEATURES_PATH)
         .parameter(tenantSlug);
   }
 }

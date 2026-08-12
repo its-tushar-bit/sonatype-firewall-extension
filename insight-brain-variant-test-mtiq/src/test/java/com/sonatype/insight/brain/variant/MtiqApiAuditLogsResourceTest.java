@@ -3,10 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.v2;
-
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
+package com.sonatype.insight.brain.variant;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,20 +26,24 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.organization.OrganizationResource;
-import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationResourceTest;
 import com.sonatype.insight.brain.tenancy.Tenant;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpStatus;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-@Category(SlowTest.class)
-public class MtiqApiAuditLogsResourceTest
-    extends AbstractMultiTenantBaseIntegrationResourceTest
+/**
+ * MTIQ variant conversion of {@code MtiqApiAuditLogsResourceTest} (which extended
+ * {@code AbstractMultiTenantBaseIntegrationResourceTest}). No base class; an injected
+ * {@link MtiqTestContext} supplies the reused multi-tenant server, a fresh per-test tenant, and REST/lookup
+ * access.
+ */
+@MtiqTest
+class MtiqApiAuditLogsResourceTest
 {
   private static final String AUDIT_2024_02_07_CONTENT =
       "{\"timestamp\":\"2024-02-07T17:56:48.007-03:00\",\"username\":\"*SYSTEM\",\"domain\":\"server\","
@@ -56,28 +57,29 @@ public class MtiqApiAuditLogsResourceTest
           + "\"serverConfigurationFile\":\"/home/config.yml\",\"serverRelease\":\"173.0-SNAPSHOT\","
           + "\"serverBuild\":\"build-number\",\"processOwner\":\"obarra\"}}\n";
 
-  private String testTenantSlug;
+  // Injected by MtiqServerExtension: the reused multi-tenant server + a fresh per-test tenant context.
+  private MtiqTestContext ctx;
 
-  @After
-  public void after() throws IOException {
+  @AfterEach
+  void after() throws IOException {
     deleteAuditLogs(
         Paths.get(MultiTenantAuditLogAppenderFactory.getAuditLogFileName(Tenant.GLOBAL_TENANT.tenantSlug)).getParent());
-    deleteAuditLogs(Paths.get(MultiTenantAuditLogAppenderFactory.getAuditLogFileName(testTenantSlug)).getParent());
+    deleteAuditLogs(
+        Paths.get(MultiTenantAuditLogAppenderFactory.getAuditLogFileName(ctx.getTestTenant().tenantSlug)).getParent());
   }
 
-  @Override
-  protected HttpRequest restRequest() {
-    return super.restRequest().path(PublicApiPaths.AUDIT_LOGS_RESOURCE_PATH);
+  private HttpRequest restRequest() {
+    return ctx.restRequest().path(PublicApiPaths.AUDIT_LOGS_RESOURCE_PATH);
   }
 
   @Test
-  public void testGetAuditLogs_FilteredByTimeWindow() throws Exception {
+  void testGetAuditLogs_FilteredByTimeWindow() throws Exception {
     // Create some audit logs for the global tenant - to verify that they are not included when we ask for the test
     // tenant audit logs.
     copyTestResource("globalTenant", Tenant.GLOBAL_TENANT.tenantSlug, "audit-2024-02-07.log.gz");
     copyTestResource("globalTenant", Tenant.GLOBAL_TENANT.tenantSlug, "audit-2024-02-08.log.gz");
     // Create some audit logs for the test tenant.
-    testTenantSlug = getTestTenant().tenantSlug;
+    String testTenantSlug = ctx.getTestTenant().tenantSlug;
     copyTestResource("testTenant", testTenantSlug, "audit-2024-02-07.log.gz");
     copyTestResource("testTenant", testTenantSlug, "audit-2024-02-08.log.gz");
 
@@ -86,19 +88,19 @@ public class MtiqApiAuditLogsResourceTest
         .query("endUtcDate", "2024-02-07")
         .get();
 
-    assertResponseStatus(HttpStatus.SC_OK, response);
+    ctx.assertResponseStatus(HttpStatus.SC_OK, response);
     assertThat(response.getContentType()).isEqualTo(MediaType.TEXT_PLAIN);
     assertThat(response.getBodyText()).isEqualTo(AUDIT_2024_02_07_CONTENT);
   }
 
   @Test
-  public void testGetAuditLogs_IncludesTodayLog() throws Exception {
+  void testGetAuditLogs_IncludesTodayLog() throws Exception {
     // Create some audit logs for the global tenant - to verify that they are not included when we ask for the test
     // tenant audit logs.
     copyTestResource("globalTenant", Tenant.GLOBAL_TENANT.tenantSlug, "audit-2024-02-07.log.gz");
     copyTestResource("globalTenant", Tenant.GLOBAL_TENANT.tenantSlug, "audit-2024-02-08.log.gz");
     // Create some audit logs for the test tenant.
-    testTenantSlug = getTestTenant().tenantSlug;
+    String testTenantSlug = ctx.getTestTenant().tenantSlug;
     copyTestResource("testTenant", testTenantSlug, "audit-2024-02-07.log.gz");
     copyTestResource("testTenant", testTenantSlug, "audit-2024-02-08.log.gz");
 
@@ -118,7 +120,7 @@ public class MtiqApiAuditLogsResourceTest
         .query("endUtcDate", LocalDate.now().toString())
         .get();
 
-    assertResponseStatus(HttpStatus.SC_OK, response);
+    ctx.assertResponseStatus(HttpStatus.SC_OK, response);
     assertThat(response.getContentType()).isEqualTo(MediaType.TEXT_PLAIN);
 
     String expectedContent = AUDIT_2024_02_07_CONTENT + AUDIT_2024_02_08_CONTENT + todayAuditLogContent;
@@ -149,13 +151,17 @@ public class MtiqApiAuditLogsResourceTest
   }
 
   private User getUser() {
-    User user = tenantTemporaryEntity.newUser();
-    Role role = tenantTemporaryEntity.newRole(false /* global */, Permission.ACCESS_AUDIT_LOG);
-    tenantTemporaryEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), user.getUsername());
-    return user;
+    User[] holder = new User[1];
+    ctx.testAsTestTenant(test -> {
+      User user = ctx.tempEntity().newUser();
+      Role role = ctx.tempEntity().newRole(false /* global */, Permission.ACCESS_AUDIT_LOG);
+      ctx.tempEntity().newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), user.getUsername());
+      holder[0] = user;
+    });
+    return holder[0];
   }
 
   private HttpRequest organizationRequest() {
-    return super.restRequest().path(OrganizationResource.RESOURCE_PATH);
+    return ctx.restRequest().path(OrganizationResource.RESOURCE_PATH);
   }
 }

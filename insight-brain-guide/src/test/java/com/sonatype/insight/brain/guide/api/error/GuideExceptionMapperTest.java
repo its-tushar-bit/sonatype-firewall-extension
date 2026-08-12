@@ -13,16 +13,16 @@ import com.sonatype.insight.brain.guide.api.dto.GuideErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class GuideExceptionMapperTest
 {
   private static final String UUID_REGEX = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
@@ -34,17 +34,16 @@ public class GuideExceptionMapperTest
 
   private GuideExceptionMapper mapper;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
-    when(httpRequest.getMethod()).thenReturn("GET");
-    when(httpRequest.getRequestURI()).thenReturn("/api/v2/guide/components/detail");
-
     mapper = new GuideExceptionMapper();
     setRequest(mapper, httpRequest);
   }
 
   @Test
   public void clientError_returnsExceptionMessage_andSaasShape() throws Exception {
+    when(httpRequest.getMethod()).thenReturn("GET");
+    when(httpRequest.getRequestURI()).thenReturn("/api/v2/guide/components/detail");
     Response response = mapper.toResponse(
         new GuideApiException(Response.Status.NOT_FOUND, "Vulnerability not found: CVE-1"));
 
@@ -76,6 +75,8 @@ public class GuideExceptionMapperTest
 
   @Test
   public void licenseUnavailableException_emitsMarkerHeader() {
+    when(httpRequest.getMethod()).thenReturn("GET");
+    when(httpRequest.getRequestURI()).thenReturn("/api/v2/guide/components/detail");
     Response response = mapper.toResponse(
         new GuideLicenseUnavailableException(Response.Status.FORBIDDEN,
             "Guide API is not available with the current license."));

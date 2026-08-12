@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.guide.api.dto;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

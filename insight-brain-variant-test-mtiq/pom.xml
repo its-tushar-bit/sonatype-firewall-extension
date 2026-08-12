@@ -110,7 +110,7 @@
   </build>
 
   <dependencies>
-    <!-- JUnit 5 (Jupiter) engine + Vintage engine on the JUnit Platform, mirroring nexus-mtiq-server. -->
+    <!-- JUnit 5 (Jupiter) engine on the JUnit Platform. -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
@@ -121,11 +121,6 @@
           <artifactId>junit-vintage-engine</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.vintage</groupId>
-      <artifactId>junit-vintage-engine</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>

@@ -6,12 +6,12 @@
 package com.sonatype.insight.brain.guide.telemetry;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 public class GuideChannelContextTest
 {
-  @After
+  @AfterEach
   public void tearDown() {
     GuideChannelContext.clear();
   }

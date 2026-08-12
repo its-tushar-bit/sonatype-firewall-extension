@@ -29,6 +29,8 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.container.images.ContainerImageReportService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.HostedComponentScanQueueDAO;
+import com.sonatype.insight.brain.dataaccess.repository.HostedRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
@@ -68,6 +70,10 @@ public class RepositoryService
 
   private final com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEventService organizationApplicationManagementEventService;
 
+  private final HostedRepositoryComponentDAO hostedRepositoryComponentDAO;
+
+  private final HostedComponentScanQueueDAO hostedComponentScanQueueDAO;
+
   @Inject
   public RepositoryService(
       RepositoryPolicyEvaluator repositoryPolicyEvaluator,
@@ -89,7 +95,9 @@ public class RepositoryService
       RequestSafeComponentsMetricEventService requestSafeComponentsMetricEventService,
       com.sonatype.insight.brain.repository.RepositoryService mainRepositoryService,
       ContainerImageReportService containerImageReportService,
-      final com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEventService organizationApplicationManagementEventService)
+      final com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEventService organizationApplicationManagementEventService,
+      final HostedRepositoryComponentDAO hostedRepositoryComponentDAO,
+      final HostedComponentScanQueueDAO hostedComponentScanQueueDAO)
   {
     super(repositoryPolicyEvaluator, proprietaryComponentNameDetector, productLicense, policyViolationLoggerFactory,
         LicensedFeature.FIREWALL, proxyRepositoryComponentTelemetryCreator, quarantinedComponentAccessManager,
@@ -98,6 +106,8 @@ public class RepositoryService
         requestSafeComponentsMetricEventService, mainRepositoryService, containerImageReportService);
     this.proxyRepositoryComponentDeleteService = proxyRepositoryComponentDeleteService;
     this.organizationApplicationManagementEventService = organizationApplicationManagementEventService;
+    this.hostedRepositoryComponentDAO = hostedRepositoryComponentDAO;
+    this.hostedComponentScanQueueDAO = hostedComponentScanQueueDAO;
   }
 
   /**
@@ -234,8 +244,8 @@ public class RepositoryService
       List<String> repositoryIds = repositories.stream()
           .map(Repository::getId)
           .collect(Collectors.toList());
-      lastScanTimes = proxyRepositoryComponentDAO.getLastScanTimesByRepositoryIds(tx, repositoryIds);
-      repositoriesWithQueuedScans = proxyRepositoryComponentDAO.getRepositoryIdsWithQueuedScans(tx, repositoryIds);
+      lastScanTimes = hostedRepositoryComponentDAO.getLastScanTimesByRepositoryIds(tx, repositoryIds);
+      repositoriesWithQueuedScans = hostedComponentScanQueueDAO.getRepositoryIdsWithQueuedScans(tx, repositoryIds);
     }
 
     List<HostedRepositoryDTO> dtos = repositories.stream()
@@ -257,8 +267,6 @@ public class RepositoryService
         })
         .collect(Collectors.toList());
 
-    // lastScannedTime is derived from PROXY_REPOSITORY_COMPONENT, not a column on REPOSITORY,
-    // so it cannot be sorted at the DB layer. Sort in Java after populating the field.
     if ("lastscannedtime".equalsIgnoreCase(sortBy)) {
       Comparator<HostedRepositoryDTO> byLastScanned;
       if ("desc".equalsIgnoreCase(sortDir)) {

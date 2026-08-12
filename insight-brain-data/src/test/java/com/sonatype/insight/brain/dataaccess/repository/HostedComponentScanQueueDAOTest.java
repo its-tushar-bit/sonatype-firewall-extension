@@ -1005,4 +1005,63 @@ public class HostedComponentScanQueueDAOTest
     assertThat(pendingForRepo).as("no PENDING rows should remain for the repo").isZero();
   }
 
+  @Test
+  public void hasQueuedScans_trueOnlyForPendingOrInProgress() {
+    Repository pending = tempEntity.newRepository();
+    Repository running = tempEntity.newRepository();
+    Repository done = tempEntity.newRepository();
+    Repository idle = tempEntity.newRepository();
+
+    tempEntity.newHostedComponentScanQueue("hqs-pending", pending.getId(),
+        HostedComponentScanQueueDAO.Status.PENDING.name());
+    tempEntity.newHostedComponentScanQueue("hqs-running", running.getId(),
+        HostedComponentScanQueueDAO.Status.IN_PROGRESS.name());
+    tempEntity.newHostedComponentScanQueue("hqs-done", done.getId(),
+        HostedComponentScanQueueDAO.Status.COMPLETED.name());
+
+    assertThat(hostedComponentScanQueueDAO.hasQueuedScans(pending.getId())).isTrue();
+    assertThat(hostedComponentScanQueueDAO.hasQueuedScans(running.getId())).isTrue();
+    assertThat(hostedComponentScanQueueDAO.hasQueuedScans(done.getId())).isFalse();
+    assertThat(hostedComponentScanQueueDAO.hasQueuedScans(idle.getId())).isFalse();
+    assertThat(hostedComponentScanQueueDAO.hasQueuedScans(null)).isFalse();
+    assertThat(hostedComponentScanQueueDAO.hasQueuedScans("")).isFalse();
+  }
+
+  @Test
+  public void getRepositoryIdsWithQueuedScans_scopesToInputRepositories() {
+    Repository queried = tempEntity.newRepository();
+    Repository outOfScope = tempEntity.newRepository();
+    tempEntity.newHostedComponentScanQueue("qs-scope-1", queried.getId(),
+        HostedComponentScanQueueDAO.Status.PENDING.name());
+    tempEntity.newHostedComponentScanQueue("qs-scope-2", outOfScope.getId(),
+        HostedComponentScanQueueDAO.Status.PENDING.name());
+
+    try (TransactionContext tx = hostedComponentScanQueueDAO.createTransactionContext()) {
+      Set<String> queued =
+          hostedComponentScanQueueDAO.getRepositoryIdsWithQueuedScans(tx, List.of(queried.getId()));
+      assertThat(queued).containsExactly(queried.getId());
+    }
+  }
+
+  @Test
+  public void getRepositoryIdsWithQueuedScans_excludesTerminalOnlyRepositories() {
+    Repository doneOnly = tempEntity.newRepository();
+    Repository failedOnly = tempEntity.newRepository();
+    Repository mixed = tempEntity.newRepository();
+
+    tempEntity.newHostedComponentScanQueue("qs-term-1", doneOnly.getId(),
+        HostedComponentScanQueueDAO.Status.COMPLETED.name());
+    tempEntity.newHostedComponentScanQueue("qs-term-2", failedOnly.getId(),
+        HostedComponentScanQueueDAO.Status.FAILED.name());
+    tempEntity.newHostedComponentScanQueue("qs-term-3", mixed.getId(),
+        HostedComponentScanQueueDAO.Status.FAILED.name());
+    tempEntity.newHostedComponentScanQueue("qs-term-4", mixed.getId(),
+        HostedComponentScanQueueDAO.Status.PENDING.name());
+
+    try (TransactionContext tx = hostedComponentScanQueueDAO.createTransactionContext()) {
+      Set<String> queued = hostedComponentScanQueueDAO.getRepositoryIdsWithQueuedScans(
+          tx, List.of(doneOnly.getId(), failedOnly.getId(), mixed.getId()));
+      assertThat(queued).containsExactly(mixed.getId());
+    }
+  }
 }

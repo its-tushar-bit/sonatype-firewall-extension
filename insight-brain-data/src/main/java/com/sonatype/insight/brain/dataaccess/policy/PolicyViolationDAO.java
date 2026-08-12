@@ -248,6 +248,44 @@ public class PolicyViolationDAO
   }
 
   /**
+   * Batched stage-scoped active-violation lookup, keyed by {@code ownerId + "|" + stageTypeId}.
+   * Legacy filter follows {@link #getActiveByOwnerIdAndStageId(String, String)} — excluded for
+   * Lifecycle stages, kept for the Firewall proxy stage.
+   */
+  public Map<String, List<PolicyViolation>> getActiveByOwnerIdsAndStageIdsGrouped(
+      Collection<String> ownerIds,
+      Collection<String> stageTypeIds)
+  {
+    if (CollectionUtils.isEmpty(ownerIds) || CollectionUtils.isEmpty(stageTypeIds)) {
+      return Map.of();
+    }
+    boolean anyLifecycleStage = stageTypeIds.stream().anyMatch(s -> !ProxyStageType.ID.equals(s));
+    Map<String, List<PolicyViolation>> grouped = new HashMap<>();
+    getListWithSqlInClause(ownerIds, chunk -> {
+      try (TransactionContext tx = createTransactionContext()) {
+        var query = tx.dsl()
+            .selectFrom(POLICY_VIOLATION)
+            .where(POLICY_VIOLATION.OWNER_ID.in(chunk))
+            .and(POLICY_VIOLATION.STAGE_TYPE_ID.in(stageTypeIds))
+            .and(POLICY_VIOLATION.FIX_TIME.isNull())
+            .and(POLICY_VIOLATION.WAIVE_TIME.isNull());
+        if (anyLifecycleStage && stageTypeIds.stream().noneMatch(ProxyStageType.ID::equals)) {
+          query = query.and(POLICY_VIOLATION.LEGACY_VIOLATION_TIME.isNull());
+        }
+        List<PolicyViolation> rows = query.fetchInto(PolicyViolation.class);
+        for (PolicyViolation v : rows) {
+          if (v.isLegacyViolation() && !ProxyStageType.ID.equals(v.getStageTypeId())) {
+            continue;
+          }
+          grouped.computeIfAbsent(v.getOwnerId() + '|' + v.getStageTypeId(), k -> new ArrayList<>()).add(v);
+        }
+      }
+      return List.of();
+    }, getDataStore());
+    return grouped;
+  }
+
+  /**
    * Returns violations to enforce based on stage-specific semantics.
    * Firewall (proxy): Ignores legacy violations completely (treats as active).
    * Lifecycle (build/release): Excludes all legacy violations.

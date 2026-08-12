@@ -13,15 +13,12 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -54,7 +51,6 @@ import org.jooq.Record2;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 
-import static com.sonatype.insight.brain.jooq.generated.ods.tables.HostedComponentScanQueue.HOSTED_COMPONENT_SCAN_QUEUE;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.Repository.REPOSITORY;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ProxyRepositoryComponent.PROXY_REPOSITORY_COMPONENT;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ProxyRepositoryPolicyViolation.PROXY_REPOSITORY_POLICY_VIOLATION;
@@ -1405,15 +1401,6 @@ public class ProxyRepositoryComponentDAO
             record -> new Date(record.value2().getTime())));
   }
 
-  public Set<String> getRepositoryIdsWithQueuedScans(final Collection<String> repositoryIds) {
-    if (repositoryIds == null || repositoryIds.isEmpty()) {
-      return Collections.emptySet();
-    }
-    try (TransactionContext tx = createTransactionContext()) {
-      return getRepositoryIdsWithQueuedScans(tx, repositoryIds);
-    }
-  }
-
   public void stampComponentId(
       final TransactionContext tx,
       final String repositoryId,
@@ -1454,23 +1441,6 @@ public class ProxyRepositoryComponentDAO
       }
       return results.isEmpty() ? null : toEntity(results.get(0));
     }
-  }
-
-  public Set<String> getRepositoryIdsWithQueuedScans(
-      final TransactionContext tx,
-      final Collection<String> repositoryIds)
-  {
-    if (repositoryIds == null || repositoryIds.isEmpty()) {
-      return Collections.emptySet();
-    }
-    return new HashSet<>(tx.dsl()
-        .selectDistinct(HOSTED_COMPONENT_SCAN_QUEUE.REPOSITORY_ID)
-        .from(HOSTED_COMPONENT_SCAN_QUEUE)
-        .where(HOSTED_COMPONENT_SCAN_QUEUE.REPOSITORY_ID.in(repositoryIds)
-            .and(HOSTED_COMPONENT_SCAN_QUEUE.STATUS.in(
-                HostedComponentScanQueueDAO.Status.PENDING.name(),
-                HostedComponentScanQueueDAO.Status.IN_PROGRESS.name())))
-        .fetch(HOSTED_COMPONENT_SCAN_QUEUE.REPOSITORY_ID));
   }
 
   @Override

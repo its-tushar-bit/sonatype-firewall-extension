@@ -37,7 +37,6 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField.FirewallFilterableField;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
-import com.sonatype.insight.brain.dataaccess.repository.HostedComponentScanQueueDAO.Status;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -53,8 +52,6 @@ import com.sonatype.insight.brain.utils.DateConverter;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
-
-import java.util.Set;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
@@ -1613,36 +1610,6 @@ public class ProxyRepositoryComponentDAOTest
     Map<String, Date> result = dao.getLastScanTimesByRepositoryIds(List.of(repo.getId()));
 
     assertThat(result).doesNotContainKey(repo.getId());
-  }
-
-  @Test
-  public void testGetRepositoryIdsWithQueuedScans_ReturnsPendingAndInProgressRepositories() {
-    Repository repo1 = tempEntity.newRepository();
-    Repository repo2 = tempEntity.newRepository();
-    Repository repo3 = tempEntity.newRepository();
-
-    ProxyRepositoryComponent component1 = tempEntity.newRepositoryComponent(repo1.getId(), MatchState.EXACT,
-        ComponentIdentifier.createMavenCoordinates("g", "a", "1.0"));
-    ProxyRepositoryComponent component2 = tempEntity.newRepositoryComponent(repo2.getId(), MatchState.EXACT,
-        ComponentIdentifier.createMavenCoordinates("g", "a", "2.0"));
-    ProxyRepositoryComponent component3 = tempEntity.newRepositoryComponent(repo3.getId(), MatchState.EXACT,
-        ComponentIdentifier.createMavenCoordinates("g", "a", "3.0"));
-
-    tempEntity.newHostedComponentScanQueue(component1.getId(), repo1.getId(), Status.PENDING.name());
-    tempEntity.newHostedComponentScanQueue(component2.getId(), repo2.getId(), Status.IN_PROGRESS.name());
-    tempEntity.newHostedComponentScanQueue(component3.getId(), repo3.getId(), Status.COMPLETED.name());
-
-    Set<String> result = dao.getRepositoryIdsWithQueuedScans(
-        List.of(repo1.getId(), repo2.getId(), repo3.getId()));
-
-    assertThat(result).containsExactlyInAnyOrder(repo1.getId(), repo2.getId());
-    assertThat(result).doesNotContain(repo3.getId());
-  }
-
-  @Test
-  public void testGetRepositoryIdsWithQueuedScans_ReturnsEmptySetForEmptyInput() {
-    assertThat(dao.getRepositoryIdsWithQueuedScans(Collections.emptyList())).isEmpty();
-    assertThat(dao.getRepositoryIdsWithQueuedScans(null)).isEmpty();
   }
 
   @Test

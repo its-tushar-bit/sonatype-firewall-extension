@@ -14,7 +14,7 @@ import java.util.Map;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.api.v2.dto.ApiLifecycleRepositoryManagerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLifecycleRepositoryManagerListDTO;
-import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.HostedRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -60,7 +60,7 @@ public class ApiLifecycleServiceTest
   private RepositoryDAO repositoryDAO;
 
   @Mock
-  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
+  private HostedRepositoryComponentDAO hostedRepositoryComponentDAO;
 
   @Mock
   private PermissionService permissionService;
@@ -100,7 +100,7 @@ public class ApiLifecycleServiceTest
     RepositoryManager rm = repositoryManager(RM_ID, RM_INSTANCE_ID);
     when(repositoryManagerDAO.getAll()).thenReturn(List.of(rm));
     when(repositoryDAO.getByRepositoryType(RepositoryType.hosted)).thenReturn(Collections.emptyList());
-    when(proxyRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList())).thenReturn(Collections.emptyMap());
+    when(hostedRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList())).thenReturn(Collections.emptyMap());
 
     ApiLifecycleRepositoryManagerListDTO result = service.getRepositoryManagers();
 
@@ -114,7 +114,7 @@ public class ApiLifecycleServiceTest
     Repository repo = hostedRepo(REPO_ID, RM_ID, null);
     when(repositoryManagerDAO.getAll()).thenReturn(List.of(rm));
     when(repositoryDAO.getByRepositoryType(RepositoryType.hosted)).thenReturn(List.of(repo));
-    when(proxyRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList())).thenReturn(Collections.emptyMap());
+    when(hostedRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList())).thenReturn(Collections.emptyMap());
 
     ApiLifecycleRepositoryManagerListDTO result = service.getRepositoryManagers();
 
@@ -129,7 +129,7 @@ public class ApiLifecycleServiceTest
     Repository repo = hostedRepo(REPO_ID, RM_ID, null);
     when(repositoryManagerDAO.getAll()).thenReturn(List.of(rm));
     when(repositoryDAO.getByRepositoryType(RepositoryType.hosted)).thenReturn(List.of(repo));
-    when(proxyRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList()))
+    when(hostedRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList()))
         .thenReturn(Map.of(REPO_ID, new Date(scanEpoch)));
 
     ApiLifecycleRepositoryManagerListDTO result = service.getRepositoryManagers();
@@ -146,7 +146,7 @@ public class ApiLifecycleServiceTest
     Repository repo = hostedRepo(REPO_ID, RM_ID, new Date(configEpoch));
     when(repositoryManagerDAO.getAll()).thenReturn(List.of(rm));
     when(repositoryDAO.getByRepositoryType(RepositoryType.hosted)).thenReturn(List.of(repo));
-    when(proxyRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList()))
+    when(hostedRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList()))
         .thenReturn(Map.of(REPO_ID, new Date(scanEpoch)));
 
     ApiLifecycleRepositoryManagerListDTO result = service.getRepositoryManagers();
@@ -163,7 +163,7 @@ public class ApiLifecycleServiceTest
     Repository repo = hostedRepo(REPO_ID, RM_ID, new Date(configEpoch));
     when(repositoryManagerDAO.getAll()).thenReturn(List.of(rm));
     when(repositoryDAO.getByRepositoryType(RepositoryType.hosted)).thenReturn(List.of(repo));
-    when(proxyRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList()))
+    when(hostedRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList()))
         .thenReturn(Map.of(REPO_ID, new Date(scanEpoch)));
 
     ApiLifecycleRepositoryManagerListDTO result = service.getRepositoryManagers();
@@ -182,7 +182,7 @@ public class ApiLifecycleServiceTest
     Repository repo2 = hostedRepo(repoId2, RM_ID, null);
     when(repositoryManagerDAO.getAll()).thenReturn(List.of(rm));
     when(repositoryDAO.getByRepositoryType(RepositoryType.hosted)).thenReturn(List.of(repo1, repo2));
-    when(proxyRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList()))
+    when(hostedRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList()))
         .thenReturn(Map.of(REPO_ID, new Date(earlyEpoch), repoId2, new Date(laterEpoch)));
 
     ApiLifecycleRepositoryManagerListDTO result = service.getRepositoryManagers();
@@ -204,7 +204,7 @@ public class ApiLifecycleServiceTest
     Repository repoB = hostedRepo(rmBRepoId, rmBId, null);
     when(repositoryManagerDAO.getAll()).thenReturn(List.of(rmA, rmB));
     when(repositoryDAO.getByRepositoryType(RepositoryType.hosted)).thenReturn(List.of(repoA, repoB));
-    when(proxyRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList()))
+    when(hostedRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList()))
         .thenReturn(Map.of(REPO_ID, new Date(rmAEpoch), rmBRepoId, new Date(rmBEpoch)));
 
     ApiLifecycleRepositoryManagerListDTO result = service.getRepositoryManagers();
@@ -259,7 +259,7 @@ public class ApiLifecycleServiceTest
             .thenReturn(EnumSet.of(Permission.CONFIGURE_SYSTEM));
     when(repositoryManagerDAO.getAll()).thenReturn(Collections.emptyList());
     when(repositoryDAO.getByRepositoryType(RepositoryType.hosted)).thenReturn(Collections.emptyList());
-    when(proxyRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList())).thenReturn(Collections.emptyMap());
+    when(hostedRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList())).thenReturn(Collections.emptyMap());
 
     ApiLifecycleRepositoryManagerListDTO result = service.getRepositoryManagers();
 
@@ -273,7 +273,7 @@ public class ApiLifecycleServiceTest
         .thenReturn(java.util.Set.of("some-org-id"));
     when(repositoryManagerDAO.getAll()).thenReturn(Collections.emptyList());
     when(repositoryDAO.getByRepositoryType(RepositoryType.hosted)).thenReturn(Collections.emptyList());
-    when(proxyRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList())).thenReturn(Collections.emptyMap());
+    when(hostedRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList())).thenReturn(Collections.emptyMap());
 
     ApiLifecycleRepositoryManagerListDTO result = service.getRepositoryManagers();
 
@@ -290,7 +290,7 @@ public class ApiLifecycleServiceTest
     Repository nonMonitored = nonMonitoredHostedRepo(nonMonitoredRepoId, RM_ID);
     when(repositoryManagerDAO.getAll()).thenReturn(List.of(rm));
     when(repositoryDAO.getByRepositoryType(RepositoryType.hosted)).thenReturn(List.of(monitored, nonMonitored));
-    when(proxyRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList()))
+    when(hostedRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList()))
         .thenReturn(Map.of(REPO_ID, new Date(monitoredEpoch), nonMonitoredRepoId, new Date(nonMonitoredEpoch)));
 
     ApiLifecycleRepositoryManagerListDTO result = service.getRepositoryManagers();

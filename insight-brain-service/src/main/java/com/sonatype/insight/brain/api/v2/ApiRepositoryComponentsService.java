@@ -5,58 +5,52 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentViolationDTO;
-import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentViolationListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiHostedRepositoryComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiHostedRepositoryComponentListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiQueueStatsDTO;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.repository.hosted.ApplicationForHostedRepositoryComponentService;
+import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
+import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.HostedComponentScanQueueDAO;
-import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.HostedRepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.HostedRepositoryComponentDAO.HrcWithOwnerComponent;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.OwnerComponent;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
-import com.sonatype.insight.brain.report.LifecycleReport;
-import com.sonatype.insight.brain.report.ReportDataStore;
-import com.sonatype.insight.brain.report.ReportEntry;
+import com.sonatype.insight.brain.repository.hosted.ApplicationForHostedRepositoryComponentService;
+import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.sonatype.insight.dataaccess.TransactionContext;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
 public class ApiRepositoryComponentsService
 {
-  private static final Logger log = LoggerFactory.getLogger(ApiRepositoryComponentsService.class);
-
   private static final int DEFAULT_PAGE_SIZE = 25;
 
-  private static final ObjectMapper MAPPER = new ObjectMapper();
+  private final HostedRepositoryComponentDAO hostedRepositoryComponentDAO;
 
-  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
+  private final PolicyViolationDAO policyViolationDAO;
 
-  private final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
+  private final PolicyEvaluationDAO policyEvaluationDAO;
 
   private final HostedComponentScanQueueDAO hostedComponentScanQueueDAO;
 
@@ -64,28 +58,25 @@ public class ApiRepositoryComponentsService
 
   private final RepositoryManagerDAO repositoryManagerDAO;
 
-  // CLM-40943: dependencies for the policythreats.json-backed component pill counts.
-  private final ApplicationDAO applicationDAO;
-
-  private final Provider<ReportDataStore> reportDataStoreProvider;
+  private final OwnerComponentDAO ownerComponentDAO;
 
   @Inject
   public ApiRepositoryComponentsService(
-      final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
-      final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO,
+      final HostedRepositoryComponentDAO hostedRepositoryComponentDAO,
+      final PolicyViolationDAO policyViolationDAO,
+      final PolicyEvaluationDAO policyEvaluationDAO,
       final HostedComponentScanQueueDAO hostedComponentScanQueueDAO,
       final RepositoryDAO repositoryDAO,
       final RepositoryManagerDAO repositoryManagerDAO,
-      final ApplicationDAO applicationDAO,
-      final Provider<ReportDataStore> reportDataStoreProvider)
+      final OwnerComponentDAO ownerComponentDAO)
   {
-    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
-    this.proxyRepositoryPolicyViolationDAO = proxyRepositoryPolicyViolationDAO;
+    this.hostedRepositoryComponentDAO = hostedRepositoryComponentDAO;
+    this.policyViolationDAO = policyViolationDAO;
+    this.policyEvaluationDAO = policyEvaluationDAO;
     this.hostedComponentScanQueueDAO = hostedComponentScanQueueDAO;
     this.repositoryDAO = repositoryDAO;
     this.repositoryManagerDAO = repositoryManagerDAO;
-    this.applicationDAO = applicationDAO;
-    this.reportDataStoreProvider = reportDataStoreProvider;
+    this.ownerComponentDAO = ownerComponentDAO;
   }
 
   public ApiHostedRepositoryComponentListDTO getComponents(
@@ -100,31 +91,24 @@ public class ApiRepositoryComponentsService
     }
     Repository repository = validateRepositoryBelongsToManager(repositoryManagerId, repositoryId);
     int effectivePageSize = pageSize > 0 ? pageSize : DEFAULT_PAGE_SIZE;
-    int total = proxyRepositoryComponentDAO.countByRepositoryIdWithFilter(repositoryId, filter);
+    int total = hostedRepositoryComponentDAO.countByRepositoryIdWithFilter(repositoryId, filter);
     int offset = (int) Math.min((long) (page - 1) * effectivePageSize, Integer.MAX_VALUE);
-    List<ProxyRepositoryComponent> paged = proxyRepositoryComponentDAO.getByRepositoryIdPaged(
-        repositoryId, filter, effectivePageSize, offset);
+    List<HrcWithOwnerComponent> paged =
+        hostedRepositoryComponentDAO.getByRepositoryIdPaged(repositoryId, filter, effectivePageSize, offset);
 
-    // Load active violations for only the page's pathnames in one IN query. CLM-40943: each
-    // outer artifact may have inner-pathname violations (`outer.zip!/inner.jar`) that the
-    // archive-of-archives evaluator persisted under synthetic inner pathnames; roll those up
-    // under their outer so the per-row violation count reflects all inner CVEs, not just the
-    // outer's own "component-unknown" violation.
-    List<String> pathnames = paged.stream()
-        .map(ProxyRepositoryComponent::getPathname)
-        .filter(p -> p != null)
-        .collect(Collectors.toList());
-    Map<String, List<ProxyRepositoryPolicyViolation>> violationsByPathname =
-        proxyRepositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnamesOrInnerPathnames(
-            repositoryId, pathnames)
-            .stream()
-            .filter(v -> v.getPathname() != null)
-            .collect(Collectors.groupingBy(this::outerPathnameOf));
-
-    String repositoryPublicId = repository != null ? repository.getPublicId() : null;
+    String repositoryPublicId = repository.getPublicId();
+    Map<String, String> lastScanIds = lookupLastScanIds(paged);
+    Map<String, List<PolicyViolation>> violationsByOwner = lookupViolationsBatched(paged);
+    Map<String, Integer> componentCountsByOwner = lookupComponentCountsBatched(paged);
     List<ApiHostedRepositoryComponentDTO> dtos = paged.stream()
-        .map(c -> toComponentDTO(c, violationsByPathname.getOrDefault(c.getPathname(), List.of()), repositoryPublicId))
-        .collect(Collectors.toList());
+        .map(row -> toComponentDTO(
+            row,
+            violationsFor(row, violationsByOwner),
+            scanIdFor(row, lastScanIds),
+            repositoryPublicId,
+            componentCountFor(row, componentCountsByOwner)))
+        .toList();
+
     ApiHostedRepositoryComponentListDTO result = new ApiHostedRepositoryComponentListDTO();
     result.components = dtos;
     result.totalCount = total;
@@ -132,8 +116,7 @@ public class ApiRepositoryComponentsService
     result.pageSize = effectivePageSize;
     result.repositoryPublicId = repositoryPublicId;
     result.hasNextPage = offset + paged.size() < total;
-    result.hasQueuedScans = proxyRepositoryComponentDAO.getRepositoryIdsWithQueuedScans(List.of(repositoryId))
-        .contains(repositoryId);
+    result.hasQueuedScans = hostedComponentScanQueueDAO.hasQueuedScans(repositoryId);
     return result;
   }
 
@@ -142,14 +125,11 @@ public class ApiRepositoryComponentsService
       String repositoryId,
       String componentId)
   {
-    Repository repo = validateRepositoryBelongsToManager(repositoryManagerId, repositoryId);
-    ProxyRepositoryComponent c = findComponent(repositoryId, componentId);
-    // CLM-40943: include inner-pathname violations under this outer artifact.
-    List<ProxyRepositoryPolicyViolation> violations = c.getPathname() != null
-        ? proxyRepositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnameOrInnerPathnames(
-            repositoryId, c.getPathname())
-        : List.of();
-    return toComponentDTO(c, violations, repo != null ? repo.getPublicId() : null);
+    Repository repository = validateRepositoryBelongsToManager(repositoryManagerId, repositoryId);
+    HrcWithOwnerComponent row = findComponent(repositoryId, componentId);
+    String scanId = scanIdFor(row, lookupLastScanIds(List.of(row)));
+    Integer componentCount = componentCountFor(row, lookupComponentCountsBatched(List.of(row)));
+    return toComponentDTO(row, getViolationsFor(row), scanId, repository.getPublicId(), componentCount);
   }
 
   public ApiComponentViolationListDTO getViolations(
@@ -158,25 +138,13 @@ public class ApiRepositoryComponentsService
       String componentId)
   {
     validateRepositoryBelongsToManager(repositoryManagerId, repositoryId);
-    ProxyRepositoryComponent c = findComponent(repositoryId, componentId);
-    // CLM-40943: include inner-pathname violations under this outer artifact.
-    List<ProxyRepositoryPolicyViolation> violations = c.getPathname() != null
-        ? proxyRepositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnameOrInnerPathnames(
-            repositoryId, c.getPathname())
-        : List.of();
-    int maxThreat = violations.stream().mapToInt(ProxyRepositoryPolicyViolation::getThreatLevel).max().orElse(0);
+    HrcWithOwnerComponent row = findComponent(repositoryId, componentId);
+    List<PolicyViolation> violations = getViolationsFor(row);
 
-    List<ApiComponentViolationDTO> dtos = violations.stream().map(v -> {
-      ApiComponentViolationDTO dto = new ApiComponentViolationDTO();
-      dto.id = v.getId();
-      dto.policyId = v.getPolicyId();
-      dto.policyName = v.getPolicyName();
-      dto.threatLevel = v.getThreatLevel();
-      dto.threatCategory = v.getThreatCategory() != null ? v.getThreatCategory().name() : null;
-      dto.actionTypeId = v.getActionTypeId();
-      dto.waived = v.isWaived();
-      return dto;
-    }).collect(Collectors.toList());
+    int maxThreat = violations.stream().mapToInt(PolicyViolation::getThreatLevel).max().orElse(0);
+    List<ApiComponentViolationDTO> dtos = violations.stream()
+        .map(ApiRepositoryComponentsService::toViolationDTO)
+        .toList();
 
     ApiComponentViolationListDTO result = new ApiComponentViolationListDTO();
     result.violations = dtos;
@@ -185,16 +153,28 @@ public class ApiRepositoryComponentsService
     return result;
   }
 
+  private static ApiComponentViolationDTO toViolationDTO(PolicyViolation v) {
+    ApiComponentViolationDTO dto = new ApiComponentViolationDTO();
+    dto.id = v.getId();
+    dto.policyId = v.getPolicyId();
+    dto.policyName = v.getPolicyName();
+    dto.threatLevel = v.getThreatLevel();
+    dto.threatCategory = v.getThreatCategory() != null ? v.getThreatCategory().name() : null;
+    dto.actionTypeId = v.getActionTypeId();
+    dto.waived = v.isWaived();
+    return dto;
+  }
+
   public ApiQueueStatsDTO getQueueStats(String repositoryManagerId, String repositoryId) {
     validateRepositoryBelongsToManager(repositoryManagerId, repositoryId);
     try (TransactionContext tx = hostedComponentScanQueueDAO.createTransactionContext()) {
       Map<String, Integer> counts =
           hostedComponentScanQueueDAO.countByRepositoryIdGroupedByStatus(tx, repositoryId);
       ApiQueueStatsDTO dto = new ApiQueueStatsDTO();
-      dto.pending = counts.getOrDefault("PENDING", 0);
-      dto.processing = counts.getOrDefault("IN_PROGRESS", 0);
-      dto.completed = counts.getOrDefault("COMPLETED", 0);
-      dto.failed = counts.getOrDefault("FAILED", 0);
+      dto.pending = counts.getOrDefault(HostedComponentScanQueueDAO.Status.PENDING.name(), 0);
+      dto.processing = counts.getOrDefault(HostedComponentScanQueueDAO.Status.IN_PROGRESS.name(), 0);
+      dto.completed = counts.getOrDefault(HostedComponentScanQueueDAO.Status.COMPLETED.name(), 0);
+      dto.failed = counts.getOrDefault(HostedComponentScanQueueDAO.Status.FAILED.name(), 0);
       dto.total = dto.pending + dto.processing + dto.completed + dto.failed;
       return dto;
     }
@@ -213,159 +193,156 @@ public class ApiRepositoryComponentsService
     return repository;
   }
 
-  /**
-   * Returns the outer pathname for a {@code ProxyRepositoryPolicyViolation}: the pathname unchanged
-   * if there is no {@code "!/"} marker, otherwise everything before the first {@code "!/"}. Used
-   * to group inner-pathname violations (`outer.zip!/inner.jar`) under their outer artifact's
-   * Components-page row so each row reflects the rolled-up violation count.
-   */
-  private String outerPathnameOf(final ProxyRepositoryPolicyViolation v) {
-    String pathname = v.getPathname();
-    if (pathname == null) {
-      return null;
-    }
-    int sep = pathname.indexOf("!/");
-    return sep < 0 ? pathname : pathname.substring(0, sep);
-  }
-
-  private ProxyRepositoryComponent findComponent(String repositoryId, String componentId) {
-    ProxyRepositoryComponent component =
-        proxyRepositoryComponentDAO.getByRepositoryIdAndComponentId(repositoryId, componentId);
-    if (component == null) {
+  private HrcWithOwnerComponent findComponent(String repositoryId, String componentId) {
+    HrcWithOwnerComponent row = hostedRepositoryComponentDAO.getByRepositoryIdAndComponentId(repositoryId, componentId);
+    if (row == null) {
       throw new NotFoundException("Component not found: " + componentId);
     }
-    return component;
+    return row;
+  }
+
+  private static boolean isPinned(HrcWithOwnerComponent row) {
+    return row.ownerComponent() != null && row.ownerComponent().getStageTypeId() != null;
+  }
+
+  private static String pinKey(String hrcId, String stageTypeId) {
+    return hrcId + '|' + stageTypeId;
+  }
+
+  private record PinKeys(Set<String> hrcIds, Set<String> stageIds)
+  {
+  }
+
+  private static PinKeys collectPinKeys(List<HrcWithOwnerComponent> rows) {
+    Set<String> hrcIds = new HashSet<>();
+    Set<String> stageIds = new HashSet<>();
+    for (HrcWithOwnerComponent row : rows) {
+      if (isPinned(row)) {
+        hrcIds.add(row.hrc().getId());
+        stageIds.add(row.ownerComponent().getStageTypeId());
+      }
+    }
+    return new PinKeys(hrcIds, stageIds);
+  }
+
+  // Stage-scoped: keyed by (hrcId | stageTypeId). forMonitoring PEs may have a null scan_id.
+  private Map<String, String> lookupLastScanIds(List<HrcWithOwnerComponent> rows) {
+    PinKeys keys = collectPinKeys(rows);
+    Map<String, String> byHrcAndStage = new HashMap<>();
+    policyEvaluationDAO.getLastByOwnerIdsAndStageIds(keys.hrcIds(), keys.stageIds())
+        .stream()
+        .filter(pe -> pe.getScanId() != null)
+        .forEach(pe -> byHrcAndStage.put(pinKey(pe.getOwnerId(), pe.getStageTypeId()), pe.getScanId()));
+    return byHrcAndStage;
+  }
+
+  private static String scanIdFor(HrcWithOwnerComponent row, Map<String, String> byOwnerAndStage) {
+    if (!isPinned(row)) {
+      return null;
+    }
+    return byOwnerAndStage.get(pinKey(row.hrc().getId(), row.ownerComponent().getStageTypeId()));
+  }
+
+  private Map<String, Integer> lookupComponentCountsBatched(List<HrcWithOwnerComponent> rows) {
+    PinKeys keys = collectPinKeys(rows);
+    return ownerComponentDAO.getCountsByOwnerIdsAndStageTypeIds(keys.hrcIds(), keys.stageIds());
+  }
+
+  private static Integer componentCountFor(
+      HrcWithOwnerComponent row,
+      Map<String, Integer> byOwnerAndStage)
+  {
+    if (!isPinned(row)) {
+      return null;
+    }
+    return byOwnerAndStage.get(pinKey(row.hrc().getId(), row.ownerComponent().getStageTypeId()));
   }
 
   private ApiHostedRepositoryComponentDTO toComponentDTO(
-      ProxyRepositoryComponent c,
-      List<ProxyRepositoryPolicyViolation> violations,
-      String repositoryPublicId)
+      HrcWithOwnerComponent row,
+      List<PolicyViolation> violations,
+      String scanId,
+      String repositoryPublicId,
+      Integer componentCount)
   {
-    int maxThreat = violations.stream().mapToInt(ProxyRepositoryPolicyViolation::getThreatLevel).max().orElse(0);
+    HostedRepositoryComponent hrc = row.hrc();
+    OwnerComponent oc = row.ownerComponent();
 
-    // CLM-40943: Component-pill counts now read from policythreats.json (the same file the
-    // drill-in report renders), so the Components page pill and the drill-in pill cannot
-    // disagree. The DB-side proxy_repository_policy_violation table holds the raw evaluator output
-    // (one row per pathname × policy × CVE-constraint), which inflates pill counts whenever a
-    // component has multiple CVEs against the same policy or when nested-component mirroring
-    // synthesised multiple inner pathnames for the same logical inner.
-    //
-    // We look up the synthetic application + scanId for this outer artifact, read the
-    // policythreats.json overlay that HostedComponentScanQueueConsumer wrote, and tally
-    // {@code aaData[*].activeViolations[*].policyThreatLevel} into CRITICAL/SEVERE/MODERATE
-    // buckets — exact-threat-level histogram, same data the drill-in pill displays.
-    //
-    // Fail-soft: if the report file isn't on disk yet (eval still running, or older outer
-    // without a synthetic app), fall back to the legacy raw-row tally so the page renders.
-    int[] pillCounts = computePillCountsFromPolicyThreats(c, repositoryPublicId);
-    int critical;
-    int severe;
-    int moderate;
-    if (pillCounts != null) {
-      critical = pillCounts[0];
-      severe = pillCounts[1];
-      moderate = pillCounts[2];
-    }
-    else {
-      // Legacy fallback (raw row count). Used when policythreats.json is unavailable.
-      critical =
-          (int) violations.stream().filter(v -> ThreatLevel.from(v.getThreatLevel()) == ThreatLevel.CRITICAL).count();
-      severe =
-          (int) violations.stream().filter(v -> ThreatLevel.from(v.getThreatLevel()) == ThreatLevel.SEVERE).count();
-      moderate =
-          (int) violations.stream().filter(v -> ThreatLevel.from(v.getThreatLevel()) == ThreatLevel.MODERATE).count();
+    int maxThreat = 0, critical = 0, severe = 0, moderate = 0;
+    for (PolicyViolation v : violations) {
+      int level = v.getThreatLevel();
+      if (level > maxThreat) {
+        maxThreat = level;
+      }
+      ThreatLevel t = ThreatLevel.from(level);
+      if (t == ThreatLevel.CRITICAL) {
+        critical++;
+      }
+      else if (t == ThreatLevel.SEVERE) {
+        severe++;
+      }
+      else if (t == ThreatLevel.MODERATE) {
+        moderate++;
+      }
     }
 
     ApiHostedRepositoryComponentDTO dto = new ApiHostedRepositoryComponentDTO();
-    dto.id = c.getId();
-    dto.pathname = c.getPathname();
-    dto.displayName = c.getDisplayName();
-    dto.hash = c.getHash();
-    dto.matchStateId = c.getMatchStateId();
-    dto.lastEvaluationTime = c.getLastEvaluationTime() != null ? c.getLastEvaluationTime().getTime() : null;
-    dto.quarantined = c.getQuarantineTime() != null && c.getUnquarantineTime() == null;
+    dto.id = hrc.getId();
+    dto.pathname = hrc.getPathname();
+    dto.displayName = deriveDisplayName(hrc.getPathname(), oc);
+    dto.hash = oc != null ? oc.getHash() : hrc.getHash();
+    dto.matchStateId = oc != null ? oc.getMatchStateId() : null;
+    dto.lastEvaluationTime = oc != null && oc.getTime() != null ? oc.getTime().getTime() : null;
+    dto.quarantined = false;
     dto.violationCount = violations.size();
     dto.criticalViolationCount = critical;
     dto.severeViolationCount = severe;
     dto.moderateViolationCount = moderate;
     dto.maxThreatLevel = maxThreat;
-    dto.componentIdentifier = c.getComponentIdentifier();
-    dto.scanId = c.getScanId();
-    dto.applicationPublicId = c.getScanId() != null
-        ? ApplicationForHostedRepositoryComponentService.generatePublicId(repositoryPublicId, c.getPathname())
+    dto.componentIdentifier = oc != null ? oc.getComponentIdentifier() : null;
+    dto.scanId = scanId;
+    dto.applicationPublicId = scanId != null && repositoryPublicId != null && hrc.getPathname() != null
+        ? ApplicationForHostedRepositoryComponentService.generatePublicId(repositoryPublicId, hrc.getPathname())
         : null;
-    dto.stageTypeId = c.getLastEvaluationStage();
-    dto.componentCount = c.getComponentCount();
+    dto.stageTypeId = oc != null ? oc.getStageTypeId() : null;
+    dto.componentCount = componentCount;
     return dto;
   }
 
-  /**
-   * Reads {@code policythreats.json} for this hosted outer artifact and returns the
-   * CRITICAL/SEVERE/MODERATE pill counts the drill-in renders. Returns {@code null} if any of
-   * the lookup steps fail so the caller can fall back to the legacy row-count logic.
-   * <p>
-   * The pill count is the exact-threat-level histogram of all active violations across all
-   * components in {@code aaData}, bucketed into ThreatLevel categories. This is the same view
-   * the drill-in pill shows, so the Components page and the drill-in cannot disagree.
-   */
-  private int[] computePillCountsFromPolicyThreats(
-      final ProxyRepositoryComponent c,
-      final String repositoryPublicId)
+  private static String deriveDisplayName(String pathname, OwnerComponent oc) {
+    if (oc != null && oc.getComponentIdentifier() != null) {
+      return ComponentDisplayNameUtil.fromIdentifier(oc.getComponentIdentifier()).toString();
+    }
+    if (pathname == null) {
+      return null;
+    }
+    return pathname.substring(pathname.lastIndexOf('/') + 1) + " (" + pathname + ")";
+  }
+
+  // policy_violation.owner_id is the HRC id (ScanPolicyEvaluator invoked with hrc); scope by stage.
+  private List<PolicyViolation> getViolationsFor(HrcWithOwnerComponent row) {
+    return violationsFor(row, lookupViolationsBatched(List.of(row)));
+  }
+
+  private Map<String, List<PolicyViolation>> lookupViolationsBatched(List<HrcWithOwnerComponent> rows) {
+    Set<String> hrcIds = new HashSet<>();
+    Set<String> stageIds = new HashSet<>();
+    for (HrcWithOwnerComponent row : rows) {
+      if (isPinned(row)) {
+        hrcIds.add(row.hrc().getId());
+        stageIds.add(row.ownerComponent().getStageTypeId());
+      }
+    }
+    return policyViolationDAO.getActiveByOwnerIdsAndStageIdsGrouped(hrcIds, stageIds);
+  }
+
+  private static List<PolicyViolation> violationsFor(
+      HrcWithOwnerComponent row,
+      Map<String, List<PolicyViolation>> byOwnerAndStage)
   {
-    String scanId = c.getScanId();
-    String pathname = c.getPathname();
-    if (scanId == null || pathname == null || repositoryPublicId == null) {
-      return null;
+    if (!isPinned(row)) {
+      return List.of();
     }
-    String appPublicId = ApplicationForHostedRepositoryComponentService.generatePublicId(repositoryPublicId, pathname);
-    if (appPublicId == null) {
-      return null;
-    }
-    try {
-      Application app = applicationDAO.getByPublicId(appPublicId);
-      if (app == null) {
-        return null;
-      }
-      LifecycleReport report = reportDataStoreProvider.get().getLifecycleReport(app, scanId);
-      ReportEntry entry = report != null ? report.getEntry("policythreats.json") : null;
-      if (entry == null || entry.buf == null || entry.buf.length == 0) {
-        return null;
-      }
-      JsonNode aaData = MAPPER.readTree(entry.buf).path("aaData");
-      if (!aaData.isArray()) {
-        return null;
-      }
-      int critical = 0;
-      int severe = 0;
-      int moderate = 0;
-      for (JsonNode component : aaData) {
-        JsonNode active = component.path("activeViolations");
-        if (!active.isArray()) {
-          continue;
-        }
-        for (JsonNode violation : active) {
-          int tl = violation.path("policyThreatLevel").asInt(0);
-          ThreatLevel bucket = ThreatLevel.from(tl);
-          if (bucket == ThreatLevel.CRITICAL) {
-            critical++;
-          }
-          else if (bucket == ThreatLevel.SEVERE) {
-            severe++;
-          }
-          else if (bucket == ThreatLevel.MODERATE) {
-            moderate++;
-          }
-        }
-      }
-      return new int[]{critical, severe, moderate};
-    }
-    catch (Exception e) {
-      // Fall back to legacy tally. The report may not be on disk yet (eval still running),
-      // or the synthetic application/scan link may not be established for older components.
-      log.debug("Falling back to legacy pill count for proxyRepositoryComponent={}, pathname={}: {}",
-          c.getId(), pathname, e.getMessage());
-      return null;
-    }
+    return byOwnerAndStage.getOrDefault(pinKey(row.hrc().getId(), row.ownerComponent().getStageTypeId()), List.of());
   }
 }

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.repository;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -15,6 +16,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.CallFlowAnalysisConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentCopyrightDAO;
@@ -54,8 +56,10 @@ import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
@@ -78,6 +82,8 @@ public class HostedRepositoryComponentDAOTest
     extends AbstractDbDAOTest
 {
   private HostedRepositoryComponentDAO dao;
+
+  private HostedRepositoryComponentDAO hostedRepositoryComponentDAO;
 
   private OwnerComponentDAO ownerComponentDAO;
 
@@ -124,6 +130,7 @@ public class HostedRepositoryComponentDAOTest
   public void setup() {
     super.setup();
     dao = daoFactory.createHostedRepositoryComponentDAO();
+    hostedRepositoryComponentDAO = dao;
     ownerComponentDAO = daoFactory.createOwnerComponentDAO();
     policyDAO = daoFactory.createPolicyDAO();
     policyWaiverDAO = daoFactory.createPolicyWaiverDAO();
@@ -475,6 +482,270 @@ public class HostedRepositoryComponentDAOTest
     try (TransactionContext tx = dao.createTransactionContext()) {
       assertThat(dao.getByRepositoryId(tx, repository.getId())).isEmpty();
     }
+  }
+
+  @Test
+  public void getLastScanTimesByRepositoryIds_returnsMaxAcrossHrcsAndStages() {
+    Repository repoA = tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo-a");
+    Repository repoB = tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo-b");
+
+    HostedRepositoryComponent hrcA1 = tempEntity.newHostedRepositoryComponent(repoA);
+    HostedRepositoryComponent hrcA2 = tempEntity.newHostedRepositoryComponent(repoA);
+    HostedRepositoryComponent hrcB1 = tempEntity.newHostedRepositoryComponent(repoB);
+
+    Date earlier = new Date(1_700_000_000_000L);
+    Date later = new Date(1_800_000_000_000L);
+    Date newest = new Date(1_900_000_000_000L);
+
+    PolicyEvaluation peA1 = tempEntity.newPolicyEvaluation(hrcA1.getId(), "build", TemporaryEntity.uuid(),
+        false, false, earlier, ScanTriggerType.HOSTED_REPOSITORY_SCANNING);
+    PolicyEvaluation peA2 = tempEntity.newPolicyEvaluation(hrcA2.getId(), "release", TemporaryEntity.uuid(),
+        false, false, later, ScanTriggerType.HOSTED_REPOSITORY_SCANNING);
+    PolicyEvaluation peB1 = tempEntity.newPolicyEvaluation(hrcB1.getId(), "build", TemporaryEntity.uuid(),
+        false, false, newest, ScanTriggerType.HOSTED_REPOSITORY_SCANNING);
+
+    Map<String, Date> times = hostedRepositoryComponentDAO
+        .getLastScanTimesByRepositoryIds(List.of(repoA.getId(), repoB.getId()));
+
+    assertThat(times).containsExactlyInAnyOrderEntriesOf(Map.of(
+        repoA.getId(), later,
+        repoB.getId(), newest));
+  }
+
+  @Test
+  public void getLastScanTimesByRepositoryIds_omitsRepositoriesWithNoEvaluations() {
+    Repository repo = tempEntity.newRepository(tempEntity.newRepositoryManager(), "unscanned-repo");
+    tempEntity.newHostedRepositoryComponent(repo);
+
+    Map<String, Date> times = hostedRepositoryComponentDAO
+        .getLastScanTimesByRepositoryIds(List.of(repo.getId()));
+
+    assertThat(times).isEmpty();
+  }
+
+  @Test
+  public void getLastScanTimesByRepositoryIds_multiStageSameHrc_picksLatestAcrossStages() {
+    Repository repo = tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo-multistage");
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repo);
+
+    Date buildTime = new Date(1_700_000_000_000L);
+    Date releaseTime = new Date(1_800_000_000_000L);
+
+    tempEntity.newPolicyEvaluation(hrc.getId(), "build", TemporaryEntity.uuid(),
+        false, false, buildTime, ScanTriggerType.HOSTED_REPOSITORY_SCANNING);
+    tempEntity.newPolicyEvaluation(hrc.getId(), "release", TemporaryEntity.uuid(),
+        false, false, releaseTime, ScanTriggerType.HOSTED_REPOSITORY_SCANNING);
+
+    Map<String, Date> times = hostedRepositoryComponentDAO
+        .getLastScanTimesByRepositoryIds(List.of(repo.getId()));
+
+    // A single HRC evaluated at two stages must surface the newer of the two — not both, not the older.
+    assertThat(times).containsEntry(repo.getId(), releaseTime);
+  }
+
+  @Test
+  public void getLastScanTimesByRepositoryIds_reEvaluationSameStage_picksLatestEvaluation() {
+    Repository repo = tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo-reeval");
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repo);
+
+    Date first = new Date(1_700_000_000_000L);
+    Date reeval = new Date(1_800_000_000_000L);
+
+    tempEntity.newPolicyEvaluation(hrc.getId(), "build", TemporaryEntity.uuid(),
+        false, false, first, ScanTriggerType.HOSTED_REPOSITORY_SCANNING);
+    tempEntity.newPolicyEvaluation(hrc.getId(), "build", TemporaryEntity.uuid(),
+        true, false, reeval, ScanTriggerType.HOSTED_REPOSITORY_SCANNING);
+
+    Map<String, Date> times = hostedRepositoryComponentDAO
+        .getLastScanTimesByRepositoryIds(List.of(repo.getId()));
+
+    assertThat(times).containsEntry(repo.getId(), reeval);
+  }
+
+  @Test
+  public void getLastScanTimesByRepositoryIds_emptyInput_returnsEmptyMap() {
+    assertThat(hostedRepositoryComponentDAO.getLastScanTimesByRepositoryIds(List.of())).isEmpty();
+    assertThat(hostedRepositoryComponentDAO.getLastScanTimesByRepositoryIds((Collection<String>) null)).isEmpty();
+  }
+
+  @Test
+  public void getByRepositoryIdPaged_returnsHrcsWithJoinedOwnerComponent() {
+    Repository repo = tempEntity.newRepository(tempEntity.newRepositoryManager("nx"), "repo");
+    HostedRepositoryComponent hrc1 = tempEntity.newHostedRepositoryComponent(repo, "lib/aaa.jar", "hash-aaa");
+    HostedRepositoryComponent hrc2 = tempEntity.newHostedRepositoryComponent(repo, "lib/bbb.jar", "hash-bbb");
+
+    OwnerComponent oc1 = new OwnerComponent(hrc1.getId(), "build", new Date(), "hash-aaa",
+        ComponentIdentifier.createMavenCoordinates("g", "aaa", "1.0"),
+        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), false, List.of("lib/aaa.jar"));
+    ownerComponentDAO.insert(oc1);
+    try (TransactionContext tx = hostedRepositoryComponentDAO.createTransactionContext()) {
+      hostedRepositoryComponentDAO.updateOwnerComponentId(tx, hrc1.getId(), oc1.getId());
+    }
+
+    List<HostedRepositoryComponentDAO.HrcWithOwnerComponent> rows =
+        hostedRepositoryComponentDAO.getByRepositoryIdPaged(repo.getId(), null, 10, 0);
+
+    assertThat(rows).hasSize(2);
+    HostedRepositoryComponentDAO.HrcWithOwnerComponent first = rows.get(0);
+    HostedRepositoryComponentDAO.HrcWithOwnerComponent second = rows.get(1);
+    assertThat(first.hrc().getPathname()).isEqualTo("lib/aaa.jar");
+    assertThat(first.ownerComponent()).isNotNull();
+    assertThat(first.ownerComponent().getMatchStateId()).isEqualTo(MatchState.EXACT.getId());
+    assertThat(second.hrc().getPathname()).isEqualTo("lib/bbb.jar");
+    assertThat(second.ownerComponent()).isNull();
+  }
+
+  @Test
+  public void getByRepositoryIdPaged_filterMatchesPathnameCaseInsensitive() {
+    Repository repo = tempEntity.newRepository(tempEntity.newRepositoryManager("nx"), "repo-filter");
+    tempEntity.newHostedRepositoryComponent(repo, "lib/log4j-core-2.14.1.jar", "h1");
+    tempEntity.newHostedRepositoryComponent(repo, "lib/commons-text-1.9.0.jar", "h2");
+
+    List<HostedRepositoryComponentDAO.HrcWithOwnerComponent> rows =
+        hostedRepositoryComponentDAO.getByRepositoryIdPaged(repo.getId(), "LOG4J", 10, 0);
+
+    assertThat(rows).hasSize(1);
+    assertThat(rows.get(0).hrc().getPathname()).contains("log4j");
+  }
+
+  @Test
+  public void getByRepositoryIdPaged_filterEscapesLikeMetacharacters() {
+    Repository repo = tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo-escape");
+    tempEntity.newHostedRepositoryComponent(repo, "lib/100%-valid.jar", "h1");
+    tempEntity.newHostedRepositoryComponent(repo, "lib/file_underscore.jar", "h2");
+    tempEntity.newHostedRepositoryComponent(repo, "lib/plain.jar", "h3");
+
+    // '%' filter must match the literal percent, not act as a wildcard.
+    assertThat(hostedRepositoryComponentDAO.countByRepositoryIdWithFilter(repo.getId(), "%")).isEqualTo(1);
+    // '_' filter must match the literal underscore, not any-char wildcard.
+    assertThat(hostedRepositoryComponentDAO.countByRepositoryIdWithFilter(repo.getId(), "_")).isEqualTo(1);
+    // Backslash filter must not create a broken escape sequence.
+    assertThat(hostedRepositoryComponentDAO.countByRepositoryIdWithFilter(repo.getId(), "\\")).isEqualTo(0);
+  }
+
+  @Test
+  public void getByRepositoryIdPaged_filterMatchesOwnerComponentCoordinatesJson() {
+    Repository repo = tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo-filter-coords");
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repo, "lib/mystery.jar", "h1");
+    OwnerComponent oc = new OwnerComponent(hrc.getId(), "build", new Date(), "h1",
+        new ComponentIdentifier("maven",
+            Map.of("groupId", "org.apache.logging.log4j", "artifactId", "log4j-core", "version", "2.14.1")),
+        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), false, List.of("lib/mystery.jar"));
+    ownerComponentDAO.insert(oc);
+    try (TransactionContext tx = hostedRepositoryComponentDAO.createTransactionContext()) {
+      tx.begin();
+      hostedRepositoryComponentDAO.updateOwnerComponentId(tx, hrc.getId(), oc.getId());
+      tx.commit();
+    }
+
+    // Filter text appears only inside the coordinates JSON, never in the pathname — matches the
+    // UI's rendered displayName so the search field agrees with what the user sees.
+    assertThat(hostedRepositoryComponentDAO.countByRepositoryIdWithFilter(repo.getId(), "log4j")).isEqualTo(1);
+    assertThat(hostedRepositoryComponentDAO.countByRepositoryIdWithFilter(repo.getId(), "org.apache.logging"))
+        .isEqualTo(1);
+  }
+
+  @Test
+  public void countByRepositoryIdWithFilter_respectsFilter() {
+    Repository repo = tempEntity.newRepository(tempEntity.newRepositoryManager("nx"), "repo-count");
+    tempEntity.newHostedRepositoryComponent(repo, "lib/log4j.jar", "h1");
+    tempEntity.newHostedRepositoryComponent(repo, "lib/commons.jar", "h2");
+    tempEntity.newHostedRepositoryComponent(repo, "lib/logback.jar", "h3");
+
+    assertThat(hostedRepositoryComponentDAO.countByRepositoryIdWithFilter(repo.getId(), null)).isEqualTo(3);
+    assertThat(hostedRepositoryComponentDAO.countByRepositoryIdWithFilter(repo.getId(), "log")).isEqualTo(2);
+    assertThat(hostedRepositoryComponentDAO.countByRepositoryIdWithFilter(repo.getId(), "")).isEqualTo(3);
+  }
+
+  @Test
+  public void getByRepositoryIdPaged_pagination() {
+    Repository repo = tempEntity.newRepository(tempEntity.newRepositoryManager("nx"), "repo-page");
+    for (int i = 0; i < 5; i++) {
+      tempEntity.newHostedRepositoryComponent(repo, String.format("path/%02d.jar", i), "h" + i);
+    }
+    assertThat(hostedRepositoryComponentDAO.getByRepositoryIdPaged(repo.getId(), null, 2, 0)).hasSize(2);
+    assertThat(hostedRepositoryComponentDAO.getByRepositoryIdPaged(repo.getId(), null, 2, 2)).hasSize(2);
+    assertThat(hostedRepositoryComponentDAO.getByRepositoryIdPaged(repo.getId(), null, 2, 4)).hasSize(1);
+  }
+
+  @Test
+  public void getByRepositoryIdPaged_paginationRespectsFilter() {
+    // Locks in the count/page invariant: countByRepositoryIdWithFilter and getByRepositoryIdPaged
+    // must apply the same filter+join+order, so page 1 + page 2 union to exactly the filtered set,
+    // in pathname order, with no dupes and no non-matching rows leaking through.
+    Repository repo = tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo-filter-page");
+    for (int i = 0; i < 5; i++) {
+      tempEntity.newHostedRepositoryComponent(repo, String.format("libs/log4j-%02d.jar", i), "h-log-" + i);
+    }
+    for (int i = 0; i < 3; i++) {
+      tempEntity.newHostedRepositoryComponent(repo, String.format("libs/commons-%02d.jar", i), "h-com-" + i);
+    }
+
+    assertThat(hostedRepositoryComponentDAO.countByRepositoryIdWithFilter(repo.getId(), "log4j")).isEqualTo(5);
+
+    var page1 = hostedRepositoryComponentDAO.getByRepositoryIdPaged(repo.getId(), "log4j", 3, 0);
+    var page2 = hostedRepositoryComponentDAO.getByRepositoryIdPaged(repo.getId(), "log4j", 3, 3);
+
+    assertThat(page1).extracting(r -> r.hrc().getPathname())
+        .containsExactly("libs/log4j-00.jar", "libs/log4j-01.jar", "libs/log4j-02.jar");
+    assertThat(page2).extracting(r -> r.hrc().getPathname())
+        .containsExactly("libs/log4j-03.jar", "libs/log4j-04.jar");
+    assertThat(page1).noneMatch(r -> r.hrc().getPathname().contains("commons"));
+    assertThat(page2).noneMatch(r -> r.hrc().getPathname().contains("commons"));
+  }
+
+  @Test
+  public void getByRepositoryIdAndComponentId_returnsHrcWithOwnerComponent() {
+    Repository repo = tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo-lookup");
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repo, "lib/lookup.jar", "hlookup");
+    OwnerComponent oc = new OwnerComponent(hrc.getId(), "build", new Date(), "hlookup",
+        new ComponentIdentifier("maven", Map.of("groupId", "g", "artifactId", "a", "version", "1.0")),
+        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), false, List.of("lib/lookup.jar"));
+    ownerComponentDAO.insert(oc);
+    try (TransactionContext tx = hostedRepositoryComponentDAO.createTransactionContext()) {
+      tx.begin();
+      hostedRepositoryComponentDAO.updateOwnerComponentId(tx, hrc.getId(), oc.getId());
+      tx.commit();
+    }
+
+    HostedRepositoryComponentDAO.HrcWithOwnerComponent row =
+        hostedRepositoryComponentDAO.getByRepositoryIdAndComponentId(repo.getId(), hrc.getId());
+
+    assertThat(row).isNotNull();
+    assertThat(row.hrc().getPathname()).isEqualTo("lib/lookup.jar");
+    assertThat(row.ownerComponent()).isNotNull();
+    assertThat(row.ownerComponent().getId()).isEqualTo(oc.getId());
+  }
+
+  @Test
+  public void getByRepositoryIdAndComponentId_returnsNullWhenNotFound() {
+    Repository repo = tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo-lookup-miss");
+    assertThat(hostedRepositoryComponentDAO.getByRepositoryIdAndComponentId(repo.getId(), "missing-id")).isNull();
+    assertThat(hostedRepositoryComponentDAO.getByRepositoryIdAndComponentId(null, "x")).isNull();
+    assertThat(hostedRepositoryComponentDAO.getByRepositoryIdAndComponentId("x", null)).isNull();
+  }
+
+  @Test
+  public void getByRepositoryIdAndComponentId_unpinnedHrc_returnsRowWithNullOwnerComponent() {
+    Repository repo = tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo-unpinned");
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repo, "lib/x.jar", "hx");
+
+    var row = hostedRepositoryComponentDAO.getByRepositoryIdAndComponentId(repo.getId(), hrc.getId());
+
+    assertThat(row).isNotNull();
+    assertThat(row.hrc().getId()).isEqualTo(hrc.getId());
+    assertThat(row.ownerComponent()).isNull();
+  }
+
+  @Test
+  public void getByRepositoryIdAndComponentId_rejectsCrossRepoLookup() {
+    Repository repoA = tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo-cross-a");
+    Repository repoB = tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo-cross-b");
+    HostedRepositoryComponent hrcA = tempEntity.newHostedRepositoryComponent(repoA, "lib/a.jar", "ha");
+
+    // Looking up hrcA under repoB must return null even though the id exists.
+    assertThat(hostedRepositoryComponentDAO.getByRepositoryIdAndComponentId(repoB.getId(), hrcA.getId())).isNull();
+    assertThat(hostedRepositoryComponentDAO.getByRepositoryIdAndComponentId(repoA.getId(), hrcA.getId())).isNotNull();
   }
 
   private HostedRepositoryComponent seedHrc(String pathname, String hash) {

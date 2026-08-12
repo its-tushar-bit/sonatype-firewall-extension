@@ -5,13 +5,19 @@
  */
 package com.sonatype.insight.brain.dataaccess.repository;
 
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.continuousmonitoring.EligibilityCursor;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -20,12 +26,18 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
+import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
+import org.jooq.Record;
+import org.jooq.Record2;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.HostedRepositoryComponentAncestor.HOSTED_REPOSITORY_COMPONENT_ANCESTOR;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.HostedRepositoryComponent.HOSTED_REPOSITORY_COMPONENT;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.LastPolicyEvaluation.LAST_POLICY_EVALUATION;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerComponent.OWNER_COMPONENT;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.PolicyEvaluation.POLICY_EVALUATION;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.Repository.REPOSITORY;
 
 /**
@@ -56,6 +68,100 @@ public class HostedRepositoryComponentDAO
   {
     super(operationalDataStore);
     this.ownerDAOProvider = ownerDAOProvider;
+  }
+
+  public record HrcWithOwnerComponent(HostedRepositoryComponent hrc, @Nullable OwnerComponent ownerComponent)
+  {
+  }
+
+  public List<HrcWithOwnerComponent> getByRepositoryIdPaged(
+      String repositoryId,
+      String filter,
+      int limit,
+      int offset)
+  {
+    if (repositoryId == null || repositoryId.isEmpty()) {
+      return List.of();
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      var query = tx.dsl()
+          .select(HOSTED_REPOSITORY_COMPONENT.fields())
+          .select(OWNER_COMPONENT.fields())
+          .from(HOSTED_REPOSITORY_COMPONENT)
+          .leftJoin(OWNER_COMPONENT)
+          .on(OWNER_COMPONENT.OWNER_COMPONENT_ID.eq(HOSTED_REPOSITORY_COMPONENT.OWNER_COMPONENT_ID))
+          .where(HOSTED_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId));
+      Condition filterCondition = displayNameOrPathnameFilter(filter);
+      if (filterCondition != null) {
+        query = query.and(filterCondition);
+      }
+      // Pathname + HRC id tiebreaker for stable paging.
+      return query
+          .orderBy(HOSTED_REPOSITORY_COMPONENT.PATHNAME.asc(),
+              HOSTED_REPOSITORY_COMPONENT.HOSTED_REPOSITORY_COMPONENT_ID.asc())
+          .limit(limit)
+          .offset(offset)
+          .fetch(this::toHrcWithOwnerComponent);
+    }
+  }
+
+  @Nullable
+  public HrcWithOwnerComponent getByRepositoryIdAndComponentId(String repositoryId, String componentId) {
+    if (StringUtils.isBlank(repositoryId) || StringUtils.isBlank(componentId)) {
+      return null;
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .select(HOSTED_REPOSITORY_COMPONENT.fields())
+          .select(OWNER_COMPONENT.fields())
+          .from(HOSTED_REPOSITORY_COMPONENT)
+          .leftJoin(OWNER_COMPONENT)
+          .on(OWNER_COMPONENT.OWNER_COMPONENT_ID.eq(HOSTED_REPOSITORY_COMPONENT.OWNER_COMPONENT_ID))
+          .where(HOSTED_REPOSITORY_COMPONENT.HOSTED_REPOSITORY_COMPONENT_ID.eq(componentId))
+          .and(HOSTED_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+          .fetchOne(this::toHrcWithOwnerComponent);
+    }
+  }
+
+  public int countByRepositoryIdWithFilter(String repositoryId, String filter) {
+    if (repositoryId == null || repositoryId.isEmpty()) {
+      return 0;
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      var query = tx.dsl()
+          .selectCount()
+          .from(HOSTED_REPOSITORY_COMPONENT)
+          .leftJoin(OWNER_COMPONENT)
+          .on(OWNER_COMPONENT.OWNER_COMPONENT_ID.eq(HOSTED_REPOSITORY_COMPONENT.OWNER_COMPONENT_ID))
+          .where(HOSTED_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId));
+      Condition filterCondition = displayNameOrPathnameFilter(filter);
+      if (filterCondition != null) {
+        query = query.and(filterCondition);
+      }
+      return query.fetchOne(0, Integer.class);
+    }
+  }
+
+  // Case-insensitive substring match on pathname OR coordinates_json (source of displayName).
+  // Escape order matters: backslash first, then LIKE metacharacters.
+  @Nullable
+  private static Condition displayNameOrPathnameFilter(String filter) {
+    if (filter == null || filter.isEmpty()) {
+      return null;
+    }
+    String escaped = filter.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+    String pattern = "%" + escaped + "%";
+    return HOSTED_REPOSITORY_COMPONENT.PATHNAME.likeIgnoreCase(pattern, '\\')
+        .or(OWNER_COMPONENT.COMPONENT_ID_COORDINATES_JSON.likeIgnoreCase(pattern, '\\'));
+  }
+
+  private HrcWithOwnerComponent toHrcWithOwnerComponent(Record record) {
+    HostedRepositoryComponent hrc =
+        record.into(HOSTED_REPOSITORY_COMPONENT.fields()).into(HostedRepositoryComponent.class);
+    OwnerComponent oc = record.get(OWNER_COMPONENT.OWNER_COMPONENT_ID) != null
+        ? record.into(OWNER_COMPONENT.fields()).into(OwnerComponent.class)
+        : null;
+    return new HrcWithOwnerComponent(hrc, oc);
   }
 
   @Override
@@ -118,6 +224,40 @@ public class HostedRepositoryComponentDAO
         .and(HOSTED_REPOSITORY_COMPONENT_ANCESTOR.HOSTED_REPOSITORY_COMPONENT_ID
             .ne(HOSTED_REPOSITORY_COMPONENT_ANCESTOR.ANCESTOR_ID))
         .fetchInto(HostedRepositoryComponent.class);
+  }
+
+  public Map<String, Date> getLastScanTimesByRepositoryIds(Collection<String> repositoryIds) {
+    if (repositoryIds == null || repositoryIds.isEmpty()) {
+      return Map.of();
+    }
+    Map<String, Date> merged = new HashMap<>();
+    getListWithSqlInClause(repositoryIds, chunk -> {
+      try (TransactionContext tx = createTransactionContext()) {
+        getLastScanTimesByRepositoryIds(tx, chunk)
+            .forEach((repoId, date) -> merged.merge(repoId, date, (a, b) -> a.after(b) ? a : b));
+      }
+      return List.of();
+    }, getDataStore());
+    return merged;
+  }
+
+  public Map<String, Date> getLastScanTimesByRepositoryIds(TransactionContext tx, Collection<String> repositoryIds) {
+    if (repositoryIds == null || repositoryIds.isEmpty()) {
+      return Map.of();
+    }
+    return tx.dsl()
+        .select(HOSTED_REPOSITORY_COMPONENT.REPOSITORY_ID, DSL.max(POLICY_EVALUATION.TIME))
+        .from(HOSTED_REPOSITORY_COMPONENT)
+        .join(LAST_POLICY_EVALUATION)
+        .on(LAST_POLICY_EVALUATION.OWNER_ID.eq(HOSTED_REPOSITORY_COMPONENT.HOSTED_REPOSITORY_COMPONENT_ID))
+        .join(POLICY_EVALUATION)
+        .on(POLICY_EVALUATION.POLICY_EVALUATION_ID.eq(LAST_POLICY_EVALUATION.POLICY_EVALUATION_ID))
+        .where(HOSTED_REPOSITORY_COMPONENT.REPOSITORY_ID.in(repositoryIds))
+        .groupBy(HOSTED_REPOSITORY_COMPONENT.REPOSITORY_ID)
+        .fetch()
+        .stream()
+        .filter(r -> r.value2() != null)
+        .collect(Collectors.toMap(Record2::value1, r -> new Date(r.value2().getTime())));
   }
 
   /**

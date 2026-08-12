@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -35,6 +36,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -676,8 +678,8 @@ public class RepositoryServiceTest
     Date older = new Date(1000L);
     Date newer = new Date(2000L);
     // repo-b gets older scan, repo-a gets newer — so alphabetical order (a,b) differs from scan-time order (b,a)
-    tempEntity.newRepositoryComponent(repoB.getId(), "path-b", older);
-    tempEntity.newRepositoryComponent(repoA.getId(), "path-a", newer);
+    createHrcWithEvaluation(repoB, older);
+    createHrcWithEvaluation(repoA, newer);
 
     HostedRepositoryListDTO result =
         repositoryService.getConfiguredRepositories(REPO_MAN_INSTANCE_ID, null, null, "lastscannedtime", "asc", null,
@@ -720,13 +722,29 @@ public class RepositoryServiceTest
     RepositoryManager repoManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     Repository repo = tempEntity.newHostedRepository(repoManager, REPO_PUBLIC_ID, null, false);
     Date scanDate = new Date(5000L);
-    tempEntity.newRepositoryComponent(repo.getId(), "some-path", scanDate);
+    createHrcWithEvaluation(repo, scanDate);
 
     HostedRepositoryListDTO result =
         repositoryService.getConfiguredRepositories(REPO_MAN_INSTANCE_ID, null, null, null, null, null, null);
 
     assertThat(result.repositories).hasSize(1);
     assertThat(result.repositories.get(0).lastScannedTime).isEqualTo(scanDate.getTime());
+  }
+
+  @Test
+  public void testGetConfiguredRepositories_LastScannedTime_AdvancesAfterReEval() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    Repository repo = tempEntity.newHostedRepository(repoManager, REPO_PUBLIC_ID, null, false);
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repo);
+    Date firstScan = new Date(1_700_000_000_000L);
+    Date reEval = new Date(1_800_000_000_000L);
+    tempEntity.newPolicyEvaluation(hrc.getId(), "build", UUID.randomUUID().toString(), firstScan);
+    tempEntity.newPolicyEvaluation(hrc.getId(), "build", UUID.randomUUID().toString(), reEval);
+
+    HostedRepositoryListDTO result =
+        repositoryService.getConfiguredRepositories(REPO_MAN_INSTANCE_ID, null, null, null, null, null, null);
+
+    assertThat(result.repositories.get(0).lastScannedTime).isEqualTo(reEval.getTime());
   }
 
   @Test
@@ -746,7 +764,7 @@ public class RepositoryServiceTest
     RepositoryManager repoManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     Repository repoA = tempEntity.newHostedRepository(repoManager, "repo-a", null, false);
     tempEntity.newHostedRepository(repoManager, "repo-b", null, false);
-    tempEntity.newRepositoryComponent(repoA.getId(), "path-a", new Date(1000L));
+    createHrcWithEvaluation(repoA, new Date(1000L));
 
     HostedRepositoryListDTO result =
         repositoryService.getConfiguredRepositories(REPO_MAN_INSTANCE_ID, null, null, "lastscannedtime", "desc", null,
@@ -762,7 +780,7 @@ public class RepositoryServiceTest
     RepositoryManager repoManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     Repository repoA = tempEntity.newHostedRepository(repoManager, "repo-a", null, false);
     tempEntity.newHostedRepository(repoManager, "repo-b", null, false);
-    tempEntity.newRepositoryComponent(repoA.getId(), "path-a", new Date(1000L));
+    createHrcWithEvaluation(repoA, new Date(1000L));
 
     HostedRepositoryListDTO result =
         repositoryService.getConfiguredRepositories(REPO_MAN_INSTANCE_ID, null, null, "lastscannedtime", "asc", null,
@@ -925,5 +943,13 @@ public class RepositoryServiceTest
   @Override
   protected String getUserAgent() {
     return "Nexus/3.60.0-01 (PRO; Mac OS X; 10.16; x86_64; 1.8.0_292)";
+  }
+
+  /**
+   * Creates an HRC with a policy evaluation LastPolicyEvaluation entry for testing lastScannedTime.
+   */
+  private void createHrcWithEvaluation(Repository repo, Date evaluationTime) {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repo);
+    tempEntity.newPolicyEvaluation(hrc.getId(), "build", UUID.randomUUID().toString(), evaluationTime);
   }
 }

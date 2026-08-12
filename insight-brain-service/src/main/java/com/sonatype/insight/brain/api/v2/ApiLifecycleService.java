@@ -20,7 +20,7 @@ import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.api.v2.dto.ApiLifecycleRepositoryManagerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLifecycleRepositoryManagerDTO.ConnectionStatus;
 import com.sonatype.insight.brain.api.v2.dto.ApiLifecycleRepositoryManagerListDTO;
-import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.HostedRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -53,7 +53,7 @@ public class ApiLifecycleService
 
   private final RepositoryDAO repositoryDAO;
 
-  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
+  private final HostedRepositoryComponentDAO hostedRepositoryComponentDAO;
 
   private final PermissionService permissionService;
 
@@ -61,12 +61,12 @@ public class ApiLifecycleService
   public ApiLifecycleService(
       final RepositoryManagerDAO repositoryManagerDAO,
       final RepositoryDAO repositoryDAO,
-      final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
+      final HostedRepositoryComponentDAO hostedRepositoryComponentDAO,
       final PermissionService permissionService)
   {
     this.repositoryManagerDAO = repositoryManagerDAO;
     this.repositoryDAO = repositoryDAO;
-    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
+    this.hostedRepositoryComponentDAO = hostedRepositoryComponentDAO;
     this.permissionService = permissionService;
   }
 
@@ -95,7 +95,7 @@ public class ApiLifecycleService
         .map(Repository::getId)
         .filter(id -> id != null)
         .collect(Collectors.toList());
-    Map<String, Date> lastScanTimeByRepoId = proxyRepositoryComponentDAO.getLastScanTimesByRepositoryIds(allRepoIds);
+    Map<String, Date> lastScanTimeByRepoId = hostedRepositoryComponentDAO.getLastScanTimesByRepositoryIds(allRepoIds);
 
     // Compute last activity time per RM: MAX(lastScanTime, lastManualConfigureTime) across all repos
     Map<String, Long> lastActivityTimeByRmId = reposByRmId.entrySet()

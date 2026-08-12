@@ -3401,6 +3401,95 @@ public class PolicyViolationDAOTest
         .isEqualTo(expected.getConstraintFacts());
   }
 
+  @Test
+  public void getActiveByOwnerIdsAndStageIdsGrouped_scopesByStageExcludesFixedWaivedAndLegacy() {
+    Application app = tempEntity.newApplicationWithParent();
+    PolicyEvaluation build = tempEntity.newPolicyEvaluation(app.getId(), "build", TemporaryEntity.uuid());
+    PolicyEvaluation release = tempEntity.newPolicyEvaluation(app.getId(), "release", TemporaryEntity.uuid());
+    Policy policy = tempEntity.newPolicy(app.getOrganizationId(), "P");
+
+    PolicyViolation buildActive = tempEntity.newPolicyViolation(build, policy);
+    PolicyViolation releaseActive = tempEntity.newPolicyViolation(release, policy);
+    PolicyViolation buildFixed = tempEntity.newPolicyViolation(build, policy);
+    buildFixed.setFixTime(new Date());
+    dao.update(buildFixed);
+    PolicyViolation buildWaived = tempEntity.newPolicyViolation(build, policy);
+    buildWaived.setWaiveTime(new Date());
+    dao.update(buildWaived);
+    // Legacy (grandfathered) violation: canonical isActive excludes it for non-proxy stages.
+    PolicyViolation buildLegacy = tempEntity.newPolicyViolation(build, policy);
+    buildLegacy.setLegacyViolationTime(new Date());
+    dao.update(buildLegacy);
+
+    Map<String, List<PolicyViolation>> byBuild =
+        dao.getActiveByOwnerIdsAndStageIdsGrouped(List.of(app.getId()), List.of("build"));
+    assertThat(byBuild).containsOnlyKeys(app.getId() + '|' + "build");
+    assertThat(byBuild.get(app.getId() + '|' + "build"))
+        .extracting(PolicyViolation::getId)
+        .containsExactly(buildActive.getId());
+
+    // release scope must not surface build's violations
+    Map<String, List<PolicyViolation>> byRelease =
+        dao.getActiveByOwnerIdsAndStageIdsGrouped(List.of(app.getId()), List.of("release"));
+    assertThat(byRelease.get(app.getId() + '|' + "release"))
+        .extracting(PolicyViolation::getId)
+        .containsExactly(releaseActive.getId());
+  }
+
+  @Test
+  public void getActiveByOwnerIdsAndStageIdsGrouped_proxyStage_includesLegacy() {
+    // Firewall semantics: proxy-stage active-for-Firewall keeps legacy violations.
+    Application app = tempEntity.newApplicationWithParent();
+    PolicyEvaluation proxy = tempEntity.newPolicyEvaluation(app.getId(), ProxyStageType.ID, TemporaryEntity.uuid());
+    Policy policy = tempEntity.newPolicy(app.getOrganizationId(), "P");
+    PolicyViolation active = tempEntity.newPolicyViolation(proxy, policy);
+    PolicyViolation legacy = tempEntity.newPolicyViolation(proxy, policy);
+    legacy.setLegacyViolationTime(new Date());
+    dao.update(legacy);
+
+    var result = dao.getActiveByOwnerIdsAndStageIdsGrouped(
+        List.of(app.getId()), List.of(ProxyStageType.ID));
+
+    assertThat(result.get(app.getId() + '|' + ProxyStageType.ID))
+        .extracting(PolicyViolation::getId)
+        .containsExactlyInAnyOrder(active.getId(), legacy.getId());
+  }
+
+  @Test
+  public void getActiveByOwnerIdsAndStageIdsGrouped_mixedProxyAndLifecycle_perStageLegacyRules() {
+    // Proxy in stageSet → SQL legacy filter off; Java per-row filter drops only non-proxy legacy.
+    Application app = tempEntity.newApplicationWithParent();
+    PolicyEvaluation build = tempEntity.newPolicyEvaluation(app.getId(), "build", TemporaryEntity.uuid());
+    PolicyEvaluation proxy = tempEntity.newPolicyEvaluation(app.getId(), ProxyStageType.ID, TemporaryEntity.uuid());
+    Policy policy = tempEntity.newPolicy(app.getOrganizationId(), "P");
+
+    PolicyViolation buildActive = tempEntity.newPolicyViolation(build, policy);
+    PolicyViolation buildLegacy = tempEntity.newPolicyViolation(build, policy);
+    buildLegacy.setLegacyViolationTime(new Date());
+    dao.update(buildLegacy);
+    PolicyViolation proxyActive = tempEntity.newPolicyViolation(proxy, policy);
+    PolicyViolation proxyLegacy = tempEntity.newPolicyViolation(proxy, policy);
+    proxyLegacy.setLegacyViolationTime(new Date());
+    dao.update(proxyLegacy);
+
+    var result = dao.getActiveByOwnerIdsAndStageIdsGrouped(
+        List.of(app.getId()), List.of("build", ProxyStageType.ID));
+
+    assertThat(result.get(app.getId() + "|build"))
+        .extracting(PolicyViolation::getId)
+        .containsExactly(buildActive.getId());
+    assertThat(result.get(app.getId() + "|" + ProxyStageType.ID))
+        .extracting(PolicyViolation::getId)
+        .containsExactlyInAnyOrder(proxyActive.getId(), proxyLegacy.getId());
+  }
+
+  @Test
+  public void getActiveByOwnerIdsAndStageIdsGrouped_emptyOrNullInput_returnsEmptyMap() {
+    assertThat(dao.getActiveByOwnerIdsAndStageIdsGrouped(List.of(), List.of("build"))).isEmpty();
+    assertThat(dao.getActiveByOwnerIdsAndStageIdsGrouped(List.of("owner"), List.of())).isEmpty();
+    assertThat(dao.getActiveByOwnerIdsAndStageIdsGrouped(null, null)).isEmpty();
+  }
+
   private PolicyViolation newUnfixedViolation(Application owner, String stageTypeId, int threatLevel) {
     Policy policy = tempEntity.newPolicy(owner);
     PolicyEvaluation evaluation =

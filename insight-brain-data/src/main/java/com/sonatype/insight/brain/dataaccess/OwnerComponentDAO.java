@@ -160,6 +160,34 @@ public class OwnerComponentDAO
         .execute()), getDataStore());
   }
 
+  /**
+   * Counts owner_component rows per {@code (owner_id, stage_type_id)} pair, keyed by
+   * {@code ownerId + "|" + stageTypeId}.
+   */
+  public Map<String, Integer> getCountsByOwnerIdsAndStageTypeIds(
+      Collection<String> ownerIds,
+      Collection<String> stageTypeIds)
+  {
+    if (CollectionUtils.isEmpty(ownerIds) || CollectionUtils.isEmpty(stageTypeIds)) {
+      return Map.of();
+    }
+    Map<String, Integer> counts = new HashMap<>();
+    getListWithSqlInClause(ownerIds, chunk -> {
+      try (TransactionContext tx = createTransactionContext()) {
+        tx.dsl()
+            .select(OWNER_COMPONENT.OWNER_ID, OWNER_COMPONENT.STAGE_TYPE_ID, DSL.count())
+            .from(OWNER_COMPONENT)
+            .where(OWNER_COMPONENT.OWNER_ID.in(chunk))
+            .and(OWNER_COMPONENT.STAGE_TYPE_ID.in(stageTypeIds))
+            .groupBy(OWNER_COMPONENT.OWNER_ID, OWNER_COMPONENT.STAGE_TYPE_ID)
+            .fetch()
+            .forEach(r -> counts.put(r.value1() + '|' + r.value2(), r.value3()));
+      }
+      return List.of();
+    }, getDataStore());
+    return counts;
+  }
+
   public OwnerComponent getByOwnerIdAndStageTypeIdAndHash(String ownerId, String stageTypeId, String hash) {
     try (TransactionContext tx = createTransactionContext()) {
       return toEntity(tx.dsl()

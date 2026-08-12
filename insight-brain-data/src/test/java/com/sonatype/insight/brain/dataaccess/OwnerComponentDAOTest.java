@@ -36,6 +36,8 @@ import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.SourceStageType;
 
+import com.sonatype.insight.dataaccess.TransactionContext;
+
 import com.google.common.collect.Sets;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -1238,5 +1240,47 @@ public class OwnerComponentDAOTest
         dao.findReportsByHashAndOwnerPaged("abc123", " ", 0, 25);
     assertThat(blankOwner.total()).isEqualTo(0L);
     assertThat(blankOwner.rows()).isEmpty();
+  }
+
+  @Test
+  public void getCountsByOwnerIdsAndStageTypeIds_countsPerOwnerAndStage() {
+    // Two owners (HRC-shaped: use unique synthetic ids), each with owner_component rows at two stages.
+    String hrcA = TemporaryEntity.uuid();
+    String hrcB = TemporaryEntity.uuid();
+    seedOwnerComponent(hrcA, "build", "hAb1");
+    seedOwnerComponent(hrcA, "build", "hAb2");
+    seedOwnerComponent(hrcA, "build", "hAb3");
+    seedOwnerComponent(hrcA, "release", "hAr1");
+    seedOwnerComponent(hrcB, "build", "hBb1");
+    try {
+      Map<String, Integer> counts = dao.getCountsByOwnerIdsAndStageTypeIds(
+          List.of(hrcA, hrcB, "no-such"), List.of("build", "release"));
+
+      assertThat(counts).containsEntry(hrcA + "|build", 3);
+      assertThat(counts).containsEntry(hrcA + "|release", 1);
+      assertThat(counts).containsEntry(hrcB + "|build", 1);
+      assertThat(counts).doesNotContainKey("no-such|build");
+    }
+    finally {
+      try (TransactionContext tx = dao.createTransactionContext()) {
+        tx.begin();
+        dao.deleteByOwnerIds(tx, List.of(hrcA, hrcB));
+        tx.commit();
+      }
+    }
+  }
+
+  @Test
+  public void getCountsByOwnerIdsAndStageTypeIds_emptyOrNullInputReturnsEmptyMap() {
+    assertThat(dao.getCountsByOwnerIdsAndStageTypeIds(List.of(), List.of("build"))).isEmpty();
+    assertThat(dao.getCountsByOwnerIdsAndStageTypeIds(List.of("owner"), List.of())).isEmpty();
+    assertThat(dao.getCountsByOwnerIdsAndStageTypeIds(null, null)).isEmpty();
+  }
+
+  private void seedOwnerComponent(String ownerId, String stageTypeId, String hash) {
+    OwnerComponent oc = new OwnerComponent(ownerId, stageTypeId, new Date(), hash,
+        new ComponentIdentifier("maven", Map.of("groupId", "g", "artifactId", "a", "version", hash)),
+        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), false, List.of());
+    dao.insert(oc);
   }
 }

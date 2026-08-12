@@ -7,8 +7,11 @@ package com.sonatype.insight.brain.dataaccess.repository;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -371,6 +374,42 @@ public class HostedComponentScanQueueDAO
       List<HostedComponentScanQueue> jobs = acquireNextPendingJobs(tx, limit, Instant.now());
       tx.commit();
       return jobs;
+    }
+  }
+
+  /** Returns repository IDs with at least one PENDING or IN_PROGRESS queue entry. */
+  public Set<String> getRepositoryIdsWithQueuedScans(
+      final TransactionContext tx,
+      final Collection<String> repositoryIds)
+  {
+    if (CollectionUtils.isEmpty(repositoryIds)) {
+      return Collections.emptySet();
+    }
+    return new HashSet<>(tx.dsl()
+        .selectDistinct(HOSTED_COMPONENT_SCAN_QUEUE.REPOSITORY_ID)
+        .from(HOSTED_COMPONENT_SCAN_QUEUE)
+        .where(HOSTED_COMPONENT_SCAN_QUEUE.REPOSITORY_ID.in(repositoryIds)
+            .and(HOSTED_COMPONENT_SCAN_QUEUE.STATUS.in(
+                Status.PENDING.name(),
+                Status.IN_PROGRESS.name())))
+        .fetch(HOSTED_COMPONENT_SCAN_QUEUE.REPOSITORY_ID));
+  }
+
+  /** Single-id existence check via {@code fetchExists}. */
+  public boolean hasQueuedScans(final String repositoryId) {
+    if (repositoryId == null || repositoryId.isEmpty()) {
+      return false;
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .fetchExists(
+              tx.dsl()
+                  .selectOne()
+                  .from(HOSTED_COMPONENT_SCAN_QUEUE)
+                  .where(HOSTED_COMPONENT_SCAN_QUEUE.REPOSITORY_ID.eq(repositoryId))
+                  .and(HOSTED_COMPONENT_SCAN_QUEUE.STATUS.in(
+                      Status.PENDING.name(),
+                      Status.IN_PROGRESS.name())));
     }
   }
 

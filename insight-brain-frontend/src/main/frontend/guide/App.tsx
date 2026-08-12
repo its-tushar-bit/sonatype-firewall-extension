@@ -21,6 +21,8 @@ import { ComponentsSearchPage } from './components/ComponentsSearchPage';
 import { VulnerabilitiesPage } from './vulnerabilities/VulnerabilitiesPage';
 import { SecurityEventsPage } from './security-events/SecurityEventsPage';
 import { SecurityEventDetailLayout } from './security-events/SecurityEventDetailLayout';
+import { SecurityEventOverviewTab } from './security-events/detail/SecurityEventOverviewTab';
+import { SecurityEventComponentsImpactedTab } from './security-events/detail/SecurityEventComponentsImpactedTab';
 import { VulnerabilityDetailLayout } from './vulnerabilities/VulnerabilityDetailLayout';
 import { SecurityDetailsTab } from './vulnerabilities/detail/SecurityDetailsTab';
 import { ComponentsImpactedTab } from './vulnerabilities/detail/ComponentsImpactedTab';
@@ -78,7 +80,10 @@ function AuthGate() {
                           <Route path="sonatype-research" element={<SonatypeResearchTab />} />
                         </Route>
                         <Route path="/security-events" element={<SecurityEventsPage />} />
-                        <Route path="/security-event/:eventId" element={<SecurityEventDetailLayout />} />
+                        <Route path="/security-event/:eventId" element={<SecurityEventDetailLayout />}>
+                          <Route index element={<SecurityEventOverviewTab />} />
+                          <Route path="affected-components" element={<SecurityEventComponentsImpactedTab />} />
+                        </Route>
                         <Route
                           path="/search"
                           element={

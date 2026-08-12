@@ -6,7 +6,11 @@
 
 import { apiFetch, API_PREFIX, ApiError } from './apiFetch';
 import { makeKeylessTtlCache } from './ttlCache';
-import type { SecurityEventDocument, SecurityEventDetailDocument } from '@guide/ui-core/types';
+import type {
+  SecurityEventDocument,
+  SecurityEventDetailDocument,
+  AffectedComponentVersion,
+} from '@guide/ui-core/types';
 import type { ReadonlySearchParams } from '@guide/ui-core/adapters';
 
 /** Aggregations type matching ui-core's Record<string, Record<string, number>>. */
@@ -89,4 +93,37 @@ export async function getSecurityEventDetails(
     if (e instanceof ApiError && e.status === 404) return null;
     throw e;
   });
+}
+
+/** Accepted sortField values for affected-components queries. Shared with SecurityEventComponentsImpactedTab. */
+export const AFFECTED_COMPONENTS_SORT_FIELDS = new Set(['packageName', 'version', 'ecosystem']);
+
+/**
+ * Get paginated affected component versions for a security event. Returns null for a blank id.
+ * Mirrors {@code getVulnerabilityAffectedComponents}. `ownerId` is appended by apiFetch's
+ * appendOwnerId, so it is not passed explicitly here.
+ */
+export async function getSecurityEventAffectedComponents(
+  eventId: string,
+  params?: {
+    query?: string;
+    offset?: number;
+    limit?: number;
+    sortField?: string;
+    sortOrder?: 'asc' | 'desc';
+  }
+): Promise<ApiSearchResponse<AffectedComponentVersion> | null> {
+  if (!eventId.trim()) return null;
+
+  const queryString = new URLSearchParams();
+  if (params?.query) queryString.set('query', params.query);
+  if (params?.offset !== undefined) queryString.set('offset', String(params.offset));
+  if (params?.limit !== undefined) queryString.set('limit', String(params.limit));
+  if (params?.sortField) queryString.set('sortField', params.sortField);
+  if (params?.sortOrder) queryString.set('sortOrder', params.sortOrder);
+
+  const separator = queryString.toString() ? '?' : '';
+  return apiFetch<ApiSearchResponse<AffectedComponentVersion> | null>(
+    `${API_PREFIX}/security-events/${encodeURIComponent(eventId)}/affected-components${separator}${queryString.toString()}`
+  );
 }

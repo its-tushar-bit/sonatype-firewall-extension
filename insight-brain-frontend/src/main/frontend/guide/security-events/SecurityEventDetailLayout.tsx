@@ -5,19 +5,13 @@
  */
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router';
-import { Box, Card, DataList, Flex, Grid, Skeleton } from '@radix-ui/themes';
+import { useParams, Outlet } from 'react-router';
+import { Box, Flex, Grid, Skeleton } from '@radix-ui/themes';
 import {
   PageLayout,
   Breadcrumbs,
   SecurityEventHeader,
-  SectionHeading,
-  MarkdownContent,
-  SeverityBadge,
-  ThreatTypeBadge,
-  TagGroup,
-  SecurityEventBlogLink,
-  LinedDataList,
+  SecurityEventTabs,
   BodyText,
   PageHeading,
   Button,
@@ -27,13 +21,6 @@ import type { SecurityEventDetailDocument } from '@guide/ui-core/types';
 import { getSecurityEventDetails } from 'GuideRoot/api/securityEventsBackend';
 import { reloadPage, clearErrorRetries } from 'GuideRoot/utils/navigation';
 import { ErrorPage } from 'GuideRoot/layout/ErrorPage';
-
-function knownExploitedText(isKnownExploited?: boolean): string {
-  if (isKnownExploited === undefined) return 'Not available.';
-  return isKnownExploited
-    ? 'Known to be exploited in the wild'
-    : 'Not in KEV Catalog: No known exploits';
-}
 
 export function SecurityEventDetailLayout() {
   const { eventId } = useParams<{ eventId: string }>();
@@ -133,74 +120,9 @@ export function SecurityEventDetailLayout() {
         items={[{ label: 'Security Events', href: '/security-events' }, { label: event.title }]}
       />
       <SecurityEventHeader event={event} />
-      <Box mt={tokens.space.section}>
-        <Grid columns={{ initial: '1', md: '1fr 1fr' }} gap={tokens.space.section}>
-          <Card size={tokens.card.large}>
-            <Flex direction="column" gap={tokens.space.section}>
-              <Box>
-                <SectionHeading mb={tokens.space.inline}>Overview</SectionHeading>
-                {event.detail?.trim() ? (
-                  <MarkdownContent content={event.detail} size="sm" />
-                ) : (
-                  <BodyText tone="subtle">Not available.</BodyText>
-                )}
-              </Box>
-
-              <Box>
-                <SectionHeading mb={tokens.space.inline}>Details</SectionHeading>
-                <LinedDataList>
-                  <DataList.Item>
-                    <DataList.Label>Severity</DataList.Label>
-                    <DataList.Value>
-                      <SeverityBadge severity={event.eventSeverityCategory} />
-                    </DataList.Value>
-                  </DataList.Item>
-
-                  <DataList.Item>
-                    <DataList.Label>Threat Type</DataList.Label>
-                    <DataList.Value>
-                      <ThreatTypeBadge threatType={event.eventThreatType} />
-                    </DataList.Value>
-                  </DataList.Item>
-
-                  <DataList.Item>
-                    <DataList.Label>Known Exploited</DataList.Label>
-                    <DataList.Value>{knownExploitedText(event.isKnownExploited)}</DataList.Value>
-                  </DataList.Item>
-
-                  {event.affectedComponentVersionsCount !== undefined && (
-                    <DataList.Item>
-                      <DataList.Label>Affected Component Versions</DataList.Label>
-                      <DataList.Value>{event.affectedComponentVersionsCount}</DataList.Value>
-                    </DataList.Item>
-                  )}
-
-                  <TagGroup label="Ecosystems" values={event.affectedEcosystems ?? []} />
-                  <TagGroup label="Malware Threat Types" values={event.malwareThreatTypes ?? []} />
-                  <TagGroup label="Attack Vectors" values={event.malwareAttackVectors ?? []} />
-                  <TagGroup label="CWEs" values={event.cwes ?? []} />
-                  <TagGroup label="Advisory References" values={event.advisoryReferenceIds ?? []} />
-                </LinedDataList>
-              </Box>
-            </Flex>
-          </Card>
-
-          <Card size={tokens.card.large}>
-            <Flex direction="column" gap={tokens.space.section}>
-              <Box>
-                <SectionHeading mb={tokens.space.inline}>Guidance</SectionHeading>
-                {event.guidance?.trim() ? (
-                  <MarkdownContent content={event.guidance} size="sm" />
-                ) : (
-                  <BodyText tone="subtle">Not available.</BodyText>
-                )}
-              </Box>
-
-              <SecurityEventBlogLink url={event.sonatypeBlogUrl} />
-            </Flex>
-          </Card>
-        </Grid>
-      </Box>
+      <SecurityEventTabs securityEvent={event}>
+        <Outlet context={event} />
+      </SecurityEventTabs>
     </PageLayout>
   );
 }

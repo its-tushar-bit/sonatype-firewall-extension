@@ -8,6 +8,8 @@ import {
   fetchSecurityEventBrowseAggregations,
   _resetBrowseAggregationsCacheForTests,
   getSecurityEventDetails,
+  getSecurityEventAffectedComponents,
+  AFFECTED_COMPONENTS_SORT_FIELDS,
 } from 'GuideRoot/api/securityEventsBackend';
 import * as apiFetchModule from 'GuideRoot/api/apiFetch';
 import { ApiError } from 'GuideRoot/api/apiFetch';
@@ -133,6 +135,43 @@ describe('securityEventsBackend', () => {
       mockApiFetch.mockRejectedValue(new ApiError('Boom', 500, 'Server Error'));
 
       await expect(getSecurityEventDetails('boom')).rejects.toThrow('Boom');
+    });
+  });
+
+  describe('getSecurityEventAffectedComponents', () => {
+    const affected = { hits: [], total: 0, offset: 0, limit: 25 };
+
+    it('returns null without fetching when the id is blank', async () => {
+      const result = await getSecurityEventAffectedComponents('   ');
+      expect(result).toBeNull();
+      expect(mockApiFetch).not.toHaveBeenCalled();
+    });
+
+    it('builds the affected-components URL with encoded id and params', async () => {
+      mockApiFetch.mockResolvedValue(affected);
+
+      await getSecurityEventAffectedComponents('a/b c', {
+        query: 'log4j', offset: 50, limit: 25, sortField: 'version', sortOrder: 'desc',
+      });
+
+      expect(mockApiFetch).toHaveBeenCalledWith(
+        '/api/v2/guide/security-events/a%2Fb%20c/affected-components?query=log4j&offset=50&limit=25&sortField=version&sortOrder=desc'
+      );
+    });
+
+    it('omits optional params when not provided', async () => {
+      mockApiFetch.mockResolvedValue(affected);
+
+      await getSecurityEventAffectedComponents('SEC-1');
+
+      expect(mockApiFetch).toHaveBeenCalledWith('/api/v2/guide/security-events/SEC-1/affected-components');
+    });
+
+    it('exposes the shared sort-field allowlist', () => {
+      expect(AFFECTED_COMPONENTS_SORT_FIELDS.has('packageName')).toBe(true);
+      expect(AFFECTED_COMPONENTS_SORT_FIELDS.has('version')).toBe(true);
+      expect(AFFECTED_COMPONENTS_SORT_FIELDS.has('ecosystem')).toBe(true);
+      expect(AFFECTED_COMPONENTS_SORT_FIELDS.has('nonsense')).toBe(false);
     });
   });
 });

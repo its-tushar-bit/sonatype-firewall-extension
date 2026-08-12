@@ -58,6 +58,7 @@ import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
 import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.VirtualRepositoryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallQuarantinedComponentDetails;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
@@ -75,6 +76,7 @@ import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.repository.VirtualRepositoryConfig;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -92,6 +94,7 @@ import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.security.AuthzFilter.Context;
 import com.sonatype.insight.brain.telemetry.AutoReleaseQuarantineTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -142,6 +145,8 @@ public class ApiFirewallService
 
   private final RepositoryManagerDAO repositoryManagerDAO;
 
+  private final VirtualRepositoryConfigDAO virtualRepositoryConfigDAO;
+
   private final RepositoryService repositoryService;
 
   private final ApiComponentDetailsAdapter apiComponentDetailsAdapter;
@@ -170,6 +175,7 @@ public class ApiFirewallService
       final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO,
       final TelemetrySender telemetrySender,
       final RepositoryManagerDAO repositoryManagerDAO,
+      final VirtualRepositoryConfigDAO virtualRepositoryConfigDAO,
       final RepositoryService repositoryService,
       final ApiComponentDetailsAdapter apiComponentDetailsAdapter,
       final OwnerDAO ownerDAO,
@@ -186,6 +192,7 @@ public class ApiFirewallService
     this.quarantinedComponentAccessDAO = quarantinedComponentAccessDAO;
     this.telemetrySender = telemetrySender;
     this.repositoryManagerDAO = repositoryManagerDAO;
+    this.virtualRepositoryConfigDAO = virtualRepositoryConfigDAO;
     this.repositoryService = repositoryService;
     this.apiComponentDetailsAdapter = apiComponentDetailsAdapter;
     this.ownerDAO = ownerDAO;
@@ -554,6 +561,11 @@ public class ApiFirewallService
         .getConfiguredRepositoriesNoAuthz(repositoryManager, sinceUtcTimestamp,
             null);
 
+    // upstreamUrl is deliberately not attached here — the satellite table is Firewall
+    // Enterprise-only and joining it here would (a) run an extra read for ordinary Firewall
+    // customers whose rows never exist in it, and (b) put a service-class change into this
+    // data-layer story. Stories 3.2 / 3.4a own the Firewall-Enterprise-scoped endpoint that
+    // surfaces upstreamUrl.
     List<ApiRepositoryDTO> apiRepositories = repositories.stream()
         .map(ApiRepositoryDTO::fromRepository)
         .collect(Collectors.toList());
@@ -759,6 +771,11 @@ public class ApiFirewallService
       throw new BadRequestException("Repository upstream URL is required.");
     }
 
+    // Persistence-time SSRF guard on the upstream URL. FIRE-664 will replace this with an
+    // outbound-boundary check that pins the resolved connection (defeats DNS rebinding);
+    // until then this write-time check is the only barrier against loopback / link-local /
+    // RFC1918 / cloud-metadata addresses reaching the outbound path. Removing it before
+    // FIRE-664 lands would strictly weaken a live endpoint.
     validateUpstreamUrl(apiRepositoryDTO.upstreamUrl);
 
     Repository repository = ApiRepositoryDTO.toRepository(apiRepositoryDTO);
@@ -766,7 +783,22 @@ public class ApiFirewallService
     repository.setRepositoryType(RepositoryType.proxy);
     repository.setQuarantineEnabled(true);
     repository.setAuditEnabled(true);
-    repositoryDAO.insert(repository);
+
+    VirtualRepositoryConfig config = new VirtualRepositoryConfig();
+    config.setUpstreamUrl(apiRepositoryDTO.upstreamUrl);
+
+    // Repository row and its satellite config are a 1:1 pair — commit them atomically so a
+    // satellite-insert failure cannot leave the repository row orphaned (no upstreamUrl on
+    // subsequent reads, no easy cleanup).
+    try (TransactionContext tx = repositoryDAO.createTransactionContext()) {
+      tx.begin();
+      // repository.getId() is populated by AbstractDAO.insert before the DB write, so the
+      // satellite can reference it here.
+      repositoryDAO.insert(tx, repository);
+      config.setRepositoryId(repository.getId());
+      virtualRepositoryConfigDAO.insert(tx, config);
+      tx.commit();
+    }
 
     AuditData.get().setRepository(repository);
 
@@ -819,17 +851,14 @@ public class ApiFirewallService
     return apiRepositoryContainerDTO;
   }
 
-  private static ApiRepositoryManagerDTO fromRepositoryManager(RepositoryManager repositoryManager) {
-    ApiRepositoryManagerDTO dto = new ApiRepositoryManagerDTO();
-    dto.id = repositoryManager.getId();
-    dto.name = repositoryManager.getName();
-    dto.instanceId = repositoryManager.getInstanceId();
-    dto.productName = repositoryManager.getProductName();
-    dto.productVersion = repositoryManager.getProductVersion();
-    dto.managerType = repositoryManager.getManagerType();
-    return dto;
-  }
-
+  /**
+   * Write-time SSRF guard for {@code /firewall/{id}/repositories}: rejects non-http(s) schemes and
+   * hosts that resolve to loopback, any-local, link-local (covers cloud IMDS at 169.254/16),
+   * site-local (RFC1918), or multicast addresses. Defeatable by a DNS record flip between this
+   * call and the outbound request — an outbound-boundary check that pins the resolved connection
+   * (FIRE-664) is the durable fix. Retained here until FIRE-664 lands so this live endpoint is not
+   * strictly weaker than it is on {@code main}.
+   */
   static void validateUpstreamUrl(String url) {
     URI parsed;
     try {
@@ -862,6 +891,17 @@ public class ApiFirewallService
     }
   }
 
+  private static ApiRepositoryManagerDTO fromRepositoryManager(RepositoryManager repositoryManager) {
+    ApiRepositoryManagerDTO dto = new ApiRepositoryManagerDTO();
+    dto.id = repositoryManager.getId();
+    dto.name = repositoryManager.getName();
+    dto.instanceId = repositoryManager.getInstanceId();
+    dto.productName = repositoryManager.getProductName();
+    dto.productVersion = repositoryManager.getProductVersion();
+    dto.managerType = repositoryManager.getManagerType();
+    return dto;
+  }
+
   private static RepositoryManager toRepositoryManager(ApiRepositoryManagerDTO apiRepositoryManagerDTO) {
     RepositoryManager repositoryManager = new RepositoryManager();
     repositoryManager.setId(apiRepositoryManagerDTO.id);
@@ -869,7 +909,13 @@ public class ApiFirewallService
     repositoryManager.setInstanceId(apiRepositoryManagerDTO.instanceId);
     repositoryManager.setProductName(apiRepositoryManagerDTO.productName);
     repositoryManager.setProductVersion(apiRepositoryManagerDTO.productVersion);
-    repositoryManager.setManagerType(apiRepositoryManagerDTO.managerType);
+    // A client that omits managerType (older NXRM predating the field, direct-JSON scripts) should
+    // inherit the entity's TRADITIONAL default (RepositoryManager.managerType field initializer),
+    // not clobber it to null and force DAO-level normalization on every write. Only propagate an
+    // explicitly-set DTO value.
+    if (apiRepositoryManagerDTO.managerType != null) {
+      repositoryManager.setManagerType(apiRepositoryManagerDTO.managerType);
+    }
     return repositoryManager;
   }
 }

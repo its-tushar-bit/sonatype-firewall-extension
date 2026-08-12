@@ -591,10 +591,10 @@ CREATE TABLE repository_manager (
   product_version varchar(100) NULL, -- For ex, "3.59.0"
   base_url varchar(2048) NULL,
   related_organization_id varchar(50) NULL,
-  manager_type varchar(50) NULL,
+  manager_type varchar(50) DEFAULT 'TRADITIONAL' NOT NULL,
   CONSTRAINT repository_manager_pk PRIMARY KEY (repository_manager_id),
   CONSTRAINT repository_manager_uk UNIQUE (instance_id),
-  CONSTRAINT repository_manager_name_uk UNIQUE (name_lowercase_no_whitespace),
+  CONSTRAINT repository_manager_name_uk UNIQUE (name_lowercase_no_whitespace, manager_type),
   CONSTRAINT repository_manager_related_organization_fk FOREIGN KEY (related_organization_id) REFERENCES organization(organization_id) ON DELETE SET NULL
 );
 
@@ -611,11 +611,22 @@ CREATE TABLE repository (
   last_manual_configure_time timestamp DEFAULT NULL,
   related_organization_id varchar(50) NULL,
   monitoring_enabled boolean DEFAULT false NOT NULL,
-  upstream_url varchar(2048) NULL,
   CONSTRAINT repository_pk PRIMARY KEY (repository_id),
   CONSTRAINT repository_uk UNIQUE (repository_manager_id, public_id),
   CONSTRAINT repository_repository_manager_fk FOREIGN KEY (repository_manager_id) REFERENCES repository_manager(repository_manager_id),
   CONSTRAINT repository_related_organization_fk FOREIGN KEY (related_organization_id) REFERENCES organization(organization_id) ON DELETE SET NULL
+);
+
+CREATE TABLE virtual_repository_config (
+  virtual_repository_config_id varchar(50)   NOT NULL,
+  repository_id                varchar(50)   NOT NULL,
+  protocol_version             varchar(50),
+  pypi_package_host_url        varchar(2048),
+  upstream_url                 varchar(2048),
+  CONSTRAINT virtual_repository_config_pk PRIMARY KEY (virtual_repository_config_id),
+  CONSTRAINT virtual_repository_config_repository_fk
+    FOREIGN KEY (repository_id) REFERENCES repository(repository_id) ON DELETE CASCADE,
+  CONSTRAINT virtual_repository_config_uk UNIQUE (repository_id)
 );
 
 CREATE TABLE proxy_repository_component (

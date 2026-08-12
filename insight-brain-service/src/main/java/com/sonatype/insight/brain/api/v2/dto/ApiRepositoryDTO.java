@@ -9,6 +9,9 @@ import com.sonatype.clm.dto.model.repository.RepositoryDTO;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.model.repository.Repository;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
+
 /**
  * @since 1.76
  */
@@ -32,6 +35,13 @@ public class ApiRepositoryDTO
 
   public boolean monitoringEnabled;
 
+  // Owned by the virtual_repository_config satellite table, not by the repository row.
+  // Request-only in this PR: POST /api/v2/firewall/{id}/repositories accepts it and persists it
+  // to the satellite. No response hydrates it — neither getConfiguredRepositories nor
+  // addRepository — so it is excluded from every response and from the generated OpenAPI
+  // response schema. The Firewall-Enterprise-scoped read endpoint (FIRE-660 Stories 3.2 / 3.4a,
+  // FIRE-661+) will surface it.
+  @JsonProperty(access = Access.WRITE_ONLY)
   public String upstreamUrl;
 
   public String proxyUrl;
@@ -60,7 +70,6 @@ public class ApiRepositoryDTO
     repository.setPolicyCompliantComponentSelectionEnabled(dto.policyCompliantComponentSelectionEnabled);
     repository.setNamespaceConfusionProtectionEnabled(dto.namespaceConfusionProtectionEnabled);
     repository.setMonitoringEnabled(dto.monitoringEnabled);
-    repository.setUpstreamUrl(dto.upstreamUrl);
     return repository;
   }
 
@@ -75,7 +84,6 @@ public class ApiRepositoryDTO
     apiRepositoryDTO.policyCompliantComponentSelectionEnabled = repository.isPolicyCompliantComponentSelectionEnabled();
     apiRepositoryDTO.namespaceConfusionProtectionEnabled = repository.isNamespaceConfusionProtectionEnabled();
     apiRepositoryDTO.monitoringEnabled = repository.isMonitoringEnabled();
-    apiRepositoryDTO.upstreamUrl = repository.getUpstreamUrl();
     return apiRepositoryDTO;
   }
 

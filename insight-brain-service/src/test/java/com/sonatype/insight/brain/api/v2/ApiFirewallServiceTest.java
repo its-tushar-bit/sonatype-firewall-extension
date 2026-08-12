@@ -47,6 +47,7 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField;
+import com.sonatype.insight.brain.dataaccess.repository.VirtualRepositoryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField.FirewallFilterableField;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
@@ -137,6 +138,9 @@ public class ApiFirewallServiceTest
 
   @Inject
   private RepositoryDAO repositoryDAO;
+
+  @Inject
+  private VirtualRepositoryConfigDAO virtualRepositoryConfigDAO;
 
   @Inject
   private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
@@ -2545,7 +2549,11 @@ public class ApiFirewallServiceTest
     assertThat(result.publicId).isEqualTo("test-repo");
     assertThat(result.format).isEqualTo("maven2");
     assertThat(result.type).isEqualTo("proxy");
-    assertThat(result.upstreamUrl).isEqualTo("https://repo1.maven.org/maven2/");
+    // upstreamUrl is intentionally not echoed on the write response — it's owned by the
+    // virtual_repository_config satellite and only surfaces on the Firewall-Enterprise-scoped
+    // read endpoint (Stories 3.2 / 3.4a). The field is @JsonInclude(NON_NULL), so a null
+    // in-memory value is suppressed on the wire.
+    assertThat(result.upstreamUrl).isNull();
     assertThat(result.proxyUrl).isEqualTo(
         "http://localhost:8070/api/v2/proxy/" + repositoryManager.getInstanceId() + "/test-repo");
 
@@ -2555,8 +2563,13 @@ public class ApiFirewallServiceTest
     assertThat(storedRepository.getFormat()).isEqualTo("maven2");
     assertThat(storedRepository.getRepositoryType()).isEqualTo(RepositoryType.proxy);
     assertThat(storedRepository.getRepositoryManagerId()).isEqualTo(repositoryManager.getId());
-    assertThat(storedRepository.getUpstreamUrl()).isEqualTo("https://repo1.maven.org/maven2/");
+    assertThat(virtualRepositoryConfigDAO.getByRepositoryId(result.repositoryId).getUpstreamUrl())
+        .isEqualTo("https://repo1.maven.org/maven2/");
   }
+
+  // The satellite-failure atomicity contract of addRepository is pinned by
+  // testAddRepository_InvalidUpstreamUrl below, which drives the public method with a satellite
+  // insert that fails inside the same transaction and asserts no orphan repository row remains.
 
   @Test
   public void testAddRepository_CannotSpecifyRepositoryId() throws Exception {
@@ -2644,12 +2657,19 @@ public class ApiFirewallServiceTest
     repositoryManagerDAO.update(repositoryManager);
 
     ApiRepositoryDTO apiRepositoryDTO = new ApiRepositoryDTO();
-    apiRepositoryDTO.publicId = "test-repo";
+    apiRepositoryDTO.publicId = "invalid-url-repo";
     apiRepositoryDTO.format = "maven2";
-    apiRepositoryDTO.upstreamUrl = "not-a-valid-url";
+    // Passes the service-layer validateUpstreamUrl (public host, http scheme, resolves off
+    // internal address ranges) but fails VirtualRepositoryConfigDAO.validateUrl's embedded-
+    // credentials check inside the transaction — the pair we need to exercise the rollback
+    // contract on the sibling repository insert.
+    apiRepositoryDTO.upstreamUrl = "http://user:pass@example.com/repo/";
 
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> apiFirewallService.addRepository(repositoryManager.getId(), apiRepositoryDTO));
+
+    assertThat(repositoryDAO.getByRepositoryManagerIdAndPublicId(repositoryManager.getId(), "invalid-url-repo"))
+        .isNull();
   }
 
   @Test
@@ -2712,10 +2732,8 @@ public class ApiFirewallServiceTest
 
     apiRepositoryManagerDTO = apiFirewallService.addRepositoryManager(apiRepositoryManagerDTO);
 
-    // Assert the managerType is returned in the response
     assertThat(apiRepositoryManagerDTO.managerType).isEqualTo(ManagerType.VIRTUAL);
 
-    // Assert the managerType is persisted in the db
     RepositoryManager storedRepositoryManager = repositoryManagerDAO.getById(apiRepositoryManagerDTO.id);
     assertThat(storedRepositoryManager.getManagerType()).isEqualTo(ManagerType.VIRTUAL);
   }

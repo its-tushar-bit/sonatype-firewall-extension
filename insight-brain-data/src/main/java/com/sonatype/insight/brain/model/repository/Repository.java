@@ -66,9 +66,6 @@ public class Repository
   @Column(name = "monitoring_enabled")
   private boolean monitoringEnabled = false;
 
-  @Column(name = "upstream_url")
-  private String upstreamUrl;
-
   public Repository() {
   }
 
@@ -198,14 +195,6 @@ public class Repository
 
   public void setMonitoringEnabled(final boolean monitoringEnabled) {
     this.monitoringEnabled = monitoringEnabled;
-  }
-
-  public String getUpstreamUrl() {
-    return upstreamUrl;
-  }
-
-  public void setUpstreamUrl(final String upstreamUrl) {
-    this.upstreamUrl = upstreamUrl;
   }
 
   @Override

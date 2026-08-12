@@ -15,4 +15,8 @@ public class InvalidRepositoryManagerException
   public InvalidRepositoryManagerException(String message) {
     super(message);
   }
+
+  public InvalidRepositoryManagerException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

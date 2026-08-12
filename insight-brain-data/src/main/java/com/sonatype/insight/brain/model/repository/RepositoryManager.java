@@ -21,6 +21,17 @@ import com.sonatype.insight.model.HasStringId;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+/**
+ * Represents a repository manager instance — either a physical Nexus Repository Manager
+ * (TRADITIONAL) or a server-owned Virtual Repository Manager (VIRTUAL).
+ *
+ * <p>
+ * {@code managerType} is {@code NOT NULL} in the database and defaults to
+ * {@link ManagerType#TRADITIONAL} on newly-constructed entities. A {@code null}
+ * {@code managerType} is normalized to {@link ManagerType#TRADITIONAL} by
+ * {@code RepositoryManagerDAO#normalizeManagerType}, invoked at the top of every
+ * {@code insert} / {@code update} on this DAO; non-null values are persisted as-is.
+ */
 @Entity
 @Table(name = "repository_manager")
 public class RepositoryManager
@@ -57,7 +68,7 @@ public class RepositoryManager
 
   @Column(name = "manager_type")
   @Enumerated(EnumType.STRING)
-  private ManagerType managerType;
+  private ManagerType managerType = ManagerType.TRADITIONAL;
 
   public RepositoryManager() {
   }

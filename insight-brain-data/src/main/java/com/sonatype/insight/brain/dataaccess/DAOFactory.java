@@ -97,6 +97,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryContainerDAO;
+import com.sonatype.insight.brain.dataaccess.repository.VirtualRepositoryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
 import com.sonatype.insight.brain.dataaccess.continuousmonitoring.ContinuousMonitoringHostedRepoItemDAO;
 import com.sonatype.insight.brain.dataaccess.continuousmonitoring.ContinuousMonitoringQueueItemDAO;
@@ -338,6 +339,8 @@ public interface DAOFactory
   RepositoryManagerDAO createRepositoryManagerDAO();
 
   RepositoryMigrationDAO createRepositoryMigrationDAO();
+
+  VirtualRepositoryConfigDAO createVirtualRepositoryConfigDAO();
 
   HostedComponentScanQueueDAO createHostedComponentScanQueueDAO();
 

@@ -429,8 +429,12 @@ public class SystemConfigurationProperty
   public static final String IQ_PROXY_ENABLED = "iqProxyEnabled";
 
   /**
-   * Master flag for the Firewall Enterprise initiative. Gates all config-plane and data-plane surfaces
-   * introduced by that initiative. Off by default; explicit opt-in required.
+   * Master flag for the Firewall Enterprise initiative. Off by default; explicit opt-in required.
+   *
+   * <p>
+   * Server-side enforcement lands in FIRE-661+ (VRM read boundary + tenant scoping). Prior to
+   * that, VRM-related surfaces gate only in the frontend and via API-boundary type checks; a
+   * server-side {@code isEnabled} check at consuming services will replace those piecemeal guards.
    */
   public static final String IQ_FIREWALL_ENTERPRISE_ENABLED = "iqFirewallEnterpriseEnabled";
 

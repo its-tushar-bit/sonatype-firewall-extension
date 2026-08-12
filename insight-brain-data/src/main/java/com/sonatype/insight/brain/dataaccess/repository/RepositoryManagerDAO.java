@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.repository;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 
@@ -26,9 +27,13 @@ import jakarta.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Record;
 import org.jooq.Table;
+import org.jooq.exception.DataAccessException;
+import org.jooq.exception.IntegrityConstraintViolationException;
+import org.postgresql.util.PSQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.db.jooq.DialectHelper.POSTGRES_UNIQUE_CONSTRAINT_VIOLATION;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerAncestor.OWNER_ANCESTOR;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.Repository.REPOSITORY;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryManager.REPOSITORY_MANAGER;
@@ -39,6 +44,14 @@ public class RepositoryManagerDAO
     extends AbstractOperationalSqlDAO<RepositoryManager>
 {
   private static final Logger log = LoggerFactory.getLogger(RepositoryManagerDAO.class);
+
+  // Unique-index names on repository_manager. Both constants are defined here so any rename of a
+  // constraint is a single-file change that a reviewer can catch. extractConstraintName pairs each
+  // name with the exception it should map to; the two names share the "repository_manager_" prefix
+  // but neither is a substring of the other, so their check order is not load-bearing.
+  static final String REPOSITORY_MANAGER_NAME_UK = "repository_manager_name_uk";
+
+  static final String REPOSITORY_MANAGER_UK = "repository_manager_uk";
 
   private final Provider<OwnerDAO> ownerDAOProvider;
 
@@ -134,6 +147,7 @@ public class RepositoryManagerDAO
 
   @Override
   public int insert(TransactionContext tx, RepositoryManager repositoryManager) {
+    normalizeManagerType(repositoryManager);
     validateInstanceId(repositoryManager);
     validateName(repositoryManager);
 
@@ -143,16 +157,25 @@ public class RepositoryManagerDAO
     }
 
     if (repositoryManager.getName() != null
-        && getByName(tx, repositoryManager.getName()) != null)
+        && getByNameAndManagerType(tx, repositoryManager.getName(), repositoryManager.getManagerType()) != null)
     {
       throw new InvalidNameException(repositoryManager.getName() + " is already used as a name.");
     }
 
-    return super.insert(tx, repositoryManager);
+    try {
+      return super.insert(tx, repositoryManager);
+    }
+    catch (DataAccessException e) {
+      if (isUniqueConstraintViolation(e)) {
+        throw translateConstraintViolation(repositoryManager, e);
+      }
+      throw e;
+    }
   }
 
   @Override
   public int update(TransactionContext tx, RepositoryManager repositoryManager) {
+    normalizeManagerType(repositoryManager);
     validateInstanceId(repositoryManager);
     validateName(repositoryManager);
 
@@ -163,8 +186,8 @@ public class RepositoryManagerDAO
     }
 
     if (repositoryManager.getRawName() != null) {
-      RepositoryManager foundByNameRepositoryManager = getByName(tx,
-          repositoryManager.getRawName());
+      RepositoryManager foundByNameRepositoryManager = getByNameAndManagerType(tx,
+          repositoryManager.getRawName(), repositoryManager.getManagerType());
       if (foundByNameRepositoryManager != null && !repositoryManager.getId()
           .equals(foundByNameRepositoryManager.getId()))
       {
@@ -173,14 +196,196 @@ public class RepositoryManagerDAO
       }
     }
 
-    return super.update(tx, repositoryManager);
+    try {
+      return super.update(tx, repositoryManager);
+    }
+    catch (DataAccessException e) {
+      if (isUniqueConstraintViolation(e)) {
+        throw translateConstraintViolation(repositoryManager, e);
+      }
+      throw e;
+    }
   }
 
-  public RepositoryManager getByName(TransactionContext tx, String name) {
-    name = NameHelper.normalize(name);
+  /**
+   * Mirrors the {@code manager_type} column default in memory so the entity handed back to
+   * callers (and any subsequent read-back or serialization within the same request) reflects
+   * what was persisted. The DB column is {@code NOT NULL DEFAULT 'TRADITIONAL'}; applying the
+   * same default on the write paths keeps the in-memory entity and the stored row in sync.
+   *
+   * <p>
+   * {@code null} is not a preservable value on this DAO: a caller that passes a {@code null}
+   * {@code managerType} is coerced to {@link ManagerType#TRADITIONAL}. Rows loaded from the
+   * database are never null (the column is {@code NOT NULL} after migration 0481), so this
+   * normalization only fires when a caller supplies a null value — in practice, when an
+   * older client POSTs a repository-manager registration whose body omits {@code managerType}.
+   * Logged at {@code DEBUG}: the trigger is caller-driven and can be per-request on the
+   * pre-flag-migration REST path, so an {@code INFO} entry would be chatty. {@code instanceId}
+   * is deliberately not in the log message — it is unvalidated client input and the log
+   * pattern does not escape newlines (CWE-117 CRLF).
+   */
+  private static void normalizeManagerType(final RepositoryManager repositoryManager) {
+    if (repositoryManager.getManagerType() == null) {
+      log.debug("Normalizing null managerType to TRADITIONAL on repository_manager id={}",
+          repositoryManager.getId());
+      repositoryManager.setManagerType(ManagerType.TRADITIONAL);
+    }
+  }
+
+  /**
+   * Translates a DB-level unique-constraint violation into the corresponding app-level
+   * exception, matching what the pre-check would have thrown. This closes the check-then-act
+   * race where two concurrent writers both pass the pre-check before either commits — the
+   * loser hits the unique index at commit time and must produce a clean caller-facing error
+   * rather than a raw jOOQ exception.
+   *
+   * <p>
+   * Inspects the exception's message chain to identify which constraint fired so that the
+   * translation is correct: an {@code instance_id} race maps to
+   * {@link InvalidRepositoryManagerException}, a name-uniqueness race maps to
+   * {@link InvalidNameException}. Unknown constraint violations propagate as-is.
+   */
+  // package-private for direct unit testing of the exception-translation branching — the
+  // check-then-act race that reaches this method requires two concurrent writers and is not
+  // reproducible in a single-threaded integration test.
+  RuntimeException translateConstraintViolation(
+      final RepositoryManager repositoryManager,
+      final DataAccessException cause)
+  {
+    final String constraint = extractConstraintName(cause);
+    if (REPOSITORY_MANAGER_NAME_UK.equals(constraint)) {
+      return new InvalidNameException(repositoryManager.getName() + " is already used as a name.", cause);
+    }
+    if (REPOSITORY_MANAGER_UK.equals(constraint)) {
+      return new InvalidRepositoryManagerException("There is already a repository manager with instance ID "
+          + repositoryManager.getInstanceId() + ".", cause);
+    }
+    // Unknown constraint or unrecognized message shape: surface with enough context to diagnose
+    // (driver upgrade, new constraint on the table, or lost server-error metadata) rather than
+    // silently propagating a raw jOOQ exception that reaches the caller as a 500.
+    log.warn("Unique-constraint violation on repository_manager could not be mapped to a caller-facing exception "
+        + "(constraint={}); rethrowing raw jOOQ exception.", constraint, cause);
+    return cause;
+  }
+
+  /**
+   * jOOQ does not reliably surface {@link IntegrityConstraintViolationException} at the top
+   * level — some violations only appear at commit or batch flush and reach the caller as a
+   * plain {@link DataAccessException} wrapping a driver exception. Walk the entire cause chain
+   * so a violation nested more than one level down (batch flush, pooling wrapper, driver
+   * upgrade adding a layer) still routes through {@code translateConstraintViolation} instead
+   * of surfacing as a raw 500. Kept symmetric with {@link #extractConstraintName}, which walks
+   * the same chain for the same reason.
+   */
+  // package-private for direct unit testing of the SQLState / wrapper / nested-cause check.
+  static boolean isUniqueConstraintViolation(final DataAccessException e) {
+    for (Throwable current = e; current != null; current = current.getCause()) {
+      if (current instanceof IntegrityConstraintViolationException) {
+        return true;
+      }
+      if (current instanceof PSQLException psqlEx
+          && POSTGRES_UNIQUE_CONSTRAINT_VIOLATION.equals(psqlEx.getSQLState()))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Extracts the violated constraint name from a jOOQ-wrapped DB exception.
+   *
+   * <p>
+   * Two passes over the cause chain rather than one interleaved loop: jOOQ's
+   * {@link IntegrityConstraintViolationException} wrapper copies the driver's message into its
+   * own {@code getMessage()} (recipe {@code "SQL [" + sql + "]; " + driverException.getMessage()}),
+   * so a single interleaved loop matches the substring on the wrapper before ever reaching the
+   * underlying {@link PSQLException} — the structured accessor would never run in production.
+   *
+   * <p>
+   * Pass 1 walks the chain looking for a {@link PSQLException} with a structured constraint name
+   * via {@link org.postgresql.util.ServerErrorMessage#getConstraint()} — preferred where available
+   * since it doesn't depend on driver message wording.
+   *
+   * <p>
+   * Pass 2 falls back to substring-matching the message. H2 embeds the conflicting row's column
+   * values inside the message after a {@code " VALUES "} token, and PostgreSQL's {@code Detail:}
+   * line carries the same shape — so the search is bounded to the segment before that token to
+   * prevent user-controlled data (e.g. an {@code instance_id} containing the literal
+   * {@code repository_manager_name_uk}) from misrouting a constraint match. The message is
+   * lowercased first so the fallback stays correct even if a future H2 config drops
+   * {@code DATABASE_TO_UPPER=FALSE}. Neither constraint name is a substring of the other, so the
+   * order in which they are checked does not affect correctness.
+   *
+   * @return the constraint name, or {@code null} if it could not be determined
+   */
+  // package-private for direct unit testing of the exception-introspection logic — the
+  // try/catch that invokes this only fires on a pre-check/commit race that is not
+  // reproducible in a single-threaded integration test.
+  static String extractConstraintName(final Throwable t) {
+    for (Throwable current = t; current != null; current = current.getCause()) {
+      if (current instanceof PSQLException psqlEx && psqlEx.getServerErrorMessage() != null) {
+        String constraint = psqlEx.getServerErrorMessage().getConstraint();
+        if (constraint != null) {
+          return constraint;
+        }
+      }
+    }
+    for (Throwable current = t; current != null; current = current.getCause()) {
+      String message = current.getMessage();
+      if (message == null) {
+        continue;
+      }
+      // Locale.ENGLISH matches NameHelper.normalize in this module — on a Turkish-locale JVM the
+      // default toLowerCase() maps 'I' to dotless 'ı' (U+0131), which turns "REPOSITORY" into
+      // "reposıtory" and prevents the constraint-name substring match below from ever firing.
+      String lower = message.toLowerCase(Locale.ENGLISH);
+      // Both H2 and PostgreSQL embed the conflicting row's column values further into the
+      // message (H2 after " values ", PostgreSQL after " detail: "). Bound the search to the
+      // segment before whichever appears first so a user-supplied instance_id containing the
+      // literal constraint name can't misroute the match.
+      int values = lower.indexOf(" values ");
+      int detail = lower.indexOf(" detail: ");
+      int cutoff = -1;
+      if (values >= 0 && detail >= 0) {
+        cutoff = Math.min(values, detail);
+      }
+      else if (values >= 0) {
+        cutoff = values;
+      }
+      else if (detail >= 0) {
+        cutoff = detail;
+      }
+      String searchable = cutoff >= 0 ? lower.substring(0, cutoff) : lower;
+      if (searchable.contains(REPOSITORY_MANAGER_NAME_UK)) {
+        return REPOSITORY_MANAGER_NAME_UK;
+      }
+      if (searchable.contains(REPOSITORY_MANAGER_UK)) {
+        return REPOSITORY_MANAGER_UK;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Looks up a repository manager by name within the given {@code managerType} bucket. Since
+   * {@code repository_manager_name_uk} is unique <em>per bucket</em>, the same name can
+   * legitimately exist in the TRADITIONAL and VIRTUAL buckets simultaneously — callers must
+   * therefore state which bucket they mean. Both {@code name} and {@code managerType} are
+   * required.
+   */
+  public RepositoryManager getByNameAndManagerType(
+      final TransactionContext tx,
+      final String name,
+      final ManagerType managerType)
+  {
+    Objects.requireNonNull(name, "name");
+    Objects.requireNonNull(managerType, "managerType");
+    final String normalized = NameHelper.normalize(name);
     return toEntity(tx.dsl()
         .selectFrom(REPOSITORY_MANAGER)
-        .where(REPOSITORY_MANAGER.NAME_LOWERCASE_NO_WHITESPACE.eq(name))
+        .where(REPOSITORY_MANAGER.NAME_LOWERCASE_NO_WHITESPACE.eq(normalized))
+        .and(REPOSITORY_MANAGER.MANAGER_TYPE.eq(managerType.name()))
         .fetchOne());
   }
 
@@ -211,9 +416,12 @@ public class RepositoryManagerDAO
     }
   }
 
-  public RepositoryManager getByName(String name) {
+  /**
+   * @see #getByNameAndManagerType(TransactionContext, String, ManagerType)
+   */
+  public RepositoryManager getByNameAndManagerType(final String name, final ManagerType managerType) {
     try (TransactionContext tx = createTransactionContext()) {
-      return getByName(tx, name);
+      return getByNameAndManagerType(tx, name, managerType);
     }
   }
 

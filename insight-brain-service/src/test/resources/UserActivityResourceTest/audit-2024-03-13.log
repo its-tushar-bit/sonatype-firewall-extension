@@ -1,6 +1,0 @@
-{"timestamp":"2024-03-13T14:30:45.123Z","username":"john.doe","type":"LOGIN","requestMethod":"POST","requestUri":"/api/v2/auth/login","remoteIpAddress":"192.168.1.100","userAgent":"Mozilla/5.0"}
-{"timestamp":"2024-03-13T14:35:22.456Z","username":"john.doe","type":"EVALUATE_APPLICATION","requestMethod":"GET","requestUri":"/api/v2/applications/123/reports","remoteIpAddress":"192.168.1.100","userAgent":"Mozilla/5.0"}
-{"timestamp":"2024-03-13T15:20:11.789Z","username":"jane.smith","type":"LOGIN","requestMethod":"POST","requestUri":"/api/v2/auth/login","remoteIpAddress":"192.168.1.101","userAgent":"Mozilla/5.0"}
-{"timestamp":"2024-03-13T15:25:33.012Z","username":"jane.smith","type":"VIEW_COMPONENT_INFORMATION","requestMethod":"GET","requestUri":"/api/v2/components/456","remoteIpAddress":"192.168.1.101","userAgent":"Mozilla/5.0"}
-{"timestamp":"2024-03-13T16:10:45.345Z","username":"*SYSTEM","type":"EVALUATE_APPLICATION","requestMethod":"GET","requestUri":"/api/v2/applications/789/scan","remoteIpAddress":"127.0.0.1","userAgent":"system"}
-{"timestamp":"2024-03-13T16:15:55.678Z","username":"*UNKNOWN","type":"VIEW_APPLICATION","requestMethod":"GET","requestUri":"/api/v2/applications/public","remoteIpAddress":"192.168.1.102","userAgent":"Mozilla/5.0"}

@@ -479,10 +479,8 @@ public class ReportServiceTest
         licenseThreatGroupDAO, hashComponentIdentifierDAO, licenseOverrideDAO, securityVulnerabilityOverrideDAO,
         multiLicenseDAO, innerSourceApplicationDAO, innerSourceVersionDAO, proprietaryConfigService, reportDataStoreSpy,
         mockScanUploadService, automatedPullRequestCreationServiceSpy, cpeMatchingConfigurationService,
-        scanPersistenceService, proxyRepositoryComponentDAO, null, null, null, null, null,
+        scanPersistenceService, proxyRepositoryComponentDAO, null, null, null,
         innerSourceCleanupPendingService, thirdPartySbomMetadataDAO,
-        mock(com.sonatype.insight.brain.repository.hosted.HostedComponentScanQueueConsumer.class),
-        mock(com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager.class),
         hostedRepositoryComponentDAO, hostedRepositoryComponentResolver, scanPolicyEvaluatorProvider);
   }
 
@@ -816,6 +814,47 @@ public class ReportServiceTest
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> reportService.getReportMetadata(app, "12345678"))
         .withMessage("Could not find a report with ID 12345678");
+  }
+
+  @Test
+  @Category(SlowTest.class)
+  public void testGetReportMetadata_repositoryManagerTrigger_noDeveloperDashboard_totalRiskIsMinusOne() throws Exception {
+    final String scanId1 = "ScanIdRM";
+    productLicense.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportResourceTest/report-expanded_coverage_false",
+        app.getId(), scanId1);
+    tempEntity.newPolicyEvaluation(
+        app.getId(), BuildStageType.ID, scanId1,
+        false /* isReevaluation */, false /* isForMonitoring */,
+        new Date(), ScanTriggerType.REPOSITORY_MANAGER);
+
+    ReportService reportService = createReportService();
+    ReportMetadataDTO metadata = reportService.getReportMetadata(app, scanId1);
+
+    assertThat(metadata.getScanTriggerType()).isEqualTo(ScanTriggerType.REPOSITORY_MANAGER.getDisplayName());
+    assertThat(metadata.getTotalRisk()).isEqualTo(-1);
+  }
+
+  @Test
+  @Category(SlowTest.class)
+  public void testGetReportMetadata_hrcOwner_totalRiskIsMinusOne() throws Exception {
+    final String scanId1 = "ScanIdHrc";
+    productLicense.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    Repository repo = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(
+        repo, "lib.jar", tempEntity.newRandomHash());
+    tempEntity.newPolicyEvaluation(
+        hrc.getId(), BuildStageType.ID, scanId1,
+        false, false, new Date(), ScanTriggerType.HOSTED_REPOSITORY_SCANNING);
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportResourceTest/report-expanded_coverage_false",
+        hrc.getId(), scanId1);
+
+    ReportService reportService = createReportService();
+    ReportMetadataDTO metadata = reportService.getReportMetadataNoAuth(hrc, scanId1);
+
+    assertThat(metadata.getScanTriggerType())
+        .isEqualTo(ScanTriggerType.HOSTED_REPOSITORY_SCANNING.getDisplayName());
+    assertThat(metadata.getTotalRisk()).isEqualTo(-1);
   }
 
   @Test

@@ -56,7 +56,6 @@ import org.jooq.impl.DSL;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.HostedComponentScanQueue.HOSTED_COMPONENT_SCAN_QUEUE;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.Repository.REPOSITORY;
-import static com.sonatype.insight.brain.jooq.generated.ods.tables.QuarantinedComponentAccess.QUARANTINED_COMPONENT_ACCESS;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ProxyRepositoryComponent.PROXY_REPOSITORY_COMPONENT;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ProxyRepositoryPolicyViolation.PROXY_REPOSITORY_POLICY_VIOLATION;
 import static org.jooq.impl.DSL.notExists;
@@ -140,9 +139,9 @@ public class ProxyRepositoryComponentDAO
   }
 
   /**
-   * CLM-42089: exclude transient inner-pathname rows written by the archive-of-archives fan-out
-   * during evaluation (cleaned up by {@code HostedComponentScanQueueConsumer.deleteInnerRepositoryComponentRows}).
-   * Apply on UI-facing queries so a refresh mid-evaluation does not surface these transient rows.
+   * Excludes rows whose pathname contains {@code "!/"} — the separator used for inner artifacts of
+   * an archive-of-archives ({@code outer.zip!/inner.jar}). Applied on UI-facing count/list queries
+   * so only outer-artifact rows are surfaced.
    */
   private static Condition notInnerPathname() {
     return PROXY_REPOSITORY_COMPONENT.PATHNAME.notLike("%!/%");
@@ -387,10 +386,10 @@ public class ProxyRepositoryComponentDAO
    * Merges the two per-component reads inside the (repositoryId, pathname) cluster lock in
    * {@code RepositoryPolicyEvaluator} into a single round trip (CLM-42134). Each table is pre-filtered
    * to the target key in its own subquery, then combined so that either side is preserved when the other
-   * is empty: this matters because {@code proxy_repository_policy_violation} rows can outlive their
-   * {@code proxy_repository_component} row (see the archive-of-archives inner-pathname cleanup in
-   * {@code HostedComponentScanQueueConsumer}, CLM-40943) — a plain left join from
-   * {@code proxy_repository_component} would silently drop those active violations.
+   * is empty: this matters because {@code proxy_repository_policy_violation} rows for inner pathnames
+   * ({@code outer.zip!/inner.jar}) can exist without a matching {@code proxy_repository_component} row,
+   * and a plain left join from {@code proxy_repository_component} would silently drop those active
+   * violations.
    * <p>
    * This is a full outer join, emulated as {@code (rc LEFT JOIN rpv) UNION ALL (rpv LEFT JOIN rc WHERE
    * unmatched)} because H2 (used by this module's non-Postgres tests) doesn't support {@code FULL OUTER
@@ -1284,46 +1283,6 @@ public class ProxyRepositoryComponentDAO
     }
   }
 
-  /**
-   * Bulk-deletes {@code proxy_repository_component} rows for the given pathnames, in batches sized
-   * for the configured DB IN-clause threshold. Used by the hosted-repo archive-of-archives
-   * fan-out path to remove the per-inner-pathname rows (kept only transiently inside the
-   * evaluator) so the Components page only ever shows the outer artifact — see
-   * {@code HostedComponentScanQueueConsumer.deleteInnerRepositoryComponentRows}.
-   * <p>
-   * Replaces an N+1 (1 SELECT + 1 DELETE per pathname) loop with at most ⌈N / threshold⌉ DML
-   * statements. Honors the per-row {@code quarantined_component_access} cascade by issuing the
-   * matching IN-clause delete on that table first.
-   */
-  public void deleteByRepositoryIdAndPathnames(
-      final TransactionContext tx,
-      final String repositoryId,
-      final java.util.Collection<String> pathnames)
-  {
-    if (repositoryId == null || pathnames == null || pathnames.isEmpty()) {
-      return;
-    }
-    int threshold = getInOperatorThreshold();
-    java.util.List<String> all = new java.util.ArrayList<>(pathnames);
-    for (java.util.List<String> chunk : com.google.common.collect.Lists.partition(all, threshold)) {
-      // Cascade: clear quarantined_component_access for any rows we're about to remove.
-      tx.dsl()
-          .deleteFrom(QUARANTINED_COMPONENT_ACCESS)
-          .where(QUARANTINED_COMPONENT_ACCESS.PROXY_REPOSITORY_COMPONENT_ID.in(
-              tx.dsl()
-                  .select(PROXY_REPOSITORY_COMPONENT.PROXY_REPOSITORY_COMPONENT_ID)
-                  .from(PROXY_REPOSITORY_COMPONENT)
-                  .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
-                  .and(PROXY_REPOSITORY_COMPONENT.PATHNAME.in(chunk))))
-          .execute();
-      tx.dsl()
-          .deleteFrom(PROXY_REPOSITORY_COMPONENT)
-          .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
-          .and(PROXY_REPOSITORY_COMPONENT.PATHNAME.in(chunk))
-          .execute();
-    }
-  }
-
   public List<ProxyRepositoryComponent> getOtherVersionRepositoryComponentsByPathnameFilter(
       String repositoryId,
       String pathnamePrefix,
@@ -1495,72 +1454,6 @@ public class ProxyRepositoryComponentDAO
       }
       return results.isEmpty() ? null : toEntity(results.get(0));
     }
-  }
-
-  public void stampScanId(
-      final TransactionContext tx,
-      final String repositoryId,
-      final String pathname,
-      final String scanId)
-  {
-    tx.dsl()
-        .update(PROXY_REPOSITORY_COMPONENT)
-        .set(PROXY_REPOSITORY_COMPONENT.SCAN_ID, scanId)
-        .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
-        .and(PROXY_REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
-        .execute();
-  }
-
-  public void stampComponentCount(
-      final TransactionContext tx,
-      final String repositoryId,
-      final String pathname,
-      final int componentCount)
-  {
-    tx.dsl()
-        .update(PROXY_REPOSITORY_COMPONENT)
-        .set(PROXY_REPOSITORY_COMPONENT.COMPONENT_COUNT, componentCount)
-        .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
-        .and(PROXY_REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
-        .execute();
-  }
-
-  /**
-   * Atomically updates {@code component_count} only when {@code candidate} is strictly higher
-   * than the currently-persisted value (or that value is {@code NULL}). The check is enforced at
-   * the SQL level via an extra {@code WHERE} clause, removing any read-then-write race between
-   * the eager scanner-count stamp and the later HDS-bom refinement.
-   *
-   * @return number of rows updated (0 when the candidate is not higher than the existing value).
-   */
-  public int raiseComponentCountIfHigher(
-      final TransactionContext tx,
-      final String repositoryId,
-      final String pathname,
-      final int candidate)
-  {
-    return tx.dsl()
-        .update(PROXY_REPOSITORY_COMPONENT)
-        .set(PROXY_REPOSITORY_COMPONENT.COMPONENT_COUNT, candidate)
-        .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
-        .and(PROXY_REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
-        .and(PROXY_REPOSITORY_COMPONENT.COMPONENT_COUNT.isNull()
-            .or(PROXY_REPOSITORY_COMPONENT.COMPONENT_COUNT.lessThan(candidate)))
-        .execute();
-  }
-
-  public void stampLastEvaluationStage(
-      final TransactionContext tx,
-      final String repositoryId,
-      final String pathname,
-      final String stage)
-  {
-    tx.dsl()
-        .update(PROXY_REPOSITORY_COMPONENT)
-        .set(PROXY_REPOSITORY_COMPONENT.LAST_EVALUATION_STAGE, stage)
-        .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
-        .and(PROXY_REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
-        .execute();
   }
 
   public Set<String> getRepositoryIdsWithQueuedScans(

@@ -133,20 +133,6 @@ public class PolicyEvaluation
     this.clientScanType = clientScanType;
   }
 
-  /**
-   * Row shape for a first-time hosted-repo {@code policy_evaluation} entry, written by
-   * {@code HostedComponentScanQueueConsumer.createPolicyEvaluationRecord}.
-   */
-  public static PolicyEvaluation createForHostedComponent(
-      final String ownerId,
-      final String stageTypeId,
-      final String scanId,
-      final boolean isReevaluation)
-  {
-    return new PolicyEvaluation(ownerId, stageTypeId.toLowerCase(), scanId, isReevaluation, false, "system",
-        ScanTriggerType.HOSTED_REPOSITORY_SCANNING, null);
-  }
-
   @Override
   public String getId() {
     return id;

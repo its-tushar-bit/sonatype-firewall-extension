@@ -14,7 +14,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -22,12 +21,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.utils.ReportHelper;
@@ -478,9 +473,8 @@ public class HostedComponentScanQueueConsumerTest
     assertThat(hrc).as("hosted_repository_component row for the org-linked repository upload").isNotNull();
     assertThat(hrc.getComponentId()).isEqualTo("comp-scanid");
 
-    // CLM-41693: also verify the policy_evaluation row was tagged with HOSTED_REPOSITORY_SCANNING
-    // (end-to-end DB assertion that complements the telemetry unit tests in
-    // HostedComponentScanQueueConsumerTelemetryTest).
+    // end-to-end DB assertion that scan_trigger_type=HOSTED_REPOSITORY_SCANNING
+    // is stamped on the policy_evaluation row written by ScanPolicyEvaluator.evaluate.
     com.sonatype.insight.brain.model.policy.PolicyEvaluation pe = policyEvaluationDAO.getAllLast()
         .stream()
         .filter(p -> hrc.getId().equals(p.getOwnerId()))
@@ -491,7 +485,7 @@ public class HostedComponentScanQueueConsumerTest
         .isNotNull();
     assertThat(pe.getScanId()).isEqualTo(scanId);
     assertThat(pe.getScanTriggerType())
-        .as("scan_trigger_type column must be HOSTED_REPOSITORY_SCANNING (CLM-41693)")
+        .as("scan_trigger_type column must be HOSTED_REPOSITORY_SCANNING")
         .isEqualTo(com.sonatype.insight.brain.model.policy.ScanTriggerType.HOSTED_REPOSITORY_SCANNING);
   }
 
@@ -571,7 +565,7 @@ public class HostedComponentScanQueueConsumerTest
         .isNotNull();
     assertThat(pe.getScanId()).isEqualTo(scanId);
     assertThat(pe.getScanTriggerType())
-        .as("scan_trigger_type column must be HOSTED_REPOSITORY_SCANNING (CLM-41693)")
+        .as("scan_trigger_type column must be HOSTED_REPOSITORY_SCANNING")
         .isEqualTo(com.sonatype.insight.brain.model.policy.ScanTriggerType.HOSTED_REPOSITORY_SCANNING);
 
     // resolver.pinOwnerComponent ran after evaluation and found a match for the outer artifact.
@@ -649,101 +643,6 @@ public class HostedComponentScanQueueConsumerTest
     assertThat(pe.getStageTypeId())
         .as("normalizeStage must canonicalize STAGE_RELEASE to stage-release before evaluation")
         .isEqualTo("stage-release");
-  }
-
-  // ---- Format-carveout collapse gate, driven via the Continuous Monitoring refresh path ----
-  //
-  // The KEEP_NESTED_FORMATS_FOR_IDENTIFIED_OUTER / ALWAYS_COLLAPSE_TO_OUTER_FORMATS gate lives
-  // inside mirrorNestedComponentViolationsFromApplicationEvaluation, which is reached only from
-  // ReportService.refreshHostedComponentAfterEvaluation (Continuous Monitoring, via
-  // RepositoryContinuousMonitoringFlowProcessor). These two tests drive the gate through
-  // refreshHostedComponentAfterEvaluation directly, seeding the outer proxy_repository_component
-  // row with the matchStateId the gate reads, since that row is populated by an earlier
-  // evaluation cycle rather than by refreshHostedComponentAfterEvaluation itself.
-  // refreshHostedComponentAfterEvaluation's saveOverlayFiles step reads bom.json from a
-  // report.zip that must already be cached on local disk for (application, scanId) — in
-  // production this is populated by the original evaluation cycle that produced the outer row,
-  // so the tests pre-fetch it the same way via reportDataStore.downloadReport beforehand.
-
-  @Test
-  public void refreshHostedComponentAfterEvaluation_identifiedOuterGate_mavenFormat_collapsesToOneComponent() throws Exception {
-    // CLM-40943: when the outer artifact was identified (matchStateId != UNKNOWN) by an earlier
-    // evaluation and the repository's format is not in the keep-nested set, the gate collapses
-    // the component to one row and cleans up stale inner-pathname violations.
-    String outerPathname = "outer-maven.jar";
-    String innerPathname = outerPathname + "!/inner-maven.jar";
-    String scanId = "scan-identified-outer-gate";
-    String stageTypeId = "build";
-
-    Application application = tempEntity.newApplication(tempEntity.newOrganization().getId());
-    Repository repository = enableMonitoring(
-        tempEntity.newRepository(UUID.randomUUID().toString(), "repo-identified-outer-gate", "maven2"));
-    ProxyRepositoryComponent outerComponent = seedOuterComponent(
-        repository, outerPathname, MatchState.EXACT, "outer-hash-ident1",
-        ComponentIdentifier.createMavenCoordinates("g", "a", "1.0"), scanId, 2);
-    seedInnerViolation(repository, application, innerPathname, "inner-hash-ident1",
-        ComponentIdentifier.createMavenCoordinates("g", "b", "1.0"));
-
-    mockPolicyEvaluatorHdsResponseForHashes(outerComponent.getHash());
-    URL zippedReport = ReportHelper.zipReport("/ScanServiceTest/report", tempDir);
-    hdsMockServer.respondWith(zippedReport).atUri("rest/application/analysis/" + scanId);
-    reportDataStore.downloadReport(application, scanId, (sid, r, aid) -> {
-    });
-
-    reportService.refreshHostedComponentAfterEvaluation(
-        outerComponent, repository, application, application.getId(), scanId, stageTypeId, false);
-
-    ProxyRepositoryComponent updatedOuter =
-        proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), outerPathname);
-    assertThat(updatedOuter.getComponentCount())
-        .as("identified-outer gate forces the outer row's componentCount to 1")
-        .isEqualTo(1);
-
-    List<ProxyRepositoryPolicyViolation> remaining = proxyRepositoryPolicyViolationDAO
-        .getActiveByRepositoryIdAndPathnameOrInnerPathnames(repository.getId(), outerPathname);
-    assertThat(remaining)
-        .as("stale inner-pathname violation is deleted once the gate collapses the component")
-        .noneMatch(v -> innerPathname.equals(v.getPathname()));
-  }
-
-  @Test
-  public void refreshHostedComponentAfterEvaluation_alwaysCollapse_rubygems_unknownOuter_collapsesToOneComponent() throws Exception {
-    // CLM-42119: rubygems collapses to one component regardless of the outer's persisted match
-    // state — ALWAYS_COLLAPSE_TO_OUTER_FORMATS fires even when the outer is UNKNOWN.
-    String outerPathname = "outer.gem";
-    String innerPathname = outerPathname + "!/inner.gem";
-    String scanId = "scan-always-collapse-rubygems";
-    String stageTypeId = "build";
-
-    Application application = tempEntity.newApplication(tempEntity.newOrganization().getId());
-    Repository repository = enableMonitoring(
-        tempEntity.newRepository(UUID.randomUUID().toString(), "repo-always-collapse-rubygems", "rubygems"));
-    ProxyRepositoryComponent outerComponent = seedOuterComponent(
-        repository, outerPathname, MatchState.UNKNOWN, "outer-hash-ruby1",
-        ComponentIdentifier.createRubyGemsCoordinates("outer-gem", "1.0", "ruby"), scanId, 2);
-    seedInnerViolation(repository, application, innerPathname, "inner-hash-ruby1",
-        ComponentIdentifier.createRubyGemsCoordinates("inner-gem", "1.0", "ruby"));
-
-    mockPolicyEvaluatorHdsResponseUnknown(outerComponent.getHash());
-    URL zippedReport = ReportHelper.zipReport("/ScanServiceTest/report", tempDir);
-    hdsMockServer.respondWith(zippedReport).atUri("rest/application/analysis/" + scanId);
-    reportDataStore.downloadReport(application, scanId, (sid, r, aid) -> {
-    });
-
-    reportService.refreshHostedComponentAfterEvaluation(
-        outerComponent, repository, application, application.getId(), scanId, stageTypeId, false);
-
-    ProxyRepositoryComponent updatedOuter =
-        proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), outerPathname);
-    assertThat(updatedOuter.getComponentCount())
-        .as("always-collapse gate forces the outer row's componentCount to 1 even when outer is UNKNOWN")
-        .isEqualTo(1);
-
-    List<ProxyRepositoryPolicyViolation> remaining = proxyRepositoryPolicyViolationDAO
-        .getActiveByRepositoryIdAndPathnameOrInnerPathnames(repository.getId(), outerPathname);
-    assertThat(remaining)
-        .as("stale inner-pathname violation is deleted once the gate collapses the component")
-        .noneMatch(v -> innerPathname.equals(v.getPathname()));
   }
 
   // ---- Helpers -------------------------------------------------------------
@@ -1132,50 +1031,6 @@ public class HostedComponentScanQueueConsumerTest
   }
 
   /**
-   * Seeds an outer {@code proxy_repository_component} row with the given match state, as if an
-   * earlier evaluation cycle had already identified (or failed to identify) it — the mirror
-   * step's collapse gate reads this pre-existing row rather than producing it itself.
-   */
-  private ProxyRepositoryComponent seedOuterComponent(
-      final Repository repository,
-      final String pathname,
-      final MatchState matchState,
-      final String hash,
-      final ComponentIdentifier componentIdentifier,
-      final String scanId,
-      final int initialComponentCount)
-  {
-    ProxyRepositoryComponent outer = tempEntity.newRepositoryComponent(
-        repository.getId(), matchState, pathname, hash, componentIdentifier, false);
-    outer.setScanId(scanId);
-    outer.setComponentCount(initialComponentCount);
-    try (TransactionContext tx = proxyRepositoryComponentDAO.createTransactionContext()) {
-      tx.begin();
-      proxyRepositoryComponentDAO.update(tx, outer);
-      tx.commit();
-    }
-    return outer;
-  }
-
-  /**
-   * Seeds a pre-existing inner-pathname (outerPath + "!/" + innerPath) violation for the gate's cleanup step to delete.
-   */
-  private ProxyRepositoryPolicyViolation seedInnerViolation(
-      final Repository repository,
-      final Application application,
-      final String innerPathname,
-      final String hash,
-      final ComponentIdentifier componentIdentifier)
-  {
-    Policy policy = tempEntity.newPolicy(application, 5);
-    return tempEntity.newRepositoryPolicyViolation(repository, policy, innerPathname, componentIdentifier, hash);
-  }
-
-  private void mockPolicyEvaluatorHdsResponse(final String hash) {
-    mockPolicyEvaluatorHdsResponseForHashes(hash);
-  }
-
-  /**
    * Mocks the HDS component-details response with one entry per supplied hash, in order. The
    * evaluator validates that the response's index/length match the request's, so when the
    * consumer sends N components in one request the mock must return N entries.
@@ -1330,70 +1185,6 @@ public class HostedComponentScanQueueConsumerTest
     return job;
   }
 
-  /**
-   * Inserts a job whose scan.xml contains multiple {@code
-   *
-  <dir>
-   * } elements — simulating an
-   * archive-of-archives upload (e.g. a {@code .zip} that the insight-scanner unpacked into N inner
-   * artifacts). Used by the archive-fan-out test below to verify the consumer creates one
-   * {@code proxy_repository_component} row per inner artifact.
-   */
-  private HostedComponentScanQueue insertPendingJobWithMultiComponentScanXml(
-      final String repoName,
-      final String componentId,
-      final String outerPathname,
-      final String outerSha1,
-      final String[] innerPathnames,
-      final String[] innerSha1s,
-      final String format) throws Exception
-  {
-    // Set the DB Repository.format so runtime code paths that read it
-    // (HostedComponentScanQueueConsumer's format carveouts:
-    // KEEP_NESTED_FORMATS_FOR_IDENTIFIED_OUTER, ALWAYS_COLLAPSE_TO_OUTER_FORMATS, etc.)
-    // observe the same format string the scan XML declares. Prior versions of this helper
-    // only wrote the format into the scan XML, leaving repository.format null in the DB —
-    // fine for tests that never exercised a format-carveout branch, but wrong for tests
-    // that do (e.g. rubygems always-collapse).
-    // CLM-42122: enableMonitoring wrapper flips repository.monitoringEnabled=true so the
-    // consumer's per-job guard (introduced by CLM-42122) doesn't skip the job during test.
-    Repository repo = enableMonitoring(tempEntity.newRepository(UUID.randomUUID().toString(), repoName, format));
-    tempEntity.newRepositoryComponent(repo.getId());
-
-    StringBuilder dirs = new StringBuilder();
-    dirs.append("<dir path=\"")
-        .append(outerPathname)
-        .append("\" sha1=\"")
-        .append(outerSha1)
-        .append("\" sha512=\"ignored\">\n</dir>\n");
-    for (int i = 0; i < innerPathnames.length; i++) {
-      dirs.append("<dir path=\"")
-          .append(innerPathnames[i])
-          .append("\" sha1=\"")
-          .append(innerSha1s[i])
-          .append("\" sha512=\"ignored\">\n</dir>\n");
-    }
-
-    String scanXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-        "<scan version=\"2.24\">\n" +
-        "<repository id=\"" + repo.getId() + "\" name=\"" + repoName + "\" format=\"" + format + "\"/>\n" +
-        dirs +
-        "</scan>";
-
-    ScanEntity scanEntity = scanPersistenceService.createTempScan(repo.getId());
-    try (OutputStream out = scanEntity.getOutputStream()) {
-      out.write(scanXml.getBytes(StandardCharsets.UTF_8));
-    }
-
-    HostedComponentScanQueue job = new HostedComponentScanQueue(
-        componentId, scanEntity.getName(),
-        HostedComponentScanQueueDAO.Status.PENDING.name(),
-        HostedComponentScanQueue.DEFAULT_PRIORITY,
-        repo.getId());
-    queueDAO.insert(job);
-    return job;
-  }
-
   // ---- CLM-42122 monitoring-disabled guard tests (from origin/main) ----
 
   @Test
@@ -1447,23 +1238,4 @@ public class HostedComponentScanQueueConsumerTest
             .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
   }
 
-  /**
-   * Companion to {@link #mockPolicyEvaluatorHdsResponseForHashes} that returns
-   * {@link MatchState#UNKNOWN} instead of EXACT. Used by tests that need to bypass the
-   * identified-outer collapse gate and exercise the drill-down path.
-   */
-  private void mockPolicyEvaluatorHdsResponseUnknown(final String... hashes) {
-    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
-    hdsResult.components = new ArrayList<>();
-    for (int i = 0; i < hashes.length; i++) {
-      ComponentEvaluationData ced = new ComponentEvaluationData();
-      ced.requestIndex = i;
-      ced.hash = hashes[i];
-      ced.matchState = MatchState.UNKNOWN.getId();
-      ced.declaredLicenses = new HashSet<>();
-      ced.observedLicenses = new HashSet<>();
-      hdsResult.components.add(ced);
-    }
-    hdsMockServer.respondWith(hdsResult).atUri(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH);
-  }
 }

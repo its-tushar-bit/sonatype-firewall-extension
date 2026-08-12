@@ -2974,6 +2974,22 @@ public class TemporaryEntity
       String scanId,
       boolean isReevaluation,
       boolean isForMonitoring,
+      Date time,
+      ScanTriggerType scanTriggerType)
+  {
+    PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId, isReevaluation,
+        isForMonitoring, "system", scanTriggerType, ClientScanType.SONATYPE);
+    policyEvaluation.setTime(time);
+    policyEvaluationDAO.insert(policyEvaluation);
+    return policyEvaluation;
+  }
+
+  public PolicyEvaluation newPolicyEvaluation(
+      String applicationId,
+      String stageTypeId,
+      String scanId,
+      boolean isReevaluation,
+      boolean isForMonitoring,
       boolean isForObsoleteScan,
       Date time)
   {

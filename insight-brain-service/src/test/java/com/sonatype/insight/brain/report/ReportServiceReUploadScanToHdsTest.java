@@ -159,9 +159,6 @@ public class ReportServiceReUploadScanToHdsTest
   private LifecycleReportPersistenceService lifecycleReportPersistenceService;
 
   @Mock
-  private com.sonatype.insight.brain.repository.hosted.HostedComponentScanQueueConsumer hostedComponentScanQueueConsumer;
-
-  @Mock
   private com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
   @InjectMocks

@@ -178,6 +178,9 @@ void configureBranchJob() {
 
       booleanParam(name: 'skipPlaywrightTests', defaultValue: false,
           description: 'Skip: Playwright Functional Tests (insight-brain-playwright-test)'),
+      booleanParam(name: 'skipPlaywrightRegressionTests', defaultValue: false,
+          description: 'Skip: Playwright Regression Tests (-Pregression, split across 3 agents). ' +
+              'Runs on every build unless checked.'),
       choice(name: 'playwrightTraceMode', choices: ['on-failure', 'always', 'off'],
           description: 'Playwright trace: on-failure (routine CI); always when debugging flakes; off to disable.'),
 
@@ -358,7 +361,15 @@ Map<String, Closure> getParallelTests(List <String> zips) {
   Map<String, Closure> testStages = [:]
 
   if (!params.skipPlaywrightTests) {
-    testStages << createPlaywrightTests('Playwright Functional Tests', '.*Test.class', zips)
+    testStages << createPlaywrightTests('Playwright Functional Tests', '.*Test.class', zips, 'sanity')
+  }
+
+  // Playwright Regression - split across 3 agents by test class name pattern
+  // @Category(RegressionTest) method counts: A-L (234), M-P (257), Q-Z (222)
+  if (playwrightRegressionEnabled()) {
+    testStages << createPlaywrightTests('Playwright Regression 1 (A-L)', '.*/[A-L].*Test.class', zips, 'regression')
+    testStages << createPlaywrightTests('Playwright Regression 2 (M-P)', '.*/[M-P].*Test.class', zips, 'regression')
+    testStages << createPlaywrightTests('Playwright Regression 3 (Q-Z)', '.*/[Q-Z].*Test.class', zips, 'regression')
   }
 
   // These tests make use of iq-tests.zip which does not include insight-brain-frontend (1.2GB)
@@ -398,10 +409,15 @@ Map<String, Closure> getParallelTests(List <String> zips) {
   return testStages
 }
 
+/**
+ * Build a Playwright stage running the 'sanity' or 'regression' profile over the matching tests.
+ * 90m timeout matches the per-shard bound in Jenkinsfile.feature.
+ */
 Map<String, Closure> createPlaywrightTests(
   String stageName,
   String regex,
-  List<String> zipFiles
+  List<String> zipFiles,
+  String profile
 ) {
   String mavenModule = 'insight-brain-playwright-test'
 
@@ -416,10 +432,12 @@ Map<String, Closure> createPlaywrightTests(
           mavenOptions += " -Dfailsafe.rerunFailingTestsCount=2"
           mavenOptions += " -Dfailsafe.failOnFlakeCount=5"
           mavenOptions += " --threads 4"
-          mavenOptions += " -Psanity"
+          mavenOptions += " -P${profile}"
           mavenOptions += " -Dplaywright.trace=${params.playwrightTraceMode ?: 'on-failure'}"
           Map<String, ?> testConfig = testConfig(mavenOptions, "${mavenModule}/pom.xml")
-          mvn testConfig, 'failsafe:integration-test failsafe:verify'
+          timeout(time: 90, unit: 'MINUTES') {
+            mvn testConfig, 'failsafe:integration-test failsafe:verify'
+          }
         }
         finally {
           capturePlaywrightResultsAndCleanup()
@@ -570,6 +588,11 @@ void capturePlaywrightResultsAndCleanup() {
   String stashName = "jacoco-${env.STAGE_NAME.replaceAll('[^a-zA-Z0-9]', '-')}"
   stash name: stashName, includes: '**/target/jacoco.exec, **/target/site/jacoco/jacoco.xml', allowEmpty: true
   deleteDir()
+}
+
+/** Whether the Playwright regression shards run. Unset (first build of a branch) means run. */
+boolean playwrightRegressionEnabled() {
+  return params.skipPlaywrightRegressionTests != true
 }
 
 boolean isDynamicPolicyEvaluationEnabled() {

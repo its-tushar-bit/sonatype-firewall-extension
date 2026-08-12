@@ -23,6 +23,7 @@
  *   Build & Test              — compile + package (tests skipped)
  *   Unit + Integration Tests  — 9 alphabetical partitions + MTIQ + Jest + JaCoCo
  *   Playwright Sanity Tests   — -Psanity @Category(SanityTest)
+ *   Playwright Regr Tests     — -Pregression @Category(RegressionTest), 3 sequential partitions
  *
  * See runUnitTestPartitions() for the exact regex slices.
  */
@@ -39,6 +40,9 @@ if (!currentBuild.fullProjectName.endsWith('/main')) {
 buildProperties << parameters([
     booleanParam(name: 'skipPlaywrightTests', defaultValue: false,
         description: 'Skip: Playwright Functional Tests (insight-brain-playwright-test)'),
+    booleanParam(name: 'skipPlaywrightRegressionTests', defaultValue: false,
+        description: 'Skip: Playwright Regression Tests (-Pregression). Runs on every build unless checked. ' +
+            'This pipeline is single-agent, so the suite runs sequentially after the sanity suite.'),
     choice(name: 'playwrightTraceMode', choices: ['on-failure', 'always', 'off'],
         description: 'Playwright trace: on-failure (routine CI); always when debugging flakes; off to disable.')
 ])
@@ -80,7 +84,13 @@ mavenSnapshotPipeline(
 
             if (!params.skipPlaywrightTests) {
               stage('Playwright Sanity Tests') {
-                runPlaywrightSanitySuite()
+                runPlaywrightSuite('sanity', '.*Test.class')
+              }
+            }
+
+            if (playwrightRegressionEnabled()) {
+              stage('Playwright Regression Tests') {
+                runPlaywrightRegressionPartitions()
               }
             }
           }
@@ -205,18 +215,40 @@ private Map<String, ?> jreleaserConfig() {
   )
 }
 
-/** Run the Playwright @Category(SanityTest) suite. */
-private void runPlaywrightSanitySuite() {
+/** Whether the Playwright regression suite runs. Unset (first build of a branch) means run. */
+private boolean playwrightRegressionEnabled() {
+  return params.skipPlaywrightRegressionTests != true
+}
+
+/**
+ * Run Playwright partitions sequentially. Regex slices match Jenkinsfile.main#getParallelTests.
+ * As with runUnitTestPartitions(), a failing partition aborts the ones after it.
+ */
+private void runPlaywrightRegressionPartitions() {
+  runPlaywrightSuite('regression', '.*/[A-L].*Test.class')
+  runPlaywrightSuite('regression', '.*/[M-P].*Test.class')
+  runPlaywrightSuite('regression', '.*/[Q-Z].*Test.class')
+}
+
+/**
+ * Run one Playwright partition under the 'sanity' (@Category(SanityTest)) or 'regression'
+ * (@Category(RegressionTest)) profile. 90m timeout matches the per-shard bound in the distributed
+ * pipelines, so one slow partition fails on its own rather than consuming the whole build budget.
+ */
+private void runPlaywrightSuite(String profile, String regex) {
+  echo "Running partition: Playwright ${profile} (regex ${regex})"
   String args = "-pl insight-brain-playwright-test"
-  args += " -Psanity"
-  args += " -Dit.test='%regex[.*Test.class]'"
+  args += " -P${profile}"
+  args += " -Dit.test='%regex[${regex}]'"
   args += " -Dplaywright.trace=${params.playwrightTraceMode ?: 'on-failure'}"
   args += " -DdetectTestEntityLeaks"
   args += " -Dfailsafe.rerunFailingTestsCount=2 -Dfailsafe.failOnFlakeCount=5"
   args += " --threads 4 --no-transfer-progress"
   args += ' -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn'
   args += " verify"
-  mvn playwrightMavenConfig(), args
+  timeout(time: 90, unit: 'MINUTES') {
+    mvn playwrightMavenConfig(), args
+  }
 }
 
 /** mavenCommon config for the Playwright invocation. */

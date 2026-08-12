@@ -193,14 +193,16 @@ public class ProductLicenseAndLdapPlaywrightTest
   @Test
   @Category(RegressionTest.class)
   public void testGettingStartedPage_rendersAllAlwaysPresentSections() {
-    playwrightRefreshOrOpen(GettingStartedPage.url());
+    navigateAndWaitForUrl(GettingStartedPage.url(), "/gettingStarted");
+    gettingStartedPage.container().waitFor();
     gettingStartedAssertions.shouldShowAllAlwaysPresentSections();
   }
 
   @Test
   @Category(RegressionTest.class)
   public void testGettingStartedPage_productLicenseSummaryTileShowsLicenseDetails() {
-    playwrightRefreshOrOpen(GettingStartedPage.url());
+    navigateAndWaitForUrl(GettingStartedPage.url(), "/gettingStarted");
+    gettingStartedPage.container().waitFor();
     gettingStartedAssertions.shouldShowProductLicenseSummaryTile();
     gettingStartedAssertions.shouldShowLicenseSummaryDetails();
   }

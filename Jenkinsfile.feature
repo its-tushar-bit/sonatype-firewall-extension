@@ -55,6 +55,10 @@
  │  • Postgres  │  • test  │  27%     │  25%     │  25%     │  21%     │  • -Psanity        │
  ├──────────────┴──────────┴──────────┴──────────┴──────────┴──────────┴────────────────────┤
  │  MTIQ Tests • main agent • surefire+failsafe                                            │
+ ├─────────────────────────┬─────────────────────────┬──────────────────────────────────────┤
+ │  Playwright Regr 1      │  Playwright Regr 2      │  Playwright Regr 3                   │
+ │  (A-L)  • iq  33%       │  (M-P)  • iq  36%       │  (Q-Z)  • iq  31%                    │
+ │  • -Pregression • opt-out via skipPlaywrightRegressionTests (default: runs)              │
  └──────────────────────────────────────────────────────────────────────────────────────────────┘
  │
  ▼
@@ -356,6 +360,7 @@ pipeline {
 
         stage('Playwright Functional Tests') {
           when {
+            beforeAgent true
             expression { !params.skipPlaywrightTests }
           }
           agent { label DISTRIBUTED_TEST_AGENT }
@@ -364,21 +369,84 @@ pipeline {
           }
           steps {
             script {
-              runDistributedPlaywrightTests()
+              runDistributedPlaywrightTests('sanity', '.*Test.class')
             }
           }
           post {
             always {
-              junit testResults: '**/target/failsafe-reports/*.xml', allowEmptyResults: true
-              archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/playwright-screenshots/**',
-                               allowEmptyArchive: true)
-              archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/playwright-traces/**',
-                               allowEmptyArchive: true)
-              archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/playwright-diagnostics/**',
-                               allowEmptyArchive: true)
               script {
-                String stashName = "jacoco-${env.STAGE_NAME.replaceAll('[^a-zA-Z0-9]', '-')}"
-                stash name: stashName, includes: '**/target/jacoco.exec, **/target/site/jacoco/jacoco.xml', allowEmpty: true
+                capturePlaywrightStageResults()
+              }
+            }
+          }
+        }
+
+        // Playwright Regression - split across 3 agents by test class name pattern
+        // @Category(RegressionTest) method counts: A-L (234), M-P (257), Q-Z (222)
+        stage('Playwright Regression 1 (A-L)') {
+          when {
+            beforeAgent true
+            expression { playwrightRegressionEnabled() }
+          }
+          agent { label DISTRIBUTED_TEST_AGENT }
+          options {
+            timeout(time: 90, unit: 'MINUTES')
+          }
+          steps {
+            script {
+              runDistributedPlaywrightTests('regression', '.*/[A-L].*Test.class')
+            }
+          }
+          post {
+            always {
+              script {
+                capturePlaywrightStageResults()
+              }
+            }
+          }
+        }
+
+        stage('Playwright Regression 2 (M-P)') {
+          when {
+            beforeAgent true
+            expression { playwrightRegressionEnabled() }
+          }
+          agent { label DISTRIBUTED_TEST_AGENT }
+          options {
+            timeout(time: 90, unit: 'MINUTES')
+          }
+          steps {
+            script {
+              runDistributedPlaywrightTests('regression', '.*/[M-P].*Test.class')
+            }
+          }
+          post {
+            always {
+              script {
+                capturePlaywrightStageResults()
+              }
+            }
+          }
+        }
+
+        stage('Playwright Regression 3 (Q-Z)') {
+          when {
+            beforeAgent true
+            expression { playwrightRegressionEnabled() }
+          }
+          agent { label DISTRIBUTED_TEST_AGENT }
+          options {
+            timeout(time: 90, unit: 'MINUTES')
+          }
+          steps {
+            script {
+              runDistributedPlaywrightTests('regression', '.*/[Q-Z].*Test.class')
+            }
+          }
+          post {
+            always {
+              script {
+                capturePlaywrightStageResults()
               }
             }
           }
@@ -441,7 +509,10 @@ pipeline {
                 'Failsafe Tests 2 (B-L)',
                 'Failsafe Tests 3 (M-R)',
                 'Failsafe Tests 4 (S-Z)',
-                'Playwright Functional Tests'
+                'Playwright Functional Tests',
+                'Playwright Regression 1 (A-L)',
+                'Playwright Regression 2 (M-P)',
+                'Playwright Regression 3 (Q-Z)'
             ]
             distributedStages.each { stageName ->
               String stashName = "jacoco-${stageName.replaceAll('[^a-zA-Z0-9]', '-')}"
@@ -531,6 +602,11 @@ pipeline {
 // Helper Functions
 // =============================================================================
 
+/** Whether the Playwright regression shards run. Unset (first build of a branch) means run. */
+boolean playwrightRegressionEnabled() {
+  return params.skipPlaywrightRegressionTests != true
+}
+
 void configureBranchJob() {
   String projName = currentBuild.fullProjectName
   boolean mtiqImagePushEnabledByDefault = (projName.toLowerCase().endsWith('/main') || projName.endsWith('_mtiq'))
@@ -541,7 +617,8 @@ void configureBranchJob() {
           choices: ['FEATURE', 'MAIN'],
           description: 'Build mode: FEATURE excludes SlowTest and uses build caching. ' +
               'MAIN runs all tests including SlowTest, no caching. ' +
-              'Both modes run the Playwright functional/UI sanity suite. ' +
+              'Both modes run the Playwright functional/UI sanity suite; the Playwright regression ' +
+              'suite is controlled separately by skipPlaywrightRegressionTests. ' +
               'Changing this requires a new build to take effect.'
       ),
       booleanParam(defaultValue: false,
@@ -564,6 +641,9 @@ void configureBranchJob() {
 
       booleanParam(name: 'skipPlaywrightTests', defaultValue: false,
           description: 'Skip: Playwright Functional Tests (insight-brain-playwright-test)'),
+      booleanParam(name: 'skipPlaywrightRegressionTests', defaultValue: false,
+          description: 'Skip: Playwright Regression Tests (-Pregression, split across 3 agents). ' +
+              'Runs on every build unless checked.'),
       choice(name: 'playwrightTraceMode', choices: ['on-failure', 'always', 'off'],
           description: 'Playwright trace: on-failure (routine CI); always when debugging flakes; off to disable.')
   ]
@@ -1329,11 +1409,12 @@ void mvnDirectForDistributedTests(String mavenOptions, String goals, String loca
 }
 
 /**
- * Run the Playwright UI sanity suite (insight-brain-playwright-test) on a distributed agent.
- * Runs only tests tagged with @Category(SanityTest) via the -Psanity profile.
+ * Run a Playwright UI suite (insight-brain-playwright-test) on a distributed agent. The 'sanity'
+ * and 'regression' profiles select @Category(SanityTest) and @Category(RegressionTest)
+ * respectively, narrowed to the test classes matching {@code testPattern}.
  */
-void runDistributedPlaywrightTests() {
-  echo "Running distributed Playwright tests..."
+void runDistributedPlaywrightTests(String profile, String testPattern) {
+  echo "Running distributed Playwright ${profile} tests with pattern: ${testPattern}"
   echo "  Workspace: ${env.WORKSPACE}"
 
   // Restore stashed artifacts
@@ -1343,14 +1424,14 @@ void runDistributedPlaywrightTests() {
     withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/",
              "TESTCONTAINERS_RYUK_DISABLED=true"]) {
 
-      def opts = buildPlaywrightTestMavenOptions()
+      def opts = buildPlaywrightTestMavenOptions(profile, testPattern)
       mvnDirectForDistributedTests(opts, 'failsafe:integration-test failsafe:verify', localRepo)
     }
   }
 }
 
-/** Build Maven options for Playwright sanity test execution. */
-String buildPlaywrightTestMavenOptions() {
+/** Build Maven options for Playwright test execution under the given profile and pattern. */
+String buildPlaywrightTestMavenOptions(String profile, String testPattern) {
   def opts = []
 
   opts << "--no-transfer-progress"
@@ -1358,8 +1439,8 @@ String buildPlaywrightTestMavenOptions() {
   opts << "-pl 'insight-brain-playwright-test'"
   opts << "-D build.number=${env.BUILD_NUMBER}"
 
-  opts << "-Psanity"
-  opts << "-Dit.test='%regex[.*Test.class]'"
+  opts << "-P${profile}"
+  opts << "-Dit.test='%regex[${testPattern}]'"
   opts << "-DdetectTestEntityLeaks"
 
   opts << "-Dfailsafe.runOrder=alphabetical"
@@ -1378,4 +1459,19 @@ String buildPlaywrightTestMavenOptions() {
   opts << "-Dmaven.test.failure.ignore"
 
   return opts.join(' ')
+}
+
+/** Collect JUnit results, archive Playwright artifacts, and stash JaCoCo for a Playwright stage. */
+void capturePlaywrightStageResults() {
+  junit testResults: '**/target/failsafe-reports/*.xml', allowEmptyResults: true
+  archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/playwright-screenshots/**',
+                   allowEmptyArchive: true)
+  archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/playwright-traces/**',
+                   allowEmptyArchive: true)
+  archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/playwright-diagnostics/**',
+                   allowEmptyArchive: true)
+  archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/*.hprof',
+                   allowEmptyArchive: true)
+  String stashName = "jacoco-${env.STAGE_NAME.replaceAll('[^a-zA-Z0-9]', '-')}"
+  stash name: stashName, includes: '**/target/jacoco.exec, **/target/site/jacoco/jacoco.xml', allowEmpty: true
 }

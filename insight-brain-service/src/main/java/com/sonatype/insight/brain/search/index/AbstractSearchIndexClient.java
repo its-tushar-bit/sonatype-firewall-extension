@@ -8,6 +8,10 @@ package com.sonatype.insight.brain.search.index;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.Duration;
+
+import jakarta.inject.Provider;
+
+import com.google.inject.Inject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -214,6 +218,13 @@ public abstract class AbstractSearchIndexClient
   protected final TenantReference<TenantThreadPoolExecutor> indexingExecutors;
 
   private final ShutdownHandler shutdownHandler;
+
+  private Provider<SearchIndexHealthService> searchIndexHealthService;
+
+  @Inject(optional = true)
+  void setSearchIndexHealthService(final Provider<SearchIndexHealthService> searchIndexHealthService) {
+    this.searchIndexHealthService = searchIndexHealthService;
+  }
 
   public AbstractSearchIndexClient(
       final ApplicationDAO applicationDAO,
@@ -1382,57 +1393,78 @@ public abstract class AbstractSearchIndexClient
     Set<String> alreadyApplied = new HashSet<>();
     int consecutiveFailures = 0;
     int maxConsecutiveFailures = Math.min(searchIndexChanges.size(), MAX_CONSECUTIVE_FAILURES);
-    for (SearchIndexChange change : searchIndexChanges) {
-      String changeId = change.getChangeType() + "\t" + change.getChangeData();
-      if (alreadyApplied.add(changeId)) {
-        Integer failureCount = changeFailureCounts.get().getIfPresent(changeId);
-        if (failureCount != null && failureCount >= MAX_CHANGE_FAILURES) {
-          log.warn("Skipping search index update for change {} as it failed {} times", change, failureCount);
-          change.setProcessed(true);
-          deletionCallback.accept(change);
-          changeFailureCounts.get().invalidate(changeId);
-          continue;
-        }
-
-        try {
-          updateIndex(change, indexingContext);
-          change.setProcessed(true);
-          deletionCallback.accept(change);
-          consecutiveFailures = 0;
-          changeFailureCounts.get().invalidate(changeId);
-          log.debug("Updated search index with change {}", change);
-        }
-        catch (IOException | RuntimeException e) {
-          if (isChangeSpecificError(e)) {
-            log.warn("Skipping search index update due to change-specific error for change {}", change, e);
+    long appliedCount = 0L;
+    long abandonedCount = 0L;
+    try {
+      for (SearchIndexChange change : searchIndexChanges) {
+        String changeId = change.getChangeType() + "\t" + change.getChangeData();
+        if (alreadyApplied.add(changeId)) {
+          Integer failureCount = changeFailureCounts.get().getIfPresent(changeId);
+          if (failureCount != null && failureCount >= MAX_CHANGE_FAILURES) {
+            log.warn("Skipping search index update for change {} as it failed {} times", change, failureCount);
             change.setProcessed(true);
             deletionCallback.accept(change);
+            abandonedCount++;
+            changeFailureCounts.get().invalidate(changeId);
+            continue;
           }
-          else {
-            consecutiveFailures++;
 
-            if (isSystemicError(e)) {
-              log.warn("Systemic failure during search index update (attempt {} in this batch). " +
-                  "Change {} will be retried later.", consecutiveFailures, change, e);
+          try {
+            updateIndex(change, indexingContext);
+            change.setProcessed(true);
+            deletionCallback.accept(change);
+            appliedCount++;
+            consecutiveFailures = 0;
+            changeFailureCounts.get().invalidate(changeId);
+            log.debug("Updated search index with change {}", change);
+          }
+          catch (IOException | RuntimeException e) {
+            if (isChangeSpecificError(e)) {
+              log.warn("Skipping search index update due to change-specific error for change {}", change, e);
+              change.setProcessed(true);
+              deletionCallback.accept(change);
+              abandonedCount++;
             }
             else {
-              // Count unknown errors against the specific change
-              int count = (failureCount == null ? 0 : failureCount) + 1;
-              changeFailureCounts.get().put(changeId, count);
-              log.warn("Failed to update search index for change {}. Failure count: {}. Continuing with next change.",
-                  change, count, e);
-            }
+              consecutiveFailures++;
 
-            if (consecutiveFailures >= maxConsecutiveFailures) {
-              log.error("Too many consecutive failures ({}) in search index update batch. Aborting batch.",
-                  consecutiveFailures, e);
-              throw e;
+              if (isSystemicError(e)) {
+                log.warn("Systemic failure during search index update (attempt {} in this batch). " +
+                    "Change {} will be retried later.", consecutiveFailures, change, e);
+              }
+              else {
+                // Count unknown errors against the specific change
+                int count = (failureCount == null ? 0 : failureCount) + 1;
+                changeFailureCounts.get().put(changeId, count);
+                log.warn("Failed to update search index for change {}. Failure count: {}. Continuing with next change.",
+                    change, count, e);
+              }
+
+              if (consecutiveFailures >= maxConsecutiveFailures) {
+                log.error("Too many consecutive failures ({}) in search index update batch. Aborting batch.",
+                    consecutiveFailures, e);
+                throw e;
+              }
             }
           }
         }
       }
+      log.debug("Updated search index");
     }
-    log.debug("Updated search index");
+    finally {
+      // One health update + one derived refresh per batch (not per deleted change).
+      if (searchIndexHealthService != null && (appliedCount > 0L || abandonedCount > 0L)) {
+        try {
+          searchIndexHealthService.get().recordOutboxBatch(appliedCount, abandonedCount);
+        }
+        catch (RuntimeException e) {
+          // Swallowed so it cannot replace the exception this finally is unwinding. The batch aborts
+          // on systemic errors, which is exactly when a health write is also likely to fail, and the
+          // caller needs the indexing failure rather than whatever the counter update hit.
+          log.warn("Could not record search index outbox batch outcome: {}", e.getMessage(), e);
+        }
+      }
+    }
   }
 
   /**
@@ -1538,6 +1570,7 @@ public abstract class AbstractSearchIndexClient
 
   @Override
   public void deleteSearchIndexChange(final SearchIndexChange change) {
+    // Health counters are updated once per batch in processSearchIndexChanges — not per delete.
     searchIndexChangeDAO.delete(change);
   }
 

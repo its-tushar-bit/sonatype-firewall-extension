@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.model;
 
+import java.util.Date;
+
 import com.sonatype.insight.model.HasStringId;
 
 import jakarta.persistence.Column;
@@ -63,8 +65,34 @@ public class SearchIndexChange
   @Column(name = "change_data")
   private String changeData;
 
+  @Column(name = "created_at")
+  private Date createdAt;
+
+  @Column(name = "status")
+  private String status;
+
+  /**
+   * Retry bookkeeping written when the indexer parks a change it could not apply. Nothing reads these
+   * yet: the worker that reprocesses parked changes arrives with CLM-44498, and until then they exist
+   * so a failure is diagnosable from the row rather than only from a log line.
+   */
+  @Column(name = "attempt_count")
+  private Integer attemptCount;
+
+  @Column(name = "last_error")
+  private String lastError;
+
+  @Column(name = "available_at")
+  private Date availableAt;
+
   @Transient
   private boolean processed;
+
+  public static final String STATUS_PENDING = "PENDING";
+
+  public static final String STATUS_PROCESSING = "PROCESSING";
+
+  public static final String STATUS_FAILED = "FAILED";
 
   public SearchIndexChange() {
   }
@@ -72,6 +100,11 @@ public class SearchIndexChange
   public SearchIndexChange(ChangeType changeType, String changeData) {
     setChangeType(changeType);
     setChangeData(changeData);
+    Date now = new Date();
+    setCreatedAt(now);
+    setStatus(STATUS_PENDING);
+    setAttemptCount(0);
+    setAvailableAt(now);
   }
 
   @Override
@@ -111,5 +144,45 @@ public class SearchIndexChange
 
   public void setProcessed(final boolean processed) {
     this.processed = processed;
+  }
+
+  public Date getCreatedAt() {
+    return createdAt;
+  }
+
+  public void setCreatedAt(final Date createdAt) {
+    this.createdAt = createdAt;
+  }
+
+  public String getStatus() {
+    return status;
+  }
+
+  public void setStatus(final String status) {
+    this.status = status;
+  }
+
+  public Integer getAttemptCount() {
+    return attemptCount;
+  }
+
+  public void setAttemptCount(final Integer attemptCount) {
+    this.attemptCount = attemptCount;
+  }
+
+  public String getLastError() {
+    return lastError;
+  }
+
+  public void setLastError(final String lastError) {
+    this.lastError = lastError;
+  }
+
+  public Date getAvailableAt() {
+    return availableAt;
+  }
+
+  public void setAvailableAt(final Date availableAt) {
+    this.availableAt = availableAt;
   }
 }

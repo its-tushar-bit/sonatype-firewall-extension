@@ -80,6 +80,14 @@ public class IndexService
    */
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void createIndexAsync() {
+    scheduleFullIndexCreation();
+  }
+
+  /**
+   * Schedules a full index rebuild. Package-private for already-authorized control-plane callers
+   * ({@link SearchIndexJobService}); AspectJ would otherwise re-check {@link #createIndexAsync()} at the call site.
+   */
+  void scheduleFullIndexCreation() {
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.verifyEnabled();
     taskScheduler.scheduleOneTimeTask(indexCreationScheduler.get());
   }
@@ -136,10 +144,18 @@ public class IndexService
    */
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void cancelFullRebuild() {
+    cancelInFlightFullRebuild();
+  }
+
+  /**
+   * Cancels an in-flight full rebuild without a second authz gate. For already-authorized
+   * control-plane callers ({@link SearchIndexJobService}).
+   */
+  void cancelInFlightFullRebuild() {
     // Only a rebuild that is running or scheduled can be cancelled. The request outlives this call — a scheduled
     // rebuild reads it when the task starts — so accepting one while nothing is building would leave a cancel armed
     // for whichever rebuild happens to run next. Cancel stays idempotent: asking with nothing to cancel does nothing.
-    if (!isFullRebuildInProgress()) {
+    if (!fullRebuildInProgress()) {
       return;
     }
     searchIndexClient.cancelFullRebuild();
@@ -153,6 +169,14 @@ public class IndexService
    */
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public boolean isFullRebuildInProgress() {
+    return fullRebuildInProgress();
+  }
+
+  /**
+   * The rebuild-in-progress state without a second authz gate. For already-authorized control-plane callers
+   * ({@link SearchIndexJobService}) and for the methods on this class that have already passed their own gate.
+   */
+  boolean fullRebuildInProgress() {
     return isFullIndexTriggered() || searchIndexClient.isFullRebuildInProgress();
   }
 

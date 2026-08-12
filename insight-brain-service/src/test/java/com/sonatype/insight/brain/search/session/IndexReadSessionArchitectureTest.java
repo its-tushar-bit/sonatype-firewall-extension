@@ -6,21 +6,12 @@
 package com.sonatype.insight.brain.search.session;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
-import com.sonatype.insight.brain.search.global.IqLocalSearchServiceLuceneTest;
-import com.sonatype.insight.brain.search.index.AbstractSearchIndexClientPermissionFilterTest;
-import com.sonatype.insight.brain.search.catalog.CatalogCsvExportEndpointTest;
-import com.sonatype.insight.brain.search.indexquery.IndexQueryAppsViolationsTest;
-import com.sonatype.insight.brain.search.indexquery.IndexQueryCsvExportEndpointTest;
-import com.sonatype.insight.brain.search.indexquery.IndexQueryEndpointTest;
-import com.sonatype.insight.brain.search.lucene.LegacyViolationStateNegativeControlE2ETest;
 import com.sonatype.insight.brain.search.lucene.LuceneIndexReadSession;
-import com.sonatype.insight.brain.search.lucene.LuceneIndexWriterOwnerTest;
-import com.sonatype.insight.brain.search.lucene.LuceneRbacFilterQueryBuilderTest;
 import com.sonatype.insight.brain.search.lucene.LuceneSearchIndexClient;
 import com.sonatype.insight.brain.search.lucene.LuceneSearcherManagerHolder;
-import com.sonatype.insight.brain.search.lucene.PointsConfigNegativeControlE2ETest;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 import org.apache.lucene.index.DirectoryReader;
@@ -34,7 +25,12 @@ public class IndexReadSessionArchitectureTest
 {
   @Test
   public void directoryReaderOpen_staysInSharedLuceneReaderOwners() {
-    JavaClasses classes = new ClassFileImporter().importPackages("com.sonatype.insight.brain");
+    // Tests are excluded by location rather than enumerated: they own in-memory readers and throwaway
+    // indexes, and are not read paths. Enumerating them made the rule fire on whichever test classes
+    // happened to be on a shard's classpath.
+    JavaClasses classes = new ClassFileImporter()
+        .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+        .importPackages("com.sonatype.insight.brain");
 
     ArchRule rule = ArchRuleDefinition.noClasses()
         .that()
@@ -47,33 +43,6 @@ public class IndexReadSessionArchitectureTest
         // Legacy old-read-path owner. searchIndex/count use SearcherManager when available, but fallback,
         // global, aggregation, and distinct paths still own direct readers until the remaining cutovers.
         .areNotAssignableTo(LuceneSearchIndexClient.class)
-        .and()
-        // Test fixtures own in-memory readers and are not production read paths.
-        .areNotAssignableTo(IqLocalSearchServiceLuceneTest.class)
-        .and()
-        .areNotAssignableTo(AbstractSearchIndexClientPermissionFilterTest.class)
-        .and()
-        .areNotAssignableTo(IndexQueryEndpointTest.class)
-        .and()
-        .areNotAssignableTo(IndexQueryAppsViolationsTest.class)
-        .and()
-        // CSV list-export E2E harnesses; same in-memory fixture-index pattern as the endpoint tests above.
-        .areNotAssignableTo(IndexQueryCsvExportEndpointTest.class)
-        .and()
-        .areNotAssignableTo(CatalogCsvExportEndpointTest.class)
-        .and()
-        // Asserts on the generation a rebuild left on disk, which is the state the searcher lifecycle is being
-        // swapped between rather than a read served through it.
-        .areNotAssignableTo(LuceneIndexWriterOwnerTest.class)
-        .and()
-        // Isolated in-memory negative-control E2E harnesses that build their own throwaway index.
-        .areNotAssignableTo(PointsConfigNegativeControlE2ETest.class)
-        .and()
-        .areNotAssignableTo(LegacyViolationStateNegativeControlE2ETest.class)
-        .and()
-        // Unit-level fixture that builds a throwaway in-memory index to assert RBAC filter-query
-        // shape (CLM-33964); not a production read path.
-        .areNotAssignableTo(LuceneRbacFilterQueryBuilderTest.class)
         .should()
         .callMethod(DirectoryReader.class, "open", Directory.class)
         .because("new read paths must acquire through the shared session/searcher-manager lifecycle");

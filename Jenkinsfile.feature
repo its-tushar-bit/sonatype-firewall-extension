@@ -466,7 +466,7 @@ pipeline {
                 withSonatypeDockerRegistry() {
                   withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/",
                            "TESTCONTAINERS_RYUK_DISABLED=true"]) {
-                    def opts = buildSlowTestMavenOptions('!insight-brain-frontend,!nexus-mtiq-server')
+                    def opts = buildSlowTestMavenOptions('!insight-brain-frontend,!nexus-mtiq-server,!insight-brain-variant-test-mtiq-fips')
                     mvnDirectForTests(opts, 'surefire:test failsafe:integration-test failsafe:verify')
                   }
                 }
@@ -482,7 +482,9 @@ pipeline {
                 withSonatypeDockerRegistry() {
                   withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/",
                            "TESTCONTAINERS_RYUK_DISABLED=true"]) {
-                    def opts = buildSlowTestMavenOptions('nexus-mtiq-server')
+                    // insight-brain-variant-test-mtiq-fips boots the multi-tenant server (embedded PG, MTIQ beans);
+                    // it belongs in the MTIQ lane, not the backend lane which excludes nexus-mtiq-server.
+                    def opts = buildSlowTestMavenOptions('nexus-mtiq-server,insight-brain-variant-test-mtiq-fips')
                     mvnDirectForTests(opts, 'surefire:test failsafe:integration-test failsafe:verify')
                   }
                 }

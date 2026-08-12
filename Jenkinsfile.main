@@ -479,7 +479,7 @@ Map<String, Closure> createUnitTests(String stageName, String jdk, String regex,
         try {
           copyRepo(zipFiles)
 
-          String mavenOptions = "-pl '!nexus-mtiq-server'"
+          String mavenOptions = "-pl '!nexus-mtiq-server,!insight-brain-variant-test-mtiq-fips'"
           mavenOptions += " -pl '!insight-brain-frontend'"
           mavenOptions += " -Dtest=%regex[${regex}]"
           mavenOptions += " -Dit.test=%regex[${regex}]"
@@ -510,7 +510,7 @@ Map<String, Closure> createMtiqUnitTests(String stageName, String jdk, List<Stri
         try {
           copyRepo(zipFiles)
 
-          String mavenOptions = "-pl com.sonatype.insight.brain:nexus-mtiq-server"
+          String mavenOptions = "-pl com.sonatype.insight.brain:nexus-mtiq-server,com.sonatype.insight.brain:insight-brain-variant-test-mtiq-fips"
           mavenOptions += " -Dskip-functional-test"
           mavenOptions += " -Dskip-functional-test"
           mavenOptions += " -DdetectTestEntityLeaks"

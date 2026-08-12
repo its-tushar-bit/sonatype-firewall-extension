@@ -184,6 +184,8 @@
     <module>insight-brain-variant-test-mtiq</module>
     <module>insight-brain-variant-test-legacy</module>
     <module>insight-brain-variant-test-fips</module>
+    <module>insight-brain-variant-test-mtiq-fips</module>
+    <!-- Aggregates JaCoCo coverage across all variant-test-* modules; must build after them. -->
     <module>insight-brain-variant-test-coverage</module>
     <module>nexus-iq-diagnostics</module>
     <module>insight-brain-functional-test-common</module>

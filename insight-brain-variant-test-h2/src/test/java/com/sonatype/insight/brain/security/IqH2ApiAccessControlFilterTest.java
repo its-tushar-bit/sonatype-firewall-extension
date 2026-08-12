@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.variant.IqH2Test;
 import com.sonatype.insight.brain.variant.IqTestContext;
 
 import com.google.common.collect.ImmutableList;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -41,6 +42,19 @@ class IqH2ApiAccessControlFilterTest
   void before() {
     allowedUser = ctx.tempEntity().newUser("allowedUser");
     forbiddenUser = ctx.tempEntity().newUser("forbiddenUser");
+  }
+
+  @AfterEach
+  void resetApiAccessAllowList() {
+    // Most tests here set API_ACCESS_ALLOW_LIST via setApiAccessAllowList(...). The reused server
+    // keeps that value cached in Configuration.configCache (populated by
+    // ApiConfigurationService.applyConfigurationToClients firing the ConfigurationListener that
+    // re-reads the DB). TemporaryEntity restores the DB between tests but does not fire that
+    // listener, so without this reset the cache retains the previous allow-list and
+    // testApiAccessControlFilter_AccessAllowedWhenListIsNull sees a spurious 403 for
+    // forbiddenUser. Restore the default so sibling tests (and other classes on the shared
+    // fork) see an unset allow-list again.
+    ctx.resetProperties(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST);
   }
 
   @Test

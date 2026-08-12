@@ -937,6 +937,7 @@ void stashTestArtifacts() {
     pids=""
     for module in insight-brain-service insight-brain-db insight-brain-data insight-brain-policy \\
                   insight-brain-common insight-brain-event insight-brain-tenancy nexus-mtiq-server \\
+                  insight-brain-variant-test-data-pg insight-brain-variant-test-db-pg insight-brain-variant-test-mtiq-db-pg \\
                   insight-brain-playwright-test; do
       mkdir -p "${stashDir}/test-classes/\$module/target"
       if [ -d "\$module/target/test-classes" ]; then

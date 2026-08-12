@@ -346,6 +346,15 @@
                 <include>**/ScmUserMappingsHelper*</include>
                 <include>**/TemporaryTableHelperTest*</include>
                 <include>**/TestSamlFactory*</include>
+                <!-- Base/DUAL test classes that stay here but are extended by the relocated
+                     @PostgresTest DAO tests in insight-brain-variant-test-data-pg (CLM-45228). -->
+                <include>**/AbstractDbDAOTest*</include>
+                <include>**/InOperatorThresholdTest*</include>
+                <include>**/SourceControlUserActivityDAOTest*</include>
+                <include>**/ProxyRepositoryComponentDAOTest*</include>
+                <include>**/HostedComponentScanQueueDAOTest*</include>
+                <include>**/AbstractClusterLockManagerTest*</include>
+                <include>**/EvaluationQueueDAOTest*</include>
               </includes>
             </configuration>
           </execution>

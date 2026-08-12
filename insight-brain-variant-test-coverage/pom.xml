@@ -102,6 +102,21 @@
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-variant-test-data-pg</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-variant-test-db-pg</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-variant-test-mtiq-db-pg</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-variant-test-mtiq</artifactId>
       <version>${project.version}</version>
     </dependency>

@@ -1218,6 +1218,12 @@
                 <include>**/ArtifactoryMockServerRule*</include>
                 <include>**/AbstractAuditTest*</include>
                 <include>**/AbstractResourceAuthzTest*</include>
+                <!-- Base test classes that stay here but are extended by the relocated
+                     @PostgresTest DB/DAO tests in insight-brain-variant-test-db-pg (CLM-45228). -->
+                <include>**/AbstractNewDbOperationalCheckTest*</include>
+                <include>**/AbstractExistingDbOperationalCheckTest*</include>
+                <include>**/AbstractNewDbConnectionAdminHealthCheckEndpointTest*</include>
+                <include>**/AbstractExistingDbConnectionAdminHealthCheckEndpointTest*</include>
                 <include>**/AbstractComponentTest*</include>
                 <include>**/BrainInjectedTest*</include>
                 <include>**/AuditTestSupport*</include>

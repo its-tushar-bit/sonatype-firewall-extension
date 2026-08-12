@@ -133,6 +133,25 @@ abstract class AbstractDashboardViolationRiskServiceTest
   }
 
   @Test
+  public void testGet_FinitePageSizeAppliesLimitAndSignalsNextPage() {
+    // CLM-39953: dashboard CSV exports pass a finite page size (never Integer.MAX_VALUE) so the DAO
+    // emits LIMIT and returns a bounded page instead of materialising the whole result set. app1 has
+    // two violations (one org-owned, one app-owned). On the Postgres subclass this exercises the real
+    // LIMIT path where the OOM fix lives; on H2 it exercises the partition-based paging equivalent.
+    DashboardResultsDTO<DashboardViolationRiskDTO> firstPage = getDashboardViolationRiskService()
+        .get(null, Collections.singleton(app1.getId()), null, null, null, null, null, null,
+            DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 1);
+    assertThat(firstPage.dashboardResults).hasSize(1);
+    assertThat(firstPage.hasNextPage).isTrue();
+
+    DashboardResultsDTO<DashboardViolationRiskDTO> allRows = getDashboardViolationRiskService()
+        .get(null, Collections.singleton(app1.getId()), null, null, null, null, null, null,
+            DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
+    assertThat(allRows.dashboardResults).hasSize(2);
+    assertThat(allRows.hasNextPage).isFalse();
+  }
+
+  @Test
   public void testGet_FilterByOrganization() {
     DashboardResultsDTO<DashboardViolationRiskDTO> result = getDashboardViolationRiskService()
         .get(Collections.singleton(app2.getParentOwnerId()),

@@ -57,7 +57,26 @@ public final class Csv
       final Collection<? extends CsvWritable> results)
   {
     return generateInternal(
-        response, fileNamePrefix, headerLine, results.stream(), false /* flushPerRow */, false /* utf8Bom */);
+        response, fileNamePrefix, headerLine, results.stream(), false /* flushPerRow */, false /* utf8Bom */,
+        null /* truncationNotice */);
+  }
+
+  /**
+   * Like {@link #generate(ResponseBuilder, String, String, Collection)} but appends a final
+   * {@code truncationNotice} line to the CSV body when it is non-{@code null}. Lets a capped export be
+   * self-describing rather than silently short (CLM-39953); callers supply the notice only when the
+   * result set was actually truncated.
+   */
+  public static ResponseBuilder generate(
+      final ResponseBuilder response,
+      final String fileNamePrefix,
+      final String headerLine,
+      final Collection<? extends CsvWritable> results,
+      final String truncationNotice)
+  {
+    return generateInternal(
+        response, fileNamePrefix, headerLine, results.stream(), false /* flushPerRow */, false /* utf8Bom */,
+        truncationNotice);
   }
 
   /**
@@ -71,7 +90,8 @@ public final class Csv
       final Collection<? extends CsvWritable> results)
   {
     return generateInternal(
-        response, fileNamePrefix, headerLine, results.stream(), false /* flushPerRow */, true /* utf8Bom */);
+        response, fileNamePrefix, headerLine, results.stream(), false /* flushPerRow */, true /* utf8Bom */,
+        null /* truncationNotice */);
   }
 
   /**
@@ -95,7 +115,7 @@ public final class Csv
       final String headerLine,
       final Stream<? extends CsvWritable> results)
   {
-    return generateInternal(response, fileNamePrefix, headerLine, results, false /* flushPerRow */, false);
+    return generateInternal(response, fileNamePrefix, headerLine, results, false /* flushPerRow */, false, null);
   }
 
   /**
@@ -122,7 +142,7 @@ public final class Csv
       final Stream<? extends CsvWritable> results,
       final boolean flushPerRow)
   {
-    return generateInternal(response, fileNamePrefix, headerLine, results, flushPerRow, false);
+    return generateInternal(response, fileNamePrefix, headerLine, results, flushPerRow, false, null);
   }
 
   private static ResponseBuilder generateInternal(
@@ -131,7 +151,8 @@ public final class Csv
       final String headerLine,
       final Stream<? extends CsvWritable> results,
       final boolean flushPerRow,
-      final boolean utf8Bom)
+      final boolean utf8Bom,
+      final String truncationNotice)
   {
     final Date now = new Date();
     final String filename = fileNamePrefix + "-" + UTC_FILENAME_TIMESTAMP.format(Instant.now()) + ".csv";
@@ -169,6 +190,11 @@ public final class Csv
             throw new UncheckedIOException(e);
           }
         });
+        if (truncationNotice != null) {
+          // CLM-39953: mark a capped export in-band so the downloaded file is self-describing.
+          writer.write("\r\n");
+          writer.write(truncationNotice);
+        }
       }
     };
 

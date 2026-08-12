@@ -1743,9 +1743,10 @@ public class PolicyViolationDAO
       // Adds sorting by policy_violation_id to get repeatable results
       orderBys.add("policy_violation_id");
       sQuery += String.format("ORDER BY %s\n", String.join(", ", orderBys));
-      // For CSV export, the pageSize is set to Integer.MAX_VALUE, which means unlimited.
-      // We extract pageSize+1 records to be able to know if there are more records available, which tells the UI if
-      // there is a next page or not.
+      // Integer.MAX_VALUE is the "unlimited" sentinel that skips the LIMIT clause. Callers that must
+      // stay bounded (e.g. dashboard CSV export, see DashboardResource#maxExportRows) pass a finite
+      // pageSize so the LIMIT below applies. We extract pageSize+1 records to know whether more records
+      // are available, which tells the UI if there is a next page or not.
       if (pageSize < Integer.MAX_VALUE) {
         sQuery += String.format("LIMIT %d OFFSET %d", (pageSize + 1), (page * pageSize));
       }

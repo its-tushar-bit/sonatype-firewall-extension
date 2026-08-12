@@ -284,6 +284,114 @@ class IqH2DashboardResourceTest
   }
 
   @Test
+  void testMaxExportRows_defaultsAndBounds() {
+    String previous = System.getProperty(DashboardResource.MAX_EXPORT_ROWS_PROPERTY);
+    try {
+      System.clearProperty(DashboardResource.MAX_EXPORT_ROWS_PROPERTY);
+      assertThat(DashboardResource.maxExportRows()).isEqualTo(DashboardResource.DEFAULT_MAX_EXPORT_ROWS);
+
+      System.setProperty(DashboardResource.MAX_EXPORT_ROWS_PROPERTY, "1000");
+      assertThat(DashboardResource.maxExportRows()).isEqualTo(1000);
+
+      // Non-positive and unparseable values fall back to the default so exports stay bounded.
+      System.setProperty(DashboardResource.MAX_EXPORT_ROWS_PROPERTY, "0");
+      assertThat(DashboardResource.maxExportRows()).isEqualTo(DashboardResource.DEFAULT_MAX_EXPORT_ROWS);
+      System.setProperty(DashboardResource.MAX_EXPORT_ROWS_PROPERTY, "-5");
+      assertThat(DashboardResource.maxExportRows()).isEqualTo(DashboardResource.DEFAULT_MAX_EXPORT_ROWS);
+      System.setProperty(DashboardResource.MAX_EXPORT_ROWS_PROPERTY, "not-a-number");
+      assertThat(DashboardResource.maxExportRows()).isEqualTo(DashboardResource.DEFAULT_MAX_EXPORT_ROWS);
+
+      // CLM-39953: Integer.MAX_VALUE is the DAO "unlimited" sentinel that skips LIMIT (the OOM path),
+      // so it must be rejected back to the bounded default rather than passed straight through.
+      System.setProperty(DashboardResource.MAX_EXPORT_ROWS_PROPERTY, String.valueOf(Integer.MAX_VALUE));
+      assertThat(DashboardResource.maxExportRows()).isEqualTo(DashboardResource.DEFAULT_MAX_EXPORT_ROWS);
+      assertThat(DashboardResource.maxExportRows()).isLessThan(Integer.MAX_VALUE);
+    }
+    finally {
+      restoreProperty(DashboardResource.MAX_EXPORT_ROWS_PROPERTY, previous);
+    }
+  }
+
+  @Test
+  void testGetViolationRisksExport_truncatesAtRowCapWithHeadersAndInBandNotice() throws Exception {
+    // Three distinct violations on one evaluation -> three dashboard rows.
+    Application app = ctx.tempEntity().newApplicationWithParent("app1", "test application", "test organization");
+    Policy policy = ctx.tempEntity().newPolicy(app.getId(), "build policy");
+    PolicyEvaluation evaluation = ctx.tempEntity().newPolicyEvaluation(app.getId(), BuildStageType.ID, "test scan id");
+    ctx.tempEntity().newPolicyViolation(evaluation, policy, "Group1", "Artifact1", "Version1", "Hash1", "reason1");
+    ctx.tempEntity().newPolicyViolation(evaluation, policy, "Group1", "Artifact2", "Version1", "Hash2", "reason2");
+    ctx.tempEntity().newPolicyViolation(evaluation, policy, "Group1", "Artifact3", "Version1", "Hash3", "reason3");
+
+    String previous = System.getProperty(DashboardResource.MAX_EXPORT_ROWS_PROPERTY);
+    try {
+      // Cap below the row count -> truncated: headers set AND a trailing in-band #-comment row.
+      System.setProperty(DashboardResource.MAX_EXPORT_ROWS_PROPERTY, "2");
+      HttpResponse response =
+          restRequest().path(GET_VIOLATION_RISKS_EXPORT_PATH).part("filter", new RisksFilterDTO()).post();
+      assertResponseOkAndCsvHeadersSet(response, "results-violations");
+      assertThat(response.getHeader(DashboardResource.EXPORT_TRUNCATED_HEADER)).isEqualTo("true");
+      assertThat(response.getHeader(DashboardResource.EXPORT_ROW_LIMIT_HEADER)).isEqualTo("2");
+      String[] lines = response.getBodyText().split("\r\n");
+      assertThat(lines).as("header + 2 capped data rows + in-band notice").hasSize(4);
+      assertThat(lines[0]).isEqualTo(DashboardViolationRiskDTO.getCsvHeader());
+      assertThat(lines[1]).startsWith("5,");
+      assertThat(lines[2]).startsWith("5,");
+      assertThat(lines[3]).isEqualTo(DashboardResource.truncationNotice(2));
+
+      // Cap above the row count -> full export, no headers and no notice row.
+      System.setProperty(DashboardResource.MAX_EXPORT_ROWS_PROPERTY, "100");
+      response = restRequest().path(GET_VIOLATION_RISKS_EXPORT_PATH).part("filter", new RisksFilterDTO()).post();
+      assertResponseOkAndCsvHeadersSet(response, "results-violations");
+      assertThat(response.getHeader(DashboardResource.EXPORT_TRUNCATED_HEADER)).isNull();
+      assertThat(response.getHeader(DashboardResource.EXPORT_ROW_LIMIT_HEADER)).isNull();
+      lines = response.getBodyText().split("\r\n");
+      assertThat(lines).as("header + all 3 data rows, no notice").hasSize(4);
+      assertThat(response.getBodyText()).doesNotContain("# Export truncated");
+    }
+    finally {
+      restoreProperty(DashboardResource.MAX_EXPORT_ROWS_PROPERTY, previous);
+    }
+  }
+
+  @Test
+  void testGetComponentRisksExport_truncatesAtRowCapWithHeadersAndInBandNotice() throws Exception {
+    // Three distinct components -> three component-risk rows; guards the cap on a second endpoint.
+    Application app = ctx.tempEntity().newApplicationWithParent("test_app_1", "test app 1");
+    Policy buildPolicy = ctx.tempEntity().newPolicy(app);
+    PolicyEvaluation evaluation = ctx.tempEntity().newPolicyEvaluation(app.getId(), BuildStageType.ID, "test scan id");
+    ctx.tempEntity().newPolicyViolation(evaluation, buildPolicy, "Group1", "Artifact1", "Version1", "Hash1", "reason1");
+    ctx.tempEntity().newPolicyViolation(evaluation, buildPolicy, "Group1", "Artifact2", "Version1", "Hash2", "reason2");
+    ctx.tempEntity().newPolicyViolation(evaluation, buildPolicy, "Group1", "Artifact3", "Version1", "Hash3", "reason3");
+
+    String previous = System.getProperty(DashboardResource.MAX_EXPORT_ROWS_PROPERTY);
+    try {
+      System.setProperty(DashboardResource.MAX_EXPORT_ROWS_PROPERTY, "2");
+      RisksFilterDTO dto = new RisksFilterDTO();
+      dto.orderBy = "-NAME";
+      HttpResponse response = restRequest().path(GET_COMPONENT_RISKS_EXPORT_PATH).part("filter", dto).post();
+      assertResponseOkAndCsvHeadersSet(response, "results-components");
+      assertThat(response.getHeader(DashboardResource.EXPORT_TRUNCATED_HEADER)).isEqualTo("true");
+      assertThat(response.getHeader(DashboardResource.EXPORT_ROW_LIMIT_HEADER)).isEqualTo("2");
+      String[] lines = response.getBodyText().split("\r\n");
+      assertThat(lines).as("header + 2 capped component rows + in-band notice").hasSize(4);
+      assertThat(lines[0]).isEqualTo(ComponentRiskDTO.getCsvHeader());
+      assertThat(lines[3]).isEqualTo(DashboardResource.truncationNotice(2));
+    }
+    finally {
+      restoreProperty(DashboardResource.MAX_EXPORT_ROWS_PROPERTY, previous);
+    }
+  }
+
+  private static void restoreProperty(String key, String previous) {
+    if (previous == null) {
+      System.clearProperty(key);
+    }
+    else {
+      System.setProperty(key, previous);
+    }
+  }
+
+  @Test
   void testGetViolationRisksExport_fileNamePrefix() throws Exception {
     User tempUser = ctx.tempEntity().newUser();
     Organization org = ctx.tempEntity().newOrganization();

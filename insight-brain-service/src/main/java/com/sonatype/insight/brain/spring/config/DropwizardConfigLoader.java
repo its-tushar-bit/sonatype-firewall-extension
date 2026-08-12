@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -35,6 +36,12 @@ public class DropwizardConfigLoader
           + "\n=================================================================================================================";
 
   private static final Logger log = LoggerFactory.getLogger(DropwizardConfigLoader.class);
+
+  private static final List<String> DEFAULT_COMPRESSED_MIME_TYPES = List.of(
+      "text/html", "text/css", "text/javascript", "application/javascript",
+      "application/json", "application/xml", "image/svg+xml", "text/plain");
+
+  private static final String DEFAULT_COMPRESSION_MIN_RESPONSE_SIZE = "1KB";
 
   private final DropwizardConfigSourceReader configSourceReader;
 
@@ -206,6 +213,7 @@ public class DropwizardConfigLoader
 
   private void translateGzipConfig(DropwizardGzipConfig gzip, Map<String, Object> flatProperties) {
     if (gzip == null) {
+      enableCompression(flatProperties, DEFAULT_COMPRESSION_MIN_RESPONSE_SIZE, DEFAULT_COMPRESSED_MIME_TYPES);
       return;
     }
     DropwizardConfigCompat.warnOnDeprecatedFields(gzip, "server.gzip");
@@ -214,11 +222,28 @@ public class DropwizardConfigLoader
       flatProperties.put("server.compression.enabled", false);
       return;
     }
+    Object minResponseSize =
+        gzip.minimumEntitySize != null ? gzip.minimumEntitySize : DEFAULT_COMPRESSION_MIN_RESPONSE_SIZE;
+    enableCompression(flatProperties, minResponseSize, compressedMimeTypes(gzip));
+  }
+
+  private static void enableCompression(
+      Map<String, Object> flatProperties,
+      Object minResponseSize,
+      List<String> mimeTypes)
+  {
     flatProperties.put("server.compression.enabled", true);
-    putIfNotNull(gzip.minimumEntitySize, "server.compression.min-response-size", flatProperties);
-    if (gzip.compressedMimeTypes != null) {
-      flatProperties.put("server.compression.mime-types", String.join(",", gzip.compressedMimeTypes));
+    flatProperties.put("server.compression.min-response-size", minResponseSize);
+    flatProperties.put("server.compression.mime-types", String.join(",", mimeTypes));
+  }
+
+  private static List<String> compressedMimeTypes(DropwizardGzipConfig gzip) {
+    List<String> mimeTypes =
+        new ArrayList<>(gzip.compressedMimeTypes != null ? gzip.compressedMimeTypes : DEFAULT_COMPRESSED_MIME_TYPES);
+    if (gzip.excludedMimeTypes != null) {
+      mimeTypes.removeAll(gzip.excludedMimeTypes);
     }
+    return mimeTypes;
   }
 
   private void translateConnector(

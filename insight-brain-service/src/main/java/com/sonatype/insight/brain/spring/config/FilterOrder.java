@@ -63,6 +63,8 @@ public final class FilterOrder
 
   public static final int NEXUS_ONE_INDEX_ACCESS = 61;
 
+  public static final int STATIC_ASSET_CACHE_CONTROL = 62;
+
   public static final int AUTHENTICATION_LOGGING = 70;
 
   // CSP and security policy filters (80-99)

@@ -189,6 +189,72 @@ public class DropwizardConfigLoaderTest
   }
 
   @Test
+  public void translateServerSection_excludedMimeTypes_removedFromCompressedList() throws IOException {
+    File configFile = tempFolder.newFile("config.yml");
+    Files.writeString(configFile.toPath(), String.join("\n",
+        "server:",
+        "  applicationConnectors:",
+        "    - type: http",
+        "      port: 8070",
+        "  gzip:",
+        "    enabled: true",
+        "    compressedMimeTypes:",
+        "      - text/html",
+        "      - application/json",
+        "      - text/csv",
+        "    excludedMimeTypes:",
+        "      - text/csv",
+        ""));
+
+    StandardEnvironment environment = new StandardEnvironment();
+    new DropwizardConfigLoader().loadConfig(configFile, environment);
+
+    assertThat(environment.getProperty("server.compression.mime-types")).isEqualTo("text/html,application/json");
+  }
+
+  @Test
+  public void translateServerSection_gzipAbsent_enablesCompressionByDefault() throws IOException {
+    File configFile = tempFolder.newFile("config.yml");
+    Files.writeString(configFile.toPath(), String.join("\n",
+        "server:",
+        "  applicationConnectors:",
+        "    - type: http",
+        "      port: 8070",
+        ""));
+
+    StandardEnvironment environment = new StandardEnvironment();
+    new DropwizardConfigLoader().loadConfig(configFile, environment);
+
+    assertThat(environment.getProperty("server.compression.enabled")).isEqualTo("true");
+    assertThat(environment.getProperty("server.compression.min-response-size")).isEqualTo("1KB");
+    assertThat(environment.getProperty("server.compression.mime-types"))
+        .contains("text/javascript", "text/css")
+        .doesNotContain("text/csv");
+  }
+
+  @Test
+  public void translateServerSection_excludedMimeTypes_removedFromDefaultList() throws IOException {
+    File configFile = tempFolder.newFile("config.yml");
+    Files.writeString(configFile.toPath(), String.join("\n",
+        "server:",
+        "  applicationConnectors:",
+        "    - type: http",
+        "      port: 8070",
+        "  gzip:",
+        "    enabled: true",
+        "    excludedMimeTypes:",
+        "      - text/css",
+        ""));
+
+    StandardEnvironment environment = new StandardEnvironment();
+    new DropwizardConfigLoader().loadConfig(configFile, environment);
+
+    assertThat(environment.getProperty("server.compression.mime-types"))
+        .contains("text/html", "text/javascript")
+        .doesNotContain("text/css");
+  }
+
+  @Test
   public void translateServerSection_gzipDisabled() throws IOException {
     File configFile = tempFolder.newFile("config.yml");
     Files.writeString(configFile.toPath(), String.join("\n",

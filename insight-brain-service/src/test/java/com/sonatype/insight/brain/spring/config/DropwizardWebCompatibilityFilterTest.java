@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.filter.ThrowableHandler;
 import com.sonatype.insight.brain.firewall.FirewallRedirectFilter;
 import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
 import com.sonatype.insight.brain.landing.NexusOneIndexAccessFilter;
+import com.sonatype.insight.brain.landing.StaticAssetCacheControlFilter;
 import com.sonatype.insight.brain.security.AuthenticationLoggingFilter;
 import com.sonatype.insight.brain.security.ContentTypeOptionsHeaderFilter;
 import com.sonatype.insight.brain.security.CspHeaderFilter;
@@ -165,6 +166,7 @@ public class DropwizardWebCompatibilityFilterTest
         mock(McpLicenseFilter.class),
         mock(IndexCacheControlFilter.class),
         mock(NexusOneIndexAccessFilter.class),
+        mock(StaticAssetCacheControlFilter.class),
         mock(AuthenticationLoggingFilter.class),
         mock(CspHeaderFilter.class),
         mock(CspFrameHeaderFilter.class),

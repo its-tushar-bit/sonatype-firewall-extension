@@ -18,8 +18,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.core.HttpHeaders;
 
 /**
- * Adds cache control headers to the response to ensure web browsers always fetch a fresh copy of the index page (assets
- * referenced by the index page use versioned URIs to bust caching when needed).
+ * Adds cache control headers so web browsers always fetch a fresh copy of the SPA index pages (the bundles they
+ * reference use versioned URIs to bust caching when needed). Covers every shell that loads a versioned bundle, so
+ * their long-lived bundle caching cannot be defeated by a stale shell.
  *
  * @since 1.11
  */
@@ -27,7 +28,13 @@ import jakarta.ws.rs.core.HttpHeaders;
 public class IndexCacheControlFilter
     implements Filter
 {
-  public static final String URL_PATTERN = "/assets/index.html";
+  public static final String[] URL_PATTERNS = {
+    "/assets/index.html",
+    "/assets/guide/index.html",
+    "/assets/nexus-one/index.html",
+    "/assets/version-graph/rm/nexus/index.html",
+    "/assets/version-graph/rm/nexus/viewdetails.html",
+  };
 
   @Override
   public void init(FilterConfig filterConfig) throws ServletException {

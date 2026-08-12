@@ -39,7 +39,6 @@ class DropwizardGzipConfig
   @JsonProperty
   Boolean syncFlush;
 
-  @Deprecated
   @JsonProperty
   List<String> excludedMimeTypes;
 

@@ -10,6 +10,7 @@ import com.sonatype.insight.brain.filter.ThrowableHandler;
 import com.sonatype.insight.brain.firewall.FirewallRedirectFilter;
 import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
 import com.sonatype.insight.brain.landing.NexusOneIndexAccessFilter;
+import com.sonatype.insight.brain.landing.StaticAssetCacheControlFilter;
 import com.sonatype.insight.brain.security.AuthenticationLoggingFilter;
 import com.sonatype.insight.brain.security.ContentTypeOptionsHeaderFilter;
 import com.sonatype.insight.brain.security.CspHeaderFilter;
@@ -20,6 +21,7 @@ import com.sonatype.insight.brain.security.McpLicenseFilter;
 import com.sonatype.insight.brain.service.BaseUrlFilter;
 import com.sonatype.insight.brain.service.CspFrameHeaderFilter;
 import jakarta.inject.Inject;
+import jakarta.servlet.DispatcherType;
 import jakarta.servlet.Filter;
 import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletInputStream;
@@ -82,6 +84,8 @@ public class FilterConfiguration
 
   private final NexusOneIndexAccessFilter nexusOneIndexAccessFilter;
 
+  private final StaticAssetCacheControlFilter staticAssetCacheControlFilter;
+
   private final AuthenticationLoggingFilter authenticationLoggingFilter;
 
   private final CspHeaderFilter cspHeaderFilter;
@@ -102,6 +106,7 @@ public class FilterConfiguration
       McpLicenseFilter mcpLicenseFilter,
       IndexCacheControlFilter indexCacheControlFilter,
       NexusOneIndexAccessFilter nexusOneIndexAccessFilter,
+      StaticAssetCacheControlFilter staticAssetCacheControlFilter,
       AuthenticationLoggingFilter authenticationLoggingFilter,
       CspHeaderFilter cspHeaderFilter,
       CspFrameHeaderFilter cspFrameHeaderFilter,
@@ -117,6 +122,7 @@ public class FilterConfiguration
     this.mcpLicenseFilter = mcpLicenseFilter;
     this.indexCacheControlFilter = indexCacheControlFilter;
     this.nexusOneIndexAccessFilter = nexusOneIndexAccessFilter;
+    this.staticAssetCacheControlFilter = staticAssetCacheControlFilter;
     this.authenticationLoggingFilter = authenticationLoggingFilter;
     this.cspHeaderFilter = cspHeaderFilter;
     this.cspFrameHeaderFilter = cspFrameHeaderFilter;
@@ -219,14 +225,24 @@ public class FilterConfiguration
 
   @Bean
   public FilterRegistrationBean<IndexCacheControlFilter> indexCacheControlFilterRegistration() {
-    return registerFilter(indexCacheControlFilter, FilterOrder.INDEX_CACHE_CONTROL,
-        IndexCacheControlFilter.URL_PATTERN);
+    FilterRegistrationBean<IndexCacheControlFilter> registration = registerFilter(indexCacheControlFilter,
+        FilterOrder.INDEX_CACHE_CONTROL, IndexCacheControlFilter.URL_PATTERNS);
+    registration.setDispatcherTypes(DispatcherType.REQUEST, DispatcherType.FORWARD);
+    return registration;
   }
 
   @Bean
   public FilterRegistrationBean<NexusOneIndexAccessFilter> nexusOneIndexAccessFilterRegistration() {
     return registerFilter(nexusOneIndexAccessFilter, FilterOrder.NEXUS_ONE_INDEX_ACCESS,
         NexusOneIndexAccessFilter.URL_PATTERN);
+  }
+
+  @Bean
+  public FilterRegistrationBean<StaticAssetCacheControlFilter> staticAssetCacheControlFilterRegistration() {
+    FilterRegistrationBean<StaticAssetCacheControlFilter> registration = registerFilter(staticAssetCacheControlFilter,
+        FilterOrder.STATIC_ASSET_CACHE_CONTROL, StaticAssetCacheControlFilter.URL_PATTERN);
+    registration.setDispatcherTypes(DispatcherType.REQUEST, DispatcherType.FORWARD);
+    return registration;
   }
 
   @Bean

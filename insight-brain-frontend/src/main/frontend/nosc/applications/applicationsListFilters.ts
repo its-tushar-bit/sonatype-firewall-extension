@@ -17,6 +17,17 @@ export const DEFAULT_APPLICATIONS_THREAT_RANGE: ApplicationsThreatRange = [
   APPLICATIONS_THREAT_MAX,
 ];
 
+export type ApplicationsAgeInDays = 7 | 30 | 90;
+
+export const APPLICATIONS_AGE_OPTIONS: ReadonlyArray<{
+  readonly days: ApplicationsAgeInDays;
+  readonly label: string;
+}> = [
+  { days: 7, label: 'Evaluated within 7 days' },
+  { days: 30, label: 'Evaluated within 30 days' },
+  { days: 90, label: 'Evaluated within 90 days' },
+];
+
 /** Set-valued sidebar filter groups (everything except {@link ApplicationsListFilterState.threatRange}). */
 export type ApplicationsListFilterSetField =
   | 'stageIds'
@@ -32,6 +43,7 @@ export type ApplicationsListFilterState = {
   readonly policyTypes: ReadonlySet<string>;
   readonly violationStates: ReadonlySet<string>;
   readonly threatRange: ApplicationsThreatRange;
+  readonly ageInDays?: ApplicationsAgeInDays;
 };
 
 export const EMPTY_APPLICATIONS_LIST_FILTERS: ApplicationsListFilterState = {
@@ -41,6 +53,7 @@ export const EMPTY_APPLICATIONS_LIST_FILTERS: ApplicationsListFilterState = {
   policyTypes: new Set(),
   violationStates: new Set(),
   threatRange: DEFAULT_APPLICATIONS_THREAT_RANGE,
+  ageInDays: undefined,
 };
 
 /**
@@ -67,6 +80,7 @@ export function hasActiveApplicationsListFilters(
     || filters.policyTypes.size > 0
     || filters.violationStates.size > 0
     || !isDefaultApplicationsThreatRange(filters.threatRange)
+    || filters.ageInDays != null
   );
 }
 
@@ -104,6 +118,7 @@ export function applicationsListFiltersToRequest(
   | 'policyThreatLevelRanges'
   | 'policyThreatCategories'
   | 'policyViolationStates'
+  | 'ageInDays'
 > {
   const stageIds = filters.stageIds.size > 0 ? Array.from(filters.stageIds) : undefined;
   const organizationIds =
@@ -128,5 +143,6 @@ export function applicationsListFiltersToRequest(
     ...(policyThreatCategories ? { policyThreatCategories } : {}),
     ...(policyViolationStates ? { policyViolationStates } : {}),
     ...(policyThreatLevelRanges ? { policyThreatLevelRanges } : {}),
+    ...(filters.ageInDays != null ? { ageInDays: filters.ageInDays } : {}),
   };
 }

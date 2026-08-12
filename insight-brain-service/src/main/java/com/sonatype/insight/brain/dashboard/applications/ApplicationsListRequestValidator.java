@@ -47,6 +47,9 @@ final class ApplicationsListRequestValidator
 
   private static final int DEFAULT_MAX_STAGE_IDS = 2048;
 
+  /** Inclusive upper bound for {@code ageInDays}; FE currently offers 7/30/90. */
+  static final int MAX_AGE_IN_DAYS = 3650;
+
   private final Configuration configuration;
 
   @Inject
@@ -60,6 +63,7 @@ final class ApplicationsListRequestValidator
     }
     rejectUnsupportedFilters(request);
     validateStageIds(request);
+    validateAgeInDays(request.ageInDays);
     validateThreatLevelFilters(request);
   }
 
@@ -106,6 +110,16 @@ final class ApplicationsListRequestValidator
     // When policyThreatLevelRanges is non-null (including empty), effectiveThreatFilters treats it as
     // authoritative and ignores policyThreatLevelRange. Singular applies only when plural is omitted.
     validateThreatLevelFilterBounds(request.policyThreatLevelRange);
+  }
+
+  private static void validateAgeInDays(final Integer ageInDays) {
+    if (ageInDays == null) {
+      return;
+    }
+    if (ageInDays <= 0 || ageInDays > MAX_AGE_IN_DAYS) {
+      throw new BadRequestException(
+          "ageInDays must be a positive integer no greater than " + MAX_AGE_IN_DAYS + ".");
+    }
   }
 
   private static void validateThreatLevelFilterBounds(final PolicyThreatLevelFilter filter) {

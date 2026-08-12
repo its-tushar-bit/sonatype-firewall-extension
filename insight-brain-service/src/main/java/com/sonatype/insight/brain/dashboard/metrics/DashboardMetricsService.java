@@ -11,16 +11,19 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
@@ -32,6 +35,8 @@ import com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsSqlMode;
 import com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsSqlModeProvider;
 import com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsSqlReadiness;
 import com.sonatype.insight.brain.dashboard.metrics.sql.ResolvedScope;
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.MetricAggregationResult;
@@ -81,6 +86,9 @@ public class DashboardMetricsService
   private static final List<String> APPLICATION_COMPONENT_KEY_FIELDS =
       List.of(FieldIdentifier.APPLICATION_ID.label, FieldIdentifier.COMPONENT_HASH.label);
 
+  private static final List<String> COMPONENT_HASH_KEY_FIELDS =
+      List.of(FieldIdentifier.COMPONENT_HASH.label);
+
   /**
    * Distinct {@code vulnerabilityId} (CVE/advisory) for the Vulnerabilities tile — estate-level
    * "how many unique vulnerabilities impact my scope", not per-(app, component) exposure instances.
@@ -101,6 +109,9 @@ public class DashboardMetricsService
    */
   static final String NO_MATCH_ORGANIZATION_FILTER_ID =
       DashboardIndexDimensionQueryBuilder.NO_MATCH_ORGANIZATION_FILTER_ID;
+
+  static final String NO_MATCH_APPLICATION_FILTER_ID =
+      DashboardIndexDimensionQueryBuilder.NO_MATCH_APPLICATION_FILTER_ID;
 
   private static final int CACHE_MAXIMUM_SIZE = 128;
 
@@ -133,6 +144,8 @@ public class DashboardMetricsService
 
   private final DashboardIndexDimensionQueryBuilder dimensionQueryBuilder;
 
+  private final OwnerDAO ownerDAO;
+
   private final Configuration configuration;
 
   private final StageTypeService stageTypeService;
@@ -154,6 +167,7 @@ public class DashboardMetricsService
       DashboardMetricsSqlCoordinator sqlCoordinator,
       DashboardMetricsShadowComparisonService shadowComparisonService,
       DashboardIndexDimensionQueryBuilder dimensionQueryBuilder,
+      OwnerDAO ownerDAO,
       Configuration configuration,
       StageTypeService stageTypeService,
       CurrentUser currentUser)
@@ -169,6 +183,7 @@ public class DashboardMetricsService
     this.sqlCoordinator = sqlCoordinator;
     this.shadowComparisonService = shadowComparisonService;
     this.dimensionQueryBuilder = dimensionQueryBuilder;
+    this.ownerDAO = ownerDAO;
     this.configuration = configuration;
     this.stageTypeService = stageTypeService;
     this.currentUser = currentUser;
@@ -208,67 +223,71 @@ public class DashboardMetricsService
     Instant requestStartedAt = Instant.now();
     DashboardMetricsSqlMode effectiveMode =
         sqlReadiness.effectiveMode(sqlModeProvider.configuredMode());
-    boolean compatibilityMode = request == null || request.includeHeavyMetrics == null;
-    boolean includeSummary = compatibilityMode || Boolean.FALSE.equals(request.includeHeavyMetrics);
-    boolean includeHeavy = compatibilityMode || Boolean.TRUE.equals(request.includeHeavyMetrics);
-    List<String> unsupportedIndexDimensions = unsupportedIndexDimensions(request);
-    MetricFilterContext filterContext =
-        unsupportedIndexDimensions.isEmpty() ? buildMetricFilterContext(request) : null;
+    Set<String> stageIds = request == null ? null : request.stageIds;
+    MetricsLoadPlan plan = MetricsLoadPlan.from(request, effectiveMode, stageIds);
     ResolvedScope sqlScope = null;
-    boolean needsWaiverScope = includeSummary && !hasFilter(request == null ? null : request.stageIds);
-    // SHADOW serves the index path and schedules dual-run comparison; SQL serving is ON only.
-    boolean useSqlServing = effectiveMode == DashboardMetricsSqlMode.ON;
-    boolean needsMigratedScope = useSqlServing
-        && unsupportedIndexDimensions.isEmpty()
-        && (includeSummary || includeHeavy);
-    if (needsWaiverScope || needsMigratedScope) {
+    MetricFilterContext filterContext =
+        plan.needsIndexFilterContext() ? buildMetricFilterContext(request) : MetricFilterContext.empty();
+    if (plan.needsWaiverScope() || plan.needsMigratedScope()) {
       sqlScope = sqlScopeResolver.resolve(request);
     }
+    boolean includeSummary = plan.includeSummary();
+    boolean includeHeavy = plan.includeHeavy();
+    boolean useSqlForMigratedMetrics = plan.useSqlForMigratedMetrics();
 
     MetricValueDTO applicationsMetric = null;
     MetricValueDTO organizationsMetric = null;
     MetricValueDTO policiesMetric = null;
     MetricValueDTO waiversMetric = null;
     if (includeSummary) {
-      if (unsupportedIndexDimensions.isEmpty()) {
-        if (useSqlServing) {
-          applicationsMetric = sqlCoordinator.countApplications(sqlScope);
-          organizationsMetric = sqlCoordinator.countOrganizations(sqlScope);
-          policiesMetric = sqlCoordinator.countPolicies(sqlScope);
-        }
-        else {
-          long applicationsStartedAt = System.nanoTime();
-          long applications = searchIndexClient.count(
-              buildFilteredMetricQuery(ItemType.APPLICATION, filterContext));
-          logBenchmarkDuration("applications", applicationsStartedAt);
-          applicationsMetric = new MetricValueDTO(
-              applications,
-              Map.of("stages", licensedDashboardStageCount()),
-              METRIC_SOURCE_INDEX);
-          long organizationsStartedAt = System.nanoTime();
-          organizationsMetric = new MetricValueDTO(
-              searchIndexClient.count(buildFilteredMetricQuery(ItemType.ORGANIZATION, filterContext)),
-              null,
-              METRIC_SOURCE_INDEX);
-          logBenchmarkDuration("organizations", organizationsStartedAt);
-          long policiesStartedAt = System.nanoTime();
-          policiesMetric = new MetricValueDTO(
-              searchIndexClient.count(buildFilteredMetricQuery(ItemType.POLICY, filterContext)),
-              null,
-              METRIC_SOURCE_INDEX);
-          logBenchmarkDuration("policies", policiesStartedAt);
-        }
+      if (useSqlForMigratedMetrics) {
+        applicationsMetric = sqlCoordinator.countApplications(sqlScope);
+        organizationsMetric = sqlCoordinator.countOrganizations(sqlScope);
+        policiesMetric = sqlCoordinator.countPolicies(sqlScope);
+      }
+      else if (filterContext.tagFilterUnsupported()) {
+        // Oversized tag→appId set: degrade tag-scoped tiles instead of 400ing the dashboard.
+        applicationsMetric = MetricValueDTO.unsupported(List.of("tagIds"));
+        long organizationsStartedAt = System.nanoTime();
+        organizationsMetric = new MetricValueDTO(
+            searchIndexClient.count(buildFilteredMetricQuery(ItemType.ORGANIZATION, filterContext)),
+            null,
+            METRIC_SOURCE_INDEX);
+        logBenchmarkDuration("organizations", organizationsStartedAt);
+        policiesMetric = MetricValueDTO.unsupported(List.of("tagIds"));
       }
       else {
-        applicationsMetric = MetricValueDTO.unsupported(unsupportedIndexDimensions);
-        organizationsMetric = MetricValueDTO.unsupported(unsupportedIndexDimensions);
-        policiesMetric = MetricValueDTO.unsupported(unsupportedIndexDimensions);
+        long applicationsStartedAt = System.nanoTime();
+        // Stage filter: match Martha Applications list — distinct applicationId on
+        // POLICY_VIOLATION docs at policyEvaluationStage (includes waived/legacy). Unfiltered:
+        // count APPLICATION docs.
+        long applications = hasFilter(stageIds)
+            ? searchIndexClient.countDistinct(
+                buildFilteredMetricQuery(ItemType.POLICY_VIOLATION, filterContext),
+                List.of(FieldIdentifier.APPLICATION_ID.label))
+            : searchIndexClient.count(buildFilteredMetricQuery(ItemType.APPLICATION, filterContext));
+        logBenchmarkDuration("applications", applicationsStartedAt);
+        applicationsMetric = new MetricValueDTO(
+            applications,
+            Map.of("stages", licensedDashboardStageCount()),
+            METRIC_SOURCE_INDEX);
+        long organizationsStartedAt = System.nanoTime();
+        organizationsMetric = new MetricValueDTO(
+            searchIndexClient.count(buildFilteredMetricQuery(ItemType.ORGANIZATION, filterContext)),
+            null,
+            METRIC_SOURCE_INDEX);
+        logBenchmarkDuration("organizations", organizationsStartedAt);
+        long policiesStartedAt = System.nanoTime();
+        policiesMetric = new MetricValueDTO(
+            searchIndexClient.count(buildFilteredMetricQuery(ItemType.POLICY, filterContext)),
+            null,
+            METRIC_SOURCE_INDEX);
+        logBenchmarkDuration("policies", policiesStartedAt);
       }
 
       // Waivers are SQL-backed: stageIds are not applicable (unsupported), but tagIds are applied by
-      // the waivers scope query. Tag-only filters therefore return a real waiver count while
-      // index-backed cards report UNSUPPORTED_FILTER_COMBINATION for tagIds.
-      if (hasFilter(request == null ? null : request.stageIds)) {
+      // the waivers scope query.
+      if (hasFilter(stageIds)) {
         waiversMetric = MetricValueDTO.unsupported(List.of("stageIds"));
       }
       else {
@@ -283,22 +302,31 @@ public class DashboardMetricsService
     MetricValueDTO vulnerabilitiesMetric = null;
     MetricValueDTO legalMetric = null;
     if (includeHeavy) {
-      if (unsupportedIndexDimensions.isEmpty()) {
-        if (useSqlServing) {
-          violationsMetric = sqlCoordinator.countViolations(sqlScope);
-        }
-        else {
-          long violationsStartedAt = System.nanoTime();
-          MetricAggregationResult violationsAggregation = searchIndexClient.aggregateCountByField(
-              buildFilteredMetricQuery(ItemType.POLICY_VIOLATION, filterContext),
-              FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label,
-              VIOLATIONS_THREAT_LEVEL_BANDS);
-          logBenchmarkDuration("violations", violationsStartedAt);
-          violationsMetric = new MetricValueDTO(
-              violationsAggregation.total, violationsAggregation.buckets, METRIC_SOURCE_INDEX);
-        }
+      if (useSqlForMigratedMetrics) {
+        violationsMetric = sqlCoordinator.countViolations(sqlScope);
+      }
+      else if (filterContext.tagFilterUnsupported()) {
+        violationsMetric = MetricValueDTO.unsupported(List.of("tagIds"));
+      }
+      else {
+        long violationsStartedAt = System.nanoTime();
+        MetricAggregationResult violationsAggregation = searchIndexClient.aggregateCountByField(
+            buildFilteredMetricQuery(ItemType.POLICY_VIOLATION, filterContext),
+            FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label,
+            VIOLATIONS_THREAT_LEVEL_BANDS);
+        logBenchmarkDuration("violations", violationsStartedAt);
+        violationsMetric = new MetricValueDTO(
+            violationsAggregation.total, violationsAggregation.buckets, METRIC_SOURCE_INDEX);
+      }
+      if (filterContext.tagFilterUnsupported()) {
+        componentsMetric = MetricValueDTO.unsupported(List.of("tagIds"));
+        vulnerabilitiesMetric = MetricValueDTO.unsupported(List.of("tagIds"));
+        legalMetric = MetricValueDTO.unsupported(List.of("tagIds"));
+      }
+      else {
         long componentsStartedAt = System.nanoTime();
-        componentsMetric = new MetricValueDTO(countScannedComponents(filterContext), null, METRIC_SOURCE_INDEX);
+        componentsMetric =
+            new MetricValueDTO(countScannedComponents(filterContext, stageIds), null, METRIC_SOURCE_INDEX);
         logBenchmarkDuration("components", componentsStartedAt);
         long vulnerabilitiesStartedAt = System.nanoTime();
         vulnerabilitiesMetric = countVulnerabilities(filterContext);
@@ -307,18 +335,12 @@ public class DashboardMetricsService
         legalMetric = countLegalObligations(filterContext);
         logBenchmarkDuration("legal", legalStartedAt);
       }
-      else {
-        violationsMetric = MetricValueDTO.unsupported(unsupportedIndexDimensions);
-        componentsMetric = MetricValueDTO.unsupported(unsupportedIndexDimensions);
-        vulnerabilitiesMetric = MetricValueDTO.unsupported(unsupportedIndexDimensions);
-        legalMetric = MetricValueDTO.unsupported(unsupportedIndexDimensions);
-      }
     }
 
     // Capture index freshness for every tier that can serve index-backed metrics — including
     // heavy-only requests — so SHADOW persistent classification is never snapshot-blind.
     Long lastUpdatedAt = null;
-    if ((includeSummary || includeHeavy) && unsupportedIndexDimensions.isEmpty()) {
+    if (includeSummary || includeHeavy) {
       lastUpdatedAt = searchIndexClient.getLastIndexTime();
     }
 
@@ -388,38 +410,24 @@ public class DashboardMetricsService
         (System.nanoTime() - startedAt) / 1_000_000.0);
   }
 
-  private static List<String> unsupportedIndexDimensions(DashboardMetricsRequestDTO request) {
-    List<String> dimensions = new ArrayList<>();
-    if (hasFilter(request == null ? null : request.stageIds)) {
-      dimensions.add("stageIds");
-    }
-    if (hasFilter(request == null ? null : request.tagIds)) {
-      dimensions.add("tagIds");
-    }
-    return List.copyOf(dimensions);
-  }
-
   private static boolean hasFilter(Set<String> ids) {
     return ids != null && !ids.isEmpty();
   }
 
   /**
-   * Counts each scanned component once per {@code (applicationId, componentHash)}. A clean component may be indexed
-   * as one {@link ItemType#NON_VULNERABLE_COMPONENT} document per stage, and a vulnerable component as one
-   * {@link ItemType#SECURITY_VULNERABILITY} document per CVE; naive {@link SearchIndexClient#count(String)} on
-   * either item type over-counts. The total is therefore {@code countDistinct(NON_VULNERABLE_COMPONENT, …) +
-   * countDistinct(SECURITY_VULNERABILITY, …)} with the same composite key fields. Both sub-queries reuse
-   * {@link #buildFilteredMetricQuery} so request-level org/app filters (including org-hierarchy descendant
-   * expansion) and the RBAC filter apply consistently.
+   * Counts each scanned component hash once. Unfiltered: distinct hash across clean and vulnerable
+   * component documents. With a stage filter: distinct hash on POLICY_VIOLATION docs at
+   * {@code policyEvaluationStage}, matching Martha Components list violation-scoped discovery.
    */
-  private long countScannedComponents(MetricFilterContext filterContext) {
-    long distinctCleanComponents = searchIndexClient.countDistinct(
-        buildFilteredMetricQuery(ItemType.NON_VULNERABLE_COMPONENT, filterContext),
-        APPLICATION_COMPONENT_KEY_FIELDS);
-    long distinctVulnerableComponents = searchIndexClient.countDistinct(
-        buildFilteredMetricQuery(ItemType.SECURITY_VULNERABILITY, filterContext),
-        APPLICATION_COMPONENT_KEY_FIELDS);
-    return distinctCleanComponents + distinctVulnerableComponents;
+  private long countScannedComponents(MetricFilterContext filterContext, Set<String> stageIds) {
+    if (hasFilter(stageIds)) {
+      return searchIndexClient.countDistinct(
+          buildFilteredMetricQuery(ItemType.POLICY_VIOLATION, filterContext),
+          COMPONENT_HASH_KEY_FIELDS);
+    }
+    return searchIndexClient.countDistinct(
+        buildFilteredScannedComponentsQuery(filterContext),
+        COMPONENT_HASH_KEY_FIELDS);
   }
 
   /**
@@ -456,7 +464,7 @@ public class DashboardMetricsService
 
   /**
    * Legal total is distinct {@code (applicationId, componentHash, componentEffectiveLicenseId)} obligations;
-   * breakdown uses the same {@code [applicationId, componentHash]} key as {@link #countScannedComponents()}.
+   * breakdown counts affected applications and distinct {@code (applicationId, componentHash)} pairs.
    */
   private MetricValueDTO countLegalObligations(MetricFilterContext filterContext) {
     String legalQuery = buildFilteredMetricQuery(ItemType.LEGAL_VIOLATION, filterContext);
@@ -473,9 +481,70 @@ public class DashboardMetricsService
   }
 
   private MetricFilterContext buildMetricFilterContext(DashboardMetricsRequestDTO request) {
-    return new MetricFilterContext(
-        dimensionQueryBuilder.buildOrganizationFilterClause(request == null ? null : request.organizationIds),
-        dimensionQueryBuilder.buildApplicationFilterClause(request == null ? null : request.applicationIds));
+    // Tags are always resolved to application ids (OwnerDAO), never to applicationCategoryName.
+    // Category names repeat across orgs; id resolution keeps every index tile on the same scope.
+    Set<String> organizationIds = request == null ? null : request.organizationIds;
+    Set<String> applicationIds = request == null ? null : request.applicationIds;
+    Set<String> stageIds = request == null ? null : request.stageIds;
+    Set<String> tagIds = request == null ? null : request.tagIds;
+    Set<String> taggedIds = taggedApplicationIds(tagIds, applicationIds);
+    boolean tagFilterUnsupported = false;
+    String taggedApplicationClause = null;
+    if (hasFilter(tagIds)) {
+      int maxClauseCount = configuration.getMaxAdvancedSearchClauseCount();
+      // Soft-degrade when a broad tag expands past the Lucene clause cap — do not 400 the dashboard.
+      if (taggedIds.size() > maxClauseCount) {
+        tagFilterUnsupported = true;
+      }
+      else {
+        taggedApplicationClause = dimensionQueryBuilder.buildEscapedApplicationFilterClause(taggedIds);
+      }
+    }
+    return MetricFilterContext.of(
+        dimensionQueryBuilder.buildOrganizationFilterClause(organizationIds),
+        dimensionQueryBuilder.buildApplicationFilterClause(applicationIds),
+        dimensionQueryBuilder.buildPolicyEvaluationStageFilterClause(stageIds),
+        taggedApplicationClause,
+        tagFilterUnsupported);
+  }
+
+  /**
+   * Routing decisions for {@link #loadMetrics}: which tiers to load, whether SQL vs index serves
+   * migrated summary/heavy tiles, and whether OwnerDAO tag resolution / SQL scope are needed.
+   */
+  private record MetricsLoadPlan(
+      boolean includeSummary,
+      boolean includeHeavy,
+      boolean useSqlForMigratedMetrics,
+      boolean needsWaiverScope,
+      boolean needsMigratedScope,
+      boolean needsIndexFilterContext)
+  {
+    static MetricsLoadPlan from(
+        final DashboardMetricsRequestDTO request,
+        final DashboardMetricsSqlMode effectiveMode,
+        final Set<String> stageIds)
+    {
+      boolean compatibilityMode = request == null || request.includeHeavyMetrics == null;
+      boolean includeSummary = compatibilityMode || Boolean.FALSE.equals(request.includeHeavyMetrics);
+      boolean includeHeavy = compatibilityMode || Boolean.TRUE.equals(request.includeHeavyMetrics);
+      boolean hasStageFilter = hasFilter(stageIds);
+      // SHADOW serves the index path and schedules dual-run comparison; SQL serving is ON only.
+      boolean useSqlServing = effectiveMode == DashboardMetricsSqlMode.ON;
+      boolean useSqlForMigratedMetrics = useSqlServing && !hasStageFilter;
+      boolean needsWaiverScope = includeSummary && !hasStageFilter;
+      boolean needsMigratedScope = useSqlServing && useSqlForMigratedMetrics && (includeSummary || includeHeavy);
+      // Index filter context resolves tag→appIds via OwnerDAO. Skip it when every selected tier is
+      // SQL-served (summary-only + migrated SQL path) so tag filters do not pay unused DB lookups.
+      boolean needsIndexFilterContext = includeHeavy || (includeSummary && !useSqlForMigratedMetrics);
+      return new MetricsLoadPlan(
+          includeSummary,
+          includeHeavy,
+          useSqlForMigratedMetrics,
+          needsWaiverScope,
+          needsMigratedScope,
+          needsIndexFilterContext);
+    }
   }
 
   /**
@@ -507,9 +576,22 @@ public class DashboardMetricsService
     String organizationClause = filterContext.organizationClause();
     String applicationClause =
         APPLICATION_FILTER_EXCLUDED_ITEM_TYPES.contains(itemType) ? null : filterContext.applicationClause();
+    String dimensionClause = buildDimensionClause(organizationClause, applicationClause);
 
+    List<String> clauses = new ArrayList<>();
+    clauses.add(baseQuery);
+    addIfPresent(clauses, dimensionClause);
+    addIfPresent(clauses, stageClauseForItemType(itemType, filterContext));
+    addIfPresent(clauses, taggedApplicationClauseForItemType(itemType, filterContext));
+    return String.join(" AND ", clauses);
+  }
+
+  private static String buildDimensionClause(
+      final String organizationClause,
+      final String applicationClause)
+  {
     if (organizationClause == null && applicationClause == null) {
-      return baseQuery;
+      return null;
     }
 
     List<String> filterClauses = new ArrayList<>();
@@ -519,7 +601,73 @@ public class DashboardMetricsService
     if (applicationClause != null) {
       filterClauses.add(applicationClause);
     }
-    return baseQuery + " AND (" + String.join(" OR ", filterClauses) + ")";
+    return "(" + String.join(" OR ", filterClauses) + ")";
+  }
+
+  private static String buildFilteredScannedComponentsQuery(MetricFilterContext filterContext) {
+    String baseQuery = "(itemType:" + ItemType.NON_VULNERABLE_COMPONENT.searchFieldName()
+        + " OR itemType:" + ItemType.SECURITY_VULNERABILITY.searchFieldName() + ")";
+    String organizationClause = filterContext.organizationClause();
+    String applicationClause = filterContext.applicationClause();
+    String dimensionClause = buildDimensionClause(organizationClause, applicationClause);
+
+    List<String> clauses = new ArrayList<>();
+    clauses.add(baseQuery);
+    addIfPresent(clauses, dimensionClause);
+    // Stage is not applied on component docs — stage-filtered scanned components use
+    // POLICY_VIOLATION / policyEvaluationStage via countScannedComponents instead.
+    addIfPresent(clauses, filterContext.taggedApplicationClause());
+    return String.join(" AND ", clauses);
+  }
+
+  private Set<String> taggedApplicationIds(final Set<String> tagIds, final Set<String> applicationIds) {
+    if (tagIds == null || tagIds.isEmpty()) {
+      return Set.of();
+    }
+    Set<String> safeApplicationIds = applicationIds == null ? null : new LinkedHashSet<>(applicationIds);
+    Set<String> safeTagIds = new LinkedHashSet<>(tagIds);
+    Set<String> taggedApplicationIds = ownerDAO.getOwnersByAppTagsAndOrgs(safeApplicationIds, safeTagIds, Set.of())
+        .stream()
+        .filter(owner -> owner != null && owner.getType() == OwnerType.APPLICATION)
+        .map(Owner::getId)
+        .filter(id -> id != null && !id.isBlank())
+        .collect(Collectors.toSet());
+    if (taggedApplicationIds.isEmpty()) {
+      return Set.of(NO_MATCH_APPLICATION_FILTER_ID);
+    }
+    return taggedApplicationIds;
+  }
+
+  /**
+   * Stage filters use {@code policyEvaluationStage} on violation/vulnerability/legal docs.
+   * APPLICATION docs are not stage-filtered here — the Applications tile with a stage filter counts
+   * distinct {@code applicationId} on POLICY_VIOLATION docs (Martha list parity).
+   */
+  private static String stageClauseForItemType(
+      final ItemType itemType,
+      final MetricFilterContext filterContext)
+  {
+    return switch (itemType) {
+      case POLICY_VIOLATION, SECURITY_VULNERABILITY, LEGAL_VIOLATION -> filterContext.policyEvaluationStageClause();
+      default -> null;
+    };
+  }
+
+  private static String taggedApplicationClauseForItemType(
+      final ItemType itemType,
+      final MetricFilterContext filterContext)
+  {
+    return switch (itemType) {
+      case APPLICATION, POLICY, POLICY_VIOLATION, SECURITY_VULNERABILITY, LEGAL_VIOLATION -> filterContext
+          .taggedApplicationClause();
+      default -> null;
+    };
+  }
+
+  private static void addIfPresent(final List<String> clauses, final String clause) {
+    if (clause != null) {
+      clauses.add(clause);
+    }
   }
 
   private Cache<DashboardMetricsCacheKey, DashboardMetricsDTO> createCache() {
@@ -533,7 +681,35 @@ public class DashboardMetricsService
     return caches.get();
   }
 
-  private record MetricFilterContext(String organizationClause, String applicationClause)
+  /**
+   * Lucene clauses for one metrics request. Factory methods name the two application-derived
+   * clauses so a positional swap of {@code applicationClause} vs {@code taggedApplicationClause}
+   * is harder to introduce unnoticed.
+   */
+  private record MetricFilterContext(
+      String organizationClause,
+      String applicationClause,
+      String policyEvaluationStageClause,
+      String taggedApplicationClause,
+      boolean tagFilterUnsupported)
   {
+    static MetricFilterContext empty() {
+      return new MetricFilterContext(null, null, null, null, false);
+    }
+
+    static MetricFilterContext of(
+        final String organizationClause,
+        final String applicationClause,
+        final String policyEvaluationStageClause,
+        final String taggedApplicationClause,
+        final boolean tagFilterUnsupported)
+    {
+      return new MetricFilterContext(
+          organizationClause,
+          applicationClause,
+          policyEvaluationStageClause,
+          taggedApplicationClause,
+          tagFilterUnsupported);
+    }
   }
 }

@@ -205,7 +205,7 @@ nexusOneSettingsStates().forEach((state) => {
 
 router.stateRegistry.register({
   name: 'nexusOneApplications',
-  url: '/applications?q&sort&page&stage&org&app&policyType&violationState&threat',
+  url: '/applications?q&sort&page&stage&org&app&policyType&violationState&threat&age',
   component: PreviewApplicationsList,
   data: {
     title: 'Nexus One — Applications',

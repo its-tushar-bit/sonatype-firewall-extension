@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dashboard.metrics;
 
-import java.util.List;
 import java.util.Set;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -149,9 +148,8 @@ class IqH2DashboardMetricsResourceTest
 
     DashboardMetricsDTO metrics = postMetrics(request);
 
-    assertThat(metrics.applications).extracting("total").isNull();
-    assertThat(metrics.applications).extracting("errorCode").isEqualTo("UNSUPPORTED_FILTER_COMBINATION");
-    assertThat(metrics.applications).extracting("unsupportedDimensions").isEqualTo(List.of("tagIds"));
+    assertThat(metrics.applications.total).isNotNull();
+    assertThat(metrics.applications.errorCode).isNull();
     assertThat(metrics.waivers).isNotNull();
     assertThat(metrics.waivers.total).isNotNegative();
     assertThat(metrics.violations).isNull();

@@ -9,8 +9,10 @@ import type {
 } from 'MainRoot/nosc/applications/applicationsListFilters';
 import {
   DEFAULT_APPLICATIONS_THREAT_RANGE,
+  APPLICATIONS_AGE_OPTIONS,
   isDefaultApplicationsThreatRange,
   normalizeApplicationsThreatRange,
+  type ApplicationsAgeInDays,
   type ApplicationsThreatRange,
 } from 'MainRoot/nosc/applications/applicationsListFilters';
 
@@ -77,6 +79,15 @@ function parseIntegerToken(token: string): number | undefined {
   return /^\d+$/.test(token) ? Number(token) : undefined;
 }
 
+function parseApplicationsAgeInDays(value: string | null | undefined): ApplicationsAgeInDays | undefined {
+  const trimmed = value?.trim();
+  if (!trimmed) return undefined;
+  const days = parseIntegerToken(trimmed);
+  return APPLICATIONS_AGE_OPTIONS.some((option) => option.days === days)
+    ? (days as ApplicationsAgeInDays)
+    : undefined;
+}
+
 /**
  * Parse {@code threat=min-max} (Violations-compatible). Malformed or legacy bucket tokens fall
  * back to the full-domain default.
@@ -126,6 +137,7 @@ export function parseApplicationsListParams(
       threatRange: parseApplicationsThreatRange(
         typeof params.threat === 'string' ? params.threat : null,
       ),
+      ageInDays: parseApplicationsAgeInDays(typeof params.age === 'string' ? params.age : null),
     },
   };
 }
@@ -145,6 +157,7 @@ export function buildApplicationsListRouteParams(state: {
   const policyType = serializeCsvParam(state.filters.policyTypes);
   const violationState = serializeCsvParam(state.filters.violationStates);
   const threat = serializeApplicationsThreatRange(state.filters.threatRange);
+  const age = state.filters.ageInDays == null ? undefined : String(state.filters.ageInDays);
 
   return {
     q: state.search.trim() || undefined,
@@ -156,6 +169,7 @@ export function buildApplicationsListRouteParams(state: {
     policyType,
     violationState,
     threat,
+    age,
   };
 }
 
@@ -180,5 +194,6 @@ export function filtersEqual(
     setsEqual
     && left.threatRange[0] === right.threatRange[0]
     && left.threatRange[1] === right.threatRange[1]
+    && left.ageInDays === right.ageInDays
   );
 }

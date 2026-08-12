@@ -109,8 +109,8 @@ public class DashboardMetricsSqlCoordinator
     if (denied != null) {
       return denied;
     }
-    // Stage filtering is intentionally out of scope for SQL violations: stageIds mark the metric
-    // UNSUPPORTED_FILTER_COMBINATION before the SQL branch is taken.
+    // Stage filtering is intentionally out of scope for SQL violations; stage-filtered requests stay
+    // on the index-serving path until the SQL metric path can apply the same dimension.
     return execute(DashboardMetricsSqlTelemetry.Metric.VIOLATIONS, () -> {
       List<RawThreatLevelCount> rawCounts =
           policyViolationDAO.countUnfixedByThreatLevel(applicationIds(scope), null);

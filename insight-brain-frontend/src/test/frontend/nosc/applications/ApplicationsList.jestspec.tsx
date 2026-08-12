@@ -420,6 +420,7 @@ describe('ApplicationsPage async states', () => {
     hasActiveFilters: false,
     onToggleFilter: jest.fn(),
     onThreatRangeChange: jest.fn(),
+    onAgeInDaysChange: jest.fn(),
     onResetFilters: jest.fn(),
   };
   const toolbarProps = {

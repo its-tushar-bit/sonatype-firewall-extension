@@ -22,11 +22,13 @@ describe('applicationsListFilters', () => {
     const filters = {
       ...toggleApplicationsListFilterId(EMPTY_APPLICATIONS_LIST_FILTERS, 'stageIds', 'build'),
       threatRange: [8, 10] as const,
+      ageInDays: 30,
     };
 
     expect(applicationsListFiltersToRequest(filters)).toEqual({
       stageIds: ['build'],
       policyThreatLevelRanges: [{ minPolicyThreatLevel: 8, maxPolicyThreatLevel: 10 }],
+      ageInDays: 30,
     });
     expect(hasActiveApplicationsListFilters(filters)).toBe(true);
   });

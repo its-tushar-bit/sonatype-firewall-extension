@@ -33,6 +33,7 @@ function rawRouteParamsSnapshot(params: Record<string, unknown>): string {
     policyType: asOptionalString(params.policyType),
     violationState: asOptionalString(params.violationState),
     threat: asOptionalString(params.threat),
+    age: asOptionalString(params.age),
   });
 }
 
@@ -71,6 +72,7 @@ export default function ApplicationsList() {
     changeOrderBy,
     toggleFilter,
     setThreatRange,
+    setAgeInDays,
     resetFilters,
     syncQueryState,
   } = useApplicationsList({ initialState: parsed, enabled: fetchEnabled });
@@ -114,6 +116,7 @@ export default function ApplicationsList() {
       hasActiveFilters={hasActiveFilters}
       onToggleFilter={toggleFilter}
       onThreatRangeChange={setThreatRange}
+      onAgeInDaysChange={setAgeInDays}
       onResetFilters={resetFilters}
       loading={loading}
       error={error}

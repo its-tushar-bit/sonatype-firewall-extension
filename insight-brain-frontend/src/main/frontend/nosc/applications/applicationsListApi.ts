@@ -93,6 +93,7 @@ export type ApplicationsListRequest = {
   readonly policyThreatCategories?: string;
   /** Violation state enum names, e.g. {@code ['OPEN']}. */
   readonly policyViolationStates?: ReadonlyArray<string>;
+  readonly ageInDays?: number;
 };
 
 function toRiskCounts(risk?: ApiRiskCounts): ApplicationRiskCounts {

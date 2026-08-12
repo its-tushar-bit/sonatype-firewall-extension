@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dashboard.applications;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
@@ -22,6 +23,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -30,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -109,6 +112,46 @@ public class ApplicationsListIndexQueryBuilderTest
     String query = newBuilder().buildApplicationQuery(request);
     assertThat(query).isEqualTo(
         "itemType:APPLICATION AND (applicationName:*apple* OR applicationPublicId:*apple* OR organizationName:*apple*)");
+  }
+
+  @Test
+  public void buildApplicationQuery_ageInDays_addsLastEvaluationRange() {
+    long before = System.currentTimeMillis();
+    ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
+    request.ageInDays = 30;
+
+    String query = newBuilder().buildApplicationQuery(request);
+    long after = System.currentTimeMillis();
+
+    assertThat(query).startsWith("itemType:APPLICATION AND applicationLastEvaluationTimeEpochMs:[");
+    String range = query.substring(query.indexOf('[') + 1, query.indexOf(']'));
+    String[] bounds = range.split(" TO ");
+    long lower = Long.parseLong(bounds[0]);
+    long upper = Long.parseLong(bounds[1]);
+    assertThat(lower).isBetween(
+        before - TimeUnit.DAYS.toMillis(30),
+        after - TimeUnit.DAYS.toMillis(30));
+    assertThat(upper).isBetween(before, after);
+  }
+
+  @Test
+  public void buildApplicationQuery_stageAndAge_keepsAgeOffViolationDiscoveryQuery() {
+    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(100);
+    when(organizationDAO.getAllChildOrganizationIds(Set.of("org-a"))).thenReturn(Set.of("org-a"));
+    ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
+    request.organizationIds = Set.of("org-a");
+    request.stageIds = Set.of("build");
+    request.ageInDays = 30;
+    ArgumentCaptor<String> discoveryBaseQuery = ArgumentCaptor.forClass(String.class);
+    when(violationScopeResolver.resolveApplicationIds(discoveryBaseQuery.capture(), same(request)))
+        .thenReturn(Set.of("build-app"));
+
+    String query = newBuilder().buildApplicationQuery(request);
+
+    assertThat(discoveryBaseQuery.getValue()).doesNotContain("applicationLastEvaluationTimeEpochMs");
+    assertThat(query).contains("applicationLastEvaluationTimeEpochMs:[");
+    assertThat(query).contains("applicationId:(build\\-app)");
+    verify(violationScopeResolver).resolveApplicationIds(any(), same(request));
   }
 
   @Test

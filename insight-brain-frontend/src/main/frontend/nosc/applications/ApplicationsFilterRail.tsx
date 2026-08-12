@@ -10,10 +10,12 @@ import { ApplicationsFilterFacetCounts } from 'MainRoot/nosc/applications/applic
 import {
   APPLICATIONS_THREAT_MAX,
   APPLICATIONS_THREAT_MIN,
+  APPLICATIONS_AGE_OPTIONS,
   ApplicationsListFilterSetField,
   ApplicationsListFilterState,
   ApplicationsThreatRange,
   normalizeApplicationsThreatRange,
+  type ApplicationsAgeInDays,
 } from 'MainRoot/nosc/applications/applicationsListFilters';
 import './ApplicationsFilterRail.scss';
 
@@ -28,6 +30,7 @@ export interface ApplicationsFilterRailProps {
   readonly hasActiveFilters: boolean;
   readonly onToggleFilter: (field: ApplicationsListFilterSetField, id: string) => void;
   readonly onThreatRangeChange: (range: ApplicationsThreatRange) => void;
+  readonly onAgeInDaysChange: (ageInDays: ApplicationsAgeInDays | undefined) => void;
   readonly onResetFilters: () => void;
   /**
    * Disambiguates data-testids and DOM ids when the rail is rendered twice (desktop rail +
@@ -51,7 +54,7 @@ function FilterOption({
   testId,
 }: {
   readonly label: string;
-  readonly count: number;
+  readonly count?: number;
   readonly checked: boolean;
   readonly onToggle: () => void;
   readonly testId?: string;
@@ -63,7 +66,7 @@ function FilterOption({
           <Checkbox checked={checked} onCheckedChange={onToggle} data-testid={testId} />
         </span>
         <span className="nosc-applications-filter-option__label">{label}</span>
-        {count > 0 && (
+        {count != null && count > 0 && (
           <Badge className="nosc-applications-filter-option__count" size="1" color="gray" variant="soft" radius="full">
             {count}
           </Badge>
@@ -113,6 +116,33 @@ function ThreatLevelSection({
         <Text size="1" color="gray">
           {APPLICATIONS_THREAT_MAX}
         </Text>
+      </Flex>
+    </fieldset>
+  );
+}
+
+function AgeFilterSection({
+  selected,
+  onAgeInDaysChange,
+  testId,
+}: {
+  readonly selected?: ApplicationsAgeInDays;
+  readonly onAgeInDaysChange: (ageInDays: ApplicationsAgeInDays | undefined) => void;
+  readonly testId: string;
+}): JSX.Element {
+  return (
+    <fieldset className="nosc-applications-filter-group" data-testid={testId}>
+      <legend className="nosc-applications-filter-legend">Last evaluated</legend>
+      <Flex direction="column" gap="1">
+        {APPLICATIONS_AGE_OPTIONS.map(({ days, label }) => (
+          <FilterOption
+            key={days}
+            label={label}
+            checked={selected === days}
+            onToggle={() => onAgeInDaysChange(selected === days ? undefined : days)}
+            testId={`${testId}-option-${days}`}
+          />
+        ))}
       </Flex>
     </fieldset>
   );
@@ -272,6 +302,7 @@ export default function ApplicationsFilterRail({
   hasActiveFilters,
   onToggleFilter,
   onThreatRangeChange,
+  onAgeInDaysChange,
   onResetFilters,
   idPrefix,
 }: ApplicationsFilterRailProps): JSX.Element {
@@ -300,6 +331,12 @@ export default function ApplicationsFilterRail({
             range={filters.threatRange}
             onThreatRangeChange={onThreatRangeChange}
             testId={`${prefix}applications-filter-threat-level`}
+          />
+
+          <AgeFilterSection
+            selected={filters.ageInDays}
+            onAgeInDaysChange={onAgeInDaysChange}
+            testId={`${prefix}applications-filter-age`}
           />
 
           <CheckboxFilterSection

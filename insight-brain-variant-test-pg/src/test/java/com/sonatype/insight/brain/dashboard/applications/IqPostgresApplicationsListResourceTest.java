@@ -433,6 +433,39 @@ class IqPostgresApplicationsListResourceTest
   }
 
   @Test
+  void listApplications_ageInDays_returnsRecentlyEvaluatedApplicationsOnly() throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+
+    Organization org = ctx.tempEntity().newOrganization("AgeFilterTribe");
+    Application recentApp = ctx.tempEntity().newApplication("Recent App", "recent-age-app", org.getId());
+    Application oldApp = ctx.tempEntity().newApplication("Old App", "old-age-app", org.getId());
+    ctx.tempEntity().newApplication("Never Evaluated App", "never-age-app", org.getId());
+    long now = System.currentTimeMillis();
+    ctx.tempEntity()
+        .newPolicyEvaluation(recentApp.getId(), Stage.ID_BUILD, "recent-age-scan",
+            new Date(now - 2L * 24L * 60L * 60L * 1000L));
+    ctx.tempEntity()
+        .newPolicyEvaluation(oldApp.getId(), Stage.ID_BUILD, "old-age-scan",
+            new Date(now - 45L * 24L * 60L * 60L * 1000L));
+    ApplicationsListTestSupport.populateIndex(ctx.lookup(SearchIndexClient.class));
+
+    ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
+    request.organizationIds = Set.of(org.getId());
+    request.ageInDays = 30;
+
+    HttpResponse response = restRequest()
+        .path(ApplicationsListResource.APPLICATIONS_LIST_PATH)
+        .body(request)
+        .post();
+
+    ctx.assertResponseStatus(200, response);
+    ApplicationsListResponseDTO body = response.getBody(ApplicationsListResponseDTO.class);
+    assertThat(body.applications).extracting(item -> item.applicationId).containsExactly("recent-age-app");
+    assertThat(body.total).isEqualTo(1);
+    assertThat(body.facets.totalApplications).isEqualTo(1);
+  }
+
+  @Test
   void listApplications_unsupportedOrderBy_returns400() throws Exception {
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
 

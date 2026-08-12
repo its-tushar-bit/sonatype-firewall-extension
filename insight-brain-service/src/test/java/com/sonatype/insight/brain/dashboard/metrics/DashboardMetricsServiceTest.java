@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ import java.util.UUID;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
@@ -42,6 +44,8 @@ import com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsSqlModeP
 import com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsSqlReadiness;
 import com.sonatype.insight.brain.dashboard.metrics.sql.ResolvedScope;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.brain.model.Organization;
@@ -57,6 +61,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
 import com.sonatype.insight.brain.search.index.MetricAggregationResult;
@@ -82,6 +87,7 @@ import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -437,6 +443,102 @@ public class DashboardMetricsServiceTest
   }
 
   @Test
+  public void testGetMetrics_StageAndTagFiltersNarrowIndexBackedMetrics() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application buildTaggedApp = tempEntity.newApplication(org.getId());
+    Application releaseTaggedApp = tempEntity.newApplication(org.getId());
+    Application buildUntaggedApp = tempEntity.newApplication(org.getId());
+    Application buildTaggedComponentsApp = tempEntity.newApplication(org.getId());
+    Application buildUntaggedComponentsApp = tempEntity.newApplication(org.getId());
+    Tag selectedTag = tempEntity.newTag(org.getId(), "metrics-stage-tag");
+    Tag otherTag = tempEntity.newTag(org.getId(), "metrics-other-tag");
+    tempEntity.newApplicationTag(buildTaggedApp.getId(), selectedTag.getId());
+    tempEntity.newApplicationTag(releaseTaggedApp.getId(), selectedTag.getId());
+    tempEntity.newApplicationTag(buildTaggedComponentsApp.getId(), selectedTag.getId());
+    tempEntity.newApplicationTag(buildUntaggedApp.getId(), otherTag.getId());
+    tempEntity.newApplicationTag(buildUntaggedComponentsApp.getId(), otherTag.getId());
+
+    Policy policy = tempEntity.newPolicy(org.getId(), "metrics-stage-tag-policy");
+    seedPolicyViolation(org, buildTaggedApp, Stage.ID_BUILD, "stageTagBuild", policy, 10);
+    seedPolicyViolation(org, releaseTaggedApp, ReleaseStageType.ID, "stageTagRelease", policy, 8);
+    seedPolicyViolation(org, buildUntaggedApp, Stage.ID_BUILD, "stageTagUntagged", policy, 5);
+    seedComponentsReport(buildTaggedComponentsApp, Stage.ID_BUILD, "stageTagTaggedComponents");
+    seedComponentsReport(buildUntaggedComponentsApp, Stage.ID_BUILD, "stageTagUntaggedComponents");
+
+    User reader = tempEntity.newUser("metrics-stage-tag-reader");
+    Role readRole = tempEntity.newRole(false /* global */, Permission.READ);
+    tempEntity.newMembershipMapping(org.getId(), readRole.getId(), reader.getUsername());
+
+    DashboardMetricsTestSupport.populateIndex(luceneSearchIndexClient);
+    loginAs(reader);
+
+    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
+    request.stageIds = Set.of(Stage.ID_BUILD);
+    request.tagIds = Set.of(selectedTag.getId());
+
+    DashboardMetricsDTO metrics = dashboardMetricsService.getMetrics(request);
+
+    assertThat(metrics.applications.total).isEqualTo(1);
+    assertThat(metrics.applications.errorCode).isNull();
+    assertThat(metrics.violations.total).isEqualTo(1);
+    // Stage-filtered scanned components are violation-scoped: only the tagged Build violation's
+    // hash counts. The tagged app's clean components report at Build must not inflate the total
+    // (that was the pre-fix per-component-doc path).
+    assertThat(metrics.components.total).isEqualTo(1);
+    assertThat(metrics.vulnerabilities.total).isPositive();
+    assertThat(metrics.legal.breakdown).containsEntry("applications", 1L);
+    assertThat(metrics.waivers.errorCode).isEqualTo("UNSUPPORTED_FILTER_COMBINATION");
+    assertThat(metrics.waivers.unsupportedDimensions).containsExactly("stageIds");
+  }
+
+  @Test
+  public void testGetMetrics_TagFilter_SameCategoryNameAcrossOrgs_UsesTagIdNotName() throws Exception {
+    // Categories/tags are per-org and may share display names. Filtering by tag id must not pull
+    // apps from another org that happens to reuse the same category name.
+    Organization orgA = tempEntity.newOrganization("tag-name-org-a");
+    Organization orgB = tempEntity.newOrganization("tag-name-org-b");
+    Application appA = tempEntity.newApplication(orgA.getId());
+    Application appB = tempEntity.newApplication(orgB.getId());
+    Tag tagA = tempEntity.newTag(orgA.getId(), "shared-category-name");
+    Tag tagB = tempEntity.newTag(orgB.getId(), "shared-category-name");
+    tempEntity.newApplicationTag(appA.getId(), tagA.getId());
+    tempEntity.newApplicationTag(appB.getId(), tagB.getId());
+
+    Policy policyA = tempEntity.newPolicy(orgA.getId(), "tag-name-policy-a");
+    Policy policyB = tempEntity.newPolicy(orgB.getId(), "tag-name-policy-b");
+    seedPolicyViolation(orgA, appA, Stage.ID_BUILD, "tagNameA", policyA, 10);
+    seedPolicyViolation(orgB, appB, Stage.ID_BUILD, "tagNameB", policyB, 9);
+    seedComponentsReport(appA, Stage.ID_BUILD, "tagNameComponentsA");
+    seedComponentsReport(appB, Stage.ID_BUILD, "tagNameComponentsB");
+
+    User reader = tempEntity.newUser("metrics-tag-name-collision-reader");
+    Role readRole = tempEntity.newRole(false /* global */, Permission.READ);
+    tempEntity.newMembershipMapping(Organization.ROOT_ORGANIZATION_ID, readRole.getId(), reader.getUsername());
+
+    DashboardMetricsTestSupport.populateIndex(luceneSearchIndexClient);
+    loginAs(reader);
+
+    // Stage forces the index path for migrated summary/heavy tiles so the assertion hits Lucene
+    // tag→appId scoping rather than SQL scope resolution.
+    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
+    request.stageIds = Set.of(Stage.ID_BUILD);
+    request.tagIds = Set.of(tagA.getId());
+
+    DashboardMetricsDTO metricsA = dashboardMetricsService.getMetrics(request);
+
+    // Name-based category matching would count both orgs (shared display name). Tag-id → app-id
+    // scoping must keep each selection to a single org's app.
+    assertThat(metricsA.applications.total).isEqualTo(1);
+    assertThat(metricsA.violations.total).isEqualTo(1);
+
+    request.tagIds = Set.of(tagB.getId());
+    DashboardMetricsDTO metricsB = dashboardMetricsService.getMetrics(request);
+    assertThat(metricsB.applications.total).isEqualTo(1);
+    assertThat(metricsB.violations.total).isEqualTo(1);
+    assertThat(metricsA.applications.total + metricsB.applications.total).isEqualTo(2);
+  }
+
+  @Test
   public void testGetMetrics_Vulnerabilities_SameCveAcrossApplicationsCountsOnce() throws Exception {
     Organization org = tempEntity.newOrganization();
     Application appOne = tempEntity.newApplication(org.getId());
@@ -453,11 +555,12 @@ public class DashboardMetricsServiceTest
 
     DashboardMetricsDTO metrics = dashboardMetricsService.getMetrics(new DashboardMetricsRequestDTO());
 
-    // componentsMetricsReport fixture has 4 distinct CVEs; indexing it on two apps still yields 4 estate CVEs.
+    // componentsMetricsReport fixture has 4 distinct CVEs and 4 distinct component hashes; indexing it on two apps
+    // still yields estate-level distinct counts rather than per-app duplicates.
     assertThat(metrics.vulnerabilities.total).isEqualTo(4);
     assertThat(metrics.vulnerabilities.breakdown).containsEntry("critical", 1L);
     assertThat(metrics.vulnerabilities.breakdown).containsEntry("high", 1L);
-    assertThat(metrics.components.total).isEqualTo(8);
+    assertThat(metrics.components.total).isEqualTo(4);
   }
 
   @Test
@@ -751,6 +854,7 @@ public class DashboardMetricsServiceTest
         mock(DashboardMetricsSqlCoordinator.class),
         shadowComparisonService,
         new DashboardIndexDimensionQueryBuilder(mock(OrganizationDAO.class), mockConfiguration()),
+        mock(OwnerDAO.class),
         mockConfiguration(),
         mock(StageTypeService.class),
         currentUser);
@@ -790,6 +894,7 @@ public class DashboardMetricsServiceTest
         mock(DashboardMetricsSqlCoordinator.class),
         shadowComparisonService,
         new DashboardIndexDimensionQueryBuilder(mock(OrganizationDAO.class), mockConfiguration()),
+        mock(OwnerDAO.class),
         mockConfiguration(),
         mock(StageTypeService.class),
         currentUser);
@@ -974,73 +1079,92 @@ public class DashboardMetricsServiceTest
   }
 
   @Test
-  public void testGetMetrics_TagAndStageUnsupportedInEveryMode() {
-    for (DashboardMetricsSqlMode mode : DashboardMetricsSqlMode.values()) {
+  public void testGetMetrics_TagAndStageFiltersReturnIndexValuesInIndexServingModes() {
+    for (DashboardMetricsSqlMode mode : List.of(DashboardMetricsSqlMode.OFF, DashboardMetricsSqlMode.SHADOW)) {
       DashboardMetricsScopeResolver stageSummaryResolver = mock(DashboardMetricsScopeResolver.class);
       DashboardMetricsSqlCoordinator stageSummaryCoordinator = mock(DashboardMetricsSqlCoordinator.class);
+      SearchIndexClient stageSummaryIndex = mock(SearchIndexClient.class);
+      when(stageSummaryIndex.count(anyString())).thenReturn(7L);
+      when(stageSummaryIndex.countDistinct(anyString(), any())).thenReturn(7L);
+      when(stageSummaryIndex.getLastIndexTime()).thenReturn(1L);
       DashboardMetricsService stageSummaryService =
-          newModeService(mode, stageSummaryResolver, stageSummaryCoordinator);
+          newModeService(mode, stageSummaryIndex, mock(PolicyWaiverDAO.class), mock(PolicyWaiverRequestDAO.class),
+              mock(AutoPolicyWaiverDAO.class), stageSummaryResolver, stageSummaryCoordinator);
       DashboardMetricsRequestDTO stageSummary = new DashboardMetricsRequestDTO();
       stageSummary.stageIds = Set.of(Stage.ID_BUILD);
       stageSummary.includeHeavyMetrics = false;
 
       DashboardMetricsDTO stageSummaryMetrics = stageSummaryService.getMetrics(stageSummary);
 
-      assertUnsupported(stageSummaryMetrics.applications, "stageIds");
-      assertUnsupported(stageSummaryMetrics.organizations, "stageIds");
-      assertUnsupported(stageSummaryMetrics.policies, "stageIds");
+      assertThat(stageSummaryMetrics.applications.total).isEqualTo(7);
+      assertThat(stageSummaryMetrics.organizations.total).isEqualTo(7);
+      assertThat(stageSummaryMetrics.policies.total).isEqualTo(7);
       assertUnsupported(stageSummaryMetrics.waivers, "stageIds");
       verify(stageSummaryResolver, never()).resolve(any());
       verifyNoInteractions(stageSummaryCoordinator);
 
       DashboardMetricsScopeResolver tagSummaryResolver = queryableScopeResolver();
       DashboardMetricsSqlCoordinator tagSummaryCoordinator = mock(DashboardMetricsSqlCoordinator.class);
+      PolicyWaiverDAO tagSummaryWaiverDAO = mock(PolicyWaiverDAO.class);
+      PolicyWaiverRequestDAO tagSummaryWaiverRequestDAO = mock(PolicyWaiverRequestDAO.class);
+      SearchIndexClient tagSummaryIndex = mock(SearchIndexClient.class);
+      when(tagSummaryIndex.count(anyString())).thenReturn(5L);
+      when(tagSummaryIndex.getLastIndexTime()).thenReturn(2L);
       DashboardMetricsService tagSummaryService =
-          newModeService(mode, tagSummaryResolver, tagSummaryCoordinator);
+          newModeService(mode, tagSummaryIndex, tagSummaryWaiverDAO, tagSummaryWaiverRequestDAO,
+              mock(AutoPolicyWaiverDAO.class), tagSummaryResolver, tagSummaryCoordinator);
       DashboardMetricsRequestDTO tagSummary = new DashboardMetricsRequestDTO();
       tagSummary.tagIds = Set.of("tag-1");
       tagSummary.includeHeavyMetrics = false;
 
       DashboardMetricsDTO tagSummaryMetrics = tagSummaryService.getMetrics(tagSummary);
 
-      assertUnsupported(tagSummaryMetrics.applications, "tagIds");
-      assertUnsupported(tagSummaryMetrics.organizations, "tagIds");
-      assertUnsupported(tagSummaryMetrics.policies, "tagIds");
+      assertThat(tagSummaryMetrics.applications.total).isEqualTo(5);
+      assertThat(tagSummaryMetrics.organizations.total).isEqualTo(5);
+      assertThat(tagSummaryMetrics.policies.total).isEqualTo(5);
       assertThat(tagSummaryMetrics.waivers.source).isEqualTo("sql");
       verify(tagSummaryResolver, times(1)).resolve(tagSummary);
       verifyNoInteractions(tagSummaryCoordinator);
 
       DashboardMetricsScopeResolver stageHeavyResolver = mock(DashboardMetricsScopeResolver.class);
       DashboardMetricsSqlCoordinator stageHeavyCoordinator = mock(DashboardMetricsSqlCoordinator.class);
+      SearchIndexClient stageHeavyIndex = mock(SearchIndexClient.class);
+      stubEmptySearchIndexResults(stageHeavyIndex);
+      when(stageHeavyIndex.getLastIndexTime()).thenReturn(3L);
       DashboardMetricsService stageHeavyService =
-          newModeService(mode, stageHeavyResolver, stageHeavyCoordinator);
+          newModeService(mode, stageHeavyIndex, mock(PolicyWaiverDAO.class), mock(PolicyWaiverRequestDAO.class),
+              mock(AutoPolicyWaiverDAO.class), stageHeavyResolver, stageHeavyCoordinator);
       DashboardMetricsRequestDTO stageHeavy = new DashboardMetricsRequestDTO();
       stageHeavy.stageIds = Set.of(Stage.ID_BUILD);
       stageHeavy.includeHeavyMetrics = true;
 
       DashboardMetricsDTO stageHeavyMetrics = stageHeavyService.getMetrics(stageHeavy);
 
-      assertUnsupported(stageHeavyMetrics.violations, "stageIds");
-      assertUnsupported(stageHeavyMetrics.components, "stageIds");
-      assertUnsupported(stageHeavyMetrics.vulnerabilities, "stageIds");
-      assertUnsupported(stageHeavyMetrics.legal, "stageIds");
+      assertThat(stageHeavyMetrics.violations.total).isZero();
+      assertThat(stageHeavyMetrics.components.total).isZero();
+      assertThat(stageHeavyMetrics.vulnerabilities.total).isZero();
+      assertThat(stageHeavyMetrics.legal.total).isZero();
       verify(stageHeavyResolver, never()).resolve(any());
       verifyNoInteractions(stageHeavyCoordinator);
 
       DashboardMetricsScopeResolver tagHeavyResolver = mock(DashboardMetricsScopeResolver.class);
       DashboardMetricsSqlCoordinator tagHeavyCoordinator = mock(DashboardMetricsSqlCoordinator.class);
+      SearchIndexClient tagHeavyIndex = mock(SearchIndexClient.class);
+      stubEmptySearchIndexResults(tagHeavyIndex);
+      when(tagHeavyIndex.getLastIndexTime()).thenReturn(4L);
       DashboardMetricsService tagHeavyService =
-          newModeService(mode, tagHeavyResolver, tagHeavyCoordinator);
+          newModeService(mode, tagHeavyIndex, mock(PolicyWaiverDAO.class), mock(PolicyWaiverRequestDAO.class),
+              mock(AutoPolicyWaiverDAO.class), tagHeavyResolver, tagHeavyCoordinator);
       DashboardMetricsRequestDTO tagHeavy = new DashboardMetricsRequestDTO();
       tagHeavy.tagIds = Set.of("tag-1");
       tagHeavy.includeHeavyMetrics = true;
 
       DashboardMetricsDTO tagHeavyMetrics = tagHeavyService.getMetrics(tagHeavy);
 
-      assertUnsupported(tagHeavyMetrics.violations, "tagIds");
-      assertUnsupported(tagHeavyMetrics.components, "tagIds");
-      assertUnsupported(tagHeavyMetrics.vulnerabilities, "tagIds");
-      assertUnsupported(tagHeavyMetrics.legal, "tagIds");
+      assertThat(tagHeavyMetrics.violations.total).isZero();
+      assertThat(tagHeavyMetrics.components.total).isZero();
+      assertThat(tagHeavyMetrics.vulnerabilities.total).isZero();
+      assertThat(tagHeavyMetrics.legal.total).isZero();
       verify(tagHeavyResolver, never()).resolve(any());
       verifyNoInteractions(tagHeavyCoordinator);
     }
@@ -1213,9 +1337,9 @@ public class DashboardMetricsServiceTest
 
     assertThat(first.applications.total).isEqualTo(7);
     assertThat(second.applications.total).isEqualTo(7);
-    // loadMetrics runs once (coalesced): count() x3, countDistinct() x10 (components x2, vulnerabilities x5, legal x3).
+    // loadMetrics runs once (coalesced): count() x3, countDistinct() x9 (components x1, vulnerabilities x5, legal x3).
     verify(searchIndexClient, times(3)).count(anyString());
-    verify(searchIndexClient, times(10)).countDistinct(anyString(), any());
+    verify(searchIndexClient, times(9)).countDistinct(anyString(), any());
     verify(searchIndexClient, times(1)).aggregateCountByField(anyString(), anyString(), any());
     verify(searchIndexClient, times(1)).getLastIndexTime();
   }
@@ -1257,7 +1381,7 @@ public class DashboardMetricsServiceTest
     assertThat(metrics.legal).isNotNull();
     verify(searchIndexClient, times(3)).count(anyString());
     verify(searchIndexClient, times(1)).aggregateCountByField(anyString(), anyString(), any());
-    verify(searchIndexClient, times(10)).countDistinct(anyString(), any());
+    verify(searchIndexClient, times(9)).countDistinct(anyString(), any());
     verify(searchIndexClient, times(1)).getLastIndexTime();
   }
 
@@ -1301,7 +1425,7 @@ public class DashboardMetricsServiceTest
 
     verify(searchIndexClient, times(6)).count(anyString());
     verify(searchIndexClient, times(2)).aggregateCountByField(anyString(), anyString(), any());
-    verify(searchIndexClient, times(20)).countDistinct(anyString(), any());
+    verify(searchIndexClient, times(18)).countDistinct(anyString(), any());
     verify(searchIndexClient, times(3)).getLastIndexTime();
   }
 
@@ -1360,6 +1484,7 @@ public class DashboardMetricsServiceTest
         mock(DashboardMetricsSqlCoordinator.class),
         mock(DashboardMetricsShadowComparisonService.class),
         new DashboardIndexDimensionQueryBuilder(mock(OrganizationDAO.class), mockConfiguration()),
+        mock(OwnerDAO.class),
         mockConfiguration(),
         mock(StageTypeService.class),
         currentUser);
@@ -1379,8 +1504,11 @@ public class DashboardMetricsServiceTest
   }
 
   @Test
-  public void testGetMetrics_StageFilteredSummaryReturnsUnavailableMetricsWithoutComputingBroaderScope() {
+  public void testGetMetrics_StageFilteredSummaryComputesIndexMetricsAndLeavesWaiversUnsupported() {
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
+    when(searchIndexClient.count(anyString())).thenReturn(4L);
+    when(searchIndexClient.countDistinct(anyString(), any())).thenReturn(4L);
+    when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
     CurrentUser currentUser = mock(CurrentUser.class);
     when(currentUser.getUserPrincipal()).thenReturn(
         new UserPrincipal("stage-filter-user", "stage-filter-user", User.INTERNAL_REALM_ID));
@@ -1401,6 +1529,7 @@ public class DashboardMetricsServiceTest
         mock(DashboardMetricsSqlCoordinator.class),
         mock(DashboardMetricsShadowComparisonService.class),
         new DashboardIndexDimensionQueryBuilder(mock(OrganizationDAO.class), mockConfiguration()),
+        mock(OwnerDAO.class),
         mockConfiguration(),
         mock(StageTypeService.class),
         currentUser);
@@ -1411,21 +1540,25 @@ public class DashboardMetricsServiceTest
 
     DashboardMetricsDTO metrics = service.getMetrics(request);
 
-    assertUnsupported(metrics.applications, "stageIds");
-    assertUnsupported(metrics.organizations, "stageIds");
-    assertUnsupported(metrics.policies, "stageIds");
+    assertThat(metrics.applications.total).isEqualTo(4);
+    assertThat(metrics.organizations.total).isEqualTo(4);
+    assertThat(metrics.policies.total).isEqualTo(4);
     assertUnsupported(metrics.waivers, "stageIds");
     assertThat(metrics.violations).isNull();
-    verify(searchIndexClient, never()).count(anyString());
+    // Orgs + policies still use count(); applications uses countDistinct on POLICY_VIOLATION.
+    verify(searchIndexClient, times(2)).count(anyString());
+    verify(searchIndexClient, times(1)).countDistinct(anyString(), any());
     verify(searchIndexClient, never()).aggregateCountByField(anyString(), anyString(), any());
-    verify(searchIndexClient, never()).countDistinct(anyString(), any());
     verify(policyWaiverDAO, never()).selectCount(any());
     verify(policyWaiverRequestDAO, never()).selectCount(any());
   }
 
   @Test
-  public void testGetMetrics_TagFilteredSummaryComputesWaiversButNotUnsupportedIndexMetrics() {
+  public void testGetMetrics_TagFilteredSummaryComputesWaiversAndIndexMetrics() {
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
+    ArgumentCaptor<String> countQuery = ArgumentCaptor.forClass(String.class);
+    when(searchIndexClient.count(countQuery.capture())).thenReturn(6L);
+    when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
     CurrentUser currentUser = mock(CurrentUser.class);
     when(currentUser.getUserPrincipal()).thenReturn(
         new UserPrincipal("tag-filter-user", "tag-filter-user", User.INTERNAL_REALM_ID));
@@ -1446,6 +1579,11 @@ public class DashboardMetricsServiceTest
             true));
     when(policyWaiverDAO.selectCount(Set.of("tagged-owner"))).thenReturn(2L);
     when(policyWaiverRequestDAO.selectCount(Set.of("tagged-owner"))).thenReturn(3L);
+    OwnerDAO ownerDAO = mock(OwnerDAO.class);
+    Owner taggedApp = mock(Owner.class);
+    when(taggedApp.getType()).thenReturn(OwnerType.APPLICATION);
+    when(taggedApp.getId()).thenReturn("taggedApp");
+    when(ownerDAO.getOwnersByAppTagsAndOrgs(any(), any(), any())).thenReturn(List.of(taggedApp));
     DashboardMetricsService service = new DashboardMetricsService(
         searchIndexClient,
         new MetricFilterValidator(),
@@ -1458,6 +1596,7 @@ public class DashboardMetricsServiceTest
         mock(DashboardMetricsSqlCoordinator.class),
         mock(DashboardMetricsShadowComparisonService.class),
         new DashboardIndexDimensionQueryBuilder(mock(OrganizationDAO.class), mockConfiguration()),
+        ownerDAO,
         mockConfiguration(),
         mock(StageTypeService.class),
         currentUser);
@@ -1468,20 +1607,79 @@ public class DashboardMetricsServiceTest
 
     DashboardMetricsDTO metrics = service.getMetrics(request);
 
-    assertUnsupported(metrics.applications, "tagIds");
-    assertUnsupported(metrics.organizations, "tagIds");
-    assertUnsupported(metrics.policies, "tagIds");
+    assertThat(metrics.applications.total).isEqualTo(6);
+    assertThat(metrics.organizations.total).isEqualTo(6);
+    assertThat(metrics.policies.total).isEqualTo(6);
     assertThat(metrics.waivers.total).isEqualTo(5);
     assertThat(metrics.waivers.breakdown).containsEntry("existing", 2L).containsEntry("requested", 3L);
-    verify(searchIndexClient, never()).count(anyString());
+    assertThat(countQuery.getAllValues())
+        .anyMatch(q -> q.contains("itemType:policy") && q.contains("applicationId:(taggedApp)"));
+    verify(searchIndexClient, times(3)).count(anyString());
     verify(searchIndexClient, never()).aggregateCountByField(anyString(), anyString(), any());
     verify(searchIndexClient, never()).countDistinct(anyString(), any());
     verify(scopeResolver, times(1)).resolve(request);
   }
 
   @Test
-  public void testGetMetrics_StageAndTagFilteredHeavyTierReturnsUnavailableWithoutIndexComputations() {
+  public void testGetMetrics_OversizedTagFilterSoftDegradesTagScopedTiles() {
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
+    when(searchIndexClient.count(anyString())).thenReturn(3L);
+    when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
+    CurrentUser currentUser = mock(CurrentUser.class);
+    when(currentUser.getUserPrincipal()).thenReturn(
+        new UserPrincipal("oversized-tag-user", "oversized-tag-user", User.INTERNAL_REALM_ID));
+    Configuration configuration = mock(Configuration.class);
+    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(2);
+    List<Owner> taggedApps = new ArrayList<>();
+    for (int i = 0; i < 3; i++) {
+      Owner owner = mock(Owner.class);
+      when(owner.getType()).thenReturn(OwnerType.APPLICATION);
+      when(owner.getId()).thenReturn("app-" + i);
+      taggedApps.add(owner);
+    }
+    OwnerDAO ownerDAO = mock(OwnerDAO.class);
+    when(ownerDAO.getOwnersByAppTagsAndOrgs(any(), any(), any())).thenReturn(taggedApps);
+    DashboardMetricsService service = new DashboardMetricsService(
+        searchIndexClient,
+        new MetricFilterValidator(),
+        mock(PolicyWaiverDAO.class),
+        mock(PolicyWaiverRequestDAO.class),
+        mock(AutoPolicyWaiverDAO.class),
+        offModeProvider(),
+        offSqlReadiness(),
+        mock(DashboardMetricsScopeResolver.class),
+        mock(DashboardMetricsSqlCoordinator.class),
+        mock(DashboardMetricsShadowComparisonService.class),
+        new DashboardIndexDimensionQueryBuilder(mock(OrganizationDAO.class), configuration),
+        ownerDAO,
+        configuration,
+        mock(StageTypeService.class),
+        currentUser);
+
+    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
+    request.tagIds = Set.of("broad-tag");
+    request.stageIds = Set.of(Stage.ID_BUILD);
+
+    DashboardMetricsDTO metrics = service.getMetrics(request);
+
+    assertUnsupported(metrics.applications, "tagIds");
+    assertThat(metrics.organizations.total).isEqualTo(3);
+    assertUnsupported(metrics.policies, "tagIds");
+    assertUnsupported(metrics.violations, "tagIds");
+    assertUnsupported(metrics.components, "tagIds");
+    assertUnsupported(metrics.vulnerabilities, "tagIds");
+    assertUnsupported(metrics.legal, "tagIds");
+    assertUnsupported(metrics.waivers, "stageIds");
+    verify(searchIndexClient, times(1)).count(anyString());
+    verify(searchIndexClient, never()).countDistinct(anyString(), any());
+    verify(searchIndexClient, never()).aggregateCountByField(anyString(), anyString(), any());
+  }
+
+  @Test
+  public void testGetMetrics_StageAndTagFilteredHeavyTierComputesIndexMetrics() {
+    SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
+    stubEmptySearchIndexResults(searchIndexClient);
+    when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
     CurrentUser currentUser = mock(CurrentUser.class);
     when(currentUser.getUserPrincipal()).thenReturn(
         new UserPrincipal("heavy-filter-user", "heavy-filter-user", User.INTERNAL_REALM_ID));
@@ -1501,13 +1699,13 @@ public class DashboardMetricsServiceTest
     DashboardMetricsDTO metrics = service.getMetrics(request);
 
     assertThat(metrics.applications).isNull();
-    assertUnsupported(metrics.violations, "stageIds", "tagIds");
-    assertUnsupported(metrics.components, "stageIds", "tagIds");
-    assertUnsupported(metrics.vulnerabilities, "stageIds", "tagIds");
-    assertUnsupported(metrics.legal, "stageIds", "tagIds");
+    assertThat(metrics.violations.total).isZero();
+    assertThat(metrics.components.total).isZero();
+    assertThat(metrics.vulnerabilities.total).isZero();
+    assertThat(metrics.legal.total).isZero();
     verify(searchIndexClient, never()).count(anyString());
-    verify(searchIndexClient, never()).aggregateCountByField(anyString(), anyString(), any());
-    verify(searchIndexClient, never()).countDistinct(anyString(), any());
+    verify(searchIndexClient, times(1)).aggregateCountByField(anyString(), anyString(), any());
+    verify(searchIndexClient, times(9)).countDistinct(anyString(), any());
   }
 
   @Test
@@ -1576,9 +1774,9 @@ public class DashboardMetricsServiceTest
     service.getMetrics(request);
     service.getMetrics(request);
 
-    // Two cache misses x loadMetrics: count() x3, countDistinct() x10 per miss.
+    // Two cache misses x loadMetrics: count() x3, countDistinct() x9 per miss.
     verify(searchIndexClient, times(6)).count(anyString());
-    verify(searchIndexClient, times(20)).countDistinct(anyString(), any());
+    verify(searchIndexClient, times(18)).countDistinct(anyString(), any());
     verify(searchIndexClient, times(2)).aggregateCountByField(anyString(), anyString(), any());
   }
 
@@ -1614,9 +1812,9 @@ public class DashboardMetricsServiceTest
     service.getMetrics(request);
     service.getMetrics(request);
 
-    // Two cache misses x loadMetrics: count() x3, countDistinct() x10 per miss.
+    // Two cache misses x loadMetrics: count() x3, countDistinct() x9 per miss.
     verify(searchIndexClient, times(6)).count(anyString());
-    verify(searchIndexClient, times(20)).countDistinct(anyString(), any());
+    verify(searchIndexClient, times(18)).countDistinct(anyString(), any());
     verify(searchIndexClient, times(2)).aggregateCountByField(anyString(), anyString(), any());
   }
 
@@ -1649,7 +1847,7 @@ public class DashboardMetricsServiceTest
 
     // Empty filter requests share one cache key => loadMetrics runs once (coalesced).
     verify(searchIndexClient, times(3)).count(anyString());
-    verify(searchIndexClient, times(10)).countDistinct(anyString(), any());
+    verify(searchIndexClient, times(9)).countDistinct(anyString(), any());
     verify(searchIndexClient, times(1)).aggregateCountByField(anyString(), anyString(), any());
   }
 
@@ -1681,10 +1879,21 @@ public class DashboardMetricsServiceTest
       String scanId,
       int threatLevel) throws Exception
   {
-    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
+    seedPolicyViolation(org, app, Stage.ID_BUILD, scanId, tempEntity.newPolicy(org.getId(), "Security - Critical "
+        + scanId), threatLevel);
+  }
+
+  private void seedPolicyViolation(
+      Organization org,
+      Application app,
+      String stageId,
+      String scanId,
+      Policy policy,
+      int threatLevel) throws Exception
+  {
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), stageId, scanId);
     ReportTestUtils.createReportFile(evaluation.getOwnerId(), evaluation.getScanId(),
         ReportTestUtils.zipReportDir("/IndexSearchingTest/policyViolationReport", tempDir), lookup(InsightWork.class));
-    Policy policy = tempEntity.newPolicy(org.getId(), "Security - Critical " + scanId);
     tempEntity.newPolicyViolation(evaluation, policy, threatLevel, PolicyThreatCategory.SECURITY,
         "com.example", "artifact", "1.0", DashboardMetricsTestSupport.violationComponentHash(scanId));
   }
@@ -1696,7 +1905,10 @@ public class DashboardMetricsServiceTest
   }
 
   private static Configuration mockConfiguration() {
-    return mock(Configuration.class);
+    Configuration configuration = mock(Configuration.class);
+    // Tag→appId metrics path uses buildEscapedApplicationFilterClause (size-capped).
+    lenient().when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(2048);
+    return configuration;
   }
 
   private static DashboardMetricsSqlModeProvider offModeProvider() {
@@ -1809,6 +2021,7 @@ public class DashboardMetricsServiceTest
         coordinator,
         mock(DashboardMetricsShadowComparisonService.class),
         new DashboardIndexDimensionQueryBuilder(mock(OrganizationDAO.class), mockConfiguration()),
+        mock(OwnerDAO.class),
         mockConfiguration(),
         mock(StageTypeService.class),
         currentUser);
@@ -1865,6 +2078,7 @@ public class DashboardMetricsServiceTest
         mock(DashboardMetricsSqlCoordinator.class),
         mock(DashboardMetricsShadowComparisonService.class),
         new DashboardIndexDimensionQueryBuilder(organizationDAO, configuration),
+        mock(OwnerDAO.class),
         configuration,
         stageTypeService,
         currentUser);

@@ -24,6 +24,7 @@ describe('applicationsListQuery (CLM-42226)', () => {
       org: 'org-java',
       app: 'apple-java',
       threat: '2-10',
+      age: '30',
     });
 
     expect(parsed.search).toBe('apple pie');
@@ -33,6 +34,7 @@ describe('applicationsListQuery (CLM-42226)', () => {
     expect(Array.from(parsed.filters.organizationIds)).toEqual(['org-java']);
     expect(Array.from(parsed.filters.applicationIds)).toEqual(['apple-java']);
     expect(parsed.filters.threatRange).toEqual([2, 10]);
+    expect(parsed.filters.ageInDays).toBe(30);
   });
 
   it('falls back to the default threat range for legacy bucket tokens', () => {
@@ -66,6 +68,7 @@ describe('applicationsListQuery (CLM-42226)', () => {
       policyTypes: new Set(['security']),
       violationStates: new Set(['OPEN']),
       threatRange: [4, 7] as const,
+      ageInDays: 30,
     };
     const params = buildApplicationsListRouteParams({
       search: 'banana',
@@ -83,10 +86,12 @@ describe('applicationsListQuery (CLM-42226)', () => {
     expect(Array.from(parsed.filters.policyTypes)).toEqual(['security']);
     expect(Array.from(parsed.filters.violationStates)).toEqual(['OPEN']);
     expect(parsed.filters.threatRange).toEqual([4, 7]);
+    expect(parsed.filters.ageInDays).toBe(30);
     expect(params.threat).toBe('4-7');
     expect(params.policyType).toBe('security');
     expect(params.violationState).toBe('OPEN');
     expect(params.sort).toBe('latest');
+    expect(params.age).toBe('30');
   });
 
   it('round-trips lowest threat sort explicitly', () => {
@@ -104,5 +109,10 @@ describe('applicationsListQuery (CLM-42226)', () => {
   it('defaults unknown sort slugs to highest threat', () => {
     expect(sortSlugToOrderBy('highest-risk')).toBe('-maxPolicyThreatLevel');
     expect(sortSlugToOrderBy('not-a-sort')).toBe('-maxPolicyThreatLevel');
+  });
+
+  it('drops unsupported application age tokens from URL params', () => {
+    expect(parseApplicationsListParams({ age: 'yesterday' }).filters.ageInDays).toBeUndefined();
+    expect(parseApplicationsListParams({ age: '0' }).filters.ageInDays).toBeUndefined();
   });
 });

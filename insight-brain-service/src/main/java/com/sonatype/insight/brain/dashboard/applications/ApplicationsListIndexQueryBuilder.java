@@ -9,10 +9,12 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
+import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.ItemType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -38,7 +40,13 @@ final class ApplicationsListIndexQueryBuilder
 
   String buildApplicationQuery(final ApplicationsListRequestDTO request) {
     ApplicationsListRequestDTO effectiveRequest = applyViolationScopedApplicationIds(request);
-    return String.join(" AND ", buildBaseApplicationClauses(effectiveRequest));
+    // Age is APPLICATION-doc only — apply on the final query, never on violation discovery.
+    List<String> clauses = buildBaseApplicationClauses(effectiveRequest);
+    String ageClause = buildAgeClause(effectiveRequest == null ? null : effectiveRequest.ageInDays);
+    if (ageClause != null) {
+      clauses.add(ageClause);
+    }
+    return String.join(" AND ", clauses);
   }
 
   private ApplicationsListRequestDTO applyViolationScopedApplicationIds(final ApplicationsListRequestDTO request) {
@@ -70,6 +78,7 @@ final class ApplicationsListIndexQueryBuilder
     scoped.policyThreatLevelRange = request.policyThreatLevelRange;
     scoped.policyThreatLevelRanges = request.policyThreatLevelRanges;
     scoped.policyViolationStates = request.policyViolationStates;
+    scoped.ageInDays = request.ageInDays;
     scoped.orderBy = request.orderBy;
     scoped.page = request.page;
     scoped.pageSize = request.pageSize;
@@ -77,6 +86,12 @@ final class ApplicationsListIndexQueryBuilder
     return scoped;
   }
 
+  /**
+   * Pre-discovery APPLICATION query for violation-scope resolution. Omits {@code ageInDays}:
+   * {@code applicationLastEvaluationTimeEpochMs} exists only on APPLICATION docs, and discovery
+   * rewrites this query onto POLICY_VIOLATION docs via
+   * {@link ApplicationsListViolationQuerySupport#toViolationQuery}.
+   */
   private String buildApplicationQueryWithoutViolationScope(final ApplicationsListRequestDTO request) {
     return String.join(" AND ", buildBaseApplicationClauses(request));
   }
@@ -109,6 +124,15 @@ final class ApplicationsListIndexQueryBuilder
     }
 
     return clauses;
+  }
+
+  private static String buildAgeClause(final Integer ageInDays) {
+    if (ageInDays == null) {
+      return null;
+    }
+    long upper = System.currentTimeMillis();
+    long lower = upper - TimeUnit.DAYS.toMillis(ageInDays);
+    return FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label + ":[" + lower + " TO " + upper + "]";
   }
 
   /**

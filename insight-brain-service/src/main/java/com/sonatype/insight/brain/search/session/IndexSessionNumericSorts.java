@@ -38,6 +38,7 @@ public final class IndexSessionNumericSorts
         fieldIdentifier.label,
         SortField.Type.LONG,
         reverse);
+    // Ascending: MAX_VALUE is last. Descending: MIN_VALUE is last (after positive timestamps).
     sortField.setMissingValue(reverse ? Long.MIN_VALUE : Long.MAX_VALUE);
     return sortField;
   }

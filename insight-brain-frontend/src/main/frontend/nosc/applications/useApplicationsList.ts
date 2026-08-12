@@ -28,6 +28,7 @@ import {
   hasActiveApplicationsListFilters,
   normalizeApplicationsThreatRange,
   toggleApplicationsListFilterId,
+  type ApplicationsAgeInDays,
 } from 'MainRoot/nosc/applications/applicationsListFilters';
 import { DEFAULT_APPLICATIONS_LIST_ORDER_BY, filtersEqual } from 'MainRoot/nosc/applications/applicationsListQuery';
 import { getApplicationsListUrl } from 'MainRoot/util/CLMLocation';
@@ -61,6 +62,7 @@ export interface UseApplicationsListResult {
   readonly changeOrderBy: (orderBy: ApplicationsListOrderBy) => void;
   readonly toggleFilter: (field: ApplicationsListFilterSetField, id: string) => void;
   readonly setThreatRange: (range: ApplicationsThreatRange) => void;
+  readonly setAgeInDays: (ageInDays: ApplicationsAgeInDays | undefined) => void;
   readonly resetFilters: () => void;
   readonly syncQueryState: (state: {
     readonly search: string;
@@ -200,6 +202,17 @@ export function useApplicationsList(options: UseApplicationsListOptions = {}): U
     [filters.threatRange]
   );
 
+  const setAgeInDays = useCallback(
+    (ageInDays: ApplicationsAgeInDays | undefined) => {
+      if (filters.ageInDays === ageInDays) {
+        return;
+      }
+      setPage(0);
+      setFilters((current) => ({ ...current, ageInDays }));
+    },
+    [filters.ageInDays]
+  );
+
   const resetFilters = useCallback(() => {
     setFilters(EMPTY_APPLICATIONS_LIST_FILTERS);
     setPage(0);
@@ -249,6 +262,7 @@ export function useApplicationsList(options: UseApplicationsListOptions = {}): U
     changeOrderBy,
     toggleFilter,
     setThreatRange,
+    setAgeInDays,
     resetFilters,
     syncQueryState,
   };

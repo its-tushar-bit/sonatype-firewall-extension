@@ -49,6 +49,9 @@ public class ApplicationsListRequestDTO
 
   public PolicyViolationStateFilter policyViolationStates;
 
+  /** Inclusive latest-evaluation age window in days, based on applicationLastEvaluationTimeEpochMs. */
+  public Integer ageInDays;
+
   /**
    * Applications list sort token. Accepted values are {@code maxPolicyThreatLevel},
    * {@code -maxPolicyThreatLevel}, {@code lastEvaluationTime}, and {@code -lastEvaluationTime}.

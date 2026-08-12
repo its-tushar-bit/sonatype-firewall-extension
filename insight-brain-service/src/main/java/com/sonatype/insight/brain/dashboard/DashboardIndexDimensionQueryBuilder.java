@@ -18,6 +18,7 @@ import jakarta.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -36,6 +37,13 @@ public class DashboardIndexDimensionQueryBuilder
    * patterns but never indexed as an organization owner.
    */
   public static final String NO_MATCH_ORGANIZATION_FILTER_ID = "__no_match__";
+
+  /**
+   * Sentinel application id for a filter that must match zero docs. Distinct name from
+   * {@link #NO_MATCH_ORGANIZATION_FILTER_ID} even though the wire value is identical — the two
+   * sentinels apply to different Lucene fields ({@code applicationId} vs {@code organizationId}).
+   */
+  public static final String NO_MATCH_APPLICATION_FILTER_ID = "__no_match__";
 
   private static final Pattern LUCENE_SPECIAL_CHARS = Pattern.compile("[+\\-!(){}\\[\\]^\"~*?:\\\\/]");
 
@@ -125,6 +133,14 @@ public class DashboardIndexDimensionQueryBuilder
     return "applicationId:(" + String.join(" ", sortedCopy(applicationIds)) + ")";
   }
 
+  public String buildPolicyEvaluationStageFilterClause(final Set<String> stageIds) {
+    return buildKeywordSetClause(FieldIdentifier.POLICY_EVALUATION_STAGE.label, stageIds);
+  }
+
+  public String buildApplicationViolationStageFilterClause(final Set<String> stageIds) {
+    return buildKeywordSetClause(FieldIdentifier.APPLICATION_VIOLATION_STAGE.label, stageIds);
+  }
+
   /**
    * Martha list application clause: rejects blank ids, caps clause count, and escapes Lucene terms.
    */
@@ -151,6 +167,22 @@ public class DashboardIndexDimensionQueryBuilder
   public static String escapeLuceneTerm(final String input) {
     String escapedSpecials = LUCENE_SPECIAL_CHARS.matcher(input).replaceAll("\\\\$0");
     return escapedSpecials.replace("&&", "\\&\\&").replace("||", "\\|\\|");
+  }
+
+  private static String buildKeywordSetClause(final String fieldName, final Set<String> ids) {
+    if (ids == null || ids.isEmpty()) {
+      return null;
+    }
+    List<String> escapedIds = new ArrayList<>(ids.size());
+    for (String id : sortedCopy(ids)) {
+      if (StringUtils.isNotBlank(id)) {
+        escapedIds.add(escapeLuceneTerm(id));
+      }
+    }
+    if (escapedIds.isEmpty()) {
+      return null;
+    }
+    return fieldName + ":(" + String.join(" ", escapedIds) + ")";
   }
 
   public static void rejectBlankFilterIds(final Set<String> ids, final String fieldName) {

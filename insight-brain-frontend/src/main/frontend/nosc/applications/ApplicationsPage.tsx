@@ -14,6 +14,7 @@ import {
   ApplicationsListFilterSetField,
   ApplicationsListFilterState,
   ApplicationsThreatRange,
+  type ApplicationsAgeInDays,
 } from 'MainRoot/nosc/applications/applicationsListFilters';
 import { ApplicationsListOrderBy } from 'MainRoot/nosc/applications/applicationsListApi';
 import { AsyncPageStateInfoProps } from 'MainRoot/nosc/components/AsyncPageState';
@@ -25,6 +26,7 @@ export interface ApplicationsPageProps {
   readonly hasActiveFilters: boolean;
   readonly onToggleFilter: (field: ApplicationsListFilterSetField, id: string) => void;
   readonly onThreatRangeChange: (range: ApplicationsThreatRange) => void;
+  readonly onAgeInDaysChange: (ageInDays: ApplicationsAgeInDays | undefined) => void;
   readonly onResetFilters: () => void;
   readonly loading?: boolean;
   readonly error?: string | null;
@@ -56,6 +58,7 @@ export default function ApplicationsPage({
   hasActiveFilters,
   onToggleFilter,
   onThreatRangeChange,
+  onAgeInDaysChange,
   onResetFilters,
   loading = false,
   error = null,
@@ -78,6 +81,7 @@ export default function ApplicationsPage({
       hasActiveFilters={hasActiveFilters}
       onToggleFilter={onToggleFilter}
       onThreatRangeChange={onThreatRangeChange}
+      onAgeInDaysChange={onAgeInDaysChange}
       onResetFilters={onResetFilters}
       idPrefix={idPrefix}
     />

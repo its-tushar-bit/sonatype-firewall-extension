@@ -51,6 +51,7 @@ function renderRail(
     hasActiveFilters: false,
     onToggleFilter: jest.fn(),
     onThreatRangeChange: jest.fn(),
+    onAgeInDaysChange: jest.fn(),
     onResetFilters: jest.fn(),
     ...overrides,
   };
@@ -120,8 +121,36 @@ describe('ApplicationsFilterRail', () => {
   it('omits deferred Coming Soon / Age / Categories vision filters (CLM-43211)', () => {
     renderRail();
     expect(screen.queryByText(/Coming Soon/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/^Age$/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/^Categories$/i)).not.toBeInTheDocument();
+  });
+
+  it('renders and changes the application age filter', async () => {
+    const props = renderRail();
+
+    expect(screen.getByText('Last evaluated')).toBeInTheDocument();
+    await user.click(screen.getByTestId('applications-filter-age-option-30'));
+
+    expect(props.onAgeInDaysChange).toHaveBeenCalledWith(30);
+  });
+
+  it('toggles age off when the selected option is clicked again', async () => {
+    const props = renderRail({
+      filters: { ...EMPTY_APPLICATIONS_LIST_FILTERS, ageInDays: 30 },
+    });
+
+    await user.click(screen.getByTestId('applications-filter-age-option-30'));
+
+    expect(props.onAgeInDaysChange).toHaveBeenCalledWith(undefined);
+  });
+
+  it('switches between age options', async () => {
+    const props = renderRail({
+      filters: { ...EMPTY_APPLICATIONS_LIST_FILTERS, ageInDays: 30 },
+    });
+
+    await user.click(screen.getByTestId('applications-filter-age-option-7'));
+
+    expect(props.onAgeInDaysChange).toHaveBeenCalledWith(7);
   });
 
   it('toggles policy type and violation state selections', async () => {

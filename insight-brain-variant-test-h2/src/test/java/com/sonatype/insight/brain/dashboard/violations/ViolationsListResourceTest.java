@@ -209,12 +209,9 @@ class ViolationsListResourceTest
   }
 
   /**
-   * Documents the known sort limitation (CLM-42254 review): threat-level ordering is applied per index
-   * page after retrieval — {@code SearchIndexClient} has no sort parameter — so each returned page is
-   * sorted highest-threat-first among the rows it happens to contain, but the "highest threat first"
-   * contract is NOT guaranteed globally across page boundaries. Index-level sort is tracked under
-   * CLM-42262. Kept as an explicit {@code total > pageSize} test so the limitation stays visible in the
-   * suite rather than only in prose.
+   * Default read path ({@code SearchReadPathFlags} → OLD) sorts threat within each retrieved page
+   * only — {@code SearchIndexClient} has no sort parameter. Kept so the shipping default remains
+   * covered while cross-page stability is asserted on the flag-gated NEW path below.
    */
   @Test
   void listViolations_sortIsPerPage_globalThreatOrderNotGuaranteedAcrossPages() throws Exception {
@@ -233,14 +230,30 @@ class ViolationsListResourceTest
     request.page = 1;
     ViolationsListResponseDTO page1 = post(request).getBody(ViolationsListResponseDTO.class);
 
-    // Each page is internally sorted highest-threat-first (the guarantee we actually provide)...
     assertThat(threatLevels(page0)).isSortedAccordingTo(Comparator.reverseOrder());
     assertThat(threatLevels(page1)).isSortedAccordingTo(Comparator.reverseOrder());
-
-    // ...but because the sort is per-page, we only assert completeness across pages, not a global order.
     List<Integer> allThreats = new ArrayList<>(threatLevels(page0));
     allThreats.addAll(threatLevels(page1));
     assertThat(allThreats).containsExactlyInAnyOrder(10, 8, 3);
+  }
+
+  @Test
+  void listViolations_threatSort_isStableAcrossPages_onSessionReadPath() throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+    System.setProperty("nexusOne.search.readPath.violations", "new");
+
+    try {
+      Organization org = ctx.tempEntity().newOrganization("SessionPathSortTribe");
+      Application app = ctx.tempEntity().newApplication("Session Path App", "session-path-app", org.getId());
+      seedStandardViolations(org, app, "spath");
+      ViolationsListTestSupport.populateIndex(ctx.lookup(SearchIndexClient.class));
+
+      assertThat(threatLevelsForPages(org, "-policyThreatLevel")).containsExactly(10, 8, 3);
+      assertThat(threatLevelsForPages(org, "policyThreatLevel")).containsExactly(3, 8, 10);
+    }
+    finally {
+      System.clearProperty("nexusOne.search.readPath.violations");
+    }
   }
 
   // --- Search ----------------------------------------------------------------------------------
@@ -819,6 +832,21 @@ class ViolationsListResourceTest
 
   private static List<Integer> threatLevels(final ViolationsListResponseDTO body) {
     return body.violations.stream().map(row -> row.threatLevel).toList();
+  }
+
+  private List<Integer> threatLevelsForPages(final Organization org, final String orderBy) throws Exception {
+    ViolationsListRequestDTO request = scopedRequest(org);
+    request.orderBy = orderBy;
+    request.pageSize = 2;
+
+    request.page = 0;
+    ViolationsListResponseDTO page0 = post(request).getBody(ViolationsListResponseDTO.class);
+    request.page = 1;
+    ViolationsListResponseDTO page1 = post(request).getBody(ViolationsListResponseDTO.class);
+
+    List<Integer> allThreats = new ArrayList<>(threatLevels(page0));
+    allThreats.addAll(threatLevels(page1));
+    return allThreats;
   }
 
   private HttpResponse post(final ViolationsListRequestDTO request) throws Exception {

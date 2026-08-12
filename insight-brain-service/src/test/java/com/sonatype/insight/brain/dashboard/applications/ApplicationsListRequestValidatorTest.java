@@ -138,6 +138,26 @@ public class ApplicationsListRequestValidatorTest
         .hasMessageContaining("must not contain null elements");
   }
 
+  @Test
+  public void validate_rejectsNonPositiveAgeInDays() {
+    ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
+    request.ageInDays = 0;
+
+    assertThatThrownBy(() -> validator.validate(request))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("ageInDays");
+  }
+
+  @Test
+  public void validate_rejectsAgeInDaysAboveMax() {
+    ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
+    request.ageInDays = ApplicationsListRequestValidator.MAX_AGE_IN_DAYS + 1;
+
+    assertThatThrownBy(() -> validator.validate(request))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("ageInDays");
+  }
+
   private static ApplicationsListRequestDTO requestWithOrderBy(final String orderBy) {
     ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
     request.orderBy = orderBy;

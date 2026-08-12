@@ -239,7 +239,8 @@ public class DashboardMetricsServiceAuthzTest
     DashboardMetricsDTO metrics = dashboardMetricsService.getMetrics(request);
 
     assertThat(scope.applicationIds()).contains(readableApp.getId()).doesNotContain(unreadableApp.getId());
-    assertThat(metrics.applications.unsupportedDimensions).containsExactly("tagIds");
+    assertThat(metrics.applications.total).isEqualTo(1);
+    assertThat(metrics.applications.errorCode).isNull();
     assertThat(metrics.waivers.total).isEqualTo(1);
     assertThat(metrics.waivers.source).isEqualTo(DashboardMetricsService.METRIC_SOURCE_SQL);
   }

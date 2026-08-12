@@ -317,6 +317,41 @@ describe('OverviewTab', () => {
     );
   });
 
+  it('renders an HRC-owned violation without app-scoped UI (CLM-44279)', async () => {
+    const hrcViolation: ViolationDetailsDTO = {
+      ...VIOLATION_FIXTURE,
+      applicationPublicId: null,
+      applicationName: null,
+      hrcId: 'hrc-1',
+    };
+    const axiosMock = axiosMockAdapter();
+    axiosMock.onGet(getViolationDetailsUrl(VIOLATION_ID)).reply(200, hrcViolation);
+    axiosMock.onGet(getApplicableWaiversUrl(VIOLATION_ID)).reply(200, EMPTY_WAIVERS);
+    axiosMock.onGet(getPolicyWaiverReasonsUrl()).reply(200, []);
+
+    renderNexusOneViolationDetail(VIOLATION_ID, {
+      preloadedState: { productFeatures: { productFeatures: {} } },
+    });
+
+    const overview = await screen.findByTestId('nosc-violation-detail-overview-tab');
+    expect(screen.queryByTestId('nosc-violation-detail-overview-error')).not.toBeInTheDocument();
+    expect(overview).toHaveTextContent('Critical Open Source Policy');
+    expect(screen.getByTestId('nosc-violation-detail-hrc-source')).toHaveTextContent(
+      'Hosted repository component',
+    );
+    expect(within(overview).queryByRole('link', { name: 'Demo App' })).not.toBeInTheDocument();
+    expect(screen.queryByTestId('nosc-violation-detail-add-waiver')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('nosc-violation-detail-request-waiver')).not.toBeInTheDocument();
+    // CVE section is app-scoped (vuln-summary endpoint requires ownerType=application); intentionally
+    // absent for HRC violations.
+    expect(screen.queryByTestId('nosc-violation-detail-cve')).not.toBeInTheDocument();
+    // Component detail link uses the hash-primary estate URL — same as app-owned violations.
+    expect(within(overview).getByRole('link', { name: 'demo-component' })).toHaveAttribute(
+      'href',
+      '#/components/component-hash',
+    );
+  });
+
   it('shows gated Request Waiver when workflow is enabled without entitlement', async () => {
     const { router } = renderOverview({
       hasWaiverPermission: false,

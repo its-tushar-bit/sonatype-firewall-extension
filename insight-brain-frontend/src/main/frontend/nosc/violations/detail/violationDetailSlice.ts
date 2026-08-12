@@ -135,7 +135,10 @@ export const fetchViolationVulnerabilitySummary = createAsyncThunk(
   'violationDetail/fetchVulnerabilitySummary',
   async ({ details }: { readonly violationId: string; readonly details: ViolationDetailsDTO }, { signal, getState }) => {
     const refId = getSecurityVulnerabilityRefId(details);
-    if (!refId) return null;
+    // The vuln-summary endpoint requires an app-scoped ownerId (ownerType: 'application', ownerId: publicId).
+    // HRC-owned violations have no application context, so the drawer's CVE section is intentionally
+    // hidden for them until a hash-only variant of this endpoint exists.
+    if (!refId || !details.applicationPublicId) return null;
 
     const scanId = getMostRecentScanId(details.stageData);
     const identificationSource =
@@ -200,9 +203,11 @@ export const loadViolationDetail = createAsyncThunk(
       return;
     }
 
-    await dispatch(fetchViolationWaiverPermission({ violationId, applicationPublicId: details.applicationPublicId }))
-      .unwrap()
-      .catch(() => null);
+    if (details.applicationPublicId) {
+      await dispatch(fetchViolationWaiverPermission({ violationId, applicationPublicId: details.applicationPublicId }))
+        .unwrap()
+        .catch(() => null);
+    }
 
     if (!isCurrentViolationInRootState(getState(), violationId)) {
       return;

@@ -57,9 +57,10 @@ export interface ViolationDetailsDTO {
   readonly threatLevel: number;
   readonly openTime: string;
   readonly stageData: Record<string, ViolationStageDataDTO>;
-  readonly applicationPublicId: string;
+  readonly applicationPublicId?: string | null;
   readonly organizationName?: string | null;
-  readonly applicationName: string;
+  readonly applicationName?: string | null;
+  readonly hrcId?: string | null;
   readonly componentIdentifier?: ComponentIdentifierDTO | string;
   readonly identificationSource?: string;
   readonly displayName?: ComponentDisplayNameDTO | string | null;

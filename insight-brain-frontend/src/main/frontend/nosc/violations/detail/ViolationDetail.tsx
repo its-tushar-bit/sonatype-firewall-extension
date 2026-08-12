@@ -123,8 +123,8 @@ export default function ViolationDetail(): ReactElement {
     const latestStage = getMostRecentStageEntry(detail.identity.stageData);
     return resolveEntityDetailContext({
       current: 'violation',
-      applicationPublicId: detail.identity.applicationPublicId,
-      applicationName: detail.identity.applicationName,
+      applicationPublicId: detail.identity.applicationPublicId ?? undefined,
+      applicationName: detail.identity.applicationName ?? undefined,
       componentHash: detail.identity.hash,
       componentDisplayName: componentDisplayNameLabel(detail.identity.displayName) || undefined,
       policyViolationId: detail.identity.policyViolationId,

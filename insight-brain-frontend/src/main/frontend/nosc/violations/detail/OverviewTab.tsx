@@ -199,6 +199,13 @@ export function OverviewTab(): ReactElement {
     );
   }
 
+  // HRC-owned (hosted-repository-component) violations intentionally have null
+  // applicationPublicId / applicationName. All app-scoped UI (waiver actions,
+  // waiver modals, Application row link, security-vuln href) is hidden for those.
+  const applicationPublicId = details.applicationPublicId;
+  const applicationName = details.applicationName;
+  const isAppOwned = applicationPublicId != null && applicationName != null;
+
   // Prefer server aggregate; only consult active waivers once that fetch is ready
   // so a parallel waivers load cannot flash "Open" → "Waived".
   const isWaived = Boolean(
@@ -213,10 +220,10 @@ export function OverviewTab(): ReactElement {
   const firstSeen = formatFirstSeen(details.openTime);
   const securityRefId = getSecurityVulnerabilityRefId(details);
   const organizationLabel = details.organizationName?.trim() || undefined;
-  const cveHref = securityRefId
+  const cveHref = securityRefId && applicationPublicId
     ? vulnerabilityDetailHref({
         vulnId: securityRefId,
-        applicationPublicId: details.applicationPublicId,
+        applicationPublicId,
         componentHash: details.hash,
         violationId,
         scanId: getMostRecentScanId(details.stageData),
@@ -278,56 +285,69 @@ export function OverviewTab(): ReactElement {
               </Text>
             </Flex>
 
-            <Flex gap="2" wrap="wrap">
-              <ActionButtonWithReason
-                label="Create Waiver"
-                testId="nosc-violation-detail-add-waiver"
-                variant={canAddWaiver ? 'solid' : 'soft'}
-                disabledReason={createDisabledMessage}
-                onClick={goToAddWaiver}
-              />
-              <ExcludeAutoWaiverButton
-                policyViolationId={violationId}
-                applicationPublicId={details.applicationPublicId}
-                scanId={getMostRecentScanId(details.stageData)}
-                isWaived={isWaived}
-                onExcluded={() => {
-                  void dispatch(fetchViolationIdentity({ violationId }));
-                  void dispatch(fetchViolationWaivers({ violationId }));
-                }}
-              />
-              {hasPermissionForAppWaivers === null && waiverPermissionError && (
-                <Button
-                  size="2"
-                  variant="soft"
-                  onClick={retryWaiverPermission}
-                  data-testid="nosc-violation-detail-retry-waiver-permission"
-                >
-                  Retry Add Waiver check
-                </Button>
-              )}
-              {showRequestWaiver && (
+            {/* `isAppOwned` narrowing does not flow through JSX predicates, so the `applicationPublicId`
+                check is re-stated here to satisfy TS narrowing for the `string` prop below. */}
+            {isAppOwned && applicationPublicId && (
+              <Flex gap="2" wrap="wrap">
                 <ActionButtonWithReason
-                  label="Request Waiver"
-                  testId="nosc-violation-detail-request-waiver"
-                  variant={canAddWaiver ? 'soft' : 'solid'}
-                  disabledReason={requestDisabledMessage}
-                  onClick={goToRequestWaiver}
-                  showLock={isRequestWaiverGated}
+                  label="Create Waiver"
+                  testId="nosc-violation-detail-add-waiver"
+                  variant={canAddWaiver ? 'solid' : 'soft'}
+                  disabledReason={createDisabledMessage}
+                  onClick={goToAddWaiver}
                 />
-              )}
-            </Flex>
+                <ExcludeAutoWaiverButton
+                  policyViolationId={violationId}
+                  applicationPublicId={applicationPublicId}
+                  scanId={getMostRecentScanId(details.stageData)}
+                  isWaived={isWaived}
+                  onExcluded={() => {
+                    void dispatch(fetchViolationIdentity({ violationId }));
+                    void dispatch(fetchViolationWaivers({ violationId }));
+                  }}
+                />
+                {hasPermissionForAppWaivers === null && waiverPermissionError && (
+                  <Button
+                    size="2"
+                    variant="soft"
+                    onClick={retryWaiverPermission}
+                    data-testid="nosc-violation-detail-retry-waiver-permission"
+                  >
+                    Retry Add Waiver check
+                  </Button>
+                )}
+                {showRequestWaiver && (
+                  <ActionButtonWithReason
+                    label="Request Waiver"
+                    testId="nosc-violation-detail-request-waiver"
+                    variant={canAddWaiver ? 'soft' : 'solid'}
+                    disabledReason={requestDisabledMessage}
+                    onClick={goToRequestWaiver}
+                    showLock={isRequestWaiverGated}
+                  />
+                )}
+              </Flex>
+            )}
           </Flex>
 
           <Grid columns={{ initial: '1', sm: '2' }} gap="3">
-            <Box>
-              <Text as="p" size="1" color="gray" weight="medium">
-                Application
-              </Text>
-              <RadixLink href={`#/applications/${encodeURIComponent(details.applicationPublicId)}`}>
-                {details.applicationName}
-              </RadixLink>
-            </Box>
+            {applicationPublicId && applicationName ? (
+              <Box>
+                <Text as="p" size="1" color="gray" weight="medium">
+                  Application
+                </Text>
+                <RadixLink href={`#/applications/${encodeURIComponent(applicationPublicId)}`}>
+                  {applicationName}
+                </RadixLink>
+              </Box>
+            ) : details.hrcId ? (
+              <Box data-testid="nosc-violation-detail-hrc-source">
+                <Text as="p" size="1" color="gray" weight="medium">
+                  Source
+                </Text>
+                <Text size="2">Hosted repository component</Text>
+              </Box>
+            ) : null}
             {organizationLabel && (
               <Box>
                 <Text as="p" size="1" color="gray" weight="medium">
@@ -388,13 +408,14 @@ export function OverviewTab(): ReactElement {
 
       <ConstraintsSection constraintViolations={details.constraintViolations} />
 
-      {details.policyId && (
+      {/* `applicationPublicId` re-stated for TS narrowing on the modal's `string` prop; see comment above. */}
+      {details.policyId && isAppOwned && applicationPublicId && (
         <>
           <CreateWaiverModal
             open={createOpen}
             onOpenChange={setCreateOpen}
             policyViolationId={violationId}
-            applicationPublicId={details.applicationPublicId}
+            applicationPublicId={applicationPublicId}
             policyId={details.policyId}
             onCreated={handleWaiverCreated}
           />
@@ -402,7 +423,7 @@ export function OverviewTab(): ReactElement {
             open={requestOpen}
             onOpenChange={setRequestOpen}
             policyViolationId={violationId}
-            applicationPublicId={details.applicationPublicId}
+            applicationPublicId={applicationPublicId}
             policyId={details.policyId}
             onRequested={(result) => {
               // Browser-session gate only — list API has no policyViolationId filter, so we

@@ -40,10 +40,15 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolationComparable;
 import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.repository.hosted.ApplicationForHostedRepositoryComponentService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 /**
@@ -129,22 +134,37 @@ public class ApiCrossStageViolationService
       throwNotFound(constituentId);
     }
 
+    String ownerId = constituentViolation.getOwnerId();
+    Owner owner = ownerDAO.getById(ownerId);
+    if (owner == null) {
+      // Stale violation whose owner (application or HRC) has been deleted — surface a not-found
+      // for the violation rather than falling through to the application lookup, which would
+      // report a misleading application-not-found error.
+      throwNotFound(constituentId);
+    }
+
+    Application app;
+    Organization org;
+    HostedRepositoryComponent hrc;
+    if (owner instanceof HostedRepositoryComponent) {
+      hrc = (HostedRepositoryComponent) owner;
+      // HRC-owned path: enforce read permission on the underlying HRC (walks HRC → repository → org hierarchy).
+      checkHrcReadPermission(hrc.getId());
+      app = null;
+      org = null;
+    }
+    else {
+      hrc = null;
+      // Application-owned path: existing @Authorize on ApplicationService.getApplicationByIdForRead performs the
+      // read-permission check for this branch.
+      app = applicationService.getApplicationByIdForRead(ownerId);
+      org = organizationDAO.getById(app.getOrganizationId());
+    }
+
     ReachabilityStatus reachabilityStatus = constituentViolation.getReachabilityStatus();
-    // Null for a hosted-repository-component owner: this API is Application-shaped.
-    //
-    // The owner type is resolved before the lookup rather than relying on getApplicationByIdForRead
-    // returning null. That method carries @Authorize with an APPLICATION_ID authz context, and the
-    // aspect resolves the context before the body runs — for a non-Application owner id it throws
-    // "Application with ID ... does not exist." So handing it an HRC id 404s the whole request and the
-    // null-handling below can never run.
-    Application app = ownerDAO.getById(constituentViolation.getOwnerId()) instanceof Application
-        ? applicationService.getApplicationByIdForRead(constituentViolation.getOwnerId())
-        : null;
-    Organization org = app == null ? null : organizationDAO.getById(app.getOrganizationId());
     Policy policy = policyDAO.getById(constituentViolation.getPolicyId());
     Owner policyOwner = policy == null ? null : ownerDAO.getById(policy.getOwnerId());
 
-    String ownerId = constituentViolation.getOwnerId();
     String policyId = constituentViolation.getPolicyId();
     String hash = constituentViolation.getHash();
 
@@ -164,7 +184,8 @@ public class ApiCrossStageViolationService
         allowEarlierViolations);
     Collection<PolicyEvaluation> evaluationsForViolationsToMerge = getEvaluationsForViolations(violationsToMerge);
 
-    return createDto(app, org, policyOwner, violationsToMerge, evaluationsForViolationsToMerge, reachabilityStatus);
+    return createDto(app, org, hrc, policyOwner, violationsToMerge, evaluationsForViolationsToMerge,
+        reachabilityStatus);
   }
 
   private Collection<PolicyEvaluation> getEvaluationsForViolations(Collection<PolicyViolation> violations) {
@@ -272,6 +293,7 @@ public class ApiCrossStageViolationService
   private ApiCrossStageViolationDTOV2 createDto(
       Application app,
       Organization org,
+      HostedRepositoryComponent hrc,
       Owner policyOwner,
       Collection<PolicyViolation> policyViolations,
       Collection<PolicyEvaluation> policyEvaluations,
@@ -286,10 +308,10 @@ public class ApiCrossStageViolationService
 
     dto.policyViolationId = firstViolation.getId();
     dto.reachabilityStatus = reachabilityStatus;
-    dto.applicationPublicId = app == null ? null : app.getPublicId();
-    dto.applicationName = app == null ? null : app.getName();
-    dto.organizationName = org == null ? null : org.getName();
-    dto.hrcId = null;
+    dto.applicationPublicId = app != null ? app.getPublicId() : null;
+    dto.applicationName = app != null ? app.getName() : null;
+    dto.organizationName = org != null ? org.getName() : null;
+    dto.hrcId = hrc != null ? hrc.getId() : null;
     dto.threatLevel = firstViolation.getThreatLevel();
     dto.policyId = firstViolation.getPolicyId();
     dto.policyName = firstViolation.getPolicyName();
@@ -395,6 +417,14 @@ public class ApiCrossStageViolationService
 
   private void throwNotFound(String violationId) {
     throw new NotFoundException("Policy Violation " + violationId + " not found");
+  }
+
+  // Must have at least package visibility for the authz annotations to take effect.
+  @Authorize(permission = Permission.READ)
+  void checkHrcReadPermission(
+      @SuppressWarnings("unused") @AuthzContext(Key.HOSTED_REPOSITORY_COMPONENT_ID) String hrcId)
+  {
+    // Permission check enforced by @Authorize.
   }
 
   /**

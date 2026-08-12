@@ -25,6 +25,8 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
 import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -657,6 +659,60 @@ public class ApiCrossStageViolationServiceTest
 
     assertThat(result.applicationPublicId).isEqualTo(outerSyntheticApp.getPublicId());
     assertThat(result.policyViolationId).isEqualTo(outerViolation.getId());
+  }
+
+  /**
+   * CLM-44279 — a violation whose owner is a {@link HostedRepositoryComponent} (not an
+   * application) must return a well-formed DTO with {@code hrcId} populated and the
+   * application/organization fields left null. On the pre-fix code path the service
+   * looks up an application by ownerId at
+   * {@code ApiCrossStageViolationService.java:133} and fails; this test locks the
+   * post-fix behavior in.
+   */
+  @Test
+  public void testGetCrossStageViolationByConstituentId_hrcOwned() {
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(hrc.getId(), Stage.ID_BUILD, "hrc-scan-1", baseDate);
+    PolicyViolation violation = tempEntity.newPolicyViolation(eval, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
+    violation.setActionTypeId("warn");
+    violation.setFilename("foo.jar");
+    policyViolationDAO.update(violation);
+
+    ApiCrossStageViolationDTOV2 result = service.getCrossStageViolationByConstituentId(violation.getId());
+
+    assertThat(result).isNotNull();
+    assertThat(result.hrcId).isEqualTo(hrc.getId());
+    assertThat(result.applicationPublicId).isNull();
+    assertThat(result.applicationName).isNull();
+    assertThat(result.organizationName).isNull();
+    assertThat(result.policyViolationId).isEqualTo(violation.getId());
+
+    // getCrossStageViolationById (allowEarlierViolations=false) shares the HRC-aware owner dispatch;
+    // exercise it here so a divergence between the two entry points would fail this test.
+    ApiCrossStageViolationDTOV2 byIdResult = service.getCrossStageViolationById(violation.getId());
+    assertThat(byIdResult.hrcId).isEqualTo(hrc.getId());
+    assertThat(byIdResult.applicationPublicId).isNull();
+  }
+
+  /**
+   * CLM-44279 acceptance-criterion regression guard: application-scoped violations must
+   * continue to return the same response shape after the HRC widening. {@code hrcId} is
+   * null for application-scoped rows; app / org display fields keep their pre-ticket values.
+   */
+  @Test
+  public void testGetCrossStageViolationByConstituentId_applicationOwned_isUnchanged() {
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "app-scan-1", baseDate);
+    PolicyViolation violation = tempEntity.newPolicyViolation(eval, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
+    policyViolationDAO.update(violation);
+
+    ApiCrossStageViolationDTOV2 result = service.getCrossStageViolationByConstituentId(violation.getId());
+
+    assertThat(result.hrcId).isNull();
+    assertThat(result.applicationPublicId).isEqualTo(app.getPublicId());
+    assertThat(result.applicationName).isEqualTo(app.getName());
+    assertThat(result.organizationName).isEqualTo(org.getName());
   }
 
   private void assertCrossStageData(

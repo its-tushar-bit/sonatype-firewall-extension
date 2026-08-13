@@ -20,8 +20,8 @@ import java.util.concurrent.TimeUnit;
 import com.sonatype.insight.brain.search.SearchConfig;
 import com.sonatype.insight.brain.search.SearchConfig.AwsHttpOpenSearchConfig;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.SdkHttpClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,7 +33,7 @@ public class AwsSdkHttpClientProviderTest
 
   private AwsSdkHttpClientProvider provider;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     config = new AwsHttpOpenSearchConfig();
     config.setDomain(new URI("https://search-domain.us-east-1.es.amazonaws.com"));

@@ -12,7 +12,7 @@ import java.util.List;
 import com.sonatype.insight.brain.api.v2.dto.autowaivers.ApiAutoPolicyWaiverDTO;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.api.v2.dto.ApiPolicyOwnerType.ORGANIZATION;
 import static com.sonatype.insight.brain.api.v2.service.autowaivers.AutoPolicyWaiverUtil.anyEqualByOwnerAndScope;

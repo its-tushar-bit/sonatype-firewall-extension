@@ -17,8 +17,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.jaxrs.error.ErrorResponseGenerator;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -41,7 +41,7 @@ public class NgUploadResponseGeneratorTest
 
   private NgUploadResponseGenerator ngUploadResponseGenerator;
 
-  @Before
+  @BeforeEach
   public void setup() {
     ngUploadResponseGenerator = new NgUploadResponseGenerator(errorResponseGenerator, antiCsrfFilter);
   }

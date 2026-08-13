@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.api.v2.dto;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

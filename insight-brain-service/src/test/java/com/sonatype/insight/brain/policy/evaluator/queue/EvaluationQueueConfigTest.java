@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.policy.evaluator.queue;
 import java.time.Duration;
 import java.util.Map;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;

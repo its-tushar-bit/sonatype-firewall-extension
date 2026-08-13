@@ -26,7 +26,7 @@ import com.sonatype.insight.brain.service.BaseUrlFilter;
 import com.sonatype.insight.brain.service.CspFrameHeaderFilter;
 
 import jakarta.servlet.FilterChain;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;

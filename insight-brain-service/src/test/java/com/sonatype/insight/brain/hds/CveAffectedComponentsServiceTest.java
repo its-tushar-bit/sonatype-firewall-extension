@@ -13,8 +13,8 @@ import java.util.Set;
 import com.google.common.collect.Multimap;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -30,7 +30,7 @@ public class CveAffectedComponentsServiceTest
 
   private CveAffectedComponentsService service;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     MockitoAnnotations.openMocks(this);
     service = new CveAffectedComponentsService(hdsClient);

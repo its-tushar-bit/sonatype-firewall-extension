@@ -12,7 +12,7 @@ import static org.mockito.Mockito.verify;
 import com.google.common.collect.ImmutableSet;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 
 public class DefaultTenantManagedInitializerTest

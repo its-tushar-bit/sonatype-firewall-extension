@@ -11,7 +11,7 @@ import java.util.Set;
 import com.sonatype.insight.brain.api.experimental.ReachableComponentVulnerabilities.MissingReachableComponentVulnerabilities;
 import com.sonatype.insight.brain.api.experimental.ReachableComponentVulnerabilities.PresentReachableComponentVulnerabilities;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;

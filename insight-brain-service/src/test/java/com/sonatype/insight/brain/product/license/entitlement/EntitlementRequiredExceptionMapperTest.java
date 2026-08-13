@@ -12,7 +12,7 @@ import jakarta.ws.rs.core.Response;
 
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

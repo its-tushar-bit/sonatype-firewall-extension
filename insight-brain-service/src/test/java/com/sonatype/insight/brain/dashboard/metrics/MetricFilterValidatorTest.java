@@ -17,7 +17,7 @@ import java.util.stream.IntStream;
 import com.sonatype.insight.brain.model.Organization;
 
 import jakarta.ws.rs.BadRequestException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Input validation for dashboard metrics filter ids (CLM-40927).

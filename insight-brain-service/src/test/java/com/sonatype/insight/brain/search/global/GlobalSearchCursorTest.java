@@ -10,9 +10,9 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -40,12 +40,12 @@ public class GlobalSearchCursorTest
 
   private String originalAmbientToken;
 
-  @Before
+  @BeforeEach
   public void saveAmbientToken() {
     originalAmbientToken = GlobalSearchCursor.currentGenerationToken();
   }
 
-  @After
+  @AfterEach
   public void restoreAmbientToken() {
     GlobalSearchCursor.bumpGenerationToken(originalAmbientToken);
   }

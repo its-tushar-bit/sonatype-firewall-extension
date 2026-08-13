@@ -18,7 +18,7 @@ import jakarta.ws.rs.core.MultivaluedHashMap;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class InsightJacksonMessageBodyProviderTest
 {

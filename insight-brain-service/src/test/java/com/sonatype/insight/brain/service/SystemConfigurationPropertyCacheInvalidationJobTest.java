@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.service;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
 
@@ -23,7 +23,7 @@ public class SystemConfigurationPropertyCacheInvalidationJobTest
 
   private SystemConfigurationPropertyCacheInvalidationJob job;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     mockDAO = mock(SystemConfigurationPropertyDAO.class);
     job = new SystemConfigurationPropertyCacheInvalidationJob(mockDAO);

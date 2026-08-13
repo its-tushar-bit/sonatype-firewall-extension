@@ -21,7 +21,7 @@ import org.apache.lucene.search.SortField;
 import org.apache.lucene.store.ByteBuffersDirectory;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.BytesRef;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.sonatype.insight.brain.search.session.IndexPageRequest;
 import com.sonatype.insight.brain.search.session.IndexPageResult;

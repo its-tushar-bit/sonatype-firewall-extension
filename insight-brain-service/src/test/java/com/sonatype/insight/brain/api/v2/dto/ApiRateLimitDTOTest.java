@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.api.v2.dto;
 import com.sonatype.insight.brain.api.experimental.dto.ApiRateLimitDTO;
 import com.sonatype.nexus.scm.github.dto.GithubRateLimitResponse;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

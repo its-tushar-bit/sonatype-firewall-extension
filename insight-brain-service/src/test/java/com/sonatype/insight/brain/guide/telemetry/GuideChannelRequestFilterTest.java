@@ -12,14 +12,14 @@ import static org.mockito.Mockito.when;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.UriInfo;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 public class GuideChannelRequestFilterTest
 {
   private final GuideChannelRequestFilter filter = new GuideChannelRequestFilter();
 
-  @After
+  @AfterEach
   public void tearDown() {
     GuideChannelContext.clear();
   }

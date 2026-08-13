@@ -7,8 +7,8 @@ package com.sonatype.insight.brain.version;
 
 import java.util.Properties;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -16,7 +16,7 @@ public class DefaultVersionServiceTest
 {
   private VersionService versionService;
 
-  @Before
+  @BeforeEach
   public void setup() {
     versionService = new DefaultVersionService();
   }

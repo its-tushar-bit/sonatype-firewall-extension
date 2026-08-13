@@ -25,14 +25,14 @@ import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.ValidationResult;
 
 import org.apache.http.client.HttpResponseException;
-import org.junit.Before;
-import org.junit.After;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.SimplePrincipalCollection;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
 import com.sonatype.insight.brain.security.SecurityAspectControl;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -59,7 +59,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
 
   private SourceControlSshService sourceControlSshService;
 
-  @Before
+  @BeforeEach
   public void setup() {
     sourceControlUtils = mock(SourceControlUtils.class);
     gitClientFactory = mock(GitClientFactory.class);
@@ -70,7 +70,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
         gitApiFactory, mockScmRepoVisibilityService, sourceControlSshService);
   }
 
-  @Before
+  @BeforeEach
   public void bindSecurityManager() {
     SecurityAspectControl.disableEnforcement();
     SecurityManager securityManager = mock(SecurityManager.class);
@@ -83,7 +83,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
     ThreadContext.bind(subject);
   }
 
-  @After
+  @AfterEach
   public void unbindSecurityManager() {
     SecurityAspectControl.enableEnforcement();
     ThreadContext.unbindSubject();

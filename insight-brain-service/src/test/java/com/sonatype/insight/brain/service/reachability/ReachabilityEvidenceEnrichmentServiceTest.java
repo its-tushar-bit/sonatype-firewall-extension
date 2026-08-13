@@ -22,7 +22,7 @@ import com.sonatype.insight.brain.service.reachability.StoredReachabilityEvidenc
 import com.sonatype.insight.brain.service.reachability.StoredReachabilityEvidence.GapSegment;
 import com.sonatype.insight.brain.service.reachability.StoredReachabilityEvidence.MethodSegment;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;

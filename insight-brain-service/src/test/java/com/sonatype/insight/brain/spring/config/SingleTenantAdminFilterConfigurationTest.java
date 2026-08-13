@@ -16,7 +16,7 @@ import com.sonatype.insight.brain.security.HttpHeaderValidatorFilter;
 import com.sonatype.insight.brain.service.BaseUrlFilter;
 import com.sonatype.insight.brain.service.ServerHeaderFilter;
 import com.sonatype.insight.brain.shutdown.ActiveRequestCounterFilter;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;

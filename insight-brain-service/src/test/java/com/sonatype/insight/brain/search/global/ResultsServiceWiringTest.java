@@ -9,7 +9,7 @@ import com.sonatype.insight.brain.search.global.catalog.GlobalSearchResultsCatal
 
 import jakarta.ws.rs.core.Response;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

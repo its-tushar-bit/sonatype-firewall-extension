@@ -16,7 +16,7 @@ import com.sonatype.insight.brain.search.SearchMode;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class SearchBackendTelemetryCollectorTest
 {

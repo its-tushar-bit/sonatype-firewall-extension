@@ -9,9 +9,9 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,13 +24,13 @@ public class SystemRunnableTest
   /**
    * JUnit reuses threads which may have MDC username set as {@link MDCUsernameScope.SYSTEM }
    */
-  @Before
+  @BeforeEach
   public void setup() {
     MDC.remove(MDCUsernameScope.USERNAME);
     assertThat(MDC.get(MDCUsernameScope.USERNAME)).isNull();
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     MDC.remove(MDCUsernameScope.USERNAME);
     assertThat(MDC.get(MDCUsernameScope.USERNAME)).isNull();

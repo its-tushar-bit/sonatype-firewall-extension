@@ -9,8 +9,8 @@ import java.util.List;
 
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -27,7 +27,7 @@ public class TelemetryQueueTest
 
   private TelemetryQueue telemetryQueue;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     MockitoAnnotations.openMocks(this);
     telemetryQueue = new TelemetryQueue(() -> mockTelemetrySender);

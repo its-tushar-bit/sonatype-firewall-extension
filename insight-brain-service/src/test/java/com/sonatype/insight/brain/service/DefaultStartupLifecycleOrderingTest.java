@@ -25,7 +25,7 @@ import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.brain.version.VersionService;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 public class DefaultStartupLifecycleOrderingTest

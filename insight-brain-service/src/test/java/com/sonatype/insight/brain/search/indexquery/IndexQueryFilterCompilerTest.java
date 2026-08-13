@@ -18,7 +18,7 @@ import java.util.Map;
 import com.sonatype.insight.brain.search.global.FilterValidationException;
 import com.sonatype.insight.brain.search.indexquery.IndexQueryFilterCompiler.CompiledQuery;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class IndexQueryFilterCompilerTest
 {

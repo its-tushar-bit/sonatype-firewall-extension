@@ -9,7 +9,7 @@ import java.util.Comparator;
 
 import com.sonatype.insight.brain.git.render.model.SeverityInfo;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.git.render.SecurityIssueComparator.CVSS_SCORE_COMPARATOR;
 import static com.sonatype.insight.brain.git.render.model.MDImages.DIRECT_DEP_LOGO;

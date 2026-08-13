@@ -29,9 +29,9 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.quality.Strictness;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -84,7 +84,7 @@ public class LegalObligationsDashboardServiceTest
 
   private Subject subject;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     securityManager = mock(SecurityManager.class, withSettings().strictness(Strictness.LENIENT));
     subject = mock(Subject.class, withSettings().strictness(Strictness.LENIENT));
@@ -108,7 +108,7 @@ public class LegalObligationsDashboardServiceTest
         policyViolationDAO, dashboardViolationRiskService, currentUser);
   }
 
-  @After
+  @AfterEach
   public void tearDownShiro() {
     ThreadContext.unbindSubject();
     ThreadContext.unbindSecurityManager();

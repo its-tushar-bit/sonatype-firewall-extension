@@ -10,7 +10,7 @@ import java.util.Map;
 
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

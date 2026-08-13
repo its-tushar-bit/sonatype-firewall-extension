@@ -12,9 +12,9 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,7 +24,7 @@ public class ScmRateLimitMetricsTest
 
   private ScmRateLimitMetrics underTest;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     TenantTestHelper.resetAfterTest();
     RateLimitRecorder.fetchAndResetDailyRateLimitData();
@@ -32,7 +32,7 @@ public class ScmRateLimitMetricsTest
     underTest = new ScmRateLimitMetrics(meterRegistry);
   }
 
-  @After
+  @AfterEach
   public void cleanup() throws Exception {
     underTest.stop();
     TenantTestHelper.resetAfterTest();

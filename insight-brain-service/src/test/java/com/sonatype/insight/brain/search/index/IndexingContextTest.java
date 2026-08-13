@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.search.ConversionHelper;
 
 import org.apache.lucene.document.Document;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Focused contract test for the {@link IndexingContext} load-on-miss memoization used by the

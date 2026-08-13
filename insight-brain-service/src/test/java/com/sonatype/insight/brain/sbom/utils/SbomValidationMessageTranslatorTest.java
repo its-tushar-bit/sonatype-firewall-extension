@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.sbom.utils;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.sbom.utils.SbomValidationMessageTranslator.translate;
 import static org.assertj.core.api.Assertions.assertThat;

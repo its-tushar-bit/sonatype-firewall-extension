@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.report;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.*;
 import static org.assertj.core.api.Assertions.assertThat;

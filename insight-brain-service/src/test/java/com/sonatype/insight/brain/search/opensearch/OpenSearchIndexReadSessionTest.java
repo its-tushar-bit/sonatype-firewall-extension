@@ -22,9 +22,9 @@ import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.SortedNumericSortField;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.SortOptions;
 import org.opensearch.client.opensearch._types.SortOrder;
@@ -54,7 +54,7 @@ public class OpenSearchIndexReadSessionTest
 
   private OpenSearchIndexReadSession session;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     client = mock(OpenSearchClient.class);
     CreatePitResponse pit = mock(CreatePitResponse.class);
@@ -69,7 +69,7 @@ public class OpenSearchIndexReadSessionTest
         "15m");
   }
 
-  @After
+  @AfterEach
   public void closeSession() throws Exception {
     if (session != null) {
       session.close();

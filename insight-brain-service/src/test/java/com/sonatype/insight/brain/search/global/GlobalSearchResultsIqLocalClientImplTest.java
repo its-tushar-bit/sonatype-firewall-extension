@@ -14,8 +14,8 @@ import com.sonatype.insight.brain.search.global.IqLocalSearchService.SearchInput
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,7 +34,7 @@ public class GlobalSearchResultsIqLocalClientImplTest
 
   private GlobalSearchResultsIqLocalClientImpl client;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     iqService = mock(IqLocalSearchService.class);
     client = new GlobalSearchResultsIqLocalClientImpl(iqService);

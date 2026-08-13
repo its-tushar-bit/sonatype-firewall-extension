@@ -19,7 +19,7 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.store.ByteBuffersDirectory;
 import org.apache.lucene.store.Directory;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.apache.lucene.document.Field.Store.YES;
 import static org.assertj.core.api.Assertions.assertThat;

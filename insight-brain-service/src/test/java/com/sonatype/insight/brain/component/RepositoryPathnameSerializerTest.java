@@ -11,7 +11,7 @@ import java.util.Map;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.utils.RepositoryPathnameSerializer.toPathname;
 import static org.assertj.core.api.Assertions.assertThat;

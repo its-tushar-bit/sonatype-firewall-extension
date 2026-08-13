@@ -19,7 +19,7 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.StreamingOutput;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Transport-level behaviour of the streaming CSV response: headers, BOM, row cap + truncation notice,

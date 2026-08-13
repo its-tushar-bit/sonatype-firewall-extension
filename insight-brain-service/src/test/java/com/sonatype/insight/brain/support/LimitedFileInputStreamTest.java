@@ -9,9 +9,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -26,14 +26,14 @@ public class LimitedFileInputStreamTest
 
   private final byte[] buff = new byte[1024];
 
-  @Before
+  @BeforeEach
   public void setUp() {
     configYml =
         new File(getClass().getResource("/" + getClass().getSimpleName() + "/config-support-test.yml").getFile());
     assertThat(configYml).isFile();
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     if (limitedInputStream != null) {
       limitedInputStream.close();

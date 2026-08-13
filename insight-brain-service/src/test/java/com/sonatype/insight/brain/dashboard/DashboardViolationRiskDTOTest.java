@@ -7,8 +7,8 @@ package com.sonatype.insight.brain.dashboard;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -16,7 +16,7 @@ public class DashboardViolationRiskDTOTest
 {
   private DashboardViolationRiskDTO risk;
 
-  @Before
+  @BeforeEach
   public void before() {
     risk = new DashboardViolationRiskDTO();
     risk.threatLevel = 7;

@@ -13,8 +13,8 @@ import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class PropertiesTelemetryCollectorTest
 {
@@ -24,7 +24,7 @@ public class PropertiesTelemetryCollectorTest
 
   private PropertiesTelemetryCollector telemetryCollector;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     when(configuration.getReportTimeoutInSeconds()).thenReturn(300);
     telemetryCollector = new PropertiesTelemetryCollector(insightConfig, configuration);

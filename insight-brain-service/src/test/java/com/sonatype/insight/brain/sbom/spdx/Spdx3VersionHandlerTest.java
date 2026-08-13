@@ -5,11 +5,11 @@
  */
 package com.sonatype.insight.brain.sbom.spdx;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -23,14 +23,14 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityE
 import com.sonatype.insight.scan.file.SbomFormat;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class Spdx3VersionHandlerTest
 {
   private Spdx3VersionHandler handler;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     handler = new Spdx3VersionHandler();
   }
@@ -51,7 +51,7 @@ public class Spdx3VersionHandlerTest
     ParsedSpdxResult result = handler.parse(content, SbomFormat.JSON);
 
     assertNotNull(result);
-    assertTrue("Expected at least 5 components", result.resolvedComponents().size() >= 5);
+    assertTrue(result.resolvedComponents().size() >= 5, "Expected at least 5 components");
   }
 
   @Test
@@ -64,8 +64,8 @@ public class Spdx3VersionHandlerTest
         .filter(p -> p.getLeft() != null)
         .count();
 
-    assertTrue("Expected all packages to have ComponentIdentifier, but only " + identifiedCount + " did",
-        identifiedCount >= 5);
+    assertTrue(identifiedCount >= 5,
+        "Expected all packages to have ComponentIdentifier, but only " + identifiedCount + " did");
   }
 
   @Test
@@ -104,7 +104,7 @@ public class Spdx3VersionHandlerTest
     ParsedSpdxResult result = handler.parse(content, SbomFormat.JSON);
 
     assertNotNull(result);
-    assertFalse("Expected vulnerabilities", result.vulnerabilities().isEmpty());
+    assertFalse(result.vulnerabilities().isEmpty(), "Expected vulnerabilities");
   }
 
   @Test
@@ -112,7 +112,7 @@ public class Spdx3VersionHandlerTest
     String content = loadFixture("sbom/spdx3/security-vex-spdx-3.0.spdx.json");
     List<ThirdPartyVulnerabilityExploitabilityExchange> vexList = handler.parseVex(content, SbomFormat.JSON);
 
-    assertTrue("Expected at least 4 VEX entries", vexList.size() >= 4);
+    assertTrue(vexList.size() >= 4, "Expected at least 4 VEX entries");
     assertTrue(vexList.stream().anyMatch(v -> "affected".equalsIgnoreCase(v.getState())));
     assertTrue(vexList.stream().anyMatch(v -> "not_affected".equalsIgnoreCase(v.getState())));
     assertTrue(vexList.stream().anyMatch(v -> "under_investigation".equalsIgnoreCase(v.getState())));
@@ -196,10 +196,10 @@ public class Spdx3VersionHandlerTest
     byte[] output = handler.generate(context);
     String jsonLd = new String(output, StandardCharsets.UTF_8);
 
-    assertTrue("Expected Vulnerability element", jsonLd.contains("security_Vulnerability"));
-    assertTrue("Expected CVE identifier", jsonLd.contains("CVE-2024-1001"));
-    assertTrue("Expected VexNotAffected relationship",
-        jsonLd.contains("security_VexNotAffectedVulnAssessmentRelationship"));
+    assertTrue(jsonLd.contains("security_Vulnerability"), "Expected Vulnerability element");
+    assertTrue(jsonLd.contains("CVE-2024-1001"), "Expected CVE identifier");
+    assertTrue(
+        jsonLd.contains("security_VexNotAffectedVulnAssessmentRelationship"), "Expected VexNotAffected relationship");
   }
 
   @Test
@@ -232,10 +232,11 @@ public class Spdx3VersionHandlerTest
     byte[] output = handler.generate(context);
     String jsonLd = new String(output, StandardCharsets.UTF_8);
 
-    assertTrue("Expected Vulnerability element", jsonLd.contains("security_Vulnerability"));
-    assertTrue("Expected CVE identifier", jsonLd.contains("CVE-2021-44228"));
-    assertTrue("Expected VexAffected (default) relationship",
-        jsonLd.contains("security_VexAffectedVulnAssessmentRelationship"));
+    assertTrue(jsonLd.contains("security_Vulnerability"), "Expected Vulnerability element");
+    assertTrue(jsonLd.contains("CVE-2021-44228"), "Expected CVE identifier");
+    assertTrue(
+        jsonLd.contains("security_VexAffectedVulnAssessmentRelationship"),
+        "Expected VexAffected (default) relationship");
   }
 
   @Test
@@ -462,7 +463,7 @@ public class Spdx3VersionHandlerTest
 
     Map<String, Set<String>> mappings = result.vulnerabilityToPackageUris();
     assertNotNull(mappings);
-    assertFalse("Expected vulnerability-to-package mappings", mappings.isEmpty());
+    assertFalse(mappings.isEmpty(), "Expected vulnerability-to-package mappings");
 
     assertTrue(mappings.containsKey("CVE-2024-1001"));
     assertTrue(mappings.get("CVE-2024-1001").contains("https://example.org/vex-pkg-jackson"));
@@ -496,8 +497,8 @@ public class Spdx3VersionHandlerTest
     for (int i = 0; i < result.vexAnnotations().size(); i++) {
       ThirdPartyVulnerabilityExploitabilityExchange vex = result.vexAnnotations().get(i);
       Set<String> uris = vexPackageUris.get(i);
-      assertFalse("VEX entry should have at least one affected URI", uris.isEmpty());
-      assertEquals("Each VEX relationship targets exactly one package", 1, uris.size());
+      assertFalse(uris.isEmpty(), "VEX entry should have at least one affected URI");
+      assertEquals(1, uris.size(), "Each VEX relationship targets exactly one package");
 
       if ("affected".equals(vex.getState()) && "CVE-2024-1001".equals(vex.getRefId())) {
         assertTrue(uris.contains("https://example.org/vex-pkg-jackson"));
@@ -518,7 +519,7 @@ public class Spdx3VersionHandlerTest
   public void generate_withExtendedProfileElements_roundTripsAiProfile() throws Exception {
     String aiFixture = loadFixture("sbom/spdx3/ai-profile-spdx-3.0.spdx.json");
     String blob = handler.extractUnsupportedProfileElements(aiFixture, SbomFormat.JSON);
-    assertNotNull("AI profile should be extracted from fixture", blob);
+    assertNotNull(blob, "AI profile should be extracted from fixture");
 
     ThirdPartyFileCoordinate comp = new ThirdPartyFileCoordinate();
     comp.setId("coord-ai-1");
@@ -543,19 +544,19 @@ public class Spdx3VersionHandlerTest
     byte[] output = handler.generate(context);
     String jsonLd = new String(output, StandardCharsets.UTF_8);
 
-    assertTrue("Expected AI profile element in output", jsonLd.contains("ai_AIPackage"));
-    assertTrue("Expected AI domain data", jsonLd.contains("sentiment-analysis"));
+    assertTrue(jsonLd.contains("ai_AIPackage"), "Expected AI profile element in output");
+    assertTrue(jsonLd.contains("sentiment-analysis"), "Expected AI domain data");
 
     String reExtracted = handler.extractUnsupportedProfileElements(jsonLd, SbomFormat.JSON);
-    assertNotNull("AI profile should survive round-trip", reExtracted);
-    assertTrue("Re-extracted blob should contain AI package", reExtracted.contains("ai_AIPackage"));
+    assertNotNull(reExtracted, "AI profile should survive round-trip");
+    assertTrue(reExtracted.contains("ai_AIPackage"), "Re-extracted blob should contain AI package");
   }
 
   @Test
   public void generate_withExtendedProfileElements_roundTripsDatasetProfile() throws Exception {
     String fixture = loadFixture("sbom/spdx3/dataset-profile-spdx-3.0.spdx.json");
     String blob = handler.extractUnsupportedProfileElements(fixture, SbomFormat.JSON);
-    assertNotNull("Dataset profile should be extracted from fixture", blob);
+    assertNotNull(blob, "Dataset profile should be extracted from fixture");
     assertTrue(blob.contains("dataset_Dataset"));
 
     ThirdPartyFileCoordinate comp = new ThirdPartyFileCoordinate();
@@ -581,20 +582,20 @@ public class Spdx3VersionHandlerTest
     byte[] output = handler.generate(context);
     String jsonLd = new String(output, StandardCharsets.UTF_8);
 
-    assertTrue("Expected Dataset profile element in output", jsonLd.contains("dataset_Dataset"));
-    assertTrue("Expected dataset type data", jsonLd.contains("structured"));
-    assertTrue("Expected bias data", jsonLd.contains("Genre selection bias"));
+    assertTrue(jsonLd.contains("dataset_Dataset"), "Expected Dataset profile element in output");
+    assertTrue(jsonLd.contains("structured"), "Expected dataset type data");
+    assertTrue(jsonLd.contains("Genre selection bias"), "Expected bias data");
 
     String reExtracted = handler.extractUnsupportedProfileElements(jsonLd, SbomFormat.JSON);
-    assertNotNull("Dataset profile should survive round-trip", reExtracted);
-    assertTrue("Re-extracted blob should contain Dataset element", reExtracted.contains("dataset_Dataset"));
+    assertNotNull(reExtracted, "Dataset profile should survive round-trip");
+    assertTrue(reExtracted.contains("dataset_Dataset"), "Re-extracted blob should contain Dataset element");
   }
 
   @Test
   public void generate_withExtendedProfileElements_roundTripsBuildProfile() throws Exception {
     String fixture = loadFixture("sbom/spdx3/build-profile-spdx-3.0.spdx.json");
     String blob = handler.extractUnsupportedProfileElements(fixture, SbomFormat.JSON);
-    assertNotNull("Build profile should be extracted from fixture", blob);
+    assertNotNull(blob, "Build profile should be extracted from fixture");
     assertTrue(blob.contains("build_Build"));
 
     ThirdPartyFileCoordinate comp = new ThirdPartyFileCoordinate();
@@ -620,13 +621,13 @@ public class Spdx3VersionHandlerTest
     byte[] output = handler.generate(context);
     String jsonLd = new String(output, StandardCharsets.UTF_8);
 
-    assertTrue("Expected Build profile element in output", jsonLd.contains("build_Build"));
-    assertTrue("Expected build ID", jsonLd.contains("jenkins-pipeline-build-42"));
-    assertTrue("Expected build environment data", jsonLd.contains("linux-agent-01"));
+    assertTrue(jsonLd.contains("build_Build"), "Expected Build profile element in output");
+    assertTrue(jsonLd.contains("jenkins-pipeline-build-42"), "Expected build ID");
+    assertTrue(jsonLd.contains("linux-agent-01"), "Expected build environment data");
 
     String reExtracted = handler.extractUnsupportedProfileElements(jsonLd, SbomFormat.JSON);
-    assertNotNull("Build profile should survive round-trip", reExtracted);
-    assertTrue("Re-extracted blob should contain Build element", reExtracted.contains("build_Build"));
+    assertNotNull(reExtracted, "Build profile should survive round-trip");
+    assertTrue(reExtracted.contains("build_Build"), "Re-extracted blob should contain Build element");
   }
 
   @Test
@@ -654,10 +655,11 @@ public class Spdx3VersionHandlerTest
     byte[] output = handler.generate(context);
     String jsonLd = new String(output, StandardCharsets.UTF_8);
 
-    assertTrue("Expected ExternalRef locator pointing to CycloneDX file",
-        jsonLd.contains("file://ext-ref-app-build-scan1.bom.json"));
-    assertTrue("Expected CycloneDX content type",
-        jsonLd.contains("application/vnd.cyclonedx+json"));
+    assertTrue(
+        jsonLd.contains("file://ext-ref-app-build-scan1.bom.json"),
+        "Expected ExternalRef locator pointing to CycloneDX file");
+    assertTrue(
+        jsonLd.contains("application/vnd.cyclonedx+json"), "Expected CycloneDX content type");
   }
 
   @Test

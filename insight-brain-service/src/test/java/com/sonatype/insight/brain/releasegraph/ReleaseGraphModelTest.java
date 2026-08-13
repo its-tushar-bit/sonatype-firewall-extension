@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.releasegraph;
 
 import com.sonatype.insight.brain.model.ComponentPopularity;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.releasegraph.ReleaseGraphModel.SLOTS;
 import static org.assertj.core.api.Assertions.assertThat;

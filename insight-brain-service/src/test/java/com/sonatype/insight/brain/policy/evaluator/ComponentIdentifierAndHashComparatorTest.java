@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.policy.ComponentIdentifierAndHashComparable;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.policy.evaluator.ComponentIdentifierAndHashComparator.COMPARATOR;
 import static org.assertj.core.api.Assertions.assertThat;

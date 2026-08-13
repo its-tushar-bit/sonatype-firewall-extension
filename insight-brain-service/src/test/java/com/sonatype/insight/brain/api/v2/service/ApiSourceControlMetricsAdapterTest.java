@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiPullRequestResults
 import com.sonatype.insight.brain.git.EnhancedPullRequestResult;
 import com.sonatype.nexus.iq.manager.PullRequestResult;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

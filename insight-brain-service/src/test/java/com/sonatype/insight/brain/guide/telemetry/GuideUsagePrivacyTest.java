@@ -17,8 +17,8 @@ import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 public class GuideUsagePrivacyTest
 {
@@ -30,7 +30,7 @@ public class GuideUsagePrivacyTest
     return new GuideUsageTelemetryCollector(telemetryId, currentUser, mock(TelemetrySender.class), () -> 1L);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     GuideChannelContext.clear();
   }

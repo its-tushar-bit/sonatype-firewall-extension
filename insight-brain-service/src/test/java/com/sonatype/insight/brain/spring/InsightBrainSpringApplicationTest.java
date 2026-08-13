@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.spring;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.sonatype.insight.brain.spring.LaunchConfigurationResolver.LaunchConfiguration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class InsightBrainSpringApplicationTest
 {

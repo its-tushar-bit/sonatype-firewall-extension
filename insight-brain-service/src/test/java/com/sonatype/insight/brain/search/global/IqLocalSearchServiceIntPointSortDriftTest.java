@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.search.lucene.DocumentBuilder;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.index.IndexableField;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Drift guard between {@code IqLocalSearchService.INT_POINT_SORT_FIELDS} and the point-field widths

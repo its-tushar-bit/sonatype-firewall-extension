@@ -32,7 +32,7 @@ import jakarta.inject.Provider;
 import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

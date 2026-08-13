@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.git;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 /**
  * TODO(CLM-39981): Rebuild this regression test on top of Spring Boot test infrastructure.
@@ -15,11 +15,12 @@ import org.junit.Test;
  * The original coverage verified that pull-request polling skips apps whose parent SCM configuration is
  * missing and still processes apps with a complete inherited configuration.
  */
-@Ignore("TODO(CLM-39981): migrate this single-tenant scheduler regression test to Spring Boot test infrastructure")
+@Disabled("TODO(CLM-39981): migrate this single-tenant scheduler regression test to Spring Boot test infrastructure")
 public class PullRequestPollingSchedulerSingleTenantTest
 {
   @Test
   public void springBootMigrationPending() {
-    // Covered by the class-level @Ignore until CLM-39214 migrates the original Guice-based test setup.
+    // Disabled at the class level until CLM-39981 migrates the original Guice-based test setup to Spring Boot
+    // infrastructure.
   }
 }

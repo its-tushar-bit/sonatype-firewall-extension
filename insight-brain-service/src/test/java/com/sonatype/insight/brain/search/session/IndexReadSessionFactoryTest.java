@@ -22,7 +22,7 @@ import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.MatchNoDocsQuery;
 import org.apache.lucene.store.ByteBuffersDirectory;
 import org.apache.lucene.store.Directory;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_ID;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.ORGANIZATION_ID;

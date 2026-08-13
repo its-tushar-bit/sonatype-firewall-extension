@@ -16,9 +16,9 @@ import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.security.certificate.CertificateFactory;
 import com.sonatype.insight.brain.service.BaseUrl;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.opensaml.core.xml.XMLObjectBuilderFactory;
 import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
 import org.opensaml.core.xml.io.Marshaller;
@@ -87,13 +87,13 @@ public class SpringSamlResponseConsumptionTest
 
   private X509Certificate idpCertificate;
 
-  @BeforeClass
+  @BeforeAll
   public static void initOpenSaml() {
     // Referencing the provider triggers Spring's OpenSAML initialization.
     new OpenSaml5AuthenticationProvider();
   }
 
-  @Before
+  @BeforeEach
   public void generateIdpKeys() throws Exception {
     KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
     keyPairGenerator.initialize(2048);

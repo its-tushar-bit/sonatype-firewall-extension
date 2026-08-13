@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.deriveComponentName;
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromFilename;

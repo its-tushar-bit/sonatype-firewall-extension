@@ -20,9 +20,9 @@ import org.apache.shiro.realm.Realm;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -45,7 +45,7 @@ public class AuthenticationTest
 
   private Subject subject;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     javaLangErrorHandler = new JavaLangErrorHandler();
     javaLangErrorHandler.setExitOnFatalErrorSupplier(() -> false);
@@ -72,7 +72,7 @@ public class AuthenticationTest
     ThreadContext.bind(subject);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     ThreadContext.unbindSecurityManager();
     ThreadContext.unbindSubject();

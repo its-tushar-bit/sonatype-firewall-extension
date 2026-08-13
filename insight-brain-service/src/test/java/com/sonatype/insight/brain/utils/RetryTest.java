@@ -12,7 +12,7 @@ import java.util.function.Supplier;
 import com.sonatype.insight.brain.utils.Retry.RetryableCallable;
 import com.sonatype.insight.brain.utils.Retry.RetryableRunnable;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

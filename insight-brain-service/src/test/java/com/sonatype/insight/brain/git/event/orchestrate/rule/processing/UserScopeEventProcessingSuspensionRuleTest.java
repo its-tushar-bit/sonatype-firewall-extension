@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.git.event.orchestrate.rule.processing;
 
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.git.event.EventTestUtils.createEvent;
 import static org.assertj.core.api.Assertions.assertThat;

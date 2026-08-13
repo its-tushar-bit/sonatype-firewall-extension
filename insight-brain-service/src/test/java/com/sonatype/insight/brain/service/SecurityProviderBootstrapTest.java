@@ -12,10 +12,10 @@ import java.util.Arrays;
 import com.sonatype.insight.brain.security.FIPSModeDetector;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.junit.After;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,12 +23,12 @@ public class SecurityProviderBootstrapTest
 {
   private Provider[] originalProviders;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     originalProviders = Security.getProviders();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     for (Provider provider : Security.getProviders()) {
       Security.removeProvider(provider.getName());
@@ -40,7 +40,7 @@ public class SecurityProviderBootstrapTest
 
   @Test
   public void shouldMoveBouncyCastleProviderToLowestPreferenceWhenFipsDisabled() {
-    Assume.assumeFalse(FIPSModeDetector.isEnabled());
+    Assumptions.assumeFalse(FIPSModeDetector.isEnabled());
 
     Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME);
     Security.insertProviderAt(new BouncyCastleProvider(), 1);

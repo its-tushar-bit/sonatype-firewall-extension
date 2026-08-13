@@ -7,9 +7,9 @@
 package com.sonatype.insight.brain.zscaler;
 
 import com.sonatype.insight.error.exception.BadRequestException;
-import org.junit.Test;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class ZScalerValidatorTest
 {
@@ -139,8 +139,8 @@ public class ZScalerValidatorTest
       fail("Expected BadRequestException for hostname: " + hostname);
     }
     catch (BadRequestException e) {
-      assertEquals("Unexpected error message for hostname: " + hostname,
-          expectedMessage, e.getMessage());
+      assertEquals(expectedMessage, e.getMessage(),
+          "Unexpected error message for hostname: " + hostname);
     }
   }
 }

@@ -10,7 +10,7 @@ import java.util.Date;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.nexus.iq.manager.PullRequestResult;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

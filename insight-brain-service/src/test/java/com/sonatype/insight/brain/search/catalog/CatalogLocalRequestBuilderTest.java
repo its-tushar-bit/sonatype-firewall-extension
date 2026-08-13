@@ -16,7 +16,7 @@ import jakarta.ws.rs.BadRequestException;
 
 import com.sonatype.insight.brain.search.catalog.CatalogLocalRequestBuilder.LocalQuery;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class CatalogLocalRequestBuilderTest
 {

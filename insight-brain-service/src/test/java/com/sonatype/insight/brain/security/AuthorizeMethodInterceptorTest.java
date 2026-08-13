@@ -16,9 +16,9 @@ import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -52,7 +52,7 @@ public class AuthorizeMethodInterceptorTest
     return arg0;
   }
 
-  @Before
+  @BeforeEach
   public void init() {
     invoc = mock(MethodInvocation.class);
     when(invoc.getThis()).thenReturn(this);
@@ -66,7 +66,7 @@ public class AuthorizeMethodInterceptorTest
     ThreadContext.bind(subject);
   }
 
-  @After
+  @AfterEach
   public void exit() {
     ThreadContext.unbindSubject();
   }

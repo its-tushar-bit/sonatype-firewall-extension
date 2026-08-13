@@ -12,8 +12,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,7 +22,7 @@ public class PolicyEvaluationVirtualThreadExecutorTest
   private final PolicyEvaluationVirtualThreadExecutor executor =
       new PolicyEvaluationVirtualThreadExecutor(null, "policy_evaluation", "test");
 
-  @After
+  @AfterEach
   public void tearDown() {
     executor.shutdown();
   }

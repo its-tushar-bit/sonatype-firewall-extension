@@ -26,7 +26,7 @@ import jakarta.servlet.ServletRegistration;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.actuate.autoconfigure.web.ManagementContextConfiguration;
 import org.springframework.boot.actuate.autoconfigure.web.ManagementContextType;
 import org.springframework.boot.web.servlet.ServletContextInitializer;

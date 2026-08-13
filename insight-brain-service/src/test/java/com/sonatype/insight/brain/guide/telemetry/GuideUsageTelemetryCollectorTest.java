@@ -20,9 +20,9 @@ import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 public class GuideUsageTelemetryCollectorTest
@@ -35,7 +35,7 @@ public class GuideUsageTelemetryCollectorTest
 
   private GuideUsageTelemetryCollector collector;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     telemetryId = mock(TelemetryId.class);
     when(telemetryId.getId()).thenReturn("tele-123");
@@ -45,7 +45,7 @@ public class GuideUsageTelemetryCollectorTest
     collector = new GuideUsageTelemetryCollector(telemetryId, currentUser, sender, () -> 1_000L);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     GuideChannelContext.clear();
   }

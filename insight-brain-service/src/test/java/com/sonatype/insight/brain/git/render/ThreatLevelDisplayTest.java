@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.git.render;
 
 import com.sonatype.insight.brain.utils.ThreatLevel;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.utils.ThreatLevel.CRITICAL;
 import static com.sonatype.insight.brain.utils.ThreatLevel.LOW;

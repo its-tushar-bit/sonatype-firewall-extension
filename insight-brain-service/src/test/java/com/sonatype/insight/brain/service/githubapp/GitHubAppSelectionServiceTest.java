@@ -15,8 +15,8 @@ import java.util.Optional;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -30,7 +30,7 @@ public class GitHubAppSelectionServiceTest
 
   private GitHubAppSelectionService service;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     MockitoAnnotations.openMocks(this);
     service = new GitHubAppSelectionService(gitHubAppDAO, selectionCache);

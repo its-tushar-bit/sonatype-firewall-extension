@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.IndexableField;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class DocumentBuilderTest
 {

@@ -22,8 +22,8 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.GitApiClient.StateType;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -76,7 +76,7 @@ public class ScmStatusHelperTest
   public ScmStatusHelperTest() {
   }
 
-  @Before
+  @BeforeEach
   public void setup() {
     MockitoAnnotations.openMocks(this);
 

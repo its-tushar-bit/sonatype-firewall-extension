@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.organization;
 import java.io.IOException;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

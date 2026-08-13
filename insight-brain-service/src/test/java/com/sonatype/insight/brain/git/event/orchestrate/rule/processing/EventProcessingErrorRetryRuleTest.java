@@ -15,7 +15,7 @@ import com.sonatype.nexus.scm.api.access.control.ExclusiveAccessRequestTimeoutEx
 
 import com.google.common.collect.ImmutableList;
 import org.apache.http.client.HttpResponseException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

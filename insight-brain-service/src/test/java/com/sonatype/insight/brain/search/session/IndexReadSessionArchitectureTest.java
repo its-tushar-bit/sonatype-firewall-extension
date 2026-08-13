@@ -16,7 +16,7 @@ import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.store.Directory;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class IndexReadSessionArchitectureTest
 {

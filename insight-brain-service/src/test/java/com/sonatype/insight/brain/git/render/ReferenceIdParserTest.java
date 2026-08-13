@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 
 import com.google.common.collect.ImmutableSet;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.git.render.ComponentFeedbackHelper.TEST_COMPONENT_IDENTIFIER;
 import static com.sonatype.insight.brain.git.render.ComponentFeedbackHelper.generateConditionFact;

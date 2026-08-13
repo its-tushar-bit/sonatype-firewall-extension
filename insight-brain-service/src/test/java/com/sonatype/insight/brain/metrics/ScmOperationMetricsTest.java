@@ -14,9 +14,9 @@ import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.assertj.core.api.AbstractDoubleAssert;
 import org.assertj.core.api.AbstractLongAssert;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.metrics.ScmPrIneligibleReason.ALREADY_REMEDIATED;
 import static com.sonatype.insight.brain.metrics.ScmPrIneligibleReason.NOT_ELIGIBLE;
@@ -29,13 +29,13 @@ public class ScmOperationMetricsTest
 
   private final MeterRegistry meterRegistry = new SimpleMeterRegistry();
 
-  @Before
+  @BeforeEach
   public void setup() {
     underTest = new ScmOperationMetrics(meterRegistry);
     TenantTestHelper.initMultiTenantMode();
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     TenantTestHelper.resetAfterTest();
   }

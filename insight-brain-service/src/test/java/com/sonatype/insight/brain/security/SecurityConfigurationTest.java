@@ -17,9 +17,9 @@ import org.apache.shiro.realm.Realm;
 import org.apache.shiro.session.SessionListener;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,7 +36,7 @@ public class SecurityConfigurationTest
 
   private Set<Realm> realms;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     context = new AnnotationConfigApplicationContext();
     context.register(SecurityConfiguration.class, TestSecurityBeans.class);
@@ -48,7 +48,7 @@ public class SecurityConfigurationTest
     realms = new LinkedHashSet<>(context.getBeansOfType(Realm.class).values());
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     if (context != null) {
       context.close();

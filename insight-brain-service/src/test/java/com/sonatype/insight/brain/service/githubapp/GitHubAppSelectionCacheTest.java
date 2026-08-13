@@ -10,14 +10,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Optional;
 
 import com.sonatype.insight.brain.model.githubapp.GitHubApp;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class GitHubAppSelectionCacheTest
 {
   private GitHubAppSelectionCache selectionCache;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     selectionCache = new GitHubAppSelectionCache();
   }

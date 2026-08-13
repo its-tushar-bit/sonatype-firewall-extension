@@ -17,8 +17,8 @@ import com.sonatype.insight.brain.dataaccess.configuration.WaiverExpirationNotif
 import com.sonatype.insight.brain.model.configuration.WaiverExpirationNotificationConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -31,7 +31,7 @@ public class ApiWaiverExpirationNotificationConfigServiceTest
 
   private WaiverExpirationNotificationConfigDAO dao;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     dao = mock(WaiverExpirationNotificationConfigDAO.class);
     OwnerDAO ownerDAO = mock(OwnerDAO.class);

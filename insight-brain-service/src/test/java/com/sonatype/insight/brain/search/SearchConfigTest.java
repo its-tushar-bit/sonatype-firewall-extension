@@ -12,7 +12,7 @@ import com.sonatype.insight.brain.search.SearchConfig.AwsHttpOpenSearchConfig;
 import com.sonatype.insight.brain.search.SearchConfig.HttpOpenSearchConfig;
 import com.sonatype.insight.brain.search.opensearch.OpenSearchConfigurationException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;

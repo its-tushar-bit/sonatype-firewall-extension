@@ -20,9 +20,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.ee11.servlet.ServletApiRequest;
 import org.eclipse.jetty.server.Request;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,13 +42,13 @@ public class AuthenticationLoggingFilterTest
   /**
    * JUnit reuses threads which may have MDC username set as {@link MDCUsernameScope.SYSTEM }
    */
-  @Before
+  @BeforeEach
   public void setup() {
     MDC.remove(MDCUsernameScope.USERNAME);
     assertThat(MDC.get(MDCUsernameScope.USERNAME)).isNull();
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     MDC.remove(MDCUsernameScope.USERNAME);
     assertThat(MDC.get(MDCUsernameScope.USERNAME)).isNull();

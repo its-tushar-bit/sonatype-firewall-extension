@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import jakarta.servlet.http.Cookie;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.saml2.provider.service.authentication.AbstractSaml2AuthenticationRequest;

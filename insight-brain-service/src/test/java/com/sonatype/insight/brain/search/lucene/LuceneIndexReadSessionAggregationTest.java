@@ -34,7 +34,7 @@ import org.apache.lucene.store.ByteBuffersDirectory;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.NumericUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.apache.lucene.document.Field.Store.YES;
 import static org.assertj.core.api.Assertions.assertThat;

@@ -14,8 +14,8 @@ import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsSqlReadinessState.MISSING;
 import static com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsSqlReadinessState.VALID;
@@ -33,7 +33,7 @@ public class DashboardMetricsSqlTelemetryTest
 
   private DashboardMetricsSqlTelemetry underTest;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     meterRegistry = new SimpleMeterRegistry();
     underTest = new DashboardMetricsSqlTelemetry(meterRegistry);

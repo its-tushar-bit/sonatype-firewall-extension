@@ -16,8 +16,8 @@ import java.util.List;
 import com.sonatype.insight.scan.file.SbomFormat;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.spdx.jacksonstore.MultiFormatStore.Format;
 import org.spdx.core.InvalidSPDXAnalysisException;
@@ -30,7 +30,7 @@ import static org.mockito.Mockito.when;
 
 public class SbomSpdxUtilsTest
 {
-  @BeforeClass
+  @BeforeAll
   public static void initSpdx() {
     SbomSpdxUtils.initSpdxLibrary();
   }

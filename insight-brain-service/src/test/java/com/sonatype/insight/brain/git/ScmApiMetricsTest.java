@@ -12,9 +12,9 @@ import com.sonatype.insight.client.utils.ApiMetricsRecorder;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class ScmApiMetricsTest
 {
@@ -22,7 +22,7 @@ public class ScmApiMetricsTest
 
   private ScmApiMetrics underTest;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     TenantTestHelper.resetAfterTest();
     ApiMetricsRecorder.registerMetricsListener(null);
@@ -30,7 +30,7 @@ public class ScmApiMetricsTest
     underTest = new ScmApiMetrics(meterRegistry);
   }
 
-  @After
+  @AfterEach
   public void cleanup() throws Exception {
     underTest.stop();
     TenantTestHelper.resetAfterTest();

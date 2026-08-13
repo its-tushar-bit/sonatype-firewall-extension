@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.landing;
 
 import jakarta.ws.rs.core.HttpHeaders;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;

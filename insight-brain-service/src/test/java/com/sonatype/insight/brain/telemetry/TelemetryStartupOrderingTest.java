@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.telemetry;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.sonatype.insight.brain.service.DefaultApplicationLifecycle;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 public class TelemetryStartupOrderingTest

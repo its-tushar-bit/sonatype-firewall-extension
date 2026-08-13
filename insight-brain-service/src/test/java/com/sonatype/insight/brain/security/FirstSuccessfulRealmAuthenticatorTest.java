@@ -13,8 +13,8 @@ import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationListener;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.realm.Realm;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
@@ -24,7 +24,7 @@ public class FirstSuccessfulRealmAuthenticatorTest
 {
   private FirstSuccessfulRealmAuthenticator firstSuccessfulRealmAuthenticator;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     Set<Realm> realms = Collections.emptySet();
     Set<AuthenticationListener> authenticationListeners = Collections.emptySet();

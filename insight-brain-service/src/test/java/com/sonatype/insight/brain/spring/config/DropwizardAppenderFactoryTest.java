@@ -29,9 +29,9 @@ import java.nio.file.Path;
 import java.security.KeyStore;
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class DropwizardAppenderFactoryTest
 {
@@ -39,7 +39,7 @@ public class DropwizardAppenderFactoryTest
 
   private final Map<String, String> savedSslProperties = new HashMap<>();
 
-  @Before
+  @BeforeEach
   public void setUp() {
     context = new LoggerContext();
     context.start();
@@ -50,7 +50,7 @@ public class DropwizardAppenderFactoryTest
     clearAndSave("javax.net.ssl.trustStore");
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     context.stop();
     savedSslProperties.forEach((key, value) -> {

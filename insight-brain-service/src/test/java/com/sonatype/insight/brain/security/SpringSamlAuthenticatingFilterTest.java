@@ -9,8 +9,8 @@ import java.net.URI;
 
 import com.sonatype.insight.brain.landing.LandingService;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.saml2.core.Saml2ParameterNames;
@@ -26,7 +26,7 @@ public class SpringSamlAuthenticatingFilterTest
 
   private static final URI GUIDE_LANDING = URI.create("https://iq.example.com/guide/");
 
-  @BeforeClass
+  @BeforeAll
   public static void initOpenSaml() {
     // Constructing the filter builds an OpenSaml5 request resolver/converter, which needs OpenSAML bootstrapped.
     new OpenSaml5AuthenticationProvider();

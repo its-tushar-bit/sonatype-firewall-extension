@@ -9,7 +9,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseOverrideDTO;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.model.license.LicenseOverrideStatus.OVERRIDDEN;
 import static org.assertj.core.api.Assertions.assertThat;

@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.report.pdf;
 
 import java.awt.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.knowm.xchart.style.PieStyler;
 
 import static org.assertj.core.api.Assertions.assertThat;

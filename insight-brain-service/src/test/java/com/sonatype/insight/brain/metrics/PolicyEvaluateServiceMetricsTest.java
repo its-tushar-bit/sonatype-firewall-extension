@@ -16,8 +16,8 @@ import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.assertj.core.api.AbstractDoubleAssert;
 import org.assertj.core.api.AbstractLongAssert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,7 +31,7 @@ public class PolicyEvaluateServiceMetricsTest
 
   private final MeterRegistry meterRegistry = new SimpleMeterRegistry();
 
-  @Before
+  @BeforeEach
   public void setUp() {
     policyEvaluateServiceMetrics = new PolicyEvaluateServiceMetrics(meterRegistry);
   }

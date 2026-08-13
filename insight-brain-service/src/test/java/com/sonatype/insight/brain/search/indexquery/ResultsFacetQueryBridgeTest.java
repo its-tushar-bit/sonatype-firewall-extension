@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.sonatype.insight.brain.search.indexquery.IndexQueryFilterCompiler.CompiledQuery;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for the {@code /results} {@code q=} → facet-count {@link CompiledQuery} bridge. The

@@ -17,7 +17,7 @@ import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.search.global.GlobalSearchRequest;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Pins the {@link SearchIndexClient} default methods that form the Global Search security backbone:

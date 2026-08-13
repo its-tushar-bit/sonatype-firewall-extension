@@ -10,8 +10,8 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -38,7 +38,7 @@ public class SourceControlEventPublisherTest
   @Mock
   private ApiConfigFeaturesService mockApiConfigFeaturesService;
 
-  @Before
+  @BeforeEach
   public void setup() {
     MockitoAnnotations.openMocks(this);
     sourceControlEventPublisher = new SourceControlEventPublisher(mockSourceControlEventDAO, mockSourceControlUtils,

@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.scan.matcher.firewall;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 

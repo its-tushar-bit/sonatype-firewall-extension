@@ -9,9 +9,9 @@ import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.session.ReadableContextAuthzCache;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -29,7 +29,7 @@ public class ClearRolePermissionAuthzInvalidationTest
 
   private ClearRolePermissionCache clearRolePermissionCache;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     originalCallback = RolePermissionDAO.getClearRolePermissionCacheForAllOtherNodes();
     taskScheduler = mock(TaskScheduler.class);
@@ -37,7 +37,7 @@ public class ClearRolePermissionAuthzInvalidationTest
     clearRolePermissionCache = new ClearRolePermissionCache(taskScheduler, readableContextAuthzCache);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     RolePermissionDAO.setClearRolePermissionCacheForAllOtherNodes(originalCallback);
   }

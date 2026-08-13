@@ -9,8 +9,8 @@ import com.sonatype.insight.brain.dashboard.DashboardUtils;
 import com.sonatype.insight.brain.service.BaseUrlConfiguration;
 import com.sonatype.insight.brain.service.Configuration;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
@@ -21,7 +21,7 @@ public class SolutionUrlResolverTest
 {
   private static final String BASE_URL = "https://locahost:8070";
 
-  @Before
+  @BeforeEach
   public void setup() {
     MockitoAnnotations.openMocks(this);
   }

@@ -21,8 +21,8 @@ import com.sonatype.insight.brain.search.global.catalog.GlobalSearchResultsCatal
 import com.sonatype.insight.brain.search.indexquery.IndexQueryResponse.IndexQueryFacetBucket;
 import com.sonatype.insight.brain.search.indexquery.IndexQueryService;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Wiring tests for the {@code includeFacets} path on {@link ResultsService}: facets are computed only
@@ -38,7 +38,7 @@ public class ResultsServiceFacetsTest
 
   private ResultsService service;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     iq = mock(GlobalSearchResultsIqLocalClient.class);
     catalog = mock(GlobalSearchResultsCatalogClient.class);

@@ -13,7 +13,7 @@ import static org.mockito.Mockito.when;
 import com.sonatype.insight.brain.hds.HdsClient;
 import java.util.List;
 import java.util.stream.Stream;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 
 /**

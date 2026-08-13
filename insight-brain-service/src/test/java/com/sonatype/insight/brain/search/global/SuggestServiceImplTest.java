@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.search.global.catalog.CatalogSuggestResult;
 import com.sonatype.insight.brain.search.global.catalog.GlobalSearchSuggestCatalogClient;
 import com.sonatype.insight.brain.security.CurrentUser;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import static org.assertj.core.api.Assertions.assertThat;

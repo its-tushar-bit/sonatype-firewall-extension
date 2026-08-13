@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.report.pdf;
 import java.awt.*;
 
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

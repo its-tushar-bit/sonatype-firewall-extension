@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.search.index;
 
 import com.sonatype.insight.brain.model.searchindex.SearchIndexHealth;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

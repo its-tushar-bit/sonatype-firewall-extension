@@ -30,9 +30,9 @@ import com.sonatype.insight.error.exception.PaymentRequiredException;
 
 import com.google.common.collect.Multimap;
 import jakarta.ws.rs.InternalServerErrorException;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,7 +50,7 @@ public class GlobalSearchResultsCatalogClientImplTest
 
   private GlobalSearchResultsCatalogClientImpl client;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     SystemConfigurationPropertyFeatureTestSupport.install();
     hdsClient = mock(GlobalSearchCatalogHdsClient.class);
@@ -58,7 +58,7 @@ public class GlobalSearchResultsCatalogClientImplTest
     entitle();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     SystemConfigurationPropertyFeatureTestSupport.uninstall();
   }

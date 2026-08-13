@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.sbom.utils;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.sbom.utils.ApplicationVersionValidator.validate;
 import static org.assertj.core.api.Assertions.assertThat;

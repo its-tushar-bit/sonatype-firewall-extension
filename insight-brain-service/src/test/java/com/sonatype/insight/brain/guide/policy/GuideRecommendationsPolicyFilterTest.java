@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.guide.api.dto.RecommendedVersionInfo;
 import com.sonatype.insight.brain.guide.api.dto.policy.GuidePolicyCompliance;
 import com.sonatype.insight.brain.guide.api.dto.policy.GuidePolicyComplianceLevel;
 import com.sonatype.insight.brain.guide.api.dto.policy.GuidePolicyComplianceSummary;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

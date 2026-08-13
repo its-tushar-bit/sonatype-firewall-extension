@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.security.MemberDTO.GroupMemberDTO;
 import com.sonatype.insight.brain.security.MemberDTO.UserMemberDTO;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -7,9 +7,9 @@ package com.sonatype.insight.brain.search.global;
 
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -22,12 +22,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 public class PerUserRateLimiterTenancyTest
 {
-  @Before
+  @BeforeEach
   public void setup() {
     TenantTestHelper.initMultiTenantMode();
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     TenantTestHelper.resetAfterTest();
   }

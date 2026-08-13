@@ -25,7 +25,7 @@ import org.apache.lucene.search.TermInSetQuery;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.WildcardQuery;
 import org.apache.lucene.util.BytesRef;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.opensearch.client.opensearch._types.query_dsl.Query.Kind;
 
 public class LuceneToOpenSearchQueryAdapterTest

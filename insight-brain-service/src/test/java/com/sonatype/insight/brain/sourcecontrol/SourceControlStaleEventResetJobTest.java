@@ -19,9 +19,9 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -61,7 +61,7 @@ public class SourceControlStaleEventResetJobTest
 
   private AutoCloseable mockCloser;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     mockCloser = MockitoAnnotations.openMocks(this);
     // Default to "licensed and feature-enabled" — individual tests override as needed.
@@ -71,7 +71,7 @@ public class SourceControlStaleEventResetJobTest
         licenseChecker, apiConfigFeaturesService);
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     // Reset the static tenant ThreadLocal that some tests in this class flip into multi-tenant mode,
     // so a flip doesn't bleed into the next test class on the same JVM.

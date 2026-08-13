@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.security;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal;
 
 import static org.assertj.core.api.Assertions.assertThat;

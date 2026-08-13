@@ -7,8 +7,8 @@ package com.sonatype.insight.brain.dto;
 
 import com.sonatype.insight.brain.model.OwnerType;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -16,7 +16,7 @@ public class ApplicableContextTest
 {
   private ApplicableContext applicableContext;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     applicableContext = new ApplicableContext();
   }

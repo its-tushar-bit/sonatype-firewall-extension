@@ -19,7 +19,7 @@ import com.sonatype.insight.brain.security.oauth2.OAuth2Realm;
 import com.sonatype.insight.brain.security.oauth2.ShiroJsonWebTokenValidator;
 import java.util.Collection;
 import org.apache.shiro.realm.CachingRealm;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

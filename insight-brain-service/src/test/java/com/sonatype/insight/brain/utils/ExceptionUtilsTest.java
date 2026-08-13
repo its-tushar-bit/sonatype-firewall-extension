@@ -9,7 +9,7 @@ import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.PersistenceException;
 import jakarta.persistence.RollbackException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

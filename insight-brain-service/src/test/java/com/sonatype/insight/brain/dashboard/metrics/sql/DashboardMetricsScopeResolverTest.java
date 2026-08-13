@@ -45,7 +45,7 @@ import com.sonatype.insight.brain.security.AuthzFilter.Context;
 import com.sonatype.insight.brain.security.AuthorizationChecker;
 import com.sonatype.insight.brain.security.CurrentUser;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class DashboardMetricsScopeResolverTest
 {

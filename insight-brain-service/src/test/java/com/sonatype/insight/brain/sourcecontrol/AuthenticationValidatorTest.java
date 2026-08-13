@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.sourcecontrol;
 
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl.AuthenticationType;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

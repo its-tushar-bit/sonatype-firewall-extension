@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.dashboard.metrics.sql;
 
 import java.util.List;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsSqlPlanEvidenceSupport.CaptureSource.RECONSTRUCTED;
 import static com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsSqlPlanEvidenceSupport.Metric.APPLICATIONS;

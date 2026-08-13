@@ -7,8 +7,8 @@ package com.sonatype.insight.brain.scale;
 
 import com.sonatype.insight.brain.concurrent.PerpetualLockManager;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -32,7 +32,7 @@ public class HeartbeatPartitionManagerTest
 
   private HeartbeatPartitionManager heartbeatPartitionManager;
 
-  @Before
+  @BeforeEach
   public void setup() {
     MockitoAnnotations.openMocks(this);
     heartbeatPartitionManager = new HeartbeatPartitionManager(mockPerpetualLockManager);

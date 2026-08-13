@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class IndexQueryRowMapperTest
 {

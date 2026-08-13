@@ -11,7 +11,7 @@ import com.sonatype.insight.brain.search.index.FieldIdentifier;
 
 import java.util.Map;
 import java.util.stream.Stream;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.opensearch.client.opensearch._types.mapping.KeywordProperty;
 import org.opensearch.client.opensearch._types.mapping.Property;
 

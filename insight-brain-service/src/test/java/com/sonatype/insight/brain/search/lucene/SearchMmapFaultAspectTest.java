@@ -9,8 +9,8 @@ import com.sonatype.insight.jaxrs.error.NonFatalRequestFault;
 
 import org.aspectj.lang.Aspects;
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -27,7 +27,7 @@ public class SearchMmapFaultAspectTest
 {
   private SearchMmapFaultAspect aspect;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     // aspectOf returns the CTW-managed singleton; obtaining it also proves the aspect was woven.
     aspect = Aspects.aspectOf(SearchMmapFaultAspect.class);

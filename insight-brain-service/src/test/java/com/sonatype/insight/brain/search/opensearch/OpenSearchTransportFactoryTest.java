@@ -10,7 +10,7 @@ import java.net.URI;
 import com.sonatype.insight.brain.search.SearchConfig.AwsHttpOpenSearchConfig;
 import com.sonatype.insight.brain.search.SearchConfig.HttpOpenSearchConfig;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.opensearch.client.transport.OpenSearchTransport;
 import org.opensearch.client.transport.aws.AwsSdk2Transport;
 import org.opensearch.client.transport.httpclient5.ApacheHttpClient5Transport;

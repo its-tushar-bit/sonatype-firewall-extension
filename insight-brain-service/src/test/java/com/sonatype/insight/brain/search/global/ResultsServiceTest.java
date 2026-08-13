@@ -10,8 +10,8 @@ import com.sonatype.insight.brain.search.global.catalog.GlobalSearchResultsCatal
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -30,7 +30,7 @@ public class ResultsServiceTest
 
   private ResultsService service;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     iq = mock(GlobalSearchResultsIqLocalClient.class);
     catalog = mock(GlobalSearchResultsCatalogClient.class);

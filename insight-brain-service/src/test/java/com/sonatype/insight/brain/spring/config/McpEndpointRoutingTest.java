@@ -29,9 +29,9 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.jetty.servlet.JettyServletWebServerFactory;
 import org.springframework.boot.web.server.context.WebServerApplicationContext;
@@ -64,7 +64,7 @@ public class McpEndpointRoutingTest
 
   private String baseUrl;
 
-  @Before
+  @BeforeEach
   public void startServer() {
     SpringApplication application = new SpringApplication(TestConfig.class);
     // Activate the profile that TestConfig is gated on, so its web beans exist only for this test.
@@ -78,7 +78,7 @@ public class McpEndpointRoutingTest
     httpClient = HttpClient.newHttpClient();
   }
 
-  @After
+  @AfterEach
   public void stopServer() {
     if (context != null) {
       context.close();

@@ -12,7 +12,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.nexus.scm.api.access.control.ExclusiveAccessRequestTimeoutException;
 
 import org.apache.http.client.HttpResponseException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.git.event.EventTestUtils.createEvent;
 import static com.sonatype.insight.brain.git.event.EventTestUtils.createEventForApp;

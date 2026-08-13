@@ -12,7 +12,7 @@ import java.util.List;
 
 import com.sonatype.insight.brain.search.indexquery.ApplicationStageSeverityBreakdown.Breakdown;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ApplicationStageSeverityBreakdownTest
 {

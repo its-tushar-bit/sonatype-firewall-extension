@@ -15,15 +15,15 @@ import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import org.aspectj.lang.Aspects;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class GuideUsageEventAspectWeavingTest
 {
   private GuideUsageTelemetryCollector collector;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     TelemetryId telemetryId = mock(TelemetryId.class);
     when(telemetryId.getId()).thenReturn("t1");
@@ -34,7 +34,7 @@ public class GuideUsageEventAspectWeavingTest
     GuideChannelContext.set(GuideChannel.API);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     GuideChannelContext.clear();
     // The aspect is a process-wide CTW singleton; null its collector so this test's mock does not

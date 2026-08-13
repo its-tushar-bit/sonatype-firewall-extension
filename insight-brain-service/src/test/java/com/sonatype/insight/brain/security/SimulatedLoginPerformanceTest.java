@@ -22,7 +22,7 @@ import org.apache.shiro.authc.credential.CredentialsMatcher;
 import org.apache.shiro.authc.credential.DefaultPasswordService;
 import org.apache.shiro.authc.credential.PasswordMatcher;
 import org.apache.shiro.realm.AuthenticatingRealm;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Performance A/B for the {@link CheapSimulatedCredentialsMatcher} fix.

@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.thirdparty;
 
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.model.component.SecurityVulnerabilitySource.NATIONAL_VULNERABILITY_DATABASE;
 import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.PUBLIC_RESEARCH;

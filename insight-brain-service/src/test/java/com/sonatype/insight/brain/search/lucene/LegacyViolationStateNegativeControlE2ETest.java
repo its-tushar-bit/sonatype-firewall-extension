@@ -28,7 +28,7 @@ import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.ByteBuffersDirectory;
 import org.apache.lucene.store.Directory;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.opensearch.client.opensearch._types.query_dsl.Query.Kind;
 
 import static java.time.Instant.now;

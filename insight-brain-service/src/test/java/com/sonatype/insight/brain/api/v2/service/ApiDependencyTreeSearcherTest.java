@@ -13,8 +13,8 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeNodeDTO;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,7 +22,7 @@ public class ApiDependencyTreeSearcherTest
 {
   private ApiDependencyTreeSearcher searcher;
 
-  @Before
+  @BeforeEach
   public void setup() {
     searcher = new ApiDependencyTreeSearcher();
   }

@@ -18,8 +18,8 @@ import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createNugetCoordinates;
@@ -67,7 +67,7 @@ public class PolicyAlertSourceCodeOrganizerTest
     return getComponentId(componentFact.getComponentIdentifier());
   }
 
-  @Before
+  @BeforeEach
   public void setup() {
     policyAlertSourceCodeOrganizer = new PolicyAlertSourceCodeOrganizer();
 

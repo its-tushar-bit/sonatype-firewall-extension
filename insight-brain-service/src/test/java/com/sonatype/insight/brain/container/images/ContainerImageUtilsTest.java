@@ -12,7 +12,7 @@ import com.sonatype.clm.dto.model.container.image.ContainerImageTelemetryMetrics
 
 import org.cyclonedx.model.Metadata;
 import org.cyclonedx.model.Property;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.clm.dto.model.container.image.ContainerImageTelemetryMetrics.BASE_OS_PROPERTY_NAME;
 import static com.sonatype.clm.dto.model.container.image.ContainerImageTelemetryMetrics.COMPONENTS_COUNT_PROPERTY_NAME;

@@ -11,7 +11,7 @@ import java.util.Map;
 
 import com.sonatype.insight.brain.search.index.RankedGroupsResult;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

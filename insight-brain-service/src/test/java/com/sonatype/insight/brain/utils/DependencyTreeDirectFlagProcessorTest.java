@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeNodeDTO;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.utils.DependencyTreeDirectFlagProcessor.populateDirectFlags;
 import static org.assertj.core.api.Assertions.assertThat;

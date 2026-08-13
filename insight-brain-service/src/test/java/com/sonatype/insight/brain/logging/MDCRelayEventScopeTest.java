@@ -5,15 +5,15 @@
  */
 package com.sonatype.insight.brain.logging;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MDCRelayEventScopeTest
 {
-  @After
+  @AfterEach
   public void clearMdc() {
     MDC.remove(MDCRelayEventScope.RELAY_EVENT_ID);
   }

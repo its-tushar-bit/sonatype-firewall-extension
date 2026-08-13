@@ -14,8 +14,8 @@ import com.sonatype.nexus.scm.api.model.Commit;
 import com.sonatype.nexus.scm.api.model.CommitInformation;
 import com.sonatype.nexus.scm.gitlab.dto.GitlabMergeRequestResponse;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -34,7 +34,7 @@ public class PullRequestInfoClientTest
   @Mock
   private PullRequestInfoProvider mockPullRequestInfoProvider;
 
-  @Before
+  @BeforeEach
   public void setup() {
     MockitoAnnotations.openMocks(this);
   }

@@ -23,8 +23,8 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStra
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_GOLANG;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_MAVEN;
@@ -43,7 +43,7 @@ public class DashboardPolicyWaiverDTOComparatorTest
 
   private static final String ORDER_WAIVER_BY_DESC = "-";
 
-  @Before
+  @BeforeEach
   public void before() {
     componentIdentifiers = new ArrayList<>();
 

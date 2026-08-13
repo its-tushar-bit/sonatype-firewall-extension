@@ -18,9 +18,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -36,12 +36,12 @@ public class ResultsCursorTest
 {
   private String originalToken;
 
-  @Before
+  @BeforeEach
   public void saveToken() {
     originalToken = GlobalSearchCursor.currentGenerationToken();
   }
 
-  @After
+  @AfterEach
   public void restoreToken() {
     GlobalSearchCursor.bumpGenerationToken(originalToken);
   }

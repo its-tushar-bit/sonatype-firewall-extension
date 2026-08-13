@@ -12,10 +12,10 @@ import com.sonatype.insight.client.utils.RateLimitRecorder;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class SourceControlRateLimitTelemetryCollectorTest
 {

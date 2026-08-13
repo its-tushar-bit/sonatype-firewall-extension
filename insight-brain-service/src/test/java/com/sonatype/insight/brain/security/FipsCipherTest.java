@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.security;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastleFipsProvider;
 import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastleFipsProvider;
@@ -17,12 +17,12 @@ public class FipsCipherTest
 {
   private final FipsCipher fipsCipher = new FipsCipher();
 
-  @BeforeClass
+  @BeforeAll
   public static void setUp() {
     insertBouncyCastleFipsProvider();
   }
 
-  @AfterClass
+  @AfterAll
   public static void tearDown() {
     removeBouncyCastleFipsProvider();
   }

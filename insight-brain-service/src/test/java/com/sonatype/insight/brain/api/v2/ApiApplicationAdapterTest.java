@@ -12,7 +12,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiApplicationTagDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

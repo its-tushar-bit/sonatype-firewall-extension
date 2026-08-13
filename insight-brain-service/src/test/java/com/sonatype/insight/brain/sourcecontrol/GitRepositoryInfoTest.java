@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.sourcecontrol;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 import static org.assertj.core.api.Assertions.assertThat;

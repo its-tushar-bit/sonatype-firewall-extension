@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.search.global.StaleCursorException;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import jakarta.ws.rs.core.Response;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Drives the two search exceptions through the real JAX-RS {@link ErrorResponseGenerator} to assert

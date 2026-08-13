@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
 import { useDispatch, useSelector, useStore } from 'react-redux';
 import { load as loadAdvancedSearchConfig } from '../configuration/advancedSearch/advancedSearchConfigActions';
 import { selectIsAdvancedSearchEnabled } from '../configuration/advancedSearch/advancedSearchSelectors';
-import { loadConfiguration as loadSuccessMetricsConfig } from '../configuration/successMetricsConfiguration/successMetricsConfigurationActions';
+import { loadConfigurationIfSupported as loadSuccessMetricsConfig } from '../configuration/successMetricsConfiguration/successMetricsConfigurationActions';
 import { selectIsSuccessMetricsEnabled } from '../configuration/successMetricsConfiguration/successMetricsConfigurationSelectors';
 import { load as loadProductLicense } from '../configuration/license/productLicenseActions';
 import { actions as firewallOnboardingActions } from 'MainRoot/firewallOnboarding/firewallOnboardingSlice';

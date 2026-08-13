@@ -13,7 +13,7 @@ import $ from 'jquery';
 import pv from 'MainRoot/lib/protovis/protovis.min';
 import { attachAxiosInterceptors } from 'MainRoot/utility/axiosConfig';
 import initDisplayTheme from 'MainRoot/configuration/displayTheme/initDisplayTheme';
-import { loadConfiguration as loadSuccessMetricsConfig } from 'MainRoot/configuration/successMetricsConfiguration/successMetricsConfigurationActions';
+import { loadConfigurationIfSupported as loadSuccessMetricsConfig } from 'MainRoot/configuration/successMetricsConfiguration/successMetricsConfigurationActions';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { actions as mainHeaderActions } from 'MainRoot/mainHeader/mainHeaderSlice';
 import { load as loadProductLicense } from 'MainRoot/configuration/license/productLicenseActions';
@@ -55,11 +55,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   // already confirmed auth + the preview flag above. These are fire-and-forget
   // (idempotent) — the shell reactively renders as each resolves.
   fetchUser(false);
-  store.dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded());
   store.dispatch(loadProductLicense());
+  // Neither fetchProductFeaturesIfNeeded nor loadProductFeaturesOnce has in-flight dedupe —
+  // both test the product-features map at call time rather than tracking a pending request —
+  // so a second caller reading an empty map would issue its own duplicate GET.
+  // loadSuccessMetricsConfig reads that same map, so it is chained off this dispatch's
+  // promise instead of firing alongside it.
   // LeftNav gates Success Metrics on successMetricsConfiguration.serverData.enabled.
   // Classic loads this in NavigationContainer; the nexus-one bundle must too.
-  store.dispatch(loadSuccessMetricsConfig());
+  store.dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded()).then(() => {
+    store.dispatch(loadSuccessMetricsConfig());
+  });
   // The Settings hub (nosc/settings/SettingsPage.tsx) gates its Admin Console
   // items on mainHeader permissions (CONFIGURE_SYSTEM, VIEW_ROLES, etc.) via
   // useSettingsGatingContext. Classic loads these in MainHeader.jsx; the

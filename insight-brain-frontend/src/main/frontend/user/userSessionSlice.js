@@ -16,6 +16,8 @@ import { selectShouldDisplayPasswordWarning, selectUsername } from './userSessio
 import { selectIsCurrentRouteDirty } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { consumeGuideReturnTo } from 'MainRoot/user/guideReturnTo';
 import { clearRecentSearches } from 'MainRoot/nosc/search/useRecentSearches';
+import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import { selectIsUserManagementPagesEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 const REDUCER_NAME = 'userSession';
 
@@ -67,23 +69,32 @@ export const fetchUserSession = createAsyncThunk(
   }
 );
 
-const fetchPasswordWarning = createAsyncThunk(`${REDUCER_NAME}/fetchPasswordWarning`, async () => {
-  try {
-    const isAdmin = await isAuthorized(['CONFIGURE_SYSTEM']);
-    if (isAdmin) {
-      const response = await axios.get(getShouldDisplayDefaultPasswordWarning());
-      const shouldDisplay = !!response.data;
-      if (shouldDisplay) {
-        submitTelemetryData('ADMIN_PASSWORD_CHANGE', { action: 'WARNING_SHOWN' });
+const fetchPasswordWarning = createAsyncThunk(
+  `${REDUCER_NAME}/fetchPasswordWarning`,
+  async (_, { dispatch, getState }) => {
+    try {
+      // The endpoint is gated server-side on the USER_MANAGEMENT_PAGES system feature,
+      // which is off outside single-tenant and FIPS deployments.
+      await dispatch(productFeaturesActions.loadProductFeaturesOnce());
+      if (!selectIsUserManagementPagesEnabled(getState())) {
+        return false;
       }
-      return shouldDisplay;
+      const isAdmin = await isAuthorized(['CONFIGURE_SYSTEM']);
+      if (isAdmin) {
+        const response = await axios.get(getShouldDisplayDefaultPasswordWarning());
+        const shouldDisplay = !!response.data;
+        if (shouldDisplay) {
+          submitTelemetryData('ADMIN_PASSWORD_CHANGE', { action: 'WARNING_SHOWN' });
+        }
+        return shouldDisplay;
+      }
+      return false;
+    } catch (error) {
+      // If this call fails, don't show the warning
+      return false;
     }
-    return false;
-  } catch (error) {
-    // If this call fails, don't show the warning
-    return false;
   }
-});
+);
 
 // Logout - checks for unsaved changes before logging out
 export const logout = createAsyncThunk(`${REDUCER_NAME}/logout`, async (_, { getState, dispatch }) => {

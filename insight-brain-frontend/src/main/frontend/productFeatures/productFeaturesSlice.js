@@ -79,6 +79,32 @@ const fetchProductFeaturesIfNeeded = createAsyncThunk(
 );
 
 /**
+ * Ensures the product-features map is populated, for callers that only need to read a
+ * feature flag rather than react to the fetch.
+ *
+ * `fetchProductFeaturesIfNeeded` skips the network round trip when the map is already
+ * populated, but still dispatches its `pending` action, flipping `loading` true→false.
+ * Consumers gated on that flag blank themselves while it is true — `IqSidebarNav` renders
+ * `DefaultEmptyIqSidebar`, and `ReportingRoute` guards against a remount loop — so a
+ * caller that dispatches it purely to read a flag causes a visible flicker.
+ *
+ * The map is cached for the session once fetched, so a feature toggled server-side
+ * mid-session is not reflected until a page refresh re-triggers the fetch. That is
+ * inherited from `fetchProductFeaturesIfNeeded` rather than specific to this helper.
+ *
+ * TODO: concurrent first callers are not deduped. Each can observe an empty map and
+ * dispatch `fetchProductFeaturesIfNeeded`, costing one redundant (200) GET at login.
+ * `createAsyncThunk`'s `condition` option is not a usable fix here: it resolves with a
+ * `rejected` action carrying `meta.condition`, which breaks callers chaining
+ * `.then(unwrapResult)`.
+ */
+const loadProductFeaturesOnce = () => async (dispatch, getState) => {
+  if (isEmpty(selectProductFeatures(getState()))) {
+    await dispatch(fetchProductFeaturesIfNeeded());
+  }
+};
+
+/**
  * Separate REST call because it must be accessible before login
  */
 const loadIsUnauthenticatedPagesEnabled = createAsyncThunk(`${REDUCER_NAME}/loadIsUnauthenticatedPagesEnabled`, () =>
@@ -127,6 +153,7 @@ export default productFeaturesSlice.reducer;
 export const actions = {
   ...productFeaturesSlice.actions,
   fetchProductFeaturesIfNeeded,
+  loadProductFeaturesOnce,
   loadIsQuarantinedComponentViewAnonymousAccessEnabled,
   loadIsUnauthenticatedPagesEnabled,
   loadIsSsoOnlyEnabled,

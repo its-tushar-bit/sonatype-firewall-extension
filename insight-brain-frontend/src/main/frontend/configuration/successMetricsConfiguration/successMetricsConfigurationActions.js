@@ -11,6 +11,8 @@ import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/re
 import { checkPermissions } from '../../util/authorizationUtil';
 import { Messages } from '../../util/CommonServices';
 import { getSuccessMetricsConfigUrl } from '../../util/CLMLocation';
+import { actions as productFeaturesActions } from '../../productFeatures/productFeaturesSlice';
+import { selectIsSuccessMetricsConfigurationEnabled } from '../../productFeatures/productFeaturesSelectors';
 
 export const SUCCESS_METRICS_CONFIGURATION_LOAD_REQUESTED = 'SUCCESS_METRICS_CONFIGURATION_LOAD_REQUESTED';
 export const SUCCESS_METRICS_CONFIGURATION_LOAD_FULFILLED = 'SUCCESS_METRICS_CONFIGURATION_LOAD_FULFILLED';
@@ -41,6 +43,33 @@ export function loadConfiguration() {
       .catch((error) => {
         dispatch(loadFailed(Messages.getHttpErrorMessage(error)));
       });
+  };
+}
+
+/**
+ * Loads the configuration only where the endpoint exists. `/rest/successMetrics` is an
+ * IQ-only resource, absent in the multi-tenant variant, so calling it unconditionally
+ * 404s on every page load there.
+ *
+ * `success-metrics-configuration` stands in for that: `SuccessMetricsResource` itself is
+ * gated on the variant rather than on a feature, but `MTIQFeatureService` bans
+ * `SUCCESS_METRICS_CONFIGURATION`, so the feature is absent exactly where the resource is.
+ * Where an on-prem admin disables the feature the config page is already hidden
+ * (`SystemPreferencesMenu`, `settingsGating`), so skipping the fetch matches.
+ *
+ * The gate lives here rather than in `loadConfiguration` because `loadConfiguration`
+ * begins by resetting the slice to `initialState`, whose `viewState.loading` is true —
+ * bailing out mid-thunk would leave the configuration page loading forever.
+ *
+ * The return value differs by branch — undefined where the feature is absent, the inner
+ * dispatch's result otherwise — and is not part of this thunk's contract.
+ */
+export function loadConfigurationIfSupported() {
+  return async function (dispatch, getState) {
+    await dispatch(productFeaturesActions.loadProductFeaturesOnce());
+    if (selectIsSuccessMetricsConfigurationEnabled(getState())) {
+      return dispatch(loadConfiguration());
+    }
   };
 }
 

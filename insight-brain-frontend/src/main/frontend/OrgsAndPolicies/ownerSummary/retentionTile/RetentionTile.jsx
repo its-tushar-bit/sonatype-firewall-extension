@@ -45,10 +45,10 @@ export default function RetentionTile() {
   const doLoad = () => dispatch(actions.loadRetention());
 
   useEffect(() => {
-    if (isOrg) {
+    if (isOrg && isFeatureEnabledForLicense) {
       doLoad();
     }
-  }, [entityId]);
+  }, [entityId, isOrg, isFeatureEnabledForLicense]);
 
   function getSuccessMetricsMaxAge() {
     const age = successMetrics.maxAge?.trimmedValue;

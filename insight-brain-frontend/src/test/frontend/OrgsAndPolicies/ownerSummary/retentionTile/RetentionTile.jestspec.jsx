@@ -311,6 +311,7 @@ describe('RetentionTile', () => {
       await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
       const title = await screen.queryByText('Data Retention');
       expect(title).toBeNull();
+      expect(actions.loadRetention).not.toHaveBeenCalled();
     });
 
     it('does render if product features indicate that this is a single-tenant deployment', async function () {
@@ -349,6 +350,7 @@ describe('RetentionTile', () => {
       await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
       const title = await screen.queryByText('Data Retention');
       expect(title).toBeInTheDocument();
+      expect(actions.loadRetention).toHaveBeenCalled();
     });
   });
 });

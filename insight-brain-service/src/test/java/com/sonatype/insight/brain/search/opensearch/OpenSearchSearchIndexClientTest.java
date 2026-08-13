@@ -397,11 +397,13 @@ public class OpenSearchSearchIndexClientTest
     org.mockito.Mockito.verify(openSearchClient).search(captor.capture(), eq(Map.class));
     SearchRequest request = captor.getValue();
 
-    var terms = request.aggregations().get("rankedGroups").terms();
+    var scored = request.aggregations().get("scoredGroups");
+    assertThat(scored.filter()).isNotNull();
+    var terms = scored.aggregations().get("groups").terms();
     assertThat(terms.size()).isEqualTo(25);
     assertThat(terms.shardSize()).isEqualTo(1000);
-    assertThat(request.aggregations().get("rankedGroups").aggregations()).containsKey("groupMetric");
-    assertThat(request.aggregations()).containsKeys("distinctGroups", "metricBands");
+    assertThat(scored.aggregations().get("groups").aggregations()).containsKey("groupMetric");
+    assertThat(request.aggregations()).containsKeys("scoredGroups", "unscoredGroups", "distinctGroups", "metricBands");
     assertThat(request.aggregations().get("distinctGroups").cardinality().precisionThreshold())
         .isEqualTo(40_000);
   }
@@ -428,7 +430,7 @@ public class OpenSearchSearchIndexClientTest
 
     ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
     org.mockito.Mockito.verify(openSearchClient).search(captor.capture(), eq(Map.class));
-    var order = captor.getValue().aggregations().get("rankedGroups").terms().order();
+    var order = captor.getValue().aggregations().get("scoredGroups").aggregations().get("groups").terms().order();
 
     assertThat(order).hasSize(2);
     assertThat(order.get(0)).containsEntry("groupMetric", org.opensearch.client.opensearch._types.SortOrder.Desc);
@@ -454,7 +456,7 @@ public class OpenSearchSearchIndexClientTest
 
     ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
     org.mockito.Mockito.verify(openSearchClient).search(captor.capture(), eq(Map.class));
-    var order = captor.getValue().aggregations().get("rankedGroups").terms().order();
+    var order = captor.getValue().aggregations().get("scoredGroups").aggregations().get("groups").terms().order();
 
     assertThat(order).hasSize(2);
     assertThat(order.get(0)).containsEntry("groupMetric", org.opensearch.client.opensearch._types.SortOrder.Asc);
@@ -503,18 +505,16 @@ public class OpenSearchSearchIndexClientTest
 
     ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
     org.mockito.Mockito.verify(openSearchClient).search(captor.capture(), eq(Map.class));
-    assertThat(captor.getValue().aggregations().get("rankedGroups").terms().shardSize())
+    assertThat(captor.getValue().aggregations().get("scoredGroups").aggregations().get("groups").terms().shardSize())
         .isEqualTo(Integer.MAX_VALUE);
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void rankGroupsByMaxMetric_foldsDocumentsWithNoMetricInBelowTheScoreFloor() throws Exception {
-    // Ordering the buckets on a maximum that some bucket may not have leaves the position of an
-    // unscored vulnerability up to the backend. Folding those documents in below the 0.0 CVSS floor
-    // gives every bucket a number, so ordering is decided here rather than by that behaviour. The
-    // sentinel has to sit below the floor: above the 10.0 ceiling it would win the maximum and
-    // corrupt the metric of any vulnerability holding both scored and unscored documents.
+  public void rankGroupsByMaxMetric_splitsScoredAndUnscoredViaExistsFilters() throws Exception {
+    // A missing sentinel on max cannot put unscored groups last for ascending without corrupting
+    // mixed groups (a high sentinel wins max). Split scored vs unscored-only with exists filters in
+    // one round-trip instead — scored terms carry a plain max, unscored pad afterward.
     SearchResponse<Map> response = mock(SearchResponse.class);
     when(response.aggregations()).thenReturn(null);
     when(openSearchClient.search(any(SearchRequest.class), eq(Map.class))).thenReturn(response);
@@ -524,20 +524,23 @@ public class OpenSearchSearchIndexClientTest
         FieldIdentifier.VULNERABILITY_ID.label,
         FieldIdentifier.VULNERABILITY_SEVERITY.label,
         25,
-        false,
+        true,
         CvssV3Severity.halfOpenScoreBands());
 
     ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
     org.mockito.Mockito.verify(openSearchClient).search(captor.capture(), eq(Map.class));
-    double sentinel = captor.getValue()
+    var scoredMax = captor.getValue()
         .aggregations()
-        .get("rankedGroups")
+        .get("scoredGroups")
+        .aggregations()
+        .get("groups")
         .aggregations()
         .get("groupMetric")
-        .max()
-        .missing()
-        .doubleValue();
-    assertThat(sentinel).isLessThan(0.0d);
+        .max();
+    assertThat(scoredMax.missing()).isNull();
+    assertThat(captor.getValue().aggregations().get("scoredGroups").filter().exists().field())
+        .isEqualTo(FieldIdentifier.VULNERABILITY_SEVERITY.label);
+    assertThat(captor.getValue().aggregations().get("unscoredGroups").filter().bool().mustNot()).isNotEmpty();
   }
 
   private void stubMaxResultWindow() throws Exception {

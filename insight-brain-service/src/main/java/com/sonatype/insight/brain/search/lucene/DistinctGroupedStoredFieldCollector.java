@@ -24,15 +24,15 @@ import org.apache.lucene.search.SimpleCollector;
  * Interim Lucene collector: one stored-field pass that counts distinct {@code distinctField}
  * values grouped by {@code groupField}, restricted to the supplied group keys.
  * <p>
- * Group keys are compared and returned lowercased so this backend matches the OpenSearch backend,
- * whose keyword fields carry a lowercase normalizer (see IndexMapping). Callers look up the
- * resulting map with a lowercased key.
+ * Group keys and distinct values are compared lowercased so this backend matches the OpenSearch
+ * backend, whose keyword fields carry a lowercase normalizer (see IndexMapping). Callers look up
+ * the resulting map with a lowercased key.
  * <p>
  * Callers should monitor {@link #matchedDocuments()} (Lucene session warns above a soft
  * threshold). That counter includes only docs with non-blank fields whose group value is in the
  * allowed set — not every Lucene hit scanned. Pending Track B docValues cardinality.
  */
-public final class DistinctGroupedStoredFieldCollector
+final class DistinctGroupedStoredFieldCollector
     extends SimpleCollector
 {
   private final StoredFields storedFields;
@@ -47,7 +47,7 @@ public final class DistinctGroupedStoredFieldCollector
 
   private long matchedDocuments;
 
-  public DistinctGroupedStoredFieldCollector(
+  DistinctGroupedStoredFieldCollector(
       final StoredFields storedFields,
       final String groupField,
       final String distinctField,
@@ -82,7 +82,7 @@ public final class DistinctGroupedStoredFieldCollector
       return;
     }
     matchedDocuments++;
-    distinctValues.add(distinctValue);
+    distinctValues.add(distinctValue.toLowerCase(Locale.ROOT));
   }
 
   @Override
@@ -104,7 +104,7 @@ public final class DistinctGroupedStoredFieldCollector
    * Documents that contributed to a group count (non-blank fields and an allowed group value).
    * Does not equal total Lucene hits collected for the query.
    */
-  public long matchedDocuments() {
+  long matchedDocuments() {
     return matchedDocuments;
   }
 }

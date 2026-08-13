@@ -10,6 +10,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import com.sonatype.insight.brain.search.index.MetricAggregationResult;
+import com.sonatype.insight.brain.search.index.RankedGroupsResult;
+
 import org.apache.lucene.search.Query;
 
 public class HybridIndexReadSession
@@ -53,6 +56,37 @@ public class HybridIndexReadSession
   }
 
   @Override
+  public RankedGroupsResult rankGroupsByMaxMetric(
+      final Query query,
+      final String groupField,
+      final String metricField,
+      final int limit,
+      final boolean ascending,
+      final Map<String, float[]> metricBands)
+  {
+    return delegate.rankGroupsByMaxMetric(query, groupField, metricField, limit, ascending, metricBands);
+  }
+
+  @Override
+  public MetricAggregationResult aggregateCountByField(
+      final Query query,
+      final String bucketField,
+      final Map<String, int[]> ranges)
+  {
+    return delegate.aggregateCountByField(query, bucketField, ranges);
+  }
+
+  @Override
+  public MetricAggregationResult aggregateCountByFloatField(
+      final Query query,
+      final String bucketField,
+      final Map<String, float[]> ranges,
+      final String distinctField)
+  {
+    return delegate.aggregateCountByFloatField(query, bucketField, ranges, distinctField);
+  }
+
+  @Override
   public Map<String, Long> countDistinctGroupedBy(
       final Query query,
       final String groupField,
@@ -60,6 +94,41 @@ public class HybridIndexReadSession
       final Collection<String> groupValues)
   {
     return delegate.countDistinctGroupedBy(query, groupField, distinctField, groupValues);
+  }
+
+  @Override
+  public Map<String, Map<String, Long>> countDistinctGroupedByBands(
+      final Query query,
+      final String groupField,
+      final String distinctField,
+      final Collection<String> groupValues,
+      final String bandField,
+      final Map<String, int[]> bands)
+  {
+    return delegate.countDistinctGroupedByBands(
+        query, groupField, distinctField, groupValues, bandField, bands);
+  }
+
+  @Override
+  public Map<String, Long> sumGroupedBy(
+      final Query query,
+      final String groupField,
+      final String sumField,
+      final Collection<String> groupValues)
+  {
+    return delegate.sumGroupedBy(query, groupField, sumField, groupValues);
+  }
+
+  @Override
+  public Map<String, Map<String, Long>> sumGroupedByBands(
+      final Query query,
+      final String groupField,
+      final String sumField,
+      final Collection<String> groupValues,
+      final String bandField,
+      final Map<String, int[]> bands)
+  {
+    return delegate.sumGroupedByBands(query, groupField, sumField, groupValues, bandField, bands);
   }
 
   @Override

@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.search.opensearch;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -15,6 +17,9 @@ import java.util.Optional;
 import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.MetricAggregationResult;
+import com.sonatype.insight.brain.search.index.RankedGroup;
+import com.sonatype.insight.brain.search.index.RankedGroupsResult;
 import com.sonatype.insight.brain.search.index.SearchIndexException;
 import com.sonatype.insight.brain.search.session.IndexPageRequest;
 import com.sonatype.insight.brain.search.session.IndexPageResult;
@@ -36,6 +41,8 @@ import org.opensearch.client.opensearch._types.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.opensearch.client.opensearch._types.aggregations.Aggregate;
+import org.opensearch.client.opensearch._types.aggregations.AggregationRange;
+import org.opensearch.client.opensearch._types.aggregations.RangeBucket;
 import org.opensearch.client.opensearch._types.aggregations.StringTermsBucket;
 import org.opensearch.client.opensearch.core.SearchRequest;
 import org.opensearch.client.opensearch.core.SearchResponse;
@@ -207,6 +214,321 @@ public class OpenSearchIndexReadSession
           .stream()
           .map(this::toBucket)
           .toList();
+    }
+    catch (IOException e) {
+      throw new SearchIndexException(e);
+    }
+  }
+
+  @Override
+  public RankedGroupsResult rankGroupsByMaxMetric(
+      final Query query,
+      final String groupField,
+      final String metricField,
+      final int limit,
+      final boolean ascending,
+      final Map<String, float[]> metricBands)
+  {
+    ensureOpen();
+    AbstractSearchIndexClient.validateFloatRangeBounds(metricBands);
+    if (limit <= 0) {
+      return RankedGroupsResult.empty(metricBands);
+    }
+    SortOrder order = ascending ? SortOrder.Asc : SortOrder.Desc;
+    int shardSize = (int) Math.min(Integer.MAX_VALUE, Math.max((long) limit * 5L, 1_000L));
+
+    List<AggregationRange> aggregationRanges = OpenSearchSessionAggregations.buildFloatRanges(metricBands);
+
+    try {
+      SearchResponse<Map> response = client.search(new SearchRequest.Builder()
+          .pit(new Pit.Builder().id(pitId).keepAlive(pitKeepAlive).build())
+          .query(LuceneToOpenSearchQueryAdapter.toOpenSearch(withRbac(query)))
+          .size(0)
+          .aggregations("scoredGroups", OpenSearchSessionAggregations.buildScoredRankedGroupsAggregation(
+              groupField, metricField, limit, shardSize, order))
+          .aggregations("unscoredGroups", OpenSearchSessionAggregations.buildUnscoredRankedGroupsAggregation(
+              groupField, metricField, limit))
+          .aggregations("distinctGroups", a -> a
+              .cardinality(
+                  c -> c.field(groupField).precisionThreshold(OpenSearchSessionAggregations.PRECISION_THRESHOLD)))
+          // Bands are computed from raw document metrics, so a group whose documents carry different
+          // metric values is counted in every band it touches — unlike the Lucene sibling, which
+          // assigns each group once by its max. Band counts can therefore exceed the distinct total
+          // here, and `unbandedGroupCount` clamps to zero. Matching Lucene exactly needs a paged
+          // composite aggregation, tracked in CLM-44916; the existing float-band aggregations in
+          // CatalogService and DashboardMetricsService already ship these same raw-document semantics
+          // (see OpenSearchSearchIndexClient.rankGroupsByMaxMetric).
+          .aggregations("metricBands", a -> a
+              .range(r -> r.field(metricField).ranges(aggregationRanges))
+              .aggregations("distinct", sub -> sub
+                  .cardinality(
+                      c -> c.field(groupField).precisionThreshold(OpenSearchSessionAggregations.PRECISION_THRESHOLD))))
+          .build(), Map.class);
+
+      Map<String, Aggregate> aggs = response.aggregations();
+      List<RankedGroup> groups = OpenSearchSessionAggregations.parseRankedGroups(aggs, limit);
+
+      Aggregate distinctAgg = aggs == null ? null : aggs.get("distinctGroups");
+      long distinct = distinctAgg != null && distinctAgg.isCardinality()
+          ? distinctAgg.cardinality().value()
+          : 0L;
+
+      Map<String, Long> bandCounts = new LinkedHashMap<>();
+      metricBands.keySet().forEach(label -> bandCounts.put(label, 0L));
+      Aggregate bandsAgg = aggs == null ? null : aggs.get("metricBands");
+      if (bandsAgg != null && bandsAgg.isRange()) {
+        for (RangeBucket bucket : bandsAgg.range().buckets().array()) {
+          String key = bucket.key();
+          if (key == null || !bandCounts.containsKey(key)) {
+            continue;
+          }
+          Aggregate distinctInBand = bucket.aggregations().get("distinct");
+          bandCounts.put(key, distinctInBand != null && distinctInBand.isCardinality()
+              ? distinctInBand.cardinality().value()
+              : 0L);
+        }
+      }
+
+      // Both inputs are HyperLogLog++ estimates, so the difference can go negative on estimation
+      // noise alone. Clamp at zero rather than surfacing an impossible count.
+      long banded = bandCounts.values().stream().mapToLong(Long::longValue).sum();
+      long unbanded = Math.max(0L, distinct - banded);
+
+      return new RankedGroupsResult(groups, distinct, false, bandCounts, unbanded);
+    }
+    catch (IOException e) {
+      throw new SearchIndexException(e);
+    }
+  }
+
+  @Override
+  public MetricAggregationResult aggregateCountByField(
+      final Query query,
+      final String bucketField,
+      final Map<String, int[]> ranges)
+  {
+    ensureOpen();
+    AbstractSearchIndexClient.validateRangeBounds(ranges);
+
+    List<AggregationRange> aggregationRanges = OpenSearchSessionAggregations.buildIntRanges(ranges);
+
+    try {
+      SearchResponse<Map> response = client.search(new SearchRequest.Builder()
+          .pit(new Pit.Builder().id(pitId).keepAlive(pitKeepAlive).build())
+          .query(LuceneToOpenSearchQueryAdapter.toOpenSearch(withRbac(query)))
+          .size(0)
+          .trackTotalHits(new TrackHits.Builder().enabled(true).build())
+          .aggregations("metricBuckets", a -> a
+              .range(r -> r.field(bucketField).ranges(aggregationRanges)))
+          .build(), Map.class);
+
+      long total = Optional.ofNullable(response.hits()).map(HitsMetadata::total).map(TotalHits::value).orElse(0L);
+
+      Map<String, Long> buckets = new LinkedHashMap<>();
+      ranges.keySet().forEach(label -> buckets.put(label, 0L));
+      Map<String, Aggregate> aggs = response.aggregations();
+      Aggregate aggregate = aggs != null ? aggs.get("metricBuckets") : null;
+      if (aggregate != null && aggregate.isRange()) {
+        for (RangeBucket bucket : aggregate.range().buckets().array()) {
+          String key = bucket.key();
+          if (key != null) {
+            buckets.put(key, bucket.docCount());
+          }
+        }
+      }
+
+      return new MetricAggregationResult(total, buckets);
+    }
+    catch (IOException e) {
+      throw new SearchIndexException(e);
+    }
+  }
+
+  @Override
+  public MetricAggregationResult aggregateCountByFloatField(
+      final Query query,
+      final String bucketField,
+      final Map<String, float[]> ranges,
+      final String distinctField)
+  {
+    ensureOpen();
+    AbstractSearchIndexClient.validateFloatRangeBounds(ranges);
+
+    List<AggregationRange> aggregationRanges = OpenSearchSessionAggregations.buildFloatRanges(ranges);
+
+    try {
+      SearchResponse<Map> response = client.search(new SearchRequest.Builder()
+          .pit(new Pit.Builder().id(pitId).keepAlive(pitKeepAlive).build())
+          .query(LuceneToOpenSearchQueryAdapter.toOpenSearch(withRbac(query)))
+          .size(0)
+          .trackTotalHits(new TrackHits.Builder().enabled(true).build())
+          .aggregations("metricBuckets", a -> distinctField == null
+              ? a.range(r -> r.field(bucketField).ranges(aggregationRanges))
+              : a.range(r -> r.field(bucketField).ranges(aggregationRanges))
+                  .aggregations("distinct", sub -> sub
+                      .cardinality(c -> c.field(distinctField)
+                          .precisionThreshold(OpenSearchSessionAggregations.PRECISION_THRESHOLD))))
+          .build(), Map.class);
+
+      long total = Optional.ofNullable(response.hits()).map(HitsMetadata::total).map(TotalHits::value).orElse(0L);
+
+      Map<String, Long> buckets = new LinkedHashMap<>();
+      ranges.keySet().forEach(label -> buckets.put(label, 0L));
+      Map<String, Aggregate> aggs = response.aggregations();
+      Aggregate aggregate = aggs != null ? aggs.get("metricBuckets") : null;
+      if (aggregate != null && aggregate.isRange()) {
+        for (RangeBucket bucket : aggregate.range().buckets().array()) {
+          String key = bucket.key();
+          if (key != null) {
+            long value = bucket.docCount();
+            if (distinctField != null) {
+              Aggregate distinct = bucket.aggregations().get("distinct");
+              value = distinct != null && distinct.isCardinality() ? distinct.cardinality().value() : 0L;
+            }
+            buckets.put(key, value);
+          }
+        }
+      }
+
+      return new MetricAggregationResult(total, buckets);
+    }
+    catch (IOException e) {
+      throw new SearchIndexException(e);
+    }
+  }
+
+  @Override
+  public Map<String, Long> countDistinctGroupedBy(
+      final Query query,
+      final String groupField,
+      final String distinctField,
+      final Collection<String> groupValues)
+  {
+    ensureOpen();
+    OpenSearchSessionAggregations.TermsInclude terms = OpenSearchSessionAggregations.prepareIncludeTerms(groupValues);
+    if (terms == null) {
+      return Map.of();
+    }
+    try {
+      SearchResponse<Map> response = client.search(new SearchRequest.Builder()
+          .pit(new Pit.Builder().id(pitId).keepAlive(pitKeepAlive).build())
+          .query(LuceneToOpenSearchQueryAdapter.toOpenSearch(withRbac(query)))
+          .size(0)
+          .aggregations("groups", OpenSearchSessionAggregations.buildTermsWithCardinality(
+              groupField, distinctField, terms.includeTerms()))
+          .build(), Map.class);
+      return OpenSearchSessionAggregations.parseTermsCardinality(
+          response.aggregations(), "groups", terms.requestedKeys());
+    }
+    catch (IOException e) {
+      throw new SearchIndexException(e);
+    }
+  }
+
+  @Override
+  public Map<String, Map<String, Long>> countDistinctGroupedByBands(
+      final Query query,
+      final String groupField,
+      final String distinctField,
+      final Collection<String> groupValues,
+      final String bandField,
+      final Map<String, int[]> bands)
+  {
+    ensureOpen();
+    AbstractSearchIndexClient.validateRangeBounds(bands);
+    if (groupValues == null || groupValues.isEmpty() || bands == null || bands.isEmpty()) {
+      return Map.of();
+    }
+    OpenSearchSessionAggregations.TermsInclude terms = OpenSearchSessionAggregations.prepareIncludeTerms(groupValues);
+    if (terms == null) {
+      return Map.of();
+    }
+
+    List<AggregationRange> aggregationRanges = OpenSearchSessionAggregations.buildIntRanges(bands);
+
+    try {
+      SearchResponse<Map> response = client.search(new SearchRequest.Builder()
+          .pit(new Pit.Builder().id(pitId).keepAlive(pitKeepAlive).build())
+          .query(LuceneToOpenSearchQueryAdapter.toOpenSearch(withRbac(query)))
+          .size(0)
+          .aggregations("bands", a -> a
+              .range(r -> r.field(bandField).ranges(aggregationRanges))
+              .aggregations("groups", OpenSearchSessionAggregations.buildTermsWithCardinality(
+                  groupField, distinctField, terms.includeTerms())))
+          .build(), Map.class);
+
+      return OpenSearchSessionAggregations.parseRangeTermsCardinality(
+          response.aggregations(), "bands", terms.requestedKeys());
+    }
+    catch (IOException e) {
+      throw new SearchIndexException(e);
+    }
+  }
+
+  @Override
+  public Map<String, Long> sumGroupedBy(
+      final Query query,
+      final String groupField,
+      final String sumField,
+      final Collection<String> groupValues)
+  {
+    ensureOpen();
+    AbstractSearchIndexClient.requireIntegralSumField(sumField);
+    OpenSearchSessionAggregations.TermsInclude terms = OpenSearchSessionAggregations.prepareIncludeTerms(groupValues);
+    if (terms == null) {
+      return Map.of();
+    }
+    try {
+      SearchResponse<Map> response = client.search(new SearchRequest.Builder()
+          .pit(new Pit.Builder().id(pitId).keepAlive(pitKeepAlive).build())
+          .query(LuceneToOpenSearchQueryAdapter.toOpenSearch(withRbac(query)))
+          .size(0)
+          .aggregations("groups", OpenSearchSessionAggregations.buildTermsWithSum(
+              groupField, sumField, terms.includeTerms()))
+          .build(), Map.class);
+      return OpenSearchSessionAggregations.parseTermsSum(
+          response.aggregations(), "groups", terms.requestedKeys());
+    }
+    catch (IOException e) {
+      throw new SearchIndexException(e);
+    }
+  }
+
+  @Override
+  public Map<String, Map<String, Long>> sumGroupedByBands(
+      final Query query,
+      final String groupField,
+      final String sumField,
+      final Collection<String> groupValues,
+      final String bandField,
+      final Map<String, int[]> bands)
+  {
+    ensureOpen();
+    AbstractSearchIndexClient.requireIntegralSumField(sumField);
+    AbstractSearchIndexClient.validateRangeBounds(bands);
+    if (groupValues == null || groupValues.isEmpty() || bands == null || bands.isEmpty()) {
+      return Map.of();
+    }
+    OpenSearchSessionAggregations.TermsInclude terms = OpenSearchSessionAggregations.prepareIncludeTerms(groupValues);
+    if (terms == null) {
+      return Map.of();
+    }
+
+    List<AggregationRange> aggregationRanges = OpenSearchSessionAggregations.buildIntRanges(bands);
+
+    try {
+      SearchResponse<Map> response = client.search(new SearchRequest.Builder()
+          .pit(new Pit.Builder().id(pitId).keepAlive(pitKeepAlive).build())
+          .query(LuceneToOpenSearchQueryAdapter.toOpenSearch(withRbac(query)))
+          .size(0)
+          .aggregations("bands", a -> a
+              .range(r -> r.field(bandField).ranges(aggregationRanges))
+              .aggregations("groups", OpenSearchSessionAggregations.buildTermsWithSum(
+                  groupField, sumField, terms.includeTerms())))
+          .build(), Map.class);
+
+      return OpenSearchSessionAggregations.parseRangeTermsSum(
+          response.aggregations(), "bands", terms.requestedKeys());
     }
     catch (IOException e) {
       throw new SearchIndexException(e);

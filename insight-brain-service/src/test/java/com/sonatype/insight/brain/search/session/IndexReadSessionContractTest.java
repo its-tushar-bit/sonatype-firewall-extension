@@ -114,6 +114,26 @@ public class IndexReadSessionContractTest
   }
 
   @Test
+  public void countDistinctGroupedBy_emptyGroupValues_returnsEmpty() throws Exception {
+    try (IndexReadSession session = sessionFactory.open()) {
+      assertThat(session.countDistinctGroupedBy(
+          new MatchAllDocsQuery(), "componentHash", "applicationId", List.of()))
+              .as(mode)
+              .isEmpty();
+    }
+  }
+
+  @Test
+  public void countDistinctGroupedBy_nullGroupValues_returnsEmpty() throws Exception {
+    try (IndexReadSession session = sessionFactory.open()) {
+      assertThat(session.countDistinctGroupedBy(
+          new MatchAllDocsQuery(), "componentHash", "applicationId", null))
+              .as(mode)
+              .isEmpty();
+    }
+  }
+
+  @Test
   public void searchPage_rejectsCursorFromDifferentBackend() throws Exception {
     try (IndexReadSession session = sessionFactory.open()) {
       String otherBackend = session.backendId().equals("lucene") ? "opensearch" : "lucene";

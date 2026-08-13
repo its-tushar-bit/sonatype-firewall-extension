@@ -14,13 +14,11 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -45,7 +43,6 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.search.index.RankedGroup;
 import com.sonatype.insight.brain.search.index.RankedGroupsResult;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.index.MetricAggregationResult;
@@ -622,47 +619,7 @@ public class LuceneSearchIndexClient
   @Override
   public long count(final String metricQuery) {
     updateMaxQueryClauseCount();
-
-    Optional<LuceneSearcherManagerHolder> searcherManagerHolder = getAvailableSearcherManagerHolder();
-    if (searcherManagerHolder.isPresent()) {
-      LuceneReaderTiming.startAcquisition();
-      try {
-        IndexSearcher indexSearcher = searcherManagerHolder.get().acquire();
-        try {
-          LuceneReaderTiming.endAcquisition();
-          LuceneReaderTiming.startExecution();
-          long result = countWithSearcher(indexSearcher, metricQuery, null, buildRbacFilterQuery());
-          LuceneReaderTiming.endExecution();
-          return result;
-        }
-        finally {
-          searcherManagerHolder.get().release(indexSearcher);
-        }
-      }
-      catch (Exception e) {
-        LuceneReaderTiming.abort();
-        if (!(e instanceof IOException ioException) || !isSearcherManagerUnavailable(ioException)) {
-          throw mapSearchException(e);
-        }
-        log.debug("SearcherManager unavailable during rebuild/pause; falling back to DirectoryReader", e);
-      }
-    }
-
-    LuceneReaderTiming.startAcquisition();
-    try (Directory directory = openSearchIndex();
-        IndexReader indexReader = DirectoryReader.open(directory))
-    {
-      LuceneReaderTiming.endAcquisition();
-      LuceneReaderTiming.startExecution();
-      IndexSearcher indexSearcher = new IndexSearcher(indexReader);
-      long result = countWithSearcher(indexSearcher, metricQuery, null, buildRbacFilterQuery());
-      LuceneReaderTiming.endExecution();
-      return result;
-    }
-    catch (Exception e) {
-      LuceneReaderTiming.abort();
-      throw mapSearchException(e);
-    }
+    return withSearcher(indexSearcher -> countWithSearcher(indexSearcher, metricQuery, null, buildRbacFilterQuery()));
   }
 
   private RuntimeException mapSearchException(final Exception e) {
@@ -687,10 +644,7 @@ public class LuceneSearchIndexClient
     validateRangeBounds(ranges);
     updateMaxQueryClauseCount();
 
-    try (Directory directory = openSearchIndex();
-        IndexReader indexReader = DirectoryReader.open(directory))
-    {
-      IndexSearcher indexSearcher = new IndexSearcher(indexReader);
+    return withSearcher(indexSearcher -> {
       // RBAC is identical across total + bucket counts — resolve once per request.
       Query rbac = buildRbacFilterQuery();
       long total = countWithSearcher(indexSearcher, metricQuery, null, rbac);
@@ -705,10 +659,7 @@ public class LuceneSearchIndexClient
         buckets.put(entry.getKey(), countWithSearcher(indexSearcher, metricQuery, bandFilter, rbac));
       }
       return new MetricAggregationResult(total, buckets);
-    }
-    catch (Exception e) {
-      throw mapSearchException(e);
-    }
+    });
   }
 
   @Override
@@ -724,33 +675,33 @@ public class LuceneSearchIndexClient
     }
     updateMaxQueryClauseCount();
 
-    try (Directory directory = openSearchIndex();
-        IndexReader indexReader = DirectoryReader.open(directory))
-    {
-      IndexSearcher indexSearcher = new IndexSearcher(indexReader);
+    return withSearcher(indexSearcher -> {
       // RBAC is identical across total + bucket counts — resolve once per request.
       Query rbac = buildRbacFilterQuery();
       long total = countWithSearcher(indexSearcher, metricQuery, null, rbac);
       Map<String, Long> buckets = new LinkedHashMap<>();
       for (Map.Entry<String, float[]> entry : ranges.entrySet()) {
         float[] bounds = entry.getValue();
-        // Half-open [minInclusive, maxExclusive): step the upper bound down to the previous
-        // representable float so FloatPoint's inclusive newRangeQuery excludes it (the same
-        // nextDown trick QueryCompiler uses for exclusive float range bounds). This keeps a CVSS
-        // boundary value (e.g. 7.0) in exactly one band across both backends. Build the range
-        // programmatically (not by concatenating bounds into a re-parsed query string) — the same
-        // string-interpolation footgun this client deliberately avoids for the RBAC filter.
-        Query bandFilter = FloatPoint.newRangeQuery(bucketField, bounds[0], FloatPoint.nextDown(bounds[1]));
-        long count = distinctField == null
-            ? countWithSearcher(indexSearcher, metricQuery, bandFilter, rbac)
-            : countDistinctWithSearcher(indexSearcher, metricQuery, List.of(distinctField), bandFilter, rbac);
+        long count = 0;
+        // Empty half-open bands (min == max) are legal per validateFloatRangeBounds but have no
+        // matching documents; skip nextDown so Lucene does not reject an inverted range. Matches
+        // LuceneIndexReadSession.aggregateCountByFloatField.
+        if (bounds[0] < bounds[1]) {
+          // Half-open [minInclusive, maxExclusive): step the upper bound down to the previous
+          // representable float so FloatPoint's inclusive newRangeQuery excludes it (the same
+          // nextDown trick QueryCompiler uses for exclusive float range bounds). This keeps a CVSS
+          // boundary value (e.g. 7.0) in exactly one band across both backends. Build the range
+          // programmatically (not by concatenating bounds into a re-parsed query string) — the same
+          // string-interpolation footgun this client deliberately avoids for the RBAC filter.
+          Query bandFilter = FloatPoint.newRangeQuery(bucketField, bounds[0], FloatPoint.nextDown(bounds[1]));
+          count = distinctField == null
+              ? countWithSearcher(indexSearcher, metricQuery, bandFilter, rbac)
+              : countDistinctWithSearcher(indexSearcher, metricQuery, List.of(distinctField), bandFilter, rbac);
+        }
         buckets.put(entry.getKey(), count);
       }
       return new MetricAggregationResult(total, buckets);
-    }
-    catch (Exception e) {
-      throw mapSearchException(e);
-    }
+    });
   }
 
   @Override
@@ -759,16 +710,10 @@ public class LuceneSearchIndexClient
     checkFieldNames(new HashSet<>(compositeKeyFields));
     updateMaxQueryClauseCount();
 
-    try (Directory directory = openSearchIndex();
-        IndexReader indexReader = DirectoryReader.open(directory))
-    {
-      IndexSearcher indexSearcher = new IndexSearcher(indexReader);
+    return withSearcher(indexSearcher -> {
       Query rbac = buildRbacFilterQuery();
       return countDistinctWithSearcher(indexSearcher, metricQuery, compositeKeyFields, null, rbac);
-    }
-    catch (Exception e) {
-      throw mapSearchException(e);
-    }
+    });
   }
 
   @Override
@@ -783,19 +728,13 @@ public class LuceneSearchIndexClient
       return Map.of();
     }
     updateMaxQueryClauseCount();
-    try (Directory directory = openSearchIndex();
-        IndexReader indexReader = DirectoryReader.open(directory))
-    {
-      IndexSearcher indexSearcher = new IndexSearcher(indexReader);
+    return withSearcher(indexSearcher -> {
       Query query = buildRbacFilteredMetricQuery(metricQuery, null, buildRbacFilterQuery());
       DistinctGroupedStoredFieldCollector collector = new DistinctGroupedStoredFieldCollector(
           indexSearcher.storedFields(), groupField, distinctField, groupValues);
       indexSearcher.search(query, collector);
       return collector.groupCounts();
-    }
-    catch (Exception e) {
-      throw mapSearchException(e);
-    }
+    });
   }
 
   @Override
@@ -813,38 +752,10 @@ public class LuceneSearchIndexClient
       return RankedGroupsResult.empty(metricBands);
     }
     updateMaxQueryClauseCount();
-
     // Prefer the pooled searcher: Lucene caches the OrdinalMap against the reader, so a pooled
     // reader amortises ordinal map construction that a fresh DirectoryReader would repay every call.
-    Optional<LuceneSearcherManagerHolder> searcherManagerHolder = getAvailableSearcherManagerHolder();
-    if (searcherManagerHolder.isPresent()) {
-      try {
-        IndexSearcher indexSearcher = searcherManagerHolder.get().acquire();
-        try {
-          return rankGroupsWithSearcher(
-              indexSearcher, metricQuery, groupField, metricField, limit, ascending, metricBands);
-        }
-        finally {
-          searcherManagerHolder.get().release(indexSearcher);
-        }
-      }
-      catch (Exception e) {
-        if (!(e instanceof IOException ioException) || !isSearcherManagerUnavailable(ioException)) {
-          throw mapSearchException(e);
-        }
-        log.debug("SearcherManager unavailable during rebuild/pause; falling back to DirectoryReader", e);
-      }
-    }
-
-    try (Directory directory = openSearchIndex();
-        IndexReader indexReader = DirectoryReader.open(directory))
-    {
-      return rankGroupsWithSearcher(new IndexSearcher(indexReader), metricQuery, groupField, metricField,
-          limit, ascending, metricBands);
-    }
-    catch (Exception e) {
-      throw mapSearchException(e);
-    }
+    return withSearcher(indexSearcher -> rankGroupsWithSearcher(
+        indexSearcher, metricQuery, groupField, metricField, limit, ascending, metricBands));
   }
 
   private RankedGroupsResult rankGroupsWithSearcher(
@@ -873,104 +784,8 @@ public class LuceneSearchIndexClient
     indexSearcher.search(query,
         new MaxMetricByGroupCollector(groupField, metricField, ordinalMap, maxByOrd, seen));
 
-    return reduceRankedGroups(globalGroups, maxByOrd, seen, ordCount, limit, ascending, metricBands);
-  }
-
-  /**
-   * Walks the seen ordinals once to produce the distinct count, the band counts and a bounded top-N.
-   * Ordinal order is lower-cased term order, so an ascending ordinal is the case-insensitive
-   * tie-break the ranked contract promises, and only surviving ordinals are resolved to terms.
-   */
-  private static RankedGroupsResult reduceRankedGroups(
-      final SortedDocValues globalGroups,
-      final float[] maxByOrd,
-      final FixedBitSet seen,
-      final int ordCount,
-      final int limit,
-      final boolean ascending,
-      final Map<String, float[]> metricBands) throws IOException
-  {
-    Map<String, Long> bandCounts = new LinkedHashMap<>();
-    metricBands.keySet().forEach(band -> bandCounts.put(band, 0L));
-
-    Comparator<Integer> worstFirst = rankedOrdComparator(maxByOrd, ascending).reversed();
-    PriorityQueue<Integer> heap = new PriorityQueue<>(worstFirst);
-
-    long distinct = 0;
-    long unbanded = 0;
-    // The bit set spans the whole term dictionary, of which a filtered read typically matches a small
-    // part. Jumping set bit to set bit skips the gaps a word at a time, so the walk costs what the
-    // query matched rather than what the estate has ever recorded.
-    for (int ord = nextSeenOrd(seen, 0, ordCount); ord < ordCount; ord = nextSeenOrd(seen, ord + 1, ordCount)) {
-      distinct++;
-      String band = bandFor(metricBands, maxByOrd[ord]);
-      if (band == null) {
-        unbanded++;
-      }
-      else {
-        bandCounts.merge(band, 1L, Long::sum);
-      }
-      heap.add(ord);
-      if (heap.size() > limit) {
-        heap.poll();
-      }
-    }
-
-    List<Integer> ordered = new ArrayList<>(heap);
-    ordered.sort(rankedOrdComparator(maxByOrd, ascending));
-    List<RankedGroup> groups = new ArrayList<>(ordered.size());
-    for (int ord : ordered) {
-      float value = maxByOrd[ord];
-      groups.add(new RankedGroup(
-          globalGroups.lookupOrd(ord).utf8ToString(),
-          Float.isNaN(value) ? null : value));
-    }
-    return new RankedGroupsResult(groups, distinct, true, bandCounts, unbanded);
-  }
-
-  /**
-   * Next matched ordinal at or after {@code from}, or {@code ordCount} once none remain. The bit set is
-   * allocated with at least one bit even for an empty term dictionary, so {@code from} is range-checked
-   * here rather than handed to a lookup that rejects it.
-   */
-  private static int nextSeenOrd(final FixedBitSet seen, final int from, final int ordCount) {
-    return from >= ordCount ? ordCount : seen.nextSetBit(from);
-  }
-
-  /** Best-first: metric-less groups always last, then metric by direction, then ordinal ascending. */
-  private static Comparator<Integer> rankedOrdComparator(final float[] maxByOrd, final boolean ascending) {
-    return (left, right) -> {
-      int leftOrd = left;
-      int rightOrd = right;
-      float leftValue = maxByOrd[leftOrd];
-      float rightValue = maxByOrd[rightOrd];
-      boolean leftMissing = Float.isNaN(leftValue);
-      boolean rightMissing = Float.isNaN(rightValue);
-      if (leftMissing || rightMissing) {
-        if (leftMissing && rightMissing) {
-          return Integer.compare(leftOrd, rightOrd);
-        }
-        return leftMissing ? 1 : -1;
-      }
-      int byMetric = ascending
-          ? Float.compare(leftValue, rightValue)
-          : Float.compare(rightValue, leftValue);
-      return byMetric != 0 ? byMetric : Integer.compare(leftOrd, rightOrd);
-    };
-  }
-
-  /** Half-open {@code [min, max)} band containing {@code value}, or null when unscored / out of range. */
-  private static String bandFor(final Map<String, float[]> metricBands, final float value) {
-    if (Float.isNaN(value)) {
-      return null;
-    }
-    for (Map.Entry<String, float[]> band : metricBands.entrySet()) {
-      float[] bounds = band.getValue();
-      if (value >= bounds[0] && value < bounds[1]) {
-        return band.getKey();
-      }
-    }
-    return null;
+    return RankedGroupsReduction.reduceRankedGroups(
+        globalGroups, maxByOrd, seen, ordCount, limit, ascending, metricBands);
   }
 
   @Override
@@ -988,10 +803,7 @@ public class LuceneSearchIndexClient
       return Map.of();
     }
     updateMaxQueryClauseCount();
-    try (Directory directory = openSearchIndex();
-        IndexReader indexReader = DirectoryReader.open(directory))
-    {
-      IndexSearcher indexSearcher = new IndexSearcher(indexReader);
+    return withSearcher(indexSearcher -> {
       Query rbac = buildRbacFilterQuery();
       Map<String, Map<String, Long>> byGroup = new LinkedHashMap<>();
       for (Map.Entry<String, int[]> band : bands.entrySet()) {
@@ -1008,10 +820,7 @@ public class LuceneSearchIndexClient
                 (group, count) -> byGroup.computeIfAbsent(group, g -> new LinkedHashMap<>()).put(band.getKey(), count));
       }
       return byGroup;
-    }
-    catch (Exception e) {
-      throw mapSearchException(e);
-    }
+    });
   }
 
   private long countWithSearcher(
@@ -1021,6 +830,61 @@ public class LuceneSearchIndexClient
       final Query rbac) throws Exception
   {
     return indexSearcher.count(buildRbacFilteredMetricQuery(metricQuery, extraFilter, rbac));
+  }
+
+  /**
+   * Runs {@code work} against the pooled NRT searcher when {@link #getAvailableSearcherManagerHolder()}
+   * reports one is usable, falling back to a fresh {@link DirectoryReader} otherwise. Mirrors the
+   * acquire/release/fallback contract already used by {@link #count(String)} and
+   * {@link #rankGroupsByMaxMetric}: only a {@link SearcherManagerUnavailableException} triggers the
+   * DirectoryReader fallback, any other failure is mapped and rethrown immediately.
+   */
+  private <T> T withSearcher(final SearcherWork<T> work) {
+    Optional<LuceneSearcherManagerHolder> searcherManagerHolder = getAvailableSearcherManagerHolder();
+    if (searcherManagerHolder.isPresent()) {
+      LuceneReaderTiming.startAcquisition();
+      try {
+        IndexSearcher indexSearcher = searcherManagerHolder.get().acquire();
+        try {
+          LuceneReaderTiming.endAcquisition();
+          LuceneReaderTiming.startExecution();
+          T result = work.run(indexSearcher);
+          LuceneReaderTiming.endExecution();
+          return result;
+        }
+        finally {
+          searcherManagerHolder.get().release(indexSearcher);
+        }
+      }
+      catch (Exception e) {
+        LuceneReaderTiming.abort();
+        if (!(e instanceof IOException ioException) || !isSearcherManagerUnavailable(ioException)) {
+          throw mapSearchException(e);
+        }
+        log.debug("SearcherManager unavailable during rebuild/pause; falling back to DirectoryReader", e);
+      }
+    }
+
+    LuceneReaderTiming.startAcquisition();
+    try (Directory directory = openSearchIndex();
+        IndexReader indexReader = DirectoryReader.open(directory))
+    {
+      LuceneReaderTiming.endAcquisition();
+      LuceneReaderTiming.startExecution();
+      T result = work.run(new IndexSearcher(indexReader));
+      LuceneReaderTiming.endExecution();
+      return result;
+    }
+    catch (Exception e) {
+      LuceneReaderTiming.abort();
+      throw mapSearchException(e);
+    }
+  }
+
+  @FunctionalInterface
+  private interface SearcherWork<T>
+  {
+    T run(IndexSearcher searcher) throws Exception;
   }
 
   private Optional<LuceneSearcherManagerHolder> getAvailableSearcherManagerHolder() {

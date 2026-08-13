@@ -92,6 +92,32 @@ public class DistinctGroupedStoredFieldCollectorTest
   }
 
   @Test
+  public void distinctValuesCollapsedCaseInsensitively_toMatchOpenSearchNormalizer() throws Exception {
+    try (Directory directory = new ByteBuffersDirectory();
+        Analyzer analyzer = new LowerCaseKeywordAnalyzer();
+        IndexWriter writer = new IndexWriter(directory, new IndexWriterConfig(analyzer)))
+    {
+      writer.addDocument(vulnDocument("CVE-1", "App-One"));
+      writer.addDocument(vulnDocument("CVE-1", "app-one"));
+      writer.addDocument(vulnDocument("CVE-1", "APP-ONE"));
+      writer.commit();
+
+      try (DirectoryReader reader = DirectoryReader.open(writer)) {
+        IndexSearcher searcher = new IndexSearcher(reader);
+        DistinctGroupedStoredFieldCollector collector = new DistinctGroupedStoredFieldCollector(
+            searcher.storedFields(),
+            FieldIdentifier.VULNERABILITY_ID.label,
+            FieldIdentifier.APPLICATION_ID.label,
+            List.of("CVE-1"));
+
+        searcher.search(new MatchAllDocsQuery(), collector);
+
+        assertThat(collector.groupCounts()).containsExactly(Map.entry("cve-1", 1L));
+      }
+    }
+  }
+
+  @Test
   public void omitsGroupsWithoutDistinctValuesAndSkipsBlankFields() throws Exception {
     try (Directory directory = new ByteBuffersDirectory();
         Analyzer analyzer = new LowerCaseKeywordAnalyzer();

@@ -76,6 +76,7 @@ import org.opensearch.client.opensearch.core.search.TotalHitsRelation;
 import org.opensearch.client.opensearch._types.aggregations.Aggregate;
 import org.opensearch.client.opensearch._types.aggregations.Buckets;
 import org.opensearch.client.opensearch._types.aggregations.CardinalityAggregate;
+import org.opensearch.client.opensearch._types.aggregations.FilterAggregate;
 import org.opensearch.client.opensearch._types.aggregations.MaxAggregate;
 import org.opensearch.client.opensearch._types.aggregations.RangeAggregate;
 import org.opensearch.client.opensearch._types.aggregations.RangeBucket;
@@ -806,30 +807,33 @@ public class OpenSearchSearchIndexClientMetricQueryTest
   }
 
   @Test
-  public void testRankGroupsByMaxMetric_SentinelMaxValue_YieldsNullMetric() throws Exception {
-    // A bucket made only of documents with no metric reduces to the sentinel the aggregation folded
-    // them in at. That is the same "no metric" signal as an empty maximum and must not reach a row as
-    // a negative CVSS score.
+  public void testRankGroupsByMaxMetric_UnscoredOnlyGroup_PadsAfterScored() throws Exception {
+    // Unscored-only groups come from the unscored exists-filter pad, not a missing sentinel on max.
     grantGlobalAccess();
 
-    stubRankedResponse(List.of(termBucket("cve-2024-00001", -1.0d)), 1L, Map.of());
+    stubRankedResponse(
+        List.of(termBucket("cve-scored", 4.0d)),
+        List.of(unscoredTermBucket("cve-unscored")),
+        2L,
+        Map.of());
 
     RankedGroupsResult result = client.rankGroupsByMaxMetric(
         "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
         FieldIdentifier.VULNERABILITY_ID.label,
         FieldIdentifier.VULNERABILITY_SEVERITY.label,
         25,
-        false,
+        true,
         CvssV3Severity.halfOpenScoreBands());
 
-    assertThat(result.groups()).containsExactly(new RankedGroup("cve-2024-00001", null));
-    assertThat(result.unbandedGroupCount()).isEqualTo(1L);
+    assertThat(result.groups()).containsExactly(
+        new RankedGroup("cve-scored", 4.0f),
+        new RankedGroup("cve-unscored", null));
+    assertThat(result.unbandedGroupCount()).isEqualTo(2L);
   }
 
   @Test
   public void testRankGroupsByMaxMetric_ZeroScore_SurvivesTheSentinelCheck() throws Exception {
-    // 0.0 is a real CVSS score and sits above the sentinel, so it has to keep reaching the row as a
-    // score rather than being folded in with the unscored.
+    // 0.0 is a real CVSS score and must reach the row as a score, not as an unscored null metric.
     grantGlobalAccess();
 
     stubRankedResponse(List.of(termBucket("cve-2024-00002", 0.0d)), 1L, Map.of());
@@ -888,19 +892,30 @@ public class OpenSearchSearchIndexClientMetricQueryTest
     return aggregate;
   }
 
+  private static StringTermsBucket unscoredTermBucket(final String key) {
+    StringTermsBucket bucket = mock(StringTermsBucket.class);
+    when(bucket.key()).thenReturn(key);
+    return bucket;
+  }
+
   @SuppressWarnings("unchecked")
   private void stubRankedResponse(
       final List<StringTermsBucket> termBuckets,
       final long distinctGroups,
       final Map<String, Long> bandDistincts) throws Exception
   {
-    Buckets<StringTermsBucket> buckets = mock(Buckets.class);
-    when(buckets.array()).thenReturn(termBuckets);
-    StringTermsAggregate sterms = mock(StringTermsAggregate.class);
-    when(sterms.buckets()).thenReturn(buckets);
-    Aggregate ranked = mock(Aggregate.class);
-    when(ranked.isSterms()).thenReturn(true);
-    when(ranked.sterms()).thenReturn(sterms);
+    stubRankedResponse(termBuckets, List.of(), distinctGroups, bandDistincts);
+  }
+
+  @SuppressWarnings("unchecked")
+  private void stubRankedResponse(
+      final List<StringTermsBucket> scoredBuckets,
+      final List<StringTermsBucket> unscoredBuckets,
+      final long distinctGroups,
+      final Map<String, Long> bandDistincts) throws Exception
+  {
+    Aggregate scored = filterTermsAggregate(scoredBuckets);
+    Aggregate unscored = filterTermsAggregate(unscoredBuckets);
 
     List<RangeBucket> rangeBuckets = new ArrayList<>();
     bandDistincts.forEach((label, value) -> {
@@ -921,12 +936,30 @@ public class OpenSearchSearchIndexClientMetricQueryTest
     when(bands.range()).thenReturn(range);
 
     Map<String, Aggregate> aggregations = Map.of(
-        "rankedGroups", ranked,
+        "scoredGroups", scored,
+        "unscoredGroups", unscored,
         "distinctGroups", cardinalityAggregate(distinctGroups),
         "metricBands", bands);
     SearchResponse<Map> response = mock(SearchResponse.class);
     when(response.aggregations()).thenReturn(aggregations);
     when(openSearchClient.search(any(SearchRequest.class), eq(Map.class))).thenReturn(response);
+  }
+
+  @SuppressWarnings("unchecked")
+  private static Aggregate filterTermsAggregate(final List<StringTermsBucket> termBuckets) {
+    Buckets<StringTermsBucket> buckets = mock(Buckets.class);
+    when(buckets.array()).thenReturn(termBuckets);
+    StringTermsAggregate sterms = mock(StringTermsAggregate.class);
+    when(sterms.buckets()).thenReturn(buckets);
+    Aggregate terms = mock(Aggregate.class);
+    when(terms.isSterms()).thenReturn(true);
+    when(terms.sterms()).thenReturn(sterms);
+    FilterAggregate filterAgg = mock(FilterAggregate.class);
+    when(filterAgg.aggregations()).thenReturn(Map.of("groups", terms));
+    Aggregate filter = mock(Aggregate.class);
+    when(filter.isFilter()).thenReturn(true);
+    when(filter.filter()).thenReturn(filterAgg);
+    return filter;
   }
 
   private static Map<String, List<String>> collectTerms(JsonNode shouldArray) {

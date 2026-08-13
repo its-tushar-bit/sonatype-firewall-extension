@@ -22,6 +22,7 @@ import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.SortedNumericSortField;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.opensearch.client.opensearch.OpenSearchClient;
@@ -66,6 +67,14 @@ public class OpenSearchIndexReadSessionTest
         new MatchAllDocsQuery(),
         Instant.EPOCH,
         "15m");
+  }
+
+  @After
+  public void closeSession() throws Exception {
+    if (session != null) {
+      session.close();
+      session = null;
+    }
   }
 
   @Test

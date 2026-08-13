@@ -144,7 +144,6 @@ public class OpenSearchSearchIndexClient
    * Any value below the 0.0 CVSS floor works; what matters is that it loses the maximum against every
    * real score, leaving a group that mixes scored and unscored documents ranked on its real ones.
    */
-  private static final double UNSCORED_METRIC = -1.0d;
 
   private static final Set<Class<?>> SYSTEMIC_NETWORK_EXCEPTIONS = Set.of(
       SocketException.class,
@@ -1065,11 +1064,12 @@ public class OpenSearchSearchIndexClient
   }
 
   /**
-   * Departs from the interface contract in one respect: unscored groups sort last only when ranking
-   * descending. A terms aggregation orders on a single sub-aggregation value, and the sentinel that
-   * keeps unscored groups out of the way when ranking descending necessarily puts them at the front
-   * when ranking ascending. Separating them from the ordering needs a paged composite aggregation,
-   * tracked in CLM-44916; the Lucene sibling honours the contract in both directions.
+   * Ranks groups by max metric in one OpenSearch round-trip. Scored groups (documents that carry
+   * {@code metricField}) are collected via an exists-filter terms agg; unscored-only groups pad the
+   * page afterward so they sort last regardless of {@code ascending}. A missing sentinel on
+   * {@code max} is intentionally avoided — a high sentinel would corrupt mixed scored/unscored
+   * groups. Band counts still use raw-document range+cardinality (max-vs-any divergence tracked in
+   * CLM-44916).
    */
   @Override
   public RankedGroupsResult rankGroupsByMaxMetric(
@@ -1108,23 +1108,10 @@ public class OpenSearchSearchIndexClient
           .index(indexConfigProvider.getIndexConfig().getIndexName())
           .size(0)
           .query(buildMetricQuery(initialQuery))
-          .aggregations("rankedGroups", a -> a
-              .terms(t -> t
-                  .field(groupLabel)
-                  .size(limit)
-                  .shardSize(shardSize)
-                  // Ties on the metric (e.g. many CVEs sharing a 7.5 or 9.8 CVSS score) break
-                  // ascending on _key regardless of `ascending`, matching the Lucene comparator's
-                  // ascending-groupValue tie-break so paging stays stable across both backends.
-                  .order(Map.of("groupMetric", order), Map.of("_key", SortOrder.Asc)))
-              // Documents with no metric value are folded in at UNSCORED_METRIC, below the 0.0 CVSS
-              // floor, so every bucket carries a number and bucket order never depends on how the
-              // backend happens to place a missing sub-aggregation value. A group holding both scored
-              // and unscored documents is unaffected: max ignores a sentinel beneath its real values.
-              // The sentinel has to sit below the floor rather than above the ceiling for that reason
-              // — a high sentinel would win the max and corrupt the metric of any mixed group.
-              .aggregations("groupMetric", sub -> sub
-                  .max(m -> m.field(metricField).missing(FieldValue.of(UNSCORED_METRIC)))))
+          .aggregations("scoredGroups", OpenSearchSessionAggregations.buildScoredRankedGroupsAggregation(
+              groupLabel, metricField, limit, shardSize, order))
+          .aggregations("unscoredGroups", OpenSearchSessionAggregations.buildUnscoredRankedGroupsAggregation(
+              groupLabel, metricField, limit))
           .aggregations("distinctGroups", a -> a
               .cardinality(c -> c.field(groupLabel).precisionThreshold(40_000)))
           // Bands are computed from raw document metrics, so a group whose documents carry different
@@ -1141,24 +1128,7 @@ public class OpenSearchSearchIndexClient
 
       SearchResponse<Map> searchResponse = getClient().search(searchRequest, Map.class);
       Map<String, Aggregate> aggs = searchResponse.aggregations();
-
-      List<RankedGroup> groups = new ArrayList<>();
-      Aggregate ranked = aggs == null ? null : aggs.get("rankedGroups");
-      if (ranked != null && ranked.isSterms()) {
-        for (StringTermsBucket bucket : ranked.sterms().buckets().array()) {
-          Aggregate metric = bucket.aggregations().get("groupMetric");
-          Float metricValue = null;
-          if (metric != null && metric.isMax()) {
-            double value = metric.max().value();
-            // NaN covers a max reported over no values at all; the sentinel covers the documents the
-            // aggregation folded in for a missing field. Both mean the group carries no metric.
-            if (!Double.isNaN(value) && value > UNSCORED_METRIC) {
-              metricValue = (float) value;
-            }
-          }
-          groups.add(new RankedGroup(bucket.key(), metricValue));
-        }
-      }
+      List<RankedGroup> groups = OpenSearchSessionAggregations.parseRankedGroups(aggs, limit);
 
       Aggregate distinctAgg = aggs == null ? null : aggs.get("distinctGroups");
       long distinct = distinctAgg != null && distinctAgg.isCardinality()
@@ -1188,13 +1158,11 @@ public class OpenSearchSearchIndexClient
 
       return new RankedGroupsResult(groups, distinct, false, bandCounts, unbanded);
     }
-    catch (Exception e) {
-      throwMetricSearchException(e);
-      throw new IllegalStateException("unreachable: throwMetricSearchException always throws", e);
+    catch (IOException e) {
+      throw new SearchIndexException(e);
     }
   }
 
-  @Override
   public Map<String, Long> countDistinctGroupedBy(
       final String metricQuery,
       final String groupField,

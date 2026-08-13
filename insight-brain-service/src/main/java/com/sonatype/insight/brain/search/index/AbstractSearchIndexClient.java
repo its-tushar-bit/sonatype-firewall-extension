@@ -1597,7 +1597,7 @@ public abstract class AbstractSearchIndexClient
    * would silently match nothing). Mirrors {@link #validateRangeBounds(Map)} so both backends fail with
    * an explicit, bucket-named {@link IllegalArgumentException} rather than an opaque downstream error.
    */
-  protected static void validateFloatRangeBounds(final Map<String, float[]> ranges) {
+  public static void validateFloatRangeBounds(final Map<String, float[]> ranges) {
     if (ranges == null) {
       throw new IllegalArgumentException("ranges must not be null");
     }
@@ -1627,7 +1627,7 @@ public abstract class AbstractSearchIndexClient
    * malformed array surface later as an opaque {@code ArrayIndexOutOfBoundsException} wrapped in a
    * generic search exception.
    */
-  protected static void validateRangeBounds(final Map<String, int[]> ranges) {
+  public static void validateRangeBounds(final Map<String, int[]> ranges) {
     if (ranges == null) {
       throw new IllegalArgumentException("ranges must not be null");
     }
@@ -1643,6 +1643,20 @@ public abstract class AbstractSearchIndexClient
             "Range bounds for '" + entry.getKey() + "' must have minInclusive <= maxInclusive; got: "
                 + Arrays.toString(bounds));
       }
+    }
+  }
+
+  /**
+   * Rejects known float/sortable-int {@code sumField} values that cannot be summed as {@code long}.
+   * Session sum aggregations assume lossless integral accumulation; callers must pass int/long
+   * docValues fields. Today only {@link FieldIdentifier#VULNERABILITY_SEVERITY} is denylisted —
+   * there is no general field-type registry. Call from both backends' sum methods to fail fast.
+   */
+  public static void requireIntegralSumField(final String sumField) {
+    if (FieldIdentifier.VULNERABILITY_SEVERITY.label.equals(sumField)) {
+      throw new IllegalArgumentException(
+          "sumField '" + sumField + "' is a float/sortable-int field and cannot be used with sum aggregations; "
+              + "only integral (int/long docValues) fields are supported");
     }
   }
 

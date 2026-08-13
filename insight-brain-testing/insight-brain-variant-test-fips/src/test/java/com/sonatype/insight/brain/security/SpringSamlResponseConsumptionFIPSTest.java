@@ -5,10 +5,8 @@
  */
 package com.sonatype.insight.brain.security;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_MODE_ENABLED_ENV;
 import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastleFipsProvider;
@@ -22,11 +20,10 @@ import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastl
 public class SpringSamlResponseConsumptionFIPSTest
     extends SpringSamlResponseConsumptionTest
 {
-  @Rule
-  public EnvironmentVariables environmentVariables = new EnvironmentVariables();
+  private final TestEnvironmentVariables environmentVariables = new TestEnvironmentVariables();
 
   @Override
-  @Before
+  @BeforeEach
   public void generateIdpKeys() throws Exception {
     // Insert the Bouncy Castle FIPS provider and enable FIPS mode before any keys or signatures are created.
     insertBouncyCastleFipsProvider();
@@ -34,8 +31,9 @@ public class SpringSamlResponseConsumptionFIPSTest
     super.generateIdpKeys();
   }
 
-  @After
+  @AfterEach
   public void removeFipsProvider() {
     removeBouncyCastleFipsProvider();
+    environmentVariables.restore();
   }
 }

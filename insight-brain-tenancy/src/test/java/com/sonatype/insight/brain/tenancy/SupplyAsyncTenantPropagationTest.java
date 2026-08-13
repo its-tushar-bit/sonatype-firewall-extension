@@ -13,9 +13,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.setTenantWithoutValidation;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,14 +35,14 @@ public class SupplyAsyncTenantPropagationTest
 {
   private ExecutorService pool;
 
-  @Before
+  @BeforeEach
   public void setUpPool() {
     // Single-worker executor to force worker reuse across submissions -- deterministically reproduces the
     // stale-ThreadLocal condition ForkJoinPool workers hit in production.
     pool = Executors.newSingleThreadExecutor();
   }
 
-  @After
+  @AfterEach
   public void tearDownPool() {
     pool.shutdownNow();
   }

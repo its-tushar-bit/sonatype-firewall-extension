@@ -10,9 +10,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -20,13 +20,13 @@ public class TenantVirtualThreadExecutorTest
 {
   private TenantVirtualThreadExecutor executor;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     TenantTestHelper.setSingleTenant();
     executor = new TenantVirtualThreadExecutor(null, "test_kind", "TestService");
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     executor.shutdown();
     TenantTestHelper.resetAfterTest();

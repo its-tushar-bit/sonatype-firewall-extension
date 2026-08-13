@@ -5,9 +5,8 @@
  */
 package com.sonatype.insight.brain.security;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_CRYPTO_PROVIDER_ENV;
 import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_DEFAULT_KEY_PAIR_GENERATOR_ALGORITHM;
@@ -53,8 +52,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class FIPSConfigTest
 {
-  @Rule
-  public EnvironmentVariables environmentVariables = new EnvironmentVariables();
+  private final TestEnvironmentVariables environmentVariables = new TestEnvironmentVariables();
+
+  @AfterEach
+  public void restoreEnvironmentVariables() {
+    environmentVariables.restore();
+  }
 
   @Test
   public void testGetFipsModeEnabled() {

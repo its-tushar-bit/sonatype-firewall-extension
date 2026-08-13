@@ -8,11 +8,10 @@ package com.sonatype.insight.brain.security;
 import java.io.File;
 import java.util.Base64;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastleFipsProvider;
 import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastleFipsProvider;
@@ -21,22 +20,22 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 
 public class FIPSKeystorePasswordGeneratorTest
 {
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+  @TempDir
+  public java.nio.file.Path temporaryFolder;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     insertBouncyCastleFipsProvider();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     removeBouncyCastleFipsProvider();
   }
 
   @Test
   public void testGenerateDeterministicPassword_returnsValidBase64() throws Exception {
-    File workDir = temporaryFolder.newFolder("sonatype-work");
+    File workDir = java.nio.file.Files.createDirectories(temporaryFolder.resolve("sonatype-work")).toFile();
 
     String password = FIPSKeystorePasswordGenerator.generateDeterministicPassword(workDir);
 
@@ -54,8 +53,8 @@ public class FIPSKeystorePasswordGeneratorTest
 
   @Test
   public void testGenerateDeterministicPassword_differentDirectoriesProduceDifferentPasswords() throws Exception {
-    File workDir1 = temporaryFolder.newFolder("sonatype-work-1");
-    File workDir2 = temporaryFolder.newFolder("sonatype-work-2");
+    File workDir1 = java.nio.file.Files.createDirectories(temporaryFolder.resolve("sonatype-work-1")).toFile();
+    File workDir2 = java.nio.file.Files.createDirectories(temporaryFolder.resolve("sonatype-work-2")).toFile();
 
     String password1 = FIPSKeystorePasswordGenerator.generateDeterministicPassword(workDir1);
     String password2 = FIPSKeystorePasswordGenerator.generateDeterministicPassword(workDir2);
@@ -65,7 +64,7 @@ public class FIPSKeystorePasswordGeneratorTest
 
   @Test
   public void testGenerateDeterministicPassword_handlesNonExistentDirectory() throws Exception {
-    File nonExistentDir = new File(temporaryFolder.getRoot(), "non-existent");
+    File nonExistentDir = new File(temporaryFolder.toFile(), "non-existent");
 
     // Should not throw exception, should handle gracefully
     String password = FIPSKeystorePasswordGenerator.generateDeterministicPassword(nonExistentDir);
@@ -76,7 +75,7 @@ public class FIPSKeystorePasswordGeneratorTest
   @Test
   public void testGenerateDeterministicPassword_handlesSpecialCharactersInPath() throws Exception {
     // Create directory with spaces and special characters
-    File specialDir = temporaryFolder.newFolder("sonatype work & test");
+    File specialDir = java.nio.file.Files.createDirectories(temporaryFolder.resolve("sonatype work & test")).toFile();
 
     String password = FIPSKeystorePasswordGenerator.generateDeterministicPassword(specialDir);
 
@@ -85,7 +84,7 @@ public class FIPSKeystorePasswordGeneratorTest
 
   @Test
   public void testGenerateDeterministicPassword_usesAbsolutePath() throws Exception {
-    File workDir = temporaryFolder.newFolder("sonatype-work");
+    File workDir = java.nio.file.Files.createDirectories(temporaryFolder.resolve("sonatype-work")).toFile();
 
     // Test that same directory accessed different ways produces same password
     File sameDirDifferentWay = new File(workDir.getAbsolutePath());
@@ -98,7 +97,7 @@ public class FIPSKeystorePasswordGeneratorTest
 
   @Test
   public void testGenerateDeterministicPassword_returnsSamePassword() throws Exception {
-    File workDir = temporaryFolder.newFolder("sonatype-work");
+    File workDir = java.nio.file.Files.createDirectories(temporaryFolder.resolve("sonatype-work")).toFile();
 
     // Test multiple calls to ensure stability
     String password1 = FIPSKeystorePasswordGenerator.generateDeterministicPassword(workDir);

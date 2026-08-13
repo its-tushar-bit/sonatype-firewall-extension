@@ -14,8 +14,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,7 +23,7 @@ public class WrappingForwardingExecutorServiceTest
 {
   private TestWrappingExecutor executor;
 
-  @After
+  @AfterEach
   public void after() throws Exception {
     if (executor != null) {
       executor.shutdown();

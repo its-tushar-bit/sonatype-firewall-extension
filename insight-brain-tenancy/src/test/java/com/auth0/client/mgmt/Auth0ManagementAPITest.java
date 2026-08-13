@@ -34,14 +34,12 @@ import com.auth0.json.mgmt.users.Identity;
 import com.auth0.json.mgmt.users.User;
 import com.auth0.net.Request;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -55,12 +53,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class Auth0ManagementAPITest
 {
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
-
   @Captor
   private ArgumentCaptor<Client> clientCaptor;
 
@@ -151,7 +146,7 @@ public class Auth0ManagementAPITest
 
   private Request<Void> deleteOrganizationMockRequest;
 
-  @Before
+  @BeforeEach
   public void before() {
     auth0ManagementAPI =
         spy(new Auth0ManagementAPI("https://sonatype.auth0.com", "abcdefg"));

@@ -11,9 +11,9 @@ import java.util.concurrent.TimeUnit;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.common.eventbus.Subscribe;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,10 +28,10 @@ public class AsyncEventBusImplTest
 
   private HandlerWithException handlerWithException;
 
-  @Rule
+  @RegisterExtension
   public LogOutput logOutput = new LogOutput(AsyncEventBusDiscardPolicy.class);
 
-  @Before
+  @BeforeEach
   public void setUp() {
     underTest = new AsyncEventBusImpl(AsyncEventBus.DEFAULT_MAX_POOL_SIZE);
     handler1 = new Handler(underTest, new CountDownLatch(1));

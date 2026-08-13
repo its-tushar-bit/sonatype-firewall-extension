@@ -6,39 +6,43 @@
 package com.sonatype.insight.tenant.auth.provisionig;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import com.sonatype.insight.test.LogOutput;
+import com.sonatype.insight.brain.tenancy.TestEnvironmentVariables;
 
 import com.auth0.client.mgmt.Auth0ManagementAPI;
 import com.auth0.json.mgmt.client.Client;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-import org.mockito.quality.Strictness;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class Auth0ProvisioningServiceTest
 {
-  @Rule
-  public EnvironmentVariables environmentVariables = new EnvironmentVariables();
+  @RegisterExtension
+  public final LogOutput logOutput = new LogOutput(Auth0ProvisioningService.class);
 
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+  @TempDir
+  public Path temporaryFolder;
 
-  @Rule
-  public LogOutput logOutput = new LogOutput(Auth0ProvisioningService.class);
+  private final TestEnvironmentVariables environmentVariables = new TestEnvironmentVariables();
 
-  @Rule
-  public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
+  @AfterEach
+  public void restoreEnvironmentVariables() {
+    environmentVariables.restore();
+  }
 
   @Mock
   private Auth0ManagementAPI managementAPI;
@@ -49,7 +53,7 @@ public class Auth0ProvisioningServiceTest
   @Test
   public void testProvision() throws Exception {
     environmentVariables.set("AUTH0_API_TOKEN", "token");
-    File tempFile = temporaryFolder.newFile();
+    File tempFile = Files.createTempFile(temporaryFolder, "test", ".tmp").toFile();
     Client mockClient = mock(Client.class);
     String mockClientId = "abcdefg";
 

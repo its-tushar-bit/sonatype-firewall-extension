@@ -25,8 +25,8 @@ import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.assertj.core.groups.Tuple;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -36,7 +36,7 @@ public class MeteredThreadPoolExecutorTest
 {
   private MeteredThreadPoolExecutor executor;
 
-  @After
+  @AfterEach
   public void after() {
     if (executor != null) {
       executor.shutdown();

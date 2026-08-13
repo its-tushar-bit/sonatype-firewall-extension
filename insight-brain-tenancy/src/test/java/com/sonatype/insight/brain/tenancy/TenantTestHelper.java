@@ -32,7 +32,11 @@ public class TenantTestHelper
   }
 
   public static String createTenantNameFromTest(TestName testName) {
-    String test = StringUtils.left(testName.getMethodName().toLowerCase().replaceAll("_|\\[|\\]", "-"), 45);
+    return createTenantNameFromTest(testName.getMethodName());
+  }
+
+  public static String createTenantNameFromTest(String methodName) {
+    String test = StringUtils.left(methodName.toLowerCase().replaceAll("_|\\[|\\]", "-"), 45);
     String randomness = StringUtils.left(UUID.randomUUID().toString(), 10);
 
     return test + "-" + randomness;

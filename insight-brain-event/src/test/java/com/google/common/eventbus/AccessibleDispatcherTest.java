@@ -12,8 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -22,7 +22,7 @@ public class AccessibleDispatcherTest
 {
   private Map<Integer, List<Object>> subscriberEvents;
 
-  @Before
+  @BeforeEach
   public void before() {
     subscriberEvents = new HashMap<>();
   }

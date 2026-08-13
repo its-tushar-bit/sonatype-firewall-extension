@@ -17,9 +17,9 @@ import java.util.function.Supplier;
 import com.google.common.collect.ImmutableList;
 
 import org.apache.commons.lang3.mutable.MutableBoolean;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.slf4j.MDC;
 
@@ -35,12 +35,12 @@ import static org.mockito.Mockito.when;
 public class TenantThreadLocalTest
     extends MultiTenantTestSupport
 {
-  @Before
+  @BeforeEach
   public void before() {
     TenantThreadLocal.tenantUtil = new TenantUtil();
   }
 
-  @After
+  @AfterEach
   public void after() {
     TenantThreadLocal.invalidateTenant();
   }
@@ -248,10 +248,11 @@ public class TenantThreadLocalTest
     when(tenantUtilMock.isMtiqBatchMode()).thenReturn(true);
     when(tenantUtilMock.isMultiTenant()).thenReturn(true);
 
-    List<String> tenants = ImmutableList.of(createTenantNameFromTest(testName), createTenantNameFromTest(testName));
+    List<String> tenants =
+        ImmutableList.of(createTenantNameFromTest(currentMethodName()), createTenantNameFromTest(currentMethodName()));
 
     List<Tenant> runAs = new ArrayList<>();
-    TenantThreadLocal.runForAllTenantsOnBatch(tenants, testName.getMethodName(), runAs::add);
+    TenantThreadLocal.runForAllTenantsOnBatch(tenants, currentMethodName(), runAs::add);
 
     assertThat(runAs).hasSize(2);
     for (int i = 0; i < tenants.size(); i++) {
@@ -266,10 +267,11 @@ public class TenantThreadLocalTest
     when(tenantUtilMock.isMtiqBatchMode()).thenReturn(true);
     when(tenantUtilMock.isMultiTenant()).thenReturn(false);
 
-    List<String> tenants = ImmutableList.of(createTenantNameFromTest(testName), createTenantNameFromTest(testName));
+    List<String> tenants =
+        ImmutableList.of(createTenantNameFromTest(currentMethodName()), createTenantNameFromTest(currentMethodName()));
 
     List<Tenant> runAs = new ArrayList<>();
-    TenantThreadLocal.runForAllTenantsOnBatch(tenants, testName.getMethodName(), runAs::add);
+    TenantThreadLocal.runForAllTenantsOnBatch(tenants, currentMethodName(), runAs::add);
 
     assertThat(runAs).hasSize(1);
     assertThat(runAs.get(0)).isEqualTo(SINGLE_TENANT);
@@ -282,10 +284,11 @@ public class TenantThreadLocalTest
     when(tenantUtilMock.isMtiqBatchMode()).thenReturn(false);
     when(tenantUtilMock.isMultiTenant()).thenReturn(true);
 
-    List<String> tenants = ImmutableList.of(createTenantNameFromTest(testName), createTenantNameFromTest(testName));
+    List<String> tenants =
+        ImmutableList.of(createTenantNameFromTest(currentMethodName()), createTenantNameFromTest(currentMethodName()));
 
     List<Tenant> runAs = new ArrayList<>();
-    TenantThreadLocal.runForAllTenantsOnBoot(tenants, testName.getMethodName(), runAs::add);
+    TenantThreadLocal.runForAllTenantsOnBoot(tenants, currentMethodName(), runAs::add);
 
     assertThat(runAs).hasSize(2);
     for (int i = 0; i < tenants.size(); i++) {

@@ -14,7 +14,7 @@ import java.nio.file.Paths;
 import java.security.Provider;
 import java.util.Arrays;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.security.FIPSProviderFactory.FIPS_PROVIDER_CLASS_NAME;
 import static java.nio.file.Files.*;

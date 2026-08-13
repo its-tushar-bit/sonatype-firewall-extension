@@ -10,22 +10,23 @@ import java.io.IOException;
 
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class FileCleanerTest
 {
-  @Rule
-  public TemporaryFolder tempFolder = new TemporaryFolder();
+  @TempDir
+  public File tempFolder;
 
   @Test
   public void canDeleteFile() throws IOException {
-    File file = tempFolder.newFile();
+    File file = new File(tempFolder, "file.txt");
+    file.createNewFile();
     assertThat(file).exists();
 
     new FileCleaner().delete(file);
@@ -34,7 +35,8 @@ public class FileCleanerTest
 
   @Test
   public void canDeleteFolder() throws IOException {
-    File folder = tempFolder.newFolder();
+    File folder = new File(tempFolder, "folder");
+    folder.mkdirs();
     assertThat(folder).exists();
     File file = new File(folder, "test.txt");
     file.createNewFile();
@@ -45,7 +47,7 @@ public class FileCleanerTest
     assertThat(folder).doesNotExist();
   }
 
-  @Test(expected = FileDeletionException.class)
+  @Test
   public void errorThrowsSpecializedException() throws IOException {
     File file = mock(File.class);
 
@@ -53,7 +55,7 @@ public class FileCleanerTest
     when(file.toPath()).thenThrow(new RuntimeException("BOOM"));
     when(file.exists()).thenReturn(true);
 
-    new FileCleaner().delete(file);
+    assertThrows(FileDeletionException.class, () -> new FileCleaner().delete(file));
   }
 
   @Test
@@ -63,7 +65,7 @@ public class FileCleanerTest
 
   @Test
   public void ignoresNonExistentFileObjects() throws Exception {
-    File file = new File(tempFolder.getRoot(), "lochness.monster");
+    File file = new File(tempFolder, "lochness.monster");
     assertThat(file).doesNotExist();
     new FileCleaner().delete(file);
   }

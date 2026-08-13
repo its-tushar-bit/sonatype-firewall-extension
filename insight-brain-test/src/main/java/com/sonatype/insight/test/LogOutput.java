@@ -23,6 +23,9 @@ import ch.qos.logback.classic.spi.LoggerContextListener;
 import ch.qos.logback.classic.spi.ThrowableProxy;
 import ch.qos.logback.core.read.ListAppender;
 import org.assertj.core.api.AssertProvider;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.rules.ExternalResource;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +34,7 @@ import org.slf4j.LoggerFactory;
  */
 public class LogOutput
     extends ExternalResource
-    implements AssertProvider<LogOutputAssert>
+    implements AssertProvider<LogOutputAssert>, BeforeEachCallback, AfterEachCallback
 {
   private final String[] loggerNames;
 
@@ -135,6 +138,18 @@ public class LogOutput
       logger.setLevel(originalLevels.remove(loggerName));
     }
     appender.stop();
+  }
+
+  // JUnit 5 registration (via @RegisterExtension) — mirrors the JUnit 4 @Rule lifecycle so a single LogOutput
+  // instance works under both engines during the JUnit 4 -> 5 migration.
+  @Override
+  public void beforeEach(final ExtensionContext context) {
+    before();
+  }
+
+  @Override
+  public void afterEach(final ExtensionContext context) {
+    after();
   }
 
   public void setLogLevel(Level level) {

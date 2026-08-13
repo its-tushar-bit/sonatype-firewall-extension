@@ -11,13 +11,13 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import com.sonatype.insight.brain.security.TestEnvironmentVariables;
 
 import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_KEY_PAIR_GENERATOR_ALGORITHM_ENV;
 import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_KEY_PAIR_GENERATOR_KEY_SIZE_ENV;
@@ -36,18 +36,22 @@ import static com.sonatype.insight.brain.security.keypair.KeyPairFactory.generat
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class KeyPairFactoryTest
 {
-  @Rule
-  public EnvironmentVariables environmentVariables = new EnvironmentVariables();
+  private final TestEnvironmentVariables environmentVariables = new TestEnvironmentVariables();
 
-  @Before
+  @BeforeEach
   public void setUp() {
     environmentVariables.set(FIPS_MODE_ENABLED_ENV, "false");
   }
 
-  @After
+  @AfterEach
+  public void restoreEnvironmentVariables() {
+    environmentVariables.restore();
+  }
+
+  @AfterEach
   public void tearDown() {
     removeBouncyCastleFipsProvider();
   }

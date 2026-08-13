@@ -5,28 +5,24 @@
  */
 package com.sonatype.insight.tenant.auth.provisionig;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-import org.mockito.quality.Strictness;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.verify;
 
+@ExtendWith(MockitoExtension.class)
 public class ActionResolverTest
 {
-  @Rule
-  public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
-
   @Mock
   private Auth0ProvisioningService mockAuth0ProvisioningService;
 
   private ActionResolver actionResolver;
 
-  @Before
+  @BeforeEach
   public void before() {
     actionResolver = new ActionResolver(mockAuth0ProvisioningService);
   }

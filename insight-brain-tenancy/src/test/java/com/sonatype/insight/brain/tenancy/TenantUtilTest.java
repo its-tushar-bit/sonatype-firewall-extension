@@ -5,11 +5,10 @@
  */
 package com.sonatype.insight.brain.tenancy;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static com.sonatype.insight.brain.tenancy.Tenant.SINGLE_TENANT;
@@ -17,15 +16,19 @@ import static com.sonatype.insight.brain.tenancy.TenantUtil.IS_MTIQ_BATCH;
 import static com.sonatype.insight.brain.tenancy.TenantUtil.TENANT_DOES_NOT_EXIST;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class TenantUtilTest
     extends MultiTenantTestSupport
 {
-  @Rule
-  public EnvironmentVariables environmentVariables = new EnvironmentVariables();
+  private final TestEnvironmentVariables environmentVariables = new TestEnvironmentVariables();
+
+  @AfterEach
+  public void restoreEnvironmentVariables() {
+    environmentVariables.restore();
+  }
 
   @Test
   public void shouldReturnMultiTenantTrue() {

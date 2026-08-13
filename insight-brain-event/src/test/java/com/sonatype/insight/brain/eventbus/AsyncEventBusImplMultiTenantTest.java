@@ -18,9 +18,9 @@ import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 
 import com.google.common.eventbus.Subscribe;
 import org.apache.shiro.util.ThreadContext;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenantNameFromTest;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenantAndInvalidate;
@@ -35,14 +35,14 @@ public class AsyncEventBusImplMultiTenantTest
 
   private CountDownLatch countDownLatch;
 
-  @Before
+  @BeforeEach
   public void before() {
     asyncEventBus = new AsyncEventBusImpl(500);
     asyncEventBus.register(this);
     eventsByTenantSlug = new ConcurrentHashMap<>();
   }
 
-  @After
+  @AfterEach
   public void after() {
     asyncEventBus.unregister(this);
     asyncEventBus = null;
@@ -53,9 +53,9 @@ public class AsyncEventBusImplMultiTenantTest
   @Test
   public void testPost_TenantsOnlyProcessOwnEvents() throws Exception {
     int eventsPerTenant = 2000;
-    String tenant1Name = createTenantNameFromTest(testName);
+    String tenant1Name = createTenantNameFromTest(currentMethodName());
     eventsByTenantSlug.put(tenant1Name, new CopyOnWriteArrayList<>());
-    String tenant2Name = createTenantNameFromTest(testName);
+    String tenant2Name = createTenantNameFromTest(currentMethodName());
     eventsByTenantSlug.put(tenant2Name, new CopyOnWriteArrayList<>());
     countDownLatch = new CountDownLatch(eventsPerTenant * 2);
 

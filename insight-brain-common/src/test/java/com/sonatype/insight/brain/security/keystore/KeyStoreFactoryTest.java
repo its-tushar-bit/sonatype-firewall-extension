@@ -9,14 +9,17 @@ import java.io.File;
 import java.security.KeyStore;
 import java.security.NoSuchProviderException;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import com.sonatype.insight.brain.security.TestEnvironmentVariables;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_KEY_STORE_PROVIDER_ENV;
 import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_KEY_STORE_TYPE_ENV;
@@ -30,21 +33,25 @@ import static com.sonatype.insight.brain.security.keystore.KeyStoreFactory.creat
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class KeyStoreFactoryTest
 {
-  @Rule
-  public EnvironmentVariables environmentVariables = new EnvironmentVariables();
+  private final TestEnvironmentVariables environmentVariables = new TestEnvironmentVariables();
 
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+  @TempDir
+  public Path temporaryFolder;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     environmentVariables.set(FIPS_MODE_ENABLED_ENV, "false");
   }
 
-  @After
+  @AfterEach
+  public void restoreEnvironmentVariables() {
+    environmentVariables.restore();
+  }
+
+  @AfterEach
   public void tearDown() {
     removeBouncyCastleFipsProvider();
   }
@@ -153,7 +160,7 @@ public class KeyStoreFactoryTest
 
   @Test
   public void testGetDefaultEncryptionKeyStoreKey() throws Exception {
-    File tempDir = temporaryFolder.newFolder("sonatype-work");
+    File tempDir = Files.createDirectories(temporaryFolder.resolve("sonatype-work")).toFile();
 
     // Test non-FIPS mode
     assertThat(KeyStoreFactory.getDefaultEncryptionKeyStoreKey(tempDir)).isEqualTo("CMMDwoV");
@@ -167,7 +174,7 @@ public class KeyStoreFactoryTest
 
   @Test
   public void testGetDefaultEncryptionKeyStoreKey_WithValidDirectory_GeneratesRealFipsKey() throws Exception {
-    File tempDir = temporaryFolder.newFolder("sonatype-work-fips");
+    File tempDir = Files.createDirectories(temporaryFolder.resolve("sonatype-work-fips")).toFile();
     insertBouncyCastleFipsProvider();
     environmentVariables.set(FIPS_MODE_ENABLED_ENV, "true");
 

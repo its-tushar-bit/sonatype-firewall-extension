@@ -18,11 +18,9 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -38,14 +36,13 @@ import static org.mockito.Mockito.when;
 
 public class FIPSKeyManagerTest
 {
-  @Rule
-  public EnvironmentVariables environmentVariables = new EnvironmentVariables();
+  private final TestEnvironmentVariables environmentVariables = new TestEnvironmentVariables();
 
   private File tempDirectory;
 
   private FIPSKeyManager keyManager;
 
-  @Before
+  @BeforeEach
   public void setUp() throws IOException {
     insertBouncyCastleFipsProvider();
     environmentVariables.set(FIPS_MODE_ENABLED_ENV, "true");
@@ -53,7 +50,12 @@ public class FIPSKeyManagerTest
     keyManager = new FIPSKeyManager(tempDirectory);
   }
 
-  @After
+  @AfterEach
+  public void restoreEnvironmentVariables() {
+    environmentVariables.restore();
+  }
+
+  @AfterEach
   public void tearDown() {
     if (tempDirectory != null && tempDirectory.exists()) {
       deleteDirectory(tempDirectory);

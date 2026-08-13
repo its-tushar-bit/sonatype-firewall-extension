@@ -8,13 +8,12 @@ package com.sonatype.insight.brain.tenancy;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
@@ -23,14 +22,18 @@ import static com.sonatype.insight.brain.tenancy.AllTenantsJob.TENANT_LIST;
 import static com.sonatype.insight.brain.tenancy.Tenant.SINGLE_TENANT;
 import static com.sonatype.insight.brain.tenancy.TenantUtil.IS_MTIQ_BATCH;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class AllTenantsJobTest
     extends MultiTenantTestSupport
 {
-  @Rule
-  public EnvironmentVariables environmentVariables = new EnvironmentVariables();
+  private final TestEnvironmentVariables environmentVariables = new TestEnvironmentVariables();
+
+  @AfterEach
+  public void restoreEnvironmentVariables() {
+    environmentVariables.restore();
+  }
 
   @Mock
   JobExecutionContext jobExecutionContext;
@@ -45,7 +48,7 @@ public class AllTenantsJobTest
 
   StubbedAllTenantsJob underTest;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();
@@ -54,9 +57,9 @@ public class AllTenantsJobTest
 
     AllTenantsJob.tenantUtil.mtiqBatchMode = true;
 
-    when(jobExecutionContext.getJobDetail()).thenReturn(jobDetail);
-    when(jobDetail.getJobDataMap()).thenReturn(jobDataMap);
-    when(jobDataMap.get(TENANT_LIST)).thenReturn(tenantList);
+    lenient().when(jobExecutionContext.getJobDetail()).thenReturn(jobDetail);
+    lenient().when(jobDetail.getJobDataMap()).thenReturn(jobDataMap);
+    lenient().when(jobDataMap.get(TENANT_LIST)).thenReturn(tenantList);
   }
 
   @Test

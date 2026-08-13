@@ -602,7 +602,7 @@ Map<String, Closure> createPlaywrightTests(
   List<String> zipFiles,
   String profile
 ) {
-  String mavenModule = 'insight-brain-playwright-test'
+  String mavenModule = 'insight-brain-testing/insight-brain-playwright-test'
 
   return ["${stageName}": {
     node('iq-large') {
@@ -662,7 +662,7 @@ Map<String, Closure> createUnitTests(String stageName, String jdk, String regex,
         try {
           copyRepo(zipFiles)
 
-          String mavenOptions = "-pl '!nexus-mtiq-server,!insight-brain-variant-test-mtiq-fips'"
+          String mavenOptions = "-pl '!nexus-mtiq-server,!com.sonatype.insight.brain:insight-brain-variant-test-mtiq-fips'"
           mavenOptions += " -pl '!insight-brain-frontend'"
           mavenOptions += " -Dtest=%regex[${regex}]"
           mavenOptions += " -Dit.test=%regex[${regex}]"
@@ -749,15 +749,15 @@ void capturePlaywrightResultsAndCleanup() {
   archiveArtifacts(artifacts: '**/target/*-reports/**', excludes: '**/TEST-*.xml, **/*-output.txt',
                    allowEmptyArchive: true)
   archiveArtifacts(artifacts: '**/target/*.hprof', allowEmptyArchive: true)
-  archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/playwright-screenshots/**',
+  archiveArtifacts(artifacts: 'insight-brain-testing/insight-brain-playwright-test/target/playwright-screenshots/**',
                    allowEmptyArchive: true)
-  archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/playwright-traces/**',
+  archiveArtifacts(artifacts: 'insight-brain-testing/insight-brain-playwright-test/target/playwright-traces/**',
                    allowEmptyArchive: true)
-  archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/playwright-diagnostics/**',
+  archiveArtifacts(artifacts: 'insight-brain-testing/insight-brain-playwright-test/target/playwright-diagnostics/**',
                    allowEmptyArchive: true)
-  archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/failsafe-reports/*.txt',
+  archiveArtifacts(artifacts: 'insight-brain-testing/insight-brain-playwright-test/target/failsafe-reports/*.txt',
                    allowEmptyArchive: true)
-  archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/surefire-reports/*.txt',
+  archiveArtifacts(artifacts: 'insight-brain-testing/insight-brain-playwright-test/target/surefire-reports/*.txt',
                    allowEmptyArchive: true)
   try {
     collectTestResults(['**/target/*-reports/*.xml'])

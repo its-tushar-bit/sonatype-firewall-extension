@@ -47,11 +47,11 @@ format:
 
 # Run all Playwright UI tests with Docker
 func-test:
-    {{mvn}} verify -pl insight-brain-playwright-test
+    {{mvn}} verify -pl com.sonatype.insight.brain:insight-brain-playwright-test
 
 # Run specific Playwright UI test (usage: just func-test-specific TestClassName#testMethodName)
 func-test-specific TEST:
-    {{mvn}} verify -pl insight-brain-playwright-test -Dit.test={{TEST}}
+    {{mvn}} verify -pl com.sonatype.insight.brain:insight-brain-playwright-test -Dit.test={{TEST}}
 
 # Run a particular integration test in insight-brain-service
 it name:

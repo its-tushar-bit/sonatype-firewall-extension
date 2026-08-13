@@ -1004,8 +1004,8 @@ void stashTestArtifacts() {
     pids=""
     for module in insight-brain-service insight-brain-db insight-brain-data insight-brain-policy \\
                   insight-brain-common insight-brain-event insight-brain-tenancy nexus-mtiq-server \\
-                  insight-brain-variant-test-data-pg insight-brain-variant-test-db-pg insight-brain-variant-test-mtiq-db-pg \\
-                  insight-brain-playwright-test; do
+                  insight-brain-testing/insight-brain-variant-test-data-pg insight-brain-testing/insight-brain-variant-test-db-pg insight-brain-testing/insight-brain-variant-test-mtiq-db-pg \\
+                  insight-brain-testing/insight-brain-playwright-test; do
       mkdir -p "${stashDir}/test-classes/\$module/target"
       if [ -d "\$module/target/test-classes" ]; then
         cp -r "\$module/target/test-classes" "${stashDir}/test-classes/\$module/target/" &
@@ -1444,7 +1444,7 @@ String buildPlaywrightTestMavenOptions(String profile, String testPattern) {
 
   opts << "--no-transfer-progress"
   opts << "-T 1"
-  opts << "-pl 'insight-brain-playwright-test'"
+  opts << "-pl 'com.sonatype.insight.brain:insight-brain-playwright-test'"
   opts << "-D build.number=${env.BUILD_NUMBER}"
 
   opts << "-P${profile}"
@@ -1472,13 +1472,13 @@ String buildPlaywrightTestMavenOptions(String profile, String testPattern) {
 /** Collect JUnit results, archive Playwright artifacts, and stash JaCoCo for a Playwright stage. */
 void capturePlaywrightStageResults() {
   junit testResults: '**/target/failsafe-reports/*.xml', allowEmptyResults: true
-  archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/playwright-screenshots/**',
+  archiveArtifacts(artifacts: 'insight-brain-testing/insight-brain-playwright-test/target/playwright-screenshots/**',
                    allowEmptyArchive: true)
-  archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/playwright-traces/**',
+  archiveArtifacts(artifacts: 'insight-brain-testing/insight-brain-playwright-test/target/playwright-traces/**',
                    allowEmptyArchive: true)
-  archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/playwright-diagnostics/**',
+  archiveArtifacts(artifacts: 'insight-brain-testing/insight-brain-playwright-test/target/playwright-diagnostics/**',
                    allowEmptyArchive: true)
-  archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/*.hprof',
+  archiveArtifacts(artifacts: 'insight-brain-testing/insight-brain-playwright-test/target/*.hprof',
                    allowEmptyArchive: true)
   String stashName = "jacoco-${env.STAGE_NAME.replaceAll('[^a-zA-Z0-9]', '-')}"
   stash name: stashName, includes: '**/target/jacoco.exec, **/target/site/jacoco/jacoco.xml', allowEmpty: true

@@ -73,10 +73,10 @@ yarn start                     # Main bundle only (faster)
 To iterate on frontend changes without rebuilding `insight-brain-service`, you can run functional tests against the dev server:
 
 1. Start the dev server: `yarn start` (serves on port 8070, proxies `/rest`, `/api`, `/ui`, `/policy-assets`, `/saml` to `localhost:8072`)
-2. Run a functional test with `-Dfunctional-test-webpack-dev-server=true` from `insight-brain-playwright-test/`
+2. Run a functional test with `-Dfunctional-test-webpack-dev-server=true` from `insight-brain-testing/insight-brain-playwright-test/`
 
 ```bash
-cd insight-brain-playwright-test
+cd insight-brain-testing/insight-brain-playwright-test
 mvn verify -Dit.test=SomeTest#someMethod -Dfunctional-test-webpack-dev-server=true
 ```
 

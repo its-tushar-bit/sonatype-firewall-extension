@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+    Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+    "Sonatype" is a trademark of Sonatype, Inc.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.sonatype.insight.brain</groupId>
+    <artifactId>insight-brain</artifactId>
+    <version>1.207.0-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>insight-brain-test</artifactId>
+  <packaging>jar</packaging>
+  <name>Insight Brain Test Utilities</name>
+
+  <properties>
+    <clm.skip>true</clm.skip>
+    <!-- Directory for the Bouncy Castle Java FIPS jars -->
+    <fips.lib.dir>${project.build.directory}/fips-lib</fips.lib.dir>
+  </properties>
+  
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <!--
+      SpringInjectedTest (src/main) is a dual-engine test base: it carries JUnit 5 (Jupiter) lifecycle
+      annotations (@BeforeEach/@AfterEach) alongside the legacy JUnit 4 @Before/@After, so junit-jupiter-api
+      is a compile dependency. Concrete subclasses still run under exactly one engine; the Jupiter mirrors let
+      the insight-brain-variant-test-component-h2 module drive this base chain under the JUnit 5 platform.
+    -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <!-- Spring Test Dependencies -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.inject</groupId>
+      <artifactId>jakarta.inject-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.ws.rs</groupId>
+      <artifactId>jakarta.ws.rs-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.module</groupId>
+      <artifactId>jackson-module-parameter-names</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.asynchttpclient</groupId>
+      <artifactId>async-http-client</artifactId>
+      <version>3.0.11</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.licensing</groupId>
+      <artifactId>license-bundle</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.portal</groupId>
+      <artifactId>insight-license-model</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-common</artifactId>
+    </dependency>
+
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-fips-dependencies</id>
+            <phase>process-test-resources</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.bouncycastle</groupId>
+                  <artifactId>bc-fips</artifactId>
+                  <version>${bc-fips.version}</version>
+                  <type>jar</type>
+                  <outputDirectory>${fips.lib.dir}</outputDirectory>
+                  <destFileName>bc-fips-${bc-fips.version}.jar</destFileName>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.bouncycastle</groupId>
+                  <artifactId>bcpkix-fips</artifactId>
+                  <version>${bcpkix-fips.version}</version>
+                  <type>jar</type>
+                  <outputDirectory>${fips.lib.dir}</outputDirectory>
+                  <destFileName>bcpkix-fips-${bcpkix-fips.version}.jar</destFileName>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.bouncycastle</groupId>
+                  <artifactId>bctls-fips</artifactId>
+                  <version>${bctls-fips.version}</version>
+                  <type>jar</type>
+                  <outputDirectory>${fips.lib.dir}</outputDirectory>
+                  <destFileName>bctls-fips-${bctls-fips.version}.jar</destFileName>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.bouncycastle</groupId>
+                  <artifactId>bcutil-fips</artifactId>
+                  <version>${bc-fips-util.version}</version>
+                  <type>jar</type>
+                  <outputDirectory>${fips.lib.dir}</outputDirectory>
+                  <destFileName>bcutil-fips-${bc-fips-util.version}.jar</destFileName>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

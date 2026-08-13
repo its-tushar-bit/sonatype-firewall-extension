@@ -162,9 +162,7 @@
   </scm>
 
   <modules>
-    <module>hds-mock-server</module>
     <module>insight-json-store</module>
-    <module>insight-brain-test</module>
     <module>insight-brain-common</module>
     <module>insight-brain-db</module>
     <module>insight-brain-data</module>
@@ -176,27 +174,9 @@
     <module>insight-brain-tenancy</module>
     <module>nexus-iq-server</module>
     <module>nexus-mtiq-server</module>
-    <module>insight-brain-variant-test-support</module>
-    <module>insight-brain-variant-test-h2</module>
-    <module>insight-brain-variant-test-component-h2</module>
-    <module>insight-brain-variant-test-pg</module>
-    <module>insight-brain-variant-test-component-pg</module>
-    <module>insight-brain-variant-test-data-pg</module>
-    <module>insight-brain-variant-test-db-pg</module>
-    <module>insight-brain-variant-test-mtiq</module>
-    <module>insight-brain-variant-test-mtiq-db-pg</module>
-    <module>insight-brain-variant-test-legacy</module>
-    <module>insight-brain-variant-test-fips</module>
-    <module>insight-brain-variant-test-mtiq-fips</module>
-    <!-- Aggregates JaCoCo coverage across all variant-test-* modules; must build after them. -->
-    <module>insight-brain-variant-test-coverage</module>
     <module>nexus-iq-diagnostics</module>
-    <module>insight-brain-functional-test-common</module>
-    <module>insight-brain-playwright-test</module>
-    <module>insight-brain-mtiq-playwright-tests</module>
-    <module>insight-brain-api-regression-test</module>
-    <module>gitlab-server</module>
-    <module>docker-utils</module>
+    <!-- All test-only modules (unit-test utils, deployment-variant IT modules, coverage aggregator, functional/Playwright/regression suites). -->
+    <module>insight-brain-testing</module>
   </modules>
 
   <dependencyManagement>

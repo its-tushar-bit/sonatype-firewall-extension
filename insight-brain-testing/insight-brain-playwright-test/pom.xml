@@ -1,0 +1,404 @@
+<!--
+
+    Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+    Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+    "Sonatype" is a trademark of Sonatype, Inc.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.sonatype.insight.brain</groupId>
+    <artifactId>insight-brain</artifactId>
+    <version>1.207.0-SNAPSHOT</version>
+    <!-- Required when this folder is opened alone so Maven / Java LS resolve the reactor and dependencyManagement. -->
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+  <artifactId>insight-brain-playwright-test</artifactId>
+
+  <properties>
+    <skip.functional.tests>false</skip.functional.tests>
+    <clm.skip>true</clm.skip>
+    <it.includes>**/*Test.*</it.includes>
+    <!-- 0.5C caps parallel forks to avoid overwhelming Docker with concurrent Postgres startups. -->
+    <failsafe.forkCount>0.5C</failsafe.forkCount>
+    <playwright.version>1.62.0</playwright.version>
+    <!-- Playwright defaults (override with -Dplaywright.headless=false for headed mode) -->
+    <playwright.headless>true</playwright.headless>
+    <playwright.slowMo>0</playwright.slowMo>
+    <!-- Trace capture: 'on-failure' (default) keeps reports small; 'always' captures every test. -->
+    <playwright.trace>on-failure</playwright.trace>
+    <!-- When true, tests that call playwrightManualPauseIfEnabled() block for Playwright Inspector. -->
+    <playwright.manualPause>false</playwright.manualPause>
+    <!--
+      JUnit 4 @Category filtering, surfaced through Maven so CI can target specific suites
+      (see com.sonatype.clm.testing.playwright.categories.SanityTest). Empty = no filtering (run everything).
+    -->
+    <failsafe.groups></failsafe.groups>
+    <failsafe.excludedGroups></failsafe.excludedGroups>
+  </properties>
+
+  <build>
+    <plugins>
+      <!--
+        Publish a test-jar so the sibling insight-brain-mtiq-playwright-tests module can reuse the
+        shared Playwright infrastructure (AbstractPlaywrightTest, page objects, utils, LoginPage,
+        SanityTest/RegressionTest category markers) without duplicating it.
+      -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>test-jar</id>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+        <executions>
+          <!-- Lightweight ArchUnit architecture checks run via Surefire (no browser needed). -->
+          <execution>
+            <id>architecture-checks</id>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <skip>false</skip>
+              <includes>
+                <include>**/architecture/*Check.java</include>
+              </includes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <includes>
+            <include>${it.includes}</include>
+          </includes>
+          <groups>${failsafe.groups}</groups>
+          <excludedGroups>${failsafe.excludedGroups}</excludedGroups>
+          <trimStackTrace>false</trimStackTrace>
+          <skip>false</skip>
+          <skipITs>${skip.functional.tests}</skipITs>
+          <reuseForks>true</reuseForks>
+          <forkedProcessTimeoutInSeconds>3600</forkedProcessTimeoutInSeconds>
+          <forkCount>${failsafe.forkCount}</forkCount>
+          <!--
+            Inline add-opens from jvm.options (omit enable-native-access: crashes JDK 25 forks).
+            No @{argLine}: Playwright forks are excluded from JaCoCo coverage.
+          -->
+          <argLine>
+            --add-opens=java.base/java.lang=ALL-UNNAMED
+            --add-opens=java.base/java.util=ALL-UNNAMED
+            --add-opens=java.base/java.security=ALL-UNNAMED
+            --add-opens=java.base/sun.security.rsa=ALL-UNNAMED
+            --add-opens=java.base/sun.security.x509=ALL-UNNAMED
+            --add-opens=java.base/sun.security.util=ALL-UNNAMED
+            --add-opens=java.xml/com.sun.org.apache.xerces.internal.jaxp.datatype=ALL-UNNAMED
+            --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+            -XX:+HeapDumpOnOutOfMemoryError
+            -XX:HeapDumpPath=${project.build.directory}/
+          </argLine>
+          <systemPropertyVariables>
+            <!-- Used by the test IQ server to set the work directory (to not use the same work dir across all forks). -->
+            <test.forkId>#${surefire.forkNumber}</test.forkId>
+            <!-- Playwright configuration -->
+            <playwright.version>${playwright.version}</playwright.version>
+            <playwright.headless>${playwright.headless}</playwright.headless>
+            <playwright.slowMo>${playwright.slowMo}</playwright.slowMo>
+            <playwright.trace>${playwright.trace}</playwright.trace>
+            <playwright.manualPause>${playwright.manualPause}</playwright.manualPause>
+          </systemPropertyVariables>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-collections4</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- Required for JakartaToJavaxBridge adapters that implement javax.servlet interfaces -->
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>3.1.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-json-store</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.ws.rs</groupId>
+      <artifactId>jakarta.ws.rs-api</artifactId>
+    </dependency>
+    <!-- Required for compatibility with dependencies that still reference javax.ws.rs -->
+    <dependency>
+      <groupId>javax.ws.rs</groupId>
+      <artifactId>javax.ws.rs-api</artifactId>
+      <version>2.1.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.mail</groupId>
+      <artifactId>jakarta.mail-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- The app to test against -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-service</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-data</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-data</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-common</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-db</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>io.zonky.test</groupId>
+      <artifactId>embedded-postgres</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- Required because Guice scans insight-brain-service *-tests.jar (OpenSearch, LocalStack, etc.). -->
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers-postgresql</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers-localstack</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.opensearch</groupId>
+      <artifactId>opensearch-testcontainers</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-service</artifactId>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.directory.server</groupId>
+      <artifactId>apacheds-core-integ</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>hds-mock-server</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-functional-test-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.scan</groupId>
+      <artifactId>insight-test-reverse-proxy</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.clm</groupId>
+      <artifactId>com.sonatype.clm.dto.model</artifactId>
+    </dependency>
+    <!--
+      MTIQ server + tenancy test harness intentionally NOT declared here. MTIQ Playwright tests live
+      in the sibling insight-brain-mtiq-playwright-tests module; keeping nexus-mtiq-server off this
+      module's classpath is what keeps the single-tenant Spring context free of MTIQ @Primary beans.
+    -->
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- Applitools removed: visual regression testing replaced by Playwright screenshots/traces -->
+    <dependency>
+      <groupId>com.icegreen</groupId>
+      <artifactId>greenmail-junit4</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.tomakehurst</groupId>
+      <artifactId>wiremock-jre8-standalone</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.ow2.asm</groupId>
+          <artifactId>asm</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>gitlab-server</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.github.stefanbirkner</groupId>
+      <artifactId>system-rules</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-test</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.tngtech.archunit</groupId>
+      <artifactId>archunit-junit4</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.xmlunit</groupId>
+      <artifactId>xmlunit-assertj</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.skyscreamer</groupId>
+      <artifactId>jsonassert</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- Playwright for browser automation -->
+    <dependency>
+      <groupId>com.microsoft.playwright</groupId>
+      <artifactId>playwright</artifactId>
+      <version>${playwright.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <profiles>
+    <profile>
+      <id>docker-registry</id>
+      <activation>
+        <property>
+          <name>docker.registry</name>
+        </property>
+      </activation>
+      <properties>
+        <docker.image.registry>${docker.registry}/</docker.image.registry>
+      </properties>
+    </profile>
+    <profile>
+      <id>docker-functional-tests</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <skip.functional.tests>false</skip.functional.tests>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <!-- Profile replaces base argLine (child-wins merge); repeat add-opens + UTC. -->
+              <argLine>
+                --add-opens=java.base/java.lang=ALL-UNNAMED
+                --add-opens=java.base/java.util=ALL-UNNAMED
+                --add-opens=java.base/java.security=ALL-UNNAMED
+                --add-opens=java.base/sun.security.rsa=ALL-UNNAMED
+                --add-opens=java.base/sun.security.x509=ALL-UNNAMED
+                --add-opens=java.base/sun.security.util=ALL-UNNAMED
+                --add-opens=java.xml/com.sun.org.apache.xerces.internal.jaxp.datatype=ALL-UNNAMED
+                --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+                -Duser.timezone=UTC
+                -XX:+HeapDumpOnOutOfMemoryError
+                -XX:HeapDumpPath=${project.build.directory}/
+              </argLine>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!--
+      CI sanity profile - runs only tests annotated @Category(SanityTest.class).
+      Activate with:  mvn verify -pl insight-brain-playwright-test -Psanity
+    -->
+    <profile>
+      <id>sanity</id>
+      <properties>
+        <failsafe.groups>com.sonatype.clm.testing.playwright.categories.SanityTest</failsafe.groups>
+      </properties>
+    </profile>
+    <!--
+      Allows build of 'functional-test' to be disabled; required for build-automation optimizations.
+    -->
+    <profile>
+      <id>exclude-functional-test</id>
+      <activation>
+        <property>
+          <name>skip-functional-test</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>regression</id>
+      <properties>
+        <failsafe.groups>com.sonatype.clm.testing.playwright.categories.RegressionTest</failsafe.groups>
+      </properties>
+    </profile>
+  </profiles>
+</project>

@@ -237,7 +237,7 @@ private void runPlaywrightRegressionPartitions() {
  */
 private void runPlaywrightSuite(String profile, String regex) {
   echo "Running partition: Playwright ${profile} (regex ${regex})"
-  String args = "-pl insight-brain-playwright-test"
+  String args = "-pl com.sonatype.insight.brain:insight-brain-playwright-test"
   args += " -P${profile}"
   args += " -Dit.test='%regex[${regex}]'"
   args += " -Dplaywright.trace=${params.playwrightTraceMode ?: 'on-failure'}"
@@ -281,7 +281,7 @@ private void runUnitTestPartitions() {
 /** Run a single unit/integration partition. jacoco:report is deferred to runJacocoReport(). */
 private void runUnitTestPartition(String stageName, String regex) {
   echo "Running partition: ${stageName} (regex ${regex})"
-  String args = "-pl '!nexus-mtiq-server,!insight-brain-frontend,!insight-brain-playwright-test'"
+  String args = "-pl '!nexus-mtiq-server,!insight-brain-frontend,!com.sonatype.insight.brain:insight-brain-playwright-test'"
   args += " -Dtest=%regex[${regex}]"
   args += " -Dit.test=%regex[${regex}]"
   args += " -DdetectTestEntityLeaks"
@@ -326,7 +326,7 @@ private void runFrontendTests() {
  */
 private void runJacocoReport() {
   echo 'Aggregating JaCoCo coverage across all partitions'
-  String args = "-pl '!insight-brain-playwright-test'"
+  String args = "-pl '!com.sonatype.insight.brain:insight-brain-playwright-test'"
   args += ' --no-transfer-progress'
   args += ' -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn'
   args += ' jacoco:report'
@@ -346,7 +346,7 @@ private String buildOptions() {
   def opts = []
 
   def excludedModules = [
-      'insight-brain-playwright-test'
+      'com.sonatype.insight.brain:insight-brain-playwright-test'
   ]
   opts << "-pl '${excludedModules.collect { "!${it}" }.join(',')}'"
 
@@ -367,12 +367,12 @@ private boolean shouldNotify() {
 
 /** Archive Playwright failure artifacts (screenshots, traces, diagnostics, heap dumps). */
 private void capturePlaywrightArtifacts() {
-  archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/playwright-screenshots/**',
+  archiveArtifacts(artifacts: 'insight-brain-testing/insight-brain-playwright-test/target/playwright-screenshots/**',
                    allowEmptyArchive: true)
-  archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/playwright-traces/**',
+  archiveArtifacts(artifacts: 'insight-brain-testing/insight-brain-playwright-test/target/playwright-traces/**',
                    allowEmptyArchive: true)
-  archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/playwright-diagnostics/**',
+  archiveArtifacts(artifacts: 'insight-brain-testing/insight-brain-playwright-test/target/playwright-diagnostics/**',
                    allowEmptyArchive: true)
-  archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/*.hprof',
+  archiveArtifacts(artifacts: 'insight-brain-testing/insight-brain-playwright-test/target/*.hprof',
                    allowEmptyArchive: true)
 }

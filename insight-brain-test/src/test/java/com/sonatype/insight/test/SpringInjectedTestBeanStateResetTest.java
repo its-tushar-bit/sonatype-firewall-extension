@@ -8,14 +8,17 @@ package com.sonatype.insight.test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import jakarta.inject.Inject;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@TestMethodOrder(MethodOrderer.MethodName.class)
+@ExtendWith({SpringExtension.class, SpringInjectedTestExtension.class})
 @ContextConfiguration(classes = SpringInjectedTestBeanStateResetTest.TestConfig.class)
 public class SpringInjectedTestBeanStateResetTest
     extends SpringInjectedTest

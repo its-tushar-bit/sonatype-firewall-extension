@@ -201,6 +201,36 @@ public abstract class SpringInjectedTest
     }
   }
 
+  // --- JUnit 5 (Jupiter) lifecycle bridge -------------------------------------------------------
+  // These package-private hooks let SpringInjectedTestExtension reproduce, under the Jupiter engine,
+  // the SpringTestExecutionContext bookkeeping + fixture-signature tracking that the JUnit 4
+  // @ClassRule/@Rule stack drives under Vintage. The reflective context refresh only ever fires on a
+  // cross-fixture change, which cannot happen in the single-fixture (module-segregated) Jupiter
+  // modules these tests run under.
+  static void jupiterBeforeAll(final Class<?> testClass) {
+    clearTrackedContextSignature(testClass);
+    seedTrackedContextSignature(testClass);
+    SpringTestExecutionContext.setCurrentTestClass(testClass);
+  }
+
+  static void jupiterBeforeEach(final Object testInstance, final Method testMethod) {
+    SpringTestExecutionContext.setCurrentTestClass(testInstance.getClass());
+    SpringTestExecutionContext.setCurrentTestMethod(testMethod);
+    SpringTestExecutionContext.setCurrentTestInstance(testInstance);
+    refreshApplicationContextIfFixtureChanged(testInstance, testMethod);
+  }
+
+  static void jupiterAfterEach() {
+    SpringTestExecutionContext.clearCurrentTestInstance();
+    SpringTestExecutionContext.clearCurrentTestMethod();
+  }
+
+  static void jupiterAfterAll(final Class<?> testClass) {
+    clearTrackedContextSignature(testClass);
+    SpringTestExecutionContext.clearCurrentTestMethod();
+    SpringTestExecutionContext.clearCurrentTestClass();
+  }
+
   private static void refreshApplicationContext(final Class<?> testClass, final Object testInstance) {
     try {
       TestContextManager testContextManager = getTestContextManager(testClass);

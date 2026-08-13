@@ -10,13 +10,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import jakarta.inject.Inject;
 import java.util.Set;
 import org.aopalliance.intercept.MethodInterceptor;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.util.AopTestUtils;
 
+@ExtendWith({SpringExtension.class, SpringInjectedTestExtension.class})
 @ContextConfiguration(classes = SpringInjectedTestWiringTest.TestConfig.class)
 public class SpringInjectedTestWiringTest
     extends SpringInjectedTest
@@ -74,6 +77,15 @@ public class SpringInjectedTestWiringTest
 
     assertThat(listenerAwareService.getListeners()).containsExactly(mockTestListener);
     assertThat(realTestListener.getInvocations()).isZero();
+  }
+
+  @Test
+  public void extensionPublishesCurrentTestExecutionContext() {
+    assertThat(SpringTestExecutionContext.getCurrentTestInstance()).isSameAs(this);
+    assertThat(SpringTestExecutionContext.getCurrentTestClass()).isEqualTo(getClass());
+    assertThat(SpringTestExecutionContext.getCurrentTestMethod()).isNotNull();
+    assertThat(SpringTestExecutionContext.getCurrentTestMethod().getName())
+        .isEqualTo("extensionPublishesCurrentTestExecutionContext");
   }
 
   @Configuration

@@ -88,7 +88,6 @@ import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.notifications.WebhookNotification;
-import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
@@ -1481,56 +1480,6 @@ public class RepositoryPolicyEvaluatorTest
         proxyRepositoryComponentDAO.getByRepositoryId(repository.getId());
 
     assertThat(repositoryComponents).hasSize(1);
-  }
-
-  @Test
-  public void testEvaluate_stampsLastEvaluationStage_onNewComponent() {
-    Repository repository = tempEntity.newRepository();
-
-    RepositoryComponentEvaluationDataRequestList request = new RepositoryComponentEvaluationDataRequestList();
-    request.components.add(new RepositoryComponentEvaluationDataRequest("maven2", "path1", "h1"));
-
-    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
-    hdsResult.components.add(createComponentEvaluationData(
-        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"), "h1",
-        MatchState.EXACT, 0, null, null, createSecurityVulnerabilities(), 1));
-
-    mockHdsRequest(request, hdsResult, false);
-
-    repositoryPolicyEvaluator.evaluate(repository, request, false, null, ComplianceStageType.ID);
-
-    ProxyRepositoryComponent component =
-        proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), "path1");
-    assertThat(component).isNotNull();
-    assertThat(component.getLastEvaluationStage()).isEqualTo(ComplianceStageType.ID);
-  }
-
-  @Test
-  public void testEvaluateForMonitoring_stampsLastEvaluationStage_onExistingComponent() {
-    Repository repository = tempEntity.newRepository();
-
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
-    Date createTime = new Date();
-    ProxyRepositoryComponent existing = new ProxyRepositoryComponent(repository.getId(), "path1", createTime, "h1",
-        componentIdentifier, MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), createTime);
-    proxyRepositoryComponentDAO.insert(existing);
-
-    RepositoryComponentEvaluationDataRequestList request =
-        new RepositoryComponentEvaluationDataRequestList(RepositoryPolicyEvaluator.CONTINUOUS_MONITORING_CAUSE);
-    request.components.add(new RepositoryComponentEvaluationDataRequest("maven2", "path1", "h1"));
-
-    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
-    hdsResult.components.add(createComponentEvaluationData(
-        componentIdentifier, "h1", MatchState.EXACT, 0, null, null, createSecurityVulnerabilities(), 1));
-
-    mockHdsRequest(request, hdsResult, false);
-
-    repositoryPolicyEvaluator.evaluateForMonitoring(repository, request, ProxyStageType.ID);
-
-    ProxyRepositoryComponent component =
-        proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), "path1");
-    assertThat(component).isNotNull();
-    assertThat(component.getLastEvaluationStage()).isEqualTo(ProxyStageType.ID);
   }
 
   @Test

@@ -55,7 +55,6 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.HostedRepositoryComponentDAO;
-import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
@@ -198,8 +197,6 @@ public class ReportService
 
   private final ScanPersistenceService scanPersistenceService;
 
-  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
-
   private final RepositoryDAO repositoryDAO;
 
   private final PolicyDAO policyDAO;
@@ -245,7 +242,6 @@ public class ReportService
       final AutomatedPullRequestCreationService automatedPullRequestCreationService,
       final CpeMatchingConfigurationService cpeMatchingConfigurationService,
       final ScanPersistenceService scanPersistenceService,
-      final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
       final RepositoryDAO repositoryDAO,
       final PolicyDAO policyDAO,
       final LifecycleReportPersistenceService lifecycleReportPersistenceService,
@@ -282,7 +278,6 @@ public class ReportService
     this.automatedPullRequestCreationService = automatedPullRequestCreationService;
     this.cpeMatchingConfigurationService = cpeMatchingConfigurationService;
     this.scanPersistenceService = scanPersistenceService;
-    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
     this.repositoryDAO = repositoryDAO;
     this.policyDAO = policyDAO;
     this.lifecycleReportPersistenceService = lifecycleReportPersistenceService;
@@ -395,10 +390,6 @@ public class ReportService
     else {
       AuditData.get().setEvent(null);
     }
-  }
-
-  public boolean isHostedRepositoryComponent(final String scanId) {
-    return proxyRepositoryComponentDAO.getByScanId(scanId) != null;
   }
 
   /**

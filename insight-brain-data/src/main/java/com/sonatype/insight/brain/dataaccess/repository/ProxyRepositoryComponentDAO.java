@@ -171,18 +171,6 @@ public class ProxyRepositoryComponentDAO
         .fetch(this::toEntity);
   }
 
-  public ProxyRepositoryComponent getByScanId(String scanId) {
-    if (scanId == null) {
-      return null;
-    }
-    try (TransactionContext tx = createTransactionContext()) {
-      return toEntity(tx.dsl()
-          .selectFrom(PROXY_REPOSITORY_COMPONENT)
-          .where(PROXY_REPOSITORY_COMPONENT.SCAN_ID.eq(scanId))
-          .fetchOne());
-    }
-  }
-
   /**
    * Returns components from monitoring-enabled hosted repositories whose last evaluation predates
    * the given cycle start, paginated newest-first by {@code (time DESC, proxy_repository_component_id

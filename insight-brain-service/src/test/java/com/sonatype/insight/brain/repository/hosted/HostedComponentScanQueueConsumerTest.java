@@ -686,69 +686,6 @@ public class HostedComponentScanQueueConsumerTest
   }
 
   /**
-   * The upload path writes no scan state onto {@code proxy_repository_component}: a hosted
-   * artifact's evaluation history lives in {@code policy_evaluation} under its
-   * {@link com.sonatype.insight.brain.model.repository.HostedRepositoryComponent} owner, which is
-   * where both continuous monitoring and Manual Re-Evaluate read it from. Leaving {@code scan_id}
-   * untouched keeps the Firewall-owned table free of hosted-pipeline writes.
-   */
-  @Test
-  public void executeJob_doesNotStampScanIdOnProxyRepositoryComponent() throws Exception {
-    Organization org = tempEntity.newOrganizationWithRepositoryManager("test-org-no-stamp-scan-id");
-    String pathname = "com/example/lib/1.0/unstamped-1.0.jar";
-    String hash = "stamp_hash_001";
-
-    HostedComponentScanQueue job = insertPendingJobWithScanXmlForOrg(
-        org, "comp-stamp",
-        "pkg:maven/com.example/stamped@1.0.0", null,
-        pathname, hash, "maven2");
-
-    // The Firewall evaluation path inserts this row when the artifact is first proxied, leaving
-    // scan_id null. The hosted upload must leave it that way.
-    tempEntity.newRepositoryComponent(
-        repositoryDAO.getByIdNotNull(job.getRepositoryId()), pathname, MatchState.EXACT, hash);
-    assertThat(
-        proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(job.getRepositoryId(), pathname).getScanId())
-            .as("precondition: the Firewall-inserted row starts with a null scan_id")
-            .isNull();
-
-    String scanId = "scan-id-stamped";
-    ScanReceipt receipt = new ScanReceipt();
-    receipt.setScanId(scanId);
-    hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
-    URL zippedReport = ReportHelper.zipReport("/ScanServiceTest/report", tempDir);
-    hdsMockServer.respondWith(zippedReport).atUri("rest/application/analysis/" + scanId);
-
-    consumer.disableForTesting = false;
-    consumer.run();
-
-    await().atMost(15, TimeUnit.SECONDS)
-        .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
-            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
-
-    ProxyRepositoryComponent component =
-        proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(job.getRepositoryId(), pathname);
-    assertThat(component)
-        .as("proxy_repository_component row for pathname=%s", pathname)
-        .isNotNull();
-    assertThat(component.getScanId())
-        .as("hosted upload leaves scan_id alone; the scan pointer lives in policy_evaluation")
-        .isNull();
-
-    // The evaluation the hosted pipeline actually wrote is HRC-owned and carries the scan id.
-    HostedRepositoryComponent hrc;
-    try (TransactionContext tx = hostedRepositoryComponentDAO.createTransactionContext()) {
-      hrc = hostedRepositoryComponentDAO.getByRepositoryIdAndPathname(tx, job.getRepositoryId(), pathname);
-    }
-    assertThat(hrc)
-        .as("upload resolves an HRC owner for the artifact")
-        .isNotNull();
-    assertThat(policyEvaluationDAO.getLastByOwnerIdAndScanId(hrc.getId(), scanId))
-        .as("the scan pointer continuous monitoring reads: policy_evaluation under the HRC owner")
-        .isNotNull();
-  }
-
-  /**
    * select2-3.2.jar as reported inside {@code /ScanServiceTest/report}'s bom.json — an inner
    * component of the outer scanned artifact, carrying zero CVEs in that fixture's security.json.
    */
@@ -857,18 +794,8 @@ public class HostedComponentScanQueueConsumerTest
 
     // Continuous monitoring's per-component lookup (getByRepositoryIdAndHash) reads a
     // proxy_repository_component row keyed on (repositoryId, hash). The hosted upload path does not
-    // write that table, so seed the row the way Firewall would when it proxied the same artifact,
-    // then set the identified-outer verdict this scenario needs.
-    ProxyRepositoryComponent outer = tempEntity.newRepositoryComponent(
-        repository, outerPathname, MatchState.EXACT, outerHash);
-    outer.setMatchStateId(MatchState.EXACT.getId());
-    outer.setScanId(initialScanId);
-    outer.setLastEvaluationStage(ComplianceStageType.ID);
-    try (TransactionContext tx = proxyRepositoryComponentDAO.createTransactionContext()) {
-      tx.begin();
-      proxyRepositoryComponentDAO.update(tx, outer);
-      tx.commit();
-    }
+    // write that table, so seed the row the way Firewall would when it proxied the same artifact.
+    tempEntity.newRepositoryComponent(repository, outerPathname, MatchState.EXACT, outerHash);
 
     // Before: the inner component's hash carries no active violation at the initial scan.
     assertThat(policyViolationDAO.getActiveByOwnerIdAndStageIdAndHash(

@@ -508,7 +508,6 @@ public class RepositoryPolicyEvaluator
               shouldSendNotifications,
               forMonitoring,
               explicitReleaseReason,
-              stageTypeId,
               event,
               repositoryComponentEvaluationResult.policyAlerts,
               waivedAlerts,
@@ -658,7 +657,6 @@ public class RepositoryPolicyEvaluator
       boolean isNotificationsToBeSent,
       boolean forMonitoring,
       ReleaseReason explicitReleaseReason,
-      String stageTypeId,
       CreateRepositoryPolicyViolationsEvent event,
       List<PolicyAlert> activeAlerts,
       List<PolicyAlert> waivedAlerts,
@@ -695,7 +693,7 @@ public class RepositoryPolicyEvaluator
               policyViolationLogger, event, allPolicyAlertsByComponent, policyWaiversByComponent,
               existing.activeViolations());
       proxyRepositoryComponent = persistRepositoryComponent(tx, repository, evaluationTime, component,
-          canBeQuarantined, forMonitoring, explicitReleaseReason, stageTypeId, activeAlerts,
+          canBeQuarantined, forMonitoring, explicitReleaseReason, activeAlerts,
           newRepositoryPolicyViolations, existing.component());
 
       tx.commit();
@@ -716,7 +714,6 @@ public class RepositoryPolicyEvaluator
       boolean canBeQuarantined,
       boolean forMonitoring,
       ReleaseReason explicitReleaseReason,
-      String stageTypeId,
       List<PolicyAlert> activeAlerts,
       List<ProxyRepositoryPolicyViolation> newRepositoryPolicyViolations,
       ProxyRepositoryComponent existingRepositoryComponent)
@@ -756,7 +753,6 @@ public class RepositoryPolicyEvaluator
               evaluationTime);
       proxyRepositoryComponent.setQuarantineTime(quarantineTime);
       proxyRepositoryComponent.setAnalyzerFeaturesJson(JsonUtils.format(component.getAnalyzerFeatures()));
-      proxyRepositoryComponent.setLastEvaluationStage(stageTypeId);
       if (repositoryComponentId == null) {
         proxyRepositoryComponentDAO.insert(tx, proxyRepositoryComponent);
       }
@@ -771,7 +767,6 @@ public class RepositoryPolicyEvaluator
       proxyRepositoryComponent.setMatchStateId(component.getMatchState().getId());
       proxyRepositoryComponent.setIdentificationSourceId(component.getIdentificationSource().getId());
       proxyRepositoryComponent.setLastEvaluationTime(evaluationTime);
-      proxyRepositoryComponent.setLastEvaluationStage(stageTypeId);
       proxyRepositoryComponent.setAnalyzerFeaturesJson(JsonUtils.format(component.getAnalyzerFeatures()));
 
       if (proxyRepositoryComponent.isQuarantined() && !shouldQuarantine(activeAlerts, component)) {

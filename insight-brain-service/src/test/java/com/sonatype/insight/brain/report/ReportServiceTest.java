@@ -43,7 +43,6 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.innersource.InnerSourceCleanupPendingService;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
@@ -391,9 +390,6 @@ public class ReportServiceTest
   private CpeMatchingConfigurationService cpeMatchingConfigurationService;
 
   @Mock
-  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
-
-  @Mock
   private InnerSourceCleanupPendingService innerSourceCleanupPendingService;
 
   @Inject
@@ -475,7 +471,7 @@ public class ReportServiceTest
         licenseThreatGroupDAO, hashComponentIdentifierDAO, licenseOverrideDAO, securityVulnerabilityOverrideDAO,
         multiLicenseDAO, innerSourceApplicationDAO, innerSourceVersionDAO, proprietaryConfigService, reportDataStoreSpy,
         mockScanUploadService, automatedPullRequestCreationServiceSpy, cpeMatchingConfigurationService,
-        scanPersistenceService, proxyRepositoryComponentDAO, null, null, null,
+        scanPersistenceService, null, null, null,
         innerSourceCleanupPendingService, thirdPartySbomMetadataDAO,
         hostedRepositoryComponentDAO, hostedRepositoryComponentResolver, scanPolicyEvaluatorProvider);
   }

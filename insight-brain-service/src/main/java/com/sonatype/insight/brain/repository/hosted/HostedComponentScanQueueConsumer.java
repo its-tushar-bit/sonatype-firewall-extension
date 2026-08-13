@@ -21,7 +21,6 @@ import com.sonatype.insight.brain.api.v2.service.ConfigurationListener;
 import com.sonatype.insight.brain.dataaccess.repository.HostedComponentScanQueueDAO;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
-import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
@@ -83,8 +82,6 @@ public class HostedComponentScanQueueConsumer
 
   private final RepositoryDAO repositoryDAO;
 
-  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
-
   private final Provider<ScanPolicyEvaluator> scanPolicyEvaluatorProvider;
 
   private final HostedRepositoryComponentResolver resolver;
@@ -98,7 +95,6 @@ public class HostedComponentScanQueueConsumer
       final Provider<ScanPersistenceService> scanPersistenceServiceProvider,
       final Provider<ScanUploader> scanUploaderProvider,
       final RepositoryDAO repositoryDAO,
-      final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
       final Provider<ScanPolicyEvaluator> scanPolicyEvaluatorProvider,
       final HostedRepositoryComponentResolver resolver,
       final ShutdownHandler shutdownHandler)
@@ -109,7 +105,6 @@ public class HostedComponentScanQueueConsumer
     this.scanPersistenceServiceProvider = scanPersistenceServiceProvider;
     this.scanUploaderProvider = scanUploaderProvider;
     this.repositoryDAO = repositoryDAO;
-    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
     this.scanPolicyEvaluatorProvider = scanPolicyEvaluatorProvider;
     this.resolver = resolver;
     this.configs = new TenantReference<>(this::loadConfig);

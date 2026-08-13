@@ -646,9 +646,6 @@ CREATE TABLE proxy_repository_component (
   analyzer_features_json varchar(1000), -- the analyzer features stored in json format
   auto_unquarantined boolean,
   component_id varchar(255),
-  last_evaluation_stage varchar(50),
-  scan_id varchar(50),
-  component_count integer,
   CONSTRAINT proxy_repository_component_pk PRIMARY KEY (proxy_repository_component_id),
   CONSTRAINT proxy_repository_component_repository_fk FOREIGN KEY (repository_id) REFERENCES repository(repository_id),
   CONSTRAINT proxy_repository_component_uk UNIQUE (repository_id, pathname)
@@ -658,7 +655,6 @@ CREATE INDEX proxy_repository_component_repository_unquarantine_idx ON proxy_rep
 CREATE INDEX proxy_repository_component_quarantine_idx ON proxy_repository_component(repository_id, quarantine_time);
 CREATE INDEX proxy_repository_component_release_quarantine_idx ON proxy_repository_component (quarantine_time, unquarantine_time, auto_unquarantined);
 CREATE INDEX proxy_repository_component_component_coordinates_idx ON proxy_repository_component (component_id_format, component_id_coordinates_json);
-CREATE INDEX proxy_repository_component_scan_id_idx ON proxy_repository_component(scan_id);
 -- Plain index on component_id for fresh installs (H2 + PostgreSQL compatible).
 -- Upgrading installations get the engine-specific variant via schema_incremental_0470
 -- (.pg.sql uses a partial WHERE predicate for storage efficiency on PostgreSQL;

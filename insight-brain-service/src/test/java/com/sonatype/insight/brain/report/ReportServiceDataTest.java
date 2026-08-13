@@ -115,7 +115,7 @@ public class ReportServiceDataTest
 
     return new ReportService(null, null, null, null, null, null, null, null, null, null, null,
         daoFactory.createLicenseDAO(), null, null, licenseThreatGroupDAO, null, null, null, multiLicenseDAO, null, null,
-        null, null, null, null, null, null, null, null, null, null, null, null,
+        null, null, null, null, null, null, null, null, null, null, null,
         Mockito.mock(HostedRepositoryComponentDAO.class),
         Mockito.mock(HostedRepositoryComponentResolver.class),
         // A lambda rather than a Mockito double: the constructor stores the Provider itself, so a

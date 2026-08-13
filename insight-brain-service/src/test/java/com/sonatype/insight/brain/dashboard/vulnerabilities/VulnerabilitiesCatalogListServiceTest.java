@@ -17,12 +17,12 @@ import com.sonatype.insight.brain.guide.core.GuideLicenseRevocationHandler;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -30,7 +30,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class VulnerabilitiesCatalogListServiceTest
 {
   @Mock
@@ -41,7 +41,7 @@ public class VulnerabilitiesCatalogListServiceTest
 
   private VulnerabilitiesCatalogListService underTest;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     underTest = new VulnerabilitiesCatalogListService(hdsClient, revocationHandler);
   }

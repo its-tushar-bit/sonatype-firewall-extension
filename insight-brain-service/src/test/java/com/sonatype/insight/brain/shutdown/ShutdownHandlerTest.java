@@ -17,20 +17,20 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -38,7 +38,7 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ShutdownHandlerTest
 {
   private AtomicInteger executeCounter;
@@ -54,18 +54,18 @@ public class ShutdownHandlerTest
 
   private ShutdownHandler spyShutdownHandler;
 
-  @Before
+  @BeforeEach
   public void before() {
     spyThreadFactory =
         spy(new ThreadFactoryBuilder().setNameFormat(ShutdownHandlerTest.class.getSimpleName() + "-%d").build());
     spyExecutorService = spy(Executors.newCachedThreadPool(spyThreadFactory));
     spyShutdownHandler = spy(new ShutdownHandler(spyThreadFactory, spyExecutorService));
-    doNothing().when(spyShutdownHandler).exit(anyInt());
+    lenient().doNothing().when(spyShutdownHandler).exit(anyInt());
     executeCounter = new AtomicInteger(0);
     getCounter = new AtomicInteger(0);
   }
 
-  @After
+  @AfterEach
   public void after() {
     spyExecutorService.shutdownNow();
   }

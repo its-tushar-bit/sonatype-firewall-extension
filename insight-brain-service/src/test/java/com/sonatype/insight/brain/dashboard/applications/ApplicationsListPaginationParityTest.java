@@ -26,13 +26,13 @@ import com.sonatype.insight.brain.service.Configuration;
 
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.SortField;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -46,7 +46,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ApplicationsListPaginationParityTest
 {
   @Mock
@@ -78,7 +78,7 @@ public class ApplicationsListPaginationParityTest
 
   private ApplicationsListService service;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     lenient().when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(2048);
     when(conversionHelper.stringToQuery(any())).thenReturn(new MatchAllDocsQuery());
@@ -98,7 +98,7 @@ public class ApplicationsListPaginationParityTest
         conversionHelper);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     System.clearProperty("nexusOne.search.readPath.applications");
   }

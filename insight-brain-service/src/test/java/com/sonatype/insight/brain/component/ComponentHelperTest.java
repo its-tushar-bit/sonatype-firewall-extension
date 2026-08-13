@@ -11,11 +11,11 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.git.PullRequestCommentingRemediationService;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING;
 import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES;
@@ -24,7 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ComponentHelperTest
 {
   private static final ComponentIdentifier MAVEN_COORDINATES =
@@ -37,7 +37,7 @@ public class ComponentHelperTest
 
   private ComponentHelper componentHelper;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     componentHelper = new ComponentHelper(mockRemediationService);
   }

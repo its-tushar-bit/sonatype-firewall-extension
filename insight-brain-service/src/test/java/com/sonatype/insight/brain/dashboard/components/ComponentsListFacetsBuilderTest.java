@@ -22,11 +22,11 @@ import com.sonatype.insight.brain.search.session.IndexReadSessionFactory;
 import com.sonatype.insight.brain.search.session.IndexTermsBucket;
 
 import org.apache.lucene.search.MatchAllDocsQuery;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -43,7 +43,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ComponentsListFacetsBuilderTest
 {
   @Mock
@@ -69,7 +69,7 @@ public class ComponentsListFacetsBuilderTest
 
   private ComponentsListFacetsBuilder facetsBuilder;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     when(indexReadSessionFactory.open()).thenReturn(indexReadSession);
     when(conversionHelper.stringToQuery(anyString())).thenReturn(new MatchAllDocsQuery());

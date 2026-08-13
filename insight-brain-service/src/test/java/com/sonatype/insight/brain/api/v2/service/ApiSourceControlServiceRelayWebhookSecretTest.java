@@ -30,12 +30,12 @@ import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 
 import com.sonatype.insight.brain.security.SecurityAspectControl;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -50,7 +50,7 @@ import static org.mockito.Mockito.when;
  * already covered by {@link ApiSourceControlServiceAuthzTest}; this class focuses on the
  * branch logic (feature gate, registration shape, decryption).
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ApiSourceControlServiceRelayWebhookSecretTest
 {
   private static final String ENCRYPTED_SECRET = "encrypted-blob";
@@ -67,7 +67,7 @@ public class ApiSourceControlServiceRelayWebhookSecretTest
 
   private ApiSourceControlService service;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     // The @Authorize aspect is compile-time-woven into ApiSourceControlService bytecode
     // by aspectj-maven-plugin; direct construction does NOT bypass it (only Spring proxies
@@ -103,7 +103,7 @@ public class ApiSourceControlServiceRelayWebhookSecretTest
         mock(com.sonatype.insight.brain.relay.GitHubAppRelayLinker.class));
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     SecurityAspectControl.enableEnforcement();
   }

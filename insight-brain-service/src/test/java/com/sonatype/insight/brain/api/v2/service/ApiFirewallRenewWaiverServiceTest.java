@@ -22,24 +22,24 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.sonatype.insight.brain.security.SecurityAspectControl;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ApiFirewallRenewWaiverServiceTest
 {
   private static final String WAIVER_ID_1 = "waiver-1";
@@ -77,22 +77,22 @@ public class ApiFirewallRenewWaiverServiceTest
 
   private ApiFirewallRenewWaiverService service;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     SecurityAspectControl.disableEnforcement();
     service = new ApiFirewallRenewWaiverService(policyWaiverDAO, ownerDAO, currentUser);
 
-    when(currentUser.getUsername()).thenReturn(USERNAME);
-    when(policyWaiverDAO.createTransactionContext()).thenReturn(transactionContext);
-    doNothing().when(transactionContext).begin();
-    doNothing().when(transactionContext).commit();
-    doNothing().when(transactionContext).close();
+    lenient().when(currentUser.getUsername()).thenReturn(USERNAME);
+    lenient().when(policyWaiverDAO.createTransactionContext()).thenReturn(transactionContext);
+    lenient().doNothing().when(transactionContext).begin();
+    lenient().doNothing().when(transactionContext).commit();
+    lenient().doNothing().when(transactionContext).close();
 
-    when(mockOwner.getId()).thenReturn(INTERNAL_OWNER_ID);
-    when(mockOwner.getType()).thenReturn(OwnerType.REPOSITORY);
+    lenient().when(mockOwner.getId()).thenReturn(INTERNAL_OWNER_ID);
+    lenient().when(mockOwner.getType()).thenReturn(OwnerType.REPOSITORY);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     SecurityAspectControl.enableEnforcement();
   }

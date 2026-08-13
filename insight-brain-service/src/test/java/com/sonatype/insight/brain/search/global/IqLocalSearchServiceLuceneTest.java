@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -57,12 +57,12 @@ import org.apache.lucene.search.SortedNumericSortField;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.ByteBuffersDirectory;
 import org.apache.lucene.store.Directory;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import com.sonatype.insight.brain.search.global.fieldmap.FieldMap;
 import com.sonatype.insight.brain.search.lucene.LuceneIndexingContext;
 import org.apache.lucene.document.FloatPoint;
@@ -84,7 +84,7 @@ import org.mockito.Mockito;
  * (whose constructor takes ~18 collaborators) and needs no external infrastructure, so it runs as
  * a plain unit test rather than a DB integration test.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class IqLocalSearchServiceLuceneTest
 {
   @Mock
@@ -106,7 +106,7 @@ public class IqLocalSearchServiceLuceneTest
 
   private IqLocalSearchService service;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     directory = new ByteBuffersDirectory();
     // Match production analyzer wiring: LowerCaseKeywordAnalyzer for non-description fields,
@@ -159,18 +159,18 @@ public class IqLocalSearchServiceLuceneTest
     service = new IqLocalSearchService(searchIndexClient,
         FieldMap.defaultMap());
 
-    when(searchIndexClient.isSearchPreviewEnabled()).thenReturn(true);
-    when(searchIndexClient.getCurrentUserContextIdsWithReadPermission()).thenReturn(Set.of());
-    when(searchIndexClient.buildAllowedContextIdsFilter(any())).thenReturn(null);
-    when(searchIndexClient.wrapWithPermissionFilter(any(), any())).thenAnswer(inv -> inv.getArgument(0));
-    when(searchIndexClient.buildPermittedQuery(any())).thenCallRealMethod();
+    lenient().when(searchIndexClient.isSearchPreviewEnabled()).thenReturn(true);
+    lenient().when(searchIndexClient.getCurrentUserContextIdsWithReadPermission()).thenReturn(Set.of());
+    lenient().when(searchIndexClient.buildAllowedContextIdsFilter(any())).thenReturn(null);
+    lenient().when(searchIndexClient.wrapWithPermissionFilter(any(), any())).thenAnswer(inv -> inv.getArgument(0));
+    lenient().when(searchIndexClient.buildPermittedQuery(any())).thenCallRealMethod();
     // Wire the mock SearchIndexClient to actually run the captured Query against our real
     // in-memory Lucene index — so the test exercises both QueryCompiler's output and
     // the index's matching behaviour, not just mock interactions.
-    when(searchIndexClient.searchGlobal(any())).thenAnswer(inv -> runRealSearch(inv.getArgument(0)));
+    lenient().when(searchIndexClient.searchGlobal(any())).thenAnswer(inv -> runRealSearch(inv.getArgument(0)));
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     if (reader != null) {
       reader.close();

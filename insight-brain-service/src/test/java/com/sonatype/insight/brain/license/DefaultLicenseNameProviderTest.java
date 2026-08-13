@@ -10,20 +10,20 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.lenient;
 
 /**
  * Tests for {@link DefaultLicenseNameProvider}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class DefaultLicenseNameProviderTest
 {
   @Mock
@@ -45,7 +45,7 @@ public class DefaultLicenseNameProviderTest
 
   private static final String MULTI_LICENSE_NAME = "Multi License";
 
-  @Before
+  @BeforeEach
   public void setUp() {
     // Create a regular license
     License license = new License();
@@ -58,9 +58,9 @@ public class DefaultLicenseNameProviderTest
     multiLicense.setShortDisplayName(MULTI_LICENSE_NAME);
 
     // Configure the mocks
-    when(licenseDAO.getById(REGULAR_LICENSE_ID)).thenReturn(license);
-    when(multiLicenseDAO.getById(MULTI_LICENSE_ID)).thenReturn(multiLicense);
-    when(licenseDAO.getById(UNKNOWN_LICENSE_ID)).thenReturn(null);
+    lenient().when(licenseDAO.getById(REGULAR_LICENSE_ID)).thenReturn(license);
+    lenient().when(multiLicenseDAO.getById(MULTI_LICENSE_ID)).thenReturn(multiLicense);
+    lenient().when(licenseDAO.getById(UNKNOWN_LICENSE_ID)).thenReturn(null);
   }
 
   @Test
@@ -69,7 +69,7 @@ public class DefaultLicenseNameProviderTest
     String displayName = licenseNameProvider.getShortDisplayName(REGULAR_LICENSE_ID, false);
 
     // Then it should return the correct name
-    assertEquals("Regular license should return its short display name", REGULAR_LICENSE_NAME, displayName);
+    assertEquals(REGULAR_LICENSE_NAME, displayName, "Regular license should return its short display name");
     System.out.println("[DEBUG_LOG] Regular license test passed: " + displayName);
   }
 
@@ -79,7 +79,7 @@ public class DefaultLicenseNameProviderTest
     String displayName = licenseNameProvider.getShortDisplayName(MULTI_LICENSE_ID, true);
 
     // Then it should return the correct name
-    assertEquals("Multi-license should return its short display name", MULTI_LICENSE_NAME, displayName);
+    assertEquals(MULTI_LICENSE_NAME, displayName, "Multi-license should return its short display name");
     System.out.println("[DEBUG_LOG] Multi-license test passed: " + displayName);
   }
 
@@ -89,7 +89,7 @@ public class DefaultLicenseNameProviderTest
     String displayName = licenseNameProvider.getShortDisplayName(UNKNOWN_LICENSE_ID, false);
 
     // Then it should return the license ID
-    assertEquals("Unknown license should return its ID", UNKNOWN_LICENSE_ID, displayName);
+    assertEquals(UNKNOWN_LICENSE_ID, displayName, "Unknown license should return its ID");
     System.out.println("[DEBUG_LOG] Unknown license test passed: " + displayName);
   }
 
@@ -99,7 +99,7 @@ public class DefaultLicenseNameProviderTest
     String displayName = licenseNameProvider.getShortDisplayName(UNKNOWN_LICENSE_ID, true);
 
     // Then it should return the license ID
-    assertEquals("Unknown license should return its ID", UNKNOWN_LICENSE_ID, displayName);
+    assertEquals(UNKNOWN_LICENSE_ID, displayName, "Unknown license should return its ID");
     System.out.println("[DEBUG_LOG] Unknown license test passed: " + displayName);
   }
 }

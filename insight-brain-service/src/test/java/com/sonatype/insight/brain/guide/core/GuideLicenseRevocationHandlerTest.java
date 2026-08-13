@@ -18,22 +18,23 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class GuideLicenseRevocationHandlerTest
 {
   @Mock
@@ -44,7 +45,7 @@ public class GuideLicenseRevocationHandlerTest
 
   private GuideLicenseRevocationHandler handler;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     handler = new GuideLicenseRevocationHandler(clmLicenseManager, productLicense);
   }
@@ -140,7 +141,7 @@ public class GuideLicenseRevocationHandlerTest
     when(productLicense.getFingerprint()).thenReturn("fp-test");
     // Configure productLicense to flip GUIDE_SEARCH=true → false across the loadLicense call.
     AtomicBoolean refreshed = new AtomicBoolean(false);
-    when(productLicense.hasFeature(LicensedFeature.GUIDE_SEARCH)).thenAnswer(inv -> !refreshed.get());
+    lenient().when(productLicense.hasFeature(LicensedFeature.GUIDE_SEARCH)).thenAnswer(inv -> !refreshed.get());
     doAnswer(inv -> {
       refreshed.set(true);
       return null;

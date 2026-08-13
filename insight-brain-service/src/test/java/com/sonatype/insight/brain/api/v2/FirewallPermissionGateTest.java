@@ -18,20 +18,21 @@ import com.sonatype.insight.brain.security.CurrentUser;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class FirewallPermissionGateTest
 {
   @Mock
@@ -49,10 +50,10 @@ public class FirewallPermissionGateTest
   @Mock
   private UserPrincipal userPrincipal;
 
-  @Before
+  @BeforeEach
   public void setUp() {
-    when(userPrincipal.getUsername()).thenReturn("testuser");
-    when(userPrincipal.getMembership()).thenReturn(Set.of());
+    lenient().when(userPrincipal.getUsername()).thenReturn("testuser");
+    lenient().when(userPrincipal.getMembership()).thenReturn(Set.of());
   }
 
   @Test

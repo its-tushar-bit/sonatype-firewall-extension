@@ -23,10 +23,10 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -38,7 +38,7 @@ import static org.mockito.Mockito.when;
  * {@code ApplicationsListIndexQueryBuilderTest}, so query shape is asserted here rather than only
  * indirectly through {@code ViolationsListResourceTest} (CLM-42254 review).
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ViolationsListIndexQueryBuilderTest
 {
   private static final String BASE = "itemType:POLICY_VIOLATION";

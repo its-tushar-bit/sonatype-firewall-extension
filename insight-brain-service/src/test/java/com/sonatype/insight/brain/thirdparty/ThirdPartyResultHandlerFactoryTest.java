@@ -21,20 +21,21 @@ import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ItemContentType;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ThirdPartyResultHandlerFactoryTest
 {
   @Mock
@@ -71,11 +72,11 @@ public class ThirdPartyResultHandlerFactoryTest
 
   private ThirdPartyResultHandlerFactory factory;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     mockConfigDao = mock(SystemConfigurationPropertyDAO.class);
     // Default: no rows → CONTAINER_IMAGES_EVAL_ENABLED is enabled (enabledWhenAbsent=true)
-    when(mockConfigDao.getByName(any(String.class))).thenReturn(null);
+    lenient().when(mockConfigDao.getByName(any(String.class))).thenReturn(null);
     SystemConfigurationPropertyFeature.injectDependencies(mockConfigDao);
 
     com.sonatype.insight.brain.sbom.spdx.Spdx3VersionHandler spdx3VersionHandler =

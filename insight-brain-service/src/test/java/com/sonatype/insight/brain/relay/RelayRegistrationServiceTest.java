@@ -23,15 +23,15 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import org.sonatype.licensing.product.util.LicenseContent;
 
 import jakarta.ws.rs.NotAuthorizedException;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -44,7 +44,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class RelayRegistrationServiceTest
 {
   @Mock
@@ -70,7 +70,7 @@ public class RelayRegistrationServiceTest
 
   private RelayRegistrationService service;
 
-  @Before
+  @BeforeEach
   public void before() {
     service = new RelayRegistrationService(
         relayClient, relayConfigurationDAO, licenseContent, passwordHandler, configuration, gitHubAppDAO, tenantUtil);
@@ -85,7 +85,7 @@ public class RelayRegistrationServiceTest
     SystemConfigurationPropertyFeature.injectDependencies(sysDao);
   }
 
-  @After
+  @AfterEach
   public void cleanUpStaticState() {
     SystemConfigurationPropertyFeature.injectDependencies(null);
   }

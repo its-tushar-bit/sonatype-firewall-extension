@@ -60,11 +60,11 @@ import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.stream.JsonGenerator;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.opensearch.client.json.JsonpMapper;
 import org.opensearch.client.json.jackson.JacksonJsonpMapper;
 import org.opensearch.client.opensearch.OpenSearchClient;
@@ -93,7 +93,7 @@ import org.opensearch.client.opensearch._types.aggregations.StringTermsBucket;
  * assert on the serialized request body — proving the RBAC filter is built correctly without any cluster, DB, or
  * {@code populateIndex()}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class OpenSearchSearchIndexClientMetricQueryTest
 {
   private static final String INDEX_NAME = "test-index";
@@ -112,7 +112,7 @@ public class OpenSearchSearchIndexClientMetricQueryTest
 
   private OpenSearchSearchIndexClient client;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     ownerDAO = mock(OwnerDAO.class);
     permissionService = mock(PermissionService.class);

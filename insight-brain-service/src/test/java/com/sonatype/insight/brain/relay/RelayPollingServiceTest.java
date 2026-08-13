@@ -22,12 +22,12 @@ import com.sonatype.insight.brain.service.ScmNodeProcessor;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 
 import com.sonatype.insight.error.exception.BadGatewayException;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.MDC;
 
 import ch.qos.logback.classic.Level;
@@ -52,7 +52,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class RelayPollingServiceTest
 {
   @Mock
@@ -95,7 +95,7 @@ public class RelayPollingServiceTest
 
   private RelayPollingService service;
 
-  @Before
+  @BeforeEach
   public void before() {
     counters = new RelayPollerCounters();
     // Default: gitHubAppDAO returns nothing for the relay-link retry pre-flight in most

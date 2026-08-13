@@ -37,17 +37,19 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.SimplePrincipalCollection;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
 import com.sonatype.insight.brain.security.SecurityAspectControl;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 
 import static org.mockito.Mockito.mock;
 
@@ -76,7 +78,8 @@ import static org.mockito.Mockito.when;
  * Coverage target: 90%+
  * Security focus: MTIQ tenant isolation, authorization, input validation, transaction rollback
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ApiFirewallBulkWaiverServiceTest
 {
   private static final String REPOSITORY_ID = "repo-123";
@@ -132,7 +135,7 @@ public class ApiFirewallBulkWaiverServiceTest
 
   private ApiFirewallBulkWaiverService service;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     SecurityAspectControl.disableEnforcement();
     service = new ApiFirewallBulkWaiverService(
@@ -178,7 +181,7 @@ public class ApiFirewallBulkWaiverServiceTest
     when(policyWaiverDAO.getActiveApplicableByOwnerId(anyString())).thenReturn(Collections.emptyList());
   }
 
-  @After
+  @AfterEach
   public void unbindSecurityManager() {
     SecurityAspectControl.enableEnforcement();
     ThreadContext.unbindSubject();

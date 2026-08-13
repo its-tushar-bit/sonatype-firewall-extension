@@ -29,22 +29,23 @@ import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ApiLifecycleServiceTest
 {
   private static final String RM_ID = "rm-internal-id";
@@ -74,23 +75,23 @@ public class ApiLifecycleServiceTest
   @InjectMocks
   private ApiLifecycleService service;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     // Bind a mock Shiro Subject so SecurityUtils.getSubject() returns it from requireAccess().
     ThreadContext.bind(subject);
-    when(subject.isAuthenticated()).thenReturn(true);
-    when(subject.getPrincipal()).thenReturn(userPrincipal);
+    lenient().when(subject.isAuthenticated()).thenReturn(true);
+    lenient().when(subject.getPrincipal()).thenReturn(userPrincipal);
     // Default: user holds READ on at least one owner — covers Policy Admin / Owner / Developer.
-    when(permissionService.getContextIdsForUserWithPermission(any(UserPrincipal.class), eq(Permission.READ)))
+    lenient().when(permissionService.getContextIdsForUserWithPermission(any(UserPrincipal.class), eq(Permission.READ)))
         .thenReturn(java.util.Set.of("some-org-id"));
     // Default: user does NOT hold CONFIGURE_SYSTEM (the READ branch is the default path).
-    when(permissionService.validatePermission(
+    lenient().when(permissionService.validatePermission(
         any(Subject.class), eq(OwnerType.GLOBAL), eq(MembershipMapping.GLOBAL_CONTEXT_ID),
         eq(EnumSet.of(Permission.CONFIGURE_SYSTEM))))
-            .thenReturn(EnumSet.noneOf(Permission.class));
+        .thenReturn(EnumSet.noneOf(Permission.class));
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     ThreadContext.unbindSubject();
   }

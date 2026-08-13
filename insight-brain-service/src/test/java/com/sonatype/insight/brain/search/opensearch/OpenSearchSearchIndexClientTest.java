@@ -50,10 +50,10 @@ import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.CvssV3Severity;
 
 import org.apache.lucene.search.MatchAllDocsQuery;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch.core.SearchRequest;
 import org.opensearch.client.opensearch.core.SearchResponse;
@@ -65,7 +65,7 @@ import org.opensearch.client.opensearch.indices.GetIndicesSettingsRequest;
 import org.opensearch.client.opensearch.indices.GetIndicesSettingsResponse;
 import org.opensearch.client.opensearch.indices.OpenSearchIndicesClient;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class OpenSearchSearchIndexClientTest
 {
   private static final String INDEX_NAME = "test-index";
@@ -74,14 +74,14 @@ public class OpenSearchSearchIndexClientTest
 
   private OpenSearchSearchIndexClient client;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     IndexConfigProvider indexConfigProvider = mock(IndexConfigProvider.class);
     openSearchClient = mock(OpenSearchClient.class);
 
     IndexConfig indexConfig = mock(IndexConfig.class);
     lenient().when(indexConfig.getIndexName()).thenReturn(INDEX_NAME);
-    when(indexConfigProvider.getIndexConfig()).thenReturn(indexConfig);
+    lenient().when(indexConfigProvider.getIndexConfig()).thenReturn(indexConfig);
 
     ConversionHelper conversionHelper = new ConversionHelper(new LuceneComponents(mock(InsightWork.class)));
 
@@ -114,8 +114,8 @@ public class OpenSearchSearchIndexClientTest
         null);
 
     client = spy(realClient);
-    doReturn(openSearchClient).when(client).getClient();
-    doReturn(true).when(client).isSearchPreviewEnabled();
+    lenient().doReturn(openSearchClient).when(client).getClient();
+    lenient().doReturn(true).when(client).isSearchPreviewEnabled();
   }
 
   @Test

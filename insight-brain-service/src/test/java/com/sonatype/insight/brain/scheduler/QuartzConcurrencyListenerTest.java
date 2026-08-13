@@ -8,12 +8,12 @@ package com.sonatype.insight.brain.scheduler;
 import java.time.Duration;
 import java.util.Date;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
@@ -29,9 +29,10 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class QuartzConcurrencyListenerTest
 {
   private QuartzConcurrencyListener listener;
@@ -57,22 +58,22 @@ public class QuartzConcurrencyListenerTest
 
   private TriggerKey triggerKey;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     listener = new QuartzConcurrencyListener(mockQuartzJobStoreTX);
     jobDataMap = new JobDataMap();
     jobKey = JobKey.jobKey("TestJob", "TestGroup");
     triggerKey = TriggerKey.triggerKey("TestTrigger", "TestGroup");
 
-    when(mockContext.getJobDetail()).thenReturn(mockJobDetail);
-    when(mockContext.getTrigger()).thenReturn(mockTrigger);
-    when(mockContext.getScheduler()).thenReturn(mockScheduler);
-    when(mockTrigger.getJobDataMap()).thenReturn(jobDataMap);
-    when(mockJobDetail.getKey()).thenReturn(jobKey);
-    when(mockTrigger.getKey()).thenReturn(triggerKey);
+    lenient().when(mockContext.getJobDetail()).thenReturn(mockJobDetail);
+    lenient().when(mockContext.getTrigger()).thenReturn(mockTrigger);
+    lenient().when(mockContext.getScheduler()).thenReturn(mockScheduler);
+    lenient().when(mockTrigger.getJobDataMap()).thenReturn(jobDataMap);
+    lenient().when(mockJobDetail.getKey()).thenReturn(jobKey);
+    lenient().when(mockTrigger.getKey()).thenReturn(triggerKey);
 
     // Use thenAnswer to avoid generic type issues with TriggerBuilder
-    when(mockTrigger.getTriggerBuilder())
+    lenient().when(mockTrigger.getTriggerBuilder())
         .thenAnswer(invocation -> TriggerBuilder.newTrigger().withIdentity(triggerKey));
   }
 

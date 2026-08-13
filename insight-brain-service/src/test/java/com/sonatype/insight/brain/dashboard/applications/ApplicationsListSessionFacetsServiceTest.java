@@ -29,12 +29,12 @@ import com.sonatype.insight.brain.service.Configuration;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.search.MatchAllDocsQuery;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.apache.lucene.document.Field.Store.YES;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,7 +48,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ApplicationsListSessionFacetsServiceTest
 {
   @Mock
@@ -86,7 +86,7 @@ public class ApplicationsListSessionFacetsServiceTest
 
   private ApplicationsListService service;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     System.setProperty("nexusOne.search.readPath.applications", "new");
     lenient().when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(2048);
@@ -106,7 +106,7 @@ public class ApplicationsListSessionFacetsServiceTest
         conversionHelper);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     System.clearProperty("nexusOne.search.readPath.applications");
   }

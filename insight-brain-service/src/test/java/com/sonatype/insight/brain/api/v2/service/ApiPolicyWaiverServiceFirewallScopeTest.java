@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import com.sonatype.insight.brain.api.v2.FirewallPermissionGate;
@@ -39,11 +40,11 @@ import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.utils.IdUtils;
 
 import org.apache.shiro.authz.UnauthorizedException;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
 import java.util.Set;
@@ -56,7 +57,7 @@ import java.util.Set;
  * Covers all owner-type branches: REPOSITORY (permit/deny), APPLICATION (permit/deny),
  * ORGANIZATION, REPOSITORY_MANAGER, and REPOSITORY_CONTAINER (all always permitted for scoped users).
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ApiPolicyWaiverServiceFirewallScopeTest
 {
   @Mock
@@ -128,7 +129,7 @@ public class ApiPolicyWaiverServiceFirewallScopeTest
 
   private PolicyWaiver waiver;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     service = new ApiPolicyWaiverService(
         telemetrySender, policyWaiverDAO, policyDAO, applicationDAO, ownerDAO,
@@ -142,7 +143,7 @@ public class ApiPolicyWaiverServiceFirewallScopeTest
 
     Policy mockPolicy = new Policy();
     mockPolicy.setName("test-policy");
-    when(policyDAO.getById(any())).thenReturn(mockPolicy);
+    lenient().when(policyDAO.getById(any())).thenReturn(mockPolicy);
   }
 
   // --- REPOSITORY scope ---

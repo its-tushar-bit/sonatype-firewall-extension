@@ -19,11 +19,11 @@ import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -32,7 +32,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class LegalListIndexQueryBuilderTest
 {
   private static final String BASE = "itemType:LEGAL_VIOLATION"
@@ -56,7 +56,7 @@ public class LegalListIndexQueryBuilderTest
         stageTypeService);
   }
 
-  @Before
+  @BeforeEach
   public void stubLicensedStages() {
     StageType build = mock(StageType.class);
     lenient().when(build.getId()).thenReturn("build");

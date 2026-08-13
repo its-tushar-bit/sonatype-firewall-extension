@@ -13,11 +13,11 @@ import com.sonatype.insight.brain.search.export.SbomSearchRowFactory;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.service.Configuration;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -28,7 +28,7 @@ import static org.mockito.Mockito.when;
  * Tests for HTTP protocol version handling in SearchService export functionality.
  * Verifies that trailers are only set for HTTP/1.1 and later, not for HTTP/1.0.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class SearchServiceHttpProtocolTest
 {
   @Mock
@@ -48,7 +48,7 @@ public class SearchServiceHttpProtocolTest
 
   private SearchService searchService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     searchService = new SearchService(
         searchIndexClient,

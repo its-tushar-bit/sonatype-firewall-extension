@@ -9,14 +9,14 @@ import java.util.List;
 
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ZScalerPermissionValidatorTest
 {
   @Mock
@@ -32,7 +32,7 @@ public class ZScalerPermissionValidatorTest
 
   private ZScalerPermissionValidator underTest;
 
-  @Before
+  @BeforeEach
   public void setup() {
     underTest = new ZScalerPermissionValidator(mockZScalerClient);
   }
@@ -97,10 +97,10 @@ public class ZScalerPermissionValidatorTest
 
     // Verify it's a permission error related to ZScaler permissions
     String message = exception.getMessage();
-    assertTrue("Expected message to contain 'permission' but was: " + message,
-        message.toLowerCase().contains("permission"));
-    assertTrue("Expected message to contain 'ZScaler' or 'OVERRIDE_EXISTING_CAT' but was: " + message,
-        message.contains("ZScaler") || message.contains("OVERRIDE_EXISTING_CAT"));
+    assertTrue(message.toLowerCase().contains("permission"),
+        "Expected message to contain 'permission' but was: " + message);
+    assertTrue(message.contains("ZScaler") || message.contains("OVERRIDE_EXISTING_CAT"),
+        "Expected message to contain 'ZScaler' or 'OVERRIDE_EXISTING_CAT' but was: " + message);
 
     verify(mockZScalerClient, times(1)).deleteCustomUrlCategory(eq("http://example.com"), eq("test-123"));
   }

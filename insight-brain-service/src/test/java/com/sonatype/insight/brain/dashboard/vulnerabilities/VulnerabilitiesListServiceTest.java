@@ -27,11 +27,11 @@ import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.utils.CvssV3Severity;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -42,10 +42,11 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class VulnerabilitiesListServiceTest
 {
   @Mock
@@ -468,15 +469,16 @@ public class VulnerabilitiesListServiceTest
         bandCounts.merge(band, 1L, Long::sum);
       }
     }
-    when(searchIndexClient.rankGroupsByMaxMetric(
+    lenient().when(searchIndexClient.rankGroupsByMaxMetric(
         anyString(), anyString(), anyString(), anyInt(), anyBoolean(), anyMap()))
-            .thenReturn(new RankedGroupsResult(ranked, ranked.size(), true, bandCounts, unbanded));
+        .thenReturn(new RankedGroupsResult(ranked, ranked.size(), true, bandCounts, unbanded));
 
     List<SearchResultItemDTO> items = new ArrayList<>(ranked.size());
     for (RankedGroup group : ranked) {
       items.add(vulnerabilityItem(group.groupValue()));
     }
-    when(searchIndexClient.searchIndex(anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
+    lenient()
+        .when(searchIndexClient.searchIndex(anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
         .thenReturn(resultOf(items.toArray(new SearchResultItemDTO[0])));
 
     Map<String, Long> applicationCounts = new LinkedHashMap<>();
@@ -486,15 +488,15 @@ public class VulnerabilitiesListServiceTest
   }
 
   private void stubApplicationCounts(final Map<String, Long> countsByVulnerabilityId) {
-    when(searchIndexClient.countDistinctGroupedBy(
+    lenient().when(searchIndexClient.countDistinctGroupedBy(
         anyString(), eq(FieldIdentifier.VULNERABILITY_ID.label), anyString(), anyCollection()))
-            .thenReturn(countsByVulnerabilityId);
+        .thenReturn(countsByVulnerabilityId);
   }
 
   private void stubEcosystemCounts(final Map<String, Long> countsByFormat) {
-    when(searchIndexClient.countDistinctGroupedBy(
+    lenient().when(searchIndexClient.countDistinctGroupedBy(
         anyString(), eq(FieldIdentifier.COMPONENT_FORMAT.label), anyString(), anyCollection()))
-            .thenReturn(countsByFormat);
+        .thenReturn(countsByFormat);
   }
 
   private static RankedGroup rankedGroup(final String vulnerabilityId, final Float cvssScore) {

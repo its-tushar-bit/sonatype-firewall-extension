@@ -17,11 +17,11 @@ import com.sonatype.insight.brain.search.ConversionHelper;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.ErrorCause;
 import org.opensearch.client.opensearch._types.ErrorResponse;
@@ -32,12 +32,13 @@ import org.opensearch.client.opensearch.core.BulkResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class OpenSearchIndexingContextTest
 {
   @Mock
@@ -55,12 +56,12 @@ public class OpenSearchIndexingContextTest
   @Mock
   private IndexConfig indexConfig;
 
-  @Before
+  @BeforeEach
   public void setUp() {
-    when(indexConfigProvider.getIndexConfig()).thenReturn(indexConfig);
-    when(indexConfig.getIndexName()).thenReturn("test-index");
+    lenient().when(indexConfigProvider.getIndexConfig()).thenReturn(indexConfig);
+    lenient().when(indexConfig.getIndexName()).thenReturn("test-index");
     // Return a mutable map so the code can add the timestamp
-    when(conversionHelper.documentToMap(any())).thenAnswer(invocation -> new java.util.HashMap<>());
+    lenient().when(conversionHelper.documentToMap(any())).thenAnswer(invocation -> new java.util.HashMap<>());
   }
 
   @Test

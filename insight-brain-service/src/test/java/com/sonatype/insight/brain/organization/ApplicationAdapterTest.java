@@ -18,11 +18,13 @@ import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.UserDirectory;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -30,7 +32,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 // Silent: setUp() configures default stubs that not every test triggers (e.g. organizationDAO, userDirectory).
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ApplicationAdapterTest
 {
   private static final String USER_DIRECTORY_ERROR = "User directory query result error.";
@@ -64,7 +67,7 @@ public class ApplicationAdapterTest
 
   private final String userEmail = "jsmith@sonatype.com";
 
-  @Before
+  @BeforeEach
   public void setUp() {
     Organization org = new Organization(organizationName);
     org.setId("org-id-1");

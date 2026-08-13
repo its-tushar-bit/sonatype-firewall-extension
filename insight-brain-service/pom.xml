@@ -529,23 +529,28 @@
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
       <exclusions>
+        <!--
+          CLM-43729 JUnit 5 migration: junit-jupiter (api + engine + params) is no longer excluded, so it
+          flows in transitively and puts this module on the JUnit Platform with BOTH engines. Vintage is
+          excluded here and re-declared explicitly below so its presence is pinned and obvious; it runs the
+          not-yet-migrated org.junit.Test (JUnit 4) classes until they are all Jupiter.
+        -->
         <exclusion>
           <groupId>org.junit.vintage</groupId>
           <artifactId>junit-vintage-engine</artifactId>
         </exclusion>
-        <exclusion>
-          <groupId>org.junit.jupiter</groupId>
-          <artifactId>junit-jupiter</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.junit.jupiter</groupId>
-          <artifactId>junit-jupiter-api</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.junit.jupiter</groupId>
-          <artifactId>junit-jupiter-engine</artifactId>
-        </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.vintage</groupId>
+      <artifactId>junit-vintage-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- @ExtendWith(MockitoExtension.class) replacement for @RunWith(MockitoJUnitRunner.class) on migrated tests. -->
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.tngtech.archunit</groupId>
@@ -887,24 +892,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
-        <dependencies>
-          <!--
-            CLM-43720: pin the JUnit 4 (junit47) Surefire provider for this module's tests.
-            The shared test bases here (AbstractComponentTest, AbstractLifecycleReportPersistenceServiceTest)
-            carry JUnit 5 (Jupiter) annotations so their concrete subclasses can run under the JUnit Platform
-            in insight-brain-variant-test-component-h2, which forces junit-jupiter-api (and transitively
-            junit-platform-commons) onto this module's TEST classpath. Without this pin, Failsafe auto-detects
-            the JUnit Platform provider and runs the remaining JUnit 4 tests via the Vintage engine, which
-            can change provider-specific behavior. Pinning the JUnit 4 (junit47) provider keeps this
-            module's vintage tests behaving as they do on main. Keep this version aligned with the
-            maven-failsafe-plugin version.
-          -->
-          <dependency>
-            <groupId>org.apache.maven.surefire</groupId>
-            <artifactId>surefire-junit47</artifactId>
-            <version>3.4.0</version>
-          </dependency>
-        </dependencies>
         <configuration>
           <skip>false</skip>
           <includes>

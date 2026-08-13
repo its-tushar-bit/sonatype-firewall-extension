@@ -24,11 +24,11 @@ import com.sonatype.insight.brain.guide.core.SearchApiClient;
 import com.sonatype.insight.brain.guide.policy.GuidePolicyEvaluator;
 import com.sonatype.insight.brain.guide.policy.GuidePolicyService;
 import com.sonatype.insight.brain.security.PermissionService;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -37,7 +37,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class GuideRecommendationsResourceTest
 {
   private static final String PURL = "pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1";
@@ -61,7 +61,7 @@ public class GuideRecommendationsResourceTest
 
   private GuideRecommendationsResource underTest;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     underTest = new GuideRecommendationsResource(
         searchApiClient,

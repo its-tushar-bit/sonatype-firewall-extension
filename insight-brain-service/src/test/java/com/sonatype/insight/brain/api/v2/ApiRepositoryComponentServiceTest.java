@@ -21,13 +21,13 @@ import com.sonatype.insight.brain.repository.ProxyRepositoryComponentDeleteServi
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.sonatype.insight.brain.security.SecurityAspectControl;
 
@@ -38,9 +38,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ApiRepositoryComponentServiceTest
 {
   private static final String RM_INSTANCE_ID = "rm-instance-1";
@@ -80,32 +81,32 @@ public class ApiRepositoryComponentServiceTest
 
   private ProxyRepositoryComponent component2;
 
-  @Before
+  @BeforeEach
   public void setup() {
     SecurityAspectControl.disableEnforcement();
 
     component1 = mock(ProxyRepositoryComponent.class);
-    when(component1.getComponentId()).thenReturn(COMPONENT_ID_1);
-    when(component1.getRepositoryId()).thenReturn(REPO_ID);
+    lenient().when(component1.getComponentId()).thenReturn(COMPONENT_ID_1);
+    lenient().when(component1.getRepositoryId()).thenReturn(REPO_ID);
 
     component2 = mock(ProxyRepositoryComponent.class);
-    when(component2.getComponentId()).thenReturn(COMPONENT_ID_2);
-    when(component2.getRepositoryId()).thenReturn(REPO_ID);
+    lenient().when(component2.getComponentId()).thenReturn(COMPONENT_ID_2);
+    lenient().when(component2.getRepositoryId()).thenReturn(REPO_ID);
 
     RepositoryManager rm = mock(RepositoryManager.class);
-    when(rm.getId()).thenReturn(RM_INTERNAL_ID);
-    when(repositoryManagerDAO.getByInstanceIdNotNull(RM_INSTANCE_ID)).thenReturn(rm);
+    lenient().when(rm.getId()).thenReturn(RM_INTERNAL_ID);
+    lenient().when(repositoryManagerDAO.getByInstanceIdNotNull(RM_INSTANCE_ID)).thenReturn(rm);
 
     Repository repo = mock(Repository.class);
-    when(repo.getRepositoryManagerId()).thenReturn(RM_INTERNAL_ID);
-    when(repo.getRepositoryType()).thenReturn(RepositoryType.hosted);
-    when(repositoryDAO.getByIdNotNull(REPO_ID)).thenReturn(repo);
+    lenient().when(repo.getRepositoryManagerId()).thenReturn(RM_INTERNAL_ID);
+    lenient().when(repo.getRepositoryType()).thenReturn(RepositoryType.hosted);
+    lenient().when(repositoryDAO.getByIdNotNull(REPO_ID)).thenReturn(repo);
 
-    when(hostedComponentScanQueueDAO.createTransactionContext()).thenReturn(transactionContext);
-    when(hostedComponentScanQueueDAO.hasInProgressByComponentIds(any(), any())).thenReturn(false);
+    lenient().when(hostedComponentScanQueueDAO.createTransactionContext()).thenReturn(transactionContext);
+    lenient().when(hostedComponentScanQueueDAO.hasInProgressByComponentIds(any(), any())).thenReturn(false);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     SecurityAspectControl.enableEnforcement();
   }

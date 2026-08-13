@@ -18,12 +18,12 @@ import com.sonatype.insight.brain.guide.api.dto.GuideSecurityEventSearchResponse
 import com.sonatype.insight.brain.guide.api.error.GuideApiException;
 import com.sonatype.insight.brain.guide.core.SearchApiClient;
 import jakarta.ws.rs.core.Response;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -38,7 +38,7 @@ import static org.mockito.Mockito.when;
  * Integration tests covering auth, license enforcement, and the full HTTP stack are in
  * {@link com.sonatype.insight.brain.guide.GuideSecurityEventsResourceIT}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class GuideSecurityEventsResourceTest
 {
   @Mock
@@ -46,7 +46,7 @@ public class GuideSecurityEventsResourceTest
 
   private GuideSecurityEventsResource underTest;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     underTest = new GuideSecurityEventsResource(searchApiClient);
   }

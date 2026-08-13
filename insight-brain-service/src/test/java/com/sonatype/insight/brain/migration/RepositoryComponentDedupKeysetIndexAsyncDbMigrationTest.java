@@ -14,12 +14,12 @@ import javax.sql.DataSource;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -33,7 +33,7 @@ import static org.mockito.Mockito.when;
  * the H2 skip path, the Postgres {@code CREATE INDEX CONCURRENTLY} path, and the invalid-index
  * cleanup branch shared with the sibling migration.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class RepositoryComponentDedupKeysetIndexAsyncDbMigrationTest
 {
   @Mock
@@ -59,7 +59,7 @@ public class RepositoryComponentDedupKeysetIndexAsyncDbMigrationTest
 
   private RepositoryComponentDedupKeysetIndexAsyncDbMigration underTest;
 
-  @Before
+  @BeforeEach
   public void setup() {
     underTest = new RepositoryComponentDedupKeysetIndexAsyncDbMigration(migrationTrackerDAO, operationalDataStore);
   }

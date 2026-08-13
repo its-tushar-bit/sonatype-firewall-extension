@@ -38,13 +38,13 @@ import jakarta.ws.rs.core.Response;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -59,7 +59,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class GuidePolicyServiceTest
 {
   private static final String PURL = "pkg:maven/org.example/lib@1.0";
@@ -90,7 +90,7 @@ public class GuidePolicyServiceTest
 
   private GuidePolicyService underTest;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     // The detail/MCP gate calls SecurityUtils.getSubject(), so bind a subject for the thread.
     SecurityManager securityManager = mock(SecurityManager.class);
@@ -103,7 +103,7 @@ public class GuidePolicyServiceTest
     underTest = new GuidePolicyService(guidePolicyEvaluator, applicationDAO, ownerDAO, permissionService);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     ThreadContext.unbindSubject();
     ThreadContext.unbindSecurityManager();

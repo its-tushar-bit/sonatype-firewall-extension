@@ -31,16 +31,16 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 // Companion to ApiComponentDetailsAdapterTest: locks in the batch-DAO contract that the real-DAO
 // integration tests cannot express. A regression to per-component singular DAO reads (N+1) would
 // still return correct rows from the DB, so only these verify(...) assertions catch it.
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ApiComponentDetailsAdapterBatchDAOTest
 {
   @Mock

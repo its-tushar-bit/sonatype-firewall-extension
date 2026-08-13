@@ -30,14 +30,14 @@ import com.sonatype.insight.scan.model.ItemContentType;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.cyclonedx.Version;
 import org.cyclonedx.model.Bom;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ScanResultsSbomPersisterTest
 {
   @Mock
@@ -59,7 +59,7 @@ public class ScanResultsSbomPersisterTest
 
   private Application application;
 
-  @Before
+  @BeforeEach
   public void before() {
     persister = new ScanResultsSbomPersister(
         cycloneDxService, persistenceService, thirdPartyScanDAO, sbomMetadataDAO, handlerFactory);

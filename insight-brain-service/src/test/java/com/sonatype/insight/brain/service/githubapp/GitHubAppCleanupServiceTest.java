@@ -11,11 +11,11 @@ import java.util.List;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
 
 /**
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class GitHubAppCleanupServiceTest
 {
   @Mock
@@ -36,7 +36,7 @@ public class GitHubAppCleanupServiceTest
 
   private GitHubAppCleanupService service;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     service = new GitHubAppCleanupService(gitHubAppDAO, gitHubAppDeletionService);
   }

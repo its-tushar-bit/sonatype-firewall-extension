@@ -16,11 +16,11 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChang
 import com.sonatype.insight.brain.development.prioritization.dto.PrioritizationRemediationVersionDTO;
 import com.sonatype.insight.brain.features.FeaturesService;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
@@ -30,7 +30,7 @@ import static com.sonatype.insight.license.model.LicensedFeature.DEVELOPER_DASHB
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class DevelopmentPrioritiesUtilsServiceTest
 {
   @Mock
@@ -38,7 +38,7 @@ public class DevelopmentPrioritiesUtilsServiceTest
 
   private DevelopmentPrioritiesUtilsService developmentPrioritiesUtilsService;
 
-  @Before
+  @BeforeEach
   public void setup() {
     developmentPrioritiesUtilsService = new DevelopmentPrioritiesUtilsService(featuresService);
   }

@@ -24,16 +24,16 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.quartz.JobBuilder;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class CopyStorageTaskTest
 {
   private static final CopyStorageConfig COPY_STORAGE_CONFIG = new CopyStorageConfig(1, 1);
@@ -52,7 +52,7 @@ public class CopyStorageTaskTest
 
   private CopyStorageTask copyStorageTask;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     when(apiConfigurationService.getConfigurationNoAuthz(SystemConfigurationProperty.COPY_STORAGE_CONFIG))
         .thenReturn(COPY_STORAGE_CONFIG);

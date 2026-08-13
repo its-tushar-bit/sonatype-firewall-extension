@@ -31,12 +31,12 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.apache.lucene.document.Field.Store.YES;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,7 +48,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ApplicationsListFacetsParityTest
 {
   /** Violation-scoped query string used for the policy-type / violation-state facet counts. */
@@ -76,17 +76,18 @@ public class ApplicationsListFacetsParityTest
 
   private Query query;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     builder = new ApplicationsListFacetsBuilder(
         searchIndexClient, stageTypeService, organizationDAO, applicationDAO, conversionHelper);
     query = new MatchAllDocsQuery();
     lenient().when(conversionHelper.stringToQuery(any())).thenReturn(new MatchAllDocsQuery());
-    when(stageTypeService.getLicensedStageTypes(StageTypeService.DASHBOARD_CONTEXT)).thenReturn(List.of());
-    when(session.searchPage(any())).thenReturn(new IndexPageResult(List.of(
-        applicationDocument("app-alpha", "org-b", "Alpha"),
-        applicationDocument("app-beta", "org-a", "Beta")), List.of(), false));
-    when(session.countDistinctGroupedBy(any(), any(), any(), any())).thenReturn(Map.of());
+    lenient().when(stageTypeService.getLicensedStageTypes(StageTypeService.DASHBOARD_CONTEXT)).thenReturn(List.of());
+    lenient().when(session.searchPage(any()))
+        .thenReturn(new IndexPageResult(List.of(
+            applicationDocument("app-alpha", "org-b", "Alpha"),
+            applicationDocument("app-beta", "org-a", "Beta")), List.of(), false));
+    lenient().when(session.countDistinctGroupedBy(any(), any(), any(), any())).thenReturn(Map.of());
   }
 
   @Test

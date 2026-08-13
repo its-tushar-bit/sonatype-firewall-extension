@@ -17,11 +17,11 @@ import com.sonatype.insight.brain.telemetry.TelemetryReceiptService.TelemetryRec
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static com.sonatype.insight.telemetry.model.TelemetryPurpose.APPLICATION_CATEGORY;
 import static com.sonatype.insight.telemetry.model.TelemetryPurpose.AUTO_POLICY_WAIVER;
@@ -29,15 +29,15 @@ import static com.sonatype.insight.telemetry.model.TelemetryPurpose.HISTORICAL_P
 import static com.sonatype.insight.telemetry.model.TelemetryPurpose.REST_ENDPOINT_USAGE;
 import static java.lang.Thread.sleep;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class TelemetryReceiptServiceTest
 {
   @Mock
   private Configuration mockConfiguration;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     asProdHds(true);
     asBaseUrl("https://app.sonatype.com");
@@ -265,11 +265,12 @@ public class TelemetryReceiptServiceTest
   }
 
   private void asBaseUrl(String baseUrl) {
-    when(mockConfiguration.getBaseUrl()).thenReturn(baseUrl);
+    lenient().when(mockConfiguration.getBaseUrl()).thenReturn(baseUrl);
   }
 
   private void asProdHds(boolean useProdHds) {
-    when(mockConfiguration.getHdsUrl()).thenReturn(
-        useProdHds ? "https://clm.sonatype.com" : "https://clm-staging.sonatype.com");
+    lenient().when(mockConfiguration.getHdsUrl())
+        .thenReturn(
+            useProdHds ? "https://clm.sonatype.com" : "https://clm-staging.sonatype.com");
   }
 }

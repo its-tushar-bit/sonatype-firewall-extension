@@ -15,11 +15,11 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.git.PullRequestRepositoryValidator.GITHUB_COM;
@@ -31,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class PullRequestRepositoryValidatorTest
 {
   private static final String TEST_REPO_URL = "%s/sonatype/repo/";
@@ -43,7 +43,7 @@ public class PullRequestRepositoryValidatorTest
 
   private ListAppender<ILoggingEvent> listAppender;
 
-  @Before
+  @BeforeEach
   public void setup() {
     pullRequestRepositoryValidator = new PullRequestRepositoryValidator(mockScmRepoVisibilityService);
 

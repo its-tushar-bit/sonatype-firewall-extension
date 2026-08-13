@@ -11,13 +11,13 @@ import static org.mockito.Mockito.doThrow;
 
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ProductLicenseServiceExceptionMappingTest
 {
   @Mock
@@ -28,7 +28,7 @@ public class ProductLicenseServiceExceptionMappingTest
 
   private ProductLicenseService productLicenseService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     productLicenseService = new ProductLicenseService(licenseManager, productLicense);
   }

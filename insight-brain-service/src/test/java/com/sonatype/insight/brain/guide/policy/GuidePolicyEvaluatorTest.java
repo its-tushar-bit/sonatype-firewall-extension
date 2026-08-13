@@ -19,22 +19,23 @@ import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.policy.evaluator.PolicyResults;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class GuidePolicyEvaluatorTest
 {
   @Mock
@@ -57,11 +58,11 @@ public class GuidePolicyEvaluatorTest
 
   private GuidePolicyEvaluator underTest;
 
-  @Before
+  @BeforeEach
   public void setUp() {
-    when(loaderFactory.newInstance(any())).thenReturn(loader);
-    when(ownerDAO.getById(Organization.ROOT_ORGANIZATION_ID)).thenReturn(EvaluatorFixtures.rootOrg());
-    when(policyDAO.getApplicableByOwnerIdWithHierarchy(Organization.ROOT_ORGANIZATION_ID))
+    lenient().when(loaderFactory.newInstance(any())).thenReturn(loader);
+    lenient().when(ownerDAO.getById(Organization.ROOT_ORGANIZATION_ID)).thenReturn(EvaluatorFixtures.rootOrg());
+    lenient().when(policyDAO.getApplicableByOwnerIdWithHierarchy(Organization.ROOT_ORGANIZATION_ID))
         .thenReturn(List.of());
     underTest = new GuidePolicyEvaluator(
         detailsService, loaderFactory, policyEvaluator, ownerDAO, policyDAO);

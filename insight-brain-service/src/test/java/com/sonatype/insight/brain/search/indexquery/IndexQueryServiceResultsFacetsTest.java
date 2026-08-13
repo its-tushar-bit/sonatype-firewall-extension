@@ -9,6 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,17 +31,17 @@ import com.sonatype.insight.brain.search.indexquery.IndexQueryResponse.IndexQuer
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 
 import org.mockito.ArgumentCaptor;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * Tests {@link IndexQueryService#facetsForResults}, the entry point the Global-Search {@code /results}
  * endpoint uses to reuse the index-query facet engine for its {@code q=}-driven query.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class IndexQueryServiceResultsFacetsTest
 {
   @Mock
@@ -48,18 +49,18 @@ public class IndexQueryServiceResultsFacetsTest
 
   private IndexQueryService service;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     IqLocalSearchService iq = new IqLocalSearchService(searchIndexClient);
     service = new IndexQueryService(iq, searchIndexClient, null);
 
-    when(searchIndexClient.isSearchPreviewEnabled()).thenReturn(true);
-    when(searchIndexClient.getCurrentUserContextIdsWithReadPermission()).thenReturn(Set.of());
-    when(searchIndexClient.buildAllowedContextIdsFilter(any())).thenReturn(null);
-    when(searchIndexClient.wrapWithPermissionFilter(any(), any())).thenAnswer(inv -> inv.getArgument(0));
-    when(searchIndexClient.buildPermittedQuery(any())).thenCallRealMethod();
-    when(searchIndexClient.searchGlobal(any())).thenReturn(new GlobalSearchResult(List.of(), 0, List.of()));
-    when(searchIndexClient.count(any())).thenReturn(0L);
+    lenient().when(searchIndexClient.isSearchPreviewEnabled()).thenReturn(true);
+    lenient().when(searchIndexClient.getCurrentUserContextIdsWithReadPermission()).thenReturn(Set.of());
+    lenient().when(searchIndexClient.buildAllowedContextIdsFilter(any())).thenReturn(null);
+    lenient().when(searchIndexClient.wrapWithPermissionFilter(any(), any())).thenAnswer(inv -> inv.getArgument(0));
+    lenient().when(searchIndexClient.buildPermittedQuery(any())).thenCallRealMethod();
+    lenient().when(searchIndexClient.searchGlobal(any())).thenReturn(new GlobalSearchResult(List.of(), 0, List.of()));
+    lenient().when(searchIndexClient.count(any())).thenReturn(0L);
   }
 
   @Test

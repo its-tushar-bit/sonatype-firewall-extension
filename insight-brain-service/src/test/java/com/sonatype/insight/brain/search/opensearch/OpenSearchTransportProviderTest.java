@@ -16,11 +16,11 @@ import com.sonatype.insight.brain.search.SearchConfig.HttpOpenSearchConfig;
 import com.sonatype.insight.brain.search.SearchMode;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.opensearch.client.transport.OpenSearchTransport;
 import org.opensearch.client.transport.aws.AwsSdk2Transport;
 import org.opensearch.client.transport.httpclient5.ApacheHttpClient5Transport;
@@ -30,9 +30,9 @@ import software.amazon.awssdk.http.crt.AwsCrtHttpClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class OpenSearchTransportProviderTest
 {
   @Mock
@@ -48,10 +48,10 @@ public class OpenSearchTransportProviderTest
 
   private OpenSearchTransportProvider provider;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     sdkHttpClient = AwsCrtHttpClient.builder().build();
-    when(sdkHttpClientProvider.get()).thenReturn(sdkHttpClient);
+    lenient().when(sdkHttpClientProvider.get()).thenReturn(sdkHttpClient);
   }
 
   @Test

@@ -32,13 +32,13 @@ import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class SbomScanEvaluatorTest
 {
   @Mock
@@ -55,7 +55,7 @@ public class SbomScanEvaluatorTest
 
   private SbomScanEvaluator evaluator;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     evaluator = new SbomScanEvaluator(
         applicationDAO, policyEvaluateService, sbomMetadataUtils, thirdPartyPersistenceService);

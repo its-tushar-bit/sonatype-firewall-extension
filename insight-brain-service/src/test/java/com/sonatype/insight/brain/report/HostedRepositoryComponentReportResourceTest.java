@@ -20,13 +20,13 @@ import com.sonatype.insight.brain.report.pdf.PdfGeneratorService;
 import com.sonatype.insight.brain.sbom.policy.SbomPolicyService;
 import com.sonatype.insight.brain.security.SecurityAspectControl;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -45,7 +45,7 @@ import static org.mockito.Mockito.when;
  * {@code getByIdNotNull} is a primary-key lookup. Only exercising an unknown id — which must 404
  * from the DAO before any evaluation work starts — pins that the lookup is load-bearing.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class HostedRepositoryComponentReportResourceTest
 {
   private static final String HRC_ID = "hrc-1";
@@ -79,7 +79,7 @@ public class HostedRepositoryComponentReportResourceTest
 
   private HostedRepositoryComponent hrc;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     // AspectJ compile-time weaving inserts a @HasFeature aspect on the resource class and an
     // @Authorize aspect on its service-call sites. Both fire during Mockito unit tests that
@@ -94,7 +94,7 @@ public class HostedRepositoryComponentReportResourceTest
     when(hostedRepositoryComponentDAO.getByIdNotNull(HRC_ID)).thenReturn(hrc);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     SecurityAspectControl.enableEnforcement();
   }

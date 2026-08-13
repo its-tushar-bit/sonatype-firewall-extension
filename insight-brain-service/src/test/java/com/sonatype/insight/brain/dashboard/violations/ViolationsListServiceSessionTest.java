@@ -27,12 +27,12 @@ import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -48,7 +48,7 @@ import static org.mockito.Mockito.when;
  * Unit coverage for the IndexReadSession violations list path (searchAfter walk, walkable-page guard,
  * hasNextPage). Enabled via {@code nexusOne.search.readPath.violations=new}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ViolationsListServiceSessionTest
 {
   private static final String QUERY = "itemType:POLICY_VIOLATION";
@@ -79,7 +79,7 @@ public class ViolationsListServiceSessionTest
   @Mock
   private IndexReadSession session;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     System.setProperty("nexusOne.search.readPath.violations", "new");
     when(sessionFactory.open()).thenReturn(session);
@@ -89,7 +89,7 @@ public class ViolationsListServiceSessionTest
     lenient().when(policyViolationDAO.getByIds(any())).thenReturn(List.of());
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     System.clearProperty("nexusOne.search.readPath.violations");
   }

@@ -22,12 +22,12 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 
 import org.jooq.exception.DataAccessException;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -37,9 +37,10 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class SearchIndexJobServiceTest
 {
   @Mock
@@ -62,15 +63,15 @@ public class SearchIndexJobServiceTest
 
   private SearchIndexJobService service;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     Provider<IndexService> indexServiceProvider = () -> indexService;
     Provider<SearchIndexHealthService> healthServiceProvider = () -> healthService;
     service = new SearchIndexJobService(jobDAO, jobEventDAO, healthDAO, indexServiceProvider,
         healthServiceProvider, currentUser);
-    when(currentUser.getUsernameOrSystem()).thenReturn("admin");
-    when(jobEventDAO.nextSeq(anyString())).thenReturn(1L);
-    when(jobDAO.getById(anyString())).thenAnswer(invocation -> {
+    lenient().when(currentUser.getUsernameOrSystem()).thenReturn("admin");
+    lenient().when(jobEventDAO.nextSeq(anyString())).thenReturn(1L);
+    lenient().when(jobDAO.getById(anyString())).thenAnswer(invocation -> {
       SearchIndexJob job = new SearchIndexJob();
       job.setId(invocation.getArgument(0));
       job.setStatus(SearchIndexJob.STATUS_RUNNING);

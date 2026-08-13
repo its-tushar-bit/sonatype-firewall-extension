@@ -18,13 +18,13 @@ import com.sonatype.insight.scan.model.ClientScanType;
 
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -45,7 +45,7 @@ import static org.mockito.Mockito.when;
  * HRC's own id, upload the scan under the HRC owner, and materialize the regenerated report back under the
  * canonical scan id.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ReportServiceReUploadScanToHdsTest
 {
   private static final String HRC_ID = "hrc-id-1";
@@ -166,7 +166,7 @@ public class ReportServiceReUploadScanToHdsTest
 
   private HostedRepositoryComponent hrc;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     hrc = new HostedRepositoryComponent("repo-id-1", "acme-lib-1.0.0.tgz", "sha1-abc");
     hrc.setId(HRC_ID);

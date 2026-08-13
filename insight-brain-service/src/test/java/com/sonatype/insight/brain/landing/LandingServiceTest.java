@@ -12,13 +12,13 @@ import com.sonatype.insight.brain.service.AssetPaths;
 import com.sonatype.insight.brain.service.BaseUrl;
 import jakarta.ws.rs.core.UriBuilder;
 import java.net.URI;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class LandingServiceTest
 {
   private static final String BASE_URL = "http://localhost:8070";
@@ -28,7 +28,7 @@ public class LandingServiceTest
 
   private LandingService landingService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     landingService = new LandingService(baseUrl);
     when(baseUrl.redirect()).thenReturn(UriBuilder.fromUri(BASE_URL));

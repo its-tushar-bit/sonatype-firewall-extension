@@ -26,14 +26,14 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.security.CurrentUser;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class PullRequestCommentingHashBuilderTest
 {
   private final ComponentIdentifier[] identifiers = new ComponentIdentifier[]{
@@ -52,7 +52,7 @@ public class PullRequestCommentingHashBuilderTest
 
   private PolicyEvaluation evaluation;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     evaluation = new PolicyEvaluation("app-id", "stage-type-id", "scan-id", CurrentUser.SYSTEM, ScanTriggerType.CLI);
     evaluation.setTime(new Date(System.currentTimeMillis() - 12345));

@@ -21,11 +21,11 @@ import com.sonatype.insight.brain.search.results.GroupingByDTO;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -44,7 +44,7 @@ import static org.mockito.Mockito.when;
  * Unit tests for Legal list facet builder — zero-total short-circuit, LTG phrase quoting,
  * org/app/LTG caps, and owner-label DAO fallback (CLM-43207).
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class LegalListFacetsBuilderTest
 {
   private static final String QUERY = "itemType:LEGAL_VIOLATION";
@@ -73,7 +73,7 @@ public class LegalListFacetsBuilderTest
         applicationDAO);
   }
 
-  @Before
+  @BeforeEach
   public void stubDefaults() {
     lenient().when(organizationDAO.getByIds(any())).thenReturn(List.of());
     lenient().when(applicationDAO.getByIds(any())).thenReturn(List.of());

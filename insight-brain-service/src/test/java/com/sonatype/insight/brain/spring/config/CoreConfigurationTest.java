@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.spring.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,14 +37,14 @@ import java.util.Map;
 import io.dropwizard.jackson.AnnotationSensitivePropertyNamingStrategy;
 import io.dropwizard.jackson.DiscoverableSubtypeResolver;
 import io.dropwizard.jackson.JsonSnakeCase;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class CoreConfigurationTest
 {
   @Mock
@@ -82,7 +82,7 @@ public class CoreConfigurationTest
 
   private Object savedExecutorThreadPoolsInstance;
 
-  @Before
+  @BeforeEach
   public void resetLegacyStaticInjections() throws Exception {
     ((Map<?, ?>) getStaticField(ConditionTypes.class, "allConditionTypes")).clear();
     setStaticField(ConfigurationUtils.class, "systemConfigurationPropertyDAO", null);
@@ -91,12 +91,12 @@ public class CoreConfigurationTest
     savedExecutorThreadPoolsInstance = getStaticField(ExecutorThreadPools.class, "INSTANCE");
     setStaticField(ExecutorThreadPools.class, "INSTANCE", null);
 
-    when(systemConfigurationPropertyDAO.get(transactionContext, SystemConfigurationProperty.BASE_URL))
+    lenient().when(systemConfigurationPropertyDAO.get(transactionContext, SystemConfigurationProperty.BASE_URL))
         .thenReturn("http://localhost:8070/");
-    when(hashComponentIdentifierDAO.getByHashes(anyList())).thenReturn(List.of());
+    lenient().when(hashComponentIdentifierDAO.getByHashes(anyList())).thenReturn(List.of());
   }
 
-  @After
+  @AfterEach
   public void restoreExecutorThreadPools() throws Exception {
     ExecutorThreadPools testInstance = (ExecutorThreadPools) getStaticField(ExecutorThreadPools.class, "INSTANCE");
     setStaticField(ExecutorThreadPools.class, "INSTANCE", savedExecutorThreadPoolsInstance);

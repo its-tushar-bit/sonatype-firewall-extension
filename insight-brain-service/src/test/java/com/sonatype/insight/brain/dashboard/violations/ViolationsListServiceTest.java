@@ -18,10 +18,10 @@ import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.session.IndexReadSessionFactory;
 
 import org.apache.lucene.search.SortedNumericSortField;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anySet;
@@ -33,7 +33,7 @@ import static org.mockito.Mockito.when;
  * Unit tests for {@link ViolationsListService} sort semantics and page-scoped first-seen enrich
  * (CLM-42254 / CLM-43210).
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ViolationsListServiceTest
 {
   @Mock

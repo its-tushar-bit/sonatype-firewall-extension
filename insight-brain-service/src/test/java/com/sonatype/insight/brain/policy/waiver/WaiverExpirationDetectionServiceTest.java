@@ -30,12 +30,12 @@ import com.sonatype.insight.brain.webhook.WaiverExpirationEvent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -52,7 +52,7 @@ import static org.mockito.Mockito.when;
  *
  * @since 1.179.0
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class WaiverExpirationDetectionServiceTest
 {
   @Mock
@@ -102,7 +102,7 @@ public class WaiverExpirationDetectionServiceTest
 
   private WaiverExpirationDetectionService service;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     service = spy(new WaiverExpirationDetectionService(
         policyWaiverDAO,
@@ -121,9 +121,9 @@ public class WaiverExpirationDetectionServiceTest
     // Email section: no notification days configured by default — keeps tests focused on webhooks
     lenient().when(notificationConfigDAO.findAllNotificationDays()).thenReturn(Collections.emptyList());
 
-    when(policyWaiverDAO.createTransactionContext()).thenReturn(transactionContext);
-    when(baseUrl.get()).thenReturn("http://localhost:8070");
-    when(productLicense.hasFeature(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES)).thenReturn(true);
+    lenient().when(policyWaiverDAO.createTransactionContext()).thenReturn(transactionContext);
+    lenient().when(baseUrl.get()).thenReturn("http://localhost:8070");
+    lenient().when(productLicense.hasFeature(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES)).thenReturn(true);
 
     // Stub owner DAOs to return empty lists (tests focus on applications)
     // Mark as lenient since not all tests exercise this code path

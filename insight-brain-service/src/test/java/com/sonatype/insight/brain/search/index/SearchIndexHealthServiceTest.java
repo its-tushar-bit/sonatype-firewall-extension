@@ -15,12 +15,12 @@ import com.sonatype.insight.brain.dataaccess.searchindex.SearchIndexHealthDAO;
 import com.sonatype.insight.brain.dataaccess.searchindex.SearchIndexJobDAO;
 import com.sonatype.insight.brain.model.searchindex.SearchIndexHealth;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -28,9 +28,10 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class SearchIndexHealthServiceTest
 {
   @Mock
@@ -50,11 +51,11 @@ public class SearchIndexHealthServiceTest
 
   private SearchIndexHealthService service;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     service = new SearchIndexHealthService(healthDAO, jobDAO, generationDAO, estateSnapshotDAO, changeDAO);
-    when(healthDAO.getOrSeedCurrent()).thenReturn(health(0L));
-    when(jobDAO.findActiveJob()).thenReturn(Optional.empty());
+    lenient().when(healthDAO.getOrSeedCurrent()).thenReturn(health(0L));
+    lenient().when(jobDAO.findActiveJob()).thenReturn(Optional.empty());
   }
 
   /**

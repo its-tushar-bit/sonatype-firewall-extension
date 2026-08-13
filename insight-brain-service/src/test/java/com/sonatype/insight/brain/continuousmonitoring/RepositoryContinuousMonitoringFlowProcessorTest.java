@@ -34,11 +34,11 @@ import com.sonatype.insight.scan.model.ClientScanType;
 
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -61,7 +61,7 @@ import static org.mockito.Mockito.when;
  * queued (repository, hash) pair independently, cloning its stored scan and re-evaluating it through
  * {@link ScanPolicyEvaluator#evaluateForMonitoring}, so one bad candidate never stops its siblings.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class RepositoryContinuousMonitoringFlowProcessorTest
 {
   private static final String QUEUE_ID = "queue-123";
@@ -101,10 +101,10 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
 
   private RepositoryContinuousMonitoringFlowProcessor underTest;
 
-  @Before
+  @BeforeEach
   public void setup() {
-    when(hostedRepoItemDAO.createTransactionContext()).thenReturn(tx);
-    when(hostedRepositoryComponentDAO.createTransactionContext()).thenReturn(tx);
+    lenient().when(hostedRepoItemDAO.createTransactionContext()).thenReturn(tx);
+    lenient().when(hostedRepositoryComponentDAO.createTransactionContext()).thenReturn(tx);
     meterRegistry = new SimpleMeterRegistry();
     underTest =
         new RepositoryContinuousMonitoringFlowProcessor(hostedRepoItemDAO, repositoryDAO,

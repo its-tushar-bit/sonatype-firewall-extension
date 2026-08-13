@@ -1797,7 +1797,8 @@ public class SbomResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertThat(filteredContent).isNotNull();
-    assertDebugLogOutput("Invalid purl: pkg:pypi/@1.2.3");
+    assertUnusablePurlLoggedAtDebug("Invalid purl: pkg:pypi/@1.2.3");
+    assertUnusablePurlSummaryWarn(1, 1);
 
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
@@ -1812,11 +1813,34 @@ public class SbomResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 1);
-    assertDebugLogOutput("Invalid purl: pkg:pypi/@1.2.3");
+    assertUnusablePurlLoggedAtDebug("Invalid purl: pkg:pypi/@1.2.3");
+    assertUnusablePurlSummaryWarn(1, 1);
 
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
     assertThat(coordinates).hasSize(1);
+  }
+
+  @Test
+  public void testHandleAndFilterContents_multipleInvalidPurls_summaryCountsAndDenominator() throws Exception {
+    // CLM-33982: with two of three components carrying unusable purls, the single summary WARN must report the
+    // asymmetric "2 of 3" - guarding against an accidental swap of the count/denominator format arguments (a
+    // symmetric "1 of 1" fixture cannot catch that regression).
+    String sbomContent = getSbomXmlFile("sbom-multiple-invalid-purls.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("sbom-multiple-invalid-purls.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    assertThat(filteredContent).isNotNull();
+    assertUnusablePurlLoggedAtDebug("Invalid purl: pkg:pypi/@1.2.3");
+    assertUnusablePurlLoggedAtDebug("Invalid purl: pkg:pypi/@4.5.6");
+    assertUnusablePurlSummaryWarn(2, 3);
+
+    // All three components are still retained as coordinates: an unusable purl only drops the purl, the component
+    // falls back to its name/version coordinates - hence the summary WARN says "unusable", not "dropped".
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).hasSize(3);
   }
 
   @Test
@@ -1842,7 +1866,8 @@ public class SbomResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 1);
-    assertDebugLogOutput("PackageUrl is not valid pkg:pypi/django");
+    assertUnusablePurlLoggedAtDebug("PackageUrl is not valid pkg:pypi/django");
+    assertUnusablePurlSummaryWarn(1, 1);
 
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
@@ -2559,7 +2584,8 @@ public class SbomResultHandlerTest
         .extracting(ThirdPartyFileCoordinate::getPackageUrl)
         .containsExactlyInAnyOrder("pkg:generic/red_inc./fonts-filesystem@2.0.5?part=a");
 
-    assertDebugLogOutput("Invalid Component Identifier for provided purl pkg:rpm/fonts-filesystem@2.0.5");
+    assertUnusablePurlLoggedAtDebug("Invalid Component Identifier for provided purl pkg:rpm/fonts-filesystem@2.0.5");
+    assertUnusablePurlSummaryWarn(1, 1);
   }
 
   @Test
@@ -3427,8 +3453,26 @@ public class SbomResultHandlerTest
                 "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"));
   }
 
-  private void assertDebugLogOutput(final String message) {
-    assertThat(logOutput.getDebugMessages(loggerName)).contains(message);
+  private void assertUnusablePurlLoggedAtDebug(final String prefix) {
+    // CLM-33982: per-component invalid/unusable purl detail is logged at DEBUG (CLM-19862 downgraded these to avoid
+    // flooding large OS/container SBOMs with one line per component). .filteredOn(...).isNotEmpty() surfaces the
+    // actual messages in the failure report, unlike .anyMatch(...) which only reports "no element matched".
+    assertThat(logOutput.getDebugMessages(loggerName))
+        .filteredOn(m -> m.startsWith(prefix))
+        .isNotEmpty();
+    // Guards the DEBUG->WARN re-regression: per-component detail must NOT surface at WARN (that flood is CLM-19862).
+    assertThat(logOutput.getWarnMessages(loggerName))
+        .filteredOn(m -> m.startsWith(prefix))
+        .isEmpty();
+  }
+
+  private void assertUnusablePurlSummaryWarn(final int unusable, final int total) {
+    // CLM-33982: a single summary WARN per file surfaces dropped/degraded components at the production INFO level
+    // without the per-component flood. Message: "<n> of <m> components had unusable purls in SBOM file <id>".
+    final String prefix = unusable + " of " + total + " components had unusable purls in SBOM file ";
+    assertThat(logOutput.getWarnMessages(loggerName))
+        .filteredOn(m -> m.startsWith(prefix))
+        .isNotEmpty();
   }
 
   private Bom parseBom(

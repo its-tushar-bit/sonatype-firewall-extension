@@ -1,0 +1,20 @@
+<bom xmlns="http://cyclonedx.org/schema/bom/1.1" serialNumber="urn:uuid:3e671687-395b-41f5-a30f-a58921a69b80" version="1">
+  <components>
+    <component type="library">
+      <name>django</name>
+      <version>1.2.3</version>
+      <purl>pkg:pypi/@1.2.3</purl>
+    </component>
+    <component type="library">
+      <name>flask</name>
+      <version>4.5.6</version>
+      <purl>pkg:pypi/@4.5.6</purl>
+    </component>
+    <component type="library">
+      <group>org.apache.tomcat</group>
+      <name>tomcat-catalina</name>
+      <version>9.0.14</version>
+      <purl>pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar</purl>
+    </component>
+  </components>
+</bom>

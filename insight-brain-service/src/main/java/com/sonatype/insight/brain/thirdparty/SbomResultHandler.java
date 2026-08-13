@@ -17,6 +17,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -292,9 +293,19 @@ public class SbomResultHandler
       String specVersion = sourceBom.getSpecVersion();
       List<ComponentIdentifier> resolvedComponentsByPurl = new ArrayList<>();
       Set<String> resolvedComponentByHash = new HashSet<>();
-      for (Component component : sourceBom.getComponents()) {
+      List<Component> components = sourceBom.getComponents();
+      AtomicInteger unusablePurlCount = new AtomicInteger();
+      for (Component component : components) {
         processComponent(component, thirdPartyFile.getId(), targetBom, thirdPartyIdentificationSource,
-            resolvedComponentsByPurl, resolvedComponentByHash, componentRefs, specVersion, tx, isValid);
+            resolvedComponentsByPurl, resolvedComponentByHash, componentRefs, specVersion, tx, isValid,
+            unusablePurlCount);
+      }
+      int unusablePurls = unusablePurlCount.get();
+      if (unusablePurls > 0) {
+        // CLM-33982: surface components with unusable purls once per file at WARN. Per-component detail stays at
+        // DEBUG so large OS/container SBOMs don't flood production logs (the noise CLM-19862 originally removed).
+        log.warn("{} of {} components had unusable purls in SBOM file {}", unusablePurls, components.size(),
+            thirdPartyFile.getId());
       }
     }
   }
@@ -388,10 +399,12 @@ public class SbomResultHandler
       final Map<String, String> componentRefs,
       final String schemaVersion,
       final TransactionContext tx,
-      final boolean isValid)
+      final boolean isValid,
+      final AtomicInteger unusablePurlCount)
   {
     try {
-      Pair<ComponentIdentifier, Component> resolvedComponent = getResolvedComponent(sourceComponent);
+      Pair<ComponentIdentifier, Component> resolvedComponent =
+          getResolvedComponent(sourceComponent, thirdPartyFileId, unusablePurlCount);
       if (resolvedComponent != null) {
         String componentRef = SbomIdentityUtils.getComponentRef(sourceComponent);
         String sonatypeSha1 = SbomUtils.getSonatypeSha1FromProperties(sourceComponent);
@@ -434,7 +447,9 @@ public class SbomResultHandler
   }
 
   private Pair<ComponentIdentifier, Component> getResolvedComponent(
-      final Component sourceComponent) throws MalformedPackageURLException
+      final Component sourceComponent,
+      final String thirdPartyFileId,
+      final AtomicInteger unusablePurlCount) throws MalformedPackageURLException
   {
     String packageUrl = sourceComponent.getPurl();
     try {
@@ -447,15 +462,21 @@ public class SbomResultHandler
           return createComponent(sourceComponent, packageUrlIdentifier);
         }
         else {
-          log.debug("PackageUrl is not valid {}", packageUrl);
+          unusablePurlCount.incrementAndGet();
+          log.debug("PackageUrl is not valid {} (bom-ref {}, file {})", packageUrl, sourceComponent.getBomRef(),
+              thirdPartyFileId);
         }
       }
     }
     catch (InvalidPackageURLException e) {
-      log.debug("Invalid purl: {}", packageUrl, e);
+      unusablePurlCount.incrementAndGet();
+      log.debug("Invalid purl: {} - {} (bom-ref {}, file {})", packageUrl, e.getMessage(),
+          sourceComponent.getBomRef(), thirdPartyFileId);
     }
     catch (InvalidComponentIdentifierException e) {
-      log.debug("Invalid Component Identifier for provided purl {}", packageUrl, e);
+      unusablePurlCount.incrementAndGet();
+      log.debug("Invalid Component Identifier for provided purl {} - {} (bom-ref {}, file {})", packageUrl,
+          e.getMessage(), sourceComponent.getBomRef(), thirdPartyFileId);
     }
 
     String cpe = sourceComponent.getCpe();

@@ -73,9 +73,7 @@ public class ApiOidcConfigurationService
   public void insertOrUpdateOidcConfiguration(final SsoConfigurationDTO ssoConfigurationDTO) {
     audit(ssoConfigurationDTO);
     try {
-      validateIdpIssuerMatches(ssoConfigurationDTO);
-      upsertOAuth2Configuration(ssoConfigurationDTO);
-      upsertOidcConfiguration(ssoConfigurationDTO);
+      upsertSsoConfiguration(ssoConfigurationDTO);
     }
     catch (IllegalArgumentException e) {
       log.debug("Failed to insert or update OIDC configuration: {}", e.getMessage());
@@ -121,9 +119,7 @@ public class ApiOidcConfigurationService
     if (oidcConfiguration == null) {
       throw new NotFoundException("Oidc configuration not set");
     }
-    OAuth2Configuration oAuth2Configuration = oAuth2ConfigurationDAO.getById(oidcConfiguration.getId());
-    if (oAuth2Configuration != null) {
-      // Delete OAuth2 configuration using the issuer from OIDC config
+    for (OAuth2Configuration oAuth2Configuration : oAuth2ConfigurationDAO.getAll()) {
       oAuth2ConfigurationDAO.delete(oAuth2Configuration);
     }
     oidcConfigurationDAO.delete(oidcConfiguration);
@@ -133,22 +129,5 @@ public class ApiOidcConfigurationService
 
     // Reload SSO configuration to reflect deletion
     ssoUserService.loadSsoConfiguration();
-  }
-
-  private void validateIdpIssuerMatches(final SsoConfigurationDTO ssoConfigurationDTO) {
-    if (ssoConfigurationDTO == null ||
-        ssoConfigurationDTO.getOAuth2Configuration() == null ||
-        ssoConfigurationDTO.getOidcConfiguration() == null)
-    {
-      log.debug("OAuth2 or OIDC configuration is null");
-      throw new IllegalArgumentException("OAuth2 and OIDC configurations must be provided");
-    }
-
-    String oAuth2IdpIssuer = ssoConfigurationDTO.getOAuth2Configuration().getIdpIssuer();
-    String oidcIdpIssuer = ssoConfigurationDTO.getOidcConfiguration().getIdpIssuer();
-    if (StringUtils.isNoneBlank(oidcIdpIssuer, oAuth2IdpIssuer) && !oAuth2IdpIssuer.equals(oidcIdpIssuer)) {
-      log.debug("OIDC IdP issuer '{}' does not match OAuth2 IdP issuer '{}'", oidcIdpIssuer, oAuth2IdpIssuer);
-      throw new IllegalArgumentException("OIDC IdP issuer must match OAuth2 IdP issuer");
-    }
   }
 }

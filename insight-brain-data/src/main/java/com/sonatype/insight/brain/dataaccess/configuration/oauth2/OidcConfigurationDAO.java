@@ -69,11 +69,15 @@ public class OidcConfigurationDAO
 
   public OidcConfiguration get() {
     try (TransactionContext tx = createTransactionContext()) {
-      return tx.dsl()
-          .selectFrom(OIDC_CONFIGURATION)
-          .limit(1)
-          .fetchOneInto(OidcConfiguration.class);
+      return get(tx);
     }
+  }
+
+  public OidcConfiguration get(final TransactionContext tx) {
+    return tx.dsl()
+        .selectFrom(OIDC_CONFIGURATION)
+        .limit(1)
+        .fetchOneInto(OidcConfiguration.class);
   }
 
   private void validate(final OidcConfiguration config) {

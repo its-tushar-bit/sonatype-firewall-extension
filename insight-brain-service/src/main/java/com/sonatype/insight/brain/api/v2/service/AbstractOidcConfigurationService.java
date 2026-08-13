@@ -14,10 +14,17 @@ import com.sonatype.insight.brain.model.configuration.oauth2.OAuth2Configuration
 import com.sonatype.insight.brain.model.configuration.oauth2.OidcConfiguration;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.security.oauth2.OidcLoginFilter;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class AbstractOidcConfigurationService
 {
+  private static final Logger log = LoggerFactory.getLogger(AbstractOidcConfigurationService.class);
+
   protected final OAuth2ConfigurationDAO oAuth2ConfigurationDAO;
 
   protected final PasswordHandler passwordHandler;
@@ -38,31 +45,77 @@ public abstract class AbstractOidcConfigurationService
     this.oidcLoginFilter = oidcLoginFilter;
   }
 
-  protected void upsertOAuth2Configuration(final SsoConfigurationDTO ssoConfigurationDTO) {
-    OAuth2ConfigurationDTO oAuth2ConfigurationDTO = ssoConfigurationDTO.getOAuth2Configuration();
-    OAuth2Configuration oAuth2Configuration = oAuth2ConfigurationDAO.getById(oAuth2ConfigurationDTO.getIdpIssuer());
-
-    if (oAuth2Configuration != null) {
-      oAuth2ConfigurationDAO.update(OAuth2ConfigurationDTO.fromDTO(oAuth2ConfigurationDTO));
+  /**
+   * Replaces the tenant's SSO configuration in a single transaction. {@code idp_issuer} is the primary
+   * key of both tables, so a changed issuer is persisted as a delete of the old row plus an insert of
+   * the new one; extra OAuth2 rows left by an earlier issuer change are swept, while the OIDC table is
+   * single-row by construction. A masked OIDC client secret is resolved against the current row so the
+   * stored secret is preserved.
+   */
+  protected void upsertSsoConfiguration(final SsoConfigurationDTO ssoConfigurationDTO) {
+    validateSsoConfiguration(ssoConfigurationDTO);
+    try (TransactionContext tx = oidcConfigurationDAO.createTransactionContext()) {
+      tx.begin();
+      replaceOAuth2Configuration(tx, ssoConfigurationDTO.getOAuth2Configuration());
+      replaceOidcConfiguration(tx, ssoConfigurationDTO.getOidcConfiguration());
+      tx.commit();
     }
-    else {
-      oAuth2ConfigurationDAO.insert(OAuth2ConfigurationDTO.fromDTO(oAuth2ConfigurationDTO));
+
+    clearCachedOidcClientSecret();
+  }
+
+  private void validateSsoConfiguration(final SsoConfigurationDTO ssoConfigurationDTO) {
+    if (ssoConfigurationDTO == null ||
+        ssoConfigurationDTO.getOAuth2Configuration() == null ||
+        ssoConfigurationDTO.getOidcConfiguration() == null)
+    {
+      log.debug("OAuth2 or OIDC configuration is null");
+      throw new BadRequestException("OAuth2 and OIDC configurations must be provided");
+    }
+
+    String oAuth2IdpIssuer = ssoConfigurationDTO.getOAuth2Configuration().getIdpIssuer();
+    String oidcIdpIssuer = ssoConfigurationDTO.getOidcConfiguration().getIdpIssuer();
+    if (StringUtils.isNoneBlank(oidcIdpIssuer, oAuth2IdpIssuer) && !oAuth2IdpIssuer.equals(oidcIdpIssuer)) {
+      log.debug("OIDC IdP issuer '{}' does not match OAuth2 IdP issuer '{}'", oidcIdpIssuer, oAuth2IdpIssuer);
+      throw new BadRequestException("OIDC IdP issuer must match OAuth2 IdP issuer");
     }
   }
 
-  protected void upsertOidcConfiguration(final SsoConfigurationDTO ssoConfigurationDTO) {
-    OidcConfiguration currentOidcConfiguration = oidcConfigurationDAO.get();
-    OidcConfiguration updatedOidcConfiguration = buildOidcConfiguration(
-        ssoConfigurationDTO.getOidcConfiguration(),
-        currentOidcConfiguration);
-
-    if (currentOidcConfiguration != null) {
-      oidcConfigurationDAO.update(updatedOidcConfiguration);
+  private void replaceOAuth2Configuration(final TransactionContext tx, final OAuth2ConfigurationDTO dto) {
+    OAuth2Configuration desired = OAuth2ConfigurationDTO.fromDTO(dto);
+    boolean present = false;
+    for (OAuth2Configuration existing : oAuth2ConfigurationDAO.getAll(tx)) {
+      if (existing.getId().equals(desired.getId())) {
+        present = true;
+      }
+      else {
+        log.info("Removing SSO oauth2_configuration row with stale idpIssuer '{}'", existing.getId());
+        oAuth2ConfigurationDAO.delete(tx, existing);
+      }
+    }
+    if (present) {
+      oAuth2ConfigurationDAO.update(tx, desired);
     }
     else {
-      oidcConfigurationDAO.insert(updatedOidcConfiguration);
+      oAuth2ConfigurationDAO.insert(tx, desired);
     }
-    clearCachedOidcClientSecret();
+  }
+
+  private void replaceOidcConfiguration(final TransactionContext tx, final OidcConfigurationDTO dto) {
+    OidcConfiguration current = oidcConfigurationDAO.get(tx);
+    OidcConfiguration desired = buildOidcConfiguration(dto, current);
+    if (current == null) {
+      oidcConfigurationDAO.insert(tx, desired);
+    }
+    else if (current.getId().equals(desired.getId())) {
+      oidcConfigurationDAO.update(tx, desired);
+    }
+    else {
+      log.info("SSO oidc_configuration idpIssuer changed '{}' -> '{}'; replacing row",
+          current.getId(), desired.getId());
+      oidcConfigurationDAO.delete(tx, current);
+      oidcConfigurationDAO.insert(tx, desired);
+    }
   }
 
   protected OidcConfiguration buildOidcConfiguration(

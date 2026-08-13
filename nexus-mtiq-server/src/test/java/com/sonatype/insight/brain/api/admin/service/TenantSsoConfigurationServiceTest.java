@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.admin.service;
 
+import java.util.List;
+
 import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.OAuth2ConfigurationDTO;
@@ -23,6 +25,7 @@ import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -41,7 +44,12 @@ import static com.sonatype.insight.brain.api.admin.SsoConfigurationTestHelper.cr
 import static junit.framework.TestCase.assertEquals;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -67,6 +75,9 @@ public class TenantSsoConfigurationServiceTest
   @Mock
   private OidcLoginFilter mockOidcLoginFilter;
 
+  @Mock
+  private TransactionContext transactionContext;
+
   @Inject
   private PasswordHandler passwordHandler;
 
@@ -83,6 +94,7 @@ public class TenantSsoConfigurationServiceTest
     passwordHandler = new PasswordHandler(new TestMultiTenantEncryptionKeyStore());
 
     when(mockTenantValidator.validateTenantExists(anyString())).thenReturn(true);
+    lenient().when(mockOidcConfigurationDAO.createTransactionContext()).thenReturn(transactionContext);
     underTest = new TenantSsoConfigurationService(passwordHandler, mockTenantUtil, mockTenantValidator,
         mockOAuth2ConfigurationDAO, mockOidcConfigurationDAO, mockOidcLoginFilter, mockSsoUserService);
   }
@@ -140,8 +152,8 @@ public class TenantSsoConfigurationServiceTest
     OidcConfiguration oidcConfiguration = createOidcConfiguration();
 
     testAsNewTenant(tenant -> {
-      when(mockOAuth2ConfigurationDAO.getById(ISSUER)).thenReturn(oAuth2Configuration);
-      when(mockOidcConfigurationDAO.get()).thenReturn(oidcConfiguration);
+      when(mockOAuth2ConfigurationDAO.getAll(transactionContext)).thenReturn(List.of(oAuth2Configuration));
+      when(mockOidcConfigurationDAO.get(transactionContext)).thenReturn(oidcConfiguration);
 
       testUpdateSsoConfiguration(tenant, ssoConfigurationDTO, false, false);
 
@@ -155,7 +167,7 @@ public class TenantSsoConfigurationServiceTest
     OAuth2Configuration oAuth2Configuration = createOAuth2Configuration();
 
     testAsNewTenant(tenant -> {
-      when(mockOAuth2ConfigurationDAO.getById(ISSUER)).thenReturn(oAuth2Configuration);
+      when(mockOAuth2ConfigurationDAO.getAll(transactionContext)).thenReturn(List.of(oAuth2Configuration));
 
       testUpdateSsoConfiguration(tenant, ssoConfigurationDTO, false, true);
     });
@@ -167,9 +179,123 @@ public class TenantSsoConfigurationServiceTest
     OidcConfiguration oidcConfiguration = createOidcConfiguration();
 
     testAsNewTenant(tenant -> {
-      when(mockOidcConfigurationDAO.get()).thenReturn(oidcConfiguration);
+      when(mockOidcConfigurationDAO.get(transactionContext)).thenReturn(oidcConfiguration);
 
       testUpdateSsoConfiguration(tenant, ssoConfigurationDTO, true, false);
+    });
+  }
+
+  @Test
+  public void shouldReplaceConfigurationsAndPreserveSecret_whenIdpIssuerChanges() {
+    String newIssuer = "http://new-idp/";
+    SsoConfigurationDTO ssoConfigurationDTO = createSsoConfigurationDTO();
+    ssoConfigurationDTO.getOAuth2Configuration().setIdpIssuer(newIssuer);
+    ssoConfigurationDTO.getOidcConfiguration().setIdpIssuer(newIssuer);
+    ssoConfigurationDTO.getOidcConfiguration().setClientSecret(ApiOidcConfigurationService.CLIENT_SECRET_MASK);
+
+    OAuth2Configuration existingOAuth2 = createOAuth2Configuration();
+    OidcConfiguration existingOidc = createOidcConfiguration();
+
+    testAsNewTenant(tenant -> {
+      when(mockTenantUtil.isGlobalTenant()).thenReturn(false);
+      when(mockTenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
+      when(mockOAuth2ConfigurationDAO.getAll(transactionContext)).thenReturn(List.of(existingOAuth2));
+      when(mockOidcConfigurationDAO.get(transactionContext)).thenReturn(existingOidc);
+
+      underTest.updateSsoConfiguration(ssoConfigurationDTO, tenant.tenantSlug);
+
+      verify(mockOAuth2ConfigurationDAO).delete(transactionContext, existingOAuth2);
+      verify(mockOAuth2ConfigurationDAO).insert(eq(transactionContext), oAuth2ConfigurationCaptor.capture());
+      verify(mockOAuth2ConfigurationDAO, never()).update(any(), any());
+
+      verify(mockOidcConfigurationDAO).delete(transactionContext, existingOidc);
+      verify(mockOidcConfigurationDAO).insert(eq(transactionContext), oidcConfigurationCaptor.capture());
+      verify(mockOidcConfigurationDAO, never()).update(any(), any());
+
+      assertThat(oAuth2ConfigurationCaptor.getValue().getId()).isEqualTo(newIssuer);
+      OidcConfiguration insertedOidc = oidcConfigurationCaptor.getValue();
+      assertThat(insertedOidc.getId()).isEqualTo(newIssuer);
+      assertThat(insertedOidc.getClientSecret()).isEqualTo(existingOidc.getClientSecret());
+
+      verify(mockSsoUserService).loadSsoConfiguration();
+      verify(mockOidcLoginFilter).clearCachedOidcClientSecret();
+    });
+  }
+
+  @Test
+  public void shouldRemoveStaleRow_whenDuplicateOauth2ConfigurationExists() {
+    SsoConfigurationDTO ssoConfigurationDTO = createSsoConfigurationDTO();
+
+    OAuth2Configuration staleOAuth2 = createOAuth2Configuration();
+    staleOAuth2.setId("http://stale-idp/");
+    OAuth2Configuration currentOAuth2 = createOAuth2Configuration();
+
+    testAsNewTenant(tenant -> {
+      when(mockTenantUtil.isGlobalTenant()).thenReturn(false);
+      when(mockTenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
+      when(mockOAuth2ConfigurationDAO.getAll(transactionContext)).thenReturn(List.of(staleOAuth2, currentOAuth2));
+
+      underTest.updateSsoConfiguration(ssoConfigurationDTO, tenant.tenantSlug);
+
+      verify(mockOAuth2ConfigurationDAO).delete(transactionContext, staleOAuth2);
+      verify(mockOAuth2ConfigurationDAO, never()).delete(transactionContext, currentOAuth2);
+      verify(mockOAuth2ConfigurationDAO).update(eq(transactionContext), oAuth2ConfigurationCaptor.capture());
+      assertThat(oAuth2ConfigurationCaptor.getValue().getId()).isEqualTo(ISSUER);
+    });
+  }
+
+  @Test
+  public void shouldThrowBadRequest_whenIdpIssuersDoNotMatch() {
+    SsoConfigurationDTO ssoConfigurationDTO = createSsoConfigurationDTO();
+    ssoConfigurationDTO.getOidcConfiguration().setIdpIssuer("http://different-idp/");
+
+    testAsNewTenant(tenant -> {
+      when(mockTenantUtil.isGlobalTenant()).thenReturn(false);
+      when(mockTenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
+
+      assertThatThrownBy(() -> underTest.updateSsoConfiguration(ssoConfigurationDTO, tenant.tenantSlug))
+          .isInstanceOf(BadRequestException.class)
+          .hasMessageContaining("OIDC IdP issuer must match OAuth2 IdP issuer");
+
+      verify(mockOidcConfigurationDAO, never()).createTransactionContext();
+    });
+  }
+
+  @Test
+  public void shouldThrowBadRequest_whenOidcConfigurationIsNull() {
+    SsoConfigurationDTO ssoConfigurationDTO = createSsoConfigurationDTO();
+    ssoConfigurationDTO.setOidcConfiguration(null);
+
+    testAsNewTenant(tenant -> {
+      when(mockTenantUtil.isGlobalTenant()).thenReturn(false);
+      when(mockTenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
+
+      assertThatThrownBy(() -> underTest.updateSsoConfiguration(ssoConfigurationDTO, tenant.tenantSlug))
+          .isInstanceOf(BadRequestException.class)
+          .hasMessageContaining("OAuth2 and OIDC configurations must be provided");
+
+      verify(mockOidcConfigurationDAO, never()).createTransactionContext();
+    });
+  }
+
+  @Test
+  public void shouldThrowBadRequest_whenDaoRejectsConfiguration() {
+    SsoConfigurationDTO ssoConfigurationDTO = createSsoConfigurationDTO();
+
+    testAsNewTenant(tenant -> {
+      when(mockTenantUtil.isGlobalTenant()).thenReturn(false);
+      when(mockTenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
+      when(mockOAuth2ConfigurationDAO.getAll(transactionContext)).thenReturn(List.of());
+      doThrow(new IllegalArgumentException("IDP_JWS_ALGORITHM_REQUIRED"))
+          .when(mockOAuth2ConfigurationDAO)
+          .insert(eq(transactionContext), any());
+
+      assertThatThrownBy(() -> underTest.updateSsoConfiguration(ssoConfigurationDTO, tenant.tenantSlug))
+          .isInstanceOf(BadRequestException.class)
+          .hasMessageContaining("Invalid OIDC configuration")
+          .hasMessageContaining("IDP_JWS_ALGORITHM_REQUIRED");
+
+      verify(mockSsoUserService, never()).loadSsoConfiguration();
     });
   }
 
@@ -289,17 +415,17 @@ public class TenantSsoConfigurationServiceTest
     underTest.updateSsoConfiguration(ssoConfigurationDTO, tenant.tenantSlug);
 
     if (insertOAuth2Configuration) {
-      verify(mockOAuth2ConfigurationDAO).insert(oAuth2ConfigurationCaptor.capture());
+      verify(mockOAuth2ConfigurationDAO).insert(eq(transactionContext), oAuth2ConfigurationCaptor.capture());
     }
     else {
-      verify(mockOAuth2ConfigurationDAO).update(oAuth2ConfigurationCaptor.capture());
+      verify(mockOAuth2ConfigurationDAO).update(eq(transactionContext), oAuth2ConfigurationCaptor.capture());
     }
 
     if (insertOidcConfiguration) {
-      verify(mockOidcConfigurationDAO).insert(oidcConfigurationCaptor.capture());
+      verify(mockOidcConfigurationDAO).insert(eq(transactionContext), oidcConfigurationCaptor.capture());
     }
     else {
-      verify(mockOidcConfigurationDAO).update(oidcConfigurationCaptor.capture());
+      verify(mockOidcConfigurationDAO).update(eq(transactionContext), oidcConfigurationCaptor.capture());
     }
 
     verify(mockSsoUserService).loadSsoConfiguration();

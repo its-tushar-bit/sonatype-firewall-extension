@@ -224,6 +224,69 @@ public class ApiOidcConfigurationServiceTest
   }
 
   @Test
+  public void testInsertOrUpdateOidcConfiguration_IdpIssuerChange_ReplacesRowsAndPreservesSecret() {
+    // Given: existing configuration under the original issuer with an encrypted secret
+    tempEntity.newOAuth2Configuration("https://old-auth.example.com", "RS256",
+        "https://old-auth.example.com/.well-known/jwks.json", null);
+
+    String originalSecret = "original-secret";
+    tempEntity.newOidcConfiguration("https://old-auth.example.com", "client-id",
+        passwordHandler.encryptPassword(originalSecret),
+        "https://old-auth.example.com/authorize",
+        "https://old-auth.example.com/token");
+
+    // When: reconfigure with a new issuer, omitting the client secret (masked)
+    String newIssuer = "https://new-auth.example.com";
+    OAuth2ConfigurationDTO oauth2Config = new OAuth2ConfigurationDTO();
+    oauth2Config.setIdpIssuer(newIssuer);
+    oauth2Config.setIdpJwksUrl(newIssuer + "/.well-known/jwks.json");
+    oauth2Config.setIdpJwsAlgorithm("RS256");
+
+    OidcConfigurationDTO oidcConfig = new OidcConfigurationDTO();
+    oidcConfig.setIdpIssuer(newIssuer);
+    oidcConfig.setClientId("client-id");
+    oidcConfig.setClientSecret(ApiOidcConfigurationService.CLIENT_SECRET_MASK);
+    oidcConfig.setIdpAuthorizationUrl(newIssuer + "/authorize");
+    oidcConfig.setIdpTokenUrl(newIssuer + "/token");
+
+    SsoConfigurationDTO ssoConfig = new SsoConfigurationDTO();
+    ssoConfig.setOAuth2Configuration(oauth2Config);
+    ssoConfig.setOidcConfiguration(oidcConfig);
+
+    service.insertOrUpdateOidcConfiguration(ssoConfig);
+
+    // Then: exactly one row per table, under the new issuer, and the secret is preserved
+    assertThat(oAuth2ConfigurationDAO.getById("https://old-auth.example.com")).isNull();
+    assertThat(oAuth2ConfigurationDAO.getAll()).hasSize(1);
+    assertThat(oAuth2ConfigurationDAO.getById(newIssuer)).isNotNull();
+
+    OidcConfiguration migratedOidc = oidcConfigurationDAO.get();
+    assertThat(migratedOidc.getId()).isEqualTo(newIssuer);
+    assertThat(passwordHandler.decryptPassword(migratedOidc.getClientSecret())).isEqualTo(originalSecret);
+  }
+
+  @Test
+  public void testInsertOrUpdateOidcConfiguration_RemovesStaleDuplicateOauth2Row() {
+    // Given: two oauth2 rows (the corruption state a prior issuer change left behind) plus the matching oidc row
+    tempEntity.newOAuth2Configuration("https://stale.example.com", "RS256",
+        "https://stale.example.com/.well-known/jwks.json", null);
+    tempEntity.newOAuth2Configuration("https://auth.example.com", "RS256",
+        "https://auth.example.com/.well-known/jwks.json", null);
+    tempEntity.newOidcConfiguration("https://auth.example.com", "client-id",
+        passwordHandler.encryptPassword("secret"),
+        "https://auth.example.com/authorize",
+        "https://auth.example.com/token");
+
+    assertThat(oAuth2ConfigurationDAO.getAll()).hasSize(2);
+
+    service.insertOrUpdateOidcConfiguration(createValidSsoConfiguration());
+
+    assertThat(oAuth2ConfigurationDAO.getAll()).hasSize(1);
+    assertThat(oAuth2ConfigurationDAO.getById("https://auth.example.com")).isNotNull();
+    assertThat(oAuth2ConfigurationDAO.getById("https://stale.example.com")).isNull();
+  }
+
+  @Test
   public void testInsertOrUpdateOidcConfiguration_WithAllOptionalFields() {
     // Given: SSO configuration with all optional fields
     OAuth2ConfigurationDTO oauth2Config = new OAuth2ConfigurationDTO();
@@ -463,6 +526,25 @@ public class ApiOidcConfigurationServiceTest
 
     // Then: Both configurations should be completely deleted
     assertThat(oAuth2ConfigurationDAO.getById("https://auth.example.com")).isNull();
+    assertThat(oidcConfigurationDAO.get()).isNull();
+  }
+
+  @Test
+  public void testDeleteOidcConfiguration_RemovesStaleDuplicateOauth2Row() {
+    tempEntity.newOAuth2Configuration("https://stale.example.com", "RS256",
+        "https://stale.example.com/.well-known/jwks.json", null);
+    tempEntity.newOAuth2Configuration("https://auth.example.com", "RS256",
+        "https://auth.example.com/.well-known/jwks.json", null);
+    tempEntity.newOidcConfiguration("https://auth.example.com", "client-id",
+        passwordHandler.encryptPassword("secret"),
+        "https://auth.example.com/authorize",
+        "https://auth.example.com/token");
+
+    assertThat(oAuth2ConfigurationDAO.getAll()).hasSize(2);
+
+    service.deleteOidcConfiguration();
+
+    assertThat(oAuth2ConfigurationDAO.getAll()).isEmpty();
     assertThat(oidcConfigurationDAO.get()).isNull();
   }
 

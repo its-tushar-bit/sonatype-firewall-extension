@@ -68,8 +68,13 @@ public class TenantSsoConfigurationService
   public void updateSsoConfiguration(SsoConfigurationDTO ssoConfigurationDTO, String tenantSlug) {
     validateCurrentTenant(tenantSlug);
 
-    upsertOAuth2Configuration(ssoConfigurationDTO);
-    upsertOidcConfiguration(ssoConfigurationDTO);
+    try {
+      upsertSsoConfiguration(ssoConfigurationDTO);
+    }
+    catch (IllegalArgumentException e) {
+      log.debug("Failed to update SSO configuration: {}", e.getMessage());
+      throw new BadRequestException("Invalid OIDC configuration: " + e.getMessage(), e);
+    }
 
     // Ensuring the tenant reload the configuration for SSO
     ssoUserService.loadSsoConfiguration();

@@ -18,13 +18,10 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.git.PullRequestFailureCategory;
 import com.sonatype.insight.brain.git.SourceControlException;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
@@ -35,7 +32,6 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.*;
 import static java.lang.System.currentTimeMillis;
@@ -1454,27 +1450,6 @@ public class SourceControlEventDAOTest
         .selectEventsByCriteria(applicationIds, new Date(cutOffTimeMs), ascending, 10, 0);
 
     assertThat(fetchedSourceControlEvents).isEmpty();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testSelectEventsByCriteria_CreatedOnOrAfterFilterPostgres() {
-    Organization tempOrganization = tempEntity.newOrganization();
-    Application tempApplication = tempEntity.newApplication(tempOrganization.getId());
-    long cutOffTimeMs = 100000;
-    persistSourceControlEvent(0, tempApplication.getId());
-    persistSourceControlEvent(0, tempApplication.getId());
-    SourceControlEvent expectedEvent = persistSourceControlEvent(cutOffTimeMs + 100000, tempApplication.getId());
-    SourceControlEvent expectedEventTwo = persistSourceControlEvent(cutOffTimeMs + 100000, tempApplication.getId());
-    boolean ascending = true;
-    Set<String> applicationIds = Collections.singleton(tempApplication.getId());
-
-    List<SourceControlEvent> fetchedSourceControlEvents = sourceControlEventDAO
-        .selectEventsByCriteria(applicationIds, new Date(cutOffTimeMs + 100000), ascending, 10, 0);
-
-    assertThat(fetchedSourceControlEvents).extracting(SourceControlEvent::getId)
-        .containsExactly(expectedEvent.getId(), expectedEventTwo.getId());
   }
 
   @Test

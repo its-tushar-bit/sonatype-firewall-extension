@@ -13,9 +13,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -28,7 +26,6 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
 import org.quartz.SimpleScheduleBuilder;
@@ -105,17 +102,6 @@ public class QuartzJobStoreTXTest
 
     assertThat(quartzJobStoreTX.isClustered()).isFalse();
     assertThat(quartzJobStoreTX.getDriverDelegateClass()).isEqualTo(QuartzHSQLDBDelegate.class.getName());
-    assertJobStoreTX(quartzJobStoreTX);
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testInitialize_Postgres() throws Exception {
-    quartzJobStoreTX.initialize();
-
-    assertThat(quartzJobStoreTX.getDriverDelegateClass()).isEqualTo(QuartzPostgreSQLDelegate.class.getName());
-    assertThat(quartzJobStoreTX.isClustered()).isTrue();
     assertJobStoreTX(quartzJobStoreTX);
   }
 

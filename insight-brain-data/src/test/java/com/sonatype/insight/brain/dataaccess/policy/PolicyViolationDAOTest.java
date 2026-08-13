@@ -15,7 +15,6 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -26,7 +25,6 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsForImag
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsForImageContainerFilter;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsForImageContainerFilter.SortField;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsForImageContainerFilter.SortField.SortableField;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.containerimages.ContainerImagePolicyViolationSummaryDTO;
@@ -56,7 +54,6 @@ import static com.sonatype.insight.brain.jooq.generated.ods.tables.PolicyViolati
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAOTest.Created.CREATED_AFTER_CUTOFF;
 import static com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAOTest.Created.CREATED_BEFORE_CUTOFF;
@@ -403,13 +400,6 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetMeanTimeToRemediate_shouldCorrectlyComputeMeanTimeToRemediateMillisUsingPostgres() {
-    doGetMeanTimeToRemediateShouldCorrectlyComputeMeanTimeToRemediateMillisUsingTest();
-  }
-
-  @Test
   public void testGetMeanTimeToRemediate_shouldCorrectlyComputeMeanTimeToRemediateMillisUsingH2() {
     doGetMeanTimeToRemediateShouldCorrectlyComputeMeanTimeToRemediateMillisUsingTest();
   }
@@ -480,13 +470,6 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetMeanTimeToRemediate_shouldUseLeastValueWhenWaivedAndFixedUsingPostges() {
-    doGetMeanTimeToRemediate_shouldUseLeastValueWhenWaivedAndFixed();
-  }
-
-  @Test
   public void testGetMeanTimeToRemediate_shouldUseLeastValueWhenWaivedAndFixedUsingH2() {
     doGetMeanTimeToRemediate_shouldUseLeastValueWhenWaivedAndFixed();
   }
@@ -524,13 +507,6 @@ public class PolicyViolationDAOTest
     long result = dao.getMeanTimeToRemediate(84);
 
     assertThat(result).isEqualTo(expectedMeanTimeToRemediate);
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetMeanTimeToRemediate_shouldHandleViolationsStillOpenUsingPostgres() {
-    doGetMeanTimeToRemediate_shouldHandleViolationsStillOpen();
   }
 
   @Test
@@ -1996,13 +1972,6 @@ public class PolicyViolationDAOTest
     testDeleteFixedByOwnerIdAndDate(true);
   }
 
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testDeleteFixedByOwnerIdAndDate_Postgres() {
-    testDeleteFixedByOwnerIdAndDate(false);
-  }
-
   private void testDeleteFixedByOwnerIdAndDate(boolean isDatabaseEmbedded) {
     assertThat(dao.isDatabaseEmbedded()).isEqualTo(isDatabaseEmbedded);
 
@@ -3129,21 +3098,7 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testAllFieldsRoundTrip_insertAndUpdate_Postgres() {
-    doTestAllFieldsRoundTrip_insertAndUpdate();
-  }
-
-  @Test
   public void testAllFieldsRoundTrip_insertBatchAndUpdateBatch() {
-    doTestAllFieldsRoundTrip_insertBatchAndUpdateBatch();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testAllFieldsRoundTrip_insertBatchAndUpdateBatch_Postgres() {
     doTestAllFieldsRoundTrip_insertBatchAndUpdateBatch();
   }
 
@@ -3221,21 +3176,7 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testInsertBatch_storesConstraintFacts_Postgres() {
-    doTestInsertBatch_storesConstraintFacts();
-  }
-
-  @Test
   public void testUpdateBatch_storesConstraintFacts() {
-    doTestUpdateBatch_storesConstraintFacts();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testUpdateBatch_storesConstraintFacts_Postgres() {
     doTestUpdateBatch_storesConstraintFacts();
   }
 
@@ -3278,13 +3219,6 @@ public class PolicyViolationDAOTest
     doTestInsertBatch_multipleViolations_storesConstraintsBatched();
   }
 
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testInsertBatch_multipleViolations_storesConstraintsBatched_Postgres() {
-    doTestInsertBatch_multipleViolations_storesConstraintsBatched();
-  }
-
   private void doTestInsertBatch_multipleViolations_storesConstraintsBatched() {
     PolicyViolation v1 = createFullyPopulatedViolation("scan-batch-multi-1");
     PolicyViolation v2 = createFullyPopulatedViolation("scan-batch-multi-2");
@@ -3316,13 +3250,6 @@ public class PolicyViolationDAOTest
 
   @Test
   public void testUpdateBatch_skipsAlreadyPersistedConstraints() {
-    doTestUpdateBatch_skipsAlreadyPersistedConstraints();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testUpdateBatch_skipsAlreadyPersistedConstraints_Postgres() {
     doTestUpdateBatch_skipsAlreadyPersistedConstraints();
   }
 
@@ -3363,13 +3290,6 @@ public class PolicyViolationDAOTest
 
   @Test
   public void testInsertBatch_throwsWhenConstraintFactsNotLoaded() {
-    doTestInsertBatch_throwsWhenConstraintFactsNotLoaded();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testInsertBatch_throwsWhenConstraintFactsNotLoaded_Postgres() {
     doTestInsertBatch_throwsWhenConstraintFactsNotLoaded();
   }
 

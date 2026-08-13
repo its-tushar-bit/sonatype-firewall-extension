@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.tag;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -17,7 +14,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.NameableDAOTest;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -26,8 +22,6 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorTagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweTagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationTagDAO;
-import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.DescriptionHelper;
@@ -45,7 +39,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -426,13 +419,6 @@ public class TagDAOTest
     testGetByApplicationIds(true);
   }
 
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetByApplicationIds_Postgres() {
-    testGetByApplicationIds(false);
-  }
-
   private void testGetByApplicationIds(boolean isDatabaseEmbedded) {
     assertThat(dao.isDatabaseEmbedded()).isEqualTo(isDatabaseEmbedded);
     organization = tempEntity.newOrganization();
@@ -469,61 +455,6 @@ public class TagDAOTest
     tempEntity.newApplicationTag(app.getId(), tag.getId());
 
     assertThat(dao.getByApplicationIds(appIds)).extracting(Tag::getId).containsExactly(tag.getId());
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetTagsUsedByApplications_MoreThanShortMaxValueOnPostgres() throws Exception {
-    OperationalDataStore operationalDataStore = databaseRule.getOperationalDataStore();
-
-    String orgSql = "INSERT INTO " + operationalDataStore.getDatabaseSchema() +
-        ".organization (organization_id, parent_organization_id, name, name_lowercase_no_whitespace) "
-        + "VALUES ('org1', 'ROOT_ORGANIZATION_ID', 'org1', 'org1');";
-
-    String sql = "INSERT INTO " + operationalDataStore.getDatabaseSchema() +
-        ".application (application_id, public_id, public_id_lowercase, name, "
-        + "name_lowercase_no_whitespace, organization_id) "
-        + "VALUES (?, ?, ?, ?, ?, 'org1');";
-
-    String deleteSql = "TRUNCATE " + operationalDataStore.getDatabaseSchema() +
-        ".application CASCADE";
-
-    try (Connection connection = operationalDataStore.getDataSource().getConnection()) {
-
-      try (Statement statement = connection.createStatement()) {
-        statement.executeUpdate(orgSql);
-      }
-
-      connection.setAutoCommit(false);
-      List<String> appIds = new ArrayList<>(Short.MAX_VALUE + 1);
-      try (PreparedStatement statement = connection.prepareStatement(sql)) {
-        for (int i = 0; i <= Short.MAX_VALUE; i++) {
-          String app = "app-" + (i + 1);
-          appIds.add(app);
-          statement.setString(1, app);
-          statement.setString(2, app);
-          statement.setString(3, app);
-          statement.setString(4, app);
-          statement.setString(5, app);
-          statement.addBatch();
-
-          if ((i + 1) % 100 == 0) {
-            statement.executeBatch();
-            connection.commit();
-          }
-        }
-        statement.executeBatch();
-        connection.commit();
-      }
-      connection.setAutoCommit(true);
-
-      assertThat(dao.getByApplicationIds(appIds)).isEmpty();
-
-      try (Statement statement = connection.createStatement()) {
-        statement.executeUpdate(deleteSql);
-      }
-    }
   }
 
   @Test

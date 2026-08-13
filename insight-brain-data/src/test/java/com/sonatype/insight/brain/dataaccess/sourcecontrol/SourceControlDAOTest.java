@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -16,15 +15,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.DAOSecretRotator;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -38,7 +34,6 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -1530,20 +1525,6 @@ public class SourceControlDAOTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testBuildCompositeSourceControlForApplicationId_noMatchingApp_postgres() {
-    // given: a root organization source control
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, NULL_REPO_URL, "fake token", GITHUB);
-
-    // when: build the composite source control for an application that does not exist
-    SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlForApplicationId("contrived app id");
-
-    // then: null result
-    assertThat(sourceControl).isNull();
-  }
-
-  @Test
   public void testBuildCompositeSourceControlForApplicationId_noMatchingApp_h2() {
     // given: a root organization source control
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, NULL_REPO_URL, "fake token", GITHUB);
@@ -1553,36 +1534,6 @@ public class SourceControlDAOTest
 
     // then: null result
     assertThat(sourceControl).isNull();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testBuildCompositeSourceControlForApplicationId_inheritFromRoot_postgres() {
-    // given: a hierarchy with all attributes inheriting from the root org
-    TestableHierarchy testableHierarchy = new TestableHierarchy()
-        .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "orgID", "appOne")
-        .withProvider(GITHUB, null, null)
-        .withToken("fakeToken", null, null)
-        .withDefaultBranch("main", null, null)
-        .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
-        .withPullRequestCommenting(false, null, null)
-        .withRemediationPullRequests(true, null, null)
-        .withSourceControlEvaluations(false, null, null)
-        .withSsh(false, null, null)
-        .withCommitStatusEnabled(false, null, null)
-        .withManualPullRequestsEnabled(false, null, null)
-        .withStatusChecks(false, null, null)
-        .build();
-
-    // when: build the composite source control for appOne
-    SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlForApplicationId(
-        testableHierarchy.getApplication("appOne").getId());
-
-    // then: composite source control is built successfully
-    assertSourceControl(
-        sourceControl,
-        testableHierarchy.getExpectedCompositeSourceControl(sourceControl.getOwnerId()));
   }
 
   @Test
@@ -1614,28 +1565,6 @@ public class SourceControlDAOTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testBuildCompositeSourceControlForApplicationId_CommitStatusEnabled_AllNull_postgres() {
-    // given: a hierarchy with commit status enabled set to null
-    TestableHierarchy testableHierarchy = new TestableHierarchy()
-        .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "orgId", "appOne")
-        .withProvider(GITHUB, null, null)
-        .withDefaultBranch("main", null, null)
-        .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
-        .withCommitStatusEnabled(null, null, null)
-        .withManualPullRequestsEnabled(null, null, null)
-        .build();
-
-    // when: build the composite source control for appOne
-    SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlForApplicationId(
-        testableHierarchy.getApplication("appOne").getId());
-
-    // then: composite source control is built, with commitStatusEnabled having a null value
-    assertThat(sourceControl.getCommitStatusEnabled()).isNull();
-  }
-
-  @Test
   public void testBuildCompositeSourceControlForApplicationId_CommitStatusEnabled_AllNull_h2() {
     // given: a hierarchy with commit status enabled set to null
     TestableHierarchy testableHierarchy = new TestableHierarchy()
@@ -1652,39 +1581,6 @@ public class SourceControlDAOTest
 
     // then: composite source control is built, with commitStatusEnabled having a null value
     assertThat(sourceControl.getCommitStatusEnabled()).isNull();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testBuildCompositeSourceControlForApplicationId_inheritFromIntermediateOrg_postgres() {
-    // given: a hierarchy with multiple nested organizations
-    TestableHierarchy testableHierarchy = new TestableHierarchy()
-        .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "org1", "org2", "org3", "appOne")
-        .withProvider(GITLAB, null, GITHUB, null, null)
-        .withToken("rootToken", null, "org2.token", null, null)
-        .withDefaultBranch("trunk", null, "main", null, null)
-        .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
-        .withPullRequestCommenting(false, null, true, null, null)
-        .withRemediationPullRequests(true, null, false, null, null)
-        .withSourceControlEvaluations(false, null, true, null, null)
-        .withSsh(false, null, true, null, null)
-        .withCommitStatusEnabled(false, null, true, null, null)
-        .withStatusChecks(false, null, true, null, null)
-        .withManualPullRequestsEnabled(false, null, true, null, null)
-        .branchFrom("org2", "org4", "app2")
-        .withRepositoryUrl("https://test.sonatype.com/app/2", "ssh://test.sonatype.com/app/2.git")
-        .withToken("org4.token", null)
-        .build();
-
-    // when: build the composite source control for appOne
-    SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlForApplicationId(
-        testableHierarchy.getApplication("appOne").getId());
-
-    // then: source control is built correctly
-    assertSourceControl(
-        sourceControl,
-        testableHierarchy.getExpectedCompositeSourceControl(sourceControl.getOwnerId()));
   }
 
   @Test
@@ -1719,36 +1615,6 @@ public class SourceControlDAOTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testBuildCompositeSourceControlForApplicationId_inheritFromOrg_postgres() {
-    // given: a hierarchy with everything inheriting from parent org
-    TestableHierarchy testableHierarchy = new TestableHierarchy()
-        .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "orgId", "appOne")
-        .withProvider(GITLAB, GITHUB, null)
-        .withToken("rootToken", "gh-token", null)
-        .withDefaultBranch("trunk", "main", null)
-        .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
-        .withPullRequestCommenting(false, true, null)
-        .withRemediationPullRequests(true, false, null)
-        .withSourceControlEvaluations(false, true, null)
-        .withSsh(false, true, null)
-        .withCommitStatusEnabled(false, true, null)
-        .withStatusChecks(false, true, null)
-        .withManualPullRequestsEnabled(false, true, null)
-        .build();
-
-    // when: build the composite source control for appOne
-    SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlForApplicationId(
-        testableHierarchy.getApplication("appOne").getId());
-
-    // then: source control is built correctly
-    assertSourceControl(
-        sourceControl,
-        testableHierarchy.getExpectedCompositeSourceControl(sourceControl.getOwnerId()));
-  }
-
-  @Test
   public void testBuildCompositeSourceControlForApplicationId_inheritFromOrg_h2() {
     // given: a hierarchy with everything inheriting from parent org
     TestableHierarchy testableHierarchy = new TestableHierarchy()
@@ -1764,36 +1630,6 @@ public class SourceControlDAOTest
         .withCommitStatusEnabled(false, true, null)
         .withStatusChecks(false, true, null)
         .withManualPullRequestsEnabled(false, true, null)
-        .build();
-
-    // when: build the composite source control for appOne
-    SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlForApplicationId(
-        testableHierarchy.getApplication("appOne").getId());
-
-    // then: source control is built correctly
-    assertSourceControl(
-        sourceControl,
-        testableHierarchy.getExpectedCompositeSourceControl(sourceControl.getOwnerId()));
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testBuildCompositeSourceControlForApplicationid_overrideAll_postgres() {
-    // given: a hierarchy with everything overridden in the app source control
-    TestableHierarchy testableHierarchy = new TestableHierarchy()
-        .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "orgId", "appOne")
-        .withProvider(GITLAB, GITHUB, GITLAB)
-        .withToken("rootToken", "gh-token", "gl-token")
-        .withDefaultBranch("trunk", "main", "develop")
-        .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
-        .withPullRequestCommenting(false, true, false)
-        .withRemediationPullRequests(true, null, false)
-        .withSourceControlEvaluations(false, null, true)
-        .withSsh(false, true, false)
-        .withCommitStatusEnabled(false, true, false)
-        .withStatusChecks(false, null, true)
-        .withManualPullRequestsEnabled(false, true, false)
         .build();
 
     // when: build the composite source control for appOne
@@ -2116,34 +1952,6 @@ public class SourceControlDAOTest
       assertSourceControl(sourceControlList.get(0), expectedSourceControl1);
       assertSourceControl(sourceControlList.get(1), expectedSourceControl2);
     }
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testRotateEncryptedSecrets() throws SQLException {
-    tempEntity.newSourceControl(Organization.ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
-
-    for (int i = 0; i < 4; i++) {
-      Application app = tempEntity.newApplication(Organization.ROOT_ORGANIZATION_ID);
-      tempEntity.newSourceControl(app.getId(), "https://github.com/some/repo", "token_" + i + "_old",
-          SourceControlProvider.GITHUB);
-    }
-
-    Function<String, String> secretRotator = secret -> secret.replace("old", "new");
-
-    daoSecretRotator.rotateEncryptedSecrets(sourceControlDAO, secretRotator);
-
-    List<SourceControl> results = sourceControlDAO.getAll();
-
-    assertThat(results.stream().filter(sc -> sc.getToken() == null).count()).isEqualTo(1);
-    assertThat(results.stream().filter(sc -> sc.getToken() != null).count()).isEqualTo(4);
-    results.stream()
-        .filter(sc -> sc.getToken() != null)
-        .forEach(sc -> {
-          assertThat(sc.getToken()).doesNotContain("old");
-          assertThat(sc.getToken()).contains("new");
-        });
   }
 
   @Test

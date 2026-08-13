@@ -13,18 +13,15 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.datastore.DataStore;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(PostgresTestCategory.class)
 public class CollapseOwnerWideningCompatViewsMigratorTest
     extends AbstractDatabaseTest
 {
@@ -49,7 +46,6 @@ public class CollapseOwnerWideningCompatViewsMigratorTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
   @PostgresTest(cleanDatabase = true, suppressMigrations = true)
   public void migratedTenant_collapsesViewAndRenamesBaseTable() throws Exception {
     DataSource dataSource = dataStore.getDataSource();
@@ -70,7 +66,6 @@ public class CollapseOwnerWideningCompatViewsMigratorTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
   @PostgresTest(cleanDatabase = true, suppressMigrations = true)
   public void freshTenant_isNoOp() throws Exception {
     DataSource dataSource = dataStore.getDataSource();
@@ -87,7 +82,6 @@ public class CollapseOwnerWideningCompatViewsMigratorTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
   @PostgresTest(cleanDatabase = true, suppressMigrations = true)
   public void reRun_isIdempotent() throws Exception {
     DataSource dataSource = dataStore.getDataSource();

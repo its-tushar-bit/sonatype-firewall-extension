@@ -271,22 +271,8 @@
           <forkCount>0.25C</forkCount>
         </configuration>
         <executions>
-          <!-- Override default to exclude Postgres tests (run H2/unit tests first) -->
           <execution>
             <id>default-test</id>
-            <configuration>
-              <excludedGroups>PostgresTestCategory</excludedGroups>
-            </configuration>
-          </execution>
-          <!-- Run Postgres tests together to avoid fixture thrashing -->
-          <execution>
-            <id>postgres-tests</id>
-            <goals>
-              <goal>test</goal>
-            </goals>
-            <configuration>
-              <groups>PostgresTestCategory</groups>
-            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -343,7 +329,7 @@
                 <include>**/ThirdPartySbomMetadataTestUtil*</include>
                 <include>**/SbomMetadataBuilder*</include>
                 <include>**/ScmUserMappingsHelper*</include>
-                <include>**/TemporaryTableHelperTest*</include>
+                <include>**/TemporaryTableApplicationsSqlSupport*</include>
                 <include>**/TestSamlFactory*</include>
                 <!-- Base/DUAL test classes that stay here but are extended by the relocated
                      @PostgresTest DAO tests in insight-brain-variant-test-data-pg (CLM-45228). -->
@@ -354,6 +340,9 @@
                 <include>**/HostedComponentScanQueueDAOTest*</include>
                 <include>**/AbstractClusterLockManagerTest*</include>
                 <include>**/EvaluationQueueDAOTest*</include>
+                <include>**/NameableDAOTest*</include>
+                <include>**/SourceControlUserDAOTest*</include>
+                <include>**/NameHelperTest*</include>
               </includes>
             </configuration>
           </execution>

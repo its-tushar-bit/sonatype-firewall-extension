@@ -19,7 +19,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * (a cohort-only base) rather than on the shared {@code SpringInjectedTest}/{@code AbstractComponentTest}: putting
  * {@code @ExtendWith(SpringExtension.class)} on the shared chain would make the many JUnit-4 (vintage) tests that
  * remain in {@code insight-brain-service} Jupiter-discoverable, which defeats the JUnit-4 {@code @Category} group
- * exclusions (e.g. {@code PostgresTestCategory}) they rely on in CI.
+ * exclusions they rely on in CI.
  *
  * <p>
  * Converted component tests extend this instead of {@code AbstractComponentTest} and additionally carry

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document>
+	<spdxVersion>SPDX-2.3</spdxVersion>
+	<SPDXID>SPDXRef-DOCUMENT</SPDXID>
+	<name>DummySPDXFile</name>
+	<documentNamespace>http://spdx.org/spdxdocs/DummySPDXFile</documentNamespace>
+	<documentDescribes>SPDXRef-Package1</documentDescribes>
+	<packages>
+		<name>DummyComponent1</name>
+		<SPDXID>SPDXRef-Package1</SPDXID>
+		<downloadLocation>http://some-download-1</downloadLocation>
+	</packages>
+	<packages>
+		<name>DummyComponent2</name>
+		<SPDXID>SPDXRef-Package2</SPDXID>
+	</packages>
+	<packages>
+		<name>DummyComponent3</name>
+		<SPDXID>SPDXRef-Package3</SPDXID>
+	</packages>
+</Document>

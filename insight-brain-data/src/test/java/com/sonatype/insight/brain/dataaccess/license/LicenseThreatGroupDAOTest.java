@@ -5,11 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.license;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -18,12 +16,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.NameableDAOTest;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
@@ -42,7 +37,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -823,73 +817,6 @@ public class LicenseThreatGroupDAOTest
       assertThat(licenseThreatGroupDAO.getCandidatesWithObligationsByApplicationIds(tx,
           Collections.emptySet()).obligationsByComponent()).isEmpty();
     }
-  }
-
-  /**
-   * Scale guard for CLM-41470: the previous implementation shipped every distinct candidate component identifier back
-   * to PostgreSQL in a row-value {@code (format, coords) IN ((?, ?), ...)} clause, which overflowed the parser's
-   * recursion-depth stack ("stack depth limit exceeded") at tens of thousands of tuples. This test seeds
-   * {@code scaleComponentCount} candidate components and asserts the single candidate/obligation LEFT JOIN resolves
-   * all of their
-   * obligations in a single round-trip within a generous wall-clock ceiling — a smoke ceiling to catch a catastrophic
-   * plan regression, NOT a tight SLA (per CLAUDE.md section 6). PostgreSQL-only because the parser-depth overflow it
-   * guards against is PostgreSQL-specific.
-   */
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetCandidateComponentObligationsByOwner_scalesToTensOfThousands_Postgres() {
-    // The historical row-value (format, coords) IN-list overflowed PostgreSQL's parser recursion stack in the tens of
-    // thousands of tuples, so this many candidates is enough to have tripped the old failure mode while keeping the
-    // seeding cost (which dominates the runtime) modest. The new LEFT JOIN never builds that IN-list at any scale.
-    final int scaleComponentCount = 50_000;
-    final int insertBatchSize = 5_000;
-    final long wallClockCeilingMillis = 60_000L;
-
-    tempEntity.newLicenseThreatGroup(organization.getId(), "Banned", 10, "GPL-2.0");
-
-    // Seed candidate components (application_component + application_component_license) and a ROOT obligation each.
-    List<ComponentObligation> obligationBatch = new ArrayList<>(insertBatchSize);
-    Date now = new Date();
-    ComponentObligationDAO componentObligationDAO = daoFactory.createComponentObligationDAO();
-    for (int i = 0; i < scaleComponentCount; i++) {
-      String hash = "h-scale-" + i;
-      ComponentIdentifier ci = seedMatchingComponent(application, hash, "GPL-2.0");
-      ComponentObligation obligation = new ComponentObligation(ci, Organization.ROOT_ORGANIZATION_ID, "NOTICE",
-          "scale notice " + i, ObligationStatus.OPEN, "hash-scale-" + i, "username");
-      obligation.setLastUpdatedAt(now);
-      obligationBatch.add(obligation);
-      if (obligationBatch.size() == insertBatchSize) {
-        try (TransactionContext tx = componentObligationDAO.createTransactionContext()) {
-          componentObligationDAO.insertBatch(tx, obligationBatch, false);
-          tx.commit();
-        }
-        obligationBatch.clear();
-      }
-    }
-    if (!obligationBatch.isEmpty()) {
-      try (TransactionContext tx = componentObligationDAO.createTransactionContext()) {
-        componentObligationDAO.insertBatch(tx, obligationBatch, false);
-        tx.commit();
-      }
-    }
-
-    long startNanos = System.nanoTime();
-    LicenseThreatGroupDAO.CandidateComponentObligations result;
-    try (TransactionContext tx = licenseThreatGroupDAO.createTransactionContext()) {
-      result = licenseThreatGroupDAO.getCandidatesWithObligationsByOwner(tx, OwnerType.APPLICATION,
-          application.getId());
-    }
-    long elapsedMillis = (System.nanoTime() - startNanos) / 1_000_000L;
-    log.info("[CLM-41470 perf] candidate/obligation LEFT JOIN over {} candidate components took {} ms",
-        scaleComponentCount, elapsedMillis);
-
-    assertThat(result.obligationsByComponent()).hasSize(scaleComponentCount);
-    // candidates() holds one entry per distinct (ltgId, appId, hash, format, coords, licenseId) tuple. It equals the
-    // component count here only because each component is seeded into exactly one LTG with exactly one license (no
-    // LTG x license fanout); a component matching multiple LTGs/licenses would yield more candidate rows.
-    assertThat(result.candidates()).hasSize(scaleComponentCount);
-    assertThat(elapsedMillis).isLessThan(wallClockCeilingMillis);
   }
 
   @Test

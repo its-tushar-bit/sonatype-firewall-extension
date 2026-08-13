@@ -10,7 +10,6 @@ import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
@@ -39,7 +38,6 @@ import org.jooq.Record;
 import org.jooq.UpdatableRecord;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ArtifactoryConnection.ARTIFACTORY_CONNECTION;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.Label.LABEL;
@@ -67,7 +65,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @see <a href="https://github.com/sonatype/insight-brain/pull/15014#discussion_r2756431499">PR Review Comment</a>
  */
-@Category(PostgresTestCategory.class)
 @PostgresTest
 public class JooqRecordMappingTest
     extends AbstractDbDAOTest

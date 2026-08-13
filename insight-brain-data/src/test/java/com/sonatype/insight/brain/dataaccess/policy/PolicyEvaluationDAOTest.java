@@ -19,14 +19,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO.StageEvaluationWindow;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -41,7 +39,6 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestCo
 import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -398,13 +395,6 @@ public class PolicyEvaluationDAOTest
     testGetLastByApplicationIdsAndStageIds_InOperatorOptimization(true);
   }
 
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetLastByApplicationIdsAndStageIds_InOperatorOptimizationForPostgres() {
-    testGetLastByApplicationIdsAndStageIds_InOperatorOptimization(false);
-  }
-
   private void testGetLastByApplicationIdsAndStageIds_InOperatorOptimization(boolean isEmbeddedDb) {
     organization = tempEntity.newOrganization();
     application = tempEntity.newApplication(organization.getId());
@@ -460,13 +450,6 @@ public class PolicyEvaluationDAOTest
     assertThat(policyEvaluation.getId()).isEqualTo(pe2.getId());
     assertThat(policyEvaluation.getTime()).isEqualTo(time2);
     assertThat(policyEvaluation.isForObsoleteScan()).isFalse();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetLastByApplicationIds_InOperatorOptimizationForPostgres() {
-    testGetLastByApplicationIds_InOperatorOptimization(false);
   }
 
   @Test

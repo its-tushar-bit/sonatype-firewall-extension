@@ -12,7 +12,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.sql.Connection;
 
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
@@ -31,7 +30,6 @@ import com.sonatype.insight.brain.db.migrations.DatabaseMigrations;
 import com.sonatype.insight.brain.db.migrations.LegacyDataStoreMigrator;
 import com.sonatype.insight.brain.db.rule.DatabaseContainerRule;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -41,7 +39,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.junit.experimental.categories.Category;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -363,54 +360,6 @@ public class DbMigrationCommandTest
         OperationalDataStore.LOCK_TABLE_DATABASE_VERSION);
     assertThat(
         DatabaseUtil.getLegacyDatabaseSchemaVersion(databaseContainerRule.getThirdPartyScansDataStore())).isEqualTo(1);
-    when(dbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
-
-    dbMigrationCommand.run(null, null, insightConfig);
-
-    assertMigrated();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest(suppressMigrations = true)
-  public void testRun_Postgres_WithoutTables() throws Exception {
-    ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator();
-    resourceDatabasePopulator
-        .addScript(new ClassPathResource(getClass().getSimpleName() + "/postgres/aggregation.sql"));
-    resourceDatabasePopulator
-        .addScript(new ClassPathResource(getClass().getSimpleName() + "/postgres/dm.sql"));
-    resourceDatabasePopulator
-        .addScript(new ClassPathResource(getClass().getSimpleName() + "/postgres/ods.sql"));
-    resourceDatabasePopulator
-        .addScript(new ClassPathResource(getClass().getSimpleName() + "/postgres/third_party_scans.sql"));
-    try (Connection connection = databaseContainerRule.getOperationalDataStore().getDataSource().getConnection()) {
-      resourceDatabasePopulator.populate(connection);
-    }
-    when(dbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
-
-    dbMigrationCommand.run(null, null, insightConfig);
-
-    assertMigrated();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest(suppressMigrations = true)
-  public void testRun_Postgres_WithTables() throws Exception {
-    ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator();
-    resourceDatabasePopulator
-        .addScript(new ClassPathResource(getClass().getSimpleName() + "/postgres/aggregation.sql"));
-    resourceDatabasePopulator
-        .addScript(new ClassPathResource(getClass().getSimpleName() + "/postgres/dm.sql"));
-    resourceDatabasePopulator
-        .addScript(new ClassPathResource(getClass().getSimpleName() + "/postgres/third_party_scans.sql"));
-
-    try (Connection connection = databaseContainerRule.getOperationalDataStore().getDataSource().getConnection()) {
-      resourceDatabasePopulator.populate(connection);
-    }
-    initPostgresToDesiredVersion(databaseContainerRule.getOperationalDataStore(),
-        getClass().getSimpleName() + "/postgres/ods.sql",
-        OperationalDataStore.LOCK_TABLE_DATABASE_VERSION);
     when(dbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
 
     dbMigrationCommand.run(null, null, insightConfig);

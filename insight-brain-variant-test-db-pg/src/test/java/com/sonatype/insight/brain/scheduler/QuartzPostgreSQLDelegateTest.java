@@ -9,14 +9,12 @@ import java.sql.Connection;
 import java.util.Date;
 import java.util.List;
 
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
 import org.quartz.Trigger;
@@ -46,7 +44,6 @@ public class QuartzPostgreSQLDelegateTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testSelectTriggerToAcquire() throws Exception {
     String instanceId = "me";

@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.dataaccess.lock;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.DAOFactory;
 import com.sonatype.insight.brain.dataaccess.TestDAOFactory;
@@ -17,11 +16,9 @@ import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(PostgresTestCategory.class)
 @PostgresTest
 public class PostgresClusterLockManagerTest
     extends AbstractClusterLockManagerTest

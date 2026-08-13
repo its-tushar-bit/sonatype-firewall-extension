@@ -30,12 +30,10 @@ import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField.FirewallFilterableField;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -56,7 +54,6 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ProxyRepositoryPolicyViolation.PROXY_REPOSITORY_POLICY_VIOLATION;
 import static com.sonatype.insight.brain.utils.DateConverter.toLocalDate;
@@ -314,32 +311,6 @@ public class ProxyRepositoryComponentDAOTest
     assertThat(quarantinedComponentAccessDAO.getAll()).isEmpty();
   }
 
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testDeleteByRepositoryId_Postgres() {
-    assertThat(dao.isDatabaseEmbedded()).isFalse();
-
-    repository = tempEntity.newRepository();
-    ProxyRepositoryComponent repositoryComponent1 =
-        tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
-    ProxyRepositoryComponent repositoryComponent2 =
-        tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
-    tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
-    tempEntity.newQuarantinedComponentAccess(repositoryComponent1.getRepositoryId(), repositoryComponent1.getId());
-    tempEntity.newQuarantinedComponentAccess(repositoryComponent2.getRepositoryId(), repositoryComponent2.getId());
-    assertThat(dao.getByRepositoryId(repository.getId())).hasSize(3);
-
-    try (TransactionContext tx = dao.createTransactionContext()) {
-      tx.begin();
-      dao.deleteByRepositoryId(tx, repository.getId());
-      tx.commit();
-    }
-
-    assertThat(dao.getByRepositoryId(repository.getId())).isEmpty();
-    assertThat(quarantinedComponentAccessDAO.getAll()).isEmpty();
-  }
-
   // ---- getWithActiveViolationsByRepositoryIdAndPathname (CLM-42134 merged read) ----
 
   @Test
@@ -460,40 +431,6 @@ public class ProxyRepositoryComponentDAOTest
     assertThat(result.component().getId()).isEqualTo(componentOne.getId());
     assertThat(result.activeViolations()).extracting(ProxyRepositoryPolicyViolation::getThreatLevel)
         .containsExactly(2);
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetWithActiveViolationsByRepositoryIdAndPathname_Postgres() {
-    // H2 doesn't support FULL OUTER JOIN, so the merged read is emulated as a LEFT JOIN UNION ALL a
-    // reverse LEFT JOIN WHERE unmatched (CLM-42134). Exercise both halves of that emulation against
-    // real Postgres, which does support FULL OUTER JOIN natively, to guard against the two dialects
-    // diverging on this query.
-    assertThat(dao.isDatabaseEmbedded()).isFalse();
-    repository = tempEntity.newRepository();
-
-    String withComponent = "path";
-    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), withComponent);
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, withComponent, null);
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 3, withComponent, null);
-
-    ProxyRepositoryComponentDAO.ComponentWithActiveViolations withComponentResult =
-        getWithActiveViolations(repository.getId(), withComponent);
-    assertThat(withComponentResult.component()).isNotNull();
-    assertThat(withComponentResult.component().getId()).isEqualTo(component.getId());
-    assertThat(withComponentResult.activeViolations()).extracting(ProxyRepositoryPolicyViolation::getThreatLevel)
-        .containsExactly(3, 1);
-
-    // CLM-40943 archive-of-archives orphan case: active violation with no matching component row.
-    String orphanPathname = "outer.zip!/inner.jar";
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, orphanPathname, null);
-
-    ProxyRepositoryComponentDAO.ComponentWithActiveViolations orphanResult =
-        getWithActiveViolations(repository.getId(), orphanPathname);
-    assertThat(orphanResult.component()).isNull();
-    assertThat(orphanResult.activeViolations()).extracting(ProxyRepositoryPolicyViolation::getThreatLevel)
-        .containsExactly(5);
   }
 
   private ProxyRepositoryComponentDAO.ComponentWithActiveViolations getWithActiveViolations(
@@ -1207,30 +1144,6 @@ public class ProxyRepositoryComponentDAOTest
     // 2020 year inclusive
     result = dao.getConsolidatedQuarantinedComponentsMetricByDate(DateUtils.addDays(date2020, -365));
     assertThat(result).hasSize(3);
-  }
-
-  // Guards the merge-function fix: multiple quarantines on the same calendar day (different hours) must
-  // aggregate into a single map entry with the counts summed. Runs against Postgres because the failure
-  // mode reported by the customer is Postgres-specific, though we could not reproduce their exact throw
-  // in test environments.
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetConsolidatedQuarantinedComponentsMetricByDate_MultipleQuarantinesSameDay_Postgres() {
-    Repository repo = tempEntity.newRepository();
-    Date day1At08 = Date.from(LocalDateTime.of(2026, 7, 14, 8, 0).toInstant(ZoneOffset.UTC));
-    Date day1At15 = Date.from(LocalDateTime.of(2026, 7, 14, 15, 0).toInstant(ZoneOffset.UTC));
-    Date day2At10 = Date.from(LocalDateTime.of(2026, 7, 15, 10, 0).toInstant(ZoneOffset.UTC));
-    tempEntity.newRepositoryComponent(repo.getId(), "path-day1-08", day1At08, null);
-    tempEntity.newRepositoryComponent(repo.getId(), "path-day1-15", day1At15, null);
-    tempEntity.newRepositoryComponent(repo.getId(), "path-day2-10", day2At10, null);
-
-    Date floor = Date.from(LocalDateTime.of(2026, 1, 1, 0, 0).toInstant(ZoneOffset.UTC));
-    Map<LocalDate, Long> result = dao.getConsolidatedQuarantinedComponentsMetricByDate(floor);
-
-    assertThat(result)
-        .containsEntry(LocalDate.of(2026, 7, 14), 2L)
-        .containsEntry(LocalDate.of(2026, 7, 15), 1L);
   }
 
   @Test

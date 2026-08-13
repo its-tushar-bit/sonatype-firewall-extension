@@ -9,30 +9,23 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
-import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.thirdpartyscans.ApiSbomApplicationsHistoryMetricDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
@@ -43,15 +36,12 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataSt
 import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.dataaccess.TransactionContext;
-import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.SbomFormat;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
-import static com.sonatype.insight.brain.dataaccess.TemporaryEntity.uuid;
 import static com.sonatype.insight.brain.db.IdUtil.newUUID;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
@@ -86,13 +76,6 @@ public class ThirdPartySbomMetadataDAOTest
 
   @Test
   public void testCRUD_H2() {
-    testCRUD();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testCRUD_Postgres() {
     testCRUD();
   }
 
@@ -227,13 +210,6 @@ public class ThirdPartySbomMetadataDAOTest
 
   @Test
   public void testDeleteByThirdPartyFileId_H2() {
-    testDeleteByThirdPartyFileId();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testDeleteByThirdPartyFileId_Postgres() {
     testDeleteByThirdPartyFileId();
   }
 
@@ -445,252 +421,6 @@ public class ThirdPartySbomMetadataDAOTest
     assertThat(result.applicationsUpdatedLastMonth).isEqualTo(3);
     assertThat(result.applicationsUpdatedLastWeek).isEqualTo(3);
     assertThat(result.applicationsUpdatedLastYear).isEqualTo(5);
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetApplications_WithResults() {
-
-    SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
-        .withApplicationId(application.getId())
-        .withCreatedAt(new Date())
-        .build();
-
-    PolicyEvaluation policyEvaluationOlder = tempEntity.newPolicyEvaluation(application.getId(),
-        ComplianceStageType.ID, "scanId1AppOlder");
-    Policy policyOlder = tempEntity.newPolicy(application, 8);
-    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluationOlder, policyOlder, "g1",
-        "a1", "v1", "h1", "r1");
-
-    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
-        .withApplicationId(application.getId())
-        .withCreatedAt(new Date())
-        .build();
-
-    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("p1", "v1");
-    PackageUrlIdentifier packageUrlIdentifier1 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier1);
-    ThirdPartyFileCoordinate coordinate1 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
-        "s1", packageUrlIdentifier1.getFormat(), packageUrlIdentifier1.getName(), packageUrlIdentifier1.getVersion(),
-        "h1", packageUrlIdentifier1.getPackageUrl());
-
-    ThirdPartyCoordinateSecurity coordinateSecurity1 = tempEntity.newThirdPartyCoordinateSecurity(coordinate1,
-        "cve-2", sbomMetadata.getId(), "description2", "link2", CvssV3Severity.CRITICAL.getEndScoreRange(),
-        CvssV3Severity.CRITICAL.getDisplayName(), "fix1");
-    insertVEXToThirdPartyCoordinateSecurity(coordinateSecurity1);
-
-    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createNpmCoordinates("p2", "v2");
-    PackageUrlIdentifier packageUrlIdentifier2 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier2);
-    ThirdPartyFileCoordinate coordinate2 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
-        "s2", packageUrlIdentifier2.getFormat(), packageUrlIdentifier2.getName(), packageUrlIdentifier2.getVersion(),
-        "h2", packageUrlIdentifier2.getPackageUrl());
-
-    ThirdPartyCoordinateSecurity coordinateSecurity2 = tempEntity.newThirdPartyCoordinateSecurity(coordinate2,
-        "cve-2", sbomMetadata.getId(), "description2", "link2", CvssV3Severity.NONE.getStartScoreRange(),
-        CvssV3Severity.NONE.getDisplayName(), "fix2");
-    tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "cve-3", sbomMetadata.getId(), "description3", "link3",
-        CvssV3Severity.LOW.getStartScoreRange() + 0.2f, CvssV3Severity.LOW.getDisplayName(), "fix3");
-    tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "cve-4", sbomMetadata.getId(), "description4", "link4",
-        CvssV3Severity.MEDIUM.getStartScoreRange() + 1f, CvssV3Severity.MEDIUM.getDisplayName(), "fix4");
-    tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "cve-5", sbomMetadata.getId(), "description5", "link5",
-        CvssV3Severity.HIGH.getEndScoreRange(), CvssV3Severity.HIGH.getDisplayName(), "fix5");
-    tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "cve-6", sbomMetadata.getId(), "description6", "link6",
-        CvssV3Severity.HIGH.getEndScoreRange() - 0.1f, CvssV3Severity.HIGH.getDisplayName(), "fix6");
-    tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "cve-7", sbomMetadata.getId(), "description7", "link7",
-        CvssV3Severity.CRITICAL.getEndScoreRange(), CvssV3Severity.HIGH.getDisplayName(), "fix7");
-
-    insertVEXToThirdPartyCoordinateSecurity(coordinateSecurity2);
-
-    // fixed first policy violation
-    policyViolation.setFixTime(new Date());
-    tempEntity.updatePolicyViolation(policyViolation);
-
-    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(),
-        ComplianceStageType.ID, "scanId1App1");
-    Policy policy = tempEntity.newPolicy(application);
-    tempEntity.newPolicyViolation(policyEvaluation, policy, "g1",
-        "a1", "v1", "h1", "r1");
-
-    SbomApplicationListSummaryDTO resultDtoList = dao.getSbomApplicationsWithRecentlyImportedSbomVersion(
-        Set.of(application.getId()),
-        SbomApplicationsSortableField.IMPORT_DATE,
-        false,
-        1,
-        3);
-
-    assertThat(resultDtoList.getApplications()).hasSize(1);
-    assertThat(resultDtoList.getTotalCount()).isEqualTo(1);
-    SbomApplicationSummaryDTO applicationPageApplicationSummaryDTO = resultDtoList.getApplications().get(0);
-    assertThat(applicationPageApplicationSummaryDTO.getReleaseStatusPercentage()).isEqualTo(25.0);
-    assertThat(applicationPageApplicationSummaryDTO.getVulnerabilitySummary().getNone())
-        .isEqualTo(1);
-    assertThat(applicationPageApplicationSummaryDTO.getVulnerabilitySummary().getLow())
-        .isEqualTo(1);
-    assertThat(applicationPageApplicationSummaryDTO.getVulnerabilitySummary().getMedium())
-        .isEqualTo(1);
-    assertThat(applicationPageApplicationSummaryDTO.getVulnerabilitySummary().getHigh())
-        .isEqualTo(2);
-    assertThat(applicationPageApplicationSummaryDTO.getVulnerabilitySummary().getCritical())
-        .isEqualTo(2);
-
-    assertThat(applicationPageApplicationSummaryDTO.getPolicyViolationSummary()
-        .getCritical()).isEqualTo(0);
-    assertThat(applicationPageApplicationSummaryDTO.getPolicyViolationSummary()
-        .getSevere()).isEqualTo(1);
-    assertThat(applicationPageApplicationSummaryDTO.getPolicyViolationSummary()
-        .getModerate()).isEqualTo(0);
-    assertThat(applicationPageApplicationSummaryDTO.getPolicyViolationSummary()
-        .getLow()).isEqualTo(0);
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetApplications_WithResults_SortByReleaseStatusPercentage() {
-    Application application1 = tempEntity.newApplicationWithParent();
-    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
-        .withApplicationId(application1.getId())
-        .build();
-
-    Application application2 = tempEntity.newApplicationWithParent();
-    ThirdPartySbomMetadata sbomMetadata1 = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
-        .withApplicationId(application2.getId())
-        .build();
-
-    Application application3 = tempEntity.newApplicationWithParent();
-    ThirdPartySbomMetadata sbomMetadata4 = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
-        .withApplicationId(application3.getId())
-        .build();
-
-    Date yesterday = DateUtils.addDays(new Date(), -1);
-    ThirdPartySbomMetadata sbomMetadata2 = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
-        .withApplicationId(application.getId())
-        .withCreatedAt(new Date())
-        .build();
-    ThirdPartySbomMetadata sbomMetadata3 = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
-        .withApplicationId(application.getId())
-        .withCreatedAt(yesterday)
-        .build();
-
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("p", "v");
-    PackageUrlIdentifier packageUrlIdentifier = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
-    ThirdPartyFileCoordinate coordinate = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
-        "s", packageUrlIdentifier.getFormat(), packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion(),
-        "h", packageUrlIdentifier.getPackageUrl());
-
-    ThirdPartyCoordinateSecurity coordinateSecurity = tempEntity.newThirdPartyCoordinateSecurity(coordinate,
-        "cve-2", sbomMetadata.getId(), "description", "link", CvssV3Severity.CRITICAL.getEndScoreRange(),
-        CvssV3Severity.CRITICAL.getDisplayName(), "fix");
-    insertVEXToThirdPartyCoordinateSecurity(coordinateSecurity);
-
-    ComponentIdentifier componentIdentifier4 = ComponentIdentifier.createNpmCoordinates("p", "v");
-    PackageUrlIdentifier packageUrlIdentifier4 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier4);
-    ThirdPartyFileCoordinate coordinate4 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata4.getThirdPartyFileId(),
-        "s", packageUrlIdentifier.getFormat(), packageUrlIdentifier.getName(), packageUrlIdentifier4.getVersion(),
-        "h", packageUrlIdentifier.getPackageUrl());
-    tempEntity.newThirdPartyCoordinateSecurity(coordinate4,
-        "cve-2", sbomMetadata4.getId(), "description", "link", CvssV3Severity.LOW.getEndScoreRange(),
-        CvssV3Severity.LOW.getDisplayName(), "fix");
-
-    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("p1", "v1");
-    PackageUrlIdentifier packageUrlIdentifier1 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier1);
-    ThirdPartyFileCoordinate coordinate1 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata2.getThirdPartyFileId(),
-        "s1", packageUrlIdentifier1.getFormat(), packageUrlIdentifier1.getName(), packageUrlIdentifier1.getVersion(),
-        "h1", packageUrlIdentifier1.getPackageUrl());
-
-    ThirdPartyCoordinateSecurity coordinateSecurity1 = tempEntity.newThirdPartyCoordinateSecurity(coordinate1,
-        "cve-2", sbomMetadata2.getId(), "description2", "link2", CvssV3Severity.CRITICAL.getEndScoreRange(),
-        CvssV3Severity.CRITICAL.getDisplayName(), "fix1");
-    insertVEXToThirdPartyCoordinateSecurity(coordinateSecurity1);
-
-    tempEntity.newThirdPartyCoordinateSecurity(coordinate,
-        "cve-21", sbomMetadata1.getId(), "description", "link", CvssV3Severity.CRITICAL.getEndScoreRange(),
-        CvssV3Severity.CRITICAL.getDisplayName(), "fix");
-
-    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createNpmCoordinates("p2", "v2");
-    PackageUrlIdentifier packageUrlIdentifier2 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier2);
-    ThirdPartyFileCoordinate coordinate2 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata2.getThirdPartyFileId(),
-        "s2", packageUrlIdentifier2.getFormat(), packageUrlIdentifier2.getName(), packageUrlIdentifier2.getVersion(),
-        "h2", packageUrlIdentifier2.getPackageUrl());
-
-    ThirdPartyCoordinateSecurity coordinateSecurity2 = tempEntity.newThirdPartyCoordinateSecurity(coordinate2,
-        "cve-2", sbomMetadata2.getId(), "description2", "link2", CvssV3Severity.NONE.getStartScoreRange(),
-        CvssV3Severity.NONE.getDisplayName(), "fix2");
-    tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "cve-3", sbomMetadata2.getId(), "description3", "link3",
-        CvssV3Severity.LOW.getStartScoreRange() + 0.2f, CvssV3Severity.LOW.getDisplayName(), "fix3");
-    tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "cve-4", sbomMetadata2.getId(), "description4", "link4",
-        CvssV3Severity.MEDIUM.getStartScoreRange() + 1f, CvssV3Severity.MEDIUM.getDisplayName(), "fix4");
-    tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "cve-5", sbomMetadata2.getId(), "description5", "link5",
-        CvssV3Severity.HIGH.getEndScoreRange(), CvssV3Severity.HIGH.getDisplayName(), "fix5");
-    tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "cve-6", sbomMetadata2.getId(), "description6", "link6",
-        CvssV3Severity.HIGH.getEndScoreRange() - 0.1f, CvssV3Severity.HIGH.getDisplayName(), "fix6");
-    tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "cve-7", sbomMetadata2.getId(), "description7", "link7",
-        CvssV3Severity.CRITICAL.getEndScoreRange(), CvssV3Severity.HIGH.getDisplayName(), "fix7");
-
-    insertVEXToThirdPartyCoordinateSecurity(coordinateSecurity2);
-
-    ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createNpmCoordinates("p3", "v3");
-    PackageUrlIdentifier packageUrlIdentifier3 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier3);
-    ThirdPartyFileCoordinate coordinate3 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata3.getThirdPartyFileId(),
-        "s3", packageUrlIdentifier3.getFormat(), packageUrlIdentifier3.getName(), packageUrlIdentifier3.getVersion(),
-        "h3", packageUrlIdentifier3.getPackageUrl());
-
-    ThirdPartyCoordinateSecurity coordinateSecurity3 = tempEntity.newThirdPartyCoordinateSecurity(coordinate3,
-        "cve-3", sbomMetadata3.getId(), "description3", "link3", CvssV3Severity.CRITICAL.getEndScoreRange(),
-        CvssV3Severity.CRITICAL.getDisplayName(), "fix3");
-    insertVEXToThirdPartyCoordinateSecurity(coordinateSecurity3);
-
-    Policy policy = tempEntity.newPolicy(application);
-    PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), ComplianceStageType.ID, "scanId1App1");
-    tempEntity.newPolicyViolation(policyEvaluation, policy, "g1", "a1", "v1", "h1", "r1");
-
-    SbomApplicationListSummaryDTO resultDtoList = dao.getSbomApplicationsWithRecentlyImportedSbomVersion(
-        null,
-        SbomApplicationsSortableField.RELEASE_STATUS_PERCENTAGE, false, 1, 5);
-
-    assertThat(resultDtoList.getApplications()).hasSize(4);
-
-    assertThat(resultDtoList.getApplications().subList(0, 2))
-        .extracting(SbomApplicationSummaryDTO::getApplicationInternalId,
-            SbomApplicationSummaryDTO::getReleaseStatusPercentage)
-        .containsExactlyInAnyOrder(
-            tuple(application1.getId(), 100.0),
-            tuple(application3.getId(), 100.0));
-
-    SbomApplicationSummaryDTO applicationPageApplicationSummaryDTO3 = resultDtoList.getApplications().get(2);
-    assertThat(applicationPageApplicationSummaryDTO3.getApplicationInternalId()).isEqualTo(application.getId());
-    assertThat(applicationPageApplicationSummaryDTO3.getReleaseStatusPercentage()).isEqualTo(25.0);
-
-    SbomApplicationSummaryDTO applicationPageApplicationSummaryDTO4 = resultDtoList.getApplications().get(3);
-    assertThat(applicationPageApplicationSummaryDTO4.getApplicationInternalId()).isEqualTo(application2.getId());
-    assertThat(applicationPageApplicationSummaryDTO4.getReleaseStatusPercentage()).isEqualTo(0.0);
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetApplications_WithLatestSBOMMetadataInPendingStatus() {
-    SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
-        .withApplicationId(application.getId())
-        .withCreatedAt(new Date())
-        .build();
-
-    SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
-        .withApplicationId(application.getId())
-        .withStatus(PENDING)
-        .withCreatedAt(new Date())
-        .build();
-
-    SbomApplicationListSummaryDTO resultDtoList = dao.getSbomApplicationsWithRecentlyImportedSbomVersion(
-        Set.of(application.getId()),
-        SbomApplicationsSortableField.IMPORT_DATE,
-        false,
-        1,
-        3);
-
-    assertThat(resultDtoList.getApplications()).hasSize(1);
-    assertThat(resultDtoList.getTotalCount()).isEqualTo(1);
   }
 
   @Test
@@ -981,151 +711,6 @@ public class ThirdPartySbomMetadataDAOTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetSbomApplicationVulnerabilities_SortyByField() {
-    Organization organization1 = tempEntity.newOrganization("org1");
-    Application application = tempEntity.newApplication(organization1.getId());
-
-    ThirdPartyFile file1 = tempEntity.newThirdPartyFile("CycloneDX-bom.xml");
-    ThirdPartyFile file2 = tempEntity.newThirdPartyFile("SPDX-spdx.json");
-    ThirdPartyFile file3 = tempEntity.newThirdPartyFile("file.json");
-    ThirdPartyFile file4 = tempEntity.newThirdPartyFile("SPDX-spdx-1.json");
-
-    ThirdPartySbomMetadata sbom1 =
-        tempEntity.newThirdPartySbomMetadata(file1.getId(), application.getId(), ACTIVE, file1.getFilename());
-    ThirdPartySbomMetadata sbom2 =
-        tempEntity.newThirdPartySbomMetadata(file4.getId(), application.getId(), ACTIVE, file4.getFilename());
-    ThirdPartySbomMetadata sbom3 =
-        tempEntity.newThirdPartySbomMetadata(file2.getId(), application.getId(), uuid().substring(0, 10), ACTIVE,
-            file2.getFilename(), "SPDX", "JSON", "1.5", new Date(), false);
-
-    ThirdPartySbomMetadata sbom4 =
-        tempEntity.newThirdPartySbomMetadata(file3.getId(), application.getId(), PENDING, file3.getFilename());
-
-    ThirdPartyFileCoordinate c1 = tempEntity.newThirdPartyFileCoordinate(file1, "s1", "f1", "n1", "v1");
-    ThirdPartyFileCoordinate c2 = tempEntity.newThirdPartyFileCoordinate(file2, "s2", "f2", "n2", "v2");
-    ThirdPartyFileCoordinate c3 = tempEntity.newThirdPartyFileCoordinate(file3, "s3", "f3", "n3", "v3");
-    ThirdPartyFileCoordinate c4 = tempEntity.newThirdPartyFileCoordinate(file4, "s4", "f4", "n4", "v4");
-
-    tempEntity.newThirdPartyCoordinateSecurity(c1, "r1", sbom1.getId(), "d1", "l1", 3.5F, "sd1", "f1"); // low
-    tempEntity.newThirdPartyCoordinateSecurity(c1, "r2", sbom1.getId(), "d2", "l2", 7.5F, "sd2", "f2"); // high
-    ThirdPartyCoordinateSecurity cs3 =
-        tempEntity.newThirdPartyCoordinateSecurity(c2, "r3", sbom2.getId(), "d3", "l3", 1.5F, "sd3", "f3"); // low
-    ThirdPartyCoordinateSecurity cs4 =
-        tempEntity.newThirdPartyCoordinateSecurity(c2, "r4", sbom2.getId(), "d4", "l4", 0.5F, "sd4", "f4"); // low
-    ThirdPartyCoordinateSecurity cs5 =
-        tempEntity.newThirdPartyCoordinateSecurity(c2, "r5", sbom2.getId(), "d3", "l3", 6.9F, "sd3", "f3");// medium
-    ThirdPartyCoordinateSecurity cs6 =
-        tempEntity.newThirdPartyCoordinateSecurity(c2, "r6", sbom2.getId(), "d4", "l4", 7.0F, "sd4", "f4"); // high
-    ThirdPartyCoordinateSecurity cs7 =
-        tempEntity.newThirdPartyCoordinateSecurity(c2, "r7", sbom2.getId(), "d3", "l3", 9.0F, "sd3", "f3"); // critical
-    tempEntity.newThirdPartyCoordinateSecurity(c2, "r8", sbom2.getId(), "d4", "l4", 7.0F, "sd4", "f4"); // high
-    tempEntity.newThirdPartyCoordinateSecurity(c2, "r9", sbom2.getId(), "d5", "l5", 4.7F, "sd5", "f5"); // medium
-    tempEntity.newThirdPartyCoordinateSecurity(c2, "r10", sbom2.getId(), "d6", "l6", 0F, "sd6", "f6"); // none
-    tempEntity.newThirdPartyCoordinateSecurity(c3, "r7", sbom3.getId(), "d7", "l7", 1F, "sd7", "f7"); // low
-    ThirdPartyCoordinateSecurity cs8 =
-        tempEntity.newThirdPartyCoordinateSecurity(c4, "r1", sbom4.getId(), "d1", "l1", 3.5F, "sd1", "f1"); // low
-    ThirdPartyCoordinateSecurity cs9 =
-        tempEntity.newThirdPartyCoordinateSecurity(c4, "r2", sbom4.getId(), "d1", "l1", 6.9F, "sd1", "f1"); // medium
-
-    insertVEXToThirdPartyCoordinateSecurity(cs3);
-    insertVEXToThirdPartyCoordinateSecurity(cs4);
-    insertVEXToThirdPartyCoordinateSecurity(cs5);
-    insertVEXToThirdPartyCoordinateSecurity(cs6);
-    insertVEXToThirdPartyCoordinateSecurity(cs7);
-    insertVEXToThirdPartyCoordinateSecurity(cs8);
-    insertVEXToThirdPartyCoordinateSecurity(cs9);
-
-    ThirdPartySbomMetadataSummaryListDTO result =
-        dao.getSbomApplicationVulnerabilities(application.getId(), 5, 1,
-            SbomVersionsApplicationSortableField.RELEASE_STATUS, true);
-
-    assertThat(result).isNotNull();
-    assertThat(result.getTotalResultsCount()).isEqualTo(3);
-    result.getResults().sort(Comparator.comparing(ThirdPartySbomMetadataSummaryDTO::getReleaseStatusPercentage));
-
-    result =
-        dao.getSbomApplicationVulnerabilities(application.getId(), 5, 1,
-            SbomVersionsApplicationSortableField.RELEASE_STATUS, false);
-    assertThat(result).isNotNull();
-    assertThat(result.getTotalResultsCount()).isEqualTo(3);
-    result.getResults()
-        .sort(Comparator.comparing(ThirdPartySbomMetadataSummaryDTO::getReleaseStatusPercentage).reversed());
-
-    result =
-        dao.getSbomApplicationVulnerabilities(application.getId(), 5, 1,
-            SbomVersionsApplicationSortableField.IMPORT_DATE, true);
-
-    result.getResults()
-        .sort(Comparator.comparing(ThirdPartySbomMetadataSummaryDTO::getImportDate));
-
-    result =
-        dao.getSbomApplicationVulnerabilities(application.getId(), 5, 1,
-            SbomVersionsApplicationSortableField.IMPORT_DATE, false);
-
-    result.getResults()
-        .sort(Comparator.comparing(ThirdPartySbomMetadataSummaryDTO::getImportDate).reversed());
-
-    result =
-        dao.getSbomApplicationVulnerabilities(application.getId(), 5, 1,
-            SbomVersionsApplicationSortableField.VULNERABILITY, false);
-    result.getResults()
-        .sort(Comparator.comparing(ThirdPartySbomMetadataSummaryDTO::getCritical)
-            .reversed()
-            .thenComparing(Comparator.comparing(ThirdPartySbomMetadataSummaryDTO::getHigh).reversed())
-            .thenComparing(Comparator.comparing(ThirdPartySbomMetadataSummaryDTO::getMedium).reversed())
-            .thenComparing(Comparator.comparing(ThirdPartySbomMetadataSummaryDTO::getLow).reversed())
-            .thenComparing(Comparator.comparing(ThirdPartySbomMetadataSummaryDTO::getNone).reversed()));
-
-    result =
-        dao.getSbomApplicationVulnerabilities(application.getId(), 5, 1,
-            SbomVersionsApplicationSortableField.VULNERABILITY, true);
-    result.getResults()
-        .sort(Comparator.comparing(ThirdPartySbomMetadataSummaryDTO::getCritical)
-            .thenComparing(ThirdPartySbomMetadataSummaryDTO::getHigh)
-            .thenComparing(ThirdPartySbomMetadataSummaryDTO::getMedium)
-            .thenComparing(ThirdPartySbomMetadataSummaryDTO::getLow)
-            .thenComparing(ThirdPartySbomMetadataSummaryDTO::getNone));
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetSbomApplicationVulnerabilities_nullIsValid() {
-    Organization organization1 = tempEntity.newOrganization("org1");
-    Application application = tempEntity.newApplication(organization1.getId());
-    ThirdPartyFile file1 = tempEntity.newThirdPartyFile("CycloneDX-bom.xml");
-
-    ThirdPartySbomMetadata sbomNullIsValid = new ThirdPartySbomMetadata();
-    sbomNullIsValid.setSerialNumber(uuid().substring(0, 10));
-    sbomNullIsValid.setSpec("CycloneDx");
-    sbomNullIsValid.setSpecFormat("XML");
-    sbomNullIsValid.setSpecVersion("1.5");
-    sbomNullIsValid.setStatus(ACTIVE);
-    sbomNullIsValid.setSbomVersion(uuid().substring(0, 10));
-    sbomNullIsValid.setApplicationId(application.getId());
-    sbomNullIsValid.setFilename("file.json");
-    sbomNullIsValid.setThirdPartyFileId(file1.getId());
-    sbomNullIsValid.setCreatedAt(new Date());
-    sbomNullIsValid.setScanType("SBOM");
-
-    dao.insert(sbomNullIsValid);
-
-    ThirdPartySbomMetadataSummaryListDTO result =
-        dao.getSbomApplicationVulnerabilities(application.getId(), 5, 1,
-            SbomVersionsApplicationSortableField.IMPORT_DATE, true);
-
-    assertThat(result).isNotNull();
-    assertThat(result.getTotalResultsCount()).isEqualTo(1);
-    List<ThirdPartySbomMetadataSummaryDTO> results = result.getResults();
-
-    ThirdPartySbomMetadataSummaryDTO dto = results.get(0);
-    assertThat(dto.getApplicationVersion()).isEqualTo(sbomNullIsValid.getSbomVersion());
-    assertThat(dto.getIsValid()).isEqualTo(true);
-  }
-
-  @Test
   public void testGetActiveByApplicationId_Paged() {
     Application app = tempEntity.newApplicationWithParent();
 
@@ -1182,13 +767,6 @@ public class ThirdPartySbomMetadataDAOTest
     testGetActiveAtLatestOffset_NoSboms();
   }
 
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetActiveAtLatestOffset_NoSboms_Postgres() {
-    testGetActiveAtLatestOffset_NoSboms();
-  }
-
   private void testGetActiveAtLatestOffset_NoActiveSboms() {
     Application app = tempEntity.newApplicationWithParent();
     tempEntity.newThirdPartySbomMetadata(app.getId(), UPLOADED, "fileName1");
@@ -1201,13 +779,6 @@ public class ThirdPartySbomMetadataDAOTest
 
   @Test
   public void testGetActiveAtLatestOffset_NoActiveSboms_H2() {
-    testGetActiveAtLatestOffset_NoActiveSboms();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetActiveAtLatestOffset_NoActiveSboms_Postgres() {
     testGetActiveAtLatestOffset_NoActiveSboms();
   }
 
@@ -1231,13 +802,6 @@ public class ThirdPartySbomMetadataDAOTest
 
   @Test
   public void testGetActiveAtLatestOffset_LatestOffset0ReturnsLatestPerApp_H2() {
-    testGetActiveAtLatestOffset_LatestOffset0ReturnsLatestPerApp();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetActiveAtLatestOffset_LatestOffset0ReturnsLatestPerApp_Postgres() {
     testGetActiveAtLatestOffset_LatestOffset0ReturnsLatestPerApp();
   }
 
@@ -1265,13 +829,6 @@ public class ThirdPartySbomMetadataDAOTest
     testGetActiveAtLatestOffset_LatestOffset1ReturnsSecondLatestPerApp();
   }
 
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetActiveAtLatestOffset_LatestOffset1ReturnsSecondLatestPerApp_Postgres() {
-    testGetActiveAtLatestOffset_LatestOffset1ReturnsSecondLatestPerApp();
-  }
-
   private void testGetActiveAtLatestOffset_WithLastApplicationId() {
     Organization org = tempEntity.newOrganization();
     Application app1 = tempEntity.newApplicationWithSpecificId("app1", "app1", "app1", org.getId());
@@ -1291,13 +848,6 @@ public class ThirdPartySbomMetadataDAOTest
 
   @Test
   public void testGetActiveAtLatestOffset_WithLastApplicationId_H2() {
-    testGetActiveAtLatestOffset_WithLastApplicationId();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetActiveAtLatestOffset_WithLastApplicationId_Postgres() {
     testGetActiveAtLatestOffset_WithLastApplicationId();
   }
 
@@ -1332,13 +882,6 @@ public class ThirdPartySbomMetadataDAOTest
     testGetActiveAtLatestOffset_Pagination();
   }
 
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetActiveAtLatestOffset_Pagination_Postgres() {
-    testGetActiveAtLatestOffset_Pagination();
-  }
-
   private void testGetActiveAtLatestOffset_IgnoresInactiveStatus() {
     Organization org = tempEntity.newOrganization();
     Application app1 = tempEntity.newApplicationWithSpecificId("app1", "app1", "app1", org.getId());
@@ -1360,13 +903,6 @@ public class ThirdPartySbomMetadataDAOTest
 
   @Test
   public void testGetActiveAtLatestOffset_IgnoresInactiveStatus_H2() {
-    testGetActiveAtLatestOffset_IgnoresInactiveStatus();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetActiveAtLatestOffset_IgnoresInactiveStatus_Postgres() {
     testGetActiveAtLatestOffset_IgnoresInactiveStatus();
   }
 

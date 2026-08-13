@@ -7,15 +7,12 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.util.Date;
 
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.PerpetualLock;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.jooq.exception.IntegrityConstraintViolationException;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static java.lang.System.currentTimeMillis;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -264,29 +261,6 @@ public class PerpetualLockDAOTest
 
   @Test
   public void testTryAcquireOrRenewLock_takeoverExpiredAndUnassigned() {
-    verifyTakeoverExpiredAndUnassigned();
-  }
-
-  // --- tryAcquireOrRenewLock tests (Postgres) ---
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testTryAcquireOrRenewLock_newLockAndRenewal_postgres() {
-    verifyNewLockAndRenewal();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testTryAcquireOrRenewLock_rejectDifferentOwner_postgres() {
-    verifyRejectDifferentOwner();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testTryAcquireOrRenewLock_takeoverExpiredAndUnassigned_postgres() {
     verifyTakeoverExpiredAndUnassigned();
   }
 

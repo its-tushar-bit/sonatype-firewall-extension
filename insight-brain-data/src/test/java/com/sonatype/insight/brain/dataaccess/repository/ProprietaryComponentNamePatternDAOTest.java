@@ -13,10 +13,8 @@ import org.jooq.exception.IntegrityConstraintViolationException;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternFilter.SortField.SortableField;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -24,7 +22,6 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -89,18 +86,6 @@ public class ProprietaryComponentNamePatternDAOTest
 
   @Test
   public void testInsertBatch_IgnoreDuplicateKey() {
-    assertInsertBatchIgnoresDuplicateKey();
-  }
-
-  /**
-   * Postgres variant of {@link #testInsertBatch_IgnoreDuplicateKey()}. On H2 the {@code ignoreDuplicateKey} path falls
-   * back to per-entity inserts with savepoints, whereas Postgres uses jOOQ's native
-   * {@code batch(INSERT ... ON CONFLICT DO NOTHING)}. This exercises that native batch path end-to-end.
-   */
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testInsertBatch_IgnoreDuplicateKey_Postgres() {
     assertInsertBatchIgnoresDuplicateKey();
   }
 
@@ -593,41 +578,6 @@ public class ProprietaryComponentNamePatternDAOTest
         ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_MANAGER_INSTANCE_ID_OR_NAME,
         false /* asc */,
         1 /* sortPriority */));
-
-    Set<String> repoIds = ImmutableSet.of(repo1.getId(), repo2.getId(), repo3.getId());
-    List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(repoIds, filter);
-    assertThat(result).hasSize(2);
-    assertPattern(result.get(0), pattern2);
-    assertPattern(result.get(1), pattern1);
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetByFilter_FiltersAndSorting_Postgres() {
-    RepositoryManager repositoryManager1 = tempEntity.newRepositoryManager("testInstanceId1");
-    Repository repo1 = tempEntity.newRepository(repositoryManager1, "testMavenRepo1", RepositoryType.hosted, "maven");
-    ProprietaryComponentNamePattern pattern1 =
-        tempEntity.newProprietaryComponentNamePattern(repo1, "testNamespacePattern1", "");
-    RepositoryManager repositoryManager2 = tempEntity.newRepositoryManager("testInstanceId2");
-    Repository repo2 = tempEntity.newRepository(repositoryManager2, "testMavenRepo2", RepositoryType.hosted, "maven");
-    ProprietaryComponentNamePattern pattern2 =
-        tempEntity.newProprietaryComponentNamePattern(repo2, "testNamespacePattern1", "");
-    RepositoryManager repositoryManager3 = tempEntity.newRepositoryManager("testInstanceId3");
-    Repository repo3 = tempEntity.newRepository(repositoryManager3, "testMavenRepo3", RepositoryType.hosted, "maven");
-    tempEntity.newProprietaryComponentNamePattern(repo3, "testNamespacePattern3", "");
-
-    ProprietaryComponentNamePatternFilter filter = new ProprietaryComponentNamePatternFilter();
-    filter.page = 1;
-    filter.pageSize = 3;
-
-    // Filter on namespace and sort on repo manager instance ID DESC
-    filter.searchFilters = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SearchFilter(
-        ProprietaryComponentNamePatternFilter.SearchFilter.FilterableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
-        "testNamespacePattern1"));
-    filter.sortFields = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SortField(
-        ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_MANAGER_INSTANCE_ID_OR_NAME,
-        false /* asc */, 1 /* sortPriority */));
 
     Set<String> repoIds = ImmutableSet.of(repo1.getId(), repo2.getId(), repo3.getId());
     List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(repoIds, filter);

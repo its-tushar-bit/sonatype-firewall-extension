@@ -11,16 +11,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -216,13 +213,6 @@ public class ThirdPartyCoordinateLicenseDAOTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testInsertSafelyBatch_mixedNewAndExisting_postgres() {
-    testInsertSafelyBatch_mixedNewAndExisting();
-  }
-
-  @Test
   public void testInsertSafelyBatch_matchesExistingLicenseIdCaseInsensitively() {
     ThirdPartyFileCoordinate coord = tempEntity.newThirdPartyFileCoordinate();
 
@@ -244,12 +234,5 @@ public class ThirdPartyCoordinateLicenseDAOTest
     assertThat(stored).hasSize(1);
     assertThat(stored.get(0).getId()).isEqualTo(existing.getId());
     assertThat(stored.get(0).getName()).isEqualTo(existing.getName());
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testInsertSafelyBatch_matchesExistingLicenseIdCaseInsensitively_postgres() {
-    testInsertSafelyBatch_matchesExistingLicenseIdCaseInsensitively();
   }
 }

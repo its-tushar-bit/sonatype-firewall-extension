@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.db;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.db.PostgresDatabaseEngine;
@@ -15,7 +14,6 @@ import com.sonatype.insight.db.PostgresDatabaseEngine;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.mockito.quality.Strictness;
@@ -23,7 +21,6 @@ import org.postgresql.Driver;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(PostgresTestCategory.class)
 public class PostgresDatabaseConfigProviderTest
 {
   @Rule

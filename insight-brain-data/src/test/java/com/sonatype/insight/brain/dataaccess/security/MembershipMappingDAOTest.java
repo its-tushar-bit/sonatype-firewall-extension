@@ -15,10 +15,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.db.IdUtil;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -30,7 +28,6 @@ import com.google.common.collect.ImmutableSet;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -308,13 +305,6 @@ public class MembershipMappingDAOTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testInsertAll_onlyNewMembershipsPostgres() throws SQLException {
-    doInsertAll_onlyNewMemberships();
-  }
-
-  @Test
   public void testInsertAll_onlyNewMembershipsH2() throws SQLException {
     doInsertAll_onlyNewMemberships();
   }
@@ -346,13 +336,6 @@ public class MembershipMappingDAOTest
                 membershipMappings.stream()
                     .map(MembershipMapping::getMemberName)
                     .toArray(String[]::new));
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testInsertAll_someMembershipsExist_notFailAndIgnorePostgres() throws SQLException {
-    doInsertAll_someMembershipsExist();
   }
 
   @Test

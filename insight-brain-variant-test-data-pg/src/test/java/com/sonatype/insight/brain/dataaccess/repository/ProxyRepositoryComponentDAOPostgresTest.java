@@ -5,12 +5,10 @@
  */
 package com.sonatype.insight.brain.dataaccess.repository;
 
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 /**
  * Postgres flavor of {@link ProxyRepositoryComponentDAOTest}.
@@ -35,7 +33,6 @@ import org.junit.experimental.categories.Category;
  * @since 1.206 (CLM-41005)
  */
 @PostgresTest
-@Category(PostgresTestCategory.class)
 public class ProxyRepositoryComponentDAOPostgresTest
     extends ProxyRepositoryComponentDAOTest
 {

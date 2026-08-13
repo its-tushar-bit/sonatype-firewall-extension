@@ -5,13 +5,9 @@
  */
 package com.sonatype.insight.brain.policy.evaluator.queue;
 
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 
-import org.junit.experimental.categories.Category;
-
 @PostgresTest
-@Category(PostgresTestCategory.class)
 public class EvaluationQueueIntegrationPostgresTest
     extends EvaluationQueueIntegrationTest
 {

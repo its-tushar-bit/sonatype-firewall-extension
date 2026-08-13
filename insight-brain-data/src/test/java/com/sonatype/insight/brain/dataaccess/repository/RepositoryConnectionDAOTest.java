@@ -5,22 +5,17 @@
  */
 package com.sonatype.insight.brain.dataaccess.repository;
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
 
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.DAOSecretRotator;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -165,31 +160,6 @@ public class RepositoryConnectionDAOTest
 
     assertThat(dao.getById(repositoryConnection1.getId())).isNull();
     assertThat(dao.getById(repositoryConnection2.getId())).isNull();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testRotateEncryptedSecrets() throws SQLException {
-    tempEntity.newRepositoryConnection("owner1", "url1", RepositoryFormat.MAVEN, "u1", "passwordOld1".toCharArray());
-    tempEntity.newRepositoryConnection("owner2", "url2", RepositoryFormat.NPM, "u1", "passwordOld2".toCharArray());
-    tempEntity.newRepositoryConnection("owner3", "url3", RepositoryFormat.GENERIC, "u1", "passwordOld3".toCharArray());
-    tempEntity.newRepositoryConnection("owner4", "url4", RepositoryFormat.MAVEN, "u1", null);
-
-    Function<String, String> secretRotator = secret -> secret.replace("Old", "New");
-
-    daoSecretRotator.rotateEncryptedSecrets(dao, secretRotator);
-
-    List<RepositoryConnection> results = dao.getAll();
-
-    assertThat(results.stream().filter(rc -> rc.getPassword() == null).count()).isEqualTo(1);
-    assertThat(results.stream().filter(rc -> rc.getPassword() != null).count()).isEqualTo(3);
-    results.stream()
-        .filter(rc -> rc.getPassword() != null)
-        .forEach(rc -> {
-          assertThat(String.valueOf(rc.getPassword())).doesNotContain("Old");
-          assertThat(String.valueOf(rc.getPassword())).contains("New");
-        });
   }
 
   private void assertRepositoryConnection(

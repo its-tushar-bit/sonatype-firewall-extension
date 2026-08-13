@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
@@ -20,12 +19,10 @@ import com.sonatype.insight.brain.model.evaluation.EvaluationQueue;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @PostgresTest
-@Category(PostgresTestCategory.class)
 public class EvaluationQueueDAOPostgresTest
     extends EvaluationQueueDAOTest
 {

@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.configuration.CiIntegrationsConfigDao;
 import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
@@ -65,10 +64,8 @@ import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCv
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationDAO;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerComponent;
-import com.sonatype.insight.brain.model.ApplicationRiskDTO;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
@@ -95,8 +92,6 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
-import com.sonatype.insight.brain.model.policy.stages.SourceStageType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.sast.SastFinding;
 import com.sonatype.insight.brain.model.sast.SastFindingConfidence;
@@ -134,7 +129,6 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
@@ -904,13 +898,6 @@ public class ApplicationDAOTest
     doTestInsertBatch_RecordSearchIndexChange();
   }
 
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testInsertBatch_RecordSearchIndexChange_Postgres() {
-    doTestInsertBatch_RecordSearchIndexChange();
-  }
-
   private void doTestInsertBatch_RecordSearchIndexChange() {
     SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = daoFactory.createSystemConfigurationPropertyDAO();
     systemConfigurationPropertyDAO.update(
@@ -935,13 +922,6 @@ public class ApplicationDAOTest
 
   @Test
   public void testUpdateBatch_RecordSearchIndexChange() {
-    doTestUpdateBatch_RecordSearchIndexChange();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testUpdateBatch_RecordSearchIndexChange_Postgres() {
     doTestUpdateBatch_RecordSearchIndexChange();
   }
 
@@ -1737,13 +1717,6 @@ public class ApplicationDAOTest
     testGetIdsByAncestorIds_Limit();
   }
 
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetIdsByAncestorIds_Limit_Postgres() {
-    testGetIdsByAncestorIds_Limit();
-  }
-
   private void testGetIdsByAncestorIds_Limit() {
     Set<String> ids = new HashSet<>();
     // Go above both H2 (2,000) and postgres (65,535) limits
@@ -1794,13 +1767,6 @@ public class ApplicationDAOTest
     testGetByAncestorIds_Paged();
   }
 
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetByAncestorIds_Paged_Postgres() {
-    testGetByAncestorIds_Paged();
-  }
-
   private void testGetByAncestorIds_Paged() {
     Application app1 = tempEntity.newApplicationWithParent("app1", "app1");
     Application app2 = tempEntity.newApplicationWithParent("app2", "app2");
@@ -1834,13 +1800,6 @@ public class ApplicationDAOTest
 
   @Test
   public void testGetByAncestorIds_Hierarchy_H2() {
-    testGetByAncestorIds_Hierarchy();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetByAncestorIds_Hierarchy_Postgres() {
     testGetByAncestorIds_Hierarchy();
   }
 
@@ -1905,13 +1864,6 @@ public class ApplicationDAOTest
 
   @Test
   public void testGetByAncestorIds_Limit_H2() {
-    testGetByAncestorIds_Limit();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetByAncestorIds_Limit_Postgres() {
     testGetByAncestorIds_Limit();
   }
 
@@ -2014,153 +1966,6 @@ public class ApplicationDAOTest
             "total_risk_per_stage_unique", "DESC", 0, 100))
                 .hasMessage("This operation is only supported for PostgreSQL databases")
                 .isInstanceOf(UnsupportedOperationException.class);
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetDashboardApplicationRisk_Filters() {
-    Policy app1Policy = tempEntity.newPolicy(application.getId(), "app owned policy", 5);
-    PolicyEvaluation app1PolicyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
-        "test scan app1 id", new Date());
-    tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy);
-
-    List<ApplicationRiskDTO> result =
-        applicationDAO.getDashboardApplicationRisk(Set.of(application.getId()),
-            Set.of(BuildStageType.ID, SourceStageType.ID, ReleaseStageType.ID), Collections.emptySet(),
-            1, 10, Collections.emptySet(),
-            "total_risk_per_stage_unique", "DESC", 0, 100);
-
-    assertThat(result).hasSize(1);
-    assertThat(result.get(0).applicationName()).isEqualTo(application.getName());
-    assertThat(result.get(0).totalRiskPerStage()).isEqualTo(5);
-    assertThat(result.get(0).criticalPerStage()).isEqualTo(0);
-    assertThat(result.get(0).severePerStage()).isEqualTo(5);
-    assertThat(result.get(0).moderatePerStage()).isEqualTo(0);
-    assertThat(result.get(0).lowPerStage()).isEqualTo(0);
-
-    assertThat(result.get(0).totalRiskPerStageUnique()).isEqualTo(5);
-    assertThat(result.get(0).criticalPerStageUnique()).isEqualTo(0);
-    assertThat(result.get(0).severePerStageUnique()).isEqualTo(5);
-    assertThat(result.get(0).moderatePerStageUnique()).isEqualTo(0);
-    assertThat(result.get(0).lowPerStageUnique()).isEqualTo(0);
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetDashboardApplicationRisk_Pages() {
-    Policy app1Policy = tempEntity.newPolicy(application.getId(), "app owned policy", 5);
-    PolicyEvaluation app1PolicyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
-        "test scan app1 id", new Date());
-    tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy);
-
-    Application app2 = tempEntity.newApplication("tsta-app2", "tsta-app2", organization.getId());
-    Policy policy2 = tempEntity.newPolicy(app2.getId(), "app owned policy2", 5);
-    PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID,
-        "test scan app id2", new Date());
-    tempEntity.newPolicyViolation(policyEvaluation2, policy2);
-
-    Application app3 = tempEntity.newApplication("tsta-app3", "tsta-app3", organization.getId());
-    Policy policy3 = tempEntity.newPolicy(app3.getId(), "app owned policy3", 5);
-    PolicyEvaluation policyEvaluation3 = tempEntity.newPolicyEvaluation(app3.getId(), BuildStageType.ID,
-        "test scan app id3", new Date());
-    tempEntity.newPolicyViolation(policyEvaluation3, policy3);
-
-    List<ApplicationRiskDTO> result =
-        applicationDAO.getDashboardApplicationRisk(Set.of(application.getId(), app2.getId(), app3.getId()),
-            Set.of(BuildStageType.ID), Collections.emptySet(),
-            1, 10, Collections.emptySet(),
-            "total_risk_per_stage_unique", "DESC", 0, 2);
-    assertThat(result).hasSize(3);
-    assertThat(result.get(0).applicationName()).isEqualTo(application.getName());
-    assertThat(result.get(1).applicationName()).isEqualTo("tsta-app2");
-    // an extra app is returned to know if there is a next page
-    assertThat(result.get(2).applicationName()).isEqualTo("tsta-app3");
-
-    result =
-        applicationDAO.getDashboardApplicationRisk(Set.of(application.getId(), app2.getId(), app3.getId()),
-            Set.of(BuildStageType.ID), Collections.emptySet(),
-            1, 10, Collections.emptySet(),
-            "total_risk_per_stage_unique", "DESC", 1, 2);
-    assertThat(result).hasSize(1);
-
-    result =
-        applicationDAO.getDashboardApplicationRisk(Set.of(application.getId(), app2.getId(), app3.getId()),
-            Set.of(BuildStageType.ID), Collections.emptySet(),
-            1, 10, Collections.emptySet(),
-            "total_risk_per_stage_unique", "DESC", 2, 2);
-    assertThat(result).isEmpty();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetDashboardApplicationRisk_EmptyResultWhenNoMatchWithFilter() {
-    Policy app1Policy = tempEntity.newPolicy(application.getId(), "app owned policy", 5);
-    PolicyEvaluation app1PolicyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
-        "test scan app1 id", new Date());
-    tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy);
-
-    List<ApplicationRiskDTO> result =
-        applicationDAO.getDashboardApplicationRisk(Set.of("non-existent-app-id"),
-            Set.of(BuildStageType.ID), Collections.emptySet(),
-            1, 10, Collections.emptySet(),
-            "total_risk_per_stage_unique", "DESC", 0, 100);
-
-    assertThat(result).isEmpty();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetDashboardApplicationRisk_EmptyResultWhenThereIsNoAppId() {
-    Policy app1Policy = tempEntity.newPolicy(application.getId(), "app owned policy", 5);
-    PolicyEvaluation app1PolicyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
-        "test scan app1 id", new Date());
-    tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy);
-
-    List<ApplicationRiskDTO> result =
-        applicationDAO.getDashboardApplicationRisk(Collections.emptySet(),
-            Collections.emptySet(), Collections.emptySet(),
-            1, 10, Collections.emptySet(),
-            "total_risk_per_stage_unique", "DESC", 0, 100);
-
-    assertThat(result).isEmpty();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetDashboardApplicationRisk_SortCaseInsensitive() {
-    Policy app1Policy = tempEntity.newPolicy(application.getId(), "app1", 5);
-    PolicyEvaluation app1PolicyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
-        "test scan app1 id", new Date());
-    tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy);
-
-    Application app2 = tempEntity.newApplication("app2", "app2", organization.getId());
-    Policy policy2 = tempEntity.newPolicy(app2.getId(), "app owned policy2", 5);
-    PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID,
-        "test scan app id2", new Date());
-    tempEntity.newPolicyViolation(policyEvaluation2, policy2);
-
-    Application app3 = tempEntity.newApplication("Sandbox-app", "Sandbox-app", organization.getId());
-    Policy policy3 = tempEntity.newPolicy(app3.getId(), "app owned policy3", 5);
-    PolicyEvaluation policyEvaluation3 = tempEntity.newPolicyEvaluation(app3.getId(), BuildStageType.ID,
-        "test scan app id3", new Date());
-    tempEntity.newPolicyViolation(policyEvaluation3, policy3);
-
-    List<ApplicationRiskDTO> result =
-        applicationDAO.getDashboardApplicationRisk(Set.of(application.getId(), app2.getId(), app3.getId()),
-            Set.of(BuildStageType.ID), Collections.emptySet(),
-            1, 10, Collections.emptySet(),
-            "name", "ASC", 0, 100);
-    assertThat(result).hasSize(3);
-    // Case-insensitive sorting: "app2" < "ApplicationDAOTest_..." < "Sandbox-app"
-    // because in lowercase: "app2" < "applicationdaotest..." (at position 3, '2' < 'l')
-    assertThat(result.get(0).applicationName()).isEqualTo("app2");
-    assertThat(result.get(1).applicationName()).isEqualTo(application.getName());
-    assertThat(result.get(2).applicationName()).isEqualTo("Sandbox-app");
   }
 
   /**

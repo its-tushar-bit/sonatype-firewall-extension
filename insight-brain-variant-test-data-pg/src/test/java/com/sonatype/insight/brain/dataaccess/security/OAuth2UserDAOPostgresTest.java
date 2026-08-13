@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.dataaccess.security;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.security.OAuth2User;
@@ -16,7 +15,6 @@ import com.sonatype.insight.brain.model.security.OAuth2User;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -30,7 +28,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * processing the first row and verifies the connection is returned to the pool.
  */
 @PostgresTest
-@Category(PostgresTestCategory.class)
 public class OAuth2UserDAOPostgresTest
     extends AbstractDbDAOTest
 {

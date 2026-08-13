@@ -1194,13 +1194,12 @@ String buildDistributedFrontendTestMavenOptions() {
 }
 
 /**
- * Run backend tests (Surefire + MTIQ + Postgres) on a distributed agent.
+ * Run backend tests (Surefire + MTIQ) on a distributed agent.
  *
  * This function:
  * 1. Unstashes the build artifacts from the main build agent
- * 2. Runs surefire tests (excluding PostgresTestCategory)
- * 3. Runs postgres tests (PostgresTestCategory only)
- * 4. Runs MTIQ tests
+ * 2. Runs surefire tests
+ * 3. Runs MTIQ tests
  */
 void runDistributedBackendTests() {
   echo "Running distributed backend tests (Surefire + MTIQ + Postgres)..."
@@ -1213,15 +1212,10 @@ void runDistributedBackendTests() {
     withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/",
              "TESTCONTAINERS_RYUK_DISABLED=true"]) {
 
-      // Run surefire tests (excluding PostgresTestCategory)
+      // Run surefire tests
       echo "Running Surefire tests..."
       def surefireOpts = buildDistributedSurefireTestMavenOptions()
       mvnDirectForDistributedTests(surefireOpts, 'surefire:test', localRepo)
-
-      // Run postgres tests (PostgresTestCategory only)
-      echo "Running Postgres tests..."
-      def postgresOpts = buildDistributedPostgresTestMavenOptions()
-      mvnDirectForDistributedTests(postgresOpts, 'surefire:test failsafe:integration-test failsafe:verify', localRepo)
 
       // Run MTIQ tests
       echo "Running MTIQ tests..."
@@ -1248,56 +1242,12 @@ String buildDistributedSurefireTestMavenOptions() {
   opts << "-Dsurefire.rerunFailingTestsCount=2"
   opts << "-Dsurefire.failOnFlakeCount=5"
 
-  // Excluded test groups - exclude PostgresTestCategory (run separately)
-  def excludedGroups = ['PostgresTestCategory']
-  if (!params.runRefPolicyImportIntTest) {
-    excludedGroups << "ReferencePolicyImportIntegrationTest"
-  }
-  opts << "-DexcludedGroups=${excludedGroups.join(',')}"
-
-  // Docker registry
-  opts << "-Ddocker.registry=${sonatypeDockerRegistryId()}"
-
-  // Error handling
-  opts << "-e"
-  opts << "-C"
-  opts << "-fae"
-  opts << "-Dmaven.test.failure.ignore"
-
-  return opts.join(' ')
-}
-
-/**
- * Build Maven options for distributed postgres test execution.
- */
-String buildDistributedPostgresTestMavenOptions() {
-  def opts = []
-
-  opts << "--no-transfer-progress"
-  opts << "-T 1"
-  opts << "-pl '!insight-brain-frontend,!nexus-mtiq-server'"
-  opts << "-D skip-functional-test"
-  opts << "-D build.number=${env.BUILD_NUMBER}"
-
-  // Test configuration
-  opts << "-Dfailsafe.runOrder=alphabetical"
-  opts << "-Dfailsafe.rerunFailingTestsCount=2"
-  opts << "-Dfailsafe.failOnFlakeCount=5"
-  opts << "-Dsurefire.runOrder=alphabetical"
-  opts << "-Dsurefire.rerunFailingTestsCount=2"
-  opts << "-Dsurefire.failOnFlakeCount=5"
-
-  // Include ONLY PostgresTestCategory
-  opts << "-Dgroups=PostgresTestCategory"
-
-  // Excluded test groups
+  // Excluded test groups - ref-policy import is gated by a build param
   def excludedGroups = []
   if (!params.runRefPolicyImportIntTest) {
     excludedGroups << "ReferencePolicyImportIntegrationTest"
   }
-  if (excludedGroups) {
-    opts << "-DexcludedGroups=${excludedGroups.join(',')}"
-  }
+  opts << "-DexcludedGroups=${excludedGroups.join(',')}"
 
   // Docker registry
   opts << "-Ddocker.registry=${sonatypeDockerRegistryId()}"
@@ -1387,7 +1337,7 @@ void runDistributedFailsafeTests(String testPattern) {
     withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/",
              "TESTCONTAINERS_RYUK_DISABLED=true"]) {
 
-      def opts = buildDistributedTestMavenOptions(['PostgresTestCategory'],
+      def opts = buildDistributedTestMavenOptions([],
           '!insight-brain-frontend,!nexus-mtiq-server', testPattern)
       mvnDirectForDistributedTests(opts, 'failsafe:integration-test failsafe:verify', localRepo)
     }

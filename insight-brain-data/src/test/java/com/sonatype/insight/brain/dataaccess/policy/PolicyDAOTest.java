@@ -12,14 +12,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -44,7 +42,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -652,13 +649,6 @@ public class PolicyDAOTest
 
     assertThat(policyDAO.selectCountByOwnerIds(ownerIds)).isEqualTo(2);
     assertThat(Set.of(first.getId(), second.getId())).hasSize(2);
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetByOwnerIds_PostgresLimit() {
-    testGetByOwnerIds_internal();
   }
 
   private void testGetByOwnerIds_internal() {

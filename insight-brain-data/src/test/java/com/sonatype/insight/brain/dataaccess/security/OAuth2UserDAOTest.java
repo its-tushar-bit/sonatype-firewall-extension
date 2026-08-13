@@ -13,13 +13,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.filter.UserFilter;
 import com.sonatype.insight.brain.model.filter.UserFilterType;
@@ -33,7 +31,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -431,19 +428,6 @@ public class OAuth2UserDAOTest
     assertThat(
         oAuth2UserDAO.findUsersByNameOrUsernameQuery("%-SoNaTypE%")).usingRecursiveFieldByFieldElementComparator()
             .containsExactly(oAuth2User1, oAuth2User2);
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testFindUsersByNameOrUsernameQuery_PrefixAndSuffixUserName_postgres() {
-    OAuth2User oAuth2User1 = tempEntity.newOAuth2User("userA-postgres-1", "johnny", "smith", null, null);
-    OAuth2User oAuth2User2 = tempEntity.newOAuth2User("userB-postgres-2", "bobby", "smithson", null, null);
-    tempEntity.newOAuth2User("other", "john", "doe", null, null);
-
-    assertThat(oAuth2UserDAO.findUsersByNameOrUsernameQuery("%-PoStgREs%"))
-        .usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(oAuth2User1, oAuth2User2);
   }
 
   @Test

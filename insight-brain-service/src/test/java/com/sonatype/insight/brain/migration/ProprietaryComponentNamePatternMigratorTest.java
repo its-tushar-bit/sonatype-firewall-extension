@@ -10,14 +10,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.migrations.LegacyDataStoreMigrator;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -45,26 +42,10 @@ public class ProprietaryComponentNamePatternMigratorTest
     runScript(scriptName);
   }
 
-  private void populatePostgresDatabase(String scriptName) throws Exception {
-    runScript("create_schema");
-    runScript("set_schema_postgres");
-    runScript("schema");
-    runScript("schema_incremental_0291");
-    runScript(scriptName);
-  }
-
   @Test
   @H2DiskTest(suppressMigrations = true)
   public void testMigrate_H2() throws Exception {
     populateH2Database("data_before");
-    testMigrate();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest(suppressMigrations = true)
-  public void testMigrate_Postgres() throws Exception {
-    populatePostgresDatabase("data_before");
     testMigrate();
   }
 

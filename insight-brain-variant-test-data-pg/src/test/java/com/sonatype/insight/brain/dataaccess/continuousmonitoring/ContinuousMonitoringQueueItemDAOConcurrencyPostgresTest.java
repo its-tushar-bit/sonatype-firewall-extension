@@ -14,7 +14,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringFlowType;
@@ -22,7 +21,6 @@ import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitorin
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -32,11 +30,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  * the test asserts that each row is acquired by exactly one worker — never duplicated,
  * never skipped — and that {@code countPending} is zero after both calls return.
  * <p>
- * Categorised as {@link PostgresTestCategory} so it runs in the Postgres-only pipeline against a
- * real Postgres instance, not the default H2 fixture.
+ * Marked {@code @PostgresTest} so it runs against a real Postgres instance, not the default H2
+ * fixture.
  */
 @PostgresTest
-@Category(PostgresTestCategory.class)
 public class ContinuousMonitoringQueueItemDAOConcurrencyPostgresTest
     extends AbstractDbDAOTest
 {

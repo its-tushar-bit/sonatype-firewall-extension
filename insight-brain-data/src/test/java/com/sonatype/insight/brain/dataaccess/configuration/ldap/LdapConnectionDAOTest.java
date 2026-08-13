@@ -5,14 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration.ldap;
 
-import java.sql.SQLException;
-import java.util.List;
-import java.util.function.Function;
-
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.DAOSecretRotator;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapAuthenticationMethod;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapProtocol;
@@ -22,8 +16,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.experimental.categories.Category;
 
 public class LdapConnectionDAOTest
     extends AbstractDbDAOTest
@@ -107,35 +99,6 @@ public class LdapConnectionDAOTest
     ldapConnection.setPort(65535);
     dao.insert(ldapConnection);
     assertThat(ldapConnection.getId()).isNotNull();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testRotateEncryptedSecrets() throws SQLException {
-    LdapServer ldapServer2 = tempEntity.newLdapServer("testServer2");
-    LdapServer ldapServer3 = tempEntity.newLdapServer("testServer3");
-    LdapServer ldapServer4 = tempEntity.newLdapServer("testServer4");
-
-    tempEntity.newLdapConnection(ldapServer.getId(), "passwordOld1".toCharArray());
-    tempEntity.newLdapConnection(ldapServer2.getId(), "passwordOld2".toCharArray());
-    tempEntity.newLdapConnection(ldapServer3.getId(), "passwordOld3".toCharArray());
-    tempEntity.newLdapConnection(ldapServer4.getId(), null);
-
-    Function<String, String> secretRotator = secret -> secret.replace("Old", "New");
-
-    daoSecretRotator.rotateEncryptedSecrets(dao, secretRotator);
-
-    List<LdapConnection> results = dao.getAll();
-
-    assertThat(results.stream().filter(lc -> lc.getSystemPassword() == null).count()).isEqualTo(1);
-    assertThat(results.stream().filter(lc -> lc.getSystemPassword() != null).count()).isEqualTo(3);
-    results.stream()
-        .filter(lc -> lc.getSystemPassword() != null)
-        .forEach(lc -> {
-          assertThat(String.valueOf(lc.getSystemPassword())).doesNotContain("Old");
-          assertThat(String.valueOf(lc.getSystemPassword())).contains("New");
-        });
   }
 
   private LdapConnection createLdapConnection() {

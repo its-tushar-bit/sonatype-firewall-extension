@@ -159,7 +159,7 @@
       <artifactId>insight-brain-db</artifactId>
       <type>test-jar</type>
     </dependency>
-    <!-- Common test fixtures (PostgresTestCategory marker, helpers). -->
+    <!-- Common test fixtures (helpers). -->
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-common</artifactId>
@@ -196,6 +196,14 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- SbomFormat and related scan types used by the relocated third-party-scan DAO tests
+         (test-scoped in insight-brain-data, so not transitive here). -->
+    <dependency>
+      <groupId>com.sonatype.insight.scan</groupId>
+      <artifactId>insight-scanner-archive</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

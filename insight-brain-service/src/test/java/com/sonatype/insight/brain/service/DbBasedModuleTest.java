@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dashboard.ApplicationRiskService;
 import com.sonatype.insight.brain.dashboard.DashboardComponentRiskService;
 import com.sonatype.insight.brain.dashboard.DashboardViolationRiskService;
@@ -15,15 +14,10 @@ import com.sonatype.insight.brain.dashboard.H2ApplicationRiskService;
 import com.sonatype.insight.brain.dashboard.H2ComponentRiskService;
 import com.sonatype.insight.brain.dashboard.H2DashboardViolationRiskService;
 import com.sonatype.insight.brain.dashboard.PolicyWaiverService;
-import com.sonatype.insight.brain.dashboard.PostgresApplicationRiskService;
-import com.sonatype.insight.brain.dashboard.PostgresComponentRiskService;
-import com.sonatype.insight.brain.dashboard.PostgresDashboardViolationRiskService;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;
 import jakarta.inject.Inject;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 @SuppressWarnings("unused")
 public class DbBasedModuleTest
@@ -54,14 +48,5 @@ public class DbBasedModuleTest
     assertThat(dashboardViolationRiskService).isInstanceOf(H2DashboardViolationRiskService.class);
     assertThat(dashboardComponentRiskService).isInstanceOf(H2ComponentRiskService.class);
     assertThat(applicationRiskService).isInstanceOf(H2ApplicationRiskService.class);
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void postgresTest() {
-    assertThat(dashboardViolationRiskService).isInstanceOf(PostgresDashboardViolationRiskService.class);
-    assertThat(dashboardComponentRiskService).isInstanceOf(PostgresComponentRiskService.class);
-    assertThat(applicationRiskService).isInstanceOf(PostgresApplicationRiskService.class);
   }
 }

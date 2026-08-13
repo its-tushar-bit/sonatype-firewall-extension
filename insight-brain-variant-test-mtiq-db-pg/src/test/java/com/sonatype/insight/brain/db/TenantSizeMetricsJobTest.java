@@ -10,13 +10,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.tenancy.Tenant;
 
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.quartz.JobExecutionContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,7 +24,6 @@ public class TenantSizeMetricsJobTest
     extends AbstractMultiTenantDatabaseTest
 {
   @Test
-  @Category(PostgresTestCategory.class)
   @PostgresTest(suppressMigrations = true, cleanDatabase = true)
   public void testQuartzTableDoesExist() {
     TaskScheduler taskScheduler = mock(TaskScheduler.class);

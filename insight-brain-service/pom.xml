@@ -895,11 +895,9 @@
             in insight-brain-variant-test-component-h2, which forces junit-jupiter-api (and transitively
             junit-platform-commons) onto this module's TEST classpath. Without this pin, Failsafe auto-detects
             the JUnit Platform provider and runs the remaining JUnit 4 tests via the Vintage engine, which
-            exposes @Category(PostgresTestCategory) only as its fully-qualified tag name and silently breaks
-            the short-name <groups>/<excludedGroups>PostgresTestCategory</excludedGroups> partitioning (letting
-            @Category(PostgresTestCategory) tests run in the standard Failsafe bucket). Pinning the JUnit 4
-            provider keeps this module's vintage tests and their category partitioning behaving correctly.
-            Keep this version aligned with the maven-failsafe-plugin version.
+            can change provider-specific behavior. Pinning the JUnit 4 (junit47) provider keeps this
+            module's vintage tests behaving as they do on main. Keep this version aligned with the
+            maven-failsafe-plugin version.
           -->
           <dependency>
             <groupId>org.apache.maven.surefire</groupId>
@@ -935,24 +933,13 @@
           </systemPropertyVariables>
         </configuration>
         <executions>
-          <!-- Run Postgres tests first: all 37 share vanilla server config, zero server restarts -->
-          <execution>
-            <id>postgres-integration-tests</id>
-            <goals>
-              <goal>integration-test</goal>
-            </goals>
-            <configuration>
-              <groups>PostgresTestCategory</groups>
-            </configuration>
-          </execution>
-          <!-- Run remaining integration tests second -->
+          <!-- Run integration tests. -->
           <execution>
             <id>standard-integration-tests</id>
             <goals>
               <goal>integration-test</goal>
             </goals>
             <configuration>
-              <excludedGroups>PostgresTestCategory</excludedGroups>
             </configuration>
           </execution>
           <!-- Verify all results -->
@@ -1237,6 +1224,8 @@
                 <include>**/*Test*</include>
                 <include>**/git/render/*Helper*</include>
                 <include>**/utils/ExistingFilesHelper*</include>
+                <include>**/DashboardMetricsSqlColdEvidenceSupport*</include>
+                <include>**/DashboardMetricsSqlPlanEvidenceSupport*</include>
                 <include>**/utils/RandomGenerator*</include>
                 <include>**/DatabaseContainerRule*</include>
                 <include>**/H2InMemoryDatabaseConfigProvider*</include>

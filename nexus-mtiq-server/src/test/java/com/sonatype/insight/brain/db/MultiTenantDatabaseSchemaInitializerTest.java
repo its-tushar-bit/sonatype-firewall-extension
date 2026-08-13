@@ -7,11 +7,9 @@ package com.sonatype.insight.brain.db;
 
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.db.PostgresDatabaseEngine;
 
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -25,7 +23,6 @@ public class MultiTenantDatabaseSchemaInitializerTest
   private DataSource testMainDataSource;
 
   @Test
-  @Category(PostgresTestCategory.class)
   public void testUseCustomPopulator() {
     MultiTenantDatabaseSchemaInitializer initializer = new MultiTenantDatabaseSchemaInitializer();
     assertThat(initializer.createDatabaseSchemaPopulator(testMainDataSource, PostgresDatabaseEngine.INSTANCE, "test",

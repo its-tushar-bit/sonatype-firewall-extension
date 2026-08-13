@@ -14,7 +14,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2InMemoryTest;
@@ -24,7 +23,6 @@ import com.sonatype.insight.db.DatabaseConfig;
 import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -68,7 +66,6 @@ public class DatabaseRuleAndFixturesTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testPostgres() throws SQLException {
     String postgresUrlPattern = "jdbc:postgresql://localhost:\\d+\\/testpostgres";
@@ -77,7 +74,6 @@ public class DatabaseRuleAndFixturesTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testPostgresServer_loadSqlDump() throws Exception {
     databaseRule.loadSqlDump(Paths.get(getClass().getResource("/dump-valid.sql").toURI()));
@@ -95,7 +91,6 @@ public class DatabaseRuleAndFixturesTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testPostgresServer_loadSqlDump_invalidDump() {
     assertThatExceptionOfType(IllegalStateException.class)
@@ -104,7 +99,6 @@ public class DatabaseRuleAndFixturesTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testPostgresServer_dumpSchema() throws Exception {
     Path sqlPath = Paths.get(getClass().getResource("/dump-valid.sql").toURI());

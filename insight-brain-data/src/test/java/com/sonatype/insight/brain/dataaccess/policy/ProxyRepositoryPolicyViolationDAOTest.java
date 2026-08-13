@@ -18,13 +18,11 @@ import java.util.Set;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsCountSummary;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetails;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetailsFilter;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -41,7 +39,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 import org.jooq.SQLDialect;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import com.google.common.collect.ImmutableSet;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -118,15 +115,6 @@ public class ProxyRepositoryPolicyViolationDAOTest
     testInsertBatch_persistsAllAndStoresConstraintFacts();
   }
 
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testInsertBatch_persistsAllAndStoresConstraintFacts_Postgres() {
-    assertThat(dao.isDatabaseEmbedded()).isFalse();
-    assertThatDialectIs(SQLDialect.POSTGRES);
-    testInsertBatch_persistsAllAndStoresConstraintFacts();
-  }
-
   private void testInsertBatch_persistsAllAndStoresConstraintFacts() {
     Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
     Date now = new Date();
@@ -154,15 +142,6 @@ public class ProxyRepositoryPolicyViolationDAOTest
     testUpdateBatch_persistsChangesForAllEntries();
   }
 
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testUpdateBatch_persistsChangesForAllEntries_Postgres() {
-    assertThat(dao.isDatabaseEmbedded()).isFalse();
-    assertThatDialectIs(SQLDialect.POSTGRES);
-    testUpdateBatch_persistsChangesForAllEntries();
-  }
-
   private void testUpdateBatch_persistsChangesForAllEntries() {
     Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
     Date now = new Date();
@@ -187,15 +166,6 @@ public class ProxyRepositoryPolicyViolationDAOTest
 
   @Test
   public void testDeleteBatch_removesSelectedViolationsPreservingOthers_H2() {
-    testDeleteBatch_removesSelectedViolationsPreservingOthers();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testDeleteBatch_removesSelectedViolationsPreservingOthers_Postgres() {
-    assertThat(dao.isDatabaseEmbedded()).isFalse();
-    assertThatDialectIs(SQLDialect.POSTGRES);
     testDeleteBatch_removesSelectedViolationsPreservingOthers();
   }
 
@@ -669,36 +639,7 @@ public class ProxyRepositoryPolicyViolationDAOTest
   }
 
   @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testDeleteByRepositoryId_Postgres() {
-    assertThat(dao.isDatabaseEmbedded()).isFalse();
-
-    repository = tempEntity.newRepository();
-
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "pathname1", null);
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "pathname2", null);
-    assertThat(dao.getByRepositoryId(repository.getId())).hasSize(2);
-
-    try (TransactionContext tx = dao.createTransactionContext()) {
-      tx.begin();
-      dao.deleteByRepositoryId(tx, repository.getId());
-      tx.commit();
-    }
-
-    assertThat(dao.getByRepositoryId(repository.getId())).isEmpty();
-  }
-
-  @Test
   public void testGetRepositoryResultsDetailsNonAggregate_H2() {
-    testGetRepositoryResultsDetailsNonAggregate();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetRepositoryResultsDetailsNotAggregate_Postgres() {
-    assertThat(dao.isDatabaseEmbedded()).isFalse();
     testGetRepositoryResultsDetailsNonAggregate();
   }
 
@@ -748,14 +689,6 @@ public class ProxyRepositoryPolicyViolationDAOTest
     testGetRepositoryResultsDetailsAggregate();
   }
 
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetRepositoryResultsDetailsAggregate_Postgres() {
-    assertThat(dao.isDatabaseEmbedded()).isFalse();
-    testGetRepositoryResultsDetailsAggregate();
-  }
-
   private void testGetRepositoryResultsDetailsAggregate() {
     Policy p1 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "p1", 10);
     Policy p2 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "p2", 1);
@@ -797,14 +730,6 @@ public class ProxyRepositoryPolicyViolationDAOTest
 
   @Test
   public void testGetRepositoryResultsDetails_FilterQuarantineTime_H2() {
-    testGetRepositoryResultsDetails_FilterQuarantineTime();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetRepositoryResultsDetails_FilterQuarantineTime_Postgres() {
-    assertThat(dao.isDatabaseEmbedded()).isFalse();
     testGetRepositoryResultsDetails_FilterQuarantineTime();
   }
 
@@ -875,14 +800,6 @@ public class ProxyRepositoryPolicyViolationDAOTest
     testGetRepositoryResultsDetails_FilterEvaluationTime();
   }
 
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetRepositoryResultsDetails_FilterEvaluationTime_Postgres() {
-    assertThat(dao.isDatabaseEmbedded()).isFalse();
-    testGetRepositoryResultsDetails_FilterEvaluationTime();
-  }
-
   private void testGetRepositoryResultsDetails_FilterEvaluationTime() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, "my-repo");
@@ -947,14 +864,6 @@ public class ProxyRepositoryPolicyViolationDAOTest
 
   @Test
   public void testGetRepositoryResultsDetails_FilterThreatLevel_H2() {
-    testGetRepositoryResultsDetails_FilterThreatLevel();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetRepositoryResultsDetails_FilterThreatLevel_Postgres() {
-    assertThat(dao.isDatabaseEmbedded()).isFalse();
     testGetRepositoryResultsDetails_FilterThreatLevel();
   }
 
@@ -1110,14 +1019,6 @@ public class ProxyRepositoryPolicyViolationDAOTest
     testCountRepositoryResultsDetails_noFilters();
   }
 
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testCountRepositoryResultsDetails_noFilters_Postgres() {
-    assertThat(dao.isDatabaseEmbedded()).isFalse();
-    testCountRepositoryResultsDetails_noFilters();
-  }
-
   private void testCountRepositoryResultsDetails_noFilters() {
     Policy p1 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "p1", 10);
     Policy p2 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "p2", 5);
@@ -1153,14 +1054,6 @@ public class ProxyRepositoryPolicyViolationDAOTest
 
   @Test
   public void testCountRepositoryResultsDetails_withWaivedViolations_H2() {
-    testCountRepositoryResultsDetails_withWaivedViolations();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testCountRepositoryResultsDetails_withWaivedViolations_Postgres() {
-    assertThat(dao.isDatabaseEmbedded()).isFalse();
     testCountRepositoryResultsDetails_withWaivedViolations();
   }
 
@@ -1202,14 +1095,6 @@ public class ProxyRepositoryPolicyViolationDAOTest
     testCountRepositoryResultsDetails_withQuarantinedViolations();
   }
 
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testCountRepositoryResultsDetails_withQuarantinedViolations_Postgres() {
-    assertThat(dao.isDatabaseEmbedded()).isFalse();
-    testCountRepositoryResultsDetails_withQuarantinedViolations();
-  }
-
   private void testCountRepositoryResultsDetails_withQuarantinedViolations() {
     Policy p1 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "p1", 10);
     Repository repository = tempEntity.newRepository();
@@ -1243,14 +1128,6 @@ public class ProxyRepositoryPolicyViolationDAOTest
 
   @Test
   public void testCountRepositoryResultsDetails_withThreatLevelFilter_H2() {
-    testCountRepositoryResultsDetails_withThreatLevelFilter();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testCountRepositoryResultsDetails_withThreatLevelFilter_Postgres() {
-    assertThat(dao.isDatabaseEmbedded()).isFalse();
     testCountRepositoryResultsDetails_withThreatLevelFilter();
   }
 
@@ -1294,14 +1171,6 @@ public class ProxyRepositoryPolicyViolationDAOTest
 
   @Test
   public void testCountRepositoryResultsDetails_emptyResults_H2() {
-    testCountRepositoryResultsDetails_emptyResults();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testCountRepositoryResultsDetails_emptyResults_Postgres() {
-    assertThat(dao.isDatabaseEmbedded()).isFalse();
     testCountRepositoryResultsDetails_emptyResults();
   }
 
@@ -1365,14 +1234,6 @@ public class ProxyRepositoryPolicyViolationDAOTest
 
   @Test
   public void testPaginationStability_NonAggregate_H2() {
-    testPaginationStability_NonAggregate();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testPaginationStability_NonAggregate_Postgres() {
-    assertThat(dao.isDatabaseEmbedded()).isFalse();
     testPaginationStability_NonAggregate();
   }
 
@@ -1458,14 +1319,6 @@ public class ProxyRepositoryPolicyViolationDAOTest
 
   @Test
   public void testPaginationStability_Aggregate_H2() {
-    testPaginationStability_Aggregate();
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testPaginationStability_Aggregate_Postgres() {
-    assertThat(dao.isDatabaseEmbedded()).isFalse();
     testPaginationStability_Aggregate();
   }
 

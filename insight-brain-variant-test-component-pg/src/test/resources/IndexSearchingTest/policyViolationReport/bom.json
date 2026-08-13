@@ -1,0 +1,193 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "log4j-core",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.apache.logging",
+          "version": "2.14.0"
+        }
+      },
+      "hash": "hashPvtLog4j00000000",
+      "filenames": ["log4j-core-2.14.0.jar"],
+      "pathnames": ["lib/log4j-core-2.14.0.jar"],
+      "displayName": { "parts": [{ "value": "log4j-core" }] },
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "relativePopularity": null,
+      "createTime": 1364313072251,
+      "lastModifiedTime": 1481029585000,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [{ "componentCategoryId": 113, "path": "Other" }],
+      "hygieneRating": null
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "linux-kernel",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.linux",
+          "version": "5.10"
+        }
+      },
+      "hash": "hashPvtLinux00000000",
+      "filenames": ["linux-kernel-5.10.jar"],
+      "pathnames": ["lib/linux-kernel-5.10.jar"],
+      "displayName": { "parts": [{ "value": "linux-kernel" }] },
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "relativePopularity": null,
+      "createTime": 1364313072251,
+      "lastModifiedTime": 1481029585000,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [{ "componentCategoryId": 113, "path": "Other" }],
+      "hygieneRating": null
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "busybox",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "net.busybox",
+          "version": "1.33"
+        }
+      },
+      "hash": "hashPvtBusybox000000",
+      "filenames": ["busybox-1.33.jar"],
+      "pathnames": ["lib/busybox-1.33.jar"],
+      "displayName": { "parts": [{ "value": "busybox" }] },
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "relativePopularity": null,
+      "createTime": 1364313072251,
+      "lastModifiedTime": 1481029585000,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [{ "componentCategoryId": 113, "path": "Other" }],
+      "hygieneRating": null
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "lodash",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.lodash",
+          "version": "4.17.15"
+        }
+      },
+      "hash": "hashPvtLodash000000",
+      "filenames": ["lodash-4.17.15.jar"],
+      "pathnames": ["lib/lodash-4.17.15.jar"],
+      "displayName": { "parts": [{ "value": "lodash" }] },
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "relativePopularity": null,
+      "createTime": 1364313072251,
+      "lastModifiedTime": 1481029585000,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [{ "componentCategoryId": 113, "path": "Other" }],
+      "hygieneRating": null
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "openssl",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.openssl",
+          "version": "3.0"
+        }
+      },
+      "hash": "hashPvtOpenssl00000",
+      "filenames": ["openssl-3.0.jar"],
+      "pathnames": ["lib/openssl-3.0.jar"],
+      "displayName": { "parts": [{ "value": "openssl" }] },
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "relativePopularity": null,
+      "createTime": 1364313072251,
+      "lastModifiedTime": 1481029585000,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [{ "componentCategoryId": 113, "path": "Other" }],
+      "hygieneRating": null
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "dual-licensed",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.dual",
+          "version": "1.0"
+        }
+      },
+      "hash": "hashPvtDual00000000",
+      "filenames": ["dual-licensed-1.0.jar"],
+      "pathnames": ["lib/dual-licensed-1.0.jar"],
+      "displayName": { "parts": [{ "value": "dual-licensed" }] },
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "relativePopularity": null,
+      "createTime": 1364313072251,
+      "lastModifiedTime": 1481029585000,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [{ "componentCategoryId": 113, "path": "Other" }],
+      "hygieneRating": null
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "unknown-comp",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.unknown",
+          "version": "1.0"
+        }
+      },
+      "hash": "hashPvtUnknown0000",
+      "filenames": ["unknown-comp-1.0.jar"],
+      "pathnames": ["lib/unknown-comp-1.0.jar"],
+      "displayName": { "parts": [{ "value": "unknown-comp" }] },
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "relativePopularity": null,
+      "createTime": 1364313072251,
+      "lastModifiedTime": 1481029585000,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [{ "componentCategoryId": 113, "path": "Other" }],
+      "hygieneRating": null
+    }
+  ]
+}

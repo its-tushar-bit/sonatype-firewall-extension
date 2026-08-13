@@ -112,12 +112,37 @@ export function formatWaiverOwnerTypeLabel(ownerType: string | undefined | null)
  * Scope as `{owner name} ({Owner type})`. The v2 detail payload carries
  * `scopeOwner*` rather than the dashboard list's pre-joined `scope` string, so
  * the label is composed here instead of read off the row.
+ *
+ * Fallback chain:
+ * 1. scopeOwnerName + scopeOwnerType (v2 detail fields)
+ * 2. ownerName + ownerType (waiver owner fields)
+ * 3. name only (no type available)
+ * 4. scope field (legacy/Ana dashboard field, pre-formatted so it outranks a bare type label)
+ * 5. type label only (no name and no scope field available)
+ * 6. null (no scope available — caller should hide the label)
+ *
+ * Returns null when no scope information is available, allowing callers to
+ * conditionally hide the scope label per CLM-44263 AC#3.
  */
-export function formatWaiverScopeLabel(w: PolicyWaiverDetailDTO): string {
-  const name = w.scopeOwnerName ?? w.ownerName ?? w.ownerId ?? '';
+export function formatWaiverScopeLabel(w: PolicyWaiverDetailDTO): string | null {
+  // Build from scopeOwner* fields if available (v2 detail endpoint)
+  const name = w.scopeOwnerName ?? w.ownerName;
   const typeLabel = formatWaiverOwnerTypeLabel(w.scopeOwnerType ?? w.ownerType);
+
+  // If we have both name and type, format as "Name (Type)"
   if (name && typeLabel) return `${name} (${typeLabel})`;
-  return name || typeLabel || '—';
+
+  // If we have just name, use it
+  if (name) return name;
+
+  // Fallback to the pre-formatted scope field from legacy/dashboard endpoints
+  if (w.scope) return w.scope;
+
+  // If we have just the type, use its humanized label
+  if (typeLabel) return typeLabel;
+
+  // No scope information available — return null so caller can hide the label
+  return null;
 }
 
 export function formatWaiverComponentLabel(

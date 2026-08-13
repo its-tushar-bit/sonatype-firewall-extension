@@ -104,12 +104,51 @@ describe('waiverDisplayUtils', () => {
       ).toBe('Central (Repository Manager)');
     });
 
-    it('falls back through ownerName and ownerId when scope fields are absent', () => {
+    it('falls back through ownerName when scope fields are absent', () => {
       expect(
         formatWaiverScopeLabel({ ownerName: 'Legacy App', ownerType: 'application' } as any),
       ).toBe('Legacy App (Application)');
-      expect(formatWaiverScopeLabel({ ownerId: 'abc123', ownerType: '' } as any)).toBe('abc123');
-      expect(formatWaiverScopeLabel({} as any)).toBe('—');
+      // When only ownerId is available (no scope info), return null per CLM-44263 AC#3
+      expect(formatWaiverScopeLabel({ ownerId: 'abc123', ownerType: '' } as any)).toBeNull();
+      expect(formatWaiverScopeLabel({} as any)).toBeNull();
+    });
+
+    it('falls back to the humanized owner type when no name is available', () => {
+      expect(formatWaiverScopeLabel({ ownerType: 'application' } as any)).toBe('Application');
+      expect(
+        formatWaiverScopeLabel({ ownerType: 'repository_manager', ownerId: 'abc123' } as any),
+      ).toBe('Repository Manager');
+    });
+
+    it('uses scope field when scopeOwnerName/ownerName are absent (CLM-44263)', () => {
+      // Scenario: v2 detail endpoint returns scope field but not scopeOwnerName
+      expect(
+        formatWaiverScopeLabel({
+          scope: 'Application — Config Service',
+          ownerId: 'app-123',
+          ownerType: 'application',
+        } as any),
+      ).toBe('Application — Config Service');
+    });
+
+    it('prefers scopeOwnerName over scope field', () => {
+      expect(
+        formatWaiverScopeLabel({
+          scopeOwnerName: 'Config Service',
+          scopeOwnerType: 'application',
+          scope: 'Application — Old Value',
+        } as any),
+      ).toBe('Config Service (Application)');
+    });
+
+    it('prefers ownerName over scope field', () => {
+      expect(
+        formatWaiverScopeLabel({
+          ownerName: 'My App',
+          ownerType: 'application',
+          scope: 'Application — Old Value',
+        } as any),
+      ).toBe('My App (Application)');
     });
   });
 

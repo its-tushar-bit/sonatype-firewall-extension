@@ -417,11 +417,16 @@ export default function WaiverDetailPage(): ReactElement {
         )}
 
         <Flex align="center" gap="4" wrap="wrap" data-testid="preview-waiver-detail-meta">
-          <MetaItem label="Scope:" testId="preview-waiver-detail-meta-scope">
-            <Badge color="gray" variant="soft">
-              {formatWaiverScopeLabel(waiver)}
-            </Badge>
-          </MetaItem>
+          {(() => {
+            const scopeLabel = formatWaiverScopeLabel(waiver);
+            return scopeLabel ? (
+              <MetaItem label="Scope:" testId="preview-waiver-detail-meta-scope">
+                <Badge color="gray" variant="soft">
+                  {scopeLabel}
+                </Badge>
+              </MetaItem>
+            ) : null;
+          })()}
           {/* Container-image waivers use the Container image badge; Classic hid the component card. */}
           {!waiver.forContainerImage && (
             <MetaItem label="Component:" testId="preview-waiver-detail-meta-component">

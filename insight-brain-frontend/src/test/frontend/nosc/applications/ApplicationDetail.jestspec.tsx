@@ -419,10 +419,9 @@ describe('ApplicationDetail (CLM-39709 / P1-F7c)', () => {
     const rail = await screen.findByTestId('nosc-app-detail-context-rail');
     expect(within(rail).getByText('Apple Java')).toHaveAttribute('aria-current', 'page');
     expect(within(rail).queryByRole('link', { name: 'Apple Java' })).not.toBeInTheDocument();
-    // Application-only context still shows the full chain as unavailable placeholders.
+    // Unavailable nodes without IDs are omitted from the rail (no empty breadcrumb segments).
     for (const placeholder of ['Component', 'Violation', 'Vulnerability'] as const) {
-      expect(within(rail).getByText(placeholder)).toBeInTheDocument();
-      expect(within(rail).queryByRole('link', { name: placeholder })).not.toBeInTheDocument();
+      expect(within(rail).queryByText(placeholder)).not.toBeInTheDocument();
     }
   });
 

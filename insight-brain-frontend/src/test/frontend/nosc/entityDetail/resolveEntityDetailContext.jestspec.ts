@@ -45,16 +45,18 @@ describe('resolveEntityDetailContext', () => {
     expect(chain.scanId).toBe('scan-1');
   });
 
-  it('keeps unavailable nodes when ids missing', () => {
+  it('filters out unavailable nodes when IDs are missing', () => {
     const chain = resolveEntityDetailContext({
       current: 'violation',
       policyViolationId: 'pv-1',
       policyName: 'Some Policy',
     });
-    expect(chain.nodes.find((n) => n.kind === 'application')?.isAvailable).toBe(false);
-    expect(chain.nodes.find((n) => n.kind === 'application')?.href).toBeNull();
-    expect(chain.nodes.find((n) => n.kind === 'violation')?.isAvailable).toBe(true);
-    expect(chain.nodes.find((n) => n.kind === 'violation')?.href).toBeNull();
+    // Only violation node should remain (available and current)
+    expect(chain.nodes.map((n) => n.kind)).toEqual(['violation']);
+    const violationNode = chain.nodes.find((n) => n.kind === 'violation');
+    expect(violationNode?.isAvailable).toBe(true);
+    expect(violationNode?.isCurrent).toBe(true);
+    expect(violationNode?.href).toBeNull();
   });
 
   it('preserves scanId when stageId is absent', () => {
@@ -65,6 +67,35 @@ describe('resolveEntityDetailContext', () => {
     });
     expect(chain.scanId).toBe('scan-only');
     expect(chain.stageId).toBeUndefined();
+  });
+
+  it('omits nodes without context when opening a CVE directly', () => {
+    const chain = resolveEntityDetailContext({
+      current: 'vulnerability',
+      vulnId: 'CVE-2021-44228',
+    });
+    // Only vulnerability node should remain (available and current)
+    expect(chain.nodes.map((n) => n.kind)).toEqual(['vulnerability']);
+    expect(chain.nodes.find((n) => n.kind === 'vulnerability')?.isCurrent).toBe(true);
+    expect(chain.nodes.find((n) => n.kind === 'vulnerability')?.isAvailable).toBe(true);
+    // Application, component, and violation nodes should be filtered out
+    expect(chain.nodes.find((n) => n.kind === 'application')).toBeUndefined();
+    expect(chain.nodes.find((n) => n.kind === 'component')).toBeUndefined();
+    expect(chain.nodes.find((n) => n.kind === 'violation')).toBeUndefined();
+  });
+
+  it('includes only available or current nodes in the chain', () => {
+    const chain = resolveEntityDetailContext({
+      current: 'vulnerability',
+      applicationPublicId: 'my-app',
+      applicationName: 'My App',
+      vulnId: 'CVE-2021-44228',
+      // Missing componentHash and policyViolationId
+    });
+    // Should include application (available) and vulnerability (current), but not component or violation
+    expect(chain.nodes.map((n) => n.kind)).toEqual(['application', 'vulnerability']);
+    expect(chain.nodes.find((n) => n.kind === 'application')?.isAvailable).toBe(true);
+    expect(chain.nodes.find((n) => n.kind === 'vulnerability')?.isCurrent).toBe(true);
   });
 
   it.each([

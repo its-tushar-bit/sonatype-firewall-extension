@@ -136,9 +136,8 @@ describe('ViolationDetail', () => {
       'href',
       '#/components/component-hash',
     );
-    // Vulnerability id is absent until the summary loads — stays a non-link placeholder.
-    expect(within(rail).getByText('Vulnerability')).toBeInTheDocument();
-    expect(within(rail).queryByRole('link', { name: 'Vulnerability' })).not.toBeInTheDocument();
+    // Vulnerability id is absent until the summary loads — omitted from the rail.
+    expect(within(rail).queryByText('Vulnerability')).not.toBeInTheDocument();
   });
 
   it('hides the vulnerability tab and redirects direct vulnerability navigation for non-security violations', async () => {

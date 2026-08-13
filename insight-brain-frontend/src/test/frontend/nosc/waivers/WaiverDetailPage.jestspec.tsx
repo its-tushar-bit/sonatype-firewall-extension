@@ -441,9 +441,9 @@ describe('WaiverDetailPage', () => {
     const rail = await screen.findByTestId('preview-waiver-detail-context-rail');
     expect(within(rail).getByText('CVE-2024-9999')).toHaveAttribute('aria-current', 'page');
     expect(within(rail).queryByRole('link', { name: 'CVE-2024-9999' })).not.toBeInTheDocument();
+    // Unavailable nodes without IDs are omitted from the rail (no empty breadcrumb segments).
     for (const placeholder of ['Application', 'Component', 'Violation'] as const) {
-      expect(within(rail).getByText(placeholder)).toBeInTheDocument();
-      expect(within(rail).queryByRole('link', { name: placeholder })).not.toBeInTheDocument();
+      expect(within(rail).queryByText(placeholder)).not.toBeInTheDocument();
     }
   });
 

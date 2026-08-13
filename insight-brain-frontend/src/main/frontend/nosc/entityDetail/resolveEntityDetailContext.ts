@@ -124,11 +124,29 @@ function nodeFor(kind: EntityKind, input: EntityDetailContextInput): EntityDetai
   };
 }
 
+/**
+ * Filters nodes to only show navigable or current context.
+ * Unavailable, non-current nodes (e.g., component with missing hash) are omitted
+ * to prevent rendering empty breadcrumb segments.
+ *
+ * When only a single node remains (e.g., just "Violation" with no app/component context),
+ * it is still rendered to provide basic user context. This is intentional behavior
+ * confirmed by tests in resolveEntityDetailContext.jestspec.ts.
+ *
+ * @param nodes - All potential breadcrumb nodes
+ * @returns Filtered nodes that should be rendered
+ */
+function filterNavigableNodes(nodes: EntityDetailContextNode[]): EntityDetailContextNode[] {
+  return nodes.filter((node) => node.isAvailable || node.isCurrent);
+}
+
 export function resolveEntityDetailContext(
   input: EntityDetailContextInput,
 ): EntityDetailContextChain {
+  const allNodes = CHAIN_ORDER.map((kind) => nodeFor(kind, input));
+  const navigableNodes = filterNavigableNodes(allNodes);
   return {
-    nodes: CHAIN_ORDER.map((kind) => nodeFor(kind, input)),
+    nodes: navigableNodes,
     stageId: input.stageId,
     scanId: input.scanId,
   };

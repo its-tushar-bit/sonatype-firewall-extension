@@ -103,17 +103,28 @@ public class MtiqSbomPolicyEditorPlaywrightTest
     Policy policy =
         tempEntity.newPolicy(application.getId(), "SBOM-only App Policy " + tempEntity.uuid(), THREAT_LEVEL);
 
+    // Full reload clears the module-level licenseInfoPromise cached from @Before's LIFECYCLE session;
+    // without it the sbomManager route gate sees the stale license and redirects to learnMore.
+    page.reload();
     playwrightRefreshOrOpen(PolicyEditorPage.sbomManagerUrl(application, policy));
 
     assertions.shouldBeInSbomManagerReadOnlyMode();
   }
 
-  /** Under SBOM-only license, an org-scoped Lifecycle policy URL redirects to the SBOM Manager upsell. */
+  /**
+   * Without an SBOM Manager product in the license (Lifecycle-only from @Before), navigating to an
+   * org-scoped policy URL in the SBOM Manager context redirects to the upsell page.
+   * The sbomManager route gate checks selectHasSbomManagerLicense (product-based); Lifecycle-only
+   * yields false, triggering the redirect.
+   */
   @Test
-  public void testSbomPolicyEditor_orgScopedUnderSbomOnly_redirectsToLearnMore() {
-    setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
-    Policy policy = tempEntity.newPolicy(rootOrg.getId(), "SBOM-only Org Policy " + tempEntity.uuid(), THREAT_LEVEL);
+  public void testSbomPolicyEditor_orgScopedWithoutSbomLicense_redirectsToLearnMore() {
+    // No setLicensedProducts call — use @Before's Lifecycle + Foundation license.
+    Policy policy = tempEntity.newPolicy(rootOrg.getId(), "Non-SBOM Org Policy " + tempEntity.uuid(), THREAT_LEVEL);
 
+    // Full reload clears the module-level licenseInfoPromise so the route gate fetches a fresh
+    // Lifecycle-only license, correctly making selectHasSbomManagerLicense = false.
+    page.reload();
     playwrightRefreshOrOpen(PolicyEditorPage.sbomManagerUrl(rootOrg, policy));
 
     assertThat(editor.playwrightPage()).hasURL(Pattern.compile("#/sbomManager/learnMore"));

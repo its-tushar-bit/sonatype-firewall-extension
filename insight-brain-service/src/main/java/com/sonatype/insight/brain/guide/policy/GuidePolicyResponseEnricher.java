@@ -5,8 +5,10 @@
  */
 package com.sonatype.insight.brain.guide.policy;
 
+import java.util.List;
 import java.util.Map;
 
+import com.sonatype.insight.brain.guide.api.dto.GuideAffectedAsset;
 import com.sonatype.insight.brain.guide.api.dto.GuideAffectedComponentVersion;
 import com.sonatype.insight.brain.guide.api.dto.GuideComponentDetailDocument;
 import com.sonatype.insight.brain.guide.api.dto.GuideComponentDocument;
@@ -97,8 +99,9 @@ final class GuidePolicyResponseEnricher
     if (compliance == null) {
       return v;
     }
+    List<GuideAffectedAsset> assets = v.affectedAssets();
     return new GuideAffectedComponentVersion(
         v.ecosystem(), v.namespace(), v.packageName(), v.version(), v.fullPackageName(),
-        reduce(compliance, detail));
+        reduce(compliance, detail), v.affectsPrimaryAsset(), assets);
   }
 }

@@ -188,4 +188,10 @@ public interface SearchApiClient
    *           return {@code null}; see {@link #getRecommendations} for rationale.
    */
   SecurityEventDetailDocument getSecurityEventById(String id);
+
+  /**
+   * Get affected components for a security event.
+   */
+  ApiSearchResponse<AffectedComponentVersion> getSecurityEventAffectedComponents(
+      GuideAffectedComponentVersionRequest request);
 }

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.guide.api.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.sonatype.guide.api.dto.AffectedComponentVersion;
 import com.sonatype.insight.brain.guide.api.dto.policy.GuidePolicyCompliance;
+import java.util.List;
 
 /**
  * DTO representing an affected component version for a vulnerability.
@@ -19,7 +20,9 @@ public record GuideAffectedComponentVersion(
     String packageName,
     String version,
     String fullPackageName,
-    GuidePolicyCompliance policyCompliance)
+    GuidePolicyCompliance policyCompliance,
+    Boolean affectsPrimaryAsset,
+    List<GuideAffectedAsset> affectedAssets)
     implements AffectedComponentVersion
 {
 }

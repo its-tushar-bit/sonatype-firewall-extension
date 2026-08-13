@@ -230,7 +230,7 @@ public class GuidePolicyComplianceJsonTest
   public void affectedComponent_nullCompliance_omitsField() throws Exception {
     GuideAffectedComponentVersion v =
         new GuideAffectedComponentVersion(
-            "maven", "org.example", "lib", "1.0", "lib", null);
+            "maven", "org.example", "lib", "1.0", "lib", null, null, null);
 
     JsonNode json = mapper.valueToTree(v);
 

@@ -8,9 +8,14 @@ package com.sonatype.insight.brain.guide.api.resource;
 import java.util.List;
 import java.util.Map;
 
+import com.sonatype.guide.api.dto.AffectedComponentVersion;
 import com.sonatype.guide.api.dto.ApiSearchResponse;
 import com.sonatype.guide.api.dto.SecurityEventDetailDocument;
 import com.sonatype.guide.api.dto.SecurityEventDocument;
+import com.sonatype.insight.brain.guide.api.dto.GuideAffectedAsset;
+import com.sonatype.insight.brain.guide.api.dto.GuideAffectedComponentVersion;
+import com.sonatype.insight.brain.guide.api.dto.GuideAffectedComponentVersionRequest;
+import com.sonatype.insight.brain.guide.api.dto.GuideAffectedComponentVersionSearchResponse;
 import com.sonatype.insight.brain.guide.api.dto.GuideSecurityEventDetailDocument;
 import com.sonatype.insight.brain.guide.api.dto.GuideSecurityEventDocument;
 import com.sonatype.insight.brain.guide.api.dto.GuideSecurityEventSearchRequest;
@@ -106,6 +111,54 @@ public class GuideSecurityEventsResourceTest
 
     assertThat(result).isSameAs(upstream);
     verify(searchApiClient).getSecurityEventById("SEC-2026-001");
+  }
+
+  @Test
+  public void getSecurityEventAffectedComponents_missingId_returns400() {
+    assertThatThrownBy(() -> underTest.getSecurityEventAffectedComponents(
+        null, null, null, null, null, null))
+            .isInstanceOf(GuideApiException.class)
+            .hasMessageContaining("id is required")
+            .extracting(e -> ((GuideApiException) e).getResponse().getStatus())
+            .isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+    verifyNoInteractions(searchApiClient);
+  }
+
+  @Test
+  public void getSecurityEventAffectedComponents_blankId_returns400() {
+    assertThatThrownBy(() -> underTest.getSecurityEventAffectedComponents(
+        "  ", null, null, null, null, null))
+            .isInstanceOf(GuideApiException.class)
+            .hasMessageContaining("id is required")
+            .extracting(e -> ((GuideApiException) e).getResponse().getStatus())
+            .isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+    verifyNoInteractions(searchApiClient);
+  }
+
+  @Test
+  public void getSecurityEventAffectedComponents_delegatesToClientWithMappedRequest() throws Exception {
+    GuideAffectedComponentVersion hit = new GuideAffectedComponentVersion(
+        "npm", null, "left-pad", "1.3.0", "left-pad", null,
+        Boolean.TRUE, List.of(new GuideAffectedAsset("tgz", null, Boolean.TRUE)));
+    GuideAffectedComponentVersionSearchResponse upstream = new GuideAffectedComponentVersionSearchResponse(
+        List.of(hit), 1L, 0, 25, Map.of());
+    when(searchApiClient.getSecurityEventAffectedComponents(any(GuideAffectedComponentVersionRequest.class)))
+        .thenReturn(upstream);
+
+    ApiSearchResponse<AffectedComponentVersion> result = underTest.getSecurityEventAffectedComponents(
+        "SEC-2026-001", "left-pad", 10, 25, "packageName", "asc");
+
+    assertThat(result.hits()).containsExactly(hit);
+    ArgumentCaptor<GuideAffectedComponentVersionRequest> captor =
+        ArgumentCaptor.forClass(GuideAffectedComponentVersionRequest.class);
+    verify(searchApiClient).getSecurityEventAffectedComponents(captor.capture());
+    GuideAffectedComponentVersionRequest request = captor.getValue();
+    assertThat(request.id()).isEqualTo("SEC-2026-001");
+    assertThat(request.query()).isEqualTo("left-pad");
+    assertThat(request.offset()).isEqualTo(10);
+    assertThat(request.limit()).isEqualTo(25);
+    assertThat(request.sortField()).isEqualTo("packageName");
+    assertThat(request.sortOrder()).isEqualTo("asc");
   }
 
   private static GuideSecurityEventDocument minimalEvent(String eventId) {

@@ -791,6 +791,30 @@ public class SearchApiClientImpl
     }
   }
 
+  @GuideUsageEvent(operationType = GuideOperationType.SECURITY_EVENT_LOOKUP)
+  @Authorize(permission = Permission.READ)
+  @Override
+  public ApiSearchResponse<AffectedComponentVersion> getSecurityEventAffectedComponents(
+      GuideAffectedComponentVersionRequest request)
+  {
+    try {
+      return withLicenseRefreshOn402("rest/search/security-events/{id}/affected-components",
+          () -> hdsClient.getWithMultimap(
+              GuideAffectedComponentVersionSearchResponse.class,
+              "rest/search/security-events/" + encodePathSegment(request.id()) + "/affected-components",
+              buildAffectedComponentParams(request)));
+    }
+    catch (NotFoundException e) {
+      int limit = request.limit() != null ? request.limit() : 20;
+      int offset = request.offset() != null ? request.offset() : 0;
+      return new GuideAffectedComponentVersionSearchResponse(List.of(), 0, offset, limit, null);
+    }
+    catch (BadGatewayException | InternalServerErrorException e) {
+      throw new GuideApiException(Response.Status.BAD_GATEWAY,
+          "Failed to retrieve security event affected components from data service");
+    }
+  }
+
   /**
    * Wraps an HDS call so that an HTTP 402 from upstream triggers a single license refresh
    * (single-flight + 60s debounce, see {@link GuideLicenseRevocationHandler}) before the

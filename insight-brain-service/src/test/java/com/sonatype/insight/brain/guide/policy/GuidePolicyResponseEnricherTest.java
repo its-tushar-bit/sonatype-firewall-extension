@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.sonatype.insight.brain.guide.api.dto.GuideAffectedAsset;
 import com.sonatype.insight.brain.guide.api.dto.GuideAffectedComponentVersion;
 import com.sonatype.insight.brain.guide.api.dto.GuideComponentDetailDocument;
 import com.sonatype.insight.brain.guide.api.dto.GuideComponentDocument;
@@ -82,12 +83,46 @@ public class GuidePolicyResponseEnricherTest
   @Test
   public void enrichAffected_compliantOnly_attachesSlimCompliance() {
     GuideAffectedComponentVersion v = new GuideAffectedComponentVersion(
-        "npm", null, "@types/node", "25.9.2", "@types/node", null);
+        "npm", null, "@types/node", "25.9.2", "@types/node", null, null, null);
     Map<String, GuidePolicyCompliance> map = Map.of("pkg:npm/%40types%2Fnode@25.9.2", COMPLIANT);
 
     GuideAffectedComponentVersion enriched = GuidePolicyResponseEnricher.enrichAffected(
         v, map, GuidePolicyResponseEnricher.PolicyDetail.COMPLIANT_ONLY);
 
+    assertSlim(enriched.policyCompliance(), true);
+    assertThat(enriched.affectsPrimaryAsset()).isNull();
+    assertThat(enriched.affectedAssets()).isNull();
+  }
+
+  @Test
+  public void enrichAffected_preservesEmptyAffectedAssetsList() {
+    GuideAffectedComponentVersion v = new GuideAffectedComponentVersion(
+        "maven", "org.example", "lib", "1.0", "org.example:lib", null,
+        Boolean.FALSE, List.of());
+    Map<String, GuidePolicyCompliance> map = Map.of(
+        "pkg:maven/org.example/lib@1.0?type=jar", COMPLIANT);
+
+    GuideAffectedComponentVersion enriched = GuidePolicyResponseEnricher.enrichAffected(
+        v, map, GuidePolicyResponseEnricher.PolicyDetail.COMPLIANT_ONLY);
+
+    assertThat(enriched.affectsPrimaryAsset()).isFalse();
+    assertThat(enriched.affectedAssets()).isEmpty();
+  }
+
+  @Test
+  public void enrichAffected_preservesAffectsPrimaryAssetAndAffectedAssets() {
+    GuideAffectedAsset asset = new GuideAffectedAsset("jar", "sources", Boolean.FALSE);
+    GuideAffectedComponentVersion v = new GuideAffectedComponentVersion(
+        "maven", "org.example", "lib", "1.0", "org.example:lib", null,
+        Boolean.TRUE, List.of(asset));
+    Map<String, GuidePolicyCompliance> map = Map.of(
+        "pkg:maven/org.example/lib@1.0?type=jar", COMPLIANT);
+
+    GuideAffectedComponentVersion enriched = GuidePolicyResponseEnricher.enrichAffected(
+        v, map, GuidePolicyResponseEnricher.PolicyDetail.COMPLIANT_ONLY);
+
+    assertThat(enriched.affectsPrimaryAsset()).isTrue();
+    assertThat(enriched.affectedAssets()).containsExactly(asset);
     assertSlim(enriched.policyCompliance(), true);
   }
 

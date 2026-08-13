@@ -62,7 +62,7 @@ public class GuideVulnerabilitiesResourceTest
   @Test
   public void getVulnerabilityAffectedComponents_attachesPolicyComplianceToHits() throws Exception {
     GuideAffectedComponentVersion v = new GuideAffectedComponentVersion(
-        "npm", null, "@types/node", "25.9.2", "@types/node", null);
+        "npm", null, "@types/node", "25.9.2", "@types/node", null, null, null);
     GuideAffectedComponentVersionSearchResponse upstream = new GuideAffectedComponentVersionSearchResponse(
         List.of(v), 1L, 0, 20, Map.of());
     when(searchApiClient.getVulnerabilityAffectedComponents(any())).thenReturn(upstream);
@@ -81,7 +81,7 @@ public class GuideVulnerabilitiesResourceTest
   @Test
   public void getVulnerabilityAffectedComponents_softFailsWhenEvaluatorReturnsEmpty() throws Exception {
     GuideAffectedComponentVersion v = new GuideAffectedComponentVersion(
-        "npm", null, "@types/node", "25.9.2", "@types/node", null);
+        "npm", null, "@types/node", "25.9.2", "@types/node", null, null, null);
     GuideAffectedComponentVersionSearchResponse upstream = new GuideAffectedComponentVersionSearchResponse(
         List.of(v), 1L, 0, 20, Map.of());
     when(searchApiClient.getVulnerabilityAffectedComponents(any())).thenReturn(upstream);

@@ -177,7 +177,7 @@ public class GuidePurlAssemblerTest
   @Test
   public void purlFor_affectedComponentVersion_usesEcosystemAndPackageName() {
     GuideAffectedComponentVersion v = new GuideAffectedComponentVersion(
-        "npm", null, "@types/node", "25.9.2", "@types/node", null);
+        "npm", null, "@types/node", "25.9.2", "@types/node", null, null, null);
 
     String purl = GuidePurlAssembler.purlFor(v);
 

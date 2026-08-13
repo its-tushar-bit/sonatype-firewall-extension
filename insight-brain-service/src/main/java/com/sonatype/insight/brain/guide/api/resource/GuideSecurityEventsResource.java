@@ -9,9 +9,11 @@ import java.io.IOException;
 import java.util.List;
 
 import com.sonatype.guide.api.controller.GuideSecurityEventsApi;
+import com.sonatype.guide.api.dto.AffectedComponentVersion;
 import com.sonatype.guide.api.dto.ApiSearchResponse;
 import com.sonatype.guide.api.dto.SecurityEventDetailDocument;
 import com.sonatype.guide.api.dto.SecurityEventDocument;
+import com.sonatype.insight.brain.guide.api.dto.GuideAffectedComponentVersionRequest;
 import com.sonatype.insight.brain.guide.api.dto.GuideSecurityEventSearchRequest;
 import com.sonatype.insight.brain.guide.core.SearchApiClient;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
@@ -85,5 +87,21 @@ public class GuideSecurityEventsResource
   {
     GuideValidation.requireNonBlankId(eventId, "eventId");
     return searchApiClient.getSecurityEventById(eventId);
+  }
+
+  @GET
+  @Path("/{id}/affected-components")
+  @Override
+  public ApiSearchResponse<AffectedComponentVersion> getSecurityEventAffectedComponents(
+      @PathParam("id") String id,
+      @QueryParam("query") String query,
+      @QueryParam("offset") Integer offset,
+      @QueryParam("limit") Integer limit,
+      @QueryParam("sortField") String sortField,
+      @QueryParam("sortOrder") String sortOrder) throws IOException
+  {
+    GuideValidation.requireNonBlankId(id, "id");
+    return searchApiClient.getSecurityEventAffectedComponents(
+        new GuideAffectedComponentVersionRequest(id, query, offset, limit, sortField, sortOrder));
   }
 }

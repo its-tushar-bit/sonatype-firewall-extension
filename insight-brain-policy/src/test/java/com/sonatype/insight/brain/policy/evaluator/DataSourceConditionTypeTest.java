@@ -23,7 +23,7 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.model.component.ComponentDataSource.IDENTITY;
 import static com.sonatype.insight.brain.model.component.ComponentDataSource.LICENSE;

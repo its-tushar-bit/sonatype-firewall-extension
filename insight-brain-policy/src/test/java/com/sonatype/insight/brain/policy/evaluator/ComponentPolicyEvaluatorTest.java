@@ -57,13 +57,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.joda.time.DateTime;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 
 public class ComponentPolicyEvaluatorTest
     extends AbstractPolicyEvaluationTest
 {
   private PolicyWaiverDAO policyWaiverDAO;
 
+  @BeforeEach
   @Override
   public void setUp() throws Exception {
     super.setUp();

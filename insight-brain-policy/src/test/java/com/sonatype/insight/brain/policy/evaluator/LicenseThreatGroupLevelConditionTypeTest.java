@@ -32,8 +32,8 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class LicenseThreatGroupLevelConditionTypeTest
     extends AbstractPolicyEvaluationTest
@@ -53,7 +53,7 @@ public class LicenseThreatGroupLevelConditionTypeTest
   private LicenseThreatGroup licenseThreatGroup5;
 
   @Override
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     super.setUp();
     licenseThreatGroupDAO = daoFactory.createLicenseThreatGroupDAO();
@@ -72,9 +72,9 @@ public class LicenseThreatGroupLevelConditionTypeTest
         daoFactory.createVulnerabilityCustomCvssSeverityDAO(),
         daoFactory.createVulnerabilityGroupDAO(),
         daoFactory.createVulnerabilityGroupVulnerabilityDAO());
+    before();
   }
 
-  @Before
   public void before() {
     org = tempEntity.newOrganization("LicenseThreatGroupLevelConditionTypeTest");
     app = tempEntity.newApplication("test", "LicenseThreatGroupLevelConditionTypeTest_AppId", org.getId());

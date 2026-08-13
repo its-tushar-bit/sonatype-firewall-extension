@@ -129,6 +129,20 @@ public class DatabaseRule
     super.before();
   }
 
+  /**
+   * Provisions (or reuses) the database fixture outside the JUnit 4 rule lifecycle, for JUnit 5 (Jupiter) tests
+   * where {@code @Rule} does not fire. Mirrors {@code DatabaseContainerRule#ensureInitializedForSpringContext} for
+   * the plain {@link DatabaseRule} used by module-local component/evaluation harness extensions.
+   */
+  public void ensureInitializedForSpringContext() {
+    try {
+      before();
+    }
+    catch (Throwable t) {
+      throw new IllegalStateException("Failed to initialize DatabaseRule for the JUnit 5 test context", t);
+    }
+  }
+
   @Override
   protected boolean getLastTestHadCustomSettings(final Annotation annotation) {
     // Track non-default annotation settings so the next test re-initializes the fixture.

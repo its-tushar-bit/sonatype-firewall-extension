@@ -17,7 +17,7 @@ import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
 import com.sonatype.insight.brain.model.policy.facts.TriggerSecurityVulnerabilityWithKev;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.vulnerability.KevStatus;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 

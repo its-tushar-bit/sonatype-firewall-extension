@@ -18,8 +18,9 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.test.LogOutput;
 
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_MAVEN;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_PYPI;
@@ -41,8 +42,18 @@ public class PolicyWaiverMatcherWrapperTest
 
   private final String associatedPackagedUrl = "pkg:maven/group/artifact@2.0?classifier=c1&type=jar";
 
-  @Rule
-  public LogOutput logOutput = new LogOutput(1, PolicyWaiverMatcherWrapperTest.class);
+  private final TestLogOutput logOutput = new TestLogOutput(1, PolicyWaiverMatcherWrapperTest.class);
+
+  @BeforeEach
+  public void startLogCapture() {
+    logOutput.before();
+    logOutput.clear();
+  }
+
+  @AfterEach
+  public void stopLogCapture() {
+    logOutput.tearDown();
+  }
 
   @Test
   public void testMatcherWrapper_MatchesPolicyId_null() {
@@ -421,5 +432,19 @@ public class PolicyWaiverMatcherWrapperTest
       constraintFacts.add(constraintFact);
     }
     return constraintFacts;
+  }
+
+  // Self-contained JUnit 5 wrapper for the JUnit 4 LogOutput @Rule: exposes the protected ExternalResource
+  // after() hook so log capture is torn down from @AfterEach.
+  private static final class TestLogOutput
+      extends LogOutput
+  {
+    TestLogOutput(int ancestors, Class<?>... types) {
+      super(ancestors, types);
+    }
+
+    void tearDown() {
+      after();
+    }
   }
 }

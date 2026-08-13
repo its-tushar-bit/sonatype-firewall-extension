@@ -28,9 +28,9 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class LicenseConditionTypeTest
     extends AbstractPolicyEvaluationTest
@@ -42,14 +42,14 @@ public class LicenseConditionTypeTest
   private LicenseDataUpdater savedLicenseDataUpdater;
 
   @Override
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     super.setUp();
     licenseDAO = daoFactory.createLicenseDAO();
     multiLicenseDAO = daoFactory.createMultiLicenseDAO();
+    before();
   }
 
-  @Before
   public void before() {
     savedLicenseDataUpdater = LicenseDataUpdater.getUpdater();
     LicenseDataUpdater.setUpdater(
@@ -61,7 +61,7 @@ public class LicenseConditionTypeTest
         });
   }
 
-  @After
+  @AfterEach
   public void after() {
     LicenseDataUpdater.setUpdater(savedLicenseDataUpdater);
   }

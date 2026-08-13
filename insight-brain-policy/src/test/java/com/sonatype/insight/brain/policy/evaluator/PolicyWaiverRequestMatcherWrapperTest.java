@@ -17,7 +17,7 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_MAVEN;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_PYPI;

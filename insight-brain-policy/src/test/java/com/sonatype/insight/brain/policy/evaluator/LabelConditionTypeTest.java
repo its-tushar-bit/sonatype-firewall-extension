@@ -27,8 +27,8 @@ import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
 import com.sonatype.insight.brain.model.policy.facts.TriggerLabel;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -42,7 +42,7 @@ public class LabelConditionTypeTest
 
   private static String applicationId;
 
-  @Before
+  @BeforeEach
   public void createApplication() {
     Organization organization = tempEntity.newOrganization("test-organization");
     organizationId = organization.getId();

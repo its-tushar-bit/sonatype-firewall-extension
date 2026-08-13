@@ -39,6 +39,7 @@ import com.sonatype.insight.brain.validation.SourceControlSshValidator;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.lqa.LqaFormat;
 import com.sonatype.insight.test.SpringInjectedTest;
+import com.sonatype.insight.test.SpringInjectedTestExtension;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import java.util.ArrayList;
@@ -51,10 +52,14 @@ import java.util.Objects;
 import java.util.Set;
 import org.junit.Before;
 import org.junit.Rule;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
 
+@ExtendWith({SpringExtension.class, SpringInjectedTestExtension.class, PolicyEvaluationHarnessExtension.class})
 @ContextConfiguration(classes = AbstractPolicyEvaluationTest.PolicyEvaluationTestConfiguration.class)
 public abstract class AbstractPolicyEvaluationTest
     extends SpringInjectedTest
@@ -72,6 +77,7 @@ public abstract class AbstractPolicyEvaluationTest
   protected LabelDAO labelDAO;
 
   @Before
+  @BeforeEach
   public void setUp() throws Exception {
     daoFactory = new TestDAOFactory(databaseRule);
 

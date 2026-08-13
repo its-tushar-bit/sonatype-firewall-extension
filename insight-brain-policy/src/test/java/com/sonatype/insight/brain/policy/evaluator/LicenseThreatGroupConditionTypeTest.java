@@ -36,8 +36,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class LicenseThreatGroupConditionTypeTest
     extends AbstractPolicyEvaluationTest
@@ -57,7 +57,7 @@ public class LicenseThreatGroupConditionTypeTest
   private ComponentLoader componentLoader;
 
   @Override
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     super.setUp();
     licenseThreatGroupDAO = daoFactory.createLicenseThreatGroupDAO();
@@ -76,9 +76,9 @@ public class LicenseThreatGroupConditionTypeTest
         daoFactory.createVulnerabilityCustomCvssSeverityDAO(),
         daoFactory.createVulnerabilityGroupDAO(),
         daoFactory.createVulnerabilityGroupVulnerabilityDAO());
+    before();
   }
 
-  @Before
   public void before() {
     org = tempEntity.newOrganization("LicenseThreatGroupConditionTypeTest");
     app = tempEntity.newApplication("test", "LicenseThreatGroupConditionTypeTest_AppId", org.getId());

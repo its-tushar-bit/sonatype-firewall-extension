@@ -57,13 +57,8 @@ function formatFirstSeen(ms: number): string {
   return `${absolute} · ${relative}`;
 }
 
-/** Component name with an appended ` : version` when a version is known. */
 function componentDisplay(row: ViolationRow): string {
-  // `||` (not `??`) so an empty-string componentVersion also falls back to the coordinates version,
-  // and an empty-string componentName falls back to the placeholder.
-  const version = row.componentVersion || row.componentIdentifier?.coordinates?.version;
-  const name = row.componentName || '(unknown component)';
-  return version ? `${name} : ${version}` : name;
+  return row.componentName || '(unknown component)';
 }
 
 function violationCardAriaLabel(

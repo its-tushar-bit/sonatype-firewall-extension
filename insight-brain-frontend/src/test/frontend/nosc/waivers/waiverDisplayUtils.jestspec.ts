@@ -158,15 +158,107 @@ describe('waiverDisplayUtils', () => {
       coordinates: { artifactId: 'log4j-core', version: '2.14.1' },
     };
 
-    it('joins displayName.parts when the payload uses the Classic DTO shape', () => {
+    it('concatenates displayName parts preserving format-specific separators', () => {
       expect(
         formatWaiverComponentLabel({
           componentIdentifier: mavenCi,
           displayName: {
-            parts: [{ value: 'org.apache.logging.log4j' }, { value: 'log4j-core' }, { value: '2.14.1' }],
+            parts: [{ value: 'org.apache.logging.log4j', field: 'groupId' }, { value: ' : ' }, { value: 'log4j-core', field: 'artifactId' }, { value: ' : ' }, { value: '2.14.1', field: 'version' }],
           },
         } as any),
-      ).toBe('org.apache.logging.log4j:log4j-core:2.14.1');
+      ).toBe('org.apache.logging.log4j : log4j-core : 2.14.1');
+    });
+
+    it('respects NuGet space separator format', () => {
+      const nugetCi = {
+        format: 'nuget',
+        coordinates: { packageId: 'Newtonsoft.Json', version: '12.0.3' },
+      };
+      expect(
+        formatWaiverComponentLabel({
+          componentIdentifier: nugetCi,
+          displayName: {
+            parts: [{ value: 'Newtonsoft.Json', field: 'packageId' }, { value: ' ' }, { value: '12.0.3', field: 'version' }],
+          },
+        } as any),
+      ).toBe('Newtonsoft.Json 12.0.3');
+    });
+
+    it('respects RPM dash/dot separator format', () => {
+      const rpmCi = {
+        format: 'rpm',
+        coordinates: { name: 'bash', version: '4.2.46', release: '34.el7', arch: 'x86_64' },
+      };
+      expect(
+        formatWaiverComponentLabel({
+          componentIdentifier: rpmCi,
+          displayName: {
+            parts: [
+              { value: 'bash', field: 'name' },
+              { value: '-' },
+              { value: '4.2.46', field: 'version' },
+              { value: '.' },
+              { value: '34.el7', field: 'release' },
+              { value: '.' },
+              { value: 'x86_64', field: 'arch' },
+            ],
+          },
+        } as any),
+      ).toBe('bash-4.2.46.34.el7.x86_64');
+    });
+
+    it('preserves comma-space separator for multi-filename components', () => {
+      // ComponentDisplayNameUtil.java:81 joins multiple filenames with ", "
+      const filesCi = { format: 'generic' };
+      expect(
+        formatWaiverComponentLabel({
+          componentIdentifier: filesCi,
+          displayName: {
+            parts: [
+              { field: 'filename', value: 'foo.jar' },
+              { value: ', ' },
+              { field: 'filename', value: 'bar.ear' },
+              { value: ', ' },
+              { field: 'filename', value: 'baz.war' },
+            ],
+          },
+        } as any),
+      ).toBe('foo.jar, bar.ear, baz.war');
+    });
+
+    it('preserves hash-only component prefix (field-less literal part)', () => {
+      // ComponentDisplayNameUtil.java:88-89: hash-only components get a field-less prefix part
+      const hashCi = { format: 'generic' };
+      expect(
+        formatWaiverComponentLabel({
+          componentIdentifier: hashCi,
+          displayName: {
+            parts: [
+              { value: '(Anonymized Path) SHA1: ' }, // field-less prefix, not a separator
+              { field: 'hash', value: 'abc123def456' },
+            ],
+          },
+        } as any),
+      ).toBe('(Anonymized Path) SHA1: abc123def456');
+    });
+
+    it('handles Classic/Firewall shape with field-less parts', () => {
+      // Per comment at waiverDisplayUtils.ts:131, Classic/Firewall send { parts: [{ value }] }
+      // without field properties. Concatenating preserves all values.
+      expect(
+        formatWaiverComponentLabel({
+          componentIdentifier: mavenCi,
+          displayName: {
+            parts: [
+              { value: 'org.apache.logging.log4j' },
+              { value: ' : ' },
+              { value: 'log4j-core' },
+              { value: ' : ' },
+              { value: '2.14.1' },
+            ],
+          },
+        } as any),
+      ).toBe('org.apache.logging.log4j : log4j-core : 2.14.1');
     });
 
     it('prefers a flat displayName string over coordinates', () => {

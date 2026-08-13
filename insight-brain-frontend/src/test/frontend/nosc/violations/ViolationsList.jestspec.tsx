@@ -57,8 +57,8 @@ describe('ViolationsList', () => {
 
     const cards = await screen.findAllByTestId('violation-card');
     expect(cards).toHaveLength(MOCK_VIOLATIONS_LIST_RESPONSE.violations.length);
-    expect(screen.getByText('log4j-core : 2.14.0')).toBeInTheDocument();
-    expect(screen.getByText('lodash : 4.17.15')).toBeInTheDocument();
+    expect(screen.getByText('org.apache.logging.log4j : log4j-core : 2.14.0')).toBeInTheDocument();
+    expect(screen.getByText('lodash 4.17.15')).toBeInTheDocument();
     expect(screen.getAllByTestId('violation-threat-badge').length).toBe(cards.length);
   });
 
@@ -68,7 +68,7 @@ describe('ViolationsList', () => {
 
     await screen.findByTestId('violation-card-grid');
     const link = screen.getByRole('link', {
-      name: /open violation for Security-Critical on log4j-core : 2\.14\.0/i,
+      name: /open violation for Security-Critical on org\.apache\.logging\.log4j : log4j-core : 2\.14\.0/i,
     });
     expect(link).toHaveAttribute('href', '#/violations/pv-log4j-critical/overview');
   });
@@ -80,7 +80,7 @@ describe('ViolationsList', () => {
     await screen.findByTestId('violation-card-grid');
     expect(
       screen.getByRole('link', {
-        name: /waived violation for Quality-Moderate on busybox : 1\.33 in cherry - platform,.*auto-waived/i,
+        name: /waived violation for Quality-Moderate on busybox 1\.33 in cherry - platform,.*auto-waived/i,
       }),
     ).toBeInTheDocument();
   });

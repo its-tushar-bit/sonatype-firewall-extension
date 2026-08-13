@@ -154,11 +154,14 @@ export function formatWaiverComponentLabel(
   const fmt = ci.format ?? '';
   if (typeof w.displayName === 'string' && w.displayName) return w.displayName;
   // Classic / Firewall often send `{ parts: [{ value }] }` instead of a flat string.
+  // ComponentDisplayNameDTO contract: Backend builds display strings by interleaving
+  // format-specific separator parts (field=null) between field parts.
+  // The canonical renderer is ComponentDisplayName.toString(), which concatenates every part value.
   if (w.displayName && typeof w.displayName === 'object') {
     const fromParts = (w.displayName.parts ?? [])
       .map((part) => part.value)
       .filter((value): value is string => Boolean(value))
-      .join(':');
+      .join('');
     if (fromParts) return fromParts;
   }
   if (c.artifactId && c.version) return `${c.artifactId}:${c.version}`;

@@ -29,7 +29,7 @@ const MOCK_LEGAL_LIST_RESPONSE = {
       applicationId: 'app-1',
       applicationPublicId: 'apple-java1',
       applicationName: 'Apple - Java',
-      componentName: 'com.example:lib',
+      componentName: 'com.example : lib : 1.0',
       componentVersion: '1.0',
       componentHash: 'abc123hash',
       reportId: 'scan-report-1',
@@ -92,7 +92,7 @@ describe('LegalList (CLM-43207)', () => {
 
     const card = await screen.findByTestId('violation-card');
     expect(within(card).getByText('Copyleft')).toBeInTheDocument();
-    expect(within(card).getByText('com.example:lib : 1.0')).toBeInTheDocument();
+    expect(within(card).getByText('com.example : lib : 1.0')).toBeInTheDocument();
     expect(within(card).getByText('Java-team')).toBeInTheDocument();
     expect(within(card).getByText('Apple - Java')).toBeInTheDocument();
     expect(within(card).getByTestId('violation-threat-badge')).toHaveTextContent('8');

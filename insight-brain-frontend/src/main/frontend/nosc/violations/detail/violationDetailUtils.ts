@@ -111,9 +111,13 @@ export function componentDisplayNameLabel(
   }
 
   const parts = (displayName as ComponentDisplayNameDTO | null | undefined)?.parts ?? [];
+  // ComponentDisplayNameDTO contract: Backend builds display strings by interleaving
+  // format-specific separator parts (field=null) between field parts.
+  // The canonical renderer is ComponentDisplayName.toString(), which concatenates every part value.
+  // Mirroring that approach fixes all formats (Maven, NuGet, Conda, RPM, etc.).
   const label = parts
     .map((part) => part.value)
     .filter(Boolean)
-    .join(':');
+    .join('');
   return label || fallback || '';
 }

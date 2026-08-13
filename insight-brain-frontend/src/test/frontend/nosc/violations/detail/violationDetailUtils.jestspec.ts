@@ -59,7 +59,76 @@ describe('violationDetailUtils', () => {
     expect(classicVulnerabilityHref('CVE-2026-0001')).toMatch(/\/assets\/index\.html#/);
   });
 
-  it('joins multi-part display names with colons', () => {
+  it('concatenates display name parts (backend includes format-specific separators)', () => {
+    // Maven format: backend interleaves " : " separator parts between field parts.
+    // Concatenating preserves the backend's format-specific separators.
+    expect(
+      componentDisplayNameLabel({
+        parts: [
+          { field: 'Group', value: 'axis' },
+          { value: ' : ' },
+          { field: 'Artifact', value: 'axis' },
+          { value: ' : ' },
+          { field: 'Version', value: '1.2' },
+        ],
+      }),
+    ).toBe('axis : axis : 1.2');
+  });
+
+  it('respects format-specific separators for NuGet (space separator)', () => {
+    // NuGet format: backend uses " " as separator, not " : ".
+    // Concatenating preserves the space separator correctly.
+    expect(
+      componentDisplayNameLabel({
+        parts: [
+          { field: 'packageId', value: 'Newtonsoft.Json' },
+          { value: ' ' },
+          { field: 'version', value: '12.0.3' },
+        ],
+      }),
+    ).toBe('Newtonsoft.Json 12.0.3');
+  });
+
+  it('respects format-specific separators for Conda (slash separator)', () => {
+    // Conda format: backend uses "/" and "." as separators.
+    expect(
+      componentDisplayNameLabel({
+        parts: [
+          { field: 'channel', value: 'conda-forge' },
+          { value: '/' },
+          { field: 'subdir', value: 'linux-64' },
+          { value: '/' },
+          { field: 'name', value: 'numpy' },
+          { value: '-' },
+          { field: 'version', value: '1.21.0' },
+          { value: '.' },
+          { field: 'build', value: 'py310h20f0308_0' },
+          { value: '.tar.bz2' },
+        ],
+      }),
+    ).toBe('conda-forge/linux-64/numpy-1.21.0.py310h20f0308_0.tar.bz2');
+  });
+
+  it('respects format-specific separators for RPM (dash and dot separators)', () => {
+    // RPM format: backend uses "-" and "." as separators.
+    expect(
+      componentDisplayNameLabel({
+        parts: [
+          { field: 'name', value: 'bash' },
+          { value: '-' },
+          { field: 'version', value: '4.2.46' },
+          { value: '.' },
+          { field: 'release', value: '34.el7' },
+          { value: '.' },
+          { field: 'arch', value: 'x86_64' },
+        ],
+      }),
+    ).toBe('bash-4.2.46.34.el7.x86_64');
+  });
+
+  it('handles display name parts without interleaved separators', () => {
+    // Some test fixtures may use simplified parts without interleaved separators.
+    // Concatenating still works but the output depends on what parts are present.
     expect(
       componentDisplayNameLabel({
         parts: [
@@ -68,7 +137,21 @@ describe('violationDetailUtils', () => {
           { field: 'version', value: '1.0.0' },
         ],
       }),
-    ).toBe('com.example:demo-lib:1.0.0');
+    ).toBe('com.exampledemo-lib1.0.0');
+  });
+
+  it('filters out empty parts before concatenating', () => {
+    // Empty string parts (value: '') are filtered out via filter(Boolean).
+    // This prevents edge cases where empty parts would produce extra separators.
+    expect(
+      componentDisplayNameLabel({
+        parts: [
+          { field: 'namespace', value: 'axis' },
+          { field: 'name', value: '' },
+          { field: 'version', value: '1.2' },
+        ],
+      }),
+    ).toBe('axis1.2');
   });
 
   it('picks the most recent scan id from stage data', () => {

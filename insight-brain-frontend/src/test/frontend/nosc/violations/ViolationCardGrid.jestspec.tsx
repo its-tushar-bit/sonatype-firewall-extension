@@ -21,7 +21,7 @@ const OPEN_CRITICAL: ViolationRow = {
   policyName: 'Security - Critical',
   organizationName: 'Java-team',
   applicationName: 'Apple - Java',
-  componentName: 'log4j-core',
+  componentName: 'org.apache.logging.log4j : log4j-core : 2.14.0',
   componentVersion: '2.14.0',
   stage: 'Build',
   state: 'OPEN',
@@ -37,7 +37,7 @@ const WAIVED_AUTO: ViolationRow = {
   policyName: 'Quality - Standards',
   organizationName: 'Platform',
   applicationName: 'Cherry - Platform',
-  componentName: 'busybox',
+  componentName: 'busybox 1.33',
   componentVersion: '1.33',
   stage: 'Build',
   state: 'WAIVED',
@@ -50,22 +50,9 @@ const WAIVED_MANUAL: ViolationRow = {
   severity: 'severe',
   threatCategory: 'security',
   policyName: 'Security - High',
-  componentName: 'jackson-databind',
+  componentName: 'com.fasterxml.jackson.core : jackson-databind : 2.9.9',
   componentVersion: '2.9.9',
   state: 'WAIVED',
-  waivedWithAutoWaiver: false,
-};
-
-// No top-level componentVersion — exercises the componentDisplay fallback to identifier coordinates.
-const OPEN_COORDS_ONLY: ViolationRow = {
-  policyViolationId: 'pv-4',
-  threatLevel: 7,
-  severity: 'severe',
-  threatCategory: 'security',
-  policyName: 'Security - High',
-  componentName: 'guava',
-  componentIdentifier: { format: 'maven', coordinates: { version: '30.1-jre' } },
-  state: 'OPEN',
   waivedWithAutoWaiver: false,
 };
 
@@ -86,15 +73,25 @@ describe('ViolationCardGrid (CLM-42259)', () => {
     expect(screen.getAllByTestId('violation-card')).toHaveLength(2);
   });
 
-  it('shows component name with version, type+severity policy, org, app, and stage', () => {
+  it('shows component name, type+severity policy, org, app, and stage', () => {
     renderGrid([OPEN_CRITICAL]);
     const card = screen.getByTestId('violation-card');
-    expect(within(card).getByText('log4j-core : 2.14.0')).toBeInTheDocument();
+    expect(within(card).getByText('org.apache.logging.log4j : log4j-core : 2.14.0')).toBeInTheDocument();
     expect(within(card).getByTestId('violation-card-policy')).toHaveTextContent('Security-Critical');
     expect(within(card).queryByText('Security - Critical')).not.toBeInTheDocument();
     expect(within(card).getByText('Java-team')).toBeInTheDocument();
     expect(within(card).getByText('Apple - Java')).toBeInTheDocument();
     expect(within(card).getByText('Build')).toBeInTheDocument();
+  });
+
+  it('falls back to (unknown component) when componentName is absent', () => {
+    const noName: ViolationRow = {
+      ...OPEN_CRITICAL,
+      policyViolationId: 'pv-noname',
+      componentName: undefined,
+    };
+    renderGrid([noName]);
+    expect(screen.getByText('(unknown component)')).toBeInTheDocument();
   });
 
   it('shows organization and application separated by "/" (CLM-44264)', () => {
@@ -119,12 +116,6 @@ describe('ViolationCardGrid (CLM-42259)', () => {
     const card = screen.getByTestId('violation-card');
     expect(within(card).getByText('Apple - Java')).toBeInTheDocument();
     expect(within(card).queryByText('/')).not.toBeInTheDocument();
-  });
-
-  it('falls back to identifier coordinates for the version when componentVersion is absent', () => {
-    renderGrid([OPEN_COORDS_ONLY]);
-    const card = screen.getByTestId('violation-card');
-    expect(within(card).getByText('guava : 30.1-jre')).toBeInTheDocument();
   });
 
   it('renders the numeric threat badge', () => {
@@ -226,7 +217,7 @@ describe('ViolationCardGrid (CLM-42259)', () => {
     // Accessible name leads with the state and references the policy, component, application, and
     // threat level so screen readers announce the same context/severity the card shows visually.
     expect(link).toHaveAccessibleName(
-      'Open violation for Security-Critical on log4j-core : 2.14.0 in Apple - Java, threat level 10',
+      'Open violation for Security-Critical on org.apache.logging.log4j : log4j-core : 2.14.0 in Apple - Java, threat level 10',
     );
   });
 
@@ -247,7 +238,7 @@ describe('ViolationCardGrid (CLM-42259)', () => {
     it('omits the OPEN/WAIVED prefix from the card aria-label when state badges are hidden', () => {
       renderGrid([OPEN_CRITICAL], { hideStateBadges: true });
       expect(screen.getByTestId('violation-card-link')).toHaveAccessibleName(
-        'Security - Critical on log4j-core : 2.14.0 in Apple - Java, threat level 10',
+        'Security - Critical on org.apache.logging.log4j : log4j-core : 2.14.0 in Apple - Java, threat level 10',
       );
     });
   });

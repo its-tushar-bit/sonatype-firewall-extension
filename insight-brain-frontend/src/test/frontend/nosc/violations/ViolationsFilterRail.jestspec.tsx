@@ -638,6 +638,56 @@ describe('ViolationsFilterRail', () => {
     });
   });
 
+  describe('Policy Type facet', () => {
+    it('renders all known threat categories even when some have zero counts', () => {
+      renderRail({
+        facets: {
+          totalViolations: 5,
+          threatCategories: { security: 3, license: 2 }, // quality and other missing
+        },
+      });
+      const policyType = screen.getByTestId('violations-filter-policy-type');
+      expect(
+        within(policyType).getByTestId('violations-filter-policy-type-option-security'),
+      ).toBeInTheDocument();
+      expect(
+        within(policyType).getByTestId('violations-filter-policy-type-option-license'),
+      ).toBeInTheDocument();
+      // These should still appear with a visible 0 count (known keys)
+      const quality = within(policyType).getByTestId('violations-filter-policy-type-option-quality');
+      const other = within(policyType).getByTestId('violations-filter-policy-type-option-other');
+      expect(quality).toBeInTheDocument();
+      expect(other).toBeInTheDocument();
+      expect(within(quality.closest('label') as HTMLElement).getByText('0')).toBeInTheDocument();
+      expect(within(other.closest('label') as HTMLElement).getByText('0')).toBeInTheDocument();
+    });
+
+    it('keeps a selected threat category visible when the post-filter facet map omits it', () => {
+      renderRail({
+        facets: { totalViolations: 2, threatCategories: { security: 2 } },
+        selected: {
+          ...createDefaultViolationsFilterState(),
+          threatCategories: new Set(['license']),
+        },
+      });
+      expect(screen.getByTestId('violations-filter-policy-type-option-license')).toBeChecked();
+      expect(screen.getByTestId('violations-filter-policy-type-option-security')).toBeInTheDocument();
+    });
+
+    it('renders all four threat categories alphabetically by label', () => {
+      renderRail({
+        facets: { totalViolations: 0, threatCategories: {} },
+      });
+      const policyType = screen.getByTestId('violations-filter-policy-type');
+      const checkboxes = within(policyType).getAllByRole('checkbox');
+      // Alphabetical order by label: License, Other, Quality, Security
+      expect(checkboxes[0]).toHaveAttribute('data-testid', 'violations-filter-policy-type-option-license');
+      expect(checkboxes[1]).toHaveAttribute('data-testid', 'violations-filter-policy-type-option-other');
+      expect(checkboxes[2]).toHaveAttribute('data-testid', 'violations-filter-policy-type-option-quality');
+      expect(checkboxes[3]).toHaveAttribute('data-testid', 'violations-filter-policy-type-option-security');
+    });
+  });
+
   describe('Legal list props (CLM-43207)', () => {
     it('hides state and waiver sections when hideStateFilter / hideWaiverTypeFilter are set', () => {
       renderRail({ hideStateFilter: true, hideWaiverTypeFilter: true });
@@ -660,6 +710,11 @@ describe('ViolationsFilterRail', () => {
       // Identity mode keeps raw LTG names (not Policy Type title-case maps).
       expect(within(policyType).getByText('Copyleft')).toBeInTheDocument();
       expect(within(policyType).getByText('Banned')).toBeInTheDocument();
+      // CRITICAL: Legal/LTG mode should NOT show canonical Policy Type categories
+      expect(within(policyType).queryByText('Security')).not.toBeInTheDocument();
+      expect(within(policyType).queryByText('License')).not.toBeInTheDocument();
+      expect(within(policyType).queryByText('Quality')).not.toBeInTheDocument();
+      expect(within(policyType).queryByText('Other')).not.toBeInTheDocument();
     });
   });
 

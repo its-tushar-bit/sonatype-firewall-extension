@@ -31,6 +31,7 @@ import {
   hasActiveViolationFilters,
   stageLabel,
   threatCategoryLabel,
+  THREAT_CATEGORY_LABELS,
   violationStateLabel,
   waiverTypeLabel,
   WAIVER_TYPE_AUTO,
@@ -126,16 +127,37 @@ const SELECTABLE_VIOLATION_STATES = new Set(['OPEN', 'WAIVED', 'LEGACY_VIOLATION
 /**
  * Build sorted facet entries and fold in any currently-selected id the (post-filter) facet map no
  * longer returns, so a selected option never vanishes and can always be toggled back off.
+ *
+ * Priority: selected items > actual counts > knownKeys defaults.
+ *
+ * @param knownKeys - When provided, ensures all these keys appear (with count 0 if not in counts).
+ *                    Used for threat categories where canonical options (security, license, quality, other)
+ *                    should always be visible regardless of current violation distribution.
  */
 function toEntries(
   counts: Readonly<Record<string, number>> | undefined,
   selected: ReadonlySet<string>,
   labelFor: (id: string) => string,
+  knownKeys?: ReadonlyArray<string>,
 ): ReadonlyArray<FacetEntry> {
-  const byId = new Map<string, number>(counts ? Object.entries(counts) : []);
+  // Start with known keys (if provided) or fall back to just the counts
+  const byId = new Map<string, number>();
+
+  if (knownKeys) {
+    // Initialize all known keys with count 0
+    knownKeys.forEach((id) => byId.set(id, 0));
+  }
+
+  // Merge in actual counts from facets
+  if (counts) {
+    Object.entries(counts).forEach(([id, count]) => byId.set(id, count));
+  }
+
+  // Ensure selected items are present (highest priority - even if not in knownKeys or counts)
   selected.forEach((id) => {
     if (!byId.has(id)) byId.set(id, 0);
   });
+
   return Array.from(byId.entries())
     .map(([id, count]) => ({ id, label: labelFor(id), count }))
     .sort((a, b) => a.label.localeCompare(b.label));
@@ -221,11 +243,9 @@ function CheckboxFilterSection({
                 <span className="nosc-violations-filter-option-label" title={label}>
                   {label}
                 </span>
-                {count > 0 && (
-                  <Badge size="1" color="gray" variant="soft" radius="full">
-                    {count}
-                  </Badge>
-                )}
+                <Badge size="1" color="gray" variant="soft" radius="full">
+                  {count}
+                </Badge>
               </Flex>
             </Text>
           ))}
@@ -356,11 +376,9 @@ function SearchableFilterSection({
                     <span className="nosc-violations-filter-option-label" title={label}>
                       {label}
                     </span>
-                    {count > 0 && (
-                      <Badge size="1" color="gray" variant="soft" radius="full">
-                        {count}
-                      </Badge>
-                    )}
+                    <Badge size="1" color="gray" variant="soft" radius="full">
+                      {count}
+                    </Badge>
                   </Flex>
                 </Text>
               ))}
@@ -608,11 +626,19 @@ export default function ViolationsFilterRail({
               }
             />
           )}
+          {/* For Policy Type facet, always show all canonical categories (security, license, quality, other)
+              even with zero counts. For Legal mode (LTG), use identity labels and don't inject knownKeys
+              since LTG keys are dynamic license threat group names, not canonical policy types. */}
           <CheckboxFilterSection
             title={threatCategorySectionTitle}
             testId={`${idPrefix}-policy-type`}
             group="threatCategories"
-            entries={toEntries(facets?.threatCategories, selected.threatCategories, categoryLabel)}
+            entries={toEntries(
+              facets?.threatCategories,
+              selected.threatCategories,
+              categoryLabel,
+              threatCategoryUseIdentityLabels ? undefined : Object.keys(THREAT_CATEGORY_LABELS),
+            )}
             selected={selected.threatCategories}
             onToggle={onToggle}
           />

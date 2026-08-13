@@ -238,18 +238,51 @@ public class GlobalSearchSuggestIqLocalClientImplTest
   }
 
   @Test
-  public void violationRow_fallsBackToIdWhenPolicyNameBlank() {
+  public void violationRow_mapsComponentAsTitleAndPolicyAsSubtitle() {
+    SearchResultItemDTO doc = new SearchResultItemDTO();
+    doc.policyViolationId = "violation-1";
+    doc.policyViolationPolicyName = "Architecture-Quality";
+    doc.componentName = "log4j : log4j : 1.2.17";
+    doc.applicationPublicId = "mock-app";
+    when(searchIndexClient.searchGlobal(any()))
+        .thenReturn(new GlobalSearchResult(List.of(doc), 1L, List.of()));
+
+    List<SuggestRow> rows = underTest.suggest("log4j", List.of(SuggestItemType.VIOLATION), 5, principal);
+
+    assertThat(rows).hasSize(1);
+    SuggestRow row = rows.get(0);
+    assertThat(row.id()).isEqualTo("violation-1");
+    assertThat(row.type()).isEqualTo(SuggestItemType.VIOLATION);
+    assertThat(row.title()).isEqualTo("log4j : log4j : 1.2.17");
+    assertThat(row.subtitle()).isEqualTo("Architecture-Quality");
+  }
+
+  @Test
+  public void violationRow_droppedWhenPolicyNameBlank() {
     SearchResultItemDTO doc = new SearchResultItemDTO();
     doc.policyViolationId = "violation-1";
     doc.policyViolationPolicyName = "";
+    doc.componentName = "log4j : log4j : 1.2.17";
     when(searchIndexClient.searchGlobal(any()))
         .thenReturn(new GlobalSearchResult(List.of(doc), 1L, List.of()));
 
     List<SuggestRow> rows = underTest.suggest("alpha", List.of(SuggestItemType.VIOLATION), 5, principal);
 
-    assertThat(rows).hasSize(1);
-    assertThat(rows.get(0).id()).isEqualTo("violation-1");
-    assertThat(rows.get(0).title()).isEqualTo("violation-1");
+    assertThat(rows).isEmpty();
+  }
+
+  @Test
+  public void violationRow_droppedWhenComponentNameBlank() {
+    SearchResultItemDTO doc = new SearchResultItemDTO();
+    doc.policyViolationId = "violation-1";
+    doc.policyViolationPolicyName = "Architecture-Quality";
+    doc.componentName = "  ";
+    when(searchIndexClient.searchGlobal(any()))
+        .thenReturn(new GlobalSearchResult(List.of(doc), 1L, List.of()));
+
+    List<SuggestRow> rows = underTest.suggest("alpha", List.of(SuggestItemType.VIOLATION), 5, principal);
+
+    assertThat(rows).isEmpty();
   }
 
   @Test

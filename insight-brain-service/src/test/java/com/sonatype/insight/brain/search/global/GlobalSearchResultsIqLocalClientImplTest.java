@@ -110,4 +110,61 @@ public class GlobalSearchResultsIqLocalClientImplTest
     ResultsRequest req = new ResultsRequest("q", Tab.ALL, 1, 25, null, null, SearchSource.LOCAL);
     assertThat(client.searchNative(req)).isEmpty();
   }
+
+  @Test
+  public void violationTab_mapsComponentAsTitleAndPolicyAsSubtitle() {
+    SearchResultItemDTO doc = new SearchResultItemDTO();
+    doc.policyViolationId = "violation-1";
+    doc.policyViolationPolicyName = "Architecture-Quality";
+    doc.componentName = "log4j : log4j : 1.2.17";
+    doc.applicationPublicId = "mock-app";
+    doc.applicationName = "Mock App";
+    doc.policyViolationThreatLevel = 1;
+    stubSearch(doc);
+
+    Optional<SectionResult> result = client.searchNative(
+        new ResultsRequest("log4j", Tab.VIOLATION, 1, 25, null, null, SearchSource.LOCAL));
+
+    assertThat(result).isPresent();
+    assertThat(result.get().rows()).hasSize(1);
+    ResultRow row = result.get().rows().get(0);
+    assertThat(row.getId()).isEqualTo("violation-1");
+    assertThat(row.getType()).isEqualTo(Tab.VIOLATION.name());
+    assertThat(row.getTitle()).isEqualTo("log4j : log4j : 1.2.17");
+    assertThat(row.getSubtitle()).isEqualTo("Architecture-Quality");
+    assertThat(row.getFields()).containsEntry("componentName", "log4j : log4j : 1.2.17");
+    assertThat(row.getFields()).containsEntry("policyName", "Architecture-Quality");
+    assertThat(row.getFields()).containsEntry("applicationName", "Mock App");
+    assertThat(row.getFields()).containsEntry("threatLevel", 1);
+  }
+
+  @Test
+  public void violationTab_dropsRowWhenComponentNameBlank() {
+    SearchResultItemDTO doc = new SearchResultItemDTO();
+    doc.policyViolationId = "violation-1";
+    doc.policyViolationPolicyName = "Architecture-Quality";
+    doc.componentName = "";
+    stubSearch(doc);
+
+    Optional<SectionResult> result = client.searchNative(
+        new ResultsRequest("log4j", Tab.VIOLATION, 1, 25, null, null, SearchSource.LOCAL));
+
+    assertThat(result).isPresent();
+    assertThat(result.get().rows()).isEmpty();
+  }
+
+  @Test
+  public void violationTab_dropsRowWhenPolicyNameBlank() {
+    SearchResultItemDTO doc = new SearchResultItemDTO();
+    doc.policyViolationId = "violation-1";
+    doc.policyViolationPolicyName = "  ";
+    doc.componentName = "log4j : log4j : 1.2.17";
+    stubSearch(doc);
+
+    Optional<SectionResult> result = client.searchNative(
+        new ResultsRequest("log4j", Tab.VIOLATION, 1, 25, null, null, SearchSource.LOCAL));
+
+    assertThat(result).isPresent();
+    assertThat(result.get().rows()).isEmpty();
+  }
 }

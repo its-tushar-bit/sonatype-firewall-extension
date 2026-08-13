@@ -204,17 +204,23 @@ public class GlobalSearchResultsIqLocalClientImpl
   }
 
   private static ResultRow mapViolation(final SearchResultItemDTO doc) {
-    // Merged VIOLATION tab covers both POLICY_VIOLATION and LEGAL_VIOLATION docs - both carry the
-    // same policyViolation* fields, so a single mapper handles both.
-    if (doc.policyViolationId == null || doc.policyViolationPolicyName == null) {
+    // Merged VIOLATION tab covers both POLICY_VIOLATION and LEGAL_VIOLATION docs. Title is the
+    // component identity and subtitle is the policy name so both are visible. The row is dropped
+    // when either is blank rather than emitting an empty or policy-only result.
+    final String id = firstNonBlank(doc.policyViolationId);
+    final String componentName = firstNonBlank(doc.componentName);
+    final String policyName = firstNonBlank(doc.policyViolationPolicyName);
+    if (id == null || componentName == null || policyName == null) {
       return null;
     }
     return ResultRow.builder()
         .type(Tab.VIOLATION.name())
         .source(SearchSource.LOCAL.value())
-        .id(doc.policyViolationId)
-        .title(doc.policyViolationPolicyName)
-        .subtitle(doc.applicationPublicId)
+        .id(id)
+        .title(componentName)
+        .subtitle(policyName)
+        .field("componentName", componentName)
+        .field("policyName", policyName)
         .field("applicationPublicId", doc.applicationPublicId)
         .field("applicationName", doc.applicationName)
         .field("organizationId", doc.organizationId)
@@ -224,6 +230,16 @@ public class GlobalSearchResultsIqLocalClientImpl
         .field("constraintName", doc.policyViolationConstraintName)
         .field("policyId", doc.policyViolationPolicyId)
         .build();
+  }
+
+  /** First non-blank value, or {@code null} when all are null/blank. */
+  private static String firstNonBlank(final String... values) {
+    for (String value : values) {
+      if (value != null && !value.isBlank()) {
+        return value;
+      }
+    }
+    return null;
   }
 
   private static ResultRow mapWaiver(final SearchResultItemDTO doc) {

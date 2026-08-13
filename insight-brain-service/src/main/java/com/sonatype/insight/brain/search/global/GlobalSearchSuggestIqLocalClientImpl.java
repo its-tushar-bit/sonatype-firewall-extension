@@ -479,21 +479,21 @@ public class GlobalSearchSuggestIqLocalClientImpl
   }
 
   private static SuggestRow mapViolation(final SearchResultItemDTO doc) {
-    // Merged VIOLATION covers both POLICY_VIOLATION and LEGAL_VIOLATION docs; both carry the same
-    // policyViolation* fields, so a single mapper handles both. A blank policy name falls back to the
-    // violation id as the title rather than emitting an empty title; drop the row only when neither
-    // yields a usable title (mirrors mapWaiver's blank-safe fallback).
+    // Merged VIOLATION covers both POLICY_VIOLATION and LEGAL_VIOLATION docs. Title is the component
+    // identity and subtitle is the policy name so both are visible. The row is dropped when either
+    // is blank rather than emitting an empty or policy-only result.
     final String id = firstNonBlank(doc.policyViolationId);
-    final String title = firstNonBlank(doc.policyViolationPolicyName, doc.policyViolationId);
-    if (id == null || title == null) {
+    final String componentName = firstNonBlank(doc.componentName);
+    final String policyName = firstNonBlank(doc.policyViolationPolicyName);
+    if (id == null || componentName == null || policyName == null) {
       return null;
     }
     return new SuggestRow(
         id,
         SuggestItemType.VIOLATION,
         SearchSource.LOCAL,
-        title,
-        doc.applicationPublicId,
+        componentName,
+        policyName,
         /* href */ null);
   }
 

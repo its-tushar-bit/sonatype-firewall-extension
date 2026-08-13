@@ -54,7 +54,7 @@ public abstract class AbstractReportPurgerTest
   DataRetentionPolicyDAO dataRetentionPolicyDAO;
 
   @Inject
-  private PolicyEvaluationDAO policyEvaluationDAO;
+  PolicyEvaluationDAO policyEvaluationDAO;
 
   @Inject
   Configuration configuration;

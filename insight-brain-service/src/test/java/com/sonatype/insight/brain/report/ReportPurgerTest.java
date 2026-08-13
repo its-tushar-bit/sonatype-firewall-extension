@@ -12,24 +12,42 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 import jakarta.inject.Inject;
 
 import org.apache.commons.io.FileUtils;
+import org.jooq.exception.DataAccessException;
 import org.junit.Before;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import com.google.common.collect.Sets;
 import org.junit.Test;
+import org.mockito.InOrder;
 
 import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.WITH_REPORTS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 public class ReportPurgerTest
     extends AbstractReportPurgerTest
@@ -170,5 +188,199 @@ public class ReportPurgerTest
     reportPurger.purgeReports();
 
     assertThat(work.getReportDir(app.getId())).doesNotExist();
+  }
+
+  @Test
+  public void testPurgeReports_HostedRepositoryComponents_BoundedEnumeration() throws Exception {
+    applyBeanFieldOverride(ReportPurger.class, "hrcPageSize", 2);
+
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc1 = tempEntity.newHostedRepositoryComponent(repository);
+    HostedRepositoryComponent hrc2 = tempEntity.newHostedRepositoryComponent(repository);
+    HostedRepositoryComponent hrc3 = tempEntity.newHostedRepositoryComponent(repository);
+
+    for (HostedRepositoryComponent hrc : new HostedRepositoryComponent[]{hrc1, hrc2, hrc3}) {
+      dataRetentionPolicyDAO.insert(new DataRetentionPolicy(hrc.getId(), Stage.ID_BUILD, true, 1, null));
+      mockReport(tempEntity.newPolicyEvaluation(hrc.getId(), Stage.ID_BUILD, hrc.getId() + "-obsolete", daysAgo(1)));
+      mockReport(tempEntity.newPolicyEvaluation(hrc.getId(), Stage.ID_BUILD, hrc.getId() + "-latest", daysAgo(0)));
+    }
+
+    reportPurger.purgeReports();
+
+    for (HostedRepositoryComponent hrc : new HostedRepositoryComponent[]{hrc1, hrc2, hrc3}) {
+      assertThat(lifecycleReportPersistenceService.reportExists(hrc.getId(), hrc.getId() + "-obsolete")).isFalse();
+      assertThat(lifecycleReportPersistenceService.reportExists(hrc.getId(), hrc.getId() + "-latest")).isTrue();
+    }
+  }
+
+  @Test
+  public void testPurgeReports_HostedRepositoryComponents_PageBoundary_EachOwnerVisitedExactlyOnce() throws Exception {
+    assertEachHostedRepositoryComponentVisitedExactlyOnce(2);
+  }
+
+  @Test
+  public void testPurgeReports_HostedRepositoryComponents_ExactFitPage_EachOwnerVisitedExactlyOnce() throws Exception {
+    assertEachHostedRepositoryComponentVisitedExactlyOnce(3);
+  }
+
+  private void assertEachHostedRepositoryComponentVisitedExactlyOnce(int pageSize) {
+    applyBeanFieldOverride(ReportPurger.class, "hrcPageSize", pageSize);
+
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc1 = tempEntity.newHostedRepositoryComponent(repository);
+    HostedRepositoryComponent hrc2 = tempEntity.newHostedRepositoryComponent(repository);
+    HostedRepositoryComponent hrc3 = tempEntity.newHostedRepositoryComponent(repository);
+
+    for (HostedRepositoryComponent hrc : new HostedRepositoryComponent[]{hrc1, hrc2, hrc3}) {
+      dataRetentionPolicyDAO.insert(new DataRetentionPolicy(hrc.getId(), Stage.ID_BUILD, true, 1, null));
+      mockReport(tempEntity.newPolicyEvaluation(hrc.getId(), Stage.ID_BUILD, hrc.getId() + "-obsolete", daysAgo(1)));
+      mockReport(tempEntity.newPolicyEvaluation(hrc.getId(), Stage.ID_BUILD, hrc.getId() + "-latest", daysAgo(0)));
+    }
+
+    PolicyEvaluationDAO spyPolicyEvaluationDAO = spy(policyEvaluationDAO);
+    applyBeanFieldOverride(ReportPurger.class, "policyEvaluationDAO", spyPolicyEvaluationDAO);
+
+    reportPurger.purgeReports();
+
+    List<String> idsInAscendingOrder = Stream.of(hrc1, hrc2, hrc3)
+        .map(HostedRepositoryComponent::getId)
+        .sorted()
+        .toList();
+    InOrder inOrder = inOrder(spyPolicyEvaluationDAO);
+    for (String hrcId : idsInAscendingOrder) {
+      inOrder.verify(spyPolicyEvaluationDAO).getPrimaryNonMonitoringByOwnerIdAndStageId(hrcId, Stage.ID_BUILD);
+    }
+  }
+
+  @Test
+  public void testPurgeReports_ApplicationAndHostedRepositoryComponentInSameRun() throws Exception {
+    dataRetentionPolicyDAO.insert(new DataRetentionPolicy(org.getId(), Stage.ID_BUILD, true, 1, null));
+    mockReport(tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "app-obsolete", daysAgo(1)));
+    mockReport(tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "app-latest", daysAgo(0)));
+
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    dataRetentionPolicyDAO.insert(new DataRetentionPolicy(hrc.getId(), Stage.ID_BUILD, true, 1, null));
+    mockReport(tempEntity.newPolicyEvaluation(hrc.getId(), Stage.ID_BUILD, "hrc-obsolete", daysAgo(1)));
+    mockReport(tempEntity.newPolicyEvaluation(hrc.getId(), Stage.ID_BUILD, "hrc-latest", daysAgo(0)));
+
+    reportPurger.purgeReports();
+
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "app-obsolete")).isFalse();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "app-latest")).isTrue();
+    assertThat(lifecycleReportPersistenceService.reportExists(hrc.getId(), "hrc-obsolete")).isFalse();
+    assertThat(lifecycleReportPersistenceService.reportExists(hrc.getId(), "hrc-latest")).isTrue();
+  }
+
+  @Test
+  public void testPurgeReports_NoHostedRepositoryComponents_AppPathStillPurges() throws Exception {
+    dataRetentionPolicyDAO.insert(new DataRetentionPolicy(org.getId(), Stage.ID_BUILD, true, 1, null));
+    mockReport(tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "app-obsolete", daysAgo(1)));
+    mockReport(tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "app-latest", daysAgo(0)));
+
+    reportPurger.purgeReports();
+
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "app-obsolete")).isFalse();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "app-latest")).isTrue();
+  }
+
+  @Test
+  public void testPurgeReports_HostedRepositoryComponent_Trash() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    dataRetentionPolicyDAO.insert(new DataRetentionPolicy(hrc.getId(), Stage.ID_BUILD, true, 1, null));
+    String reportId = "hrc-to-be-trashed";
+    mockReport(tempEntity.newPolicyEvaluation(hrc.getId(), Stage.ID_BUILD, reportId, daysAgo(1)));
+    mockReport(tempEntity.newPolicyEvaluation(hrc.getId(), Stage.ID_BUILD, "hrc-latest", daysAgo(0)));
+
+    reportPurger.purgeReports();
+
+    assertThat(lifecycleReportPersistenceService.reportExists(hrc.getId(), reportId)).isFalse();
+    assertThat(lifecycleReportPersistenceService.reportExists(hrc.getId(), "hrc-latest")).isTrue();
+
+    File dateDir = work.getTrashDir().listFiles()[0];
+    File bucketDir = new File(dateDir, hrc.getId().substring(0, 2));
+    assertThat(bucketDir).isDirectory();
+    File trashFile = new File(bucketDir, "hrc-" + hrc.getId() + "-report-" + reportId + ".zip");
+    assertThat(trashFile).isFile();
+  }
+
+  @Test
+  public void testPurgeReports_HostedRepositoryComponent_LastEvaluationNeverPurged() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    dataRetentionPolicyDAO.insert(new DataRetentionPolicy(hrc.getId(), Stage.ID_BUILD, true, 1, null));
+
+    mockReport(tempEntity.newPolicyEvaluation(hrc.getId(), Stage.ID_BUILD, "hrc-older", daysAgo(10)));
+    mockReport(tempEntity.newPolicyEvaluation(hrc.getId(), Stage.ID_BUILD, "hrc-newest", daysAgo(5)));
+
+    reportPurger.purgeReports();
+
+    assertThat(lifecycleReportPersistenceService.reportExists(hrc.getId(), "hrc-older")).isFalse();
+    assertThat(lifecycleReportPersistenceService.reportExists(hrc.getId(), "hrc-newest")).isTrue();
+  }
+
+  @Test
+  public void testPurgeReports_HostedRepositoryComponent_InheritsAncestorPolicy() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager);
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    dataRetentionPolicyDAO.insert(new DataRetentionPolicy(repositoryManager.getId(), Stage.ID_BUILD, true, 1, null));
+
+    mockReport(tempEntity.newPolicyEvaluation(hrc.getId(), Stage.ID_BUILD, "hrc-obsolete", daysAgo(1)));
+    mockReport(tempEntity.newPolicyEvaluation(hrc.getId(), Stage.ID_BUILD, "hrc-latest", daysAgo(0)));
+
+    reportPurger.purgeReports();
+
+    assertThat(lifecycleReportPersistenceService.reportExists(hrc.getId(), "hrc-obsolete")).isFalse();
+    assertThat(lifecycleReportPersistenceService.reportExists(hrc.getId(), "hrc-latest")).isTrue();
+  }
+
+  @Test
+  public void testPurgeReports_HostedRepositoryComponent_DisabledPolicy_NoOp() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    dataRetentionPolicyDAO.insert(new DataRetentionPolicy(hrc.getId(), Stage.ID_BUILD, false, 1, null));
+
+    mockReport(tempEntity.newPolicyEvaluation(hrc.getId(), Stage.ID_BUILD, "hrc-obsolete", daysAgo(1)));
+    mockReport(tempEntity.newPolicyEvaluation(hrc.getId(), Stage.ID_BUILD, "hrc-latest", daysAgo(0)));
+
+    reportPurger.purgeReports();
+
+    assertThat(lifecycleReportPersistenceService.reportExists(hrc.getId(), "hrc-obsolete")).isTrue();
+    assertThat(lifecycleReportPersistenceService.reportExists(hrc.getId(), "hrc-latest")).isTrue();
+  }
+
+  @Test
+  public void testPurgeReports_HostedRepositoryComponent_RetryAfterLockTimeout() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    dataRetentionPolicyDAO.insert(new DataRetentionPolicy(hrc.getId(), Stage.ID_BUILD, true, null, 2));
+    mockReport(tempEntity.newPolicyEvaluation(hrc.getId(), Stage.ID_BUILD, "hrc-obsolete", daysAgo(6)));
+    mockReport(tempEntity.newPolicyEvaluation(hrc.getId(), Stage.ID_BUILD, "hrc-latest", daysAgo(5)));
+
+    PolicyEvaluationDAO spyPolicyEvaluationDAO = spy(policyEvaluationDAO);
+    DataAccessException lockTimeout = new DataAccessException("lock timeout");
+    AtomicInteger buildCalls = new AtomicInteger();
+    doAnswer(invocation -> {
+      String ownerId = invocation.getArgument(0);
+      String stageId = invocation.getArgument(1);
+      if (hrc.getId().equals(ownerId) && Stage.ID_BUILD.equals(stageId) && buildCalls.getAndIncrement() < 2) {
+        throw lockTimeout;
+      }
+      return invocation.callRealMethod();
+    }).when(spyPolicyEvaluationDAO).getPrimaryNonMonitoringByOwnerIdAndStageId(anyString(), anyString());
+    applyBeanFieldOverride(ReportPurger.class, "policyEvaluationDAO", spyPolicyEvaluationDAO);
+
+    reportPurger = spy(reportPurger);
+    doReturn(Duration.ZERO).when(reportPurger).getDelayForRetry(anyInt());
+
+    reportPurger.purgeReports();
+
+    assertThat(lifecycleReportPersistenceService.reportExists(hrc.getId(), "hrc-obsolete")).isFalse();
+    assertThat(lifecycleReportPersistenceService.reportExists(hrc.getId(), "hrc-latest")).isTrue();
+    verify(reportPurger).getDelayForRetry(0);
+    verify(reportPurger).getDelayForRetry(1);
+    verify(reportPurger, never()).getDelayForRetry(2);
   }
 }

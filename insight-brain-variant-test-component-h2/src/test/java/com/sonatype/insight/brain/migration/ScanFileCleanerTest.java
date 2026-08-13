@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.migration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -18,6 +19,8 @@ import static org.mockito.Mockito.when;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
@@ -27,15 +30,19 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.test.LogOutput;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.time.LocalTime;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Stream;
 import org.joda.time.DateTimeConstants;
 import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
@@ -58,6 +65,10 @@ public class ScanFileCleanerTest
 
   @Inject
   private InsightWork insightWork;
+
+  @Inject
+  @Named("scanPersistenceService")
+  private ScanPersistenceService scanPersistenceService;
 
   @Mock
   private TaskScheduler taskSchedulerMock;
@@ -150,6 +161,139 @@ public class ScanFileCleanerTest
   }
 
   @Test
+  public void testDeleteScanFiles_HostedRepositoryComponent() throws Exception {
+    assertMarkerDoesNotExist();
+
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    Path scanDir = insightWork.getScanDir(hrc.getId()).toPath();
+    Files.createDirectories(scanDir);
+
+    String oldScanId = "hrc-oldScanId";
+    long oldScanTimestamp = System.currentTimeMillis() - 2 * ONE_HOUR;
+    Path oldScanFile = insightWork.getScanFile(hrc.getId(), oldScanId).toPath();
+    Files.createFile(oldScanFile);
+    Files.setLastModifiedTime(oldScanFile, FileTime.fromMillis(oldScanTimestamp));
+
+    String newScanId = "hrc-newScanId";
+    long newScanTimestamp = System.currentTimeMillis() - ONE_HOUR - 1;
+    tempEntity.newPolicyEvaluation(hrc.getId(), StageTypes.BUILD.getId(), newScanId, new Date(newScanTimestamp));
+    Path newScanFile = insightWork.getScanFile(hrc.getId(), newScanId).toPath();
+    Files.createFile(newScanFile);
+    Files.setLastModifiedTime(newScanFile, FileTime.fromMillis(newScanTimestamp));
+
+    assertThat(Files.list(scanDir)).containsExactlyInAnyOrder(oldScanFile, newScanFile);
+
+    scanFileCleaner.deleteScanFiles();
+
+    assertThat(Files.list(scanDir)).containsExactly(newScanFile);
+
+    assertMarkerExists();
+  }
+
+  @Test
+  public void testDeleteScanFiles_HostedRepositoryComponents_BoundedEnumeration() throws Exception {
+    assertMarkerDoesNotExist();
+
+    applyBeanFieldOverride(ScanFileCleaner.class, "hrcPageSize", 2);
+
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc1 = tempEntity.newHostedRepositoryComponent(repository);
+    HostedRepositoryComponent hrc2 = tempEntity.newHostedRepositoryComponent(repository);
+    HostedRepositoryComponent hrc3 = tempEntity.newHostedRepositoryComponent(repository);
+
+    for (HostedRepositoryComponent hrc : new HostedRepositoryComponent[]{hrc1, hrc2, hrc3}) {
+      Path scanDir = insightWork.getScanDir(hrc.getId()).toPath();
+      Files.createDirectories(scanDir);
+      Path obsolete = Files.createFile(scanDir.resolve("obsolete"));
+      Files.setLastModifiedTime(obsolete, FileTime.fromMillis(System.currentTimeMillis() - ONE_HOUR - 1));
+    }
+
+    scanFileCleaner.deleteScanFiles();
+
+    for (HostedRepositoryComponent hrc : new HostedRepositoryComponent[]{hrc1, hrc2, hrc3}) {
+      assertThat(Files.list(insightWork.getScanDir(hrc.getId()).toPath())).isEmpty();
+    }
+
+    assertMarkerExists();
+  }
+
+  @Test
+  public void testDeleteScanFiles_HostedRepositoryComponents_PageBoundary_EachOwnerVisitedExactlyOnce() throws Exception {
+    assertEachHostedRepositoryComponentVisitedExactlyOnce(2);
+  }
+
+  @Test
+  public void testDeleteScanFiles_HostedRepositoryComponents_ExactFitPage_EachOwnerVisitedExactlyOnce() throws Exception {
+    assertEachHostedRepositoryComponentVisitedExactlyOnce(3);
+  }
+
+  private void assertEachHostedRepositoryComponentVisitedExactlyOnce(int pageSize) throws Exception {
+    applyBeanFieldOverride(ScanFileCleaner.class, "hrcPageSize", pageSize);
+
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc1 = tempEntity.newHostedRepositoryComponent(repository);
+    HostedRepositoryComponent hrc2 = tempEntity.newHostedRepositoryComponent(repository);
+    HostedRepositoryComponent hrc3 = tempEntity.newHostedRepositoryComponent(repository);
+
+    ScanPersistenceService spyScanPersistenceService = spy(scanPersistenceService);
+    applyBeanFieldOverride(ScanFileCleaner.class, "scanPersistenceService", spyScanPersistenceService);
+
+    scanFileCleaner.deleteScanFiles();
+
+    List<String> idsInAscendingOrder = Stream.of(hrc1, hrc2, hrc3)
+        .map(HostedRepositoryComponent::getId)
+        .sorted()
+        .toList();
+    InOrder inOrder = inOrder(spyScanPersistenceService);
+    for (String hrcId : idsInAscendingOrder) {
+      inOrder.verify(spyScanPersistenceService).allScanFilesFor(hrcId);
+    }
+  }
+
+  @Test
+  public void testDeleteScanFiles_ApplicationAndHostedRepositoryComponentInSameRun() throws Exception {
+    assertMarkerDoesNotExist();
+
+    Application app = tempEntity.newApplicationWithParent();
+    Path appScanDir = insightWork.getScanDir(app.getId()).toPath();
+    Files.createDirectories(appScanDir);
+    Path appObsolete = Files.createFile(appScanDir.resolve("app-obsolete"));
+    Files.setLastModifiedTime(appObsolete, FileTime.fromMillis(System.currentTimeMillis() - ONE_HOUR - 1));
+
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    Path hrcScanDir = insightWork.getScanDir(hrc.getId()).toPath();
+    Files.createDirectories(hrcScanDir);
+    Path hrcObsolete = Files.createFile(hrcScanDir.resolve("hrc-obsolete"));
+    Files.setLastModifiedTime(hrcObsolete, FileTime.fromMillis(System.currentTimeMillis() - ONE_HOUR - 1));
+
+    scanFileCleaner.deleteScanFiles();
+
+    assertThat(Files.list(appScanDir)).isEmpty();
+    assertThat(Files.list(hrcScanDir)).isEmpty();
+
+    assertMarkerExists();
+  }
+
+  @Test
+  public void testDeleteScanFiles_NoHostedRepositoryComponents_AppPathStillPurges() throws Exception {
+    assertMarkerDoesNotExist();
+
+    Application app = tempEntity.newApplicationWithParent();
+    Path appScanDir = insightWork.getScanDir(app.getId()).toPath();
+    Files.createDirectories(appScanDir);
+    Path appObsolete = Files.createFile(appScanDir.resolve("app-obsolete"));
+    Files.setLastModifiedTime(appObsolete, FileTime.fromMillis(System.currentTimeMillis() - ONE_HOUR - 1));
+
+    scanFileCleaner.deleteScanFiles();
+
+    assertThat(Files.list(appScanDir)).isEmpty();
+
+    assertMarkerExists();
+  }
+
+  @Test
   public void testDeleteScanFiles_LogsWarningIfItCannotDeleteFile() throws Exception {
     assertMarkerDoesNotExist();
 
@@ -168,7 +312,7 @@ public class ScanFileCleanerTest
     when(oldScanEntity2.toString()).thenReturn(oldScanFile2.toString());
 
     ScanPersistenceService mockScanPersistenceService = mock(ScanPersistenceService.class);
-    when(mockScanPersistenceService.allScanFilesFor(app.getId())).thenReturn(java.util.stream.Stream.of(oldScanEntity1,
+    when(mockScanPersistenceService.allScanFilesFor(app.getId())).thenReturn(Stream.of(oldScanEntity1,
         oldScanEntity2));
     doThrow(new SecurityException("Test exception")).when(mockScanPersistenceService).deleteScan(oldScanEntity1);
 
@@ -204,7 +348,7 @@ public class ScanFileCleanerTest
     when(oldScanEntity2.toString()).thenReturn(oldScanFile2.toString());
 
     ScanPersistenceService mockScanPersistenceService = mock(ScanPersistenceService.class);
-    when(mockScanPersistenceService.allScanFilesFor(app.getId())).thenReturn(java.util.stream.Stream.of(oldScanEntity1,
+    when(mockScanPersistenceService.allScanFilesFor(app.getId())).thenReturn(Stream.of(oldScanEntity1,
         oldScanEntity2));
 
     applyBeanFieldOverride(ScanFileCleaner.class, "scanPersistenceService", mockScanPersistenceService);
@@ -229,6 +373,27 @@ public class ScanFileCleanerTest
 
     scanFileCleaner.deleteScanFiles();
 
+    assertMarkerExists();
+  }
+
+  @Test
+  public void testDeleteScanFiles_HostedRepositoryComponent_ScanDirectoryDoesNotExist_OtherHrcStillProcessed() throws Exception {
+    assertMarkerDoesNotExist();
+
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrcNoDir = tempEntity.newHostedRepositoryComponent(repository);
+    HostedRepositoryComponent hrcWithFile = tempEntity.newHostedRepositoryComponent(repository);
+
+    assertThat(insightWork.getScanDir(hrcNoDir.getId())).doesNotExist();
+
+    Path scanDir = insightWork.getScanDir(hrcWithFile.getId()).toPath();
+    Files.createDirectories(scanDir);
+    Path obsolete = Files.createFile(scanDir.resolve("obsolete"));
+    Files.setLastModifiedTime(obsolete, FileTime.fromMillis(System.currentTimeMillis() - ONE_HOUR - 1));
+
+    scanFileCleaner.deleteScanFiles();
+
+    assertThat(Files.list(scanDir)).isEmpty();
     assertMarkerExists();
   }
 

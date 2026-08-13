@@ -5,14 +5,19 @@
  */
 package com.sonatype.insight.brain.successmetrics;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.HostedRepositoryComponentDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AdminTask;
 import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -43,6 +48,9 @@ public class SuccessMetricsPurger
 
   private static final int MAX_RETRIES = 10;
 
+  @VisibleForTesting
+  int hrcPageSize = 500;
+
   private static final Logger log = LoggerFactory.getLogger(SuccessMetricsPurger.class);
 
   private static final String PURGE_ERROR = "Success Metrics Purging error";
@@ -50,6 +58,8 @@ public class SuccessMetricsPurger
   private final DataRetentionPolicyDAO dataRetentionPolicyDAO;
 
   private final ApplicationDAO applicationDAO;
+
+  private final HostedRepositoryComponentDAO hostedRepositoryComponentDAO;
 
   private final PolicyViolationDAO policyViolationDAO;
 
@@ -61,12 +71,14 @@ public class SuccessMetricsPurger
   public SuccessMetricsPurger(
       DataRetentionPolicyDAO dataRetentionPolicyDAO,
       ApplicationDAO applicationDAO,
+      HostedRepositoryComponentDAO hostedRepositoryComponentDAO,
       PolicyViolationDAO policyViolationDAO,
       TaskScheduler taskScheduler)
   {
     super(PATH);
     this.dataRetentionPolicyDAO = dataRetentionPolicyDAO;
     this.applicationDAO = applicationDAO;
+    this.hostedRepositoryComponentDAO = hostedRepositoryComponentDAO;
     this.policyViolationDAO = policyViolationDAO;
     this.taskScheduler = taskScheduler;
   }
@@ -99,52 +111,79 @@ public class SuccessMetricsPurger
     log.debug("Purging obsolete success metrics from {} applications", applications.size());
     int purgedApplications = 0;
     for (Application application : applications) {
-      for (int retry = 0; retry <= MAX_RETRIES; retry++) {
-        try {
-          if (purgeSuccessMetrics(application)) {
-            purgedApplications++;
-          }
-          break;
-        }
-        catch (DataAccessException e) {
-          // This exception occurs usually when the embedded database is under too much load from concurrent queries.
-          // To avoid having to start over the entire purging task, we retry to get this purging run completed.
-          if (retry >= MAX_RETRIES) {
-            throw e;
-          }
-          Duration delay = getDelayForRetry(retry);
-          log.debug("Failed to purge obsolete success metrics for application {}, retrying in {}",
-              application.getName(), delay, retry == 0 ? e : null);
-          try {
-            Thread.sleep(delay.toMillis());
-          }
-          catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-            e.addSuppressed(ex);
-            throw e;
-          }
-        }
+      if (purgeSuccessMetricsWithRetry(application)) {
+        purgedApplications++;
       }
     }
     log.info("Purged obsolete success metrics from {} applications", purgedApplications);
+
+    purgeSuccessMetricsForHostedRepositoryComponents();
   }
 
-  private boolean purgeSuccessMetrics(Application application) {
-    Date cutoffDate = getCutoffDate(getDataRetentionPolicy(application));
+  private void purgeSuccessMetricsForHostedRepositoryComponents() {
+    int purgedOwners = 0;
+    String lastProcessedId = "";
+    while (true) {
+      List<HostedRepositoryComponent> page;
+      try (TransactionContext tx = hostedRepositoryComponentDAO.createTransactionContext()) {
+        page = hostedRepositoryComponentDAO.getPage(tx, lastProcessedId, hrcPageSize);
+      }
+      if (page.isEmpty()) {
+        break;
+      }
+      for (HostedRepositoryComponent hrc : page) {
+        if (purgeSuccessMetricsWithRetry(hrc)) {
+          purgedOwners++;
+        }
+        lastProcessedId = hrc.getId();
+      }
+    }
+    log.info("Purged obsolete success metrics from {} hosted repository components", purgedOwners);
+  }
+
+  private boolean purgeSuccessMetricsWithRetry(Owner owner) {
+    for (int retry = 0; retry <= MAX_RETRIES; retry++) {
+      try {
+        return purgeSuccessMetrics(owner);
+      }
+      catch (DataAccessException e) {
+        // This exception occurs usually when the embedded database is under too much load from concurrent queries.
+        // To avoid having to start over the entire purging task, we retry to get this purging run completed.
+        if (retry >= MAX_RETRIES) {
+          throw e;
+        }
+        Duration delay = getDelayForRetry(retry);
+        log.debug("Failed to purge obsolete success metrics for owner {}, retrying in {}",
+            owner.getName(), delay, retry == 0 ? e : null);
+        try {
+          Thread.sleep(delay.toMillis());
+        }
+        catch (InterruptedException ex) {
+          Thread.currentThread().interrupt();
+          e.addSuppressed(ex);
+          throw e;
+        }
+      }
+    }
+    return false;
+  }
+
+  private boolean purgeSuccessMetrics(Owner owner) {
+    Date cutoffDate = getCutoffDate(getDataRetentionPolicy(owner));
     if (cutoffDate == null) {
       return false;
     }
-    int deletedRows = policyViolationDAO.deleteFixedByOwnerIdAndDate(application.getId(), cutoffDate);
+    int deletedRows = policyViolationDAO.deleteFixedByOwnerIdAndDate(owner.getId(), cutoffDate);
     if (deletedRows > 0) {
-      log.info("Purged {} obsolete records older than {} from violation history of application {}", deletedRows,
-          cutoffDate, application.getName());
+      log.info("Purged {} obsolete records older than {} from violation history of owner {}", deletedRows,
+          cutoffDate, owner.getName());
     }
     return deletedRows > 0;
   }
 
-  private DataRetentionPolicy getDataRetentionPolicy(Application application) {
+  private DataRetentionPolicy getDataRetentionPolicy(Owner owner) {
     return dataRetentionPolicyDAO.getByOwnerIdAndContextIdWithHierarchy(
-        application.getId(), DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS);
+        owner.getId(), DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS);
   }
 
   private Date getCutoffDate(DataRetentionPolicy dataRetentionPolicy) {

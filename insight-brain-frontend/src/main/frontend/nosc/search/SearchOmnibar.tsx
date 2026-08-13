@@ -6,7 +6,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Box, Flex, IconButton, Select, TextField } from '@radix-ui/themes';
 import { ActionIcons } from 'MainRoot/nosc/icons';
-import { TOP_NAV_HEIGHT_PX } from 'MainRoot/nosc/shell/previewShellLayout';
+import { NOTICE_STRIP_HEIGHT_CSS_VAR, TOP_NAV_HEIGHT_PX } from 'MainRoot/nosc/shell/previewShellLayout';
 import { useGlobalSearch } from 'MainRoot/nosc/search/useGlobalSearch';
 import { isSearchEntityType, SearchEntityType, SearchRow, SearchSource } from 'MainRoot/nosc/search/searchTypes';
 import {
@@ -73,11 +73,16 @@ const SYNTAX_DOCS_URL = 'https://links.sonatype.com/products/nxiq/doc/advanced-s
 
 /**
  * Tallest the expanded card may grow. Measured from the viewport's dynamic height
- * minus the fixed top nav the card sits under and a bottom gutter, so a short
- * viewport shrinks the card instead of letting it run under the nav. `dvh` rather
- * than `vh` so mobile browser chrome is accounted for.
+ * minus the fixed top nav the card sits under, the live notice strip height
+ * (`NOTICE_STRIP_HEIGHT_CSS_VAR` — 0 when no notice is visible, resolved by
+ * the browser at layout time so this needs no React state), and a bottom
+ * gutter, so a short viewport shrinks the card instead of letting it run
+ * under the nav or a visible notice. `dvh` rather than `vh` so mobile browser
+ * chrome is accounted for.
  */
-const PANEL_MAX_HEIGHT = `min(640px, calc(100dvh - ${TOP_NAV_HEIGHT_PX + 24}px))`;
+const PANEL_MAX_HEIGHT = `min(640px, calc(100dvh - ${
+  TOP_NAV_HEIGHT_PX + 24
+}px - var(${NOTICE_STRIP_HEIGHT_CSS_VAR}, 0) * 1px))`;
 
 /**
  * Shortcut chip styling. Inline rather than in CSS because the chips must resolve
@@ -157,10 +162,7 @@ export function SearchOmnibar(): JSX.Element {
     return counts;
   }, [groups, source]);
 
-  const tabs = useMemo(
-    () => buildPanelTabs(source, countsByType, rows.length),
-    [source, countsByType, rows.length]
-  );
+  const tabs = useMemo(() => buildPanelTabs(source, countsByType, rows.length), [source, countsByType, rows.length]);
 
   // A query carrying itemType: tokens has already narrowed by type, so the strip
   // is hidden; a single token also selects its tab.
@@ -169,10 +171,10 @@ export function SearchOmnibar(): JSX.Element {
   // against the catalog) has no tab to select, so it is dropped: the tab falls back
   // to All and the strip stays visible rather than hiding it to advertise a
   // narrowing that was not applied.
-  const servableTokens = useMemo(
-    () => tokens.filter((token) => isTypeVisibleForSource(token, source)),
-    [tokens, source]
-  );
+  const servableTokens = useMemo(() => tokens.filter((token) => isTypeVisibleForSource(token, source)), [
+    tokens,
+    source,
+  ]);
   const hideTabs = servableTokens.length > 0;
   const effectiveActiveTab = useMemo(() => {
     if (servableTokens.length === 1) return servableTokens[0];
@@ -186,10 +188,12 @@ export function SearchOmnibar(): JSX.Element {
     if (!tabs.some((tab) => tab.id === activeTabId)) setActiveTabId(ALL_TAB_ID);
   }, [tabs, activeTabId]);
 
-  const visibleRows = useMemo(
-    () => (panelState === 'loaded' ? selectTabRows(rows, effectiveActiveTab, tabs) : []),
-    [panelState, rows, effectiveActiveTab, tabs]
-  );
+  const visibleRows = useMemo(() => (panelState === 'loaded' ? selectTabRows(rows, effectiveActiveTab, tabs) : []), [
+    panelState,
+    rows,
+    effectiveActiveTab,
+    tabs,
+  ]);
 
   const activeTabCount = isSearchEntityType(effectiveActiveTab) ? countsByType[effectiveActiveTab] : rows.length;
   const showViewMore = (activeTabCount ?? visibleRows.length) > visibleRows.length;
@@ -308,8 +312,7 @@ export function SearchOmnibar(): JSX.Element {
       const active = document.activeElement as HTMLElement | null;
       const isOnInput = active === inputRef.current;
       const inEditableField =
-        !!target &&
-        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
+        !!target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
 
       // A Radix popper (filter menus, tab overflow menu, data-source select) owns
       // its own keyboard entirely, shortcuts included: focusing the input from
@@ -357,9 +360,7 @@ export function SearchOmnibar(): JSX.Element {
         event.preventDefault();
         event.stopPropagation();
         const step = event.key === 'ArrowDown' ? 1 : -1;
-        setHighlight((current) =>
-          highlightCount === 0 ? 0 : (current + step + highlightCount) % highlightCount
-        );
+        setHighlight((current) => (highlightCount === 0 ? 0 : (current + step + highlightCount) % highlightCount));
         if (!isOnInput) inputRef.current?.focus();
         return;
       }
@@ -714,8 +715,9 @@ export function SearchOmnibar(): JSX.Element {
 
                 {/* Catalog narrows the tab set, so say why once results (or the
                     lack of them) are on screen. */}
-                {source === 'catalog' &&
-                  (panelState === 'loaded' || panelState === 'loaded-empty') && <CatalogScopeHint />}
+                {source === 'catalog' && (panelState === 'loaded' || panelState === 'loaded-empty') && (
+                  <CatalogScopeHint />
+                )}
 
                 <PanelFooter syntaxDocsUrl={SYNTAX_DOCS_URL} />
               </>

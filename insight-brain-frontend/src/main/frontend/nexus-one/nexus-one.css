@@ -11,12 +11,17 @@ html, body {
 }
 
 /*
- * Popper overlay layer for the Nexus One shell. The content region and the
- * fixed TopNav chrome carry raw z-index literals (100 / 1000) in
- * NexusOneShellLayout's inline styles (inline styles are set via the CSSOM and
- * can't reliably consume var()), so those literals are the source of truth for
- * those two layers. This token sits above both and is consumed by the popper
- * rule below.
+ * Popper overlay layer for the Nexus One shell. The content region, TopNav
+ * chrome, and NoticeStrip are React inline styles (set via the CSSOM, which
+ * can't reliably consume var()), so their z-indexes are named constants in
+ * previewShellLayout.ts (SHELL_THEME_Z_INDEX, TOP_NAV_WRAPPER_Z_INDEX,
+ * NOTICE_STRIP_Z_INDEX) instead of this CSS var. This token sits above all
+ * three and is consumed by the popper rule below.
+ *
+ * Full shell z-index ladder (low to high): classic mount base 1, shell
+ * Theme 100, TopNav wrapper 1000, NoticeStrip 1010, poppers/dialogs
+ * (--nexus-one-z-popper) 1100, toasts 1120. The NoticeStrip sits above
+ * TopNav but below poppers/dialogs so open menus and modals still paint over it.
  */
 :root {
   --nexus-one-z-popper: 1100;
@@ -64,7 +69,10 @@ html, body {
  */
 .nosc-toast-host {
   position: fixed;
-  top: calc(var(--space-4) + 56px);
+  /* --nosc-notice-strip-height (nosc/shell/previewShellLayout.ts) is a unitless
+   * pixel count published by NoticeStrip's ResizeObserver; 0 when no notice is
+   * visible. */
+  top: calc(var(--space-4) + 56px + var(--nosc-notice-strip-height, 0) * 1px);
   right: var(--space-4);
   z-index: calc(var(--nexus-one-z-popper) + 20);
   width: min(380px, calc(100vw - 2 * var(--space-4)));

@@ -18,7 +18,7 @@ import { useLeftNavCollapsed } from 'MainRoot/nosc/shell/useLeftNavCollapsed';
 import {
   LEFT_NAV_COLLAPSED_WIDTH_PX,
   LEFT_NAV_EXPANDED_WIDTH_PX,
-  TOP_NAV_HEIGHT_PX,
+  useShellTopOffsetPx,
 } from 'MainRoot/nosc/shell/previewShellLayout';
 import {
   selectIsAdvancedLegalPackSupported,
@@ -45,7 +45,6 @@ import {
 
 const COLLAPSED_WIDTH = LEFT_NAV_COLLAPSED_WIDTH_PX + 'px';
 const EXPANDED_WIDTH = LEFT_NAV_EXPANDED_WIDTH_PX + 'px';
-const TOP_OFFSET = TOP_NAV_HEIGHT_PX + 'px';
 
 // Active hrefs are extra paths (beyond an entry's own href) that keep it highlighted in the rail when in-page navigation or a
 // redirect lands the user somewhere other than that href but still inside the entry's experience.
@@ -420,6 +419,7 @@ function buildNavItems(flags) {
 export default function LeftNav() {
   const [isCollapsed, setIsCollapsed] = useLeftNavCollapsed();
   const currentPath = useCurrentHashPath();
+  const topOffset = useShellTopOffsetPx() + 'px';
 
   // Every Settings hub row targets either an embedded Classic state (hash paths
   // scattered across Classic — `/users`, `/mailConfig`, `/proxyConfig`, …) or the
@@ -508,7 +508,7 @@ export default function LeftNav() {
       data-collapsed={isCollapsed}
       style={{
         position: 'fixed',
-        top: TOP_OFFSET,
+        top: topOffset,
         bottom: 0,
         left: 0,
         width: isCollapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH,

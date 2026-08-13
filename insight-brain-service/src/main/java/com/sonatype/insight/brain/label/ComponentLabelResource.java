@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.label.ComponentLabelService.AppliedLabels;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.brain.repository.hosted.HrcOwnerTypeFeatureGuard;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
@@ -33,8 +34,8 @@ import com.codahale.metrics.annotation.Timed;
 public class ComponentLabelResource
 {
   public static final String RESOURCE_PATH =
-      "rest/label/component/{ownerType: application|organization|repository|repository_manager|repository_container}"
-          + "/{ownerId}/{hash}";
+      "rest/label/component/{ownerType: application|organization|repository|repository_manager|repository_container"
+          + "|hosted_repository_component}/{ownerId}/{hash}";
 
   private final ComponentLabelService componentLabelService;
 
@@ -57,6 +58,7 @@ public class ComponentLabelResource
       @PathParam("ownerId") final String ownerId,
       @PathParam("hash") final String hash)
   {
+    HrcOwnerTypeFeatureGuard.requireHrcFeatureIfHrc(ownerType);
     return componentLabelService.getComponentLabels(ownerType, ownerId, hash);
   }
 
@@ -74,6 +76,7 @@ public class ComponentLabelResource
       @PathParam("hash") final String hash,
       final Label label)
   {
+    HrcOwnerTypeFeatureGuard.requireHrcFeatureIfHrc(ownerType);
     componentLabelService.setComponentLabel(ownerType, ownerId, hash, label);
   }
 
@@ -91,6 +94,7 @@ public class ComponentLabelResource
       @PathParam("hash") final String hash,
       @PathParam("labelId") final String labelId)
   {
+    HrcOwnerTypeFeatureGuard.requireHrcFeatureIfHrc(ownerType);
     componentLabelService.deleteComponentLabel(ownerType, ownerId, hash, labelId);
   }
 }

@@ -13,6 +13,7 @@ import jakarta.inject.Named;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
@@ -64,7 +65,8 @@ public class SbomPolicyService
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
       String sbomVersion) throws IOException
   {
-    ReportEntry policyThreatsReportEntry = getPolicyViolationsReportEntryNoAuthz(applicationId, sbomVersion);
+    ReportEntry policyThreatsReportEntry =
+        getPolicyViolationsReportEntryNoAuthz(applicationDAO.getByIdNotNull(applicationId), sbomVersion);
     return policyThreatsReportEntry != null ? JsonUtils.parse(policyThreatsReportEntry.buf, PolicyThreats.class) : null;
   }
 
@@ -73,7 +75,15 @@ public class SbomPolicyService
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
       String sbomVersion)
   {
-    return getPolicyViolationsReportEntryNoAuthz(applicationId, sbomVersion);
+    return getPolicyViolationsReportEntryNoAuthz(applicationDAO.getByIdNotNull(applicationId), sbomVersion);
+  }
+
+  @Authorize(permission = Permission.READ)
+  public ReportEntry getPolicyViolationsReportEntry(
+      @AuthzContext(AuthzContext.Key.OWNER) final Owner owner,
+      final String sbomVersion)
+  {
+    return getPolicyViolationsReportEntryNoAuthz(owner, sbomVersion);
   }
 
   /**
@@ -81,10 +91,9 @@ public class SbomPolicyService
    * Unannotated so the compile-time authz aspect fires only on the outer public call — avoids
    * double-firing when one public overload would otherwise delegate to another.
    */
-  private ReportEntry getPolicyViolationsReportEntryNoAuthz(String applicationId, String sbomVersion) {
-    String scanId = getScanIdForPolicyViolation(applicationId, sbomVersion);
-    return reportService.processBrowseReport(applicationDAO.getByIdNotNull(applicationId), scanId,
-        POLICY_THREATS.getName());
+  private ReportEntry getPolicyViolationsReportEntryNoAuthz(Owner owner, String sbomVersion) {
+    String scanId = getScanIdForPolicyViolation(owner.getId(), sbomVersion);
+    return reportService.processBrowseReport(owner, scanId, POLICY_THREATS.getName());
   }
 
   @Authorize(permission = Permission.READ)
@@ -97,21 +106,48 @@ public class SbomPolicyService
       ReportEntry policyThreatsReportEntry,
       ReportEntry bomReportEntry) throws IOException
   {
+    return getPolicyViolationsJsonNodeByComponentRefOrHashNoAuthz(applicationDAO.getByIdNotNull(applicationId),
+        sbomVersion, componentRef, fileCoordinateId, hash, policyThreatsReportEntry, bomReportEntry);
+  }
+
+  @Authorize(permission = Permission.READ)
+  public JsonNode getPolicyViolationsJsonNodeByComponentRefOrHash(
+      @AuthzContext(AuthzContext.Key.OWNER) final Owner owner,
+      final String sbomVersion,
+      final String componentRef,
+      final String fileCoordinateId,
+      final String hash,
+      final ReportEntry policyThreatsReportEntry,
+      final ReportEntry bomReportEntry) throws IOException
+  {
+    return getPolicyViolationsJsonNodeByComponentRefOrHashNoAuthz(owner, sbomVersion, componentRef, fileCoordinateId,
+        hash, policyThreatsReportEntry, bomReportEntry);
+  }
+
+  private JsonNode getPolicyViolationsJsonNodeByComponentRefOrHashNoAuthz(
+      final Owner owner,
+      final String sbomVersion,
+      final String componentRef,
+      final String fileCoordinateId,
+      final String hash,
+      final ReportEntry policyThreatsReportEntry,
+      final ReportEntry bomReportEntry) throws IOException
+  {
     if (StringUtils.isAllBlank(componentRef, fileCoordinateId, hash)) {
       throw new BadRequestException("componentRef, fileCoordinateId and hash cannot be both null or empty.");
     }
 
     ReportEntry policyViolationsReportEntry = policyThreatsReportEntry != null
         ? policyThreatsReportEntry
-        : getPolicyViolationsReportEntryNoAuthz(applicationId, sbomVersion);
+        : getPolicyViolationsReportEntryNoAuthz(owner, sbomVersion);
 
     if (policyViolationsReportEntry == null) {
       return null;
     }
 
-    String scanId = getScanIdForPolicyViolation(applicationId, sbomVersion);
+    String scanId = getScanIdForPolicyViolation(owner.getId(), sbomVersion);
     String bomComponentHash =
-        findComponentHashInReport(applicationId, scanId, componentRef, fileCoordinateId, hash, bomReportEntry);
+        findComponentHashInReport(owner, scanId, componentRef, fileCoordinateId, hash, bomReportEntry);
 
     if (StringUtils.isBlank(bomComponentHash)) {
       return null;
@@ -130,7 +166,7 @@ public class SbomPolicyService
   }
 
   private String findComponentHashInReport(
-      String applicationId,
+      Owner owner,
       String scanId,
       String componentRef,
       String fileCoordinateId,
@@ -138,8 +174,7 @@ public class SbomPolicyService
       ReportEntry bomReportEntry) throws IOException
   {
     if (bomReportEntry == null) {
-      bomReportEntry = reportService.processBrowseReport(applicationDAO.getByIdNotNull(applicationId), scanId,
-          BOM_JSON.getName());
+      bomReportEntry = reportService.processBrowseReport(owner, scanId, BOM_JSON.getName());
     }
     if (bomReportEntry == null) {
       return null;

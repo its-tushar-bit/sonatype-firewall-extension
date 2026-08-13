@@ -64,8 +64,6 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader.HostedDataServicesSource;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
@@ -89,18 +87,13 @@ import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.HttpHeaderUtils;
-import com.sonatype.insight.brain.utils.JsonFileStore;
-import com.sonatype.insight.brain.utils.JsonStore;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
@@ -165,7 +158,7 @@ public class ReportResource
 
   private final PdfGeneratorService pdfGeneratorService;
 
-  private final ClusterLockManager clusterLockManager;
+  private final AuditLogReader auditLogReader;
 
   static {
     Set<Character> invalid = new HashSet<>(
@@ -193,7 +186,7 @@ public class ReportResource
       final ReleaseGraphService releaseGraphService,
       final VersionService versionService,
       final PdfGeneratorService pdfGeneratorService,
-      final ClusterLockManager clusterLockManager)
+      final AuditLogReader auditLogReader)
   {
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
@@ -209,7 +202,7 @@ public class ReportResource
     this.releaseGraphService = releaseGraphService;
     this.versionService = versionService;
     this.pdfGeneratorService = pdfGeneratorService;
-    this.clusterLockManager = clusterLockManager;
+    this.auditLogReader = auditLogReader;
   }
 
   /**
@@ -798,47 +791,7 @@ public class ReportResource
       @PathParam("path") final String path,
       @QueryParam("key") final String encodedKey) throws IOException
   {
-    Application application = applicationDAO.getByPublicIdNotNull(appPublicId);
-    String appId = application.getId();
-
-    final ContainerNode<?> key = decodeKey(encodedKey);
-    final String[] paths = path.split("[+]+");
-
-    // Read audit entries from the application directory
-    final JsonStore appStore = new JsonFileStore(work.getAuditDir(appId), appId, clusterLockManager);
-    final ContainerNode<?> feed = appStore.history(key, paths);
-
-    // Also read from ancestor organization directories to include org-scoped overrides
-    String orgId = application.getOrganizationId();
-    ContainerNode<?> mergedFeed = feed;
-    while (orgId != null) {
-      JsonStore orgStore = new JsonFileStore(work.getAuditDir(orgId), orgId, clusterLockManager);
-      ContainerNode<?> orgFeed = orgStore.history(key, paths);
-      mergedFeed = mergeFeeds(mergedFeed, orgFeed);
-      Organization org = organizationDAO.getById(orgId);
-      orgId = (org != null) ? org.getParentOrganizationId() : null;
-    }
-
-    if (mergedFeed != null) {
-      return Response.ok(JsonUtils.generate(mergedFeed)).build();
-    }
-
-    return Response.ok().build();
-  }
-
-  private ContainerNode<?> mergeFeeds(ContainerNode<?> base, ContainerNode<?> additional) {
-    if (additional == null) {
-      return base;
-    }
-    if (base == null) {
-      return additional;
-    }
-    JsonNode baseNode = base.get("aaData");
-    JsonNode additionalNode = additional.get("aaData");
-    if (baseNode instanceof ArrayNode baseEntries && additionalNode instanceof ArrayNode additionalEntries) {
-      baseEntries.addAll(additionalEntries);
-    }
-    return base;
+    return auditLogReader.readAuditLog(applicationDAO.getByPublicIdNotNull(appPublicId), path, encodedKey);
   }
 
   @GET
@@ -907,21 +860,4 @@ public class ReportResource
     return path == null ? "" : path.replaceFirst("^/+", "");
   }
 
-  /**
-   * @since 1.13.0
-   *        Given an encodedKey for a given Component, check for legacy GAV format and replace with ComponentIdentifier
-   *        if
-   *        it is missing.
-   *        Necessary to maintain backwards compatibility for older reports which encode this key as a JSON Object in
-   *        this
-   *        format: {"hash":"hashValue","groupId":"g","artifactId":"a","version":"v"}
-   */
-  private ContainerNode<?> decodeKey(final String encodedKey) throws IOException {
-    if (encodedKey == null) {
-      return null;
-    }
-    ContainerNode<?> decodedKey = JsonUtils.parse(encodedKey.getBytes(StandardCharsets.UTF_8));
-    ComponentIdentifierAdapter.replaceGavWithComponentIdentifier((ObjectNode) decodedKey);
-    return decodedKey;
-  }
 }

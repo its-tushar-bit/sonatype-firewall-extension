@@ -82,10 +82,16 @@ public class UserInterfaceLinksHelper
 
   public static final String LATEST_VERSION_SBOM_REPORT_PATH = "cycloneDx/{applicationId}/reports/{scanId}";
 
+  public static final String HRC_LATEST_VERSION_SBOM_REPORT_PATH =
+      "cycloneDx/hostedRepositoryComponent/{hrcId}/reports/{reportId}";
+
   public static final String QUARANTINED_COMPONENT_REPORT_PATH =
       "firewall/repositories/quarantinedComponent/{token}";
 
   public static final String LATEST_VERSION_SPDX_REPORT_PATH = "spdx/{applicationId}/reports/{scanId}";
+
+  public static final String HRC_LATEST_VERSION_SPDX_REPORT_PATH =
+      "spdx/hostedRepositoryComponent/{hrcId}/reports/{reportId}";
 
   public static final String POLICY_VIOLATION_DETAILS_PATH = "policyViolation/{violationId}";
 

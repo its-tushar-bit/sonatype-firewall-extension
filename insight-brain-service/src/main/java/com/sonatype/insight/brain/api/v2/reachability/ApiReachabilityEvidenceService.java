@@ -10,6 +10,7 @@ import java.io.IOException;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.report.LifecycleReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
@@ -48,12 +49,35 @@ public class ApiReachabilityEvidenceService
       String scanId,
       String vulnerabilityId) throws IOException
   {
-    LifecycleReport report = reportService.getReport(applicationId, scanId);
+    return getEvidenceForVulnerabilityInternal(applicationId, scanId, vulnerabilityId,
+        reportService.getReport(applicationId, scanId));
+  }
+
+  /**
+   * Owner-scoped overload used by the HRC-scoped sibling resource. Authorization is enforced
+   * at the resource layer via {@code @AuthzContext} on the {@code hrcId} / {@code publicId}
+   * path params.
+   */
+  public ApiReachabilityEvidenceResponse getEvidenceForVulnerability(
+      final Owner owner,
+      final String scanId,
+      final String vulnerabilityId) throws IOException
+  {
+    return getEvidenceForVulnerabilityInternal(owner.getId(), scanId, vulnerabilityId,
+        reportService.getReport(owner, scanId));
+  }
+
+  private ApiReachabilityEvidenceResponse getEvidenceForVulnerabilityInternal(
+      final String ownerIdForLogs,
+      final String scanId,
+      final String vulnerabilityId,
+      final LifecycleReport report) throws IOException
+  {
     ReportEntry entry = report.getEntry(
         LifecycleReport.ReportFile.REACHABILITY_EVIDENCE_JSON.getName());
 
     if (entry == null || entry.buf == null) {
-      log.debug("No reachability evidence found for app={}, scan={}", applicationId, scanId);
+      log.debug("No reachability evidence found for owner={}, scan={}", ownerIdForLogs, scanId);
       return null;
     }
 
@@ -62,7 +86,7 @@ public class ApiReachabilityEvidenceService
       evidence = objectMapper.readValue(entry.buf, StoredReachabilityEvidence.class);
     }
     catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-      log.warn("Corrupt reachability evidence for app={}, scan={}", applicationId, scanId, e);
+      log.warn("Corrupt reachability evidence for owner={}, scan={}", ownerIdForLogs, scanId, e);
       return null;
     }
 
@@ -70,8 +94,8 @@ public class ApiReachabilityEvidenceService
         ? evidence.evidence().get(vulnerabilityId)
         : null;
     if (vulnEvidence == null) {
-      log.debug("Vulnerability {} not found in evidence for app={}, scan={}",
-          vulnerabilityId, applicationId, scanId);
+      log.debug("Vulnerability {} not found in evidence for owner={}, scan={}",
+          vulnerabilityId, ownerIdForLogs, scanId);
       return null;
     }
     return new ApiReachabilityEvidenceResponse(

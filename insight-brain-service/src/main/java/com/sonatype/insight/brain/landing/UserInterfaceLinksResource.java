@@ -568,11 +568,36 @@ public class UserInterfaceLinksResource
   }
 
   @GET
+  @Path(HRC_LATEST_VERSION_SBOM_REPORT_PATH)
+  public Response linkToHostedRepositoryComponentSbom(
+      @PathParam("hrcId") String hrcId,
+      @PathParam("reportId") String reportId)
+  {
+    UriBuilder uriBuilder = baseUrl.redirect();
+    uriBuilder.path(PublicApiPaths.CYCLONE_DX_RESOURCE_PATH)
+        .path(DEFAULT_CDX_BOM_SPECIFICATION +
+            "/hostedRepositoryComponent/{hrcId}/reports/{reportId}");
+    return redirect(uriBuilder, hrcId, reportId);
+  }
+
+  @GET
   @Path(LATEST_VERSION_SPDX_REPORT_PATH)
   public Response linkToSpdx(@PathParam("applicationId") String applicationId, @PathParam("scanId") String scanId) {
     UriBuilder uriBuilder = baseUrl.redirect();
     uriBuilder.path(PublicApiPaths.SPDX_RESOURCE_PATH).path("/{applicationId}/reports/{reportId}");
     return redirect(uriBuilder, applicationId, scanId);
+  }
+
+  @GET
+  @Path(HRC_LATEST_VERSION_SPDX_REPORT_PATH)
+  public Response linkToHostedRepositoryComponentSpdx(
+      @PathParam("hrcId") String hrcId,
+      @PathParam("reportId") String reportId)
+  {
+    UriBuilder uriBuilder = baseUrl.redirect();
+    uriBuilder.path(PublicApiPaths.SPDX_RESOURCE_PATH)
+        .path("/hostedRepositoryComponent/{hrcId}/reports/{reportId}");
+    return redirect(uriBuilder, hrcId, reportId);
   }
 
   /**

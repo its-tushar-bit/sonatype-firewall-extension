@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -151,14 +152,23 @@ public class ApplicationService
       final String stageTypeId)
   {
     final Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    final PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByOwnerIdAndStageId(
-        application.getId(),
-        stageTypeId);
+    return getLatestReportInformationNoAuthz(application.getId(), stageTypeId);
+  }
+
+  @Authorize(permission = Permission.READ)
+  public LatestReportInformation getLatestReportInformation(
+      @AuthzContext(AuthzContext.Key.OWNER) final Owner owner,
+      final String stageTypeId)
+  {
+    return getLatestReportInformationNoAuthz(owner.getId(), stageTypeId);
+  }
+
+  private LatestReportInformation getLatestReportInformationNoAuthz(final String ownerId, final String stageTypeId) {
+    final PolicyEvaluation lastPrimaryPolicyEvaluation =
+        policyEvaluationDAO.getLastPrimaryByOwnerIdAndStageId(ownerId, stageTypeId);
 
     if (lastPrimaryPolicyEvaluation != null) {
-      return new LatestReportInformation(
-          lastPrimaryPolicyEvaluation.getScanId(),
-          true);
+      return new LatestReportInformation(lastPrimaryPolicyEvaluation.getScanId(), true);
     }
     else {
       return new LatestReportInformation(null, false);

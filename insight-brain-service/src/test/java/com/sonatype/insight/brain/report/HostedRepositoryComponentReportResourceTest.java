@@ -7,12 +7,17 @@ package com.sonatype.insight.brain.report;
 
 import java.io.IOException;
 
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.dataaccess.repository.HostedRepositoryComponentDAO;
 import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
+import com.sonatype.insight.brain.organization.ApplicationService;
+import com.sonatype.insight.brain.organization.LatestReportInformation;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.report.pdf.PdfGeneratorService;
+import com.sonatype.insight.brain.sbom.policy.SbomPolicyService;
 import com.sonatype.insight.brain.security.SecurityAspectControl;
 
 import org.junit.After;
@@ -59,6 +64,15 @@ public class HostedRepositoryComponentReportResourceTest
 
   @Mock
   private HostedRepositoryComponentDAO hostedRepositoryComponentDAO;
+
+  @Mock
+  private AuditLogReader auditLogReader;
+
+  @Mock
+  private SbomPolicyService sbomPolicyService;
+
+  @Mock
+  private ApplicationService applicationService;
 
   @InjectMocks
   private HostedRepositoryComponentReportResource resource;
@@ -131,5 +145,61 @@ public class HostedRepositoryComponentReportResourceTest
     assertThat(actual).isSameAs(expected);
     verify(hostedRepositoryComponentDAO).getByIdNotNull(HRC_ID);
     verify(pdfGeneratorService).printSbomReport(hrc, SBOM_VERSION);
+  }
+
+  @Test
+  public void auditLog_delegatesToAuditLogReaderWithResolvedHrc() throws IOException {
+    String auditPath = "licenses.json";
+    String encodedKey = null;
+    Response expected = mock(Response.class);
+    when(auditLogReader.readAuditLog(hrc, auditPath, encodedKey)).thenReturn(expected);
+
+    Response actual = resource.auditLog(HRC_ID, auditPath, encodedKey);
+
+    assertThat(actual).isSameAs(expected);
+    verify(hostedRepositoryComponentDAO).getByIdNotNull(HRC_ID);
+    verify(auditLogReader).readAuditLog(hrc, auditPath, encodedKey);
+  }
+
+  @Test
+  public void getSbomPolicyViolationReport_missingReportEntry_returns404() throws IOException {
+    String sbomVersion = "1.0";
+    when(sbomPolicyService.getPolicyViolationsReportEntry(hrc, sbomVersion)).thenReturn(null);
+    HttpServletRequest req = mock(HttpServletRequest.class);
+
+    Response actual = resource.getSbomPolicyViolationReport(HRC_ID, sbomVersion, null, null, null, req);
+
+    assertThat(actual.getStatus()).isEqualTo(404);
+    verify(hostedRepositoryComponentDAO).getByIdNotNull(HRC_ID);
+    verify(sbomPolicyService).getPolicyViolationsReportEntry(hrc, sbomVersion);
+  }
+
+  @Test
+  public void getSbomPolicyViolationReport_withReportEntry_returnsOk() throws IOException {
+    String sbomVersion = "1.0";
+    ReportEntry entry = new ReportEntry("policythreats.json", System.currentTimeMillis(), new byte[]{'{', '}'});
+    when(sbomPolicyService.getPolicyViolationsReportEntry(hrc, sbomVersion)).thenReturn(entry);
+    HttpServletRequest req = mock(HttpServletRequest.class);
+    ServletContext servletContext = mock(ServletContext.class);
+    when(req.getServletContext()).thenReturn(servletContext);
+    when(servletContext.getMimeType(entry.name)).thenReturn("application/json");
+
+    Response actual = resource.getSbomPolicyViolationReport(HRC_ID, sbomVersion, null, null, null, req);
+
+    assertThat(actual.getStatus()).isEqualTo(200);
+    verify(hostedRepositoryComponentDAO).getByIdNotNull(HRC_ID);
+  }
+
+  @Test
+  public void getLatestReportInformation_delegatesToApplicationServiceWithResolvedHrc() {
+    String stageTypeId = "build";
+    LatestReportInformation expected = new LatestReportInformation("scan-uuid", true);
+    when(applicationService.getLatestReportInformation(hrc, stageTypeId)).thenReturn(expected);
+
+    LatestReportInformation actual = resource.getLatestReportInformation(HRC_ID, stageTypeId);
+
+    assertThat(actual).isSameAs(expected);
+    verify(hostedRepositoryComponentDAO).getByIdNotNull(HRC_ID);
+    verify(applicationService).getLatestReportInformation(hrc, stageTypeId);
   }
 }

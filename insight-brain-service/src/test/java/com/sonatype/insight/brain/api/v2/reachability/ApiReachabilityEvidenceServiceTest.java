@@ -15,6 +15,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.report.LifecycleReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
@@ -95,6 +96,24 @@ public class ApiReachabilityEvidenceServiceTest
     assertThat(segments.get(1)).isInstanceOf(GapSegment.class);
     assertThat(segments.get(2)).isInstanceOf(MethodSegment.class);
     assertThat(((MethodSegment) segments.get(2)).component()).isEqualTo("pkg:maven/com.vuln/vuln@1.0");
+  }
+
+  @Test
+  public void testHrcOwner_delegatesToOwnerScopedGetReport() throws IOException {
+    HostedRepositoryComponent hrc = new HostedRepositoryComponent("repo-1", "path/lib.jar", "hash-abc");
+    hrc.setId("hrc-1");
+    when(reportService.getReport(hrc, SCAN_ID)).thenReturn(report);
+
+    EvidencePath path = new EvidencePath(List.of(
+        new MethodSegment("com.example.Entry.main()V", "/app.jar", null)));
+    mockStoredEvidence(new StoredReachabilityEvidence(
+        Map.of(VULN_ID, new VulnerabilityEvidence(List.of(path), false))));
+
+    ApiReachabilityEvidenceResponse result = service.getEvidenceForVulnerability(hrc, SCAN_ID, VULN_ID);
+
+    assertThat(result).isNotNull();
+    assertThat(result.vulnerabilityId()).isEqualTo(VULN_ID);
+    assertThat(result.paths()).hasSize(1);
   }
 
   private void mockStoredEvidence(StoredReachabilityEvidence stored) throws IOException {

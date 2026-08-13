@@ -179,7 +179,8 @@ public class PublicApiPaths
 
   public static final String LICENSE_OVERRIDE_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 +
       "licenseOverrides/" +
-      "{ownerType: application|organization|repository|repository_manager|repository_container}" +
+      "{ownerType: application|organization|repository|repository_manager|repository_container"
+      + "|hosted_repository_component}" +
       "/{ownerId}";
 
   public static final String PING_RESOURCE_PATH = "/ping";
@@ -244,4 +245,7 @@ public class PublicApiPaths
 
   public static final String REACHABILITY_EVIDENCE_RESOURCE_PATH =
       API_VERSION_PATH_V2 + "applications/{applicationPublicId}/reports/{reportId}/vulnerabilities";
+
+  public static final String HOSTED_REPOSITORY_COMPONENT_REACHABILITY_EVIDENCE_RESOURCE_PATH =
+      API_VERSION_PATH_V2 + "hostedRepositoryComponent/{hrcId}/reports/{reportId}/vulnerabilities";
 }

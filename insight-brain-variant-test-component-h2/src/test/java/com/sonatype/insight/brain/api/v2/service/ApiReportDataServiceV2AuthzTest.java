@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import jakarta.inject.Inject;
 
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.variant.AbstractComponentH2AuthzTest;
 import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -82,5 +83,74 @@ public class ApiReportDataServiceV2AuthzTest
     grantReadPermission(app.getId());
     assertThrows(NotFoundException.class,
         () -> reportDataService.getPolicyViolationsData(app.getPublicId(), "irrelevant", false));
+  }
+
+  @Test
+  public void getRawData_Hrc_Unauthenticated() throws Exception {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    assertThrows(UnauthenticatedException.class,
+        () -> reportDataService.getRawData(hrc, "irrelevant", false));
+  }
+
+  @Test
+  public void getRawData_Hrc_Unauthorized() throws Exception {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    login();
+    assertThrows(UnauthorizedException.class,
+        () -> reportDataService.getRawData(hrc, "irrelevant", false));
+  }
+
+  @Test
+  public void getDependencyTree_Hrc_Unauthenticated() throws Exception {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    assertThrows(UnauthenticatedException.class,
+        () -> reportDataService.getDependencyTree(hrc, "irrelevant"));
+  }
+
+  @Test
+  public void getDependencyTree_Hrc_Unauthorized() throws Exception {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    login();
+    assertThrows(UnauthorizedException.class,
+        () -> reportDataService.getDependencyTree(hrc, "irrelevant"));
+  }
+
+  @Test
+  public void testGetPolicyViolations_Hrc_Unauthenticated() throws Exception {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    assertThrows(UnauthenticatedException.class,
+        () -> reportDataService.getPolicyViolationsData(hrc, "irrelevant", false, null, null));
+  }
+
+  @Test
+  public void testGetPolicyViolations_Hrc_Unauthorized() throws Exception {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    login();
+    assertThrows(UnauthorizedException.class,
+        () -> reportDataService.getPolicyViolationsData(hrc, "irrelevant", false, null, null));
+  }
+
+  @Test
+  public void getRawData_Hrc_Authorized() throws Exception {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    grantReadPermission(hrc.getId());
+    assertThrows(NotFoundException.class,
+        () -> reportDataService.getRawData(hrc, "irrelevant", false));
+  }
+
+  @Test
+  public void getDependencyTree_Hrc_Authorized() throws Exception {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    grantReadPermission(hrc.getId());
+    assertThrows(NotFoundException.class,
+        () -> reportDataService.getDependencyTree(hrc, "irrelevant"));
+  }
+
+  @Test
+  public void testGetPolicyViolations_Hrc_Authorized() throws Exception {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    grantReadPermission(hrc.getId());
+    assertThrows(NotFoundException.class,
+        () -> reportDataService.getPolicyViolationsData(hrc, "irrelevant", false, null, null));
   }
 }

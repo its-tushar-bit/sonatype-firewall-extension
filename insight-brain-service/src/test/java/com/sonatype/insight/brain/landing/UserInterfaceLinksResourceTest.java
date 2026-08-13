@@ -205,6 +205,26 @@ public class UserInterfaceLinksResourceTest
   }
 
   @Test
+  public void testLinkToHostedRepositoryComponentSbom() throws Exception {
+    HttpResponse response =
+        get(UserInterfaceLinksHelper.HRC_LATEST_VERSION_SBOM_REPORT_PATH, "hrcId", "reportId");
+    assertRedirect(response, "api/v2/cycloneDx/1.7/hostedRepositoryComponent/hrcId/reports/reportId");
+  }
+
+  @Test
+  public void testLinkToHostedRepositoryComponentSbom_preservesQueryParams() throws Exception {
+    HttpResponse response = restRequest()
+        .path(
+            UserInterfaceLinksHelper.RESOURCE_PATH + "/" + UserInterfaceLinksHelper.HRC_LATEST_VERSION_SBOM_REPORT_PATH)
+        .parameter("hrcId", "reportId")
+        .query("utm_source=github")
+        .anon()
+        .get();
+    assertRedirect(response,
+        "api/v2/cycloneDx/1.7/hostedRepositoryComponent/hrcId/reports/reportId?utm_source=github");
+  }
+
+  @Test
   public void testLinkToPolicyViolationDetails() throws Exception {
     HttpResponse response = get(UserInterfaceLinksHelper.POLICY_VIOLATION_DETAILS_PATH, "violationId");
     assertRedirect(response, "assets/index.html#/violation/violationId");
@@ -241,6 +261,26 @@ public class UserInterfaceLinksResourceTest
   public void testLinkToSpdx() throws Exception {
     HttpResponse response = get(UserInterfaceLinksHelper.LATEST_VERSION_SPDX_REPORT_PATH, "appId", "scanId");
     assertRedirect(response, "api/v2/spdx/appId/reports/scanId");
+  }
+
+  @Test
+  public void testLinkToHostedRepositoryComponentSpdx() throws Exception {
+    HttpResponse response =
+        get(UserInterfaceLinksHelper.HRC_LATEST_VERSION_SPDX_REPORT_PATH, "hrcId", "reportId");
+    assertRedirect(response, "api/v2/spdx/hostedRepositoryComponent/hrcId/reports/reportId");
+  }
+
+  @Test
+  public void testLinkToHostedRepositoryComponentSpdx_preservesQueryParams() throws Exception {
+    HttpResponse response = restRequest()
+        .path(
+            UserInterfaceLinksHelper.RESOURCE_PATH + "/" + UserInterfaceLinksHelper.HRC_LATEST_VERSION_SPDX_REPORT_PATH)
+        .parameter("hrcId", "reportId")
+        .query("utm_source=github")
+        .anon()
+        .get();
+    assertRedirect(response,
+        "api/v2/spdx/hostedRepositoryComponent/hrcId/reports/reportId?utm_source=github");
   }
 
   @Test

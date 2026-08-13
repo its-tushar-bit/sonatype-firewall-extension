@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentSecurityVuln
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.DependencyType;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.brain.repository.hosted.HrcOwnerTypeFeatureGuard;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
@@ -41,12 +42,13 @@ public class ComponentInfoResource
 {
   public static final String RESOURCE_PATH = "rest/ci/componentDetails";
 
-  static final String COMPONENT_DETAILS_PATH = "{ownerType: application|repository}/{ownerId}";
+  static final String COMPONENT_DETAILS_PATH =
+      "{ownerType: application|repository|hosted_repository_component}/{ownerId}";
 
   public static final String LICENSES_PATH = COMPONENT_DETAILS_PATH + "/licenses";
 
   public static final String MULTI_LICENSES_PATH =
-      "{ownerType: application|repository|organization}/{ownerId}/multiLicenses";
+      "{ownerType: application|repository|organization|hosted_repository_component}/{ownerId}/multiLicenses";
 
   static final String MULTI_LICENSES_LEGAL_REVIEWER_PATH = MULTI_LICENSES_PATH + "/legalReviewer";
 
@@ -76,6 +78,7 @@ public class ComponentInfoResource
       @QueryParam("dependencyType") String dependencyType,
       @Context HttpServletRequest httpRequest) throws IOException
   {
+    HrcOwnerTypeFeatureGuard.requireHrcFeatureIfHrc(ownerType);
     return componentInfoService.getComponentDetails_ReadPermission(ownerType, ownerId, identifier, matchState, hash,
         proprietary, httpRequest, identificationSource, scanId, DependencyType.getById(dependencyType));
   }
@@ -94,6 +97,7 @@ public class ComponentInfoResource
       @QueryParam("componentIdentifier") ComponentIdentifier identifier,
       @QueryParam("matchState") String matchState)
   {
+    HrcOwnerTypeFeatureGuard.requireHrcFeatureIfHrc(ownerType);
     return componentInfoService.getComponentDetailsList_ReadPermission(ownerType, ownerId, identifier, matchState);
   }
 
@@ -113,6 +117,7 @@ public class ComponentInfoResource
       @QueryParam("scanId") String scanId,
       @QueryParam("dependencyType") String dependencyTypeId)
   {
+    HrcOwnerTypeFeatureGuard.requireHrcFeatureIfHrc(ownerType);
     return componentInfoService.getComponentVersionInfo(ownerType, ownerId,
         componentIdentifier, stageId, identificationSource, scanId, DependencyType.getById(dependencyTypeId));
   }
@@ -129,6 +134,7 @@ public class ComponentInfoResource
       @QueryParam("scanId") String scanId,
       @Context HttpServletRequest httpRequest) throws IOException
   {
+    HrcOwnerTypeFeatureGuard.requireHrcFeatureIfHrc(ownerType);
     return componentInfoService
         .getLicenses(ownerType, ownerId, componentIdentifier, httpRequest, identificationSource, scanId);
   }
@@ -145,6 +151,7 @@ public class ComponentInfoResource
       @QueryParam("scanId") String scanId,
       @Context HttpServletRequest httpRequest) throws IOException
   {
+    HrcOwnerTypeFeatureGuard.requireHrcFeatureIfHrc(ownerType);
     return componentInfoService.getMultiLicensesForRead(ownerType, ownerId, componentIdentifier, httpRequest,
         identificationSource, scanId);
   }
@@ -161,6 +168,7 @@ public class ComponentInfoResource
       @QueryParam("scanId") String scanId,
       @Context HttpServletRequest httpRequest) throws IOException
   {
+    HrcOwnerTypeFeatureGuard.requireHrcFeatureIfHrc(ownerType);
     return componentInfoService.getMultiLicensesForLegalReviewer(ownerType, ownerId, componentIdentifier, httpRequest,
         identificationSource, scanId);
   }
@@ -181,6 +189,7 @@ public class ComponentInfoResource
       @QueryParam("scanId") final String scanId,
       @Context HttpServletRequest httpRequest) throws IOException
   {
+    HrcOwnerTypeFeatureGuard.requireHrcFeatureIfHrc(ownerType);
     return componentInfoService
         .getSecurityVulnerabilities(ownerType, ownerId, hash, componentIdentifier, httpRequest, identificationSource,
             scanId);

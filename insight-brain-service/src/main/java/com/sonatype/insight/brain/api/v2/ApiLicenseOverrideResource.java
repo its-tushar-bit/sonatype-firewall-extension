@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.license.LicenseOverrideUtil;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.brain.repository.hosted.HrcOwnerTypeFeatureGuard;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import io.micrometer.core.annotation.Timed;
@@ -103,6 +104,7 @@ public class ApiLicenseOverrideResource
           required = true) final ApiLicenseOverrideDTO licenseOverrideDTO,
       @Context final HttpServletRequest request) throws IOException
   {
+    HrcOwnerTypeFeatureGuard.requireHrcFeatureIfHrc(ownerType);
     LicenseOverride addedLicenseOverride = licenseOverrideService.addLicenseOverride(ownerType,
         ownerId, LicenseOverrideUtil.toInternalLicenseOverride(licenseOverrideDTO), where,
         request);
@@ -133,6 +135,7 @@ public class ApiLicenseOverrideResource
       @QueryParam("where") String where,
       @Context final HttpServletRequest request) throws IOException
   {
+    HrcOwnerTypeFeatureGuard.requireHrcFeatureIfHrc(ownerType);
     licenseOverrideService.deleteLicenseOverride(ownerType, ownerId, licenseOverrideId,
         where, request);
   }
@@ -160,6 +163,7 @@ public class ApiLicenseOverrideResource
           description = "Enter the component format and coordinates.",
           required = true) @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier)
   {
+    HrcOwnerTypeFeatureGuard.requireHrcFeatureIfHrc(ownerType);
     return licenseOverrideService.getAppliedLicenseOverridesForLegalReviewer(ownerType, ownerId,
         componentIdentifier).toDto();
   }
@@ -189,6 +193,7 @@ public class ApiLicenseOverrideResource
               "e.g., `?componentIdentifier={\"format\":\"maven\",\"coordinates\":\"{...}}\"}",
           required = true) @QueryParam("componentIdentifier") final ComponentIdentifier componentIdentifier)
   {
+    HrcOwnerTypeFeatureGuard.requireHrcFeatureIfHrc(ownerType);
     return licenseOverrideService.getAppliedLicenseOverridesForRead(ownerType, ownerId,
         componentIdentifier).toDto();
   }

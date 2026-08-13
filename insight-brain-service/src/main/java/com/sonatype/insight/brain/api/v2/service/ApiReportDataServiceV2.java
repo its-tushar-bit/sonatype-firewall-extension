@@ -150,6 +150,16 @@ public class ApiReportDataServiceV2
         isDependencyDataInRestApiSupported(), includeCustomSecurityVulnerabilityData);
   }
 
+  @Authorize(permission = Permission.READ)
+  public ApiReportRawDataDTOV2 getRawData(
+      @AuthzContext(AuthzContext.Key.OWNER) final Owner owner,
+      final String scanId,
+      final boolean includeCustomSecurityVulnerabilityData) throws IOException
+  {
+    return getDataNoAuth(owner, scanId, false, isDependencyDataInRestApiSupported(),
+        includeCustomSecurityVulnerabilityData);
+  }
+
   /**
    * @since 1.64
    */
@@ -173,6 +183,17 @@ public class ApiReportDataServiceV2
   {
     return getPolicyViolationsDataNoAuth(appDAO.getByPublicIdNotNull(applicationPublicId), scanId,
         includeViolationTimes, page, pageSize);
+  }
+
+  @Authorize(permission = Permission.READ)
+  public ApiReportPolicyDataDTOV2 getPolicyViolationsData(
+      @AuthzContext(AuthzContext.Key.OWNER) final Owner owner,
+      final String scanId,
+      final boolean includeViolationTimes,
+      final Integer page,
+      final Integer pageSize) throws IOException
+  {
+    return getPolicyViolationsDataNoAuth(owner, scanId, includeViolationTimes, page, pageSize);
   }
 
   public ApiReportPolicyDataDTOV2 getPolicyViolationsDataNoAuth(
@@ -264,6 +285,14 @@ public class ApiReportDataServiceV2
   {
     return new ApiDependencyTreeResponseDTO(
         getDependencyTreeNoAuth(appDAO.getByPublicIdNotNull(applicationPublicId), scanId));
+  }
+
+  @Authorize(permission = Permission.READ)
+  public ApiDependencyTreeResponseDTO getDependencyTree(
+      @AuthzContext(AuthzContext.Key.OWNER) final Owner owner,
+      final String scanId) throws IOException
+  {
+    return new ApiDependencyTreeResponseDTO(getDependencyTreeNoAuth(owner, scanId));
   }
 
   public ApiDependencyTreeNodeDTO getDependencyTreeNoAuth(

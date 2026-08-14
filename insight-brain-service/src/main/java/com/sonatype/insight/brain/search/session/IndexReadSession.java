@@ -40,9 +40,9 @@ public interface IndexReadSession
    * metric value sort last regardless of {@code ascending}. Group values are returned lower-cased.
    * {@code metricField} must be a float/sortable-int metric (e.g. {@code vulnerabilitySeverity}): Lucene
    * always decodes maxes via {@code NumericUtils.sortableIntToFloat}. Integral int fields are not
-   * supported and will disagree across backends. Metrics are assumed non-negative. OpenSearch ranks
-   * scored groups via an exists-filter terms agg and pads unscored-only groups afterward so they sort
-   * last in both directions (no missing sentinel on {@code max}).
+   * supported and will disagree across backends. Metrics are assumed non-negative. OpenSearch enumerates
+   * groups via a paged composite aggregation, then ranks and bands in Java so unscored groups sort last
+   * and band counts match Lucene's per-group max semantics.
    * <p>
    * Field names are trusted caller input (no {@code checkFieldNames} validation). Result map iteration
    * order is unspecified across backends. The session applies {@code withRbac} to {@code query} and

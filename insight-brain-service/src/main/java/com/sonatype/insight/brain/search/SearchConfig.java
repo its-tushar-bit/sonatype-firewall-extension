@@ -37,7 +37,10 @@ public interface SearchConfig
   SearchMode getMode();
 
   /**
-   * Point-in-time keep-alive for {@link com.sonatype.insight.brain.search.opensearch.OpenSearchIndexReadSession}.
+   * Point-in-time keep-alive shared by
+   * {@link com.sonatype.insight.brain.search.opensearch.OpenSearchIndexReadSession} (session lifetime)
+   * and OpenSearch {@code rankGroupsByMaxMetric} composite scans (one bounded multi-page walk). Tuning
+   * the default down for session behaviour also shortens ranked-groups PIT lifetime.
    */
   default String getPitKeepAlive() {
     return "15m";

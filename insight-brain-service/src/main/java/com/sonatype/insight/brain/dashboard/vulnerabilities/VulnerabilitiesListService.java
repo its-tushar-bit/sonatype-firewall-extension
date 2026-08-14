@@ -22,6 +22,7 @@ import jakarta.inject.Singleton;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dashboard.vulnerabilities.VulnerabilitiesListIndexQueryBuilder.FacetDimension;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.GroupedDistinctCounts;
 import com.sonatype.insight.brain.search.index.RankedGroup;
 import com.sonatype.insight.brain.search.index.RankedGroupsResult;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
@@ -433,7 +434,7 @@ public class VulnerabilitiesListService
         ? List.of()
         : rankedGroups.subList((int) fromL, (int) Math.min(fromL + pageSize, rankedGroups.size()));
 
-    HydratedVulnerabilities hydrated = hydrate(query, pageGroups, ranked.distinctGroupCountExact());
+    HydratedVulnerabilities hydrated = hydrate(query, pageGroups);
     List<VulnerabilityRowDTO> pageRows = new ArrayList<>(pageGroups.size());
     for (RankedGroup group : pageGroups) {
       pageRows.add(toRow(group, hydrated));
@@ -459,15 +460,10 @@ public class VulnerabilitiesListService
    * of the index whatever the estate size. Application counts are aggregated over the whole matching set
    * instead, so a vulnerability present in every application costs the same as one present in a single
    * application.
-   *
-   * @param backendCountsExact whether the backend counts distinct values exactly, carried over from the
-   *          ranking pass — both it and the application-count aggregation are exact on Lucene and
-   *          estimated on OpenSearch
    */
   private HydratedVulnerabilities hydrate(
       final String query,
-      final List<RankedGroup> pageGroups,
-      final boolean backendCountsExact)
+      final List<RankedGroup> pageGroups)
   {
     LinkedHashSet<String> ids = new LinkedHashSet<>();
     for (RankedGroup group : pageGroups) {
@@ -496,15 +492,21 @@ public class VulnerabilitiesListService
     // the group was asked for. Handed the base query it would pay that for the whole estate on every
     // page load, which is the cost this list exists to stop paying.
     Map<String, Long> applicationCounts = new LinkedHashMap<>();
+    boolean applicationCountsExact = true;
     for (int start = 0; start < allIds.size(); start += batchSize) {
       List<String> batch = allIds.subList(start, Math.min(start + batchSize, allIds.size()));
-      applicationCounts.putAll(searchIndexClient.countDistinctGroupedBy(
+      GroupedDistinctCounts batchCounts = searchIndexClient.countDistinctGroupedByWithExactness(
           indexQueryBuilder.restrictToVulnerabilityIds(query, batch),
           FieldIdentifier.VULNERABILITY_ID.label,
           FieldIdentifier.APPLICATION_PUBLIC_ID.label,
-          batch));
+          batch);
+      applicationCounts.putAll(batchCounts.counts());
+      applicationCountsExact = applicationCountsExact && batchCounts.exact();
     }
-    return new HydratedVulnerabilities(byRankedId(items), applicationCounts, backendCountsExact);
+    // Application counts come from countDistinctGroupedBy (exact on Lucene, HLL on OpenSearch) — not
+    // from the ranking pass, which is now exact on both backends. Exactness follows the backend that
+    // produced each batch (hybrid failover must not borrow primary backendId()).
+    return new HydratedVulnerabilities(byRankedId(items), applicationCounts, applicationCountsExact);
   }
 
   /**
@@ -620,11 +622,11 @@ public class VulnerabilitiesListService
     // The bands are distinct counts from the same read that produced the total, so they carry that
     // read's exactness rather than being exact in their own right.
     facets.severitiesExact = bandSource.distinctGroupCountExact();
-    facets.ecosystems = ecosystemFacets(request);
-    // Ecosystem counts come from a different read than the ranking, and that read reports no
-    // exactness of its own. Both count distinct values the same way for a given backend — exactly on
-    // Lucene, by cardinality estimate on OpenSearch — so the ranking's flag describes them too.
-    facets.ecosystemsExact = ranked.distinctGroupCountExact();
+    GroupedDistinctCounts ecosystems = ecosystemFacets(request);
+    facets.ecosystems = ecosystems.counts();
+    // Ecosystem counts come from countDistinctGroupedBy (exact on Lucene, HLL on OpenSearch) — not
+    // from the ranking pass. Exactness is reported by the producing backend (hybrid-safe).
+    facets.ecosystemsExact = ecosystems.exact();
     // Scope facets need their own read session for term aggregation — see the builder.
     scopeFacetsBuilder.attachScopeFacets(facets, request);
     return facets;
@@ -657,8 +659,8 @@ public class VulnerabilitiesListService
    * the ecosystem selection dropped so unselected formats stay pickable. Formats are a closed set, so
    * one grouped aggregation replaces bucketing the formats seen on a page.
    */
-  private Map<String, Long> ecosystemFacets(final VulnerabilitiesListRequestDTO request) {
-    return searchIndexClient.countDistinctGroupedBy(
+  private GroupedDistinctCounts ecosystemFacets(final VulnerabilitiesListRequestDTO request) {
+    return searchIndexClient.countDistinctGroupedByWithExactness(
         indexQueryBuilder.buildMyScanDataQuery(request, FacetDimension.ECOSYSTEM),
         FieldIdentifier.COMPONENT_FORMAT.label,
         FieldIdentifier.VULNERABILITY_ID.label,

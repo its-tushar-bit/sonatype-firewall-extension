@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.PriorityQueue;
 
 import com.sonatype.insight.brain.search.index.RankedGroup;
+import com.sonatype.insight.brain.search.index.RankedGroupsRanking;
 import com.sonatype.insight.brain.search.index.RankedGroupsResult;
 
 import org.apache.lucene.index.SortedDocValues;
@@ -51,7 +52,7 @@ final class RankedGroupsReduction
     // query matched rather than what the estate has ever recorded.
     for (int ord = nextSeenOrd(seen, 0, ordCount); ord < ordCount; ord = nextSeenOrd(seen, ord + 1, ordCount)) {
       distinct++;
-      String band = bandFor(metricBands, maxByOrd[ord]);
+      String band = RankedGroupsRanking.bandFor(metricBands, maxByOrd[ord]);
       if (band == null) {
         unbanded++;
       }
@@ -92,39 +93,17 @@ final class RankedGroupsReduction
     return next >= ordCount ? ordCount : next;
   }
 
-  /** Best-first: metric-less groups always last, then metric by direction, then ordinal ascending. */
+  /**
+   * Best-first: metric-less groups always last, then metric by direction, then ordinal ascending.
+   * Ordinal order is Lucene term / {@code BytesRef} (UTF-8) order — the same tie-break
+   * {@link RankedGroupsRanking#compareMetricThenKey} applies to string keys on OpenSearch.
+   */
   private static Comparator<Integer> rankedOrdComparator(final float[] maxByOrd, final boolean ascending) {
     return (left, right) -> {
       int leftOrd = left;
       int rightOrd = right;
-      float leftValue = maxByOrd[leftOrd];
-      float rightValue = maxByOrd[rightOrd];
-      boolean leftMissing = Float.isNaN(leftValue);
-      boolean rightMissing = Float.isNaN(rightValue);
-      if (leftMissing || rightMissing) {
-        if (leftMissing && rightMissing) {
-          return Integer.compare(leftOrd, rightOrd);
-        }
-        return leftMissing ? 1 : -1;
-      }
-      int byMetric = ascending
-          ? Float.compare(leftValue, rightValue)
-          : Float.compare(rightValue, leftValue);
+      int byMetric = RankedGroupsRanking.compareMetric(maxByOrd[leftOrd], maxByOrd[rightOrd], ascending);
       return byMetric != 0 ? byMetric : Integer.compare(leftOrd, rightOrd);
     };
-  }
-
-  /** Half-open {@code [min, max)} band containing {@code value}, or null when unscored / out of range. */
-  private static String bandFor(final Map<String, float[]> metricBands, final float value) {
-    if (Float.isNaN(value)) {
-      return null;
-    }
-    for (Map.Entry<String, float[]> band : metricBands.entrySet()) {
-      float[] bounds = band.getValue();
-      if (value >= bounds[0] && value < bounds[1]) {
-        return band.getKey();
-      }
-    }
-    return null;
   }
 }

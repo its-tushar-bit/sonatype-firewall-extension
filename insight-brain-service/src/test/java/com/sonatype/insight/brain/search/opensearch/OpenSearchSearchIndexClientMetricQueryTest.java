@@ -12,6 +12,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -70,18 +71,21 @@ import org.opensearch.client.json.jackson.JacksonJsonpMapper;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch.core.SearchRequest;
 import org.opensearch.client.opensearch.core.SearchResponse;
+import org.opensearch.client.opensearch.core.pit.CreatePitRequest;
+import org.opensearch.client.opensearch.core.pit.CreatePitResponse;
+import org.opensearch.client.opensearch.core.pit.DeletePitRequest;
 import org.opensearch.client.opensearch.core.search.HitsMetadata;
 import org.opensearch.client.opensearch.core.search.TotalHits;
 import org.opensearch.client.opensearch.core.search.TotalHitsRelation;
 import org.opensearch.client.opensearch._types.aggregations.Aggregate;
 import org.opensearch.client.opensearch._types.aggregations.Buckets;
 import org.opensearch.client.opensearch._types.aggregations.CardinalityAggregate;
-import org.opensearch.client.opensearch._types.aggregations.FilterAggregate;
+import org.opensearch.client.opensearch._types.aggregations.CompositeAggregate;
+import org.opensearch.client.opensearch._types.aggregations.CompositeBucket;
 import org.opensearch.client.opensearch._types.aggregations.MaxAggregate;
 import org.opensearch.client.opensearch._types.aggregations.RangeAggregate;
 import org.opensearch.client.opensearch._types.aggregations.RangeBucket;
-import org.opensearch.client.opensearch._types.aggregations.StringTermsAggregate;
-import org.opensearch.client.opensearch._types.aggregations.StringTermsBucket;
+import org.opensearch.client.json.JsonData;
 
 /**
  * No-cluster unit tests for the security-critical metric query / RBAC construction in
@@ -110,19 +114,28 @@ public class OpenSearchSearchIndexClientMetricQueryTest
 
   private OpenSearchClient openSearchClient;
 
+  private SearchConfig searchConfig;
+
   private OpenSearchSearchIndexClient client;
 
   @BeforeEach
-  public void setUp() {
+  public void setUp() throws Exception {
     ownerDAO = mock(OwnerDAO.class);
     permissionService = mock(PermissionService.class);
     currentUser = mock(CurrentUser.class);
     indexConfigProvider = mock(IndexConfigProvider.class);
     openSearchClient = mock(OpenSearchClient.class);
+    searchConfig = mock(SearchConfig.class);
+    lenient().when(searchConfig.getPitKeepAlive()).thenReturn("1m");
 
     IndexConfig indexConfig = mock(IndexConfig.class);
     lenient().when(indexConfig.getIndexName()).thenReturn(INDEX_NAME);
     when(indexConfigProvider.getIndexConfig()).thenReturn(indexConfig);
+
+    CreatePitResponse pitResponse = mock(CreatePitResponse.class);
+    lenient().when(pitResponse.pitId()).thenReturn("test-pit");
+    lenient().when(openSearchClient.createPit(any(CreatePitRequest.class))).thenReturn(pitResponse);
+    lenient().when(openSearchClient.deletePit(any(DeletePitRequest.class))).thenReturn(null);
 
     // Real ConversionHelper so the query parsing / field validation path runs exactly like production.
     ConversionHelper conversionHelper = new ConversionHelper(new LuceneComponents(mock(InsightWork.class)));
@@ -151,7 +164,7 @@ public class OpenSearchSearchIndexClientMetricQueryTest
         mock(org.opensearch.client.transport.OpenSearchTransport.class),
         indexConfigProvider,
         mock(ClusterLockManager.class),
-        mock(SearchConfig.class),
+        searchConfig,
         mock(ShutdownHandler.class),
         null);
 
@@ -755,15 +768,10 @@ public class OpenSearchSearchIndexClientMetricQueryTest
 
   @Test
   public void testRankGroupsByMaxMetric_ReadsGroupsMetricsAndBandsFromPopulatedResponse() throws Exception {
-    // Every prior rankGroupsByMaxMetric test stubs an empty aggregation map, so the response-parsing
-    // half of the method — bucket order, max sub-agg extraction, per-band cardinality, and the
-    // distinct/banded subtraction that yields unbandedGroupCount — was never exercised.
     grantGlobalAccess();
 
-    stubRankedResponse(
-        List.of(termBucket("cve-2021-44228", 10.0d), termBucket("cve-2022-22965", 9.8d)),
-        7L,
-        Map.of("critical", 4L, "high", 2L));
+    stubCompositeResponse(
+        List.of(compositeBucket("cve-2021-44228", 10.0d), compositeBucket("cve-2022-22965", 9.8d)));
 
     RankedGroupsResult result = client.rankGroupsByMaxMetric(
         "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
@@ -776,23 +784,19 @@ public class OpenSearchSearchIndexClientMetricQueryTest
     assertThat(result.groups()).containsExactly(
         new RankedGroup("cve-2021-44228", 10.0f),
         new RankedGroup("cve-2022-22965", 9.8f));
-    assertThat(result.distinctGroupCount()).isEqualTo(7L);
-    assertThat(result.bandCounts()).containsEntry("critical", 4L).containsEntry("high", 2L);
-    // Bands absent from the response stay zero-filled rather than dropping out of the map.
+    assertThat(result.distinctGroupCount()).isEqualTo(2L);
+    assertThat(result.distinctGroupCountExact()).isTrue();
+    assertThat(result.bandCounts()).containsEntry("critical", 2L);
     assertThat(result.bandCounts()).containsEntry("none", 0L).containsEntry("low", 0L);
     assertThat(result.bandCounts().keySet())
         .containsExactlyElementsOf(CvssV3Severity.halfOpenScoreBands().keySet());
-    assertThat(result.unbandedGroupCount()).isEqualTo(1L); // 7 distinct - (4 + 2) banded
   }
 
   @Test
-  public void testRankGroupsByMaxMetric_NanMaxValue_YieldsNullMetric() throws Exception {
-    // OpenSearch reports an empty max sub-aggregation as NaN. That must surface as a null metric —
-    // the same "no metric" signal the Lucene collector encodes with its Float.NaN sentinel — so an
-    // unscored CVE is never mistaken for one scoring 0.0.
+  public void testRankGroupsByMaxMetric_SentinelMaxValue_YieldsNullMetric() throws Exception {
     grantGlobalAccess();
 
-    stubRankedResponse(List.of(termBucket("cve-2024-00001", Double.NaN)), 1L, Map.of());
+    stubCompositeResponse(List.of(compositeBucket("cve-2024-00001", -1.0d)));
 
     RankedGroupsResult result = client.rankGroupsByMaxMetric(
         "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
@@ -807,36 +811,10 @@ public class OpenSearchSearchIndexClientMetricQueryTest
   }
 
   @Test
-  public void testRankGroupsByMaxMetric_UnscoredOnlyGroup_PadsAfterScored() throws Exception {
-    // Unscored-only groups come from the unscored exists-filter pad, not a missing sentinel on max.
-    grantGlobalAccess();
-
-    stubRankedResponse(
-        List.of(termBucket("cve-scored", 4.0d)),
-        List.of(unscoredTermBucket("cve-unscored")),
-        2L,
-        Map.of());
-
-    RankedGroupsResult result = client.rankGroupsByMaxMetric(
-        "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
-        FieldIdentifier.VULNERABILITY_ID.label,
-        FieldIdentifier.VULNERABILITY_SEVERITY.label,
-        25,
-        true,
-        CvssV3Severity.halfOpenScoreBands());
-
-    assertThat(result.groups()).containsExactly(
-        new RankedGroup("cve-scored", 4.0f),
-        new RankedGroup("cve-unscored", null));
-    assertThat(result.unbandedGroupCount()).isEqualTo(2L);
-  }
-
-  @Test
   public void testRankGroupsByMaxMetric_ZeroScore_SurvivesTheSentinelCheck() throws Exception {
-    // 0.0 is a real CVSS score and must reach the row as a score, not as an unscored null metric.
     grantGlobalAccess();
 
-    stubRankedResponse(List.of(termBucket("cve-2024-00002", 0.0d)), 1L, Map.of());
+    stubCompositeResponse(List.of(compositeBucket("cve-2024-00002", 0.0d)));
 
     RankedGroupsResult result = client.rankGroupsByMaxMetric(
         "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
@@ -850,13 +828,12 @@ public class OpenSearchSearchIndexClientMetricQueryTest
   }
 
   @Test
-  public void testRankGroupsByMaxMetric_BandsExceedingDistinctTotal_ClampsUnbandedAtZero() throws Exception {
-    // Bands come from raw document metrics while the distinct total is a HyperLogLog++ estimate, so a
-    // group spanning two bands (or plain estimation noise) can push the banded sum above the total.
-    // The difference must clamp at zero rather than surfacing a negative count.
+  public void testRankGroupsByMaxMetric_UnscoredGroup_CountsAsUnbanded() throws Exception {
     grantGlobalAccess();
 
-    stubRankedResponse(List.of(termBucket("cve-2021-44228", 10.0d)), 3L, Map.of("critical", 3L, "medium", 2L));
+    stubCompositeResponse(List.of(
+        compositeBucket("cve-2021-44228", 10.0d),
+        compositeBucket("cve-unscored", -1.0d)));
 
     RankedGroupsResult result = client.rankGroupsByMaxMetric(
         "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
@@ -866,100 +843,145 @@ public class OpenSearchSearchIndexClientMetricQueryTest
         false,
         CvssV3Severity.halfOpenScoreBands());
 
-    assertThat(result.unbandedGroupCount()).isZero();
+    assertThat(result.distinctGroupCount()).isEqualTo(2L);
+    assertThat(result.bandCounts()).containsEntry("critical", 1L);
+    assertThat(result.unbandedGroupCount()).isEqualTo(1L);
   }
 
-  private static StringTermsBucket termBucket(final String key, final double maxValue) {
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testRankGroupsByMaxMetric_compositePaging_fetchesAllPages() throws Exception {
+    grantGlobalAccess();
+    // Force page size 1 so a single-bucket response is a "full" page and the after-key loop continues
+    // (production exits early when buckets.size() < compositePageSize()).
+    System.setProperty(OpenSearchRankedGroupsAggregation.PROP_COMPOSITE_PAGE_SIZE, "1");
+    try {
+      assertCompositePagingFetchesAllPages();
+    }
+    finally {
+      System.clearProperty(OpenSearchRankedGroupsAggregation.PROP_COMPOSITE_PAGE_SIZE);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private void assertCompositePagingFetchesAllPages() throws Exception {
+    CompositeBucket page1Bucket = compositeBucket("cve-page1", 9.0d);
+    CompositeBucket page2Bucket = compositeBucket("cve-page2", 8.0d);
+
+    JsonData afterGroup = mock(JsonData.class);
+    when(afterGroup.to(String.class)).thenReturn("page1-last");
+
+    Buckets<CompositeBucket> page1Buckets = mock(Buckets.class);
+    when(page1Buckets.array()).thenReturn(List.of(page1Bucket));
+
+    CompositeAggregate page1Composite = mock(CompositeAggregate.class);
+    when(page1Composite.buckets()).thenReturn(page1Buckets);
+    when(page1Composite.afterKey())
+        .thenReturn(Map.of(OpenSearchRankedGroupsAggregation.COMPOSITE_SOURCE_GROUP, afterGroup));
+
+    Aggregate page1Ranked = mock(Aggregate.class);
+    when(page1Ranked.isComposite()).thenReturn(true);
+    when(page1Ranked.composite()).thenReturn(page1Composite);
+
+    SearchResponse<Map> page1Response = mock(SearchResponse.class);
+    when(page1Response.aggregations())
+        .thenReturn(Map.of(OpenSearchRankedGroupsAggregation.AGG_RANKED, page1Ranked));
+
+    Buckets<CompositeBucket> page2Buckets = mock(Buckets.class);
+    when(page2Buckets.array()).thenReturn(List.of(page2Bucket));
+
+    CompositeAggregate page2Composite = mock(CompositeAggregate.class);
+    when(page2Composite.buckets()).thenReturn(page2Buckets);
+    when(page2Composite.afterKey()).thenReturn(null);
+
+    Aggregate page2Ranked = mock(Aggregate.class);
+    when(page2Ranked.isComposite()).thenReturn(true);
+    when(page2Ranked.composite()).thenReturn(page2Composite);
+
+    SearchResponse<Map> page2Response = mock(SearchResponse.class);
+    when(page2Response.aggregations())
+        .thenReturn(Map.of(OpenSearchRankedGroupsAggregation.AGG_RANKED, page2Ranked));
+
+    when(openSearchClient.search(any(SearchRequest.class), eq(Map.class)))
+        .thenReturn(page1Response)
+        .thenReturn(page2Response);
+
+    RankedGroupsResult result = client.rankGroupsByMaxMetric(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
+        FieldIdentifier.VULNERABILITY_ID.label,
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        25,
+        false,
+        CvssV3Severity.halfOpenScoreBands());
+
+    ArgumentCaptor<SearchRequest> requestCaptor = ArgumentCaptor.forClass(SearchRequest.class);
+    verify(openSearchClient, times(2)).search(requestCaptor.capture(), eq(Map.class));
+    verify(openSearchClient).createPit(any(CreatePitRequest.class));
+    verify(openSearchClient).deletePit(any(DeletePitRequest.class));
+
+    List<SearchRequest> requests = requestCaptor.getAllValues();
+    Map<String, String> firstAfter = requests.get(0)
+        .aggregations()
+        .get(OpenSearchRankedGroupsAggregation.AGG_RANKED)
+        .composite()
+        .after();
+    assertThat(firstAfter == null || firstAfter.isEmpty()).isTrue();
+    assertThat(requests.get(1)
+        .aggregations()
+        .get(OpenSearchRankedGroupsAggregation.AGG_RANKED)
+        .composite()
+        .after())
+            .containsEntry(OpenSearchRankedGroupsAggregation.COMPOSITE_SOURCE_GROUP, "page1-last");
+    assertThat(result.distinctGroupCount()).isEqualTo(2L);
+    assertThat(result.groups()).extracting(RankedGroup::groupValue)
+        .containsExactly("cve-page1", "cve-page2");
+  }
+
+  private static CompositeBucket compositeBucket(
+      final String key,
+      final double maxValue)
+  {
     MaxAggregate max = mock(MaxAggregate.class);
     when(max.value()).thenReturn(maxValue);
     Aggregate metric = mock(Aggregate.class);
     when(metric.isMax()).thenReturn(true);
     when(metric.max()).thenReturn(max);
-    Map<String, Aggregate> subAggregations = Map.of("groupMetric", metric);
+    Map<String, Aggregate> subAggregations = Map.of(OpenSearchRankedGroupsAggregation.SUB_AGG_MAX, metric);
 
-    StringTermsBucket bucket = mock(StringTermsBucket.class);
-    when(bucket.key()).thenReturn(key);
+    JsonData groupData = mock(JsonData.class);
+    when(groupData.to(String.class)).thenReturn(key);
+
+    CompositeBucket bucket = mock(CompositeBucket.class);
+    when(bucket.key()).thenReturn(Map.of(OpenSearchRankedGroupsAggregation.COMPOSITE_SOURCE_GROUP, groupData));
     when(bucket.aggregations()).thenReturn(subAggregations);
     return bucket;
   }
 
-  private static Aggregate cardinalityAggregate(final long value) {
-    CardinalityAggregate cardinality = mock(CardinalityAggregate.class);
-    when(cardinality.value()).thenReturn(value);
-    Aggregate aggregate = mock(Aggregate.class);
-    when(aggregate.isCardinality()).thenReturn(true);
-    when(aggregate.cardinality()).thenReturn(cardinality);
-    return aggregate;
-  }
-
-  private static StringTermsBucket unscoredTermBucket(final String key) {
-    StringTermsBucket bucket = mock(StringTermsBucket.class);
-    when(bucket.key()).thenReturn(key);
-    return bucket;
-  }
-
   @SuppressWarnings("unchecked")
-  private void stubRankedResponse(
-      final List<StringTermsBucket> termBuckets,
-      final long distinctGroups,
-      final Map<String, Long> bandDistincts) throws Exception
+  private void stubCompositeResponse(
+      final List<CompositeBucket> compositeBuckets) throws Exception
   {
-    stubRankedResponse(termBuckets, List.of(), distinctGroups, bandDistincts);
-  }
+    Buckets<CompositeBucket> buckets = mock(Buckets.class);
+    when(buckets.array()).thenReturn(compositeBuckets);
 
-  @SuppressWarnings("unchecked")
-  private void stubRankedResponse(
-      final List<StringTermsBucket> scoredBuckets,
-      final List<StringTermsBucket> unscoredBuckets,
-      final long distinctGroups,
-      final Map<String, Long> bandDistincts) throws Exception
-  {
-    Aggregate scored = filterTermsAggregate(scoredBuckets);
-    Aggregate unscored = filterTermsAggregate(unscoredBuckets);
+    org.opensearch.client.opensearch._types.aggregations.CompositeAggregate compositeAgg =
+        mock(org.opensearch.client.opensearch._types.aggregations.CompositeAggregate.class);
+    when(compositeAgg.buckets()).thenReturn(buckets);
+    // Short pages exit before reading afterKey; keep this lenient for the common stub path.
+    lenient().when(compositeAgg.afterKey()).thenReturn(null);
 
-    List<RangeBucket> rangeBuckets = new ArrayList<>();
-    bandDistincts.forEach((label, value) -> {
-      // Build the sub-aggregation before opening the outer when(...): Mockito rejects stubbing a
-      // second mock while an enclosing stub is still awaiting its thenReturn.
-      Map<String, Aggregate> subAggregations = Map.of("distinct", cardinalityAggregate(value));
-      RangeBucket bucket = mock(RangeBucket.class);
-      when(bucket.key()).thenReturn(label);
-      when(bucket.aggregations()).thenReturn(subAggregations);
-      rangeBuckets.add(bucket);
-    });
-    Buckets<RangeBucket> bandBuckets = mock(Buckets.class);
-    when(bandBuckets.array()).thenReturn(rangeBuckets);
-    RangeAggregate range = mock(RangeAggregate.class);
-    when(range.buckets()).thenReturn(bandBuckets);
-    Aggregate bands = mock(Aggregate.class);
-    when(bands.isRange()).thenReturn(true);
-    when(bands.range()).thenReturn(range);
+    Aggregate ranked = mock(Aggregate.class);
+    when(ranked.isComposite()).thenReturn(true);
+    when(ranked.composite()).thenReturn(compositeAgg);
 
-    Map<String, Aggregate> aggregations = Map.of(
-        "scoredGroups", scored,
-        "unscoredGroups", unscored,
-        "distinctGroups", cardinalityAggregate(distinctGroups),
-        "metricBands", bands);
-    SearchResponse<Map> response = mock(SearchResponse.class);
-    when(response.aggregations()).thenReturn(aggregations);
-    when(openSearchClient.search(any(SearchRequest.class), eq(Map.class))).thenReturn(response);
-  }
+    Map<String, Aggregate> aggregations =
+        Map.of(OpenSearchRankedGroupsAggregation.AGG_RANKED, ranked);
 
-  @SuppressWarnings("unchecked")
-  private static Aggregate filterTermsAggregate(final List<StringTermsBucket> termBuckets) {
-    Buckets<StringTermsBucket> buckets = mock(Buckets.class);
-    when(buckets.array()).thenReturn(termBuckets);
-    StringTermsAggregate sterms = mock(StringTermsAggregate.class);
-    when(sterms.buckets()).thenReturn(buckets);
-    Aggregate terms = mock(Aggregate.class);
-    when(terms.isSterms()).thenReturn(true);
-    when(terms.sterms()).thenReturn(sterms);
-    FilterAggregate filterAgg = mock(FilterAggregate.class);
-    when(filterAgg.aggregations()).thenReturn(Map.of("groups", terms));
-    Aggregate filter = mock(Aggregate.class);
-    when(filter.isFilter()).thenReturn(true);
-    when(filter.filter()).thenReturn(filterAgg);
-    return filter;
+    SearchResponse<Map> firstResponse = mock(SearchResponse.class);
+    when(firstResponse.aggregations()).thenReturn(aggregations);
+
+    when(openSearchClient.search(any(SearchRequest.class), eq(Map.class)))
+        .thenReturn(firstResponse);
   }
 
   private static Map<String, List<String>> collectTerms(JsonNode shouldArray) {

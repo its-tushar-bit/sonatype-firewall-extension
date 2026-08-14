@@ -535,9 +535,21 @@ public class HybridSearchIndexClient
       final String distinctField,
       final Collection<String> groupValues)
   {
+    return countDistinctGroupedByWithExactness(metricQuery, groupField, distinctField, groupValues).counts();
+  }
+
+  @Override
+  public GroupedDistinctCounts countDistinctGroupedByWithExactness(
+      final String metricQuery,
+      final String groupField,
+      final String distinctField,
+      final Collection<String> groupValues)
+  {
     Exception primaryException = null;
     try {
-      return primaryClient.countDistinctGroupedBy(metricQuery, groupField, distinctField, groupValues);
+      Map<String, Long> counts =
+          primaryClient.countDistinctGroupedBy(metricQuery, groupField, distinctField, groupValues);
+      return new GroupedDistinctCounts(counts, primaryClient.isDistinctAggregationExact());
     }
     catch (Exception e) {
       log.warn("Failed to count distinct grouped from primary client, falling back to secondary", e);
@@ -545,10 +557,10 @@ public class HybridSearchIndexClient
     }
 
     try {
-      Map<String, Long> result =
+      Map<String, Long> counts =
           secondaryClient.countDistinctGroupedBy(metricQuery, groupField, distinctField, groupValues);
       log.debug("Grouped distinct count completed successfully using secondary client (fallback)");
-      return result;
+      return new GroupedDistinctCounts(counts, secondaryClient.isDistinctAggregationExact());
     }
     catch (Exception e) {
       log.error("Failed to count distinct grouped from both primary and secondary clients", e);

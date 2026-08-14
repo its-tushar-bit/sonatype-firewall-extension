@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.GroupedDistinctCounts;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.RankedGroup;
 import com.sonatype.insight.brain.search.index.RankedGroupsResult;
@@ -27,6 +28,7 @@ import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.utils.CvssV3Severity;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -42,6 +44,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -66,6 +69,27 @@ public class VulnerabilitiesListServiceTest
 
   @Mock
   private Configuration configuration;
+
+  @BeforeEach
+  public void setUp() {
+    // Default exactness for WithExactness stubs below; hybrid-safe path no longer uses backendId().
+    lenient().when(searchIndexClient.isDistinctAggregationExact()).thenReturn(true);
+    // Mockito @Mock does not invoke interface defaults — unstubbed WithExactness returns null and NPEs
+    // hydrate/facets. Bridge to countDistinctGroupedBy + isDistinctAggregationExact like the real default.
+    // Use doReturn/doAnswer so later when()/thenReturn re-stubs do not re-enter this answer (WrongTypeOfReturnValue).
+    lenient().doReturn(Map.of())
+        .when(searchIndexClient)
+        .countDistinctGroupedBy(anyString(), anyString(), anyString(), anyCollection());
+    lenient().doAnswer(invocation -> new GroupedDistinctCounts(
+        searchIndexClient.countDistinctGroupedBy(
+            invocation.getArgument(0),
+            invocation.getArgument(1),
+            invocation.getArgument(2),
+            invocation.getArgument(3)),
+        searchIndexClient.isDistinctAggregationExact()))
+        .when(searchIndexClient)
+        .countDistinctGroupedByWithExactness(anyString(), anyString(), anyString(), anyCollection());
+  }
 
   private VulnerabilitiesListService service() {
     return new VulnerabilitiesListService(
@@ -211,7 +235,7 @@ public class VulnerabilitiesListServiceTest
 
     // The aggregation must run without the ecosystem selection, or npm could never appear in it.
     ArgumentCaptor<String> facetQuery = ArgumentCaptor.forClass(String.class);
-    verify(searchIndexClient).countDistinctGroupedBy(
+    verify(searchIndexClient).countDistinctGroupedByWithExactness(
         facetQuery.capture(),
         eq(FieldIdentifier.COMPONENT_FORMAT.label),
         anyString(),
@@ -305,11 +329,12 @@ public class VulnerabilitiesListServiceTest
     when(searchIndexClient.rankGroupsByMaxMetric(
         anyString(), anyString(), anyString(), anyInt(), anyBoolean(), anyMap()))
             .thenReturn(new RankedGroupsResult(
-                List.of(rankedGroup("cve-2021-44228", 10.0f)), 1L, false, bands, 0L));
+                List.of(rankedGroup("cve-2021-44228", 10.0f)), 1L, true, bands, 0L));
     when(searchIndexClient.searchIndex(anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
         .thenReturn(resultOf(vulnerabilityItem("cve-2021-44228")));
-    when(searchIndexClient.countDistinctGroupedBy(anyString(), anyString(), anyString(), anyCollection()))
-        .thenReturn(Map.of("cve-2021-44228", 4_812L));
+    doReturn(new GroupedDistinctCounts(Map.of("cve-2021-44228", 4_812L), false))
+        .when(searchIndexClient)
+        .countDistinctGroupedByWithExactness(anyString(), anyString(), anyString(), anyCollection());
 
     VulnerabilitiesListResponseDTO response = service().listVulnerabilities(new VulnerabilitiesListRequestDTO());
 
@@ -388,7 +413,7 @@ public class VulnerabilitiesListServiceTest
     service().listVulnerabilities(request);
 
     ArgumentCaptor<String> countQueries = ArgumentCaptor.forClass(String.class);
-    verify(searchIndexClient, atLeastOnce()).countDistinctGroupedBy(
+    verify(searchIndexClient, atLeastOnce()).countDistinctGroupedByWithExactness(
         countQueries.capture(),
         eq(FieldIdentifier.VULNERABILITY_ID.label),
         eq(FieldIdentifier.APPLICATION_PUBLIC_ID.label),
@@ -488,15 +513,25 @@ public class VulnerabilitiesListServiceTest
   }
 
   private void stubApplicationCounts(final Map<String, Long> countsByVulnerabilityId) {
-    lenient().when(searchIndexClient.countDistinctGroupedBy(
-        anyString(), eq(FieldIdentifier.VULNERABILITY_ID.label), anyString(), anyCollection()))
-        .thenReturn(countsByVulnerabilityId);
+    lenient().doReturn(countsByVulnerabilityId)
+        .when(searchIndexClient)
+        .countDistinctGroupedBy(
+            anyString(), eq(FieldIdentifier.VULNERABILITY_ID.label), anyString(), anyCollection());
+    lenient().doReturn(new GroupedDistinctCounts(countsByVulnerabilityId, true))
+        .when(searchIndexClient)
+        .countDistinctGroupedByWithExactness(
+            anyString(), eq(FieldIdentifier.VULNERABILITY_ID.label), anyString(), anyCollection());
   }
 
   private void stubEcosystemCounts(final Map<String, Long> countsByFormat) {
-    lenient().when(searchIndexClient.countDistinctGroupedBy(
-        anyString(), eq(FieldIdentifier.COMPONENT_FORMAT.label), anyString(), anyCollection()))
-        .thenReturn(countsByFormat);
+    lenient().doReturn(countsByFormat)
+        .when(searchIndexClient)
+        .countDistinctGroupedBy(
+            anyString(), eq(FieldIdentifier.COMPONENT_FORMAT.label), anyString(), anyCollection());
+    lenient().doReturn(new GroupedDistinctCounts(countsByFormat, true))
+        .when(searchIndexClient)
+        .countDistinctGroupedByWithExactness(
+            anyString(), eq(FieldIdentifier.COMPONENT_FORMAT.label), anyString(), anyCollection());
   }
 
   private static RankedGroup rankedGroup(final String vulnerabilityId, final Float cvssScore) {

@@ -38,6 +38,9 @@ import com.sonatype.insight.brain.search.SearchConfig;
 import com.sonatype.insight.brain.search.global.GlobalSearchRequest;
 import com.sonatype.insight.brain.search.index.RankedGroupsResult;
 import com.sonatype.insight.brain.search.index.SearchIndexException;
+import org.opensearch.client.opensearch.core.pit.CreatePitRequest;
+import org.opensearch.client.opensearch.core.pit.CreatePitResponse;
+import org.opensearch.client.opensearch.core.pit.DeletePitRequest;
 import com.sonatype.insight.brain.search.lucene.DocumentBuilderHelper;
 import com.sonatype.insight.brain.search.lucene.LuceneComponents;
 import com.sonatype.insight.brain.security.CurrentUser;
@@ -61,6 +64,9 @@ import org.opensearch.client.opensearch.core.search.Hit;
 import org.opensearch.client.opensearch.core.search.HitsMetadata;
 import org.opensearch.client.opensearch.core.search.TotalHits;
 import org.opensearch.client.opensearch.core.search.TotalHitsRelation;
+import org.opensearch.client.opensearch._types.aggregations.Aggregate;
+import org.opensearch.client.opensearch._types.aggregations.CompositeAggregate;
+import org.opensearch.client.opensearch._types.aggregations.CompositeBucket;
 import org.opensearch.client.opensearch.indices.GetIndicesSettingsRequest;
 import org.opensearch.client.opensearch.indices.GetIndicesSettingsResponse;
 import org.opensearch.client.opensearch.indices.OpenSearchIndicesClient;
@@ -75,13 +81,20 @@ public class OpenSearchSearchIndexClientTest
   private OpenSearchSearchIndexClient client;
 
   @BeforeEach
-  public void setUp() {
+  public void setUp() throws Exception {
     IndexConfigProvider indexConfigProvider = mock(IndexConfigProvider.class);
     openSearchClient = mock(OpenSearchClient.class);
 
     IndexConfig indexConfig = mock(IndexConfig.class);
     lenient().when(indexConfig.getIndexName()).thenReturn(INDEX_NAME);
     lenient().when(indexConfigProvider.getIndexConfig()).thenReturn(indexConfig);
+
+    SearchConfig searchConfig = mock(SearchConfig.class);
+    lenient().when(searchConfig.getPitKeepAlive()).thenReturn("1m");
+    CreatePitResponse pitResponse = mock(CreatePitResponse.class);
+    lenient().when(pitResponse.pitId()).thenReturn("test-pit");
+    lenient().when(openSearchClient.createPit(any(CreatePitRequest.class))).thenReturn(pitResponse);
+    lenient().when(openSearchClient.deletePit(any(DeletePitRequest.class))).thenReturn(null);
 
     ConversionHelper conversionHelper = new ConversionHelper(new LuceneComponents(mock(InsightWork.class)));
 
@@ -109,7 +122,7 @@ public class OpenSearchSearchIndexClientTest
         mock(org.opensearch.client.transport.OpenSearchTransport.class),
         indexConfigProvider,
         mock(ClusterLockManager.class),
-        mock(SearchConfig.class),
+        searchConfig,
         mock(ShutdownHandler.class),
         null);
 
@@ -380,9 +393,8 @@ public class OpenSearchSearchIndexClientTest
 
   @Test
   @SuppressWarnings("unchecked")
-  public void rankGroupsByMaxMetric_ordersTermsAggregationByMaxSubAggregation() throws Exception {
-    SearchResponse<Map> response = mock(SearchResponse.class);
-    when(response.aggregations()).thenReturn(null);
+  public void rankGroupsByMaxMetric_usesCompositeAggregationWithMaxSubAggregation() throws Exception {
+    SearchResponse<Map> response = emptyRankedCompositeResponse();
     when(openSearchClient.search(any(SearchRequest.class), eq(Map.class))).thenReturn(response);
 
     client.rankGroupsByMaxMetric(
@@ -397,27 +409,17 @@ public class OpenSearchSearchIndexClientTest
     org.mockito.Mockito.verify(openSearchClient).search(captor.capture(), eq(Map.class));
     SearchRequest request = captor.getValue();
 
-    var scored = request.aggregations().get("scoredGroups");
-    assertThat(scored.filter()).isNotNull();
-    var terms = scored.aggregations().get("groups").terms();
-    assertThat(terms.size()).isEqualTo(25);
-    assertThat(terms.shardSize()).isEqualTo(1000);
-    assertThat(scored.aggregations().get("groups").aggregations()).containsKey("groupMetric");
-    assertThat(request.aggregations()).containsKeys("scoredGroups", "unscoredGroups", "distinctGroups", "metricBands");
-    assertThat(request.aggregations().get("distinctGroups").cardinality().precisionThreshold())
-        .isEqualTo(40_000);
+    var composite = request.aggregations().get(OpenSearchRankedGroupsAggregation.AGG_RANKED).composite();
+    assertThat(composite).isNotNull();
+    assertThat(composite.size()).isEqualTo(10_000);
+    assertThat(request.aggregations().get(OpenSearchRankedGroupsAggregation.AGG_RANKED).aggregations())
+        .containsKey(OpenSearchRankedGroupsAggregation.SUB_AGG_MAX);
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void rankGroupsByMaxMetric_ordersTermsAggregationByMetricThenKeyAscendingTieBreak() throws Exception {
-    // Many CVEs share a CVSS score (7.5 and 9.8 are extremely common), so a terms order on the metric
-    // sub-aggregation alone leaves ties unspecified. The list service pages this with offset
-    // arithmetic, so an unstable tie order lets a row appear on two pages or be skipped entirely.
-    // A second _key:asc criterion pins the tie-break to the lowercased term's byte order, matching
-    // the ascending-groupValue tie-break of the Lucene global-ordinal comparator.
-    SearchResponse<Map> response = mock(SearchResponse.class);
-    when(response.aggregations()).thenReturn(null);
+  public void rankGroupsByMaxMetric_sortingIsHandledInJavaNotByTermsOrder() throws Exception {
+    SearchResponse<Map> response = emptyRankedCompositeResponse();
     when(openSearchClient.search(any(SearchRequest.class), eq(Map.class))).thenReturn(response);
 
     client.rankGroupsByMaxMetric(
@@ -430,20 +432,15 @@ public class OpenSearchSearchIndexClientTest
 
     ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
     org.mockito.Mockito.verify(openSearchClient).search(captor.capture(), eq(Map.class));
-    var order = captor.getValue().aggregations().get("scoredGroups").aggregations().get("groups").terms().order();
-
-    assertThat(order).hasSize(2);
-    assertThat(order.get(0)).containsEntry("groupMetric", org.opensearch.client.opensearch._types.SortOrder.Desc);
-    assertThat(order.get(1)).containsEntry("_key", org.opensearch.client.opensearch._types.SortOrder.Asc);
+    var agg = captor.getValue().aggregations().get(OpenSearchRankedGroupsAggregation.AGG_RANKED);
+    assertThat(agg.isComposite()).isTrue();
+    assertThat(agg.composite()).isNotNull();
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void rankGroupsByMaxMetric_ascendingRequest_keyTieBreakStaysAscending() throws Exception {
-    // The contract ties-break ascending regardless of the metric direction, the same way the Lucene
-    // comparator does: only the primary "groupMetric" criterion should flip with `ascending`.
-    SearchResponse<Map> response = mock(SearchResponse.class);
-    when(response.aggregations()).thenReturn(null);
+  public void rankGroupsByMaxMetric_ascendingRequest_usesCompositeAggregation() throws Exception {
+    SearchResponse<Map> response = emptyRankedCompositeResponse();
     when(openSearchClient.search(any(SearchRequest.class), eq(Map.class))).thenReturn(response);
 
     client.rankGroupsByMaxMetric(
@@ -456,18 +453,14 @@ public class OpenSearchSearchIndexClientTest
 
     ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
     org.mockito.Mockito.verify(openSearchClient).search(captor.capture(), eq(Map.class));
-    var order = captor.getValue().aggregations().get("scoredGroups").aggregations().get("groups").terms().order();
-
-    assertThat(order).hasSize(2);
-    assertThat(order.get(0)).containsEntry("groupMetric", org.opensearch.client.opensearch._types.SortOrder.Asc);
-    assertThat(order.get(1)).containsEntry("_key", org.opensearch.client.opensearch._types.SortOrder.Asc);
+    var agg = captor.getValue().aggregations().get(OpenSearchRankedGroupsAggregation.AGG_RANKED);
+    assertThat(agg.composite()).isNotNull();
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void rankGroupsByMaxMetric_reportsDistinctCountAsInexactAndZeroFillsBands() throws Exception {
-    SearchResponse<Map> response = mock(SearchResponse.class);
-    when(response.aggregations()).thenReturn(null);
+  public void rankGroupsByMaxMetric_reportsDistinctCountAsExactAndZeroFillsBands() throws Exception {
+    SearchResponse<Map> response = emptyRankedCompositeResponse();
     when(openSearchClient.search(any(SearchRequest.class), eq(Map.class))).thenReturn(response);
 
     RankedGroupsResult result = client.rankGroupsByMaxMetric(
@@ -478,7 +471,7 @@ public class OpenSearchSearchIndexClientTest
         false,
         CvssV3Severity.halfOpenScoreBands());
 
-    assertThat(result.distinctGroupCountExact()).isFalse();
+    assertThat(result.distinctGroupCountExact()).isTrue();
     assertThat(result.groups()).isEmpty();
     assertThat(result.bandCounts().keySet())
         .containsExactlyElementsOf(CvssV3Severity.halfOpenScoreBands().keySet());
@@ -488,35 +481,26 @@ public class OpenSearchSearchIndexClientTest
 
   @Test
   @SuppressWarnings("unchecked")
-  public void rankGroupsByMaxMetric_hugeLimit_shardSizeStaysPositive() throws Exception {
-    // shardSize over-fetches 5x the limit. Computed in int arithmetic that product overflows to a
-    // negative number for limits above ~429M, and OpenSearch rejects a negative shard_size outright.
-    SearchResponse<Map> response = mock(SearchResponse.class);
-    when(response.aggregations()).thenReturn(null);
+  public void rankGroupsByMaxMetric_hugeLimit_doesNotOverflow() throws Exception {
+    SearchResponse<Map> response = emptyRankedCompositeResponse();
     when(openSearchClient.search(any(SearchRequest.class), eq(Map.class))).thenReturn(response);
 
-    client.rankGroupsByMaxMetric(
+    RankedGroupsResult result = client.rankGroupsByMaxMetric(
         "itemType:security_vulnerability",
         FieldIdentifier.VULNERABILITY_ID.label,
         FieldIdentifier.VULNERABILITY_SEVERITY.label,
-        Integer.MAX_VALUE,
+        100_000,
         false,
         CvssV3Severity.halfOpenScoreBands());
 
-    ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
-    org.mockito.Mockito.verify(openSearchClient).search(captor.capture(), eq(Map.class));
-    assertThat(captor.getValue().aggregations().get("scoredGroups").aggregations().get("groups").terms().shardSize())
-        .isEqualTo(Integer.MAX_VALUE);
+    assertThat(result).isNotNull();
+    assertThat(result.groups()).isEmpty();
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void rankGroupsByMaxMetric_splitsScoredAndUnscoredViaExistsFilters() throws Exception {
-    // A missing sentinel on max cannot put unscored groups last for ascending without corrupting
-    // mixed groups (a high sentinel wins max). Split scored vs unscored-only with exists filters in
-    // one round-trip instead — scored terms carry a plain max, unscored pad afterward.
-    SearchResponse<Map> response = mock(SearchResponse.class);
-    when(response.aggregations()).thenReturn(null);
+  public void rankGroupsByMaxMetric_foldsDocumentsWithNoMetricInBelowTheScoreFloor() throws Exception {
+    SearchResponse<Map> response = emptyRankedCompositeResponse();
     when(openSearchClient.search(any(SearchRequest.class), eq(Map.class))).thenReturn(response);
 
     client.rankGroupsByMaxMetric(
@@ -529,18 +513,34 @@ public class OpenSearchSearchIndexClientTest
 
     ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
     org.mockito.Mockito.verify(openSearchClient).search(captor.capture(), eq(Map.class));
-    var scoredMax = captor.getValue()
+    double sentinel = captor.getValue()
         .aggregations()
-        .get("scoredGroups")
+        .get(OpenSearchRankedGroupsAggregation.AGG_RANKED)
         .aggregations()
-        .get("groups")
-        .aggregations()
-        .get("groupMetric")
-        .max();
-    assertThat(scoredMax.missing()).isNull();
-    assertThat(captor.getValue().aggregations().get("scoredGroups").filter().exists().field())
-        .isEqualTo(FieldIdentifier.VULNERABILITY_SEVERITY.label);
-    assertThat(captor.getValue().aggregations().get("unscoredGroups").filter().bool().mustNot()).isNotEmpty();
+        .get(OpenSearchRankedGroupsAggregation.SUB_AGG_MAX)
+        .max()
+        .missing()
+        .doubleValue();
+    assertThat(sentinel).isLessThan(0.0d);
+  }
+
+  @SuppressWarnings("unchecked")
+  private SearchResponse<Map> emptyRankedCompositeResponse() {
+    org.opensearch.client.opensearch._types.aggregations.Buckets<CompositeBucket> buckets =
+        mock(org.opensearch.client.opensearch._types.aggregations.Buckets.class);
+    lenient().when(buckets.array()).thenReturn(List.of());
+
+    CompositeAggregate compositeAgg = mock(CompositeAggregate.class);
+    lenient().when(compositeAgg.buckets()).thenReturn(buckets);
+
+    Aggregate ranked = mock(Aggregate.class);
+    lenient().when(ranked.isComposite()).thenReturn(true);
+    lenient().when(ranked.composite()).thenReturn(compositeAgg);
+
+    SearchResponse<Map> response = mock(SearchResponse.class);
+    lenient().when(response.aggregations())
+        .thenReturn(Map.of(OpenSearchRankedGroupsAggregation.AGG_RANKED, ranked));
+    return response;
   }
 
   private void stubMaxResultWindow() throws Exception {

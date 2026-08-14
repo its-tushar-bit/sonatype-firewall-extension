@@ -182,6 +182,30 @@ public interface SearchIndexClient
       Collection<String> groupValues);
 
   /**
+   * Same as {@link #countDistinctGroupedBy} but reports whether the producing backend's counts are
+   * exact. Prefer this over combining {@link #countDistinctGroupedBy} with {@link #backendId()}:
+   * hybrid failover can return secondary results while {@code backendId()} still names the primary.
+   */
+  default GroupedDistinctCounts countDistinctGroupedByWithExactness(
+      final String metricQuery,
+      final String groupField,
+      final String distinctField,
+      final Collection<String> groupValues)
+  {
+    return new GroupedDistinctCounts(
+        countDistinctGroupedBy(metricQuery, groupField, distinctField, groupValues),
+        isDistinctAggregationExact());
+  }
+
+  /**
+   * Whether {@link #countDistinctGroupedBy} returns exact distinct counts on this backend (Lucene
+   * yes; OpenSearch cardinality is HLL). Default {@code false} (fail closed / approximate).
+   */
+  default boolean isDistinctAggregationExact() {
+    return false;
+  }
+
+  /**
    * Groups the RBAC-filtered documents matching {@code metricQuery} by {@code groupField}, reduces each
    * group to the maximum value of {@code metricField}, and returns the highest-ranked groups together
    * with the distinct group count and per-band distinct group counts.

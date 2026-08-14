@@ -350,6 +350,11 @@ public class LuceneSearchIndexClient
     return BACKEND_ID;
   }
 
+  @Override
+  public boolean isDistinctAggregationExact() {
+    return true;
+  }
+
   /** {@code request.baseQuery()} MUST already be permission-wrapped; this runs it verbatim. */
   @Override
   public GlobalSearchResult searchGlobal(final GlobalSearchRequest request) {
@@ -623,6 +628,9 @@ public class LuceneSearchIndexClient
   }
 
   private RuntimeException mapSearchException(final Exception e) {
+    if (e instanceof SearchIndexException searchIndexException) {
+      return searchIndexException;
+    }
     if (e instanceof TooManyClauses) {
       return TOO_MANY_CLAUSES_EXCEPTION;
     }
@@ -644,17 +652,15 @@ public class LuceneSearchIndexClient
     validateRangeBounds(ranges);
     updateMaxQueryClauseCount();
 
+    // Share the NRT pooled searcher with count/rank so a Vulnerabilities list page that ranks then
+    // hydrates counts cannot see NRT-only hits in one path and miss them on a staler committed reader.
+    // Snapshot consistency for multi-read callers remains on IndexReadSession.
     return withSearcher(indexSearcher -> {
-      // RBAC is identical across total + bucket counts — resolve once per request.
       Query rbac = buildRbacFilterQuery();
       long total = countWithSearcher(indexSearcher, metricQuery, null, rbac);
       Map<String, Long> buckets = new LinkedHashMap<>();
       for (Map.Entry<String, int[]> entry : ranges.entrySet()) {
         int[] bounds = entry.getValue();
-        // Build the numeric range programmatically (matching the OpenSearch sibling's
-        // AggregationRange) rather than concatenating bounds + bucketField into a
-        // re-parsed query string — the same string-interpolation footgun this client
-        // deliberately avoids for the RBAC filter (programmatic TermInSetQuery).
         Query bandFilter = IntPoint.newRangeQuery(bucketField, bounds[0], bounds[1]);
         buckets.put(entry.getKey(), countWithSearcher(indexSearcher, metricQuery, bandFilter, rbac));
       }
@@ -676,7 +682,6 @@ public class LuceneSearchIndexClient
     updateMaxQueryClauseCount();
 
     return withSearcher(indexSearcher -> {
-      // RBAC is identical across total + bucket counts — resolve once per request.
       Query rbac = buildRbacFilterQuery();
       long total = countWithSearcher(indexSearcher, metricQuery, null, rbac);
       Map<String, Long> buckets = new LinkedHashMap<>();
@@ -687,12 +692,6 @@ public class LuceneSearchIndexClient
         // matching documents; skip nextDown so Lucene does not reject an inverted range. Matches
         // LuceneIndexReadSession.aggregateCountByFloatField.
         if (bounds[0] < bounds[1]) {
-          // Half-open [minInclusive, maxExclusive): step the upper bound down to the previous
-          // representable float so FloatPoint's inclusive newRangeQuery excludes it (the same
-          // nextDown trick QueryCompiler uses for exclusive float range bounds). This keeps a CVSS
-          // boundary value (e.g. 7.0) in exactly one band across both backends. Build the range
-          // programmatically (not by concatenating bounds into a re-parsed query string) — the same
-          // string-interpolation footgun this client deliberately avoids for the RBAC filter.
           Query bandFilter = FloatPoint.newRangeQuery(bucketField, bounds[0], FloatPoint.nextDown(bounds[1]));
           count = distinctField == null
               ? countWithSearcher(indexSearcher, metricQuery, bandFilter, rbac)
@@ -709,11 +708,8 @@ public class LuceneSearchIndexClient
     validateCompositeKeyFields(compositeKeyFields);
     checkFieldNames(new HashSet<>(compositeKeyFields));
     updateMaxQueryClauseCount();
-
-    return withSearcher(indexSearcher -> {
-      Query rbac = buildRbacFilterQuery();
-      return countDistinctWithSearcher(indexSearcher, metricQuery, compositeKeyFields, null, rbac);
-    });
+    return withSearcher(indexSearcher -> countDistinctWithSearcher(
+        indexSearcher, metricQuery, compositeKeyFields, null, buildRbacFilterQuery()));
   }
 
   @Override
@@ -808,8 +804,6 @@ public class LuceneSearchIndexClient
       Map<String, Map<String, Long>> byGroup = new LinkedHashMap<>();
       for (Map.Entry<String, int[]> band : bands.entrySet()) {
         int[] bounds = band.getValue();
-        // Programmatic int range (matching aggregateCountByField / the OpenSearch sibling), never a
-        // string-interpolated band clause fed back through the query parser.
         Query bandFilter = IntPoint.newRangeQuery(bandField, bounds[0], bounds[1]);
         Query query = buildRbacFilteredMetricQuery(metricQuery, bandFilter, rbac);
         DistinctGroupedStoredFieldCollector collector = new DistinctGroupedStoredFieldCollector(
@@ -834,10 +828,12 @@ public class LuceneSearchIndexClient
 
   /**
    * Runs {@code work} against the pooled NRT searcher when {@link #getAvailableSearcherManagerHolder()}
-   * reports one is usable, falling back to a fresh {@link DirectoryReader} otherwise. Mirrors the
-   * acquire/release/fallback contract already used by {@link #count(String)} and
-   * {@link #rankGroupsByMaxMetric}: only a {@link SearcherManagerUnavailableException} triggers the
-   * DirectoryReader fallback, any other failure is mapped and rethrown immediately.
+   * reports one is usable, falling back to a fresh {@link DirectoryReader} otherwise. Shared by
+   * {@link #count(String)}, {@link #rankGroupsByMaxMetric}, and the Lucene metric aggregations so a
+   * single list-page request observes one reader generation. Snapshot consistency across multiple
+   * logical reads belongs on {@code IndexReadSession}. Only a
+   * {@link SearcherManagerUnavailableException} triggers the DirectoryReader fallback; any other
+   * failure is mapped and rethrown immediately.
    */
   private <T> T withSearcher(final SearcherWork<T> work) {
     Optional<LuceneSearcherManagerHolder> searcherManagerHolder = getAvailableSearcherManagerHolder();

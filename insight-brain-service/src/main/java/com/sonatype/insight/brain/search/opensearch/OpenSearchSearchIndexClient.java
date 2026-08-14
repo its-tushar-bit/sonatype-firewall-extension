@@ -50,7 +50,6 @@ import com.sonatype.insight.brain.search.SearchConfig.AwsHttpOpenSearchConfig;
 import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.MetricAggregationResult;
-import com.sonatype.insight.brain.search.index.RankedGroup;
 import com.sonatype.insight.brain.search.index.RankedGroupsResult;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.index.SearchIndexException;
@@ -92,8 +91,12 @@ import org.opensearch.client.opensearch._types.StoreStats;
 import org.opensearch.client.opensearch._types.mapping.TypeMapping;
 import org.opensearch.client.opensearch.core.SearchRequest;
 import org.opensearch.client.opensearch.core.SearchResponse;
+import org.opensearch.client.opensearch.core.pit.CreatePitRequest;
+import org.opensearch.client.opensearch.core.pit.CreatePitResponse;
+import org.opensearch.client.opensearch.core.pit.DeletePitRequest;
 import org.opensearch.client.opensearch.core.search.Hit;
 import org.opensearch.client.opensearch.core.search.HitsMetadata;
+import org.opensearch.client.opensearch.core.search.Pit;
 import org.opensearch.client.opensearch.core.search.SourceConfig;
 import org.opensearch.client.opensearch.core.search.TotalHits;
 import org.opensearch.client.opensearch.core.search.TotalHitsRelation;
@@ -137,13 +140,6 @@ public class OpenSearchSearchIndexClient
   private static final Logger log = LoggerFactory.getLogger(OpenSearchSearchIndexClient.class);
 
   private static final int DEFAULT_MAX_RESULT_WINDOW = 10000;
-
-  /**
-   * Stands in for a document that carries no ranking metric, so a group made only of such documents
-   * reduces to a definite number rather than to whatever a backend reports for an empty maximum.
-   * Any value below the 0.0 CVSS floor works; what matters is that it loses the maximum against every
-   * real score, leaving a group that mixes scored and unscored documents ranked on its real ones.
-   */
 
   private static final Set<Class<?>> SYSTEMIC_NETWORK_EXCEPTIONS = Set.of(
       SocketException.class,
@@ -1063,14 +1059,6 @@ public class OpenSearchSearchIndexClient
     }
   }
 
-  /**
-   * Ranks groups by max metric in one OpenSearch round-trip. Scored groups (documents that carry
-   * {@code metricField}) are collected via an exists-filter terms agg; unscored-only groups pad the
-   * page afterward so they sort last regardless of {@code ascending}. A missing sentinel on
-   * {@code max} is intentionally avoided — a high sentinel would corrupt mixed scored/unscored
-   * groups. Band counts still use raw-document range+cardinality (max-vs-any divergence tracked in
-   * CLM-44916).
-   */
   @Override
   public RankedGroupsResult rankGroupsByMaxMetric(
       final String metricQuery,
@@ -1085,81 +1073,51 @@ public class OpenSearchSearchIndexClient
     if (limit <= 0) {
       return RankedGroupsResult.empty(metricBands);
     }
+    String pitId = null;
+    String pitKeepAlive = searchConfig.getPitKeepAlive();
     try {
       String initialQuery = createInitialQuery(metricQuery, true);
       checkFieldNames(getFieldNames(initialQuery));
 
       String groupLabel = resolveCompositeKeyFieldLabel(groupField);
-      SortOrder order = ascending ? SortOrder.Asc : SortOrder.Desc;
-      // Over-fetch 5x per shard so the coordinator sees enough candidates to rank correctly. `limit`
-      // is caller-supplied, so compute in long arithmetic: `limit * 5` overflows to a negative
-      // shardSize above ~429M, which OpenSearch rejects outright.
-      int shardSize = (int) Math.min(Integer.MAX_VALUE, Math.max((long) limit * 5L, 1_000L));
+      Query osQuery = buildMetricQuery(initialQuery);
+      String indexName = indexConfigProvider.getIndexConfig().getIndexName();
 
-      List<AggregationRange> aggregationRanges = new ArrayList<>();
-      // Half-open [from, to) is exactly OpenSearch range-agg semantics, so bounds pass through
-      // verbatim — the same treatment aggregateCountByFloatField gives its float bands.
-      metricBands.forEach((label, bounds) -> aggregationRanges.add(AggregationRange.of(r -> r
-          .key(label)
-          .from(String.valueOf(bounds[0]))
-          .to(String.valueOf(bounds[1])))));
+      // Pin a PIT for the multi-page composite scan so refreshes cannot change the group set mid-walk.
+      CreatePitResponse pitResponse = getClient().createPit(new CreatePitRequest.Builder()
+          .targetIndexes(indexName)
+          .keepAlive(t -> t.time(pitKeepAlive))
+          .build());
+      pitId = pitResponse.pitId();
+      final String pinnedPitId = pitId;
 
-      SearchRequest searchRequest = new SearchRequest.Builder()
-          .index(indexConfigProvider.getIndexConfig().getIndexName())
-          .size(0)
-          .query(buildMetricQuery(initialQuery))
-          .aggregations("scoredGroups", OpenSearchSessionAggregations.buildScoredRankedGroupsAggregation(
-              groupLabel, metricField, limit, shardSize, order))
-          .aggregations("unscoredGroups", OpenSearchSessionAggregations.buildUnscoredRankedGroupsAggregation(
-              groupLabel, metricField, limit))
-          .aggregations("distinctGroups", a -> a
-              .cardinality(c -> c.field(groupLabel).precisionThreshold(40_000)))
-          // Bands are computed from raw document metrics, so a group whose documents carry different
-          // metric values is counted in every band it touches — unlike the Lucene sibling, which
-          // assigns each group once by its max. Band counts can therefore exceed the distinct total
-          // here, and `unbandedGroupCount` clamps to zero. Matching Lucene exactly needs a paged
-          // composite aggregation, tracked in CLM-44916; the existing float-band aggregations in
-          // CatalogService and DashboardMetricsService already ship these same raw-document semantics.
-          .aggregations("metricBands", a -> a
-              .range(r -> r.field(metricField).ranges(aggregationRanges))
-              .aggregations("distinct", sub -> sub
-                  .cardinality(c -> c.field(groupLabel).precisionThreshold(40_000))))
-          .build();
-
-      SearchResponse<Map> searchResponse = getClient().search(searchRequest, Map.class);
-      Map<String, Aggregate> aggs = searchResponse.aggregations();
-      List<RankedGroup> groups = OpenSearchSessionAggregations.parseRankedGroups(aggs, limit);
-
-      Aggregate distinctAgg = aggs == null ? null : aggs.get("distinctGroups");
-      long distinct = distinctAgg != null && distinctAgg.isCardinality()
-          ? distinctAgg.cardinality().value()
-          : 0L;
-
-      Map<String, Long> bandCounts = new LinkedHashMap<>();
-      metricBands.keySet().forEach(label -> bandCounts.put(label, 0L));
-      Aggregate bandsAgg = aggs == null ? null : aggs.get("metricBands");
-      if (bandsAgg != null && bandsAgg.isRange()) {
-        for (RangeBucket bucket : bandsAgg.range().buckets().array()) {
-          String key = bucket.key();
-          if (key == null || !bandCounts.containsKey(key)) {
-            continue;
-          }
-          Aggregate distinctInBand = bucket.aggregations().get("distinct");
-          bandCounts.put(key, distinctInBand != null && distinctInBand.isCardinality()
-              ? distinctInBand.cardinality().value()
-              : 0L);
+      return OpenSearchRankedGroupsAggregation.execute(
+          request -> getClient().search(request, Map.class),
+          () -> new SearchRequest.Builder()
+              .pit(new Pit.Builder().id(pinnedPitId).keepAlive(pitKeepAlive).build())
+              .query(osQuery),
+          groupLabel,
+          metricField,
+          limit,
+          ascending,
+          metricBands);
+    }
+    catch (Exception e) {
+      throwMetricSearchException(e);
+      throw new IllegalStateException("unreachable: throwMetricSearchException always throws", e);
+    }
+    finally {
+      if (pitId != null) {
+        try {
+          getClient().deletePit(new DeletePitRequest.Builder().pitId(List.of(pitId)).build());
+        }
+        catch (Exception e) {
+          // OpenSearchException (e.g. 404 on already-expired PIT) is a RuntimeException — must not
+          // escape finally and replace a successful RankedGroupsResult (or mask the real failure).
+          log.warn("Failed to delete OpenSearch PIT {} after ranked-groups scan; it will expire after keepAlive",
+              pitId, e);
         }
       }
-
-      // Both inputs are HyperLogLog++ estimates, so the difference can go negative on estimation
-      // noise alone. Clamp at zero rather than surfacing an impossible count.
-      long banded = bandCounts.values().stream().mapToLong(Long::longValue).sum();
-      long unbanded = Math.max(0L, distinct - banded);
-
-      return new RankedGroupsResult(groups, distinct, false, bandCounts, unbanded);
-    }
-    catch (IOException e) {
-      throw new SearchIndexException(e);
     }
   }
 
@@ -1426,6 +1384,9 @@ public class OpenSearchSearchIndexClient
   }
 
   private void throwMetricSearchException(final Exception e) {
+    if (e instanceof SearchIndexException searchIndexException) {
+      throw searchIndexException;
+    }
     throwIfIndexNotFound(e);
     if (e instanceof OpenSearchException openSearchException) {
       String responseJson = openSearchException.response().toJsonString();

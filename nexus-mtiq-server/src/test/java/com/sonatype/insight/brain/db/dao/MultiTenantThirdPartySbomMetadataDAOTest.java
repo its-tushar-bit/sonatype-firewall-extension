@@ -18,8 +18,8 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -30,7 +30,6 @@ public class MultiTenantThirdPartySbomMetadataDAOTest
 
   private SearchIndexChangeDAO searchIndexChangeDAO;
 
-  @Before
   @Override
   public void setup() {
     super.setup();
@@ -41,7 +40,7 @@ public class MultiTenantThirdPartySbomMetadataDAOTest
     this.searchIndexChangeDAO = daoFactory.createSearchIndexChangeDAO();
   }
 
-  @Before
+  @BeforeEach
   public void before() {
     searchIndexChangeDAO.getAll().forEach(searchIndexChangeDAO::delete);
   }

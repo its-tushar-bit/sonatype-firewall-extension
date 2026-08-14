@@ -20,8 +20,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -38,7 +37,6 @@ public class MultiTenantPolicyStatusOverrideTelemetryCollectorTest
 
   private PolicyDAO policyDAO;
 
-  @Before
   @Override
   public void setup() {
     super.setup();

@@ -11,22 +11,22 @@ import com.sonatype.insight.brain.db.datasource.MultiTenantPostgresDataSourcePro
 import com.sonatype.insight.db.DatabaseConfig;
 
 import org.apache.commons.dbcp2.BasicDataSource;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class MultiTenantPostgresDataSourceProviderTest
 {
   private DatabaseConfig mainConfig;
 
   private DatabaseConfig locksConfig;
 
-  @Before
+  @BeforeEach
   public void before() {
     mainConfig = new DatabaseConfig();
     mainConfig.setUrl("jdbc:postgresql://hostname:5432/dbname");

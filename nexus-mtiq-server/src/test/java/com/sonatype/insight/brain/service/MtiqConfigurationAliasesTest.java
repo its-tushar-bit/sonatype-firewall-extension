@@ -12,7 +12,7 @@ import static org.mockito.Mockito.mock;
 import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
 import com.sonatype.insight.brain.security.EncryptionKeyStore;
 import com.sonatype.insight.brain.security.MultiTenantEncryptionKeyStore;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.boot.test.context.TestConfiguration;

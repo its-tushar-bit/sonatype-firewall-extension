@@ -15,20 +15,21 @@ import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Fail.fail;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class PullRequestPollingSchedulerTest
     extends AbstractMultiTenantDatabaseTest
 {
@@ -55,10 +56,10 @@ public class PullRequestPollingSchedulerTest
 
   private final int intervalSeconds = 1;
 
-  @Before
+  @BeforeEach
   public void before() {
-    when(licenseChecker.isPullRequestCommentingSupported()).thenReturn(true);
-    when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
+    lenient().when(licenseChecker.isPullRequestCommentingSupported()).thenReturn(true);
+    lenient().when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
     scheduler = new PullRequestPollingScheduler(pullRequestPollingService, licenseChecker, mockApiConfigFeaturesService,
         delaySeconds, intervalSeconds, mockShutdownHandler, scmNodeProcessor);
   }

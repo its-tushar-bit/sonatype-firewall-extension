@@ -27,6 +27,9 @@ import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 import org.mockito.Mockito;
 
 public abstract class AbstractMultiTenantDatabaseTest
@@ -61,6 +64,24 @@ public abstract class AbstractMultiTenantDatabaseTest
   @After
   public void cleanUp() {
     databaseRule.resetMocks();
+  }
+
+  // JUnit 5 (Jupiter): the @Rule(order=1) does not fire under Jupiter, so provision the (reused) multi-tenant
+  // database fixture from a @BeforeEach and then run the JUnit 4 setup() body. Inert under the Vintage engine,
+  // which drives the @Rule and @Before instead. Runs after the superclass @BeforeEach hooks (multi-tenant mode +
+  // method-name capture), matching the JUnit 4 chain where setup() runs after the rules.
+  @BeforeEach
+  public void jupiterProvisionDatabaseAndSetup(final TestInfo testInfo) {
+    databaseRule.beforeFromJupiter(testInfo.getTestClass().orElse(null), testInfo.getTestMethod().orElse(null));
+    setup();
+  }
+
+  // JUnit 5 (Jupiter) teardown counterpart: run cleanUp() then the rule's after() so the reused fixture's
+  // dirty/reset bookkeeping stays correct (otherwise per-test data leaks across the reused container).
+  @AfterEach
+  public void jupiterCleanupDatabase() {
+    cleanUp();
+    databaseRule.afterFromJupiter();
   }
 
   @Override

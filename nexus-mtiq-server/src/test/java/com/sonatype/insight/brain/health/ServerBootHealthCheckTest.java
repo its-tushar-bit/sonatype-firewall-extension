@@ -7,20 +7,20 @@ package com.sonatype.insight.brain.health;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.Status;
 
 public class ServerBootHealthCheckTest
 {
-  @Before
+  @BeforeEach
   public void setUp() {
     ServerBootHealthCheck.resetForTesting();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     ServerBootHealthCheck.resetForTesting();
   }

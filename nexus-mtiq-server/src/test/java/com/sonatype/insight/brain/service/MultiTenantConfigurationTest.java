@@ -32,20 +32,20 @@ import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import com.google.common.collect.ImmutableMap;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class MultiTenantConfigurationTest
     extends AbstractMultiTenantTest
 {
@@ -105,10 +105,11 @@ public class MultiTenantConfigurationTest
 
   private Configuration underTest;
 
-  @Before
+  @BeforeEach
   public void setup() {
-    when(configurationService.getConfigurationNoAuthz(any(Set.class))).thenAnswer(
-        i -> ImmutableMap.of(SystemConfigurationProperty.HDS_URL, TenantThreadLocal.getTenant().tenantSlug));
+    lenient().when(configurationService.getConfigurationNoAuthz(any(Set.class)))
+        .thenAnswer(
+            i -> ImmutableMap.of(SystemConfigurationProperty.HDS_URL, TenantThreadLocal.getTenant().tenantSlug));
 
     underTest = new Configuration(proxyServerConfigurationDAO, reverseProxyAuthenticationConfigurationDAO,
         jiraConfigurationDAO, sourceControlConfigurationDAO, configurationService, hdsClientsProvider,

@@ -12,11 +12,11 @@ import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 
 import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.assertTenantSet;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
@@ -27,7 +27,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class QuartzShiroSessionValidationSchedulerTest
     extends AbstractMultiTenantTest
 {
@@ -39,7 +39,7 @@ public class QuartzShiroSessionValidationSchedulerTest
 
   QuartzShiroSessionValidationScheduler underTest;
 
-  @Before
+  @BeforeEach
   public void setup() {
     this.underTest = new QuartzShiroSessionValidationScheduler(taskScheduler, sessionManager);
   }

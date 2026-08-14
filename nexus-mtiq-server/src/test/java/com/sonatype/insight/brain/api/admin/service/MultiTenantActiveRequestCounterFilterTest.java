@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.api.admin.service;
 
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

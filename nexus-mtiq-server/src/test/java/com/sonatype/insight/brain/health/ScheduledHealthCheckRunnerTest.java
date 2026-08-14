@@ -13,15 +13,15 @@ import com.sonatype.insight.brain.operational.check.AbstractOperationalCheck;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.health.contributor.Health;
 
 public class ScheduledHealthCheckRunnerTest
 {
   private ScheduledExecutorService executor;
 
-  @After
+  @AfterEach
   public void tearDown() {
     if (executor != null) {
       executor.shutdownNow();

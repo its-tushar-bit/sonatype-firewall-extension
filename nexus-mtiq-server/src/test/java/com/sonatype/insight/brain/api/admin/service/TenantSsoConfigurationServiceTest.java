@@ -29,19 +29,19 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static com.sonatype.insight.brain.api.admin.SsoConfigurationTestHelper.ISSUER;
 import static com.sonatype.insight.brain.api.admin.SsoConfigurationTestHelper.createOAuth2Configuration;
 import static com.sonatype.insight.brain.api.admin.SsoConfigurationTestHelper.createOidcConfiguration;
 import static com.sonatype.insight.brain.api.admin.SsoConfigurationTestHelper.createSsoConfigurationDTO;
-import static junit.framework.TestCase.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -53,7 +53,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class TenantSsoConfigurationServiceTest
     extends AbstractMultiTenantTest
 {
@@ -89,11 +89,11 @@ public class TenantSsoConfigurationServiceTest
 
   private TenantSsoConfigurationService underTest;
 
-  @Before
+  @BeforeEach
   public void setup() {
     passwordHandler = new PasswordHandler(new TestMultiTenantEncryptionKeyStore());
 
-    when(mockTenantValidator.validateTenantExists(anyString())).thenReturn(true);
+    lenient().when(mockTenantValidator.validateTenantExists(anyString())).thenReturn(true);
     lenient().when(mockOidcConfigurationDAO.createTransactionContext()).thenReturn(transactionContext);
     underTest = new TenantSsoConfigurationService(passwordHandler, mockTenantUtil, mockTenantValidator,
         mockOAuth2ConfigurationDAO, mockOidcConfigurationDAO, mockOidcLoginFilter, mockSsoUserService);

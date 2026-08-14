@@ -9,8 +9,8 @@ import java.io.File;
 
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -25,7 +25,7 @@ public class MultiTenantInsightConfigTest
 
   MultiTenantInsightConfig underTest;
 
-  @Before
+  @BeforeEach
   public void setup() {
     underTest = new MultiTenantInsightConfig();
     underTest.setSonatypeWork(WORK_ROOT);

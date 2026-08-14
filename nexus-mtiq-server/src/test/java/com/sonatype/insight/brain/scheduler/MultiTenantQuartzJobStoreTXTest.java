@@ -13,11 +13,11 @@ import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.quartz.JobPersistenceException;
 import org.quartz.impl.jdbcjobstore.InvalidConfigurationException;
 import org.quartz.utils.ConnectionProvider;
@@ -25,7 +25,7 @@ import org.quartz.utils.ConnectionProvider;
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class MultiTenantQuartzJobStoreTXTest
     extends AbstractMultiTenantTest
 {
@@ -40,7 +40,7 @@ public class MultiTenantQuartzJobStoreTXTest
 
   private TestMultiTenantQuartzJobStoreTX underTest;
 
-  @Before
+  @BeforeEach
   public void setup() {
     try {
       underTest = new TestMultiTenantQuartzJobStoreTX(productLicense,

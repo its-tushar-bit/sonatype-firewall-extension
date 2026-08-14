@@ -14,8 +14,8 @@ import com.sonatype.insight.brain.model.component.RepositoryIdentifiedComponent;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -26,7 +26,7 @@ public class RepositoryIdentifiedComponentCacheTest
 
   private RepositoryIdentifiedComponentDAO repositoryIdentifiedComponentDAO;
 
-  @Before
+  @BeforeEach
   public void before() {
     repositoryIdentifiedComponentDAO = daoFactory.createRepositoryIdentifiedComponentDAO();
 

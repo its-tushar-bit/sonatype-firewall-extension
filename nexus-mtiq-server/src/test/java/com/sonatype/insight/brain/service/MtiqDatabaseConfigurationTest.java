@@ -18,8 +18,8 @@ import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class MtiqDatabaseConfigurationTest
 {
@@ -37,7 +37,7 @@ public class MtiqDatabaseConfigurationTest
 
   private final TestMtiqDatabaseConfiguration configuration = new TestMtiqDatabaseConfiguration(databaseContainer);
 
-  @Before
+  @BeforeEach
   public void setUp() {
     when(databaseContainer.getOperationalDataStore()).thenReturn(operationalDataStore);
     when(databaseContainer.getAggregationDataStore()).thenReturn(aggregationDataStore);

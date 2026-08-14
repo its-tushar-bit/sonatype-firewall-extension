@@ -26,21 +26,21 @@ import com.sonatype.insight.brain.support.SupportService.SupportFile;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 /**
  * Regression tests for CLM-42243: the support-bundle path must stream to disk instead of building
  * a {@code ByteArrayOutputStream} that OOMs past {@code Integer.MAX_VALUE - 8}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class SupportInfoUtilTest
 {
   @Mock
@@ -50,14 +50,14 @@ public class SupportInfoUtilTest
 
   private SupportInfoUtil supportInfoUtil;
 
-  @Before
+  @BeforeEach
   public void setup() throws IOException {
     tmpRoot = Files.createTempDirectory("support-info-util-test");
-    when(insightConfig.getSonatypeWork()).thenReturn(tmpRoot.toFile());
+    lenient().when(insightConfig.getSonatypeWork()).thenReturn(tmpRoot.toFile());
     supportInfoUtil = new SupportInfoUtil(insightConfig);
   }
 
-  @After
+  @AfterEach
   public void cleanup() throws IOException {
     if (tmpRoot != null && Files.exists(tmpRoot)) {
       FileUtils.deleteDirectory(tmpRoot.toFile());

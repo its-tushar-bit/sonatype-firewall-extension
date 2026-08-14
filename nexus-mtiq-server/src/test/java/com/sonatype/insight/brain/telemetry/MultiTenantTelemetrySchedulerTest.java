@@ -10,11 +10,11 @@ import java.time.Duration;
 import com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler;
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.assertTenantSet;
 import static org.mockito.ArgumentMatchers.eq;
@@ -22,7 +22,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class MultiTenantTelemetrySchedulerTest
     extends AbstractMultiTenantTest
 {
@@ -34,7 +34,7 @@ public class MultiTenantTelemetrySchedulerTest
 
   private MultiTenantTelemetryScheduler multiTenantTelemetryScheduler;
 
-  @Before
+  @BeforeEach
   public void before() {
     multiTenantTelemetryScheduler =
         new MultiTenantTelemetryScheduler(taskScheduler, multiTenantTelemetryTask);

@@ -15,8 +15,7 @@ import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -27,7 +26,6 @@ public class MultiTenantRoleTelemetryCollectorTest
 
   private RoleDAO roleDAO;
 
-  @Before
   @Override
   public void setup() {
     super.setup();

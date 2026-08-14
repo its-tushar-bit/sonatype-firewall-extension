@@ -19,8 +19,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,7 +33,6 @@ public class MultiTenantHierarchyMetricsTelemetryCollectorTest
 
   private OrganizationDAO organizationDAO;
 
-  @Before
   @Override
   public void setup() {
     super.setup();

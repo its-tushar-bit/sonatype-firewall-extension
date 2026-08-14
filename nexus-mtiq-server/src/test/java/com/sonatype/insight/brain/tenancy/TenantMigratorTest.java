@@ -13,9 +13,8 @@ import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -34,7 +33,6 @@ public class TenantMigratorTest
 
   private DatabaseProvisioner spyDatabaseProvisioner;
 
-  @Before
   @Override
   public void setup() {
     super.setup();
@@ -42,7 +40,7 @@ public class TenantMigratorTest
     underTest = new TenantMigrator(spyDatabaseProvisioner);
   }
 
-  @After
+  @AfterEach
   public void after() {
     // this test migrates test tenants and we need clean/new tenants for each run
     databaseRule.markFixtureAsDirty();

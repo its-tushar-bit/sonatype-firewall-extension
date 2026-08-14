@@ -13,16 +13,16 @@ import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class TelemetryIdMultiTenantTest
     extends AbstractMultiTenantTest
 {
@@ -34,7 +34,7 @@ public class TelemetryIdMultiTenantTest
 
   TelemetryId underTest;
 
-  @Before
+  @BeforeEach
   public void setup() {
     this.underTest = new TestMultiTenantTelemetryId(config, systemConfigurationPropertyDAO);
   }

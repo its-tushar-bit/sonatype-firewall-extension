@@ -12,7 +12,7 @@ import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.spring.config.DropwizardConfigConfiguration;
 import com.sonatype.insight.brain.spring.config.DropwizardConfigLoader;
 import java.io.File;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.env.StandardEnvironment;
 
 public class MtiqAuditLogConfigCompatibilityTest

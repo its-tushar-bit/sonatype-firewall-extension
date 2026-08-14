@@ -22,8 +22,8 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import org.apache.http.HttpHeaders;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.api.admin.authorization.AuthContextProperties.SUBJECT_USER;
 import static org.mockito.Mockito.mock;
@@ -45,7 +45,7 @@ public class JwtHttpAuthorizationFilterTest
 
   private JwtHttpAuthorizationFilter underTest;
 
-  @Before
+  @BeforeEach
   public void before() {
     underTest = new JwtHttpAuthorizationFilter(multiTenantJwkProvider);
     when(request.getRequestURI()).thenReturn("/api/admin/test");

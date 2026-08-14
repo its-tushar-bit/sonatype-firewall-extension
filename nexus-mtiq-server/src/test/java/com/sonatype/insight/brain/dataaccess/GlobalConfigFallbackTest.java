@@ -9,8 +9,8 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -19,7 +19,7 @@ public class GlobalConfigFallbackTest
 {
   private SystemConfigurationPropertyDAO underTest;
 
-  @Before
+  @BeforeEach
   public void before() {
     underTest = daoFactory.createSystemConfigurationPropertyDAO();
   }

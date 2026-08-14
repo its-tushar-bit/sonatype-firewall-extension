@@ -12,7 +12,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.registry.otlp.OtlpMeterRegistry;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class MultiTenantMeterRegistryProviderTest
 {

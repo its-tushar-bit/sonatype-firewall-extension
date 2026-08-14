@@ -15,8 +15,8 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -45,7 +45,7 @@ public class PlatformContextFilterTest
   @Mock
   private jakarta.servlet.ServletContext mockServletContext;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     MockitoAnnotations.openMocks(this);
     // Configure ServletContext to return the mockRequestDispatcher for any path

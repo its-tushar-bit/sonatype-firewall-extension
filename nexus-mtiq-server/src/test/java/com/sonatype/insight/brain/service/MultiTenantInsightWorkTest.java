@@ -10,8 +10,8 @@ import java.io.File;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -30,7 +30,7 @@ public class MultiTenantInsightWorkTest
 
   InsightWork underTest;
 
-  @Before
+  @BeforeEach
   public void setup() {
     underTest = new InsightWork(newMultiTenantInsightConfig());
   }

@@ -26,13 +26,13 @@ import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -40,7 +40,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class TenantSecurityConfigurationServiceTest
     extends AbstractMultiTenantTest
 {
@@ -69,7 +69,7 @@ public class TenantSecurityConfigurationServiceTest
 
   private TenantSecurityConfigurationService underTest;
 
-  @Before
+  @BeforeEach
   public void setup() {
     tenantUtil = new TenantUtil();
     underTest = new TenantSecurityConfigurationService(tenantUtil, tenantValidator, apiSamlConfigurationService,

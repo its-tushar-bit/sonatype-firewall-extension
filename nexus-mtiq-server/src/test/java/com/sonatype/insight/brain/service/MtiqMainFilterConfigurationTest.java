@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.shutdown.ActiveRequestCounterFilter;
 import com.sonatype.insight.brain.tenancy.AdminTasksTenantFilter;
 import com.sonatype.insight.brain.tenancy.AdminTenantFilter;
 import com.sonatype.insight.brain.tenancy.TenantUrlFilter;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;

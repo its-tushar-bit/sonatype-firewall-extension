@@ -17,7 +17,7 @@ import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitorin
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ContinuousMonitoringHostedRepoItem.CONTINUOUS_MONITORING_HOSTED_REPO_ITEM;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;

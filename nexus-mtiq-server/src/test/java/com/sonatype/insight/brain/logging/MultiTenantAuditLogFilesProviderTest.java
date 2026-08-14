@@ -10,9 +10,9 @@ import java.time.LocalDate;
 import com.sonatype.insight.brain.audit.MultiTenantAuditLogFilesProvider;
 import com.sonatype.insight.error.exception.InternalServerException;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -20,13 +20,13 @@ public class MultiTenantAuditLogFilesProviderTest
 {
   private String savedAuditLogBasePath;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     savedAuditLogBasePath = MultiTenantAuditLogAppenderFactory.getAuditLogBasePathForTesting();
     MultiTenantAuditLogAppenderFactory.setAuditLogBasePathForTesting(null);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     MultiTenantAuditLogAppenderFactory.setAuditLogBasePathForTesting(savedAuditLogBasePath);
   }

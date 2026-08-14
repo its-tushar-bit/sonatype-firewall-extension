@@ -17,22 +17,23 @@ import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightJob;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class MultiTenantDefaultBranchMonitorExecutorTest
 {
   private MultiTenantDefaultBranchMonitorExecutor underTest;
@@ -51,10 +52,10 @@ public class MultiTenantDefaultBranchMonitorExecutorTest
 
   private final List<String> allTenants = Arrays.asList("slug1", "slug2", "slug3", "slug4");
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
-    when(mockTenantService.getTenantSlug()).thenReturn("slug1");
-    when(mockTenantService.getAllTenantsNames()).thenReturn(allTenants);
+    lenient().when(mockTenantService.getTenantSlug()).thenReturn("slug1");
+    lenient().when(mockTenantService.getAllTenantsNames()).thenReturn(allTenants);
     underTest = new MultiTenantDefaultBranchMonitorExecutor(mockTaskScheduler, mockSourceControlDAO, mockEventPublisher,
         mockTenantService);
   }

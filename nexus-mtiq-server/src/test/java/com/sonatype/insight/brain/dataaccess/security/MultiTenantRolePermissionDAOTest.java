@@ -10,8 +10,8 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,7 +23,7 @@ public class MultiTenantRolePermissionDAOTest
 
   private RoleDAO roleDAO;
 
-  @Before
+  @BeforeEach
   public void before() {
     permDAO = daoFactory.createRolePermissionDAO();
     roleDAO = daoFactory.createRoleDAO();

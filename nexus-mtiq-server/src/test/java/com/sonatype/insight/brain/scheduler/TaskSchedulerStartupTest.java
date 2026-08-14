@@ -17,7 +17,7 @@ import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantContextJobListener;
 import com.sonatype.insight.brain.tenancy.TenantManager;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 import org.quartz.spi.JobFactory;

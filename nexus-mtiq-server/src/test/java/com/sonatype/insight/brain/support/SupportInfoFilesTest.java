@@ -71,12 +71,12 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static com.sonatype.insight.brain.support.SupportInfoTestHelper.WORK_DIR;
 import static com.sonatype.insight.brain.support.SupportInfoTestHelper.cleanWorkDir;
@@ -86,7 +86,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class SupportInfoFilesTest
     extends AbstractMultiTenantTest
 {
@@ -122,14 +122,14 @@ public class SupportInfoFilesTest
 
   private SupportInfoFiles supportInfoFiles;
 
-  @Before
+  @BeforeEach
   public void setup() {
     supportInfoFiles =
         new SupportInfoFiles(versionService, dbData, samlUserDAO, oAuth2UserDAO, configurationInfo, systemInfo,
             sourceControlConfigurationInfo, featurePropertiesInfo, tenantMetadataDAO, supportInfoUtil);
   }
 
-  @AfterClass
+  @AfterAll
   public static void tearDown() throws IOException {
     cleanWorkDir(WORK_DIR);
   }

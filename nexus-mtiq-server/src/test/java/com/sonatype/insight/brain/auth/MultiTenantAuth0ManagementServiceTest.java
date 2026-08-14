@@ -24,12 +24,12 @@ import com.auth0.json.mgmt.organizations.Member;
 import com.auth0.json.mgmt.users.User;
 import com.auth0.net.Request;
 import com.auth0.net.TokenRequest;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static com.sonatype.insight.brain.auth.MultiTenantAuth0ManagementService.CONNECTION_CREATION_SKIPPED;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,12 +38,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class MultiTenantAuth0ManagementServiceTest
 {
   private static final String EMAIL = "email";
@@ -82,18 +83,18 @@ public class MultiTenantAuth0ManagementServiceTest
 
   private MultiTenantAuth0ManagementService underTest;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     Auth0Config auth0Config = new Auth0Config();
     auth0Config.setDomain("domain");
     auth0Config.setCustomDomain("customDomain");
     auth0Config.setClientId(CLIENT_ID);
     auth0Config.setClientSecret("clientSecret");
-    when(config.getAuth0Config()).thenReturn(auth0Config);
+    lenient().when(config.getAuth0Config()).thenReturn(auth0Config);
     underTest = new MultiTenantAuth0ManagementService(config, auth0ApiSupplier);
 
-    when(auth0ApiSupplier.getManagementApi(any(), any())).thenReturn(managementApi);
-    when(auth0ApiSupplier.getAuthApi(any(), any(), any())).thenReturn(authApi);
+    lenient().when(auth0ApiSupplier.getManagementApi(any(), any())).thenReturn(managementApi);
+    lenient().when(auth0ApiSupplier.getAuthApi(any(), any(), any())).thenReturn(authApi);
   }
 
   @Test
@@ -320,8 +321,8 @@ public class MultiTenantAuth0ManagementServiceTest
     userMetadata.put(Auth0ManagementAPI.IS_INVITED_FLAG, invitedFlag);
 
     User user = mock(User.class);
-    when(user.getId()).thenReturn(id);
-    when(user.getUserMetadata()).thenReturn(userMetadata);
+    lenient().when(user.getId()).thenReturn(id);
+    lenient().when(user.getUserMetadata()).thenReturn(userMetadata);
     return user;
   }
 }

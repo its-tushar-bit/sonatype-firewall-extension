@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.db.dao;
 import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.model.security.TenantMetadata;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -18,7 +18,7 @@ public class TenantMetadataDAOTest
 {
   private TenantMetadataDAO underTest;
 
-  @Before
+  @BeforeEach
   public void before() {
     underTest = new TenantMetadataDAO(databaseRule.getOperationalDataStore());
   }

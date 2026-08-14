@@ -14,22 +14,23 @@ import com.sonatype.insight.brain.tenancy.Tenant.InvalidTenantSlugException;
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 
 import org.apache.http.entity.ContentType;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.assertTenantSet;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class TenantUrlFilterTest
     extends AbstractMultiTenantTest
 {
@@ -54,11 +55,11 @@ public class TenantUrlFilterTest
 
   TenantUrlFilter underTest;
 
-  @Before
+  @BeforeEach
   public void setup() {
     underTest = new TenantUrlFilter(tenantManager, new TenantUtil());
-    when(request.getServerName()).thenReturn(SERVER_NAME);
-    when(tenantManager.getTenant()).thenReturn(new Tenant(TENANT_NAME));
+    lenient().when(request.getServerName()).thenReturn(SERVER_NAME);
+    lenient().when(tenantManager.getTenant()).thenReturn(new Tenant(TENANT_NAME));
   }
 
   @Test

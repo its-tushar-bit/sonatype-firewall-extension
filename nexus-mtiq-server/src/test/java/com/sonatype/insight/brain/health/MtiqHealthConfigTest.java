@@ -12,7 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.sonatype.insight.brain.health.MtiqHealthConfig.MtiqHealthCheckConfig;
 import java.time.Duration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class MtiqHealthConfigTest
 {

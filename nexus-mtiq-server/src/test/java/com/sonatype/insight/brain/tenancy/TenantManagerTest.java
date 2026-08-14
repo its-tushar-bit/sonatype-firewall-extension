@@ -23,14 +23,13 @@ import com.sonatype.insight.brain.service.TenantLifecycle;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Supplier;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class TenantManagerTest
     extends AbstractMultiTenantDatabaseTest
 {
@@ -63,7 +62,6 @@ public class TenantManagerTest
 
   TenantManager underTest;
 
-  @Before
   @Override
   public void setup() {
     super.setup();
@@ -73,9 +71,9 @@ public class TenantManagerTest
     underTest = new TenantManager(() -> tenantManagedBeans, () -> lifecycle, databaseProvisioner,
         tenantValidator, deletedTenantDAO, tenantService);
 
-    when(tenantValidator.validateTenantExists(tenant)).thenReturn(true);
+    lenient().when(tenantValidator.validateTenantExists(tenant)).thenReturn(true);
 
-    when(deletedTenantDAO.isScheduledForDeletion(any())).thenReturn(false);
+    lenient().when(deletedTenantDAO.isScheduledForDeletion(any())).thenReturn(false);
   }
 
   @Test
@@ -381,7 +379,7 @@ public class TenantManagerTest
   }
 
   private void setTenantAndAssertRegistration() {
-    doAnswer(invocationOnMock -> {
+    lenient().doAnswer(invocationOnMock -> {
       assertTenantSet(tenant);
       return null;
     }).when(job).register();

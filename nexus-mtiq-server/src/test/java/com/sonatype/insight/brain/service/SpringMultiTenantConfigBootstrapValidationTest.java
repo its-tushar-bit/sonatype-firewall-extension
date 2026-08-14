@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.security.EncryptionKeyStore;
 import com.sonatype.insight.brain.security.MultiTenantEncryptionKeyStore;
 import com.sonatype.insight.brain.spring.DropwizardConfigBootstrap;
 import com.sonatype.insight.brain.spring.config.DropwizardConfigConfiguration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;

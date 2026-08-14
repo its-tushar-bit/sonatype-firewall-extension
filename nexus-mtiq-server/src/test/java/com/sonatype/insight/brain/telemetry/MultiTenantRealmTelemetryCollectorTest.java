@@ -20,9 +20,8 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.common.io.Resources;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.telemetry.RealmTelemetryCollector.SAML_CONFIGURED;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
@@ -35,7 +34,6 @@ public class MultiTenantRealmTelemetryCollectorTest
 
   private SamlConfigurationService samlConfigurationService;
 
-  @Before
   @Override
   public void setup() {
     super.setup();
@@ -47,7 +45,7 @@ public class MultiTenantRealmTelemetryCollectorTest
     telemetryCollector = new RealmTelemetryCollector(samlConfigurationService);
   }
 
-  @After
+  @AfterEach
   public void teardown() {
     SecurityAspectControl.enableEnforcement();
   }

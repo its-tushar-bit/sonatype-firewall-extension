@@ -16,8 +16,8 @@ import com.sonatype.insight.brain.common.metering.MeteredThreadPoolExecutor;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.micrometer.metrics.autoconfigure.CompositeMeterRegistryAutoConfiguration;
 import org.springframework.boot.micrometer.metrics.autoconfigure.MetricsAutoConfiguration;
@@ -32,7 +32,7 @@ import static org.mockito.Mockito.when;
 
 public class MultiTenantMetricsConfigurationTest
 {
-  @After
+  @AfterEach
   public void resetStaticMeterRegistry() {
     MeteredThreadPoolExecutor.injectMeterRegistry(null);
   }

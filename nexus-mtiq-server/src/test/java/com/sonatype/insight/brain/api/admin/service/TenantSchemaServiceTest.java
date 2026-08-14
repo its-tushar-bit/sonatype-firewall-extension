@@ -18,22 +18,23 @@ import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class TenantSchemaServiceTest
     extends AbstractMultiTenantTest
 {
@@ -54,7 +55,7 @@ public class TenantSchemaServiceTest
 
   private TenantSchemaService underTest;
 
-  @Before
+  @BeforeEach
   public void setup() {
     underTest =
         new TenantSchemaService(operationalDataStore, dataMartDataStore, tenantValidator, databaseProvisioner);
@@ -149,10 +150,10 @@ public class TenantSchemaServiceTest
   }
 
   private Map<String, Integer> runGetSchemaVersions(Tenant tenant) {
-    when(operationalDataStore.getDataSourceWithoutInit()).thenReturn(operationalDataSource);
-    when(operationalDataStore.getDatabaseSchema()).thenReturn(tenant.databaseSchema);
+    lenient().when(operationalDataStore.getDataSourceWithoutInit()).thenReturn(operationalDataSource);
+    lenient().when(operationalDataStore.getDatabaseSchema()).thenReturn(tenant.databaseSchema);
 
-    when(dataMartDataStore.getID()).thenReturn("insight_brain_dm");
+    lenient().when(dataMartDataStore.getID()).thenReturn("insight_brain_dm");
 
     Map<String, Integer> mockedSchemaVersions = new HashMap<>();
     {

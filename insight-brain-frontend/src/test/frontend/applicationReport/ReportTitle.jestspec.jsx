@@ -15,6 +15,7 @@ import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as applicationReportActions from 'MainRoot/applicationReport/applicationReportActions';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
 import * as latestReportSelectors from 'MainRoot/applicationReport/latestReportForStageSelectors';
+import { getHrcDownloadPdfUrl, getHrcExportCycloneDxUrl, getHrcExportSpdxUrl } from 'MainRoot/util/CLMLocation';
 
 describe('ReportTitle', () => {
   const givenScanIdForReport = 'scanId';
@@ -316,55 +317,93 @@ describe('ReportTitle', () => {
     expect(description).toBeVisible();
   });
 
-  // CLM-41904: hosted-repo report threads componentDisplayName into the Latest Evaluations link
-  // so the destination page can render the friendly component coordinates as the H1 (instead of
-  // the synthetic app publicId). Consumer side is covered in ApplicationLatestEvaluationsPage
-  // tests; this is the producer-side coverage — asserts the URL is built with the param present.
-  it('threads componentDisplayName into the Latest Evaluations link for hosted-repo flow', () => {
-    routerSelectors.selectRouterCurrentParams.mockReturnValue({
-      publicId: givenPublicId,
-      scanId: givenScanIdForReport,
-      origin: 'hostedRepoComponents',
-      componentDisplayName: 'myimg:1.0',
-      repositoryManagerId: 'rm-1',
-      repositoryId: 'repo-1',
-      repositoryPublicId: 'maven-releases',
-    });
-
+  // The legacy origin='hostedRepoComponents' threading was removed alongside the CLM-44275
+  // entry-point rewire (goToHrcReport goes to the native HRC route now). componentDisplayName
+  // is still forwarded to Latest Evaluations, but from the new HRC path — covered by the HRC
+  // ReportTitle tests. This test remains as a regression guard for the application-report path.
+  it('omits componentDisplayName from the Latest Evaluations link on the application-report path', () => {
+    // routerSelectors.selectRouterCurrentParams already returns { publicId, scanId } — no hrcId.
     renderComponent();
 
-    expect(routerContextMock.href).toHaveBeenCalledWith(
-      'applicationLatestEvaluations',
-      expect.objectContaining({
-        applicationPublicId: givenPublicId,
-        scanId: givenScanIdForReport,
-        componentDisplayName: 'myimg:1.0',
-        origin: 'hostedRepoComponents',
-      })
-    );
-  });
-
-  it('renders the H1 with componentDisplayName instead of application name for hosted-repo flow', () => {
-    routerSelectors.selectRouterCurrentParams.mockReturnValue({
-      publicId: givenPublicId,
-      scanId: givenScanIdForReport,
-      origin: 'hostedRepoComponents',
-      componentDisplayName: 'myimg:1.0',
-    });
-
-    renderComponent();
-
-    expect(screen.getByRole('heading', { name: 'myimg:1.0 Title' })).toBeVisible();
-  });
-
-  it('omits componentDisplayName from the Latest Evaluations link when not in hosted-repo flow', () => {
-    // routerSelectors.selectRouterCurrentParams already returns { publicId, scanId } — no origin.
-    renderComponent();
-
-    const latestEvalCall = routerContextMock.href.mock.calls.find(
-      (call) => call[0] === 'applicationLatestEvaluations'
-    );
+    const latestEvalCall = routerContextMock.href.mock.calls.find((call) => call[0] === 'applicationLatestEvaluations');
     expect(latestEvalCall).toBeDefined();
     expect(latestEvalCall[1]).not.toHaveProperty('componentDisplayName');
+  });
+
+  // CLM-44275: HRC-branch URL coverage. ReportTitle picks between 6+ owner-scoped URLs based
+  // on isHrcReport (pdf, cyclonedx, spdx, rawData, latestEvaluations, vulnerabilities); the
+  // Priorities link is also HRC-gated. These tests pin the URL selection so future refactors
+  // of getHrc*Url / selectIsHrcReport / route names surface here immediately.
+  describe('HRC report route', () => {
+    const givenHrcId = 'hrc-uuid-1';
+    const givenComponentDisplayName = 'ansible 2.8.0 (.tar.gz)';
+
+    beforeEach(() => {
+      // Flip owner mode to HRC. selectOwnerType is URL-first, but the local `isHrcReport`
+      // here comes from selectIsHrcReport, so we mock it directly for symmetry.
+      jest.spyOn(applicationReportSelectors, 'selectIsHrcReport').mockReturnValue(true);
+      routerSelectors.selectRouterCurrentParams.mockReturnValue({
+        hrcId: givenHrcId,
+        scanId: givenScanIdForReport,
+        componentDisplayName: givenComponentDisplayName,
+      });
+      selectApplicationReportMetaDataSpy.mockReturnValue({
+        ...metadataDetails,
+        application: null,
+        hrcId: givenHrcId,
+      });
+      jest.spyOn(productFeaturesSelectors, 'selectIsDeveloperDashboardEnabled').mockReturnValue(true);
+    });
+
+    it('renders the HRC-scoped PDF, CycloneDX, and SPDX export links', () => {
+      renderComponent();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Options' }));
+
+      // Compare against the URL builders' own output so this test doesn't need to hard-code
+      // the wire-format strings (which are exercised in CLMLocation's own unit tests).
+      expect(screen.getByRole('link', { name: 'Export PDF' }).getAttribute('href')).toBe(
+        getHrcDownloadPdfUrl(givenHrcId, givenScanIdForReport)
+      );
+      expect(screen.getByRole('link', { name: 'Export CycloneDX' }).getAttribute('href')).toBe(
+        getHrcExportCycloneDxUrl(givenHrcId, givenScanIdForReport)
+      );
+      expect(screen.getByRole('link', { name: 'Export SPDX' }).getAttribute('href')).toBe(
+        getHrcExportSpdxUrl(givenHrcId, givenScanIdForReport)
+      );
+    });
+
+    it('builds the raw data, vulnerabilities, and latest-evaluations links against HRC routes with hrcId', () => {
+      renderComponent();
+
+      expect(routerContextMock.href).toHaveBeenCalledWith(
+        'hostedRepositoryComponentReport.rawData',
+        expect.objectContaining({ hrcId: givenHrcId, scanId: givenScanIdForReport })
+      );
+      expect(routerContextMock.href).toHaveBeenCalledWith(
+        'hostedRepositoryComponentReport.vulnerabilities',
+        expect.objectContaining({ hrcId: givenHrcId, scanId: givenScanIdForReport })
+      );
+      expect(routerContextMock.href).toHaveBeenCalledWith(
+        'hostedRepositoryComponentLatestEvaluations',
+        expect.objectContaining({ hrcId: givenHrcId, scanId: givenScanIdForReport })
+      );
+    });
+
+    it('hides the Priorities dropdown link on HRC reports (deferred to CLM-44516)', () => {
+      renderComponent();
+
+      // The Priorities link is only rendered on the application path — the "View Priorities"
+      // menuitem must not exist under the Options dropdown for HRC.
+      expect(screen.queryByRole('menuitem', { name: /Priorities/i })).not.toBeInTheDocument();
+    });
+
+    it('renders the H1 with componentDisplayName when metadata.application is null', () => {
+      // application is null in the HRC beforeEach; the fallback chain picks
+      // componentDisplayName (URL) next, then hrcId.
+      renderComponent();
+
+      expect(screen.getByRole('heading', { name: `${givenComponentDisplayName} Title` })).toBeVisible();
+    });
   });
 });

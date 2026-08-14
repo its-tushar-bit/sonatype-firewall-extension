@@ -21,10 +21,11 @@ import {
 import { actions as componentDetailsActions } from '../componentDetailsSlice';
 import { setWaiverToDelete } from '../../waivers/waiverActions';
 import { stateGo } from '../../reduxUiRouter/routerActions';
-import { selectSelectedComponent } from 'MainRoot/applicationReport/applicationReportSelectors';
+import { selectSelectedComponent, selectIsHrcReport } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { getComponentNameWithoutVersion } from 'MainRoot/util/componentNameUtils';
 import { selectIsAutoWaiversEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { FIREWALL_CONTAINER_COMPONENT_DETAILS } from 'MainRoot/constants/states/firewall';
+import { API_OWNER_TYPE_APPLICATION, API_OWNER_TYPE_HRC } from 'MainRoot/applicationReport/ownerTypeConstants';
 
 function mapStateToProps(state) {
   const {
@@ -62,8 +63,9 @@ function mapStateToProps(state) {
     showComponentWaiversPopover,
     showViolationsDetailPopover,
     showViewTransitiveViolations,
-    ownerType: 'application',
-    ownerId: state.router.currentParams.publicId,
+    ownerType: state.router.currentParams.hrcId ? API_OWNER_TYPE_HRC : API_OWNER_TYPE_APPLICATION,
+    ownerId: state.router.currentParams.hrcId || state.router.currentParams.publicId,
+    isHrcReport: selectIsHrcReport(state),
     isFirewall,
     ...pick(['scanId', 'hash'], state.router.currentParams),
   };

@@ -29,16 +29,7 @@ import { getReleaseVersion } from 'MainRoot/util/versionUtil';
 
 export default function ApplicationLatestEvaluationsPage() {
   const currentParams = useSelector(selectRouterCurrentParams);
-  const {
-    applicationPublicId,
-    stageId,
-    origin,
-    scanId,
-    repositoryManagerId,
-    repositoryId,
-    repositoryPublicId,
-    componentDisplayName,
-  } = currentParams;
+  const { applicationPublicId, hrcId, stageId, scanId, componentDisplayName } = currentParams;
   const { loading, loadError, application, applicationReportHistory } = useSelector(
     selectApplicationLatestEvaluationsSlice
   );
@@ -47,38 +38,37 @@ export default function ApplicationLatestEvaluationsPage() {
   const dispatch = useDispatch();
   const uiRouterState = useRouterState();
 
+  const isHrcMode = !!hrcId;
+
   const load = () => {
-    dispatch(actions.load({ applicationPublicId, stageId }));
+    dispatch(actions.load({ applicationPublicId, hrcId, stageId }));
   };
 
-  // Hosted-repo flow carries the report context as URL params, so the back link survives a refresh.
-  // componentDisplayName is forwarded (CLM-42090) so Back + View Report keep the friendly title.
-  const isFromHostedRepoComponentReport = origin === 'hostedRepoComponents' && scanId;
   const isFromApplicationReport = prevState?.name === 'applicationReport.policy';
+  const isFromHrcReport = prevState?.name?.startsWith('hostedRepositoryComponentReport');
 
   let backHref;
   let backText;
-  if (isFromHostedRepoComponentReport) {
-    backHref = uiRouterState.href('applicationReport.policy', {
-      publicId: applicationPublicId,
-      scanId,
-      origin,
-      repositoryManagerId,
-      repositoryId,
-      repositoryPublicId,
-      componentDisplayName,
+  if (isHrcMode) {
+    backHref = uiRouterState.href('hostedRepositoryComponentReport.policy', {
+      hrcId,
+      scanId: scanId || prevParams?.scanId,
+      // Forward componentDisplayName so the HRC report renders the friendly component name
+      // instead of the raw hrcId after this hop. The URL param is already declared on the
+      // HRC route so it survives; the destination's getReportDisplayName reads it.
+      componentDisplayName: componentDisplayName || prevParams?.componentDisplayName,
     });
-    backText = 'Back to Repository Component Report';
-  } else if (isFromApplicationReport) {
-    backHref = uiRouterState.href('applicationReport.policy', prevParams);
-    backText = 'Back to Application Report';
+    backText = 'Back to HRC Report';
+  } else if (isFromApplicationReport || isFromHrcReport) {
+    backHref = uiRouterState.href(prevState?.name || 'applicationReport.policy', prevParams);
+    backText = isFromHrcReport ? 'Back to HRC Report' : 'Back to Application Report';
   } else {
     backHref = uiRouterState.href('violations');
     backText = 'All Reports';
   }
 
-  // Prefer componentDisplayName over the synthetic application public id (CLM-42090).
-  const titleName = isFromHostedRepoComponentReport && componentDisplayName ? componentDisplayName : application?.name;
+  // For HRC mode there's no `application` object; show the componentDisplayName or hrcId.
+  const titleName = isHrcMode ? componentDisplayName || hrcId : application?.name;
 
   useEffect(load, []);
 
@@ -96,7 +86,7 @@ export default function ApplicationLatestEvaluationsPage() {
     <NxPageMain id="application-latest-evaluations-page">
       <MenuBarBackButton href={backHref} text={backText} />
       <NxLoadWrapper loading={loading} error={loadError} retryHandler={load}>
-        {application && stageId && applicationReportHistory && (
+        {(application || isHrcMode) && stageId && applicationReportHistory && (
           <>
             <NxPageTitle>
               <NxH1>{titleName} Latest Evaluations</NxH1>
@@ -153,19 +143,20 @@ export default function ApplicationLatestEvaluationsPage() {
                         <NxTable.Cell isNumeric>{evaluation.policyEvaluationResult.totalComponentCount}</NxTable.Cell>
                         <NxTable.Cell>
                           <NxTextLink
-                            href={uiRouterState.href('applicationReport.policy', {
-                              publicId: application.publicId,
-                              scanId: evaluation.scanId,
-                              ...(isFromHostedRepoComponentReport
-                                ? {
-                                    origin,
-                                    repositoryManagerId,
-                                    repositoryId,
-                                    repositoryPublicId,
+                            href={
+                              isHrcMode
+                                ? uiRouterState.href('hostedRepositoryComponentReport.policy', {
+                                    hrcId,
+                                    scanId: evaluation.scanId,
+                                    // Forward componentDisplayName so the destination report renders
+                                    // the friendly name instead of the raw hrcId.
                                     componentDisplayName,
-                                  }
-                                : {}),
-                            })}
+                                  })
+                                : uiRouterState.href('applicationReport.policy', {
+                                    publicId: application.publicId,
+                                    scanId: evaluation.scanId,
+                                  })
+                            }
                           >
                             View Report
                           </NxTextLink>

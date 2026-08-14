@@ -9,24 +9,28 @@ import { useSelector } from 'react-redux';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 import { formatDate } from '../../util/dateUtils';
+import { getReportDisplayName } from '../reportEntryUtils';
 
 export default function ApplicationReportRawDataHeader({ metadata }) {
-  const { origin, componentDisplayName } = useSelector(selectRouterCurrentParams);
-  // Prefer componentDisplayName over the synthetic application public id (CLM-42090).
-  const titleName =
-    origin === 'hostedRepoComponents' && componentDisplayName ? componentDisplayName : metadata.application.name;
+  const routerParams = useSelector(selectRouterCurrentParams);
+  const titleName = getReportDisplayName(metadata, routerParams);
 
   return (
     <div className="nx-page-title" id="raw-data-report-title">
       <h1 className="nx-h1">
-        Raw Data for {titleName} {metadata.reportTitle}
+        Raw Data for {titleName} {metadata?.reportTitle}
       </h1>
-      <div className="nx-page-title__description visual-testing-ignore">{formatDate(metadata.reportTime)}</div>
+      <div className="nx-page-title__description visual-testing-ignore">
+        {metadata?.reportTime != null && formatDate(metadata.reportTime)}
+      </div>
     </div>
   );
 }
 
-export const metadataPropType = PropTypes.shape({
+// Application-report metadata carries a required `application` object; HRC reports come from
+// browseReport where metadata is a plain envelope (name/time/buf) and `application` is null.
+// Two shapes let each caller signal the contract it actually satisfies.
+export const applicationMetadataPropType = PropTypes.shape({
   reportTitle: PropTypes.string.isRequired,
   reportTime: PropTypes.number.isRequired,
   application: PropTypes.shape({
@@ -34,6 +38,13 @@ export const metadataPropType = PropTypes.shape({
   }).isRequired,
 });
 
+export const hrcMetadataPropType = PropTypes.shape({
+  reportTitle: PropTypes.string,
+  reportTime: PropTypes.number,
+});
+
+export const metadataPropType = PropTypes.oneOfType([applicationMetadataPropType, hrcMetadataPropType]);
+
 ApplicationReportRawDataHeader.propTypes = {
-  metadata: metadataPropType.isRequired,
+  metadata: metadataPropType,
 };

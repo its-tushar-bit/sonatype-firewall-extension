@@ -9,6 +9,7 @@ import { selectSelectedComponent } from 'MainRoot/applicationReport/applicationR
 import { selectSelectedComponent as selectFirewallSelectedComponent } from 'MainRoot/firewall/firewallComponentDetailsPage/overview/firewallOverviewSelectors';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { stringifyComponentIdentifier } from 'MainRoot/util/componentIdentifierUtils';
+import { API_OWNER_TYPE_APPLICATION, API_OWNER_TYPE_HRC } from 'MainRoot/applicationReport/ownerTypeConstants';
 
 export const selectVulnerabilitiesSlice = prop('componentDetailsVulnerabilities');
 
@@ -33,15 +34,18 @@ export const selectVulnerabityRefId = createSelector(selectVulnerabilitiesSlice,
 export const selectVulnerabilitiesRequestData = createSelector(
   selectSelectedComponent,
   selectRouterCurrentParams,
-  (component, params) => ({
-    clientType: 'ci',
-    ownerType: 'application',
-    ownerId: params.publicId,
-    componentIdentifier: stringifyComponentIdentifier(component.componentIdentifier, component.matchState),
-    hash: component.hash,
-    identificationSource: component.identificationSource,
-    scanId: params.scanId,
-  })
+  (component, params) => {
+    const isHrc = !!params.hrcId;
+    return {
+      clientType: 'ci',
+      ownerType: isHrc ? API_OWNER_TYPE_HRC : API_OWNER_TYPE_APPLICATION,
+      ownerId: isHrc ? params.hrcId : params.publicId,
+      componentIdentifier: stringifyComponentIdentifier(component.componentIdentifier, component.matchState),
+      hash: component.hash,
+      identificationSource: component.identificationSource,
+      scanId: params.scanId,
+    };
+  }
 );
 
 export const selectFirewallVulnerabilitiesRequestData = createSelector(

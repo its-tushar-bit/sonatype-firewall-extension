@@ -18,6 +18,9 @@ describe('ReevaluationModal', () => {
 
   beforeEach(() => {
     jest.spyOn(applicationReportSelectors, 'selectReportParameters').mockReturnValue({
+      // reevaluateReport reads applicationPublicId (post-HRC widening); keep legacy appId key
+      // populated for any older code path that still reads it.
+      applicationPublicId: 'appId',
       appId: 'appId',
       scanId: givenScanIdForReport,
     });

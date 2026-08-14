@@ -31,8 +31,10 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
-import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
-import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.OwnerStageView;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.OwnerView;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.junit.Test;
@@ -69,15 +71,15 @@ public class PolicyViolationLoaderTest
   public void testGetViolations_BasicData() {
     Application app = createApplication(StageTypes.BUILD);
 
-    Collection<ApplicationView> appViews = loader.getViolations(Collections.singletonList(app),
+    Collection<OwnerView> appViews = loader.getViolations(Collections.singletonList(app),
         Collections.singletonList(StageTypes.BUILD),
         false, violation -> true);
 
     assertThat(appViews).hasSize(1);
-    ApplicationView appView = appViews.iterator().next();
+    OwnerView appView = appViews.iterator().next();
     assertThat(appView.getApplication()).isEqualTo(app);
     assertThat(appView.getStageViews()).hasSize(1);
-    ApplicationStageView appStageView = appView.getStageViews().iterator().next();
+    OwnerStageView appStageView = appView.getStageViews().iterator().next();
     assertThat(appStageView.getStageType()).isEqualTo(StageTypes.BUILD);
     assertThat(appStageView.getLastEvaluation()).isNotNull();
     assertThat(appStageView.getLastEvaluation().getOwnerId()).isEqualTo(app.getId());
@@ -92,10 +94,10 @@ public class PolicyViolationLoaderTest
     createApplication(StageTypes.BUILD);
     Application app3 = createApplication(StageTypes.BUILD);
 
-    Collection<ApplicationView> appViews = loader.getViolations(Arrays.asList(app1, app3),
+    Collection<OwnerView> appViews = loader.getViolations(Arrays.asList(app1, app3),
         Collections.singletonList(StageTypes.BUILD), false, violation -> true);
 
-    assertThat(appViews).extracting(ApplicationView::getApplication).containsExactlyInAnyOrder(app1, app3);
+    assertThat(appViews).extracting(OwnerView::getApplication).containsExactlyInAnyOrder(app1, app3);
   }
 
   @Test
@@ -109,17 +111,17 @@ public class PolicyViolationLoaderTest
       Application app2 = createApplication(StageTypes.BUILD);
       Application app3 = createApplication(StageTypes.BUILD, StageTypes.RELEASE);
 
-      Collection<ApplicationView> appViews = loader.getViolations(Arrays.asList(app1, app2, app3),
+      Collection<OwnerView> appViews = loader.getViolations(Arrays.asList(app1, app2, app3),
           Arrays.asList(StageTypes.BUILD, StageTypes.RELEASE), false, violation -> true);
 
-      Iterator<ApplicationView> appViewsIterator = appViews.iterator();
+      Iterator<OwnerView> appViewsIterator = appViews.iterator();
 
       // Since it's limited this app should not have filtered violations since it has the oldest evaluations
-      ApplicationView appView = appViewsIterator.next();
+      OwnerView appView = appViewsIterator.next();
       assertThat(appView.getApplication()).isEqualTo(app1);
       assertThat(appView.getStageViews()).hasSize(2);
-      Iterator<ApplicationStageView> iterator = appView.getStageViews().iterator();
-      ApplicationStageView appStageView = iterator.next();
+      Iterator<OwnerStageView> iterator = appView.getStageViews().iterator();
+      OwnerStageView appStageView = iterator.next();
       assertThat(appStageView.getStageType()).isEqualTo(StageTypes.BUILD);
       assertThat(appStageView.getFilteredViolations()).isEmpty();
       appStageView = iterator.next();
@@ -162,13 +164,13 @@ public class PolicyViolationLoaderTest
   public void testGetViolations_FilterByStageTypes() {
     Application app = createApplication(StageTypes.BUILD, StageTypes.RELEASE, StageTypes.OPERATE);
 
-    Collection<ApplicationView> appViews = loader.getViolations(Collections.singletonList(app),
+    Collection<OwnerView> appViews = loader.getViolations(Collections.singletonList(app),
         Arrays.asList(StageTypes.BUILD, StageTypes.RELEASE), false, violation -> true);
 
     assertThat(appViews).hasSize(1);
-    ApplicationView appView = appViews.iterator().next();
+    OwnerView appView = appViews.iterator().next();
     assertThat(appView.getApplication()).isEqualTo(app);
-    assertThat(appView.getStageViews()).extracting(ApplicationStageView::getStageType)
+    assertThat(appView.getStageViews()).extracting(OwnerStageView::getStageType)
         .containsExactlyInAnyOrder(StageTypes.BUILD, StageTypes.RELEASE);
   }
 
@@ -189,15 +191,15 @@ public class PolicyViolationLoaderTest
     };
     Application app = createApplication(evaluatedStageTypes);
 
-    Collection<ApplicationView> appViews =
+    Collection<OwnerView> appViews =
         loader.getViolations(Collections.singletonList(app), stageTypes, false, violation -> true);
 
     assertThat(appViews).hasSize(1);
-    ApplicationView appView = appViews.iterator().next();
+    OwnerView appView = appViews.iterator().next();
     assertThat(appView.getApplication()).isEqualTo(app);
-    assertThat(appView.getStageViews()).extracting(ApplicationStageView::getStageType)
+    assertThat(appView.getStageViews()).extracting(OwnerStageView::getStageType)
         .containsExactlyInAnyOrderElementsOf(StageTypes.getAll());
-    for (ApplicationStageView appStageView : appView.getStageViews()) {
+    for (OwnerStageView appStageView : appView.getStageViews()) {
       StageType stageType = appStageView.getStageType();
       if (Arrays.asList(evaluatedStageTypes).contains(stageType)) {
         assertThat(appStageView.getLastEvaluation()).as(stageType.toString()).isNotNull();
@@ -214,15 +216,15 @@ public class PolicyViolationLoaderTest
   public void testGetViolations_ActiveViolationsOnly() {
     Application app = createApplication(StageTypes.BUILD);
 
-    Collection<ApplicationView> appViews = loader.getViolations(Collections.singletonList(app),
+    Collection<OwnerView> appViews = loader.getViolations(Collections.singletonList(app),
         Collections.singletonList(StageTypes.BUILD),
         true, violation -> true);
 
     assertThat(appViews).hasSize(1);
-    ApplicationView appView = appViews.iterator().next();
+    OwnerView appView = appViews.iterator().next();
     assertThat(appView.getApplication()).isEqualTo(app);
     assertThat(appView.getStageViews()).hasSize(1);
-    ApplicationStageView appStageView = appView.getStageViews().iterator().next();
+    OwnerStageView appStageView = appView.getStageViews().iterator().next();
     assertThat(appStageView.getStageType()).isEqualTo(StageTypes.BUILD);
     assertThat(appStageView.getFilteredViolations()).hasSize(1);
     assertThat(appStageView.getFilteredViolations().iterator().next().isWaived()).isFalse();
@@ -232,15 +234,15 @@ public class PolicyViolationLoaderTest
   public void testGetViolations_FilterByViolations() {
     Application app = createApplication(StageTypes.BUILD);
 
-    Collection<ApplicationView> appViews = loader.getViolations(Collections.singletonList(app),
+    Collection<OwnerView> appViews = loader.getViolations(Collections.singletonList(app),
         Collections.singletonList(StageTypes.BUILD),
         false, violation -> violation.getThreatLevel() == 10);
 
     assertThat(appViews).hasSize(1);
-    ApplicationView appView = appViews.iterator().next();
+    OwnerView appView = appViews.iterator().next();
     assertThat(appView.getApplication()).isEqualTo(app);
     assertThat(appView.getStageViews()).hasSize(1);
-    ApplicationStageView appStageView = appView.getStageViews().iterator().next();
+    OwnerStageView appStageView = appView.getStageViews().iterator().next();
     assertThat(appStageView.getStageType()).isEqualTo(StageTypes.BUILD);
     assertThat(appStageView.getFilteredViolations()).hasSize(1);
     assertThat(appStageView.getFilteredViolations().iterator().next().getThreatLevel()).isEqualTo(10);
@@ -250,15 +252,15 @@ public class PolicyViolationLoaderTest
   public void testGetViolations_NullViolationFilter() {
     Application app = createApplication(StageTypes.BUILD);
 
-    Collection<ApplicationView> appViews = loader.getViolations(Collections.singletonList(app),
+    Collection<OwnerView> appViews = loader.getViolations(Collections.singletonList(app),
         Collections.singletonList(StageTypes.BUILD),
         false, null);
 
     assertThat(appViews).hasSize(1);
-    ApplicationView appView = appViews.iterator().next();
+    OwnerView appView = appViews.iterator().next();
     assertThat(appView.getApplication()).isEqualTo(app);
     assertThat(appView.getStageViews()).hasSize(1);
-    ApplicationStageView appStageView = appView.getStageViews().iterator().next();
+    OwnerStageView appStageView = appView.getStageViews().iterator().next();
     assertThat(appStageView.getStageType()).isEqualTo(StageTypes.BUILD);
     assertThat(appStageView.getFilteredViolations()).hasSize(2);
   }
@@ -267,15 +269,15 @@ public class PolicyViolationLoaderTest
   public void testGetViolations_StageWithoutEvaluation() {
     Application app = createApplication();
 
-    Collection<ApplicationView> appViews = loader.getViolations(Collections.singletonList(app),
+    Collection<OwnerView> appViews = loader.getViolations(Collections.singletonList(app),
         Collections.singletonList(StageTypes.BUILD),
         false, violation -> true);
 
     assertThat(appViews).hasSize(1);
-    ApplicationView appView = appViews.iterator().next();
+    OwnerView appView = appViews.iterator().next();
     assertThat(appView.getApplication()).isEqualTo(app);
     assertThat(appView.getStageViews()).hasSize(1);
-    ApplicationStageView appStageView = appView.getStageViews().iterator().next();
+    OwnerStageView appStageView = appView.getStageViews().iterator().next();
     assertThat(appStageView.getStageType()).isEqualTo(StageTypes.BUILD);
     assertThat(appStageView.getLastEvaluation()).isNull();
     assertThat(appStageView.getFilteredViolations()).isEmpty();
@@ -287,25 +289,25 @@ public class PolicyViolationLoaderTest
 
     Application app = createApplication(StageTypes.BUILD);
 
-    Collection<ApplicationView> appViewsFilteredWithBeforeDate = loader.getViolations(Collections.singletonList(app),
+    Collection<OwnerView> appViewsFilteredWithBeforeDate = loader.getViolations(Collections.singletonList(app),
         Collections.singletonList(StageTypes.BUILD), false, violation -> true, beforeAppCreation, null, null, null);
 
     assertThat(appViewsFilteredWithBeforeDate).hasSize(1);
-    ApplicationView appViewBefore = appViewsFilteredWithBeforeDate.iterator().next();
+    OwnerView appViewBefore = appViewsFilteredWithBeforeDate.iterator().next();
     assertThat(appViewBefore.getApplication()).isEqualTo(app);
     assertThat(appViewBefore.getStageViews()).hasSize(1);
-    ApplicationStageView appStageViewBefore = appViewBefore.getStageViews().iterator().next();
+    OwnerStageView appStageViewBefore = appViewBefore.getStageViews().iterator().next();
     assertThat(appStageViewBefore.getStageType()).isEqualTo(StageTypes.BUILD);
     assertThat(appStageViewBefore.getFilteredViolations()).hasSize(2);
 
     Date afterAppCreation = new Date(Instant.now().plus(Duration.ofMinutes(1)).toEpochMilli());
-    Collection<ApplicationView> appViewsFilteredWithAfterDate = loader.getViolations(Collections.singletonList(app),
+    Collection<OwnerView> appViewsFilteredWithAfterDate = loader.getViolations(Collections.singletonList(app),
         Collections.singletonList(StageTypes.BUILD), false, violation -> true, afterAppCreation, null, null, null);
     assertThat(appViewsFilteredWithAfterDate).hasSize(1);
-    ApplicationView appViewAfter = appViewsFilteredWithAfterDate.iterator().next();
+    OwnerView appViewAfter = appViewsFilteredWithAfterDate.iterator().next();
     assertThat(appViewAfter.getApplication()).isEqualTo(app);
     assertThat(appViewAfter.getStageViews()).hasSize(1);
-    ApplicationStageView appStageViewAfter = appViewAfter.getStageViews().iterator().next();
+    OwnerStageView appStageViewAfter = appViewAfter.getStageViews().iterator().next();
     assertThat(appStageViewAfter.getStageType()).isEqualTo(StageTypes.BUILD);
     assertThat(appStageViewAfter.getLastEvaluation()).isNull();
     assertThat(appStageViewAfter.getFilteredViolations()).isEmpty();
@@ -325,7 +327,7 @@ public class PolicyViolationLoaderTest
     final PolicyViolation policyViolation3 = tempEntity.newAutoWaivedPolicyViolation(evaluation, policy, waiver);
 
     // No exclusions exist
-    Collection<PolicyViolationLoader.ApplicationView> results = loader.getViolations(List.of(app),
+    Collection<PolicyViolationLoader.OwnerView> results = loader.getViolations(List.of(app),
         List.of(StageTypes.BUILD), false, violation -> true, null, null, null,
         new PolicyViolationStateFilter(Set.of(PolicyViolationState.WAIVED)));
 
@@ -363,7 +365,7 @@ public class PolicyViolationLoaderTest
 
     tempEntity.newAutoPolicyWaiverExclusion(app.getId(), "", "", waiver.getId(), scanId, policyViolation1);
 
-    final Collection<PolicyViolationLoader.ApplicationView> results = loader.getViolations(List.of(app),
+    final Collection<PolicyViolationLoader.OwnerView> results = loader.getViolations(List.of(app),
         List.of(StageTypes.BUILD), false, violation -> true, null, null, null,
         new PolicyViolationStateFilter(Set.of(PolicyViolationState.WAIVED, PolicyViolationState.LEGACY_VIOLATION)));
 
@@ -374,13 +376,97 @@ public class PolicyViolationLoaderTest
         .containsExactlyInAnyOrder(policyViolation1.getId(), policyViolation2.getId(), policyViolation3.getId());
   }
 
+  @Test
+  public void testGetViolations_Application_populatesBothOwnerAndApplicationOnView() {
+    Application app = createApplication(StageTypes.BUILD);
+
+    Collection<OwnerView> appViews = loader.getViolations(Collections.singletonList(app),
+        Collections.singletonList(StageTypes.BUILD), false, violation -> true);
+
+    assertThat(appViews).hasSize(1);
+    OwnerView appView = appViews.iterator().next();
+    // Application inputs populate both fields; getOwner() and getApplication() return the same instance.
+    assertThat(appView.getApplication()).isEqualTo(app);
+    assertThat(appView.getOwner()).isEqualTo(app);
+    assertThat(appView.getOwner().getId()).isEqualTo(app.getId());
+  }
+
+  @Test
+  public void testGetViolations_Hrc_populatesOwnerAndLeavesApplicationNull() {
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    Policy policy = tempEntity.newPolicy(hrc.getId(), "hrc policy", 7);
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(hrc.getId(), StageTypes.BUILD.getId(),
+        "hrc-scan-id", new Date(System.currentTimeMillis() - 1000));
+    PolicyViolation seededViolation = tempEntity.newPolicyViolation(evaluation, policy);
+
+    Collection<OwnerView> appViews = loader.getViolations(Collections.singletonList(hrc),
+        Collections.singletonList(StageTypes.BUILD), false, violation -> true);
+
+    assertThat(appViews).hasSize(1);
+    OwnerView appView = appViews.iterator().next();
+    // owner is set to the HRC; application stays null because HRC is not an Application.
+    assertThat(appView.getOwner()).isEqualTo(hrc);
+    assertThat(appView.getOwner().getId()).isEqualTo(hrc.getId());
+    assertThat(appView.getApplication()).isNull();
+
+    // Violations are keyed by owner id, so the seeded violation surfaces on the HRC view.
+    assertThat(appView.getStageViews()).hasSize(1);
+    OwnerStageView stageView = appView.getStageViews().iterator().next();
+    assertThat(stageView.getStageType()).isEqualTo(StageTypes.BUILD);
+    assertThat(stageView.getLastEvaluation()).isNotNull();
+    assertThat(stageView.getLastEvaluation().getOwnerId()).isEqualTo(hrc.getId());
+    assertThat(stageView.getFilteredViolations())
+        .extracting(AbstractPolicyViolation::getId)
+        .containsExactly(seededViolation.getId());
+  }
+
+  @Test
+  public void testGetViolations_MixedCollection_routesToCorrectOwnerAndPreservesShape() {
+    Application app = createApplication(StageTypes.BUILD);
+
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    Policy hrcPolicy = tempEntity.newPolicy(hrc.getId(), "hrc policy", 4);
+    PolicyEvaluation hrcEval = tempEntity.newPolicyEvaluation(hrc.getId(), StageTypes.BUILD.getId(),
+        "hrc-mixed-scan-id", new Date(System.currentTimeMillis() - 1000));
+    PolicyViolation hrcViolation = tempEntity.newPolicyViolation(hrcEval, hrcPolicy);
+
+    Collection<OwnerView> ownerViews = loader.getViolations(List.of(app, hrc),
+        Collections.singletonList(StageTypes.BUILD), false, violation -> true);
+
+    assertThat(ownerViews).hasSize(2);
+
+    OwnerView appView = ownerViews.stream()
+        .filter(v -> v.getOwner().getId().equals(app.getId()))
+        .findFirst()
+        .orElseThrow();
+    OwnerView hrcView = ownerViews.stream()
+        .filter(v -> v.getOwner().getId().equals(hrc.getId()))
+        .findFirst()
+        .orElseThrow();
+
+    // Application input: both getOwner() and getApplication() populated with the same instance.
+    assertThat(appView.getOwner()).isEqualTo(app);
+    assertThat(appView.getApplication()).isEqualTo(app);
+    // HRC input: only getOwner() populated; getApplication() null.
+    assertThat(hrcView.getOwner()).isEqualTo(hrc);
+    assertThat(hrcView.getApplication()).isNull();
+
+    // Violations route to their own owner; no cross-attribution.
+    List<PolicyViolation> hrcViolations = hrcView.getStageViews().iterator().next().getFilteredViolations();
+    assertThat(hrcViolations).extracting(AbstractPolicyViolation::getId).containsExactly(hrcViolation.getId());
+    List<PolicyViolation> appViolations = appView.getStageViews().iterator().next().getFilteredViolations();
+    assertThat(appViolations).extracting(AbstractPolicyViolation::getOwnerId).containsOnly(app.getId());
+  }
+
   private static List<PolicyViolation> extractPolicyViolations(
-      final Collection<PolicyViolationLoader.ApplicationView> appViews)
+      final Collection<PolicyViolationLoader.OwnerView> appViews)
   {
     return appViews.stream()
-        .map(PolicyViolationLoader.ApplicationView::getStageViews)
+        .map(PolicyViolationLoader.OwnerView::getStageViews)
         .flatMap(Collection::stream)
-        .map(PolicyViolationLoader.ApplicationStageView::getFilteredViolations)
+        .map(PolicyViolationLoader.OwnerStageView::getFilteredViolations)
         .flatMap(Collection::stream)
         .toList();
   }

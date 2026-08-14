@@ -132,62 +132,8 @@ describe('ComponentDetailsBackButton', () => {
     expect(screen.getByRole('link', { name: 'Back to Application Report' })).toBeInTheDocument();
   });
 
-  describe('hosted repo origin', () => {
-    it('renders "Back to Repository Component Report" when currentParams.origin=hostedRepoComponents (refresh-safe)', () => {
-      const routerPreloadedState = {
-        router: {
-          currentParams: {
-            publicId: 'maven-releases_common_common_1_common-1.jar',
-            scanId: 'bc50a9b4678c4442974aff5e68750034',
-            origin: 'hostedRepoComponents',
-            repositoryManagerId: 'rm-1',
-            repositoryId: 'repo-1',
-            repositoryPublicId: 'maven-releases',
-            componentDisplayName: 'common 1 (.jar)',
-          },
-        },
-      };
-
-      renderComponent(null, routerPreloadedState);
-
-      expect(screen.getByRole('link', { name: 'Back to Repository Component Report' })).toBeInTheDocument();
-      // CLM-42090: componentDisplayName MUST be forwarded so the destination report page
-      // renders the friendly component name instead of the synthetic application public id.
-      expect(routerContextMock.href).toHaveBeenCalledWith('applicationReport.policy', {
-        publicId: 'maven-releases_common_common_1_common-1.jar',
-        scanId: 'bc50a9b4678c4442974aff5e68750034',
-        origin: 'hostedRepoComponents',
-        repositoryManagerId: 'rm-1',
-        repositoryId: 'repo-1',
-        repositoryPublicId: 'maven-releases',
-        componentDisplayName: 'common 1 (.jar)',
-      });
-    });
-
-    it('forwards componentDisplayName from prevParams when the current page did not receive it directly (CLM-42090)', () => {
-      const routerPreloadedState = {
-        router: {
-          currentParams: {
-            publicId: 'maven-releases_common_common_1_common-1.jar',
-            scanId: 'bc50a9b4678c4442974aff5e68750034',
-          },
-          prevParams: {
-            origin: 'hostedRepoComponents',
-            repositoryManagerId: 'rm-1',
-            repositoryId: 'repo-1',
-            repositoryPublicId: 'maven-releases',
-            componentDisplayName: 'common 1 (.jar)',
-          },
-        },
-      };
-
-      renderComponent(null, routerPreloadedState);
-
-      expect(screen.getByRole('link', { name: 'Back to Repository Component Report' })).toBeInTheDocument();
-      expect(routerContextMock.href).toHaveBeenCalledWith(
-        'applicationReport.policy',
-        expect.objectContaining({ componentDisplayName: 'common 1 (.jar)' })
-      );
-    });
-  });
+  // The legacy origin='hostedRepoComponents' fallback for "Back to Repository Component Report"
+  // was removed alongside the CLM-44275 entry-point rewire — goToHrcReport now routes users to
+  // the native HRC report state, so the synthetic-app detour no longer exists. HRC back-button
+  // behaviour is covered by the "HRC route" describe block above.
 });

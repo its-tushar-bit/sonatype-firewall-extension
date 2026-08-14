@@ -26,15 +26,28 @@ export function NewerReportAvailable() {
   const EXPIRED_APP_REPORT_BANNER_SHOWN = 'EXPIRED_APP_REPORT_BANNER_SHOWN';
   const FIREWALL_REPORT_ROUTE = 'firewall.containerReport';
   const uiRouterState = useRouterState();
-  const { publicId } = useSelector(selectRouterCurrentParams);
+  const { publicId, hrcId, componentDisplayName } = useSelector(selectRouterCurrentParams);
   const newScanId = useSelector(selectLatestReportForStageId);
   const currentRouteName = useSelector(selectCurrentRouteName);
   const shouldShowNewReportMessage = useSelector(selectShouldShowNewReportMessage);
 
-  // If the current route is the firewall container report, we want to redirect to the firewall report page.
-  // else we want to redirect to the application report page (i.e., the policy report page for the lifecycle).
+  // Route the "Click here" link to the right report page based on the current context:
+  // - HRC report → HRC report policy tab
+  // - Firewall container report → firewall container report
+  // - Otherwise → application report policy tab
   const isFirewallContainerReport = currentRouteName === FIREWALL_REPORT_ROUTE;
-  const targetState = isFirewallContainerReport ? FIREWALL_REPORT_ROUTE : 'applicationReport.policy';
+  const isHrcReport = !!hrcId;
+  const targetState = isHrcReport
+    ? 'hostedRepositoryComponentReport.policy'
+    : isFirewallContainerReport
+    ? FIREWALL_REPORT_ROUTE
+    : 'applicationReport.policy';
+  // Forward componentDisplayName on HRC so the friendly page title survives the navigation
+  // to the newer scan; without it the page falls back to rendering the raw HRC UUID until
+  // metadata resolves (CLM-42090).
+  const targetParams = isHrcReport
+    ? { hrcId, scanId: newScanId, componentDisplayName }
+    : { publicId, scanId: newScanId };
 
   useEffect(() => {
     if (shouldShowNewReportMessage) {
@@ -50,15 +63,8 @@ export function NewerReportAvailable() {
     <NxWarningAlert data-testid="new-report-available-warning">
       <p>
         A new version of this report is available.{' '}
-        <NxTextLink
-          href={uiRouterState.href(targetState, {
-            publicId,
-            scanId: newScanId,
-          })}
-        >
-          Click here
-        </NxTextLink>{' '}
-        to navigate to the latest report.
+        <NxTextLink href={uiRouterState.href(targetState, targetParams)}>Click here</NxTextLink> to navigate to the
+        latest report.
       </p>
     </NxWarningAlert>
   );

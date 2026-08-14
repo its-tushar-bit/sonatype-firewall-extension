@@ -40,7 +40,10 @@ import {
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import ViolationName from './ViolationName';
 import { selectIsStandaloneDeveloper } from '../../reduxUiRouter/routerSelectors';
-import { selectIsContainerImagesEvaluationEnabledAndProxyStage } from 'MainRoot/applicationReport/applicationReportSelectors';
+import {
+  selectIsContainerImagesEvaluationEnabledAndProxyStage,
+  selectIsHrcReport,
+} from 'MainRoot/applicationReport/applicationReportSelectors';
 
 export default function PolicyViolationDetailsPopover() {
   const dispatch = useDispatch();
@@ -63,6 +66,10 @@ export default function PolicyViolationDetailsPopover() {
   const hasWaiverRequestWorkflow = useSelector(selectHasWaiverRequestWorkflow);
 
   const isContainerImagesEvaluationEnabled = useSelector(selectIsContainerImagesEvaluationEnabledAndProxyStage);
+  // HRC report waivers are deferred to Epic 2 (CLM-44279 / CLM-44516) — hide the Add/Request
+  // waiver button in the details drawer so users can still read violation info without seeing
+  // an action that would 500 against app-scoped endpoints.
+  const isHrcReport = useSelector(selectIsHrcReport);
 
   if (isAutoWaiversEnabled && activeAutoWaivers.autoWaiver) {
     activeWaivers = activeWaivers.concat(activeAutoWaivers.autoWaiver);
@@ -130,7 +137,7 @@ export default function PolicyViolationDetailsPopover() {
                 showUnapplied
               />
             ) : null}
-            {!isContainerImagesEvaluationEnabled && (
+            {!isContainerImagesEvaluationEnabled && !isHrcReport && (
               <AddOrRequestWaiverButton
                 variant={activeWaivers?.length ? 'secondary' : 'primary'}
                 hasPermissionForAppWaivers={hasPermissionForAppWaivers}

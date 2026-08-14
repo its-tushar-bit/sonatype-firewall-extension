@@ -162,6 +162,8 @@ describe('applicationReportReducer', function () {
         dependencyTreePageRouterParams: null,
         dependencyTreeSearchTerm: '',
         displayedDependencyTree: null,
+        ownerType: 'APPLICATION',
+        hostedRepoContext: null,
       });
     });
 

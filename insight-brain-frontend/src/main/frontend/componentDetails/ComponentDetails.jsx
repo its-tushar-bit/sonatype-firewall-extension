@@ -36,7 +36,10 @@ import {
   selectIsProprietary,
   selectFilteredPathnames,
 } from './componentDetailsSelectors';
-import { selectDependencyTreeRouterParams } from 'MainRoot/applicationReport/applicationReportSelectors';
+import {
+  selectDependencyTreeRouterParams,
+  selectIsHrcReport,
+} from 'MainRoot/applicationReport/applicationReportSelectors';
 
 import {
   isUnknownComponent,
@@ -86,6 +89,10 @@ export default function ComponentDetails() {
   const pathnames = useSelector(selectFilteredPathnames);
   const dependencyTreeRouterParams = useSelector(selectDependencyTreeRouterParams);
   const isStandaloneDeveloper = useSelector(selectIsStandaloneDeveloper);
+  // HRC v1: proprietary-matchers writes go through setProprietaryMatchers, which is hardcoded
+  // to /rest/proprietary/application/{ownerId}/add — that endpoint 404s for HRC owners.
+  // Hide the popover for HRC until a native HRC endpoint lands (Epic 2 / CLM-44279).
+  const isHrcReport = useSelector(selectIsHrcReport);
   const loadComponentDetails = () => dispatch(actions.loadComponentDetails());
   const onTabChange = (tabId) => dispatch(actions.onTabChange(tabId));
   const toggleShowMatchersPopover = () => dispatch(actions.toggleShowMatchersPopover());
@@ -148,7 +155,7 @@ export default function ComponentDetails() {
                     variantSelected={componentDetails.variantSelected}
                   />
                 </ComponentDetailsHeader>
-                {isUnknown && !isProprietary && (
+                {isUnknown && !isProprietary && !isHrcReport && (
                   <UnknownComponentAlert
                     onClaimClick={() => handleTabChange('claim')}
                     toggleShowMatchersPopover={toggleShowMatchersPopover}

@@ -41,6 +41,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -255,10 +256,13 @@ public class ApiCycloneDxServiceV2
     Bom bom = new Bom();
     bom.setSerialNumber(toUuid(scanId));
 
-    String publicId = owner.getPublicId();
-    String reportPath = publicId != null
-        ? UserInterfaceLinksHelper.getReportUrl(publicId, scanId)
-        : UserInterfaceLinksHelper.getHostedRepositoryComponentReportUrl(owner.getId(), scanId);
+    // HostedRepositoryComponent.getPublicId() returns the HRC id (non-null), so a null-check
+    // on getPublicId() would incorrectly route HRC owners into the application-report URL.
+    // Use the type check instead so the exported SBOM's "IQ Report" link resolves to the
+    // native HRC route.
+    String reportPath = owner instanceof HostedRepositoryComponent
+        ? UserInterfaceLinksHelper.getHostedRepositoryComponentReportUrl(owner.getId(), scanId)
+        : UserInterfaceLinksHelper.getReportUrl(owner.getPublicId(), scanId);
     String url;
     try {
       url = baseUrl.get() + reportPath;
@@ -328,9 +332,11 @@ public class ApiCycloneDxServiceV2
       log.debug("The SBOM generated is not valid, list of errors [{}]",
           StringUtils.join(exceptions.stream().map(Throwable::getMessage).toArray(), ","));
     }
-    String filenameBase = owner.getPublicId() != null
-        ? owner.getPublicId() + "-bom"
-        : "hrc-" + owner.getId() + "-bom";
+    // Same rationale as the reportPath type check above: HRC.getPublicId() returns non-null,
+    // so filenames must be picked via instanceof rather than a null-check.
+    String filenameBase = owner instanceof HostedRepositoryComponent
+        ? "hrc-" + owner.getId() + "-bom"
+        : owner.getPublicId() + "-bom";
     return Response.ok(content, type)
         .header(HttpHeaders.CONTENT_DISPOSITION,
             HttpHeaderUtils.buildContentDispositionHeaderValue(
@@ -400,9 +406,12 @@ public class ApiCycloneDxServiceV2
     if (StringUtils.isNotBlank(dependenciesData.getPackageUrl())) {
       return dependenciesData.getPackageUrl();
     }
-    String ownerName = owner.getPublicId() != null
-        ? applicationHelper.getApplicationByIdNotNull(policyEvaluation.getOwnerId()).getName()
-        : "hrc-" + owner.getId();
+    // HostedRepositoryComponent.getPublicId() returns the HRC id (non-null), so a null-check
+    // on getPublicId() alone incorrectly routes HRC owners into the application lookup and
+    // fails with "Application with ID <hrcId> does not exist". Use an instanceof check instead.
+    String ownerName = owner instanceof HostedRepositoryComponent
+        ? "hrc-" + owner.getId()
+        : applicationHelper.getApplicationByIdNotNull(policyEvaluation.getOwnerId()).getName();
     return buildFakeParentPackageUrl(dependenciesData, ownerName, policyEvaluation.getScanId());
   }
 

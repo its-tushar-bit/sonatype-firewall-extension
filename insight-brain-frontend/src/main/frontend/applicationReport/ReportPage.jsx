@@ -34,6 +34,7 @@ import {
   selectReportStageId,
   selectIsContainerImagesEvaluationEnabledAndProxyStage,
   selectApplicationReportMetaData,
+  selectHostedRepoContext,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
 import {
   selectRouterCurrentParams,
@@ -107,8 +108,13 @@ export default function ReportPage() {
     ? 'N/A'
     : applicationReport.metadata.totalRisk;
 
-  const { origin } = routerCurrentParams;
-  const isHostedRepoComponent = origin === 'hostedRepoComponents';
+  // Downstream this changes the Risk Score label from "Application" to
+  // "Repository Component", and hides other application-scoped UI. Fires for both the
+  // native HRC route (hrcId in URL) AND legacy synthetic-app reports that came from
+  // hosted-repo scanning — the trigger type is the reliable signal on the legacy path.
+  const reportMetadata = useSelector(selectApplicationReportMetaData);
+  const isHostedRepoComponent =
+    !!routerCurrentParams.hrcId || reportMetadata?.scanTriggerType === 'Hosted Repository Scanning';
 
   const reportStatusBarProps = {
     ...selectedReport,
@@ -119,12 +125,16 @@ export default function ReportPage() {
   };
 
   useEffect(() => {
-    if (publicId && stageId) {
+    const { hrcId } = routerCurrentParams;
+    if (hrcId && stageId) {
+      // HRC: call the HRC-scoped latestReportInformation endpoint (CLM-44276).
+      dispatch(latestReportForStageActions.loadLatestReportForStage({ hrcId, stageTypeId: stageId }));
+    } else if (publicId && stageId) {
       dispatch(
         latestReportForStageActions.loadLatestReportForStage({ applicationPublicId: publicId, stageTypeId: stageId })
       );
     }
-  }, [publicId, stageId]);
+  }, [publicId, stageId, routerCurrentParams.hrcId]);
 
   const uiRouterState = useRouterState();
   const reportPurged = isPurgedReportLoadError(loadError);
@@ -227,25 +237,29 @@ function BackButton() {
   const metadataDetails = useSelector(selectApplicationReportMetaData);
   const repositoryId = pathOr('', ['application', 'organization', 'relatedRepositoryId'], metadataDetails);
 
-  const {
-    publicId,
-    scanId,
-    origin,
-    repositoryManagerId,
-    repositoryId: hostedRepositoryId,
-    repositoryPublicId,
-  } = useSelector(selectRouterCurrentParams);
+  const { publicId, scanId, origin, hrcId } = useSelector(selectRouterCurrentParams);
 
-  if (origin === 'hostedRepoComponents') {
-    // Resolve to the bundle-correct state name: 'hostedRepoComponents' in Classic,
-    // 'nexusOneRepositoriesComponents' in the Nexus One embed (CLM-42184).
-    const backHref = uiRouterState.href(hostedReposState('hostedRepoComponents'), {
-      repositoryManagerId,
-      repositoryId: hostedRepositoryId,
-      repositoryPublicId,
-    });
-    const backText = repositoryPublicId ? `Back to ${repositoryPublicId}` : 'Back to Repository Components';
-    return <MenuBarBackButton href={backHref} text={backText} />;
+  // For HRC report routes: go back to the hosted repository components list.
+  // Read the parent-repository context from Redux — it was stashed once when the report
+  // mounted from the components list (see HostedRepositoryComponentReportRoot). Redux
+  // survives the click-into-componentDetails-and-back cycle where prevParams would get
+  // replaced with the component-details route params. When the report was deep-linked or
+  // the browser was refreshed, hostedRepoContext is null and we fall through to the
+  // top-level Hosted Repos list.
+  const hostedRepoContext = useSelector(selectHostedRepoContext);
+  if (hrcId) {
+    if (hostedRepoContext?.repositoryManagerId && hostedRepoContext?.repositoryId) {
+      const backHref = uiRouterState.href(hostedReposState('hostedRepoComponents'), {
+        repositoryManagerId: hostedRepoContext.repositoryManagerId,
+        repositoryId: hostedRepoContext.repositoryId,
+        repositoryPublicId: hostedRepoContext.repositoryPublicId,
+      });
+      const backText = hostedRepoContext.repositoryPublicId
+        ? `Back to ${hostedRepoContext.repositoryPublicId}`
+        : 'Back to Repository Components';
+      return <MenuBarBackButton href={backHref} text={backText} />;
+    }
+    return <MenuBarBackButton text="Back to Hosted Repos" stateName={hostedReposState('hostedRepos')} />;
   }
 
   if (isPrioritiesPageContainer) {

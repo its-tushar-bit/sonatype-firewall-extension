@@ -9,12 +9,18 @@ import axios from 'axios';
 import { always, compose, flatten } from 'ramda';
 
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { getComponentWaivers, getProductFeaturesUrl, getReportPolicyThreatsUrl } from 'MainRoot/util/CLMLocation';
+import {
+  getComponentWaivers,
+  getHrcReportPolicyThreatsUrl,
+  getProductFeaturesUrl,
+  getReportPolicyThreatsUrl,
+} from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/util/CommonServices';
 import { UI_ROUTER_ON_FINISH, stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { propSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
 import { getAddWaiverPermissionForApplicationPromiseBuilder } from 'MainRoot/waivers/waiverActions';
 import { selectApplicationReportMetaData } from 'MainRoot/applicationReport/applicationReportSelectors';
+import { ensureAaData } from 'MainRoot/applicationReport/reportEntryUtils';
 import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 import { populateViolationsWithApplicableWaivers } from 'MainRoot/util/waiverUtils';
 import { toggleBooleanProp } from 'MainRoot/util/reduxUtil';
@@ -108,24 +114,44 @@ function toggleComponentWaiversPopover(state) {
 }
 
 const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { getState, rejectWithValue }) => {
-  const { publicId, scanId, hash } = selectRouterCurrentParams(getState());
-  const {
-    application: { id },
-  } = selectApplicationReportMetaData(getState());
-  const applicationOwnerType = 'application';
+  const { publicId, hrcId, scanId, hash } = selectRouterCurrentParams(getState());
+  const metadata = selectApplicationReportMetaData(getState());
+  const applicationId = metadata?.application?.id;
+  const isHrc = !!hrcId;
+
+  const policyThreatsUrl = isHrc
+    ? getHrcReportPolicyThreatsUrl(hrcId, scanId)
+    : getReportPolicyThreatsUrl(publicId, scanId);
+
+  // HRC v1 doesn't support waivers (deferred per Jira scope). Return the shape the
+  // reducer expects (waiversByOwner/expiredWaiversByOwner arrays) instead of an empty
+  // array — otherwise `waiversResult.waiversByOwner.map(...)` throws.
+  const emptyWaiversResponse = { data: { waiversByOwner: [], expiredWaiversByOwner: [] } };
+
+  // On the application path, applicationId comes from metadata.application.id, which may not
+  // be resolved yet if this thunk fires before the report metadata load completes (e.g. rapid
+  // tab switches). Passing undefined into getAddWaiverPermissionForApplicationPromiseBuilder
+  // produces a malformed PUT URL and a 4xx that masks itself as a permission-denied result.
+  // Fall back to the same empty-response the HRC branch uses so downstream permissionResult
+  // safely resolves to false until metadata arrives.
+  const canFetchAppWaiverPermission = !isHrc && !!applicationId;
 
   const promises = [
-    axios.get(getReportPolicyThreatsUrl(publicId, scanId)),
-    axios.get(getComponentWaivers(applicationOwnerType, publicId, hash)),
-    getAddWaiverPermissionForApplicationPromiseBuilder(id),
+    axios.get(policyThreatsUrl),
+    isHrc ? Promise.resolve(emptyWaiversResponse) : axios.get(getComponentWaivers('application', publicId, hash)),
+    canFetchAppWaiverPermission
+      ? getAddWaiverPermissionForApplicationPromiseBuilder(applicationId)
+      : Promise.resolve({ data: [] }),
     axios.get(getProductFeaturesUrl()),
   ];
 
   return Promise.all(promises)
     .then((results) => {
-      const violationsResult = results[0].data;
+      // HRC's policythreats.json comes back wrapped as a ReportEntry {name, time, buf};
+      // unwrap it so the reducer sees the same shape as the application response.
+      const violationsResult = isHrc ? ensureAaData(results[0].data) : results[0].data;
       const waiversResult = results[1].data;
-      const permissionResult = results[2].data.length === 1;
+      const permissionResult = isHrc ? false : results[2].data.length === 1;
       const innerSourceTransitiveWaiver = results[3].data.includes('inner-source-transitive-waiver');
       return { violationsResult, waiversResult, permissionResult, innerSourceTransitiveWaiver, hash };
     })

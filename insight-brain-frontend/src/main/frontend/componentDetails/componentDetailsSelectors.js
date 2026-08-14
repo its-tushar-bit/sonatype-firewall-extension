@@ -32,8 +32,8 @@ export const selectIsProprietary = createSelector(selectSelectedComponent, (comp
 export const selectComponentMetaData = createSelector(selectApplicationReportMetaData, (metadata) =>
   metadata
     ? {
-        applicationName: metadata.application.name,
-        organizationName: metadata.application.organization.name,
+        applicationName: metadata.application?.name,
+        organizationName: metadata.application?.organization?.name,
         reportTime: metadata.reportTime,
         reportTitle: metadata.reportTitle,
       }
@@ -43,8 +43,8 @@ export const selectComponentMetaData = createSelector(selectApplicationReportMet
 export const selectApplicationInfo = createSelector(selectApplicationReportMetaData, (metadata) =>
   metadata
     ? {
-        applicationName: metadata.application.name,
-        applicationId: metadata.application.publicId,
+        applicationName: metadata.application?.name,
+        applicationId: metadata.application?.publicId,
         stageId: metadata.stageId,
       }
     : null

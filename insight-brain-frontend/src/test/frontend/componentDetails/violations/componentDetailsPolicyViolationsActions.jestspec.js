@@ -8,6 +8,7 @@ import axios from 'axios';
 import { actions } from '../../../../main/frontend/componentDetails/ViolationsTableTile/policyViolationsSlice';
 import {
   getComponentWaivers,
+  getHrcReportPolicyThreatsUrl,
   getProductFeaturesUrl,
   getReportPolicyThreatsUrl,
 } from '../../../../main/frontend/util/CLMLocation';
@@ -141,6 +142,50 @@ describe('componentDetailsPolicyViolationsActions', () => {
         // Remove metadata and custom error information from redux toolkit before comparisons
         const actions = store.getActions().map((action) => omit(['meta', 'error'], action));
         expect(actions).toHaveActionsInOrder([expectedPendingAction, expectedFulfilledAction]);
+        done();
+      });
+    });
+
+    it('fires the HRC policythreats endpoint and skips the app-scoped waiver+permission calls when hrcId is in router params', (done) => {
+      // Regression guard for the "wrong URL called for HRC" class of bugs. The load thunk
+      // must (a) hit the HRC-scoped policythreats endpoint (not the app one), (b) NOT call
+      // the app-scoped component waivers endpoint, and (c) NOT PUT the app-scoped waiver
+      // permission check — the primary Violations tile is what breaks when this branches wrong.
+      const hrcState = {
+        router: {
+          currentParams: { hrcId: 'hrc-uuid-1', scanId: 'scan-2', hash: 'hash-3' },
+        },
+        applicationReport: { metadata: { application: null } },
+      };
+      const hrcStore = SpecUtil.mockReduxStore(hrcState);
+
+      mockAxiosCalls({
+        get: {
+          [getHrcReportPolicyThreatsUrl('hrc-uuid-1', 'scan-2')]: Promise.resolve({
+            data: { aaData: [{ policyViolationId: 'violation-hrc' }] },
+          }),
+          [getProductFeaturesUrl()]: Promise.resolve({ data: [] }),
+        },
+      });
+
+      hrcStore.dispatch(load()).then(() => {
+        // axios is called with the HRC endpoint...
+        expect(axios.get).toHaveBeenCalledWith(getHrcReportPolicyThreatsUrl('hrc-uuid-1', 'scan-2'));
+        // ...but NOT with the app policythreats endpoint...
+        expect(axios.get).not.toHaveBeenCalledWith(getReportPolicyThreatsUrl('hrc-uuid-1', 'scan-2'));
+        // ...and NOT with the app component-waivers endpoint (the empty-waivers response is inline).
+        const componentWaiversCalls = axios.get.mock.calls.filter(([url]) => url && url.includes('/policyWaiver/'));
+        expect(componentWaiversCalls).toHaveLength(0);
+
+        const fulfilled = hrcStore
+          .getActions()
+          .map((action) => omit(['meta', 'error'], action))
+          .find((a) => a.type === 'componentDetailsPolicyViolations/load/fulfilled');
+        expect(fulfilled.payload).toMatchObject({
+          waiversResult: { waiversByOwner: [], expiredWaiversByOwner: [] },
+          permissionResult: false,
+          hash: 'hash-3',
+        });
         done();
       });
     });

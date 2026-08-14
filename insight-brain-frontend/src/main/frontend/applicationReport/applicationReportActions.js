@@ -22,9 +22,16 @@ import {
   getReportPartialMatchedUrl,
   getReportPolicyThreatsUrl,
   getReportReevaluateUrl,
+  getHrcReportReevaluateUrl,
   getReportReevaluateStatusUrl,
   getReportSecurityUrl,
   getReportUnknownJsUrl,
+  getHrcReportBomUrl,
+  getHrcReportDataUrl,
+  getHrcReportMetadataUrl,
+  getHrcReportPolicyThreatsUrl,
+  getHrcReportSecurityUrl,
+  getHrcReportLicenseUrl,
 } from '../util/CLMLocation';
 import {
   selectRouterCurrentParams,
@@ -38,7 +45,9 @@ import {
   FIREWALL_FIREWALLPAGE_CONTAINERS,
 } from 'MainRoot/constants/states/firewall';
 import { selectSelectedReport, selectReportParameters } from './applicationReportSelectors';
+import { ensureAaData, unwrapReportEntry } from './reportEntryUtils';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
+import { OWNER_TYPE_APPLICATION, OWNER_TYPE_HRC } from './ownerTypeConstants';
 
 const isFirewallDashboardState = (stateName = '') =>
   stateName === FIREWALL_FIREWALLPAGE || stateName.startsWith(`${FIREWALL_FIREWALLPAGE}.`);
@@ -73,6 +82,7 @@ export const LOAD_COMMON_DATA_UNNECESSARY = 'LOAD_COMMON_DATA_UNNECESSARY';
 export const LOAD_REPORT_ALL_DATA_REQUESTED = 'LOAD_REPORT_ALL_DATA_REQUESTED';
 export const TOGGLE_AGGREGATE_REPORT_ENTRIES = 'TOGGLE_AGGREGATE_REPORT_ENTRIES';
 export const SET_REPORT_PARAMETERS = 'SET_REPORT_PARAMETERS';
+export const SET_HOSTED_REPO_CONTEXT = 'SET_HOSTED_REPO_CONTEXT';
 export const SELECT_ROOT_ANCESTOR = 'SELECT_ROOT_ANCESTOR';
 export const UNSELECT_ROOT_ANCESTOR = 'UNSELECT_ROOT_ANCESTOR';
 export const REEVALUATE_REPORT_REQUESTED = 'REEVALUATE_REPORT_REQUESTED';
@@ -101,19 +111,46 @@ export const SET_RAW_DATA_NUMERIC_FIELD_MAX_FILTER = 'SET_RAW_DATA_NUMERIC_FIELD
 export const SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER = 'SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER';
 export const SET_SORTING = 'SET_SORTING';
 
+// Stash the parent repository context for an HRC report. Populated once when the report
+// mounts from the components list (from prevParams), then read by the report page's back
+// button so "Back to <repoPublicId>" survives the click-into-componentDetails-and-back
+// cycle (where prevParams would otherwise get replaced with component-details params).
+// Clears on non-HRC navigation via SET_REPORT_PARAMETERS.
+export function setHostedRepoContext({ repositoryManagerId, repositoryId, repositoryPublicId }) {
+  return {
+    type: SET_HOSTED_REPO_CONTEXT,
+    payload: { repositoryManagerId, repositoryId, repositoryPublicId },
+  };
+}
+
 export function setReportParameters(
-  appId,
+  ownerId,
   scanId,
   isUnknownJs,
   embeddable,
   policyViolationId,
   componentHash,
   tabId,
-  isNotFiltered
+  isNotFiltered,
+  isApplication = true
 ) {
   return {
     type: SET_REPORT_PARAMETERS,
-    payload: { appId, scanId, isUnknownJs, embeddable, policyViolationId, componentHash, tabId, isNotFiltered },
+    payload: {
+      ownerType: isApplication ? OWNER_TYPE_APPLICATION : OWNER_TYPE_HRC,
+      ownerId,
+      // Keep the legacy `appId` key populated for the application path — existing
+      // consumers (e.g. PrioritiesPage.jsx) still gate their render on
+      // `reportParameters?.appId === publicAppId`. Dropping it silently broke that page.
+      ...(isApplication ? { appId: ownerId, applicationPublicId: ownerId } : { hrcId: ownerId }),
+      scanId,
+      isUnknownJs,
+      embeddable,
+      policyViolationId,
+      componentHash,
+      tabId,
+      isNotFiltered,
+    },
   };
 }
 
@@ -132,46 +169,76 @@ export function setRawSortingParameters(key, sortFields, dir) {
 }
 
 function getReportParamsFromState(state) {
-  const { appId, scanId, isUnknownJs } = selectReportParameters(state);
-  if (appId && scanId) {
-    return { appId, scanId, isUnknownJs };
+  // setReportParameters emits `applicationPublicId` / `hrcId` (not `appId`) as of the HRC work.
+  const { applicationPublicId, scanId, isUnknownJs, ownerType, hrcId } = selectReportParameters(state);
+  const ownerId = applicationPublicId || hrcId;
+
+  if (ownerId && scanId) {
+    return { ownerId, scanId, isUnknownJs, ownerType: ownerType || OWNER_TYPE_APPLICATION };
   }
-  const currentParams = selectRouterCurrentParams(state);
-  return { appId: currentParams.publicId, scanId: currentParams.scanId, isUnknownJs };
+  // Fallback: some tests preload state without router params, so guard against `undefined`.
+  const currentParams = selectRouterCurrentParams(state) || {};
+  return {
+    ownerId: currentParams.publicId || currentParams.hrcId,
+    scanId: currentParams.scanId,
+    isUnknownJs,
+    ownerType: currentParams.hrcId ? OWNER_TYPE_HRC : OWNER_TYPE_APPLICATION,
+  };
 }
 
-function buildCommonDataRequests(appId, scanId, isUnknownJs) {
-  const requests = [axios.get(getReportBomUrl(appId, scanId)), axios.get(getReportMetadataUrl(appId, scanId))];
+/**
+ * Gets the appropriate URL based on owner type (Application vs HRC).
+ */
+function getOwnerAwareUrl(ownerType, ownerId, scanId, appUrlFn, hrcUrlFn) {
+  return ownerType === OWNER_TYPE_HRC ? hrcUrlFn(ownerId, scanId) : appUrlFn(ownerId, scanId);
+}
 
-  if (isUnknownJs) {
-    requests.push(axios.get(getReportUnknownJsUrl(appId, scanId)));
+function buildCommonDataRequests(ownerId, scanId, isUnknownJs, ownerType) {
+  const isHrc = ownerType === OWNER_TYPE_HRC;
+
+  const requests = [
+    axios.get(getOwnerAwareUrl(ownerType, ownerId, scanId, getReportBomUrl, getHrcReportBomUrl)),
+    axios.get(getOwnerAwareUrl(ownerType, ownerId, scanId, getReportMetadataUrl, getHrcReportMetadataUrl)),
+  ];
+
+  // UnknownJS is not applicable for HRC scans
+  if (isUnknownJs && !isHrc) {
+    requests.push(axios.get(getReportUnknownJsUrl(ownerId, scanId)));
   }
 
   return requests;
 }
 
 function processCommonDataResults(results, isUnknownJs) {
-  const bomData = results[0].data || undefined;
+  // Normalize bomData / unknownJsData to have an `aaData` array (see ensureAaData below)
+  // for defensive handling of HRC responses that may lack that field.
+  const bomData = ensureAaData(results[0].data);
   const metadata = results[1].data;
-  const unknownJsData = (isUnknownJs && results[2]?.data) || undefined;
+  const unknownJsData = isUnknownJs ? ensureAaData(results[2]?.data) : undefined;
 
   return { bomData, metadata, unknownJsData };
 }
 
-function buildReportDataRequests(appId, scanId) {
+function buildReportDataRequests(ownerId, scanId, ownerType) {
+  const isHrc = ownerType === OWNER_TYPE_HRC;
+
+  // HRC scans a single component so partialMatched and dependencies don't apply.
+  // Use a resolved promise with empty data instead of hitting non-existent application endpoints.
+  const emptyResponse = Promise.resolve({ data: undefined });
+
   return [
-    axios.get(getReportPolicyThreatsUrl(appId, scanId)),
-    axios.get(getReportDataUrl(appId, scanId)),
-    axios.get(getReportPartialMatchedUrl(appId, scanId)),
-    axios.get(getDependenciesUrl(appId, scanId)),
+    axios.get(getOwnerAwareUrl(ownerType, ownerId, scanId, getReportPolicyThreatsUrl, getHrcReportPolicyThreatsUrl)),
+    axios.get(getOwnerAwareUrl(ownerType, ownerId, scanId, getReportDataUrl, getHrcReportDataUrl)),
+    isHrc ? emptyResponse : axios.get(getReportPartialMatchedUrl(ownerId, scanId)),
+    isHrc ? emptyResponse : axios.get(getDependenciesUrl(ownerId, scanId)),
   ];
 }
 
 function processReportDataResults(results, bomData, unknownJsData) {
-  const policyResult = results[0].data || undefined;
-  const dataResult = results[1].data;
-  const partialMatches = results[2].data || undefined;
-  const dependencies = results[3].data;
+  const policyResult = ensureAaData(results[0].data);
+  const dataResult = unwrapReportEntry(results[1].data);
+  const partialMatches = ensureAaData(results[2].data);
+  const dependencies = unwrapReportEntry(results[3].data);
 
   const allEntries = createReportEntries(policyResult, bomData, unknownJsData, partialMatches, dependencies);
   const reportVersion = (policyResult && policyResult.version) || null;
@@ -189,10 +256,10 @@ export function fetchCommonData(forceClearMetadata = false) {
   return (dispatch, getState) => {
     const state = getState();
     const { bomData, unknownJsData, metadata } = state.applicationReport;
-    const { appId, scanId, isUnknownJs } = getReportParamsFromState(state);
+    const { ownerId, scanId, isUnknownJs, ownerType } = getReportParamsFromState(state);
 
     if (forceClearMetadata || !metadata || !bomData || (!unknownJsData && isUnknownJs)) {
-      const promises = buildCommonDataRequests(appId, scanId, isUnknownJs);
+      const promises = buildCommonDataRequests(ownerId, scanId, isUnknownJs, ownerType);
 
       return Promise.all(promises)
         .then((results) => {
@@ -216,10 +283,10 @@ export function fetchReportData(forceReload = true) {
   return (dispatch, getState) => {
     const state = getState();
     const { bomData, unknownJsData, selectedReport } = state.applicationReport;
-    const { appId, scanId } = getReportParamsFromState(state);
+    const { ownerId, scanId, ownerType } = getReportParamsFromState(state);
 
     if (forceReload || !selectedReport) {
-      const promises = buildReportDataRequests(appId, scanId);
+      const promises = buildReportDataRequests(ownerId, scanId, ownerType);
 
       return Promise.all(promises)
         .then((results) => {
@@ -239,16 +306,18 @@ export function fetchReportRawData(forceReload = true) {
   return (dispatch, getState) => {
     const state = getState();
     const { bomData, unknownJsData, reportRawData } = state.applicationReport;
-    const reportParameters = selectReportParameters(state);
-    const { appId, scanId } = reportParameters;
+    const { ownerId, scanId, ownerType } = getReportParamsFromState(state);
 
     if (forceReload || !reportRawData) {
-      const promises = [axios.get(getReportSecurityUrl(appId, scanId)), axios.get(getReportLicenseUrl(appId, scanId))];
+      const promises = [
+        axios.get(getOwnerAwareUrl(ownerType, ownerId, scanId, getReportSecurityUrl, getHrcReportSecurityUrl)),
+        axios.get(getOwnerAwareUrl(ownerType, ownerId, scanId, getReportLicenseUrl, getHrcReportLicenseUrl)),
+      ];
 
       return Promise.all(promises)
         .then((results) => {
-          const securityResult = results[0].data;
-          const licenseResult = results[1].data;
+          const securityResult = ensureAaData(results[0].data);
+          const licenseResult = ensureAaData(results[1].data);
           const allEntries = createRawDataEntries(securityResult, licenseResult, bomData, unknownJsData);
           return dispatch(loadReportRawDataFulfilled(allEntries));
         })
@@ -269,7 +338,7 @@ export function loadReport(forceClearMetadata = false) {
 
     const state = getState();
     const { bomData, unknownJsData, metadata, selectedReport } = state.applicationReport;
-    const { appId, scanId, isUnknownJs } = getReportParamsFromState(state);
+    const { ownerId, scanId, isUnknownJs, ownerType } = getReportParamsFromState(state);
 
     const needsCommonData = forceClearMetadata || !metadata || !bomData || (!unknownJsData && isUnknownJs);
     const needsReportData = forceClearMetadata || !selectedReport;
@@ -285,13 +354,13 @@ export function loadReport(forceClearMetadata = false) {
     }
 
     const commonDataPromise = needsCommonData
-      ? Promise.all(buildCommonDataRequests(appId, scanId, isUnknownJs))
+      ? Promise.all(buildCommonDataRequests(ownerId, scanId, isUnknownJs, ownerType))
           .then((results) => ({ success: true, results, isUnknownJs }))
           .catch((error) => ({ success: false, error }))
       : Promise.resolve({ success: true, results: null });
 
     const reportDataPromise = needsReportData
-      ? Promise.all(buildReportDataRequests(appId, scanId))
+      ? Promise.all(buildReportDataRequests(ownerId, scanId, ownerType))
           .then((results) => ({ success: true, results }))
           .catch((error) => ({ success: false, error }))
       : Promise.resolve({ success: true, results: null });
@@ -304,12 +373,20 @@ export function loadReport(forceClearMetadata = false) {
       // Handle common data results
       if (needsCommonData) {
         if (commonDataResult.success) {
-          const processedCommonData = processCommonDataResults(commonDataResult.results, isUnknownJs);
-          fetchedBomData = processedCommonData.bomData;
-          if (isUnknownJs) {
-            fetchedUnknownJsData = processedCommonData.unknownJsData;
+          try {
+            const processedCommonData = processCommonDataResults(commonDataResult.results, isUnknownJs);
+            fetchedBomData = processedCommonData.bomData;
+            if (isUnknownJs) {
+              fetchedUnknownJsData = processedCommonData.unknownJsData;
+            }
+            dispatches.push(dispatch(loadCommonDataFulfilled(processedCommonData)));
+          } catch (processingError) {
+            // eslint-disable-next-line no-console
+            console.error('Failed to process common data:', processingError);
+            dispatch(loadCommonDataFailed(processingError));
+            dispatch(loadReportFailed(processingError));
+            return Promise.resolve();
           }
-          dispatches.push(dispatch(loadCommonDataFulfilled(processedCommonData)));
         } else {
           const error = commonDataResult.error;
           if (error !== 'XC Report') {
@@ -323,12 +400,19 @@ export function loadReport(forceClearMetadata = false) {
       // Handle report data results
       if (needsReportData) {
         if (reportDataResult.success) {
-          const processedReportData = processReportDataResults(
-            reportDataResult.results,
-            fetchedBomData,
-            fetchedUnknownJsData
-          );
-          dispatches.push(dispatch(loadReportFulfilled(processedReportData)));
+          try {
+            const processedReportData = processReportDataResults(
+              reportDataResult.results,
+              fetchedBomData,
+              fetchedUnknownJsData
+            );
+            dispatches.push(dispatch(loadReportFulfilled(processedReportData)));
+          } catch (processingError) {
+            // eslint-disable-next-line no-console
+            console.error('Failed to process report data:', processingError);
+            dispatch(loadReportFailed(processingError));
+            return Promise.resolve();
+          }
         } else {
           dispatch(loadReportFailed(reportDataResult.error));
           return Promise.resolve();
@@ -521,7 +605,12 @@ export function reevaluateReport(skipAutoWaivers = false) {
   return (dispatch, getState) => {
     const state = getState();
     const reportParameters = selectReportParameters(state);
-    const { appId, scanId } = reportParameters;
+    // reportParameters payload uses `applicationPublicId` (not `appId`) and `hrcId`.
+    // Fall back to router params for callers that reach here without a full report load.
+    const routerParams = selectRouterCurrentParams(state) || {};
+    const scanId = reportParameters.scanId || routerParams.scanId;
+    const hrcId = reportParameters.hrcId || routerParams.hrcId;
+    const appId = reportParameters.applicationPublicId || routerParams.publicId;
 
     dispatch({
       type: REEVALUATE_REPORT_REQUESTED,
@@ -536,14 +625,18 @@ export function reevaluateReport(skipAutoWaivers = false) {
     if (skipAutoWaivers) {
       params.set('skipAutoWaivers', 'true');
     }
-    const reevaluateUrl = `${getReportReevaluateUrl(appId, scanId)}?${params}`;
+    // Use HRC reevaluate endpoint added by CLM-44276 when this is an HRC report.
+    const reevaluateUrl = hrcId
+      ? `${getHrcReportReevaluateUrl(hrcId, scanId)}?${params}`
+      : `${getReportReevaluateUrl(appId, scanId)}?${params}`;
 
     return axios
       .post(reevaluateUrl)
       .then(({ data }) => {
         // A statusId means the re-evaluation runs asynchronously and we poll for its result; its absence
         // (an empty 200) means it already completed synchronously, so there is nothing to poll.
-        if (data && data.statusId) {
+        // HRC reevaluate is synchronous and has no poll endpoint, so appId is undefined there — skip polling.
+        if (data && data.statusId && appId) {
           return pollReevaluationStatus(appId, data.statusId, token);
         }
         return undefined;
@@ -674,10 +767,16 @@ export const goToBulkWaivePage = () => {
 export const goToComponentDetailsPage = (hash, isContainerImagesEvaluation = false) => {
   return (dispatch, getState) => {
     const state = getState();
-    const { publicId, scanId, origin } = selectRouterCurrentParams(state);
+    const { publicId, scanId, origin, hrcId } = selectRouterCurrentParams(state);
     const isPrioritiesPageContainer = selectIsPrioritiesPageContainer(state);
     const prioritiesPageContainerName = selectPrioritiesPageContainerName(state);
     const prevState = selectRouterPrevState(state);
+
+    // HRC report route → route to HRC-scoped component details
+    if (hrcId) {
+      dispatch(stateGo('hostedRepositoryComponentReport.componentDetails', { hash, hrcId, scanId }));
+      return;
+    }
 
     if (isContainerImagesEvaluation) {
       const containerReportOrigin = getContainerReportOrigin(origin, prevState);

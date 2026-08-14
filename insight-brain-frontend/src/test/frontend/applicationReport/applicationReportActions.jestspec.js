@@ -21,7 +21,10 @@ const createMockState = (isUnknownJs, bomData, unknownJsData, metadata, embeddab
   applicationReport: {
     dependencyTree: dependencyTreeData,
     reportParameters: {
+      // getReportParamsFromState reads `applicationPublicId`/`hrcId`; keep `appId` too so
+      // any legacy consumers of these tests still see the same value.
       appId: 'appId',
+      applicationPublicId: 'appId',
       scanId: 'scanId',
       isUnknownJs,
       embeddable: !!embeddable,
@@ -59,7 +62,7 @@ describe('applicationReportActions', function () {
   });
 
   describe('setReportParameters', () => {
-    it('dispatches SET_REPORT_PARAMETERS action', () => {
+    it('dispatches SET_REPORT_PARAMETERS with the application-owner payload shape', () => {
       const store = SpecUtil.mockReduxStore({});
 
       store.dispatch(
@@ -78,7 +81,10 @@ describe('applicationReportActions', function () {
       expect(store.getActions()[0]).toEqual({
         type: 'SET_REPORT_PARAMETERS',
         payload: {
+          ownerType: 'APPLICATION',
+          ownerId: 'appId',
           appId: 'appId',
+          applicationPublicId: 'appId',
           scanId: 'scanId',
           isUnknownJs: true,
           embeddable: false,
@@ -94,7 +100,10 @@ describe('applicationReportActions', function () {
       expect(store.getActions()[1]).toEqual({
         type: 'SET_REPORT_PARAMETERS',
         payload: {
+          ownerType: 'APPLICATION',
+          ownerId: 'appId',
           appId: 'appId',
+          applicationPublicId: 'appId',
           scanId: 'scanId',
           isUnknownJs: true,
           embeddable: false,
@@ -102,6 +111,41 @@ describe('applicationReportActions', function () {
           componentHash: undefined,
           tabId: undefined,
           isNotFiltered: undefined,
+        },
+      });
+    });
+
+    it('dispatches SET_REPORT_PARAMETERS with the HRC-owner payload shape when isApplication=false', () => {
+      // Regression guard for the "isApplication at position 9" wiring: on the HRC path we must
+      // emit ownerType=HOSTED_REPOSITORY_COMPONENT + hrcId (and NOT appId/applicationPublicId,
+      // which are what the app-scoped PrioritiesPage reads).
+      const store = SpecUtil.mockReduxStore({});
+      store.dispatch(
+        applicationReportActions.setReportParameters(
+          'hrc-123',
+          'scan-456',
+          false,
+          false,
+          undefined,
+          undefined,
+          undefined,
+          false,
+          false
+        )
+      );
+      expect(store.getActions()[0]).toEqual({
+        type: 'SET_REPORT_PARAMETERS',
+        payload: {
+          ownerType: 'HOSTED_REPOSITORY_COMPONENT',
+          ownerId: 'hrc-123',
+          hrcId: 'hrc-123',
+          scanId: 'scan-456',
+          isUnknownJs: false,
+          embeddable: false,
+          policyViolationId: undefined,
+          componentHash: undefined,
+          tabId: undefined,
+          isNotFiltered: false,
         },
       });
     });

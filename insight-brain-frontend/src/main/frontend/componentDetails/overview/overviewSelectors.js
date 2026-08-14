@@ -15,6 +15,7 @@ import { selectComponentDetails } from '../../componentDetails/componentDetailsS
 import { selectRouterCurrentParams } from '../../reduxUiRouter/routerSelectors';
 import { getComponentVersionComparisonInfo } from '../componentDetailsUtils';
 import { stringifyComponentIdentifier } from 'MainRoot/util/componentIdentifierUtils';
+import { API_OWNER_TYPE_APPLICATION, API_OWNER_TYPE_HRC } from 'MainRoot/applicationReport/ownerTypeConstants';
 
 export const selectComponentDetailsOverviewSlice = prop('componentDetailsOverview');
 
@@ -33,17 +34,20 @@ export const selectSelectedVersionData = createSelector(
 export const selectComponentDetailsRequestData = createSelector(
   selectSelectedComponent,
   selectRouterCurrentParams,
-  (component, params) => ({
-    clientType: 'ci',
-    ownerType: 'application',
-    ownerId: params.publicId,
-    matchState: component.matchState,
-    proprietary: component.proprietary,
-    identificationSource: component.identificationSource,
-    componentIdentifier: stringifyComponentIdentifier(component.componentIdentifier, component.matchState),
-    hash: component.hash,
-    scanId: params.scanId,
-  })
+  (component, params) => {
+    const isHrc = !!params.hrcId;
+    return {
+      clientType: 'ci',
+      ownerType: isHrc ? API_OWNER_TYPE_HRC : API_OWNER_TYPE_APPLICATION,
+      ownerId: isHrc ? params.hrcId : params.publicId,
+      matchState: component.matchState,
+      proprietary: component.proprietary,
+      identificationSource: component.identificationSource,
+      componentIdentifier: stringifyComponentIdentifier(component.componentIdentifier, component.matchState),
+      hash: component.hash,
+      scanId: params.scanId,
+    };
+  }
 );
 
 export const selectVersionExplorerRequestData = createSelector(
@@ -125,17 +129,20 @@ export const selectSelectedVersionComparisonData = createSelector(
 export const selectComponentDetailsSelectedRequestData = createSelector(
   selectSelectedVersionDetailsByVersionId,
   selectRouterCurrentParams,
-  (component, params) => ({
-    clientType: 'ci',
-    ownerType: 'application',
-    ownerId: params.publicId,
-    matchState: component.matchState,
-    proprietary: component.proprietary,
-    identificationSource: component.identificationSource,
-    componentIdentifier: stringifyComponentIdentifier(component.componentIdentifier, component.matchState),
-    hash: undefined,
-    scanId: params.scanId,
-  })
+  (component, params) => {
+    const isHrc = !!params.hrcId;
+    return {
+      clientType: 'ci',
+      ownerType: isHrc ? API_OWNER_TYPE_HRC : API_OWNER_TYPE_APPLICATION,
+      ownerId: isHrc ? params.hrcId : params.publicId,
+      matchState: component.matchState,
+      proprietary: component.proprietary,
+      identificationSource: component.identificationSource,
+      componentIdentifier: stringifyComponentIdentifier(component.componentIdentifier, component.matchState),
+      hash: undefined,
+      scanId: params.scanId,
+    };
+  }
 );
 
 export const selectShowComponentCoordinatesPopover = createSelector(

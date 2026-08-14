@@ -27,6 +27,8 @@ import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -534,6 +536,71 @@ abstract class AbstractApplicationRiskServiceTest
     assertThatExceptionOfType(ConflictException.class).isThrownBy(() -> getApplicationRiskService()
         .getApplicationRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0, Integer.MAX_VALUE))
         .withMessage("The dashboard feature has been disabled.");
+  }
+
+  @Test
+  public void testGetRiskForOwner_Application_populatesOrgAndAppFields() {
+    ApplicationRiskScoreDTO dto =
+        getApplicationRiskService().getRiskForOwner(app1, Collections.singleton(StageTypes.BUILD));
+
+    assertThat(dto).isNotNull();
+    // The constructor packs the app publicId into the `applicationId` field and the internal
+    // id into the `id` field (labelled that way for wire compatibility with existing consumers).
+    assertThat(dto.id).isEqualTo(app1.getId());
+    assertThat(dto.applicationId).isEqualTo(app1.getPublicId());
+    assertThat(dto.applicationName).isEqualTo(app1.getName());
+    assertThat(dto.organizationId).isEqualTo(app1.getOrganizationId());
+    assertThat(dto.organizationName).isEqualTo(org.getName());
+    assertThat(dto.totalApplicationRisk.totalRisk)
+        .isEqualTo(orgPolicy.getThreatLevel() + app1Policy.getThreatLevel());
+  }
+
+  @Test
+  public void testGetRiskForOwner_Hrc_populatesIdOnly_andAggregatesViolationsByOwnerId() {
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    Policy hrcPolicy = tempEntity.newPolicy(hrc.getId(), "hrc policy", 7);
+    PolicyEvaluation hrcEval = tempEntity.newPolicyEvaluation(hrc.getId(), BuildStageType.ID,
+        "hrc-scan-id", new Date(System.currentTimeMillis() - 1000));
+    tempEntity.newPolicyViolation(hrcEval, hrcPolicy);
+
+    ApplicationRiskScoreDTO dto =
+        getApplicationRiskService().getRiskForOwner(hrc, Collections.singleton(StageTypes.BUILD));
+
+    assertThat(dto).isNotNull();
+    // Only `id` is populated for non-Application owners. Callers must not read the org /
+    // appName / applicationId fields on this branch — they are null by design.
+    assertThat(dto.id).isEqualTo(hrc.getId());
+    assertThat(dto.applicationId).isNull();
+    assertThat(dto.applicationName).isNull();
+    assertThat(dto.organizationId).isNull();
+    assertThat(dto.organizationName).isNull();
+    assertThat(dto.totalApplicationRisk.totalRisk).isEqualTo(hrcPolicy.getThreatLevel());
+  }
+
+  @Test
+  public void testGetRiskForOwner_Application_matchesEquivalent_Hrc_aggregation() {
+    // Parity guarantee: given identical seed data, the totalRisk returned for an HRC owner and
+    // for an Application owner is the same integer.
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    Policy hrcPolicy = tempEntity.newPolicy(hrc.getId(), "shared policy", 6);
+    PolicyEvaluation hrcEval = tempEntity.newPolicyEvaluation(hrc.getId(), BuildStageType.ID,
+        "hrc-parity-scan", new Date(System.currentTimeMillis() - 1000));
+    tempEntity.newPolicyViolation(hrcEval, hrcPolicy);
+
+    Application parityApp = tempEntity.newApplication("parity-app", "parity-app", org.getId());
+    Policy parityAppPolicy = tempEntity.newPolicy(parityApp.getId(), "shared policy", 6);
+    PolicyEvaluation parityAppEval = tempEntity.newPolicyEvaluation(parityApp.getId(), BuildStageType.ID,
+        "app-parity-scan", new Date(System.currentTimeMillis() - 1000));
+    tempEntity.newPolicyViolation(parityAppEval, parityAppPolicy);
+
+    int hrcTotal = getApplicationRiskService()
+        .getRiskForOwner(hrc, Collections.singleton(StageTypes.BUILD)).totalApplicationRisk.totalRisk;
+    int appTotal = getApplicationRiskService()
+        .getRiskForOwner(parityApp, Collections.singleton(StageTypes.BUILD)).totalApplicationRisk.totalRisk;
+
+    assertThat(hrcTotal).isEqualTo(appTotal);
   }
 
   private void assertRisk(RiskDTO risk, int criticalRisk, int severeRisk, int moderateRisk, int lowRisk, int netRisk) {

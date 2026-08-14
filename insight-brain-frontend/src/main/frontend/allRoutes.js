@@ -23,6 +23,7 @@ import './api/route';
 // Application and report routes
 import './applicationLatestEvaluations/route';
 import './applicationReport/route';
+import './hostedRepositoryComponentReport/route';
 import './report/route';
 import './report/react2shell/route';
 

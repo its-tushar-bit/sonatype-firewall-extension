@@ -610,6 +610,8 @@ public class ReportService
     metadata.setForMonitoring(evaluation.isForMonitoring());
     metadata.setBranchName(evaluation.getBranchName());
 
+    applyOwnerAggregatorTotalRisk(metadata, owner, evaluation);
+
     setContainerScannerMode(lifecycleReport.getEntry(SUMMARY_JSON.getName()), metadata);
     return metadata;
   }
@@ -651,11 +653,7 @@ public class ReportService
     metadata.setForMonitoring(evaluation.isForMonitoring());
     metadata.setBranchName(evaluation.getBranchName());
 
-    if (productLicense.hasFeature(LicensedFeature.DEVELOPER_DASHBOARD)) {
-      final ApplicationRiskScoreDTO applicationRiskScoreDTO = applicationRiskService.getRiskForApp(application,
-          Collections.singleton(StageTypes.getById(evaluation.getStageTypeId())));
-      metadata.setTotalRisk(finalExtractTotalRiskOrDefault(applicationRiskScoreDTO));
-    }
+    applyOwnerAggregatorTotalRisk(metadata, application, evaluation);
 
     // For NVS where a scanLabel is set for the application name and the stage name doesn't matter
     if (entries.get(TEMPLATE_PROPERTIES.getName()) != null) {
@@ -699,6 +697,25 @@ public class ReportService
     }
     else {
       return applicationRiskScoreDTO.totalApplicationRisk.totalRisk;
+    }
+  }
+
+  private void applyOwnerAggregatorTotalRisk(
+      final ReportMetadataDTO metadata,
+      final Owner owner,
+      final PolicyEvaluation evaluation)
+  {
+    if (!productLicense.hasFeature(LicensedFeature.DEVELOPER_DASHBOARD)) {
+      return;
+    }
+    try {
+      final ApplicationRiskScoreDTO riskDTO = applicationRiskService.getRiskForOwner(owner,
+          Collections.singleton(StageTypes.getById(evaluation.getStageTypeId())));
+      metadata.setTotalRisk(finalExtractTotalRiskOrDefault(riskDTO));
+    }
+    catch (Exception e) {
+      log.debug("Owner risk aggregator failed for ownerId={} scanId={}: {}",
+          owner.getId(), evaluation.getScanId(), e.getMessage());
     }
   }
 

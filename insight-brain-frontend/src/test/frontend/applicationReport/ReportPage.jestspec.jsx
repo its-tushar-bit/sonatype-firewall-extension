@@ -175,28 +175,45 @@ describe('Report Page component', () => {
     expect(backToFirewallDashboard).toBeVisible();
   });
 
-  it('renders "Back to {repositoryPublicId}" when navigated from hostedRepoComponents', () => {
+  it('renders "Back to {repositoryPublicId}" on the HRC report when hostedRepoContext is populated', () => {
+    // The HRC report reads the parent-repository context from Redux (stashed on mount by
+    // HostedRepositoryComponentReportRoot from prevParams), not from currentParams — so
+    // the label survives the drill-into-componentDetails-and-back cycle.
     selectDisplayedComponentListSpy.mockReturnValue([]);
-    router.currentParams.origin = 'hostedRepoComponents';
-    router.currentParams.repositoryPublicId = 'maven-hosted';
-    router.currentParams.repositoryManagerId = 'rm-id';
-    router.currentParams.repositoryId = 'repo-id';
+    router.currentParams.hrcId = 'hrc-uuid-1';
+    jest.spyOn(applicationReportSelectors, 'selectHostedRepoContext').mockReturnValue({
+      repositoryManagerId: 'rm-id',
+      repositoryId: 'repo-id',
+      repositoryPublicId: 'maven-hosted',
+    });
 
     renderComponent();
 
     expect(screen.getByRole('link', { name: 'Back to maven-hosted' })).toBeVisible();
   });
 
-  it('falls back to "Back to Repository Components" when hostedRepoComponents origin lacks repositoryPublicId', () => {
+  it('falls back to "Back to Repository Components" on the HRC report when hostedRepoContext lacks repositoryPublicId', () => {
     selectDisplayedComponentListSpy.mockReturnValue([]);
-    router.currentParams.origin = 'hostedRepoComponents';
-    router.currentParams.repositoryPublicId = undefined;
-    router.currentParams.repositoryManagerId = 'rm-id';
-    router.currentParams.repositoryId = 'repo-id';
+    router.currentParams.hrcId = 'hrc-uuid-1';
+    jest.spyOn(applicationReportSelectors, 'selectHostedRepoContext').mockReturnValue({
+      repositoryManagerId: 'rm-id',
+      repositoryId: 'repo-id',
+      repositoryPublicId: undefined,
+    });
 
     renderComponent();
 
     expect(screen.getByRole('link', { name: 'Back to Repository Components' })).toBeVisible();
+  });
+
+  it('falls back to top-level "Back to Hosted Repos" on the HRC report when hostedRepoContext is null (deep link)', () => {
+    selectDisplayedComponentListSpy.mockReturnValue([]);
+    router.currentParams.hrcId = 'hrc-uuid-1';
+    jest.spyOn(applicationReportSelectors, 'selectHostedRepoContext').mockReturnValue(null);
+
+    renderComponent();
+
+    expect(screen.getByRole('link', { name: 'Back to Hosted Repos' })).toBeVisible();
   });
 
   it('prefers origin param over previous-state firewall detection for container reports', () => {

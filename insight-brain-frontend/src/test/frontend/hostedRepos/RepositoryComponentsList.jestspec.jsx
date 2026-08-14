@@ -15,7 +15,7 @@ import RepositoryComponentsList from 'MainRoot/hostedRepos/RepositoryComponentsL
 describe('RepositoryComponentsList', () => {
   let axiosMock;
   let mockRouterState;
-  let goToComponentReportSpy;
+  let goToHrcReportSpy;
   let goToComponentPrioritiesSpy;
 
   const defaultParams = {
@@ -132,7 +132,7 @@ describe('RepositoryComponentsList', () => {
       includes: jest.fn(),
     };
     jest.spyOn(RouterStateContext, 'useRouterState').mockReturnValue(mockRouterState);
-    goToComponentReportSpy = jest.spyOn(hostedReposActions, 'goToComponentReport').mockReturnValue(() => {});
+    goToHrcReportSpy = jest.spyOn(hostedReposActions, 'goToHrcReport').mockReturnValue(() => {});
     goToComponentPrioritiesSpy = jest.spyOn(hostedReposActions, 'goToComponentPriorities').mockReturnValue(() => {});
     axiosMock.onGet('/api/v2/repositories/local-nexus/repo-uuid-123/components').reply(200, {
       components: [componentWithViolations],
@@ -195,30 +195,23 @@ describe('RepositoryComponentsList', () => {
     await waitFor(() => expect(screen.getByText('Report')).toBeInTheDocument());
     await user.click(screen.getByText('Report'));
 
-    expect(goToComponentReportSpy).toHaveBeenCalledWith(
-      'maven-hosted_com_example_log4j-core-2.14.1.jar',
-      'scan-abc123',
-      'local-nexus',
-      'repo-uuid-123',
-      'maven-hosted',
-      'log4j-core : 2.14.1'
-    );
+    expect(goToHrcReportSpy).toHaveBeenCalledWith('comp001', 'scan-abc123', 'log4j-core : 2.14.1');
   });
 
-  it('navigates to priorities page when Priorities button is clicked', async () => {
-    const user = userEvent.setup();
+  it('renders the Priorities button disabled with a coming-soon tooltip (CLM-44516)', async () => {
     renderComponent();
 
     await waitFor(() => expect(screen.getByText('Priorities')).toBeInTheDocument());
-    await user.click(screen.getByText('Priorities'));
-
-    expect(goToComponentPrioritiesSpy).toHaveBeenCalledWith(
-      'maven-hosted_com_example_log4j-core-2.14.1.jar',
-      'scan-abc123'
+    const prioritiesButton = screen.getByRole('button', { name: 'Priorities' });
+    expect(prioritiesButton).toBeDisabled();
+    expect(prioritiesButton).toHaveAttribute(
+      'title',
+      'Priorities for hosted-repository components is coming soon (CLM-44516).'
     );
+    expect(goToComponentPrioritiesSpy).not.toHaveBeenCalled();
   });
 
-  it('Report and Priorities buttons are disabled when applicationPublicId or scanId is missing', async () => {
+  it('Report and Priorities buttons are disabled when component id or scanId is missing', async () => {
     axiosMock.reset();
     axiosMock.onGet('/api/v2/repositories/local-nexus/repo-uuid-123/components').reply(200, {
       components: [componentNoViolations],
@@ -251,7 +244,8 @@ describe('RepositoryComponentsList', () => {
     // stage and relative time render together separated by " | "
     expect(screen.getByText(/^Release \| .+ ago$/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Report' })).toBeEnabled();
-    expect(screen.getByRole('button', { name: 'Priorities' })).toBeEnabled();
+    // Priorities is disabled with a coming-soon tooltip (CLM-44516).
+    expect(screen.getByRole('button', { name: 'Priorities' })).toBeDisabled();
     // NxSmallThreatCounter renders a .nx-small-threat-counter-container; assert it's not present
     expect(container.querySelector('.nx-small-threat-counter-container')).not.toBeInTheDocument();
   });
@@ -454,10 +448,12 @@ describe('RepositoryComponentsList', () => {
   // Verifies that loadComponents fires when isHostedRepositoryEvaluationEnabled
   // transitions from false (async loading) to true after mount.
   it('loads components when feature flag transitions from disabled to enabled after mount', async () => {
-    const { store } = render(
-      <RepositoryComponentsList />,
-      { preloadedState: { ...defaultPreloadedState, productFeatures: { productFeatures: { 'hosted-repository-evaluation': false } } } }
-    );
+    const { store } = render(<RepositoryComponentsList />, {
+      preloadedState: {
+        ...defaultPreloadedState,
+        productFeatures: { productFeatures: { 'hosted-repository-evaluation': false } },
+      },
+    });
 
     // No API call yet - feature flag is false
     expect(axiosMock.history.get.length).toBe(0);
@@ -488,10 +484,7 @@ describe('RepositoryComponentsList', () => {
       },
     };
 
-    const { store } = render(
-      <RepositoryComponentsList />,
-      { preloadedState: stateWithoutManagerId }
-    );
+    const { store } = render(<RepositoryComponentsList />, { preloadedState: stateWithoutManagerId });
 
     // No API call yet - repositoryManagerId is null
     expect(axiosMock.history.get.length).toBe(0);
@@ -505,7 +498,11 @@ describe('RepositoryComponentsList', () => {
           fromState: {},
           fromParams: {},
           toState: { name: 'hostedRepoComponents' },
-          toParams: { repositoryManagerId: 'local-nexus', repositoryId: 'repo-uuid-123', repositoryPublicId: 'maven-hosted' },
+          toParams: {
+            repositoryManagerId: 'local-nexus',
+            repositoryId: 'repo-uuid-123',
+            repositoryPublicId: 'maven-hosted',
+          },
         },
       });
     });

@@ -260,7 +260,7 @@ public class LegalObligationsDashboardService
     // applicationIds is intentionally null: `DashboardViolationRiskService.get(...)` already runs through
     // the same Shiro-scoped `ApplicationService.getApplications()` the rest of the dashboard uses, which
     // returns only apps the current user is authorized to read. Passing the pre-resolved scopedAppIds
-    // here would constrain the inner ApplicationStageView lookup in a way that drops evaluation rows we
+    // here would constrain the inner OwnerStageView lookup in a way that drops evaluation rows we
     // ARE authorized to see (verified: H2 path returns 2 license violations with appIds=null and 0 with
     // appIds=<the same 10 ids>). Keeping the param-name `scopedAppIds` here so callers see the contract
     // — we use it for the cache key, not the data filter. That means scope is resolved twice on a cache

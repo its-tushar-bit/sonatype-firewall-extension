@@ -20,14 +20,15 @@ import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
-import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
-import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.OwnerStageView;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.OwnerView;
 
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
@@ -63,13 +64,13 @@ abstract class AbstractApplicationRiskService
   }
 
   @Override
-  public ApplicationRiskScoreDTO getRiskForApp(
-      final Application application,
+  public ApplicationRiskScoreDTO getRiskForOwner(
+      final Owner owner,
       final Set<StageType> stageTypes)
   {
-    final ApplicationView appView =
+    final OwnerView appView =
         policyViolationLoader.getViolations(
-            Collections.singleton(application),
+            Collections.singleton(owner),
             stageTypes,
             false,
             null,
@@ -92,7 +93,7 @@ abstract class AbstractApplicationRiskService
   {
     final Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
 
-    final Collection<ApplicationView> appViews =
+    final Collection<OwnerView> appViews =
         policyViolationLoader.getViolations(appsToSearch, stageTypes, false, policyThreatLevelFilter,
             policyThreatCategoryFilter, policyViolationStateFilter);
 
@@ -186,11 +187,20 @@ abstract class AbstractApplicationRiskService
   }
 
   private List<ApplicationRiskScoreDTO> createApplicationRiskScores(
-      final Collection<ApplicationView> appViews,
+      final Collection<OwnerView> appViews,
       final boolean includeZeroRiskApplications)
   {
+    // Bulk path feeds CSV export; reject non-Application owners at the boundary.
+    for (OwnerView appView : appViews) {
+      if (appView != null && appView.getOwner() != null && appView.getApplication() == null) {
+        throw new IllegalStateException(
+            "createApplicationRiskScores requires Application-typed owners; got "
+                + appView.getOwner().getClass().getSimpleName()
+                + " (id=" + appView.getOwner().getId() + ")");
+      }
+    }
     List<ApplicationRiskScoreDTO> applicationRiskScores = new ArrayList<>(appViews.size());
-    for (ApplicationView appView : appViews) {
+    for (OwnerView appView : appViews) {
       final ApplicationRiskScoreDTO applicationRiskScore = createApplicationRiskScore(
           appView,
           includeZeroRiskApplications);
@@ -203,24 +213,29 @@ abstract class AbstractApplicationRiskService
   }
 
   private ApplicationRiskScoreDTO createApplicationRiskScore(
-      final ApplicationView appView,
+      final OwnerView appView,
       final boolean returnNullAndSkipStageViewCalculationsWhenRiskIsZero)
   {
     // We must limit ourselves only to the organization name in order to avoid leaking other information
     // to users which may not have READ access to organization details. Organization names can still be
     // shown in exports similar to how we show organization names in the sidebar via the SidebarService.
     // Also store the org names once fetched to avoid multiple fetches incurring a performance penalty.
-    if (appView == null || appView.getApplication() == null) {
+    if (appView == null || appView.getOwner() == null) {
       return null;
     }
 
-    String organizationId = appView.getApplication().getOrganizationId();
-    String orgName = organizationDAO.getByIdNotNull(organizationId).getName();
-
     final Application application = appView.getApplication();
-
-    ApplicationRiskScoreDTO applicationRiskScore = new ApplicationRiskScoreDTO(orgName,
-        organizationId, application.getName(), application.getPublicId(), application.getId());
+    final ApplicationRiskScoreDTO applicationRiskScore;
+    if (application != null) {
+      String organizationId = application.getOrganizationId();
+      String orgName = organizationDAO.getByIdNotNull(organizationId).getName();
+      applicationRiskScore = new ApplicationRiskScoreDTO(orgName, organizationId,
+          application.getName(), application.getPublicId(), application.getId());
+    }
+    else {
+      // Owner-only DTO — only totalApplicationRisk.totalRisk is safe to read.
+      applicationRiskScore = new ApplicationRiskScoreDTO(null, null, null, null, appView.getOwner().getId());
+    }
 
     updateTotalApplicationRisks(applicationRiskScore, appView.getStageViews());
 
@@ -230,7 +245,7 @@ abstract class AbstractApplicationRiskService
       return null;
     }
 
-    for (ApplicationStageView appStageView : appView.getStageViews()) {
+    for (OwnerStageView appStageView : appView.getStageViews()) {
       if (!appStageView.getFilteredViolations().isEmpty()) {
         StageRiskScoreDTO stageRiskScore = new StageRiskScoreDTO(appStageView.getStageType().getId());
         stageRiskScore.stageTypeName = appStageView.getStageType().getName();
@@ -245,7 +260,7 @@ abstract class AbstractApplicationRiskService
       }
     }
 
-    List<ApplicationStageView> stagesByLatestEval = sortByLastEvaluationTimeDescending(appView.getStageViews());
+    List<OwnerStageView> stagesByLatestEval = sortByLastEvaluationTimeDescending(appView.getStageViews());
     if (!stagesByLatestEval.isEmpty()) {
       PolicyEvaluation latest = stagesByLatestEval.get(0).getLastEvaluation();
       if (latest != null && latest.getTime() != null) {
@@ -258,11 +273,11 @@ abstract class AbstractApplicationRiskService
 
   private void updateTotalApplicationRisks(
       final ApplicationRiskScoreDTO applicationRiskScore,
-      final Collection<ApplicationStageView> appStageViews)
+      final Collection<OwnerStageView> appStageViews)
   {
     // squish down any dupes we have across stages
     final SortedSet<PolicyViolation> dedupedViolations = new TreeSet<>(PolicyViolationComparator.COMPARATOR);
-    for (ApplicationStageView appStageView : sortByLastEvaluationTimeDescending(appStageViews)) {
+    for (OwnerStageView appStageView : sortByLastEvaluationTimeDescending(appStageViews)) {
       for (final PolicyViolation violation : appStageView.getFilteredViolations()) {
         // first time we see a violation, we make it, any later occurrence is from an older evaluation
         dedupedViolations.add(violation);
@@ -275,10 +290,10 @@ abstract class AbstractApplicationRiskService
     }
   }
 
-  private List<ApplicationStageView> sortByLastEvaluationTimeDescending(
-      Collection<ApplicationStageView> appStageViews)
+  private List<OwnerStageView> sortByLastEvaluationTimeDescending(
+      Collection<OwnerStageView> appStageViews)
   {
-    List<ApplicationStageView> sorted = new ArrayList<>(appStageViews);
+    List<OwnerStageView> sorted = new ArrayList<>(appStageViews);
     sorted.sort((appStageView1, appStageView2) -> {
       PolicyEvaluation eval1 = appStageView1.getLastEvaluation();
       PolicyEvaluation eval2 = appStageView2.getLastEvaluation();

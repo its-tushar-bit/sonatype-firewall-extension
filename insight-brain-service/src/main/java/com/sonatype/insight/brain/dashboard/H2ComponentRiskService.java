@@ -19,8 +19,8 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
-import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
-import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.OwnerStageView;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.OwnerView;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -173,14 +173,14 @@ public class H2ComponentRiskService
   {
     log.debug("Loaded {} applications", applications.size());
     Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
-    Collection<ApplicationView> appViews = policyViolationLoader.getViolations(applications, stageTypes, false,
+    Collection<OwnerView> appViews = policyViolationLoader.getViolations(applications, stageTypes, false,
         policyThreatLevelFilter, policyThreatCategoryFilter, policyViolationStateFilter);
 
     List<PolicyViolationDTO> policyViolationDTOs = new ArrayList<>();
 
-    for (ApplicationView appView : appViews) {
+    for (OwnerView appView : appViews) {
       Application application = appView.getApplication();
-      for (ApplicationStageView appStageView : appView.getStageViews()) {
+      for (OwnerStageView appStageView : appView.getStageViews()) {
         PolicyEvaluation evaluation = appStageView.getLastEvaluation();
         List<PolicyViolation> policyViolations = appStageView.getFilteredViolations();
         policyViolationDAO.loadConstraintFacts(policyViolations);

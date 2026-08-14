@@ -72,7 +72,13 @@ export function loadViolation(id) {
     ];
 
     return Promise.all(parallelRequests)
-      .then(() => loadPermissionForAppWaivers(getState().violation.violationDetails.applicationPublicId))
+      .then(() => {
+        // HRC violations have no owning application, so there is no application-scoped
+        // waiver permission to fetch; skip the /applications/{publicId}/summary call to
+        // avoid a 404 that would otherwise mask the successful violation load.
+        const { applicationPublicId } = getState().violation.violationDetails || {};
+        return applicationPublicId ? loadPermissionForAppWaivers(applicationPublicId) : false;
+      })
       .then(compose(dispatch, loadViolationDetailsFulfilled))
       .then(() => {
         dispatch(loadReachabilityEvidence());
@@ -271,6 +277,21 @@ export function loadReachabilityEvidence() {
     const { violationDetails } = state.violation;
 
     if (!violationDetails || violationDetails.reachabilityStatus !== 'REACHABLE') {
+      return;
+    }
+
+    // HRC v1: the reachability-evidence endpoint (getReachabilityEvidenceUrl) is app-scoped
+    // and has no HRC counterpart yet — a native HRC endpoint is deferred to Epic 2. On the
+    // HRC route applicationPublicId is null, so this used to silently fall through the
+    // `!applicationPublicId` guard below with no user-facing signal. Log the skip once
+    // (debug only, filtered in CI) so the deferral is traceable in DevTools.
+    const { hrcId } = state.router.currentParams;
+    if (hrcId) {
+      // eslint-disable-next-line no-console
+      console.debug(
+        'Reachability evidence skipped for HRC violation (no HRC endpoint yet; deferred to Epic 2). hrcId=%s',
+        hrcId
+      );
       return;
     }
 

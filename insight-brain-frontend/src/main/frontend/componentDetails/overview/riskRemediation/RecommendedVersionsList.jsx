@@ -19,12 +19,17 @@ import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import GoldenStar from 'MainRoot/img/golden-star.svg';
 import { RECOMMENDED_NON_BREAKING, RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES } from './recommendedVersionsUtils';
 import PRStatus from 'MainRoot/components/prStatus/PRStatus';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { actions } from '../overviewSlice';
 import CreatePRModal from 'MainRoot/manualPullRequest/CreatePRModal';
+import { selectIsHrcReport } from 'MainRoot/applicationReport/applicationReportSelectors';
 
 export function RecommendedVersionsList({ versionChanges, actualVersion, handleCompare, automatedRemediationStatus }) {
   const dispatch = useDispatch();
+  // HRC (hosted-repository component) scans have no source manifest to open a PR against,
+  // so the Create PR / retry / view-PR affordance never applies. Hide the whole PRStatus
+  // widget for HRC and let the Compare button stand alone in the row.
+  const isHrcReport = useSelector(selectIsHrcReport);
   const remediationStatusPollingRef = useRef(null);
 
   function startPRStatusPollingAndSaveReference(id) {
@@ -86,6 +91,7 @@ export function RecommendedVersionsList({ versionChanges, actualVersion, handleC
           automatedRemediationStatus={automatedRemediationStatus}
           onCreatePR={handleCreatePR}
           onRetryPR={handleRetryPR}
+          isHrcReport={isHrcReport}
         />
       </NxList>
       {hasAlternateVersions && (
@@ -119,6 +125,7 @@ function VersionListItem({
   automatedRemediationStatus,
   onCreatePR,
   onRetryPR,
+  isHrcReport,
 }) {
   const { id, version, type, text, isGolden, breakingChangesCount } = versionItem || {};
 
@@ -142,7 +149,7 @@ function VersionListItem({
         <VersionChecklist type={type} text={text} />
       </NxList.Subtext>
       <NxList.Actions>
-        {isSuggestedVersion && (
+        {isSuggestedVersion && !isHrcReport && (
           <PRStatus
             automatedRemediationStatus={automatedRemediationStatus}
             onCreatePR={handleCreatePR}
@@ -203,6 +210,7 @@ VersionListItem.propTypes = {
   automatedRemediationStatus: PropTypes.object,
   onCreatePR: PropTypes.func,
   onRetryPR: PropTypes.func,
+  isHrcReport: PropTypes.bool,
 };
 
 RecommendedVersionsList.propTypes = {

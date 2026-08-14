@@ -8,7 +8,7 @@ import { Messages } from 'MainRoot/util/CommonServices';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import createSlice from 'MainRoot/reduxConfig/createSlice';
 import axios from 'axios';
-import { getLatestReportInformation } from 'MainRoot/util/CLMLocation';
+import { getHrcLatestReportInformation, getLatestReportInformation } from 'MainRoot/util/CLMLocation';
 import { prop } from 'ramda';
 
 export const LATEST_REPORT_FOR_STAGE_REDUCER_NAME = 'APPLICATION_REPORT/LATEST_REPORT_FOR_STAGE_REQUEST';
@@ -24,11 +24,12 @@ export function getInitialState() {
 
 const loadLatestReportForStage = createAsyncThunk(
   LATEST_REPORT_FOR_STAGE_REDUCER_NAME,
-  ({ applicationPublicId, stageTypeId }, { rejectWithValue }) => {
-    return axios
-      .get(getLatestReportInformation(applicationPublicId, stageTypeId))
-      .then(prop('data'))
-      .catch(rejectWithValue);
+  ({ applicationPublicId, hrcId, stageTypeId }, { rejectWithValue }) => {
+    // For HRC reports call the HRC-scoped endpoint added by CLM-44276.
+    const url = hrcId
+      ? getHrcLatestReportInformation(hrcId, stageTypeId)
+      : getLatestReportInformation(applicationPublicId, stageTypeId);
+    return axios.get(url).then(prop('data')).catch(rejectWithValue);
   }
 );
 

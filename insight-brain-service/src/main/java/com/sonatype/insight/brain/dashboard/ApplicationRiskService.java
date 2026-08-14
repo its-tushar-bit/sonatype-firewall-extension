@@ -10,7 +10,7 @@ import java.util.Set;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
-import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.StageType;
 
 public interface ApplicationRiskService
@@ -41,5 +41,11 @@ public interface ApplicationRiskService
       PolicyThreatLevelFilter policyThreatLevelRange,
       PolicyViolationStateFilter policyViolationStates);
 
-  ApplicationRiskScoreDTO getRiskForApp(final Application application, final Set<StageType> stageTypes);
+  /**
+   * When {@code owner} is not an {@link com.sonatype.insight.brain.model.Application}, the returned
+   * DTO has {@code organizationName}, {@code organizationId}, {@code applicationName}, and
+   * {@code applicationId} left null; only {@code id} and {@code totalApplicationRisk.totalRisk}
+   * are guaranteed populated.
+   */
+  ApplicationRiskScoreDTO getRiskForOwner(final Owner owner, final Set<StageType> stageTypes);
 }

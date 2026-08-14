@@ -61,6 +61,7 @@ export default function ViolationsTableTile({
   scanId,
   hash,
   isFirewall,
+  isHrcReport,
   ...tableProps
 }) {
   const dispatch = useDispatch();
@@ -104,7 +105,9 @@ export default function ViolationsTableTile({
                   hash={hash}
                 />
               )}
-              {showViewAllComponents && !loading && (
+              {/* Waivers are deferred for HRC v1 — the popover behind this button reads app-scoped
+                  waivers that don't apply to HRC. */}
+              {showViewAllComponents && !loading && !isHrcReport && (
                 <ViewAllComponentWaiversButton
                   toggleComponentWaiversPopover={tableProps.toggleComponentWaiversPopover}
                 />
@@ -137,5 +140,6 @@ ViolationsTableTile.propTypes = {
   hash: PropTypes.string.isRequired,
   title: PropTypes.string,
   isFirewall: PropTypes.bool,
+  isHrcReport: PropTypes.bool,
   ...PolicyViolationsTable.propTypes,
 };

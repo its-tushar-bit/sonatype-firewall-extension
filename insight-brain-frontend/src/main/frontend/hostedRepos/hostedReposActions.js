@@ -29,21 +29,13 @@ export function goToRepositoryComponentDetails(
   };
 }
 
-export function goToComponentReport(
-  applicationPublicId,
-  scanId,
-  repositoryManagerId,
-  repositoryId,
-  repositoryPublicId,
-  componentDisplayName
-) {
-  return stateGo('applicationReport.policy', {
-    publicId: applicationPublicId,
+// Navigate to the native HRC lifecycle report (CLM-44275). Uses the hostedRepositoryComponent id
+// returned by /api/v2/repositories/{rm}/{repo}/components (ApiHostedRepositoryComponentDTO.id) —
+// which is the HRC's public id — as the route param.
+export function goToHrcReport(hrcId, scanId, componentDisplayName) {
+  return stateGo('hostedRepositoryComponentReport.policy', {
+    hrcId,
     scanId,
-    origin: 'hostedRepoComponents',
-    repositoryManagerId,
-    repositoryId,
-    repositoryPublicId,
     componentDisplayName,
   });
 }

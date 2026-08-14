@@ -5,10 +5,11 @@
  */
 import axios from 'axios';
 
-import { getReportAuditLogUrl } from '../../util/CLMLocation';
+import { getHrcReportAuditLogUrl, getReportAuditLogUrl } from '../../util/CLMLocation';
 import { httpErrorMessageActionCreator, noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
 import { sortItemsByFields } from '../../util/sortUtils';
 import { selectSelectedComponent } from '../../applicationReport/applicationReportSelectors';
+import { unwrapReportEntry } from '../../applicationReport/reportEntryUtils';
 
 export const AUDIT_LOG_LOAD_AUDIT_LOG_REQUESTED = 'AUDIT_LOG_LOAD_AUDIT_LOG_REQUESTED';
 export const AUDIT_LOG_LOAD_AUDIT_LOG_FULFILLED = 'AUDIT_LOG_LOAD_AUDIT_LOG_FULFILLED';
@@ -28,15 +29,20 @@ export function loadAuditLogForComponent() {
 
     const {
       router: {
-        currentParams: { publicId, scanId },
+        currentParams: { publicId, hrcId, scanId },
       },
     } = state;
-    const url = getReportAuditLogUrl(publicId, scanId, selectedComponent);
+    const url = hrcId
+      ? getHrcReportAuditLogUrl(hrcId, scanId, selectedComponent)
+      : getReportAuditLogUrl(publicId, scanId, selectedComponent);
 
     return axios
       .get(url)
       .then(({ data }) => {
-        const response = data.aaData || [];
+        // HRC audit log endpoint returns the ReportEntry wrapper {name, time, buf};
+        // unwrap it so downstream code sees the same shape as the application response.
+        const unwrapped = hrcId ? unwrapReportEntry(data) : data;
+        const response = (unwrapped && unwrapped.aaData) || [];
         dispatch(loadAuditLogFulfilled(response));
         if (response && response.length) {
           dispatch(sortAuditLog());

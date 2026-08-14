@@ -881,6 +881,12 @@ export function getReportReevaluateUrl(applicationPublicId, scanId) {
   return `${getBaseReportUrl(applicationPublicId, scanId)}/reevaluatePolicy`;
 }
 
+// HRC reevaluate endpoint added by CLM-44276:
+// /rest/report/hostedRepositoryComponent/{hrcId}/{scanId}/reevaluatePolicy
+export function getHrcReportReevaluateUrl(hrcId, scanId) {
+  return uriTemplate`/rest/report/hostedRepositoryComponent/${hrcId}/${scanId}/reevaluatePolicy`;
+}
+
 export function getReportReevaluateStatusUrl(applicationPublicId, statusId) {
   // No scanId in the path (the backend lookup never uses one); the backend still scopes the status
   // row to the application, looking it up by (applicationId, statusId).
@@ -922,6 +928,67 @@ export function getExportCycloneDxUrl(applicationId, scanId) {
 
 export function getExportSpdxUrl(applicationId, scanId) {
   return uriTemplate`/ui/links/spdx/${applicationId}/reports/${scanId}`;
+}
+
+// ============================================================================
+// HRC Report URLs
+// ============================================================================
+
+/**
+ * Base URL for HRC report REST endpoints.
+ */
+function getBaseHrcReportUrl(hrcId, scanId) {
+  return uriTemplate`/rest/report/hostedRepositoryComponent/${hrcId}/${scanId}`;
+}
+
+/**
+ * HRC report metadata endpoint.
+ */
+export function getHrcReportMetadataUrl(hrcId, scanId) {
+  return `${getBaseHrcReportUrl(hrcId, scanId)}/metadata`;
+}
+
+/**
+ * HRC report history endpoint. Mirrors {@link getApplicationReportHistoryUrl}:
+ * bakes stageId and limit into the builder (properly URL-encoded), and defaults
+ * limit=20 because the server has no cap and callers should state what they can afford.
+ */
+export function getHrcReportHistoryUrl(hrcId, stageId, limit = 20) {
+  return uriTemplate`/api/v2/reports/hostedRepositoryComponent/${hrcId}/history?stage=${stageId}&limit=${limit}`;
+}
+
+/**
+ * HRC browse report URL builder.
+ */
+const getHrcBrowseReportUrl = (fileName) => (hrcId, scanId) =>
+  `${getBaseHrcReportUrl(hrcId, scanId)}/browseReport/${fileName}`;
+
+export const getHrcReportBomUrl = getHrcBrowseReportUrl('bom.json');
+export const getHrcReportPolicyThreatsUrl = getHrcBrowseReportUrl('policythreats.json');
+export const getHrcReportSecurityUrl = getHrcBrowseReportUrl('security.json');
+export const getHrcReportLicenseUrl = getHrcBrowseReportUrl('licenses.json');
+// Report data (equivalent of getReportDataUrl) via browseReport for HRC
+export const getHrcReportDataUrl = getHrcBrowseReportUrl('data.json');
+
+/**
+ * HRC print report URL for PDF download.
+ */
+export function getHrcDownloadPdfUrl(hrcId, scanId) {
+  return `${getBaseHrcReportUrl(hrcId, scanId)}/printReport`;
+}
+
+/**
+ * HRC CycloneDX SBOM export URL.
+ */
+export function getHrcExportCycloneDxUrl(hrcId, scanId) {
+  return uriTemplate`/ui/links/cycloneDx/hostedRepositoryComponent/${hrcId}/reports/${scanId}`;
+}
+
+/**
+ * HRC SPDX SBOM export URL.
+ */
+export function getHrcExportSpdxUrl(hrcId, scanId) {
+  return uriTemplate`/ui/links/spdx/hostedRepositoryComponent/${hrcId}/reports/${scanId}`;
 }
 
 /**
@@ -1205,6 +1272,15 @@ export function getReportAuditLogUrl(appPublicId, reportId, component) {
       ?key=${keyJson}`;
 }
 
+// HRC audit log endpoint added by CLM-44276:
+// /rest/report/hostedRepositoryComponent/{hrcId}/{scanId}/auditLog/{path}
+export function getHrcReportAuditLogUrl(hrcId, reportId, component) {
+  const keyJson = JSON.stringify(pick(['hash', 'componentIdentifier'], component));
+
+  return uriTemplate`/rest/report/hostedRepositoryComponent/${hrcId}/${reportId}/auditLog/licenses.json+security.json
+      ?key=${keyJson}`;
+}
+
 export function getWebhookEventTypesUrl(context) {
   const baseUrl = uriTemplate`/rest/config/webhook/eventTypes`;
   return context ? `${baseUrl}?context=${context}` : baseUrl;
@@ -1261,6 +1337,12 @@ export function getLatestReportUrl(applicationId, stageTypeId) {
 
 export function getLatestReportInformation(applicationPublicId, stageTypeId) {
   return uriTemplate`/rest/application/${applicationPublicId}/${stageTypeId}/latestReportInformation`;
+}
+
+// HRC latest report info endpoint added by CLM-44276:
+// /rest/report/hostedRepositoryComponent/{hrcId}/{stageTypeId}/latestReportInformation
+export function getHrcLatestReportInformation(hrcId, stageTypeId) {
+  return uriTemplate`/rest/report/hostedRepositoryComponent/${hrcId}/${stageTypeId}/latestReportInformation`;
 }
 
 export function getRoleByIdUrl(roleId) {

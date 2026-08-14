@@ -25,6 +25,7 @@ import {
   toLower,
   filter,
 } from 'ramda';
+import { OWNER_TYPE_APPLICATION } from './ownerTypeConstants';
 import {
   LOAD_COMMON_DATA_FAILED,
   LOAD_COMMON_DATA_FULFILLED,
@@ -45,6 +46,7 @@ import {
   SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER,
   SET_EXACT_VALUE_FILTER,
   SET_REPORT_PARAMETERS,
+  SET_HOSTED_REPO_CONTEXT,
   REEVALUATE_REPORT_REQUESTED,
   REEVALUATE_REPORT_FULFILLED,
   REEVALUATE_REPORT_FAILED,
@@ -120,6 +122,14 @@ const initState = Object.freeze({
   isUnknownJs: false,
   reportParameters: {},
 
+  // Owner mode support for HRC vs Application reports. See ownerTypeConstants.js.
+  ownerType: OWNER_TYPE_APPLICATION,
+
+  // Parent-repository context for HRC reports (repositoryManagerId, repositoryId,
+  // repositoryPublicId). Captured once from prevParams on HRC report mount and read by
+  // the back button. Null when not viewing an HRC report or when the report was deep-linked.
+  hostedRepoContext: null,
+
   vulnerabilities: null,
   vulnerabilitiesPageEnabled: true,
   isInnerSourceEnabled: false,
@@ -145,6 +155,9 @@ export default function applicationReportReducer(state = initState, { type, payl
   switch (type) {
     case SET_REPORT_PARAMETERS:
       return setReportParameters(state, payload);
+
+    case SET_HOSTED_REPO_CONTEXT:
+      return { ...state, hostedRepoContext: payload };
 
     case SET_SORTING_PARAMETERS:
       return setSortingParameters(state, payload);
@@ -310,6 +323,17 @@ function setReportParameters(state, payload) {
     substringFilters: isNotFiltered ? initState.substringFilters : state.substringFilters,
     exactValueFilters: isNotFiltered ? initState.exactValueFilters : state.exactValueFilters,
     reportParameters: payload,
+    // Promote ownerType out of the payload so selectors like selectIsHrcReport can read it
+    // directly from state.applicationReport.ownerType. Falls back to APPLICATION for legacy
+    // callers that don't set it.
+    ownerType: payload.ownerType || OWNER_TYPE_APPLICATION,
+    // Preserve hostedRepoContext across setReportParameters when the new report is still an
+    // HRC scan for the same repository — the reducer's `...initState` spread would otherwise
+    // wipe it, and child-route navigation (component-details) fires this reducer again via
+    // ComponentDetails.jsx's own setReportParameters dispatch. Clear it whenever the promoted
+    // ownerType is APPLICATION (including the missing-ownerType default) so state stays honest.
+    hostedRepoContext:
+      (payload.ownerType || OWNER_TYPE_APPLICATION) === OWNER_TYPE_APPLICATION ? null : state.hostedRepoContext,
   };
 }
 

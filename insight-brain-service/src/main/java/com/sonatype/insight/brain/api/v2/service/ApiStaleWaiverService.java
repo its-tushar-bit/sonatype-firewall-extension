@@ -59,8 +59,8 @@ import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
-import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
-import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.OwnerStageView;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.OwnerView;
 import com.sonatype.insight.brain.repository.RepositoryService;
 import com.sonatype.insight.brain.utils.ScopeOwnerUtils;
 
@@ -434,14 +434,14 @@ public class ApiStaleWaiverService
 
   private Set<String> getAllUsedApplicationWaiverIds(List<Application> allApplications) {
     // getting waived violations for all applications
-    Collection<ApplicationView> appViews =
+    Collection<OwnerView> appViews =
         policyViolationLoader.getViolations(allApplications, null, false,
             new PolicyViolationStateFilter(PolicyViolationState.WAIVED).asPolicyViolationPredicate());
 
     Set<String> allUsedAppWaiverIds = new HashSet<>();
-    for (ApplicationView appView : appViews) {
+    for (OwnerView appView : appViews) {
       // We need to report on the latest evaluation for EACH stage.
-      for (ApplicationStageView appStageView : appView.getStageViews()) {
+      for (OwnerStageView appStageView : appView.getStageViews()) {
         Collection<PolicyViolation> policyViolations = appStageView.getFilteredViolations();
         allUsedAppWaiverIds
             .addAll(policyViolations.stream().map(PolicyViolation::getPolicyWaiverId).collect(toSet()));

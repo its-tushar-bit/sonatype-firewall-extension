@@ -25,7 +25,7 @@ import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelector
 import { formatTimeAgo } from 'MainRoot/util/dateUtils';
 import { isNexusOneBundle } from 'MainRoot/util/urlUtil';
 import { hostedReposState } from './hostedReposNavigation';
-import { goToComponentReport, goToComponentPriorities } from './hostedReposActions';
+import { goToHrcReport } from './hostedReposActions';
 import { selectIsHostedRepositoryEvaluationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
   selectComponents,
@@ -211,49 +211,32 @@ export default function RepositoryComponentsList() {
                             <div className="iq-hosted-repos-components__report-links">
                               <button
                                 className="nx-text-link iq-hosted-repos-components__report-link"
-                                disabled={!component.applicationPublicId || !component.scanId}
+                                disabled={!component.id || !component.scanId}
                                 title={
-                                  !component.applicationPublicId || !component.scanId
+                                  !component.id || !component.scanId
                                     ? 'Evaluation pending — results not yet available'
                                     : undefined
                                 }
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  dispatch(
-                                    goToComponentReport(
-                                      component.applicationPublicId,
-                                      component.scanId,
-                                      repositoryManagerId,
-                                      repositoryId,
-                                      repositoryPublicId,
-                                      component.displayName
-                                    )
-                                  );
+                                  dispatch(goToHrcReport(component.id, component.scanId, component.displayName));
                                 }}
                               >
                                 Report
                               </button>
-                              {/* Priorities jumps to the Standalone Developer priorities page, which
-                                  isn't embedded in the Nexus One shell — hide it there to avoid a
-                                  dead-end. Report stays: it targets applicationReport.policy, which
-                                  is embedded. CLM-42184. */}
+                              {/* Priorities for hosted-repository components is deferred to
+                                  CLM-44516 (backend endpoint) and CLM-44275's Epic 2 (UI split);
+                                  applicationPublicId was dropped from the HRC DTO in CLM-45067
+                                  so the previous synthetic-app path no longer works either. Keep
+                                  the affordance visible but disabled with a "coming soon" tooltip.
+                                  Nexus One embed hides it entirely to avoid a dead-end (CLM-42184). */}
                               {!isNexusOneBundle() && (
                                 <>
                                   <span aria-hidden="true">|</span>
                                   <button
                                     className="nx-text-link iq-hosted-repos-components__report-link"
-                                    disabled={!component.applicationPublicId || !component.scanId}
-                                    title={
-                                      !component.applicationPublicId || !component.scanId
-                                        ? 'Evaluation pending — results not yet available'
-                                        : undefined
-                                    }
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      dispatch(
-                                        goToComponentPriorities(component.applicationPublicId, component.scanId)
-                                      );
-                                    }}
+                                    disabled
+                                    title="Priorities for hosted-repository components is coming soon (CLM-44516)."
                                   >
                                     Priorities
                                   </button>

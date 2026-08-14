@@ -41,6 +41,7 @@ import {
   selectDependencyTreeUnavailableMessage,
   selectIsContainerImagesEvaluationEnabledAndProxyStage,
   selectActiveProxyFailedViolationCount,
+  selectIsHrcReport,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import BulkWaiveButton from 'MainRoot/waivers/BulkWaiveButton';
@@ -64,8 +65,12 @@ const getDirection = (sortConfig, key) => {
   return sortConfig && sortConfig.key === key ? sortConfig.dir : null;
 };
 
-const aggregateByComponentToggleTooltip =
+const APPLICATION_REPORT_TOGGLE_TOOLTIP =
   'By default the Application Report aggregates violations by component. ' +
+  'To see all violations not Aggregated by Component, please switch the toggle off.';
+
+const HRC_REPORT_TOGGLE_TOOLTIP =
+  'By default the HRC Report aggregates violations by component. ' +
   'To see all violations not Aggregated by Component, please switch the toggle off.';
 
 export default function ReportContent() {
@@ -87,7 +92,9 @@ export default function ReportContent() {
   const isContainerImagesEvaluation = useSelector(selectIsContainerImagesEvaluationEnabledAndProxyStage);
   const activeProxyFailedViolationCount = useSelector(selectActiveProxyFailedViolationCount);
   const allComponentsList = useSelector(selectAllComponentsList);
-  const { publicId } = useSelector(selectRouterCurrentParams);
+  const { publicId, hrcId } = useSelector(selectRouterCurrentParams);
+  // Trust the URL: hrcId presence means HRC regardless of Redux state timing.
+  const isHrcReport = useSelector(selectIsHrcReport) || !!hrcId;
 
   const getSubstringFiltersProp = (propName) => propOr('', propName, substringFilters);
   const policyNameFilter = getSubstringFiltersProp('policyName');
@@ -150,7 +157,7 @@ export default function ReportContent() {
     <section className="nx-tile iq-app-report__results-table-tile">
       <div className="nx-tile-header">
         <div className="nx-tile-header__title">
-          <NxTooltip title={aggregateByComponentToggleTooltip}>
+          <NxTooltip title={isHrcReport ? HRC_REPORT_TOGGLE_TOOLTIP : APPLICATION_REPORT_TOGGLE_TOOLTIP}>
             <NxToggle
               id="report-aggregate-by-component-toggle"
               isChecked={isAggregated}
@@ -161,7 +168,7 @@ export default function ReportContent() {
           </NxTooltip>
         </div>
 
-        {isContainerImagesEvaluation ? (
+        {isContainerImagesEvaluation && !isHrcReport ? (
           <div className="nx-tile__actions">
             <NxButton
               type="button"
@@ -177,16 +184,21 @@ export default function ReportContent() {
 
         {!isContainerImagesEvaluation ? (
           <div className="nx-tile__actions">
-            <BulkWaiveButton disabled={isBulkWaiveDisabled} publicId={publicId} />
-            <NxButton
-              onClick={redirectToDependencyTree}
-              variant="tertiary"
-              id="dependency-tree-button"
-              className={dependencyTreeIsAvailable ? '' : 'disabled'}
-              title={dependencyTreeUnavailableMessage}
-            >
-              View Dependency Tree
-            </NxButton>
+            {/* Bulk Waive: deferred for HRC (waivers gated to Epic 2). */}
+            {!isHrcReport && <BulkWaiveButton disabled={isBulkWaiveDisabled} publicId={publicId} />}
+            {/* Dependency Tree: HRC scans a single artifact, no dependency graph to render. */}
+            {!isHrcReport && (
+              <NxButton
+                onClick={redirectToDependencyTree}
+                variant="tertiary"
+                id="dependency-tree-button"
+                className={dependencyTreeIsAvailable ? '' : 'disabled'}
+                title={dependencyTreeUnavailableMessage}
+              >
+                View Dependency Tree
+              </NxButton>
+            )}
+            {/* Filter: works for HRC — no AC hides it, users still need to search violations. */}
             <NxButton onClick={toggleShowFilter} variant="tertiary" id="filters-toggle-button">
               <NxFontAwesomeIcon icon={faFilter} />
               <span>Filter</span>

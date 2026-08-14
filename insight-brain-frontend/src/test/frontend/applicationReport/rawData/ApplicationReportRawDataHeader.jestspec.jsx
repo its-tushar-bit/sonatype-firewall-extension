@@ -8,20 +8,27 @@ import React from 'react';
 import { render, screen } from 'TestRoot/SpecUtil';
 import ApplicationReportRawDataHeader from 'MainRoot/applicationReport/rawData/ApplicationReportRawDataHeader';
 
-// CLM-42090: The Hosted Repository component report threads componentDisplayName through the
-// URL so downstream pages (Raw Data / Vulnerabilities / Latest Evaluations) can render the
-// friendly component coordinate title instead of the synthetic application public id. These
-// tests pin that behaviour on the Raw Data page header.
+// The header title is picked by getReportDisplayName(metadata, routerParams): application.name
+// first, then componentDisplayName (URL), then hrcId (URL). These tests pin that chain for the
+// application-report and HRC-report entry points. The legacy origin='hostedRepoComponents' path
+// was removed alongside the CLM-44275 entry-point rewire (goToHrcReport goes to the native HRC
+// report route now, no synthetic-app detour).
 describe('ApplicationReportRawDataHeader', () => {
-  const metadata = {
+  const appMetadata = {
     reportTime: 1702041439230,
     reportTitle: 'Release Report',
     application: {
-      name: 'maven-releases_ansible_ansible_2_ansible-2.tar.gz',
+      name: 'my-app',
     },
   };
 
-  const renderWithRouter = (routerParams = {}) =>
+  const hrcMetadata = {
+    reportTime: 1702041439230,
+    reportTitle: 'Release Report',
+    application: null,
+  };
+
+  const renderWithRouter = (metadata, routerParams = {}) =>
     render(<ApplicationReportRawDataHeader metadata={metadata} />, {
       preloadedState: {
         router: {
@@ -30,43 +37,36 @@ describe('ApplicationReportRawDataHeader', () => {
       },
     });
 
-  it('renders the synthetic application public id as the H1 for non-hosted-repo entries', () => {
-    renderWithRouter({});
+  it('renders application.name as the H1 for application reports', () => {
+    renderWithRouter(appMetadata, {});
 
     expect(
-      screen.getByRole('heading', {
-        name: 'Raw Data for maven-releases_ansible_ansible_2_ansible-2.tar.gz Release Report',
-      })
+      screen.getByRole('heading', { name: 'Raw Data for my-app Release Report' })
     ).toBeInTheDocument();
   });
 
-  it('renders componentDisplayName instead of application.name when origin=hostedRepoComponents', () => {
-    renderWithRouter({ origin: 'hostedRepoComponents', componentDisplayName: 'ansible 2.8.0 (.tar.gz)' });
+  it('renders componentDisplayName as the H1 for HRC reports when application is null', () => {
+    renderWithRouter(hrcMetadata, { hrcId: 'hrc-uuid-1', componentDisplayName: 'ansible 2.8.0 (.tar.gz)' });
 
     expect(
       screen.getByRole('heading', { name: 'Raw Data for ansible 2.8.0 (.tar.gz) Release Report' })
     ).toBeInTheDocument();
   });
 
-  it('falls back to application.name when origin is hostedRepoComponents but componentDisplayName is missing', () => {
-    renderWithRouter({ origin: 'hostedRepoComponents' });
+  it('falls back to hrcId as the H1 when application is null and componentDisplayName is missing', () => {
+    renderWithRouter(hrcMetadata, { hrcId: 'hrc-uuid-1' });
 
-    // Guards against the empty/undefined case — without a valid componentDisplayName the header
-    // must not render a blank title.
     expect(
-      screen.getByRole('heading', {
-        name: 'Raw Data for maven-releases_ansible_ansible_2_ansible-2.tar.gz Release Report',
-      })
+      screen.getByRole('heading', { name: 'Raw Data for hrc-uuid-1 Release Report' })
     ).toBeInTheDocument();
   });
 
-  it('does not use componentDisplayName when origin is not hostedRepoComponents (regression guard)', () => {
-    renderWithRouter({ origin: 'somethingElse', componentDisplayName: 'ansible 2.8.0 (.tar.gz)' });
+  it('renders the formatted reportTime as the subtitle for reportTime=0 (guards against && short-circuit)', () => {
+    renderWithRouter({ ...appMetadata, reportTime: 0 }, {});
 
-    expect(
-      screen.getByRole('heading', {
-        name: 'Raw Data for maven-releases_ansible_ansible_2_ansible-2.tar.gz Release Report',
-      })
-    ).toBeInTheDocument();
+    const subtitle = document.querySelector('.nx-page-title__description');
+    expect(subtitle).toBeInTheDocument();
+    expect(subtitle.textContent).not.toBe('0');
+    expect(subtitle.textContent.length).toBeGreaterThan(0);
   });
 });

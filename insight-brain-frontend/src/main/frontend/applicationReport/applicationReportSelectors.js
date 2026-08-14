@@ -9,6 +9,7 @@ import { selectRouterCurrentParams, selectIsFirewallOrRepository } from '../redu
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { selectIsLatestReportForStageRequestPending } from 'MainRoot/applicationReport/latestReportForStageSelectors';
 import { selectIsContainerImagesEvaluationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { OWNER_TYPE_APPLICATION, OWNER_TYPE_HRC } from './ownerTypeConstants';
 
 export const selectApplicationReportSlice = prop('applicationReport');
 export const selectExactValueFilters = createSelector(selectApplicationReportSlice, prop('exactValueFilters'));
@@ -52,6 +53,10 @@ export const selectIsDependenciesLoading = createSelector(selectApplicationRepor
 );
 
 export const selectReportParameters = createSelector(selectApplicationReportSlice, prop('reportParameters'));
+// Parent-repository context for HRC reports — populated once from prevParams on HRC report
+// mount. See applicationReportActions.setHostedRepoContext for why this is stashed in Redux
+// (survives the drill-into-componentDetails-and-back cycle where prevParams gets replaced).
+export const selectHostedRepoContext = createSelector(selectApplicationReportSlice, prop('hostedRepoContext'));
 
 export const selectDependencyTreeData = createSelector(selectApplicationReportSlice, prop('dependencyTree'));
 export const selectDependencyTreeIsAvailable = createSelector(selectDependencyTreeData, (tree) => !isNilOrEmpty(tree));
@@ -68,7 +73,14 @@ export const selectDependencyTreeUnavailableMessage = createSelector(selectDepen
   return '';
 });
 
-export const selectDependencyTreeIsOldReport = createSelector(selectDependencyTreeData, isNil);
+// "Old report" indicator = dependency tree is missing (only meaningful for application reports).
+// HRC scans a single component and never generates a dependency tree, so we do not surface
+// the "older version of IQ" warning for HRC — it would be a false positive.
+export const selectDependencyTreeIsOldReport = createSelector(
+  selectDependencyTreeData,
+  selectRouterCurrentParams,
+  (tree, params) => !params?.hrcId && isNil(tree)
+);
 
 export const selectDependencyTreeRouterParams = createSelector(
   selectApplicationReportSlice,
@@ -125,4 +137,42 @@ export const selectIsFirewallOrRepositoryAndNotProxyStage = createSelector(
 export const selectActiveProxyFailedViolationCount = createSelector(
   selectSelectedReport,
   (report) => report?.activeProxyFailedViolationCount || 0
+);
+
+// Owner mode selectors for HRC vs Application reports.
+// Priority order (URL first) so the selector survives an initState.ownerType default of
+// OWNER_TYPE_APPLICATION and any timing gap before setReportParameters has fired for the HRC route.
+// Normalized to uppercase so we accept both the UI dispatch literal (uppercase constants from
+// ownerTypeConstants.js) and the backend wire form ('application' / 'hosted_repository_component'
+// — OwnerType.toString() lowercases it via @JsonValue).
+const normalizeOwnerType = (t) => (typeof t === 'string' ? t.toUpperCase() : t);
+export const selectOwnerType = createSelector(
+  selectApplicationReportSlice,
+  selectRouterCurrentParams,
+  (slice, params) => {
+    // URL is the source of truth for HRC — an hrcId on the route means HRC no matter
+    // what Redux state currently holds (survives page load ordering, stale slice, etc.).
+    if (params?.hrcId) return OWNER_TYPE_HRC;
+    if (slice?.reportParameters?.ownerType) return normalizeOwnerType(slice.reportParameters.ownerType);
+    if (slice?.ownerType) return normalizeOwnerType(slice.ownerType);
+    return OWNER_TYPE_APPLICATION;
+  }
+);
+export const selectIsHrcReport = createSelector(selectOwnerType, (ownerType) => ownerType === OWNER_TYPE_HRC);
+export const selectIsApplicationReport = createSelector(
+  selectOwnerType,
+  (ownerType) => ownerType === OWNER_TYPE_APPLICATION
+);
+
+// Convenience selectors to get the ID based on owner type.
+// URL-first (matches selectOwnerType above) so that during the render window between a route
+// change and the setReportParameters dispatch, the (ownerType, ownerId) pair stays consistent —
+// otherwise Redux-first would keep the stale prior-report id while selectOwnerType has already
+// flipped to the new owner type, producing a mismatched pair that any consumer reading both
+// selectors would see as (HRC, oldAppId) or vice versa.
+export const selectOwnerPublicId = createSelector(
+  selectReportParameters,
+  selectRouterCurrentParams,
+  (params, routerParams) =>
+    routerParams?.hrcId || routerParams?.publicId || params?.applicationPublicId || params?.hrcId
 );

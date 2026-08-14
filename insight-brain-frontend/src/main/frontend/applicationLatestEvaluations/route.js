@@ -16,3 +16,13 @@ router.stateRegistry.register({
     title: 'Application Latest Evaluations',
   },
 });
+
+// HRC latest evaluations route — reuses the same page component in HRC mode.
+router.stateRegistry.register({
+  name: 'hostedRepositoryComponentLatestEvaluations',
+  url: '/hostedRepositoryComponentLatestEvaluations/{hrcId}/stage/{stageId}?scanId&componentDisplayName',
+  component: ApplicationLatestEvaluationsPage,
+  data: {
+    title: 'HRC Latest Evaluations',
+  },
+});

@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.label.ApplicableLabels;
 import com.sonatype.insight.brain.label.LabelService;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.product.license.RequiresEntitlement;
+import com.sonatype.insight.brain.repository.hosted.HrcOwnerTypeFeatureGuard;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 
@@ -100,6 +101,7 @@ public class ApiLabelResource
       @Parameter(
           description = "Set to `true` to retrieve inherited component labels.") @QueryParam("inherit") @DefaultValue("false") boolean inherit)
   {
+    HrcOwnerTypeFeatureGuard.requireHrcFeatureIfHrc(ownerType);
     return labelService.getLabels(ownerType, ownerId, inherit);
   }
 
@@ -146,6 +148,7 @@ public class ApiLabelResource
       @Parameter(description = "Enter the id for the application, organization or repository",
           required = true) @PathParam("ownerId") String ownerId)
   {
+    HrcOwnerTypeFeatureGuard.requireHrcFeatureIfHrc(ownerType);
     return labelService.getApplicableLabels(ownerType, ownerId);
   }
 
@@ -175,6 +178,7 @@ public class ApiLabelResource
       @Parameter(description = "Enter the ownerId") @PathParam("ownerId") String ownerId,
       @Parameter(description = "Enter the labelId") @PathParam("labelId") String labelId)
   {
+    HrcOwnerTypeFeatureGuard.requireHrcFeatureIfHrc(ownerType);
     return labelService.getApplicableContexts(ownerType, ownerId, labelId);
   }
 
@@ -202,6 +206,7 @@ public class ApiLabelResource
           "color are `light-red` , `light-green` , `light-blue` , `light-purple`, `dark-red` , `dark-green` , " +
           "`dark-blue` , `dark-purple` , `orange` , `yellow`. Do not enter value for the `id` field.") ApiLabelDTO labelDTO)
   {
+    HrcOwnerTypeFeatureGuard.requireHrcFeatureIfHrc(ownerType);
     return labelService.addLabel(ownerType, ownerId, labelDTO);
   }
 
@@ -229,6 +234,7 @@ public class ApiLabelResource
           "`light-green` , `light-blue` , `light--purple`, `dark-red` , `dark-green` ,`dark-blue` , `dark-purple` ," +
           "`orange` , `yellow`.") ApiLabelDTO labelDTO)
   {
+    HrcOwnerTypeFeatureGuard.requireHrcFeatureIfHrc(ownerType);
     return labelService.updateLabel(ownerType, ownerId, labelDTO);
   }
 
@@ -250,6 +256,7 @@ public class ApiLabelResource
       @Parameter(description = "Enter the id for the selected ownerType.") @PathParam("ownerId") String ownerId,
       @Parameter(description = "Enter the id for the label to be deleted.") @PathParam("labelId") String labelId)
   {
+    HrcOwnerTypeFeatureGuard.requireHrcFeatureIfHrc(ownerType);
     labelService.deleteLabel(ownerType, ownerId, labelId);
   }
 }

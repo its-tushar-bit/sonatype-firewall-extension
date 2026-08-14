@@ -42,8 +42,8 @@ import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
-import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
-import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.OwnerStageView;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.OwnerView;
 import com.sonatype.insight.brain.repository.RepositoryService;
 import com.sonatype.insight.brain.tenancy.TenantAwareSupplier;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
@@ -180,7 +180,7 @@ public class ApiComponentsWithWaiversReportingService
   }
 
   private void buildApplicationWaiverDTOs(
-      final Collection<ApplicationView> appViews,
+      final Collection<OwnerView> appViews,
       final AtomicInteger componentsWithWaiversCount,
       final AtomicInteger applicationComponentsWithWaiversCount,
       final Consumer<ApiApplicationWaiverDTO> waiverConsumer)
@@ -201,7 +201,7 @@ public class ApiComponentsWithWaiversReportingService
             applicationWaiverDTO.application = buildApplicationBaseDTO(app);
 
             // We need to report on the latest evaluation for EACH stage.
-            for (ApplicationStageView appStageView : appView.getStageViews()) {
+            for (OwnerStageView appStageView : appView.getStageViews()) {
               Collection<PolicyViolation> policyViolations = appStageView.getFilteredViolations();
               if (policyViolations.isEmpty()) {
                 continue;

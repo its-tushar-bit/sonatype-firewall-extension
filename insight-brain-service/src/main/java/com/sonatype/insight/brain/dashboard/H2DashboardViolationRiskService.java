@@ -27,8 +27,8 @@ import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
-import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
-import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.OwnerStageView;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.OwnerView;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools.ThreadPools;
 import jakarta.inject.Inject;
@@ -88,7 +88,7 @@ public class H2DashboardViolationRiskService
       int page,
       int pageSize)
   {
-    Collection<ApplicationView> appViews = getPolicyViolations(applications, stageTypes, policyThreatCategoryFilter,
+    Collection<OwnerView> appViews = getPolicyViolations(applications, stageTypes, policyThreatCategoryFilter,
         policyThreatLevelFilter, policyViolationStateFilter, minDate);
 
     List<DashboardViolationRiskDTO> riskDTOs = buildRiskDTOs(appViews);
@@ -98,7 +98,7 @@ public class H2DashboardViolationRiskService
     return buildResultsDTO(riskDTOs, page, pageSize);
   }
 
-  private Collection<ApplicationView> getPolicyViolations(
+  private Collection<OwnerView> getPolicyViolations(
       List<Application> applications,
       Collection<StageType> stageTypes,
       PolicyThreatCategoryFilter policyThreatCategoryFilter,
@@ -110,7 +110,7 @@ public class H2DashboardViolationRiskService
         policyThreatLevelFilter, policyThreatCategoryFilter, policyViolationStateFilter);
   }
 
-  private List<DashboardViolationRiskDTO> buildRiskDTOs(Collection<ApplicationView> appViews) {
+  private List<DashboardViolationRiskDTO> buildRiskDTOs(Collection<OwnerView> appViews) {
     List<DashboardViolationRiskDTO> riskDTOs = new ArrayList<>();
 
     final AtomicInteger policyEvaluationCount = new AtomicInteger(0);
@@ -120,6 +120,9 @@ public class H2DashboardViolationRiskService
     List<CompletableFuture<List<DashboardViolationRiskDTO>>> dtoFutures = appViews.stream()
         .map(appView -> CompletableFuture.supplyAsync(() -> {
           Application app = appView.getApplication();
+          if (app == null) {
+            return List.<DashboardViolationRiskDTO>of();
+          }
 
           // We must limit ourselves only to the organization name to preserve access controls. We cannot use
           // an approach with auth checks as it's possible to not have rights on the parent organization, but
@@ -127,7 +130,7 @@ public class H2DashboardViolationRiskService
           // sidebar using the same approach in situations where the user does not have any access rights, so
           // this should be consistent with existing behavior and information visibility (see SidebarService).
           // Also store the org names once fetched to avoid multiple fetches incurring a performance penalty.
-          String orgName = orgNames.computeIfAbsent(appView.getApplication().getOrganizationId(),
+          String orgName = orgNames.computeIfAbsent(app.getOrganizationId(),
               orgId -> organizationDAO.getByIdNotNull(orgId).getName());
 
           List<PolicyViolation> allUniqueAppPolicyViolations = new ArrayList<>();
@@ -135,7 +138,7 @@ public class H2DashboardViolationRiskService
 
           List<DashboardViolationRiskDTO> localDTOs = new ArrayList<>();
 
-          for (ApplicationStageView appStageView : appView.getStageViews()) {
+          for (OwnerStageView appStageView : appView.getStageViews()) {
             PolicyEvaluation policyEvaluation = appStageView.getLastEvaluation();
             if (policyEvaluation != null) {
               policyEvaluationCount.incrementAndGet();

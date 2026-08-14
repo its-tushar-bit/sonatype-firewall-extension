@@ -19,6 +19,10 @@ import {
 } from '../reduxUiRouter/routerSelectors';
 import { selectIsContainerImagesEvaluationEnabledAndProxyStage } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { FIREWALL_CONTAINER_REPOSITORY_RESULTS } from 'MainRoot/constants/states/firewall';
+import {
+  buildHrcReportPolicyHref,
+  BACK_TO_HRC_REPORT_TEXT,
+} from 'MainRoot/hostedRepositoryComponentReport/hrcBackLinkHelper';
 
 export default function ComponentDetailsBackButton(props) {
   const { scanId, publicId, fromDependencyTree } = props;
@@ -31,6 +35,13 @@ export default function ComponentDetailsBackButton(props) {
   const uiRouterState = useRouterState();
 
   const isContainerImagesEvaluationEnabled = useSelector(selectIsContainerImagesEvaluationEnabledAndProxyStage);
+
+  // HRC route → back to HRC report policy tab (URL carries hrcId, so it survives refresh).
+  const hrcId = currentParams?.hrcId || prevParams?.hrcId;
+  if (hrcId) {
+    const href = buildHrcReportPolicyHref(uiRouterState, hrcId, currentParams?.scanId || scanId);
+    return <MenuBarBackButton href={href} text={BACK_TO_HRC_REPORT_TEXT} />;
+  }
 
   if (fromDependencyTree) {
     const text = 'Back To Dependency Tree';
@@ -61,25 +72,6 @@ export default function ComponentDetailsBackButton(props) {
       ...prevParams,
     });
     return <MenuBarBackButton href={href} text="Back to Priorities" />;
-  }
-
-  // Hosted-repo flow carries origin + repo IDs as URL params, so the back link survives a refresh.
-  // Fall back to prevParams for older entry points where the params were only kept in router state.
-  // componentDisplayName forwards the friendly component name back to the report (CLM-42090).
-  const isHostedRepoOrigin =
-    currentParams?.origin === 'hostedRepoComponents' || prevParams?.origin === 'hostedRepoComponents';
-  if (isHostedRepoOrigin) {
-    const hostedRepoParams = currentParams?.origin === 'hostedRepoComponents' ? currentParams : prevParams;
-    const href = uiRouterState.href('applicationReport.policy', {
-      publicId: currentParams.publicId,
-      scanId: currentParams.scanId,
-      origin: 'hostedRepoComponents',
-      repositoryManagerId: hostedRepoParams.repositoryManagerId,
-      repositoryId: hostedRepoParams.repositoryId,
-      repositoryPublicId: hostedRepoParams.repositoryPublicId,
-      componentDisplayName: hostedRepoParams.componentDisplayName,
-    });
-    return <MenuBarBackButton href={href} text="Back to Repository Component Report" />;
   }
 
   return <MenuBarBackButton stateName="applicationReport.policy" />;

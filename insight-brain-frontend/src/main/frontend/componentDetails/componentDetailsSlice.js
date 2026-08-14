@@ -100,11 +100,16 @@ const flattenLabelsToSingleArray = (labelsByOwner) => {
 
 const onTabChange = (tabId) => {
   return (dispatch, getState) => {
-    const { hash, publicId, scanId, origin } = selectRouterCurrentParams(getState());
+    const { hash, publicId, scanId, origin, hrcId } = selectRouterCurrentParams(getState());
     const containerReportOrigin = origin || FIREWALL_CONTAINER_REPOSITORY_RESULTS;
     const isPrioritiesPageContainer = selectIsPrioritiesPageContainer(getState());
     const prioritiesPageContainerName = selectPrioritiesPageContainerName(getState());
     const isContainerImagesEvaluation = selectIsContainerImagesEvaluationEnabledAndProxyStage(getState());
+
+    // HRC component details tabs live under hostedRepositoryComponentReport.componentDetails.*
+    if (hrcId) {
+      return dispatch(stateGo(`hostedRepositoryComponentReport.componentDetails.${tabId}`, { hash, hrcId, scanId }));
+    }
 
     if (isContainerImagesEvaluation) {
       return dispatch(
@@ -213,8 +218,10 @@ const loadComponentDetailsWithCancelToken = createAsyncThunk(
     return dispatch(loadReportIfNeeded())
       .then(() => {
         const currentState = getState();
-        const { publicId, hash } = currentState.router.currentParams;
-        return axios.get(getComponentLabels(publicId, hash, 'application'), { cancelToken });
+        const { publicId, hrcId, hash } = currentState.router.currentParams;
+        const ownerType = hrcId ? 'hosted_repository_component' : 'application';
+        const ownerId = hrcId ?? publicId;
+        return axios.get(getComponentLabels(ownerId, hash, ownerType), { cancelToken });
       })
       .then((results) => {
         const currentState = getState();
@@ -299,8 +306,10 @@ const loadApplicableLabelsWithCancelToken = createAsyncThunk(
   `${REDUCER_NAME}/loadApplicableLabelsWithCancelToken`,
   (cancelToken, { getState, rejectWithValue }) => {
     const currentState = getState();
-    const { publicId } = currentState.router.currentParams;
-    return axios.get(getApplicableLabelsUrl('application', publicId), { cancelToken }).catch(rejectWithValue);
+    const { publicId, hrcId } = currentState.router.currentParams;
+    const ownerType = hrcId ? 'hosted_repository_component' : 'application';
+    const ownerId = hrcId ?? publicId;
+    return axios.get(getApplicableLabelsUrl(ownerType, ownerId), { cancelToken }).catch(rejectWithValue);
   }
 );
 
@@ -347,12 +356,16 @@ const loadApplicableLabelScopes = createAsyncThunk(
     const currentState = getState();
     const { componentDetails, router } = currentState;
     const { id: labelId } = componentDetails.selectedLabelDetails;
-    const { publicId, repositoryId } = router.currentParams;
+    const { publicId, hrcId, repositoryId } = router.currentParams;
     if (selectIsFirewallOrRepositoryAndNotProxyStage(currentState) && repositoryId) {
       return axios.get(getApplicableLabelScopesUrl('repository', repositoryId, labelId)).catch(rejectWithValue);
-    } else {
-      return axios.get(getApplicableLabelScopesUrl('application', publicId, labelId)).catch(rejectWithValue);
     }
+    // Label scopes backend doesn't support hosted_repository_component ownerType;
+    // return empty for HRC.
+    if (hrcId) {
+      return Promise.resolve({ data: [] });
+    }
+    return axios.get(getApplicableLabelScopesUrl('application', publicId, labelId)).catch(rejectWithValue);
   }
 );
 

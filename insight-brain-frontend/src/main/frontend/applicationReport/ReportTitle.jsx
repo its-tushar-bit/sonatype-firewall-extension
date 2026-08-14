@@ -20,11 +20,20 @@ import {
   selectApplicationReportMetaData,
   selectSelectedReport,
   selectIsContainerImagesEvaluationEnabledAndProxyStage,
+  selectIsHrcReport,
 } from './applicationReportSelectors';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { getReportDisplayName } from './reportEntryUtils';
 import { selectIsDeveloperDashboardEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
-import { getDownloadPdfUrl, getExportCycloneDxUrl, getExportSpdxUrl } from 'MainRoot/util/CLMLocation';
+import {
+  getDownloadPdfUrl,
+  getExportCycloneDxUrl,
+  getExportSpdxUrl,
+  getHrcDownloadPdfUrl,
+  getHrcExportCycloneDxUrl,
+  getHrcExportSpdxUrl,
+} from 'MainRoot/util/CLMLocation';
 import ReevaluationModal from 'MainRoot/applicationReport/ReevaluationModal';
 
 const renderDescription = (metadataDetails) => {
@@ -52,57 +61,65 @@ const renderDescription = (metadataDetails) => {
 
 export default function ReportTitle() {
   const metadataDetails = useSelector(selectApplicationReportMetaData);
-  const {
-    publicId,
-    scanId,
-    origin,
-    componentDisplayName,
-    repositoryManagerId,
-    repositoryId,
-    repositoryPublicId,
-  } = useSelector(selectRouterCurrentParams);
+  const routerParams = useSelector(selectRouterCurrentParams);
+  const { publicId, scanId, componentDisplayName, hrcId: hrcIdFromParams } = routerParams;
   const selectedReport = useSelector(selectSelectedReport);
   const uiRouterState = useRouterState();
 
-  // Hosted-repo report links arrive with origin='hostedRepoComponents' and a synthetic
-  // application name (the asset path) that's not user-friendly. Show the real component
-  // coordinates instead. Every other entry point keeps the existing application name.
-  const titleName =
-    origin === 'hostedRepoComponents' && componentDisplayName ? componentDisplayName : metadataDetails.application.name;
-
   const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
   const isFirewallForDocker = useSelector(selectIsContainerImagesEvaluationEnabledAndProxyStage);
+  // selectOwnerType is URL-first (returns HOSTED_REPOSITORY_COMPONENT whenever params.hrcId
+  // is present), so this single source is safe from the initial-mount race and there is no
+  // need for a "|| !!hrcIdFromParams" fallback anymore.
+  const isHrcReport = useSelector(selectIsHrcReport);
 
-  // When the user is viewing a hosted-repo report, forward the origin + repo params through
-  // the Options dropdown links so the destination pages (and their back buttons) know how to
-  // navigate back even after a hard refresh. scanId rides along too so the Latest Evaluations
-  // page can rebuild the report URL. componentDisplayName forwards the friendly component
-  // name (CLM-42090) so destinations don't fall back to the synthetic application public id.
-  const isHostedRepoFlow = origin === 'hostedRepoComponents';
-  const hostedRepoParams = isHostedRepoFlow
-    ? { origin, repositoryManagerId, repositoryId, repositoryPublicId, componentDisplayName }
-    : {};
-  const hostedRepoLatestEvalParams = isHostedRepoFlow ? { scanId, ...hostedRepoParams } : {};
+  // For HRC reports: prefer metadata.hrcId (from backend) with a fallback to the route param.
+  // For application reports: use publicId from route params.
+  const hrcId = metadataDetails?.hrcId || hrcIdFromParams;
 
-  const pdfUrl = getDownloadPdfUrl(publicId, scanId);
-  const sbomUrl = getExportCycloneDxUrl(metadataDetails.application.id, scanId);
-  const spdxUrl = getExportSpdxUrl(metadataDetails.application.id, scanId);
+  const titleName = getReportDisplayName(metadataDetails, { componentDisplayName, hrcId });
+
+  // Use HRC-specific URLs for HRC reports, application URLs for application reports
+  const pdfUrl = isHrcReport ? getHrcDownloadPdfUrl(hrcId, scanId) : getDownloadPdfUrl(publicId, scanId);
+  const sbomUrl = isHrcReport
+    ? getHrcExportCycloneDxUrl(hrcId, scanId)
+    : getExportCycloneDxUrl(metadataDetails?.application?.id, scanId);
+  const spdxUrl = isHrcReport
+    ? getHrcExportSpdxUrl(hrcId, scanId)
+    : getExportSpdxUrl(metadataDetails?.application?.id, scanId);
 
   const prioritiesUrl = uiRouterState.href('prioritiesPageFromReports', { publicAppId: publicId, scanId });
 
-  const rawDataUrl = uiRouterState.href('applicationReport.rawData', { publicId, scanId, ...hostedRepoParams });
+  // Thread componentDisplayName through the HRC-scoped links so the destination pages'
+  // headers render the friendly component name (e.g. "org.apache.commons : commons-compress")
+  // instead of falling back to the raw hrcId. metadata.application is null on HRC, so
+  // getReportDisplayName on the destination reads componentDisplayName from the URL.
+  const rawDataUrl = isHrcReport
+    ? uiRouterState.href('hostedRepositoryComponentReport.rawData', { hrcId, scanId, componentDisplayName })
+    : uiRouterState.href('applicationReport.rawData', { publicId, scanId });
 
-  const latestEvaluationsUrl = uiRouterState.href('applicationLatestEvaluations', {
-    applicationPublicId: publicId,
-    stageId: metadataDetails.stageId,
-    ...hostedRepoLatestEvalParams,
-  });
+  const latestEvaluationsUrl = isHrcReport
+    ? uiRouterState.href('hostedRepositoryComponentLatestEvaluations', {
+        hrcId,
+        stageId: metadataDetails?.stageId,
+        scanId,
+        componentDisplayName,
+      })
+    : uiRouterState.href('applicationLatestEvaluations', {
+        applicationPublicId: publicId,
+        stageId: metadataDetails?.stageId,
+      });
 
-  const vulnerabilitiesUrl = uiRouterState.href('applicationReport.vulnerabilities', {
-    publicId,
-    scanId,
-    ...hostedRepoParams,
-  });
+  const vulnerabilitiesUrl = isHrcReport
+    ? uiRouterState.href('hostedRepositoryComponentReport.vulnerabilities', {
+        hrcId,
+        scanId,
+        componentDisplayName,
+      })
+    : uiRouterState.href('applicationReport.vulnerabilities', {
+        publicId,
+        scanId,
+      });
   const vulnerabilitiesPageDisable = selectedReport && selectedReport.reportVersion < 5 ? true : false;
   const viewVulnerabilitiesLinkClasses = classnames('nx-dropdown-link', { disabled: vulnerabilitiesPageDisable });
 
@@ -132,7 +149,8 @@ export default function ReportTitle() {
             <NxFontAwesomeIcon icon={faFilePdf} />
             <span>Export SPDX</span>
           </a>
-          {isDeveloperDashboardEnabled && !isFirewallForDocker && (
+          {/* Priorities is deferred to CLM-44516 for HRC reports */}
+          {isDeveloperDashboardEnabled && !isFirewallForDocker && !isHrcReport && (
             <NxTextLink
               className="nx-dropdown-button iq-developer-priorities-link-from-options-dropdown"
               external
@@ -171,9 +189,9 @@ export default function ReportTitle() {
         </NxStatefulDropdown>
       </div>
       <h1 className="nx-h1">
-        {titleName} {metadataDetails.reportTitle}
+        {titleName} {metadataDetails?.reportTitle}
       </h1>
-      <div className="nx-page-title__description">{renderDescription(metadataDetails)}</div>
+      <div className="nx-page-title__description">{metadataDetails && renderDescription(metadataDetails)}</div>
     </div>
   );
 }

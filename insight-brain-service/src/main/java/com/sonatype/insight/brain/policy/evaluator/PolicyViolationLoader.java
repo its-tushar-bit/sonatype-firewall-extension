@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
+import jakarta.annotation.Nonnull;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -30,6 +31,7 @@ import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -47,7 +49,7 @@ import static java.util.stream.Collectors.toSet;
 
 /**
  * Facade to efficiently iterate through the latest policy evaluations and associated policy violations of several
- * applications.
+ * owners.
  */
 @Named
 @Singleton
@@ -76,29 +78,29 @@ public class PolicyViolationLoader
     this.dashboardUtils = dashboardUtils;
   }
 
-  public Collection<ApplicationView> getViolations(
-      Collection<Application> applications,
+  public Collection<OwnerView> getViolations(
+      Collection<? extends Owner> owners,
       Collection<StageType> stageTypes,
       boolean activeViolationsOnly,
       PolicyThreatLevelFilter policyThreatLevelFilter,
       PolicyThreatCategoryFilter policyThreatCategoryFilter,
       PolicyViolationStateFilter policyViolationStateFilter)
   {
-    return getViolations(applications, stageTypes, activeViolationsOnly, null, null,
+    return getViolations(owners, stageTypes, activeViolationsOnly, null, null,
         policyThreatLevelFilter, policyThreatCategoryFilter, policyViolationStateFilter);
   }
 
-  public Collection<ApplicationView> getViolations(
-      Collection<Application> applications,
+  public Collection<OwnerView> getViolations(
+      Collection<? extends Owner> owners,
       Collection<StageType> stageTypes,
       boolean activeViolationsOnly,
       Predicate<? super PolicyViolation> violationFilter)
   {
-    return getViolations(applications, stageTypes, activeViolationsOnly, violationFilter, null, null, null, null);
+    return getViolations(owners, stageTypes, activeViolationsOnly, violationFilter, null, null, null, null);
   }
 
-  public Collection<ApplicationView> getViolations(
-      Collection<Application> applications,
+  public Collection<OwnerView> getViolations(
+      Collection<? extends Owner> owners,
       Collection<StageType> stageTypes,
       boolean activeViolationsOnly,
       Predicate<? super PolicyViolation> violationFilter,
@@ -109,7 +111,7 @@ public class PolicyViolationLoader
   {
     long start = System.currentTimeMillis();
 
-    Set<String> ownerIds = applications.stream().map(Application::getId).collect(toSet());
+    Set<String> ownerIds = owners.stream().map(Owner::getId).collect(toSet());
 
     Set<String> stageTypeIds = stageTypes == null
         ? Collections.emptySet()
@@ -131,31 +133,36 @@ public class PolicyViolationLoader
       ownerIds = evaluations.stream().map(PolicyEvaluation::getOwnerId).collect(toSet());
     }
 
-    CompletableFuture<Map<String, ApplicationView>> appViewsByAppIdFuture = CompletableFuture.supplyAsync(() -> {
+    CompletableFuture<Map<String, OwnerView>> ownerViewsByOwnerIdFuture = CompletableFuture.supplyAsync(() -> {
       Collection<StageType> stageTypesToFill = stageTypes == null || stageTypes.isEmpty()
           ? StageTypes.getAll()
           : stageTypes;
-      Map<String, ApplicationView> appViewsByAppId = new LinkedHashMap<>();
-      for (Application application : applications) {
-        ApplicationView appView = new ApplicationView();
-        appView.application = application;
-        appView.stageViewsByStageTypeId = new LinkedHashMap<>();
-        for (StageType stageType : stageTypesToFill) {
-          ApplicationStageView appStageView = new ApplicationStageView();
-          appStageView.stageType = stageType;
-          appStageView.filteredViolations = Collections.emptyList();
-          appView.stageViewsByStageTypeId.put(stageType.getId(), appStageView);
+      Map<String, OwnerView> ownerViewsByOwnerId = new LinkedHashMap<>();
+      for (Owner owner : owners) {
+        OwnerView ownerView = new OwnerView();
+        ownerView.owner = owner;
+        // Populate the narrower `application` field too when the owner is an Application, so
+        // callers of getApplication() see it.
+        if (owner instanceof Application) {
+          ownerView.application = (Application) owner;
         }
-        appViewsByAppId.put(application.getId(), appView);
+        ownerView.stageViewsByStageTypeId = new LinkedHashMap<>();
+        for (StageType stageType : stageTypesToFill) {
+          OwnerStageView ownerStageView = new OwnerStageView();
+          ownerStageView.stageType = stageType;
+          ownerStageView.filteredViolations = Collections.emptyList();
+          ownerView.stageViewsByStageTypeId.put(stageType.getId(), ownerStageView);
+        }
+        ownerViewsByOwnerId.put(owner.getId(), ownerView);
       }
 
       for (PolicyEvaluation evaluation : evaluations) {
-        ApplicationView appView = appViewsByAppId.get(evaluation.getOwnerId());
-        ApplicationStageView appStageView = appView.stageViewsByStageTypeId.get(evaluation.getStageTypeId());
-        appStageView.lastEvaluation = evaluation;
-        appStageView.filteredViolations = new ArrayList<>();
+        OwnerView ownerView = ownerViewsByOwnerId.get(evaluation.getOwnerId());
+        OwnerStageView ownerStageView = ownerView.stageViewsByStageTypeId.get(evaluation.getStageTypeId());
+        ownerStageView.lastEvaluation = evaluation;
+        ownerStageView.filteredViolations = new ArrayList<>();
       }
-      return appViewsByAppId;
+      return ownerViewsByOwnerId;
     }, ExecutorThreadPools.getInstance().getThreadPool(ThreadPools.GENERAL));
 
     Integer minimumThreatLevel = null;
@@ -207,29 +214,29 @@ public class PolicyViolationLoader
           .toList();
     }
 
-    Map<String, ApplicationView> appViewsByAppId = appViewsByAppIdFuture.join();
+    Map<String, OwnerView> ownerViewsByOwnerId = ownerViewsByOwnerIdFuture.join();
 
-    filterViolations(violations, violationFilter, appViewsByAppId);
+    filterViolations(violations, violationFilter, ownerViewsByOwnerId);
 
     // Sort violations using the standard violation comparator in order to get consistent results.
-    sortViolations(appViewsByAppId);
+    sortViolations(ownerViewsByOwnerId);
 
     log.debug("Created policy violation views in {} ms", System.currentTimeMillis() - start);
 
-    return appViewsByAppId.values();
+    return ownerViewsByOwnerId.values();
   }
 
-  private void sortViolations(Map<String, ApplicationView> appViewsByAppId) {
+  private void sortViolations(Map<String, OwnerView> ownerViewsByOwnerId) {
     List<PolicyViolation> allPolicyViolations =
-        appViewsByAppId.values()
+        ownerViewsByOwnerId.values()
             .stream()
-            .flatMap(appView -> appView.getStageViews().stream())
-            .flatMap(appStageView -> appStageView.getFilteredViolations().stream())
+            .flatMap(ownerView -> ownerView.getStageViews().stream())
+            .flatMap(ownerStageView -> ownerStageView.getFilteredViolations().stream())
             .toList();
     policyViolationDAO.loadConstraintFacts(allPolicyViolations);
-    for (ApplicationView appView : appViewsByAppId.values()) {
-      for (ApplicationStageView appStageView : appView.stageViewsByStageTypeId.values()) {
-        appStageView.getFilteredViolations().sort(PolicyViolationComparator.COMPARATOR);
+    for (OwnerView ownerView : ownerViewsByOwnerId.values()) {
+      for (OwnerStageView ownerStageView : ownerView.stageViewsByStageTypeId.values()) {
+        ownerStageView.getFilteredViolations().sort(PolicyViolationComparator.COMPARATOR);
       }
     }
   }
@@ -247,7 +254,7 @@ public class PolicyViolationLoader
     else {
       evaluations = policyEvaluationDAO.getLastByOwnerIdsAndStageIds(ownerIds, stageTypeIds);
     }
-    log.debug("Loaded {} policy evaluations for {} applications across {} stages in {} ms", evaluations.size(),
+    log.debug("Loaded {} policy evaluations for {} owners across {} stages in {} ms", evaluations.size(),
         ownerIds.size(), stageTypeIds.isEmpty() ? "all" : stageTypeIds.size(),
         System.currentTimeMillis() - start);
 
@@ -344,15 +351,15 @@ public class PolicyViolationLoader
   private void filterViolations(
       Collection<PolicyViolation> violations,
       Predicate<? super PolicyViolation> violationFilter,
-      Map<String, ApplicationView> appViewsByAppId)
+      Map<String, OwnerView> ownerViewsByOwnerId)
   {
     long start = System.currentTimeMillis();
     int filtered = 0;
     for (PolicyViolation violation : violations) {
       if (violationFilter == null || violationFilter.test(violation)) {
-        ApplicationView appView = appViewsByAppId.get(violation.getOwnerId());
-        ApplicationStageView appStageView = appView.stageViewsByStageTypeId.get(violation.getStageTypeId());
-        appStageView.filteredViolations.add(violation);
+        OwnerView ownerView = ownerViewsByOwnerId.get(violation.getOwnerId());
+        OwnerStageView ownerStageView = ownerView.stageViewsByStageTypeId.get(violation.getStageTypeId());
+        ownerStageView.filteredViolations.add(violation);
         filtered++;
       }
     }
@@ -360,22 +367,31 @@ public class PolicyViolationLoader
         System.currentTimeMillis() - start);
   }
 
-  public static class ApplicationView
+  public static class OwnerView
   {
+    Owner owner;
+
+    // Populated only when `owner` is an Application. Callers that read getApplication() must
+    // null-guard for non-Application owners.
     Application application;
 
-    Map<String, ApplicationStageView> stageViewsByStageTypeId;
+    Map<String, OwnerStageView> stageViewsByStageTypeId;
+
+    @Nonnull
+    public Owner getOwner() {
+      return owner;
+    }
 
     public Application getApplication() {
       return application;
     }
 
-    public Collection<ApplicationStageView> getStageViews() {
+    public Collection<OwnerStageView> getStageViews() {
       return stageViewsByStageTypeId.values();
     }
   }
 
-  public static class ApplicationStageView
+  public static class OwnerStageView
   {
     StageType stageType;
 

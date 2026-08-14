@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+    Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+    "Sonatype" is a trademark of Sonatype, Inc.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <!-- Intentionally NOT inheriting `insight-brain` (the root reactor parent). Two reasons.
+       First, the root pom compiles to Java 25 and this module must produce Java 21 bytecode
+       for its primary consumer (Guide's backend-server); inheriting and then overriding is
+       more fragile than not inheriting. Second, `agp-core` releases on its own version line
+       rather than Nexus IQ's, which keeps it out of the reactor-wide `versions:set` that
+       Jenkinsfile.aggregateRelease performs. This mirrors how `guide-api-contract` sits
+       inside the seaworthy repo. The cost is no inherited dependencyManagement, so every
+       dependency below pins its own version. -->
+  <parent>
+    <groupId>com.sonatype.buildsupport</groupId>
+    <artifactId>private-parent</artifactId>
+    <version>54</version>
+    <relativePath/>
+  </parent>
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.sonatype.agp</groupId>
+  <artifactId>agp-core</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <name>Agent P Core</name>
+  <description>Framework-neutral Agent P domain model and orchestration behind host-supplied ports</description>
+
+  <scm>
+    <connection>scm:git:https://github.com/sonatype/insight-brain.git</connection>
+    <developerConnection>scm:git:git@github.com:sonatype/insight-brain.git</developerConnection>
+    <url>https://github.com/sonatype/insight-brain</url>
+    <tag>HEAD</tag>
+  </scm>
+
+  <properties>
+    <!-- `release` rather than source/target: under a JDK 25 toolchain, source/target alone
+         still let code link against post-21 APIs, which then fail at runtime on a Java 21
+         host with NoSuchMethodError. `release` refuses to compile against them. -->
+    <maven.compiler.release>21</maven.compiler.release>
+    <staging.autoReleaseAfterClose>true</staging.autoReleaseAfterClose>
+    <!-- The Mycila license config lives in insight-brain's root pluginManagement, which this
+         module does not inherit. The root build already runs license:check over the whole
+         reactor, so coverage is not lost. Same trade guide-api-contract makes. -->
+    <license.skip>true</license.skip>
+    <jackson.version>2.22</jackson.version>
+    <slf4j.version>2.0.17</slf4j.version>
+    <junit.version>5.11.4</junit.version>
+    <assertj.version>3.27.3</assertj.version>
+  </properties>
+
+  <dependencies>
+    <!-- The Agent P domain enums carry @JsonValue/@JsonCreator, so annotations only — no
+         databind, and no ObjectMapper anywhere in this module. -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>${assertj.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <!-- The CI static-analysis stage runs `mvn jacoco:prepare-agent ... jacoco:report`
+             across the whole reactor. Sibling modules resolve that prefix from the root pom's
+             pluginManagement, which this module does not inherit, so without a declaration here
+             the prefix is unresolvable and the reactor-wide invocation fails on this module.
+             Version tracks the root pom's pin rather than the grandparent's older one, which
+             cannot read the JDK 25 class files the rest of the reactor produces. -->
+        <plugin>
+          <groupId>org.jacoco</groupId>
+          <artifactId>jacoco-maven-plugin</artifactId>
+          <version>0.8.14</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <dependencies>
+          <!-- extra-enforcer-rules supplies enforceBytecodeVersion. Pinned here because
+               this module does not inherit insight-brain's pluginManagement, which pins
+               1.10.0 for the same reason (the 1.8.0 the grandparent pins has a JDK->bytecode
+               map topping out at JDK 24). -->
+          <dependency>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>extra-enforcer-rules</artifactId>
+            <version>1.10.0</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <id>enforce-agp-core-boundary</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <bannedDependencies>
+                  <searchTransitive>true</searchTransitive>
+                  <message>
+                    agp-core must stay framework-neutral: no Spring, JAX-RS, AWS SDK, Quartz,
+                    source-control SDKs, jOOQ or Redis clients, at any scope, including
+                    transitively. If you need one of these, you need a port instead — the
+                    implementation belongs in the host adapter.
+                  </message>
+                  <!-- Changing this list changes what is banned; re-verify it by running the
+                       enforcer-negative-test profile and watching the rule actually fail. -->
+                  <excludes>
+                    <exclude>org.springframework:*</exclude>
+                    <exclude>org.springframework.*:*</exclude>
+                    <exclude>jakarta.ws.rs:*</exclude>
+                    <exclude>javax.ws.rs:*</exclude>
+                    <exclude>software.amazon.awssdk:*</exclude>
+                    <exclude>com.amazonaws:*</exclude>
+                    <exclude>org.quartz-scheduler:*</exclude>
+                    <exclude>org.kohsuke:github-api</exclude>
+                    <exclude>com.github.hub4j:*</exclude>
+                    <exclude>org.gitlab4j:*</exclude>
+                    <exclude>org.jooq:*</exclude>
+                    <exclude>io.lettuce:*</exclude>
+                    <exclude>redis.clients:*</exclude>
+                    <exclude>org.redisson:*</exclude>
+                  </excludes>
+                </bannedDependencies>
+                <!-- Guards the other half of the Java 21 problem: `release=21` constrains
+                     THIS module's bytecode, but a dependency built for Java 25 would still
+                     break a Java 21 consumer at class-load time. animal-sniffer does not
+                     catch that; this does. -->
+                <enforceBytecodeVersion>
+                  <maxJdkVersion>21</maxJdkVersion>
+                </enforceBytecodeVersion>
+              </rules>
+              <fail>true</fail>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Complements release=21: `release` blocks compiling against post-21 APIs from the
+           JDK, animal-sniffer blocks them appearing via any other route and gives a clear
+           signature-level error if one leaks in later. -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>animal-sniffer-maven-plugin</artifactId>
+        <version>1.24</version>
+        <executions>
+          <execution>
+            <id>check-java-21-api</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <configuration>
+              <!-- The java-21 signature is not mirrored in this org's Maven repository
+                   (org.codehaus.mojo.signature:java-21:1.0 fails to resolve); java18 is the
+                   highest commonly mirrored signature and is used as a fallback. See
+                   README.md for the gap this leaves and why release=21 plus
+                   enforceBytecodeVersion still hold the Java 21 line without it. -->
+              <signature>
+                <groupId>org.codehaus.mojo.signature</groupId>
+                <artifactId>java18</artifactId>
+                <version>1.0</version>
+              </signature>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Matches insight-brain's root spotless config so `mvn spotless:apply` at the repo
+           root formats this module the same way as its neighbours. Configured here rather
+           than inherited because this module extends private-parent. -->
+      <plugin>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <version>3.1.0</version>
+        <configuration>
+          <ratchetFrom>origin/main</ratchetFrom>
+          <java>
+            <removeUnusedImports/>
+            <trimTrailingWhitespace/>
+            <endWithNewline/>
+            <eclipse>
+              <file>${maven.multiModuleProjectDirectory}/sonatype-config/sonatype-eclipse.xml</file>
+            </eclipse>
+          </java>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <!-- Proves the bannedDependencies rule above actually fires, using the rule as configured
+       rather than a copy that could drift out of sync with it. A standalone pom cannot serve
+       this purpose instead, because Maven requires anything used as a <parent> to be
+       packaging=pom, and this module must stay a jar. Activate explicitly with
+       -Penforcer-negative-test; inert otherwise, so it never affects an ordinary build. See
+       README.md for the exact command and expected failure. -->
+  <profiles>
+    <profile>
+      <id>enforcer-negative-test</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-context</artifactId>
+          <version>6.2.11</version>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
+</project>

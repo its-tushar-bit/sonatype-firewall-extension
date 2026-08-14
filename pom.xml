@@ -170,6 +170,7 @@
     <module>insight-brain-event</module>
     <module>insight-brain-frontend</module>
     <module>insight-brain-guide</module>
+    <module>agp-core</module>
     <module>insight-brain-service</module>
     <module>insight-brain-tenancy</module>
     <module>nexus-iq-server</module>

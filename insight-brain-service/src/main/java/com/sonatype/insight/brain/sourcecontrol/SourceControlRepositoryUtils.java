@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.sourcecontrol;
 
+import java.util.Locale;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import jakarta.inject.Inject;
@@ -20,8 +22,6 @@ import com.sonatype.nexus.git.utils.api.GitApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.apache.commons.lang3.StringUtils;
-
 /**
  * Utility methods for working with repository ssh and http urls.
  */
@@ -31,6 +31,10 @@ public class SourceControlRepositoryUtils
   private static final Logger log = LoggerFactory.getLogger(SourceControlRepositoryUtils.class);
 
   private static final Pattern SSH_URL_PATTERN = Pattern.compile("git@(.+):(.+)", Pattern.CASE_INSENSITIVE);
+
+  private static final Set<String> DIRECT_DERIVATION_SSH_HOSTS = Set.of("github.com", "gitlab.com", "bitbucket.org");
+
+  private static final String AZURE_SSH_HOST = "ssh.dev.azure.com";
 
   private final SourceControlDAO sourceControlDAO;
 
@@ -67,18 +71,25 @@ public class SourceControlRepositoryUtils
     }
 
     // git@[sshHost]:[sshTarget]
-    String sshHost = matcher.group(1);
+    // Compare the SSH host against known SCM providers using an exact, case-insensitive match. A substring match
+    // would let a spoofed host such as "github.com.attacker.example" (or one carrying shell metacharacters) derive a
+    // URL that is later handed to native git, enabling OS command injection (CWE-78).
+    String sshHost = matcher.group(1).toLowerCase(Locale.ROOT);
     String sshTarget = matcher.group(2);
-
     String derivedUrl;
-    if (StringUtils.containsAny(sshHost, "github.com", "gitlab.com", "bitbucket.org")) {
+    if (DIRECT_DERIVATION_SSH_HOSTS.contains(sshHost)) {
       derivedUrl = sshHost.concat("/").concat(sshTarget);
     }
-    else if (sshHost.contains("azure.com")) {
+    else if (AZURE_SSH_HOST.equals(sshHost)) {
       // remove ssh. from host (ssh.dev.azure.com)
       sshHost = sshHost.substring("ssh.".length());
       // remove api version from target (v3/username/project/repository)
       sshTarget = sshTarget.substring(sshTarget.indexOf("/") + 1);
+
+      // The Azure target must contain an organization/repository separator; without it there is no URL to derive.
+      if (sshTarget.lastIndexOf("/") < 0) {
+        return null;
+      }
 
       String organization = sshTarget.substring(0, sshTarget.lastIndexOf("/"));
       String repository = sshTarget.substring(sshTarget.lastIndexOf("/"));

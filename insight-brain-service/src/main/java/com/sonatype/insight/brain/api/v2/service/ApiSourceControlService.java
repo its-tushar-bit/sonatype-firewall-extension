@@ -20,6 +20,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.service.githubapp.GitHubAppDeletionService;
@@ -110,6 +112,16 @@ public class ApiSourceControlService
   private static final String REPO_VISIBILITY_PRIVATE = "private";
 
   private static final String REPO_VISIBILITY_PUBLIC = "public";
+
+  /**
+   * Shell metacharacters that must never appear in a repository URL. The native git integration can invoke git through
+   * a system shell ({@code /bin/sh -c} or {@code cmd.exe /c}), so any of these characters in a URL that is later handed
+   * to git enables OS command injection (CWE-78). They are rejected wherever a repository URL is persisted, covering
+   * both directly-submitted URLs and URLs derived from an SSH URL.
+   * <p>
+   * Blocked characters: whitespace and {@code ; | & $ ` < > ( ) { } \ # ' "}.
+   */
+  private static final Pattern REPOSITORY_URL_SHELL_METACHARACTERS = Pattern.compile("[\\s;|&$`<>(){}\\\\#'\"]");
 
   private final PasswordHandler passwordHandler;
 
@@ -453,6 +465,9 @@ public class ApiSourceControlService
       String httpUrlFromSshUrl = sourceControlRepositoryUtils.getRepositoryHttpUrlFromSshUrl(repositoryUrl);
       log.debug("HTTP URL derived: {} from provided repository URL: {}", httpUrlFromSshUrl, repositoryUrl);
       if (httpUrlFromSshUrl != null) {
+        // Validate the derived URL before it is used for a reachability check, so a malformed derived value can never
+        // reach the native git integration (CWE-78).
+        validateUrl(httpUrlFromSshUrl);
         if (sourceControlRepositoryUtils.isRepositoryReachable(application, httpUrlFromSshUrl)) {
           log.debug("Using derived URL {} for source control.", httpUrlFromSshUrl);
           sshUrl = repositoryUrl;
@@ -543,6 +558,9 @@ public class ApiSourceControlService
     if (null != sourceControlDAO.getByOwnerId(ownerId)) {
       throw new BadRequestException(String.format(
           "SourceControl already exists for %s with id: %s", ownerType, getPublicOwnerId(ownerId)));
+    }
+    if (isNotBlank(sourceControl.getRepositoryUrl())) {
+      validateUrl(sourceControl.getRepositoryUrl());
     }
     sourceControlDAO.insert(sourceControl);
     auditSourceControl(sourceControl);
@@ -807,6 +825,32 @@ public class ApiSourceControlService
     if (!validUrl) {
       throw new BadRequestException("Unsupported repository URL format: `" + repositoryUrl + "`");
     }
+    rejectShellMetacharacters(repositoryUrl);
+  }
+
+  /**
+   * Reject repository URLs containing shell metacharacters. The native git integration can invoke git through a system
+   * shell ({@code /bin/sh -c} or {@code cmd.exe /c}), so these characters in a URL that is later handed to git enable
+   * OS command injection (CWE-78). The specific offending characters are named in the error so a false positive is
+   * actionable.
+   * <p>
+   * Only literal characters are checked. Percent-encoded forms (e.g. {@code %3B} for {@code ;}) are intentionally not
+   * rejected: the current shell path does not URL-decode the argument, so they reach git literally and are inert. If a
+   * future code path decodes the stored URL before invoking git (e.g. the shell-free migration in CLM-31099), this
+   * check must be revisited to decode first.
+   */
+  private void rejectShellMetacharacters(final String repositoryUrl) {
+    Set<String> offending = new LinkedHashSet<>();
+    Matcher matcher = REPOSITORY_URL_SHELL_METACHARACTERS.matcher(repositoryUrl);
+    while (matcher.find()) {
+      String character = matcher.group();
+      offending.add(character.isBlank() ? "whitespace" : "`" + character + "`");
+    }
+    if (offending.isEmpty()) {
+      return;
+    }
+    throw new BadRequestException(
+        "Repository URL contains characters that are not allowed: " + String.join(", ", offending));
   }
 
   /**

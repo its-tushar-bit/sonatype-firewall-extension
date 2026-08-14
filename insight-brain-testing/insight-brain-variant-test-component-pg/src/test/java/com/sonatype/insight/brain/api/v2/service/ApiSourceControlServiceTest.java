@@ -296,6 +296,88 @@ public class ApiSourceControlServiceTest
   }
 
   @Test
+  public void testAddOrUpdateSourceControl_SpoofedSshHostWithShellMetacharacters_Rejected() {
+    // A spoofed SSH host that merely contains "github.com" as a substring and carries shell metacharacters must be
+    // rejected before any git command runs (CWE-78). The derivation returns null, so the original invalid URL fails
+    // validation and no reachability check / native git invocation is attempted.
+    String maliciousUrl = "git@github.com.invalid;id>/tmp/pwned;#:owner/repo";
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> sourceControlService.addOrUpdateSourceControl(app.getPublicId(), maliciousUrl, null))
+        .withMessageContaining("Unsupported repository URL format");
+
+    verify(gitApiFactory, never()).createGitApi(any());
+  }
+
+  @Test
+  public void testAddOrUpdateSourceControl_ValidHostButShellMetacharactersInPath_Rejected() {
+    // Exact-host matching alone is not enough: with a valid host the SSH target is still concatenated into the derived
+    // URL, so shell metacharacters in the path must be rejected before the derived URL reaches native git (CWE-78).
+    String maliciousUrl = "git@github.com:owner/repo;id";
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> sourceControlService.addOrUpdateSourceControl(app.getPublicId(), maliciousUrl, null))
+        .withMessageContaining("not allowed");
+
+    verify(gitApiFactory, never()).createGitApi(any());
+  }
+
+  @Test
+  public void testAddOrUpdateSourceControl_CommandSubstitutionInPath_Rejected() {
+    // Backtick / $() command substitution in the SSH target must also be rejected.
+    String maliciousUrl = "git@github.com:owner/$(id).git";
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> sourceControlService.addOrUpdateSourceControl(app.getPublicId(), maliciousUrl, null))
+        .withMessageContaining("not allowed");
+
+    verify(gitApiFactory, never()).createGitApi(any());
+  }
+
+  @Test
+  public void testAddOrUpdateSourceControl_DirectHttpUrlWithShellMetacharacters_Rejected() {
+    // The injection is also reachable without SSH derivation: a directly-submitted HTTP(S) URL with metacharacters
+    // passes the scheme check but is persisted and later shell-executed by scan/PR consumers, so it must be rejected.
+    String maliciousUrl = "https://github.com/owner/repo;id";
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> sourceControlService.addOrUpdateSourceControl(app.getPublicId(), maliciousUrl, null))
+        .withMessageContaining("not allowed");
+
+    verify(gitApiFactory, never()).createGitApi(any());
+  }
+
+  @Test
+  public void testAddSourceControlByOwner_ShellMetacharactersInUrl_Rejected() {
+    // The owner-level write path (POST /api/v2/sourceControl/{ownerType}/{internalOwnerId}) must also reject shell
+    // metacharacters before persisting, since scan/PR consumers later shell-execute the stored URL (CWE-78).
+    final ApiSourceControlDTO invalid = apiSourceControlAdapter.convertToDTO(
+        new SourceControl.Builder().setOwnerId(org.getId())
+            .setToken(TOKEN)
+            .setRepositoryUrl("https://github.com/owner/repo;id")
+            .build());
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> sourceControlService.addSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(), invalid))
+        .withMessageContaining("not allowed");
+  }
+
+  @Test
+  public void testUpdateSourceControlByOwner_ShellMetacharactersInUrl_Rejected() {
+    // The update write path also runs the metacharacter denylist via validateUrl, so an existing config cannot be
+    // updated to a URL that would later be shell-executed by scan/PR consumers (CWE-78).
+    when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
+    ApiSourceControlDTO persisted = sourceControlService.addSourceControlByOwner(
+        OwnerType.APPLICATION, app.getId(), createSourceControlDtoForTesting());
+    persisted.repositoryUrl = "https://github.com/owner/repo;id";
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(
+            () -> sourceControlService.updateSourceControlByOwner(OwnerType.APPLICATION, app.getId(), persisted))
+        .withMessageContaining("not allowed");
+  }
+
+  @Test
   public void testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControlDisabled_Create() {
     testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControl(false, null,
         "https://github.com/org/b", "https://github.com/org/a");

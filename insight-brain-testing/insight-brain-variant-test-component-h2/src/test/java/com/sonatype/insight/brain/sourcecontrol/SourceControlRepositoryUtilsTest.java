@@ -67,6 +67,10 @@ public class SourceControlRepositoryUtilsTest
     assertThat(sourceControlRepositoryUtils.getRepositoryHttpUrlFromSshUrl(
         "git@ssh.dev.azure.com:v3/username/project/repository")).isEqualTo(
             "https://dev.azure.com/username/project/_git/repository");
+
+    // Hostnames are case-insensitive: a mixed-case legitimate host still derives the expected URL.
+    assertThat(sourceControlRepositoryUtils.getRepositoryHttpUrlFromSshUrl(
+        "git@GITHUB.COM:username/repo.git")).isEqualTo("https://github.com/username/repo.git");
   }
 
   @Test
@@ -80,6 +84,24 @@ public class SourceControlRepositoryUtilsTest
 
     assertThat(sourceControlRepositoryUtils.getRepositoryHttpUrlFromSshUrl(
         "git@customdomain.com:username/repo-name.git")).isNull();
+
+    // A host that merely contains a known provider as a substring must not be derived (CWE-78 guard).
+    assertThat(sourceControlRepositoryUtils.getRepositoryHttpUrlFromSshUrl(
+        "git@github.com.attacker.example:owner/repo")).isNull();
+
+    // A spoofed host carrying shell metacharacters must be rejected before any URL is derived.
+    assertThat(sourceControlRepositoryUtils.getRepositoryHttpUrlFromSshUrl(
+        "git@github.com.invalid;id>/tmp/pwned;#:owner/repo")).isNull();
+
+    // An exact-match host with a spoofed "azure.com" substring must not be derived.
+    assertThat(sourceControlRepositoryUtils.getRepositoryHttpUrlFromSshUrl(
+        "git@ssh.dev.azure.com.attacker.example:v3/username/project/repository")).isNull();
+
+    // An Azure host whose target lacks an organization/repository separator must return null, not throw.
+    assertThat(sourceControlRepositoryUtils.getRepositoryHttpUrlFromSshUrl(
+        "git@ssh.dev.azure.com:notarget")).isNull();
+    assertThat(sourceControlRepositoryUtils.getRepositoryHttpUrlFromSshUrl(
+        "git@ssh.dev.azure.com:v3/onlyone")).isNull();
   }
 
   @Test

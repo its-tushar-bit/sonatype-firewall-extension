@@ -25,9 +25,9 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.common.collect.ImmutableSet;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,7 +50,7 @@ public class MembershipMappingDAOTest
           .thenComparing(MembershipMapping::getMemberName)
           .thenComparing(MembershipMapping::getMemberType);
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();
@@ -59,7 +59,7 @@ public class MembershipMappingDAOTest
     roleDeveloper = roleDAO.getByName("Developer");
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     for (MembershipMapping membership : membershipDAO.getByContextId(contextId)) {
       membershipDAO.delete(membership);

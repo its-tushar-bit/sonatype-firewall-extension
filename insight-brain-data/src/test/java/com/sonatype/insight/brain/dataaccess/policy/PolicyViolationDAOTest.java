@@ -52,8 +52,8 @@ import com.sonatype.insight.json.store.JsonUtils;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.PolicyViolation.POLICY_VIOLATION;
 
 import org.apache.commons.lang3.time.DateUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAOTest.Created.CREATED_AFTER_CUTOFF;
 import static com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAOTest.Created.CREATED_BEFORE_CUTOFF;
@@ -99,7 +99,7 @@ public class PolicyViolationDAOTest
 
   private RepositoryDAO repositoryDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

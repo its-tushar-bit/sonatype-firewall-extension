@@ -12,8 +12,8 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.configuration.ProductLicense;
 
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -23,7 +23,7 @@ public class ProductLicenseDAOTest
 {
   private ProductLicenseDAO dao;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

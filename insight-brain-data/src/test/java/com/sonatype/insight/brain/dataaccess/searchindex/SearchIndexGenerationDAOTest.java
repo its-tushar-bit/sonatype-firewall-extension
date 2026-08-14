@@ -13,9 +13,9 @@ import java.util.Optional;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.searchindex.SearchIndexGeneration;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -26,14 +26,14 @@ public class SearchIndexGenerationDAOTest
 
   private final List<SearchIndexGeneration> inserted = new ArrayList<>();
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();
     dao = new SearchIndexGenerationDAO(databaseRule.getOperationalDataStore());
   }
 
-  @After
+  @AfterEach
   public void removeInsertedGenerations() {
     inserted.forEach(generation -> dao.delete(generation));
     inserted.clear();

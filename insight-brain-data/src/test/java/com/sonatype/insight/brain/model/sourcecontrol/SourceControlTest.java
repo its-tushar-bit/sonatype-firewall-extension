@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.model.sourcecontrol;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControl.convertUrlIfNeeded;
 import static org.assertj.core.api.Assertions.assertThat;

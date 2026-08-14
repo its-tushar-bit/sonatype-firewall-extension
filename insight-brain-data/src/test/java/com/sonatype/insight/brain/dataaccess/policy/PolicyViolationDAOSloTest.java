@@ -21,8 +21,8 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.time.DateUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,7 +36,7 @@ public class PolicyViolationDAOSloTest
 {
   private PolicyViolationDAO dao;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

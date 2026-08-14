@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.model.tag.Tag;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -79,6 +80,7 @@ public class TagDAOPgTest
   }
 
   @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

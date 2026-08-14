@@ -127,8 +127,8 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
@@ -146,7 +146,7 @@ public class ApplicationDAOTest
 
   private ApplicationDAO applicationDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

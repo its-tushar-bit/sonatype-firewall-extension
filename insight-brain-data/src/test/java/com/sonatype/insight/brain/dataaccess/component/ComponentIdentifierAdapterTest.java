@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -81,10 +81,11 @@ public class ComponentIdentifierAdapterTest
     assertThat(componentIdentifier).isEqualTo(ANY_COMPONENT_ID);
   }
 
-  @Test(expected = InvalidComponentIdentifierException.class)
+  @Test
   public void testToComponentIdentifierMissingExpectedData() throws Exception {
     JsonNode jsonNode = mapper.readTree("{\"blah\":{}}");
-    ComponentIdentifierAdapter.toComponentIdentifier(jsonNode);
+    org.junit.jupiter.api.Assertions.assertThrows(InvalidComponentIdentifierException.class,
+        () -> ComponentIdentifierAdapter.toComponentIdentifier(jsonNode));
   }
 
   @Test

@@ -10,7 +10,7 @@ import java.util.Map;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

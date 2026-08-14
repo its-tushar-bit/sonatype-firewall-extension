@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -17,17 +18,16 @@ import com.sonatype.insight.db.DatabaseConfig;
 
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.commons.io.IOUtils;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class H2DatabaseBackupTest
     extends AbstractDatabaseTest
 {
-  @Rule
-  public TemporaryFolder tempFolder = new TemporaryFolder();
+  @TempDir
+  public Path tempFolder;
 
   @Test
   @H2DiskTest(
@@ -42,7 +42,7 @@ public class H2DatabaseBackupTest
     dataSource.setUsername(databaseConfig.getUsername());
     dataSource.setPassword(databaseConfig.getPassword());
 
-    File dbBackupDir = tempFolder.newFolder("backup");
+    File dbBackupDir = Files.createDirectories(tempFolder.resolve("backup")).toFile();
     new H2DatabaseBackup().backup(databaseConfig, dataSource, dbBackupDir);
 
     File dbBackupFile = new File(dbBackupDir, DatabaseName.ods + H2DatabaseBackup.BACKUP_FILENAME_SUFFIX);

@@ -13,9 +13,9 @@ import org.jooq.exception.IntegrityConstraintViolationException;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO.SINGLETON_ENTITY_ID;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,7 +28,7 @@ public class ZScalerConfigurationDAOTest
 
   private ZscalerFormatDAO zscalerFormatDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();
@@ -36,7 +36,7 @@ public class ZScalerConfigurationDAOTest
     zscalerFormatDAO = daoFactory.createZscalerFormatDAO();
   }
 
-  @After
+  @AfterEach
   public void exit() {
     dao.delete();
   }

@@ -24,8 +24,8 @@ import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,7 +37,7 @@ public class EvaluationQueueDAOTest
 {
   protected EvaluationQueueDAO dao;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

@@ -9,8 +9,8 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.enterprisereporting.EnterpriseReportingDefaultFilter;
 import com.sonatype.insight.brain.model.security.User;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -22,7 +22,7 @@ public class EnterpriseReportingDefaultFilterDAOTest
 
   private EnterpriseReportingFilterDAO filterDao;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

@@ -37,8 +37,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.jooq.SQLDialect;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import com.google.common.collect.ImmutableSet;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,7 +51,7 @@ public class ProxyRepositoryPolicyViolationDAOTest
 
   private PolicyViolationConstraintFactsDAO constraintFactsDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

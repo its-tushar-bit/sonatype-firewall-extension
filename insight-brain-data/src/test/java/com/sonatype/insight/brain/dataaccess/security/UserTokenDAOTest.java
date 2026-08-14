@@ -17,8 +17,8 @@ import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserToken;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -38,7 +38,7 @@ public class UserTokenDAOTest
 
   private UserTokenDAO userTokenDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

@@ -11,8 +11,8 @@ import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.model.ComponentChangeDetectionEvent;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,7 +21,7 @@ public class ComponentChangeDetectionEventDAOTest
 {
   private ComponentChangeDetectionEventDAO underTest;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     underTest = daoFactory.createComponentChangeDetectionEventDAO();
   }

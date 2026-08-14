@@ -14,8 +14,8 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.CiIntegrationsConfig;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,7 +24,7 @@ public class CiIntegrationsConfigDaoTest
 {
   private CiIntegrationsConfigDao dao;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

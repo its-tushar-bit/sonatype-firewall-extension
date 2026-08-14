@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.model.sourcecontrol;
 
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.brain.utils.ScmUserMappingsBuilder;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map.Entry;

@@ -15,9 +15,8 @@ import javax.imageio.ImageIO;
 
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -28,14 +27,14 @@ public class IconDAOTest
 
   private static final String BAD_OWNER_ID = "/../bad";
 
-  @Rule
-  public TemporaryFolder tmpDir = new TemporaryFolder();
+  @TempDir
+  java.nio.file.Path tmpDir;
 
   @Test
   public void testGetIcon() throws Exception {
 
     String ownerId = "testId";
-    File iconDir = tmpDir.newFolder();
+    File iconDir = java.nio.file.Files.createDirectory(tmpDir.resolve("icons1")).toFile();
     ByteArrayInputStream byteArrayInputStream = getIconImageStream();
     iconDAO.setIcon(ownerId, iconDir, byteArrayInputStream);
 
@@ -45,14 +44,14 @@ public class IconDAOTest
 
   @Test
   public void testGetIcon_InvalidOwnerId() throws Exception {
-    File iconDir = tmpDir.newFolder();
+    File iconDir = java.nio.file.Files.createDirectory(tmpDir.resolve("icons2")).toFile();
     assertThatThrownBy(() -> iconDAO.getIcon(BAD_OWNER_ID, iconDir)).isInstanceOf(BadRequestException.class)
         .hasMessage("Invalid value: " + BAD_OWNER_ID);
   }
 
   @Test
   public void testSetIcon_InvalidOwnerId() throws Exception {
-    File iconDir = tmpDir.newFolder();
+    File iconDir = java.nio.file.Files.createDirectory(tmpDir.resolve("icons3")).toFile();
     ByteArrayInputStream byteArrayInputStream = getIconImageStream();
     assertThatThrownBy(() -> iconDAO.setIcon(BAD_OWNER_ID, iconDir, byteArrayInputStream))
         .isInstanceOf(BadRequestException.class)
@@ -62,7 +61,7 @@ public class IconDAOTest
   @Test
   public void testDeleteIcon() throws Exception {
     String ownerId = "testId";
-    File iconDir = tmpDir.newFolder();
+    File iconDir = java.nio.file.Files.createDirectory(tmpDir.resolve("icons4")).toFile();
     ByteArrayInputStream byteArrayInputStream = getIconImageStream();
     iconDAO.setIcon(ownerId, iconDir, byteArrayInputStream);
 

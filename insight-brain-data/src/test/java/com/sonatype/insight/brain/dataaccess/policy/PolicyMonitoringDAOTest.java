@@ -15,8 +15,8 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -26,7 +26,7 @@ public class PolicyMonitoringDAOTest
 {
   private PolicyMonitoringDAO dao;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

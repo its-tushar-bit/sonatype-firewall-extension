@@ -12,9 +12,9 @@ import java.util.List;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.searchindex.SearchIndexJobEvent;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -25,14 +25,14 @@ public class SearchIndexJobEventDAOTest
 
   private final List<SearchIndexJobEvent> inserted = new ArrayList<>();
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();
     dao = new SearchIndexJobEventDAO(databaseRule.getOperationalDataStore());
   }
 
-  @After
+  @AfterEach
   public void removeInsertedEvents() {
     inserted.forEach(event -> dao.delete(event));
     inserted.clear();

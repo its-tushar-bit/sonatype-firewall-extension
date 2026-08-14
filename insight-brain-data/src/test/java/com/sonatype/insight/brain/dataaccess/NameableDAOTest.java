@@ -12,7 +12,7 @@ import com.sonatype.insight.brain.model.Nameable;
 import com.sonatype.insight.model.HasStringId;
 
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;

@@ -8,9 +8,9 @@ package com.sonatype.insight.brain.db.datasource;
 import com.sonatype.insight.db.H2DatabaseEngine;
 import com.sonatype.insight.db.PostgresDatabaseEngine;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class DataSourceProviderFactoryTest
 {

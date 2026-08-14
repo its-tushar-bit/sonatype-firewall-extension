@@ -33,8 +33,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.dataaccess.TemporaryEntity.uuid;
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.DIRECT;
@@ -57,7 +57,7 @@ public class ThirdPartyFileCoordinateDAOTest
 
   private ThirdPartyVulnerabilityExploitabilityExchangeDAO vexDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

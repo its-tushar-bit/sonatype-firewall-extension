@@ -13,8 +13,8 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Label;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -27,7 +27,7 @@ public class LabelValueTypeTest
 
   private LabelDAO labelDAO;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     labelDAO = daoFactory.createLabelDAO();
     org = tempEntity.newOrganization("orgName");

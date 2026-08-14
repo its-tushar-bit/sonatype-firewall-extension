@@ -71,9 +71,9 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -125,7 +125,7 @@ public class HostedRepositoryComponentDAOTest
 
   private PolicyViolationDAO policyViolationDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();
@@ -409,8 +409,8 @@ public class HostedRepositoryComponentDAOTest
    */
   @Test
   public void testDeleteByRepositoryId_issuesBoundedQueryCount_notProportionalToHrcCount() {
-    Assume.assumeTrue("Enable with -DargLine=\"-DcustomMetrics=sqlcount\" to run this validation",
-        JooqSqlCounterListener.getInstance().isEnabled());
+    Assumptions.assumeTrue(JooqSqlCounterListener.getInstance().isEnabled(),
+        "Enable with -DargLine=\"-DcustomMetrics=sqlcount\" to run this validation");
 
     int hrcCount = 600;
     List<HostedRepositoryComponent> hrcs = new ArrayList<>();

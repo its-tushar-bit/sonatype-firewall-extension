@@ -12,8 +12,8 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,7 +22,7 @@ public class ApplicationCountHistoryDAOTest
 {
   private ApplicationCountHistoryDAO applicationCountHistoryDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

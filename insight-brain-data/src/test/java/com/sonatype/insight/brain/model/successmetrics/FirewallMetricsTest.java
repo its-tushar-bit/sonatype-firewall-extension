@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.model.successmetrics;
 import java.time.LocalDate;
 import java.time.Month;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -22,7 +22,7 @@ import com.sonatype.insight.db.DatabaseEngine;
 import com.sonatype.insight.db.H2DatabaseEngine;
 import com.sonatype.insight.db.PostgresDatabaseEngine;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.db.migrations.LegacyDataStoreMigrator.determineDesiredVersion;
 import static com.sonatype.insight.brain.db.migrations.LegacyDataStoreMigrator.getDatabaseSpecificIncrementalFileName;

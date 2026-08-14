@@ -13,8 +13,8 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -27,7 +27,7 @@ public class LicenseThreatGroupValueTypeTest
 
   private LicenseThreatGroupDAO licenseThreatGroupDAO;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     licenseThreatGroupDAO = daoFactory.createLicenseThreatGroupDAO();
 

@@ -10,9 +10,9 @@ import java.util.Date;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.zscaler.ZScalerMetrics;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,14 +21,14 @@ public class ZScalerMetricsDAOTest
 {
   private ZScalerMetricsDAO zScalerMetricsDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();
     zScalerMetricsDAO = daoFactory.createZScalerMetricsDAO();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     // Clean up the database after each test
     ZScalerMetrics zScalerMetrics = zScalerMetricsDAO.get();

@@ -30,8 +30,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.jooq.exception.DataAccessException;
 import org.jooq.exception.IntegrityConstraintViolationException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.postgresql.util.PSQLException;
 import org.postgresql.util.PSQLState;
 import org.postgresql.util.ServerErrorMessage;
@@ -49,7 +49,7 @@ public class RepositoryManagerDAOTest
 
   private OrganizationDAO organizationDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

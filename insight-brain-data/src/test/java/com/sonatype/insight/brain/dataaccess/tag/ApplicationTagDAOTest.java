@@ -21,8 +21,8 @@ import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.ApplicationTagNameDTO;
 import com.sonatype.insight.brain.model.tag.Tag;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
@@ -44,7 +44,7 @@ public class ApplicationTagDAOTest
 
   private List<Application> applicationList;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

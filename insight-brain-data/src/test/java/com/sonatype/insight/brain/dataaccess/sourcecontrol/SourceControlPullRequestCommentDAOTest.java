@@ -18,8 +18,8 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestCo
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -29,7 +29,7 @@ public class SourceControlPullRequestCommentDAOTest
 {
   private SourceControlPullRequestCommentDAO pullRequestCommentDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

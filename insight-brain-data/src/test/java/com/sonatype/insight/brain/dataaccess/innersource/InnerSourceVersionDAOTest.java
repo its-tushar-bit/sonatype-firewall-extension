@@ -18,8 +18,8 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.jooq.exception.IntegrityConstraintViolationException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -29,7 +29,7 @@ public class InnerSourceVersionDAOTest
 {
   private InnerSourceVersionDAO dao;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

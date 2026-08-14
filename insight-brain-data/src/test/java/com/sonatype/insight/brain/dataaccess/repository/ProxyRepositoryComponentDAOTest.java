@@ -52,8 +52,8 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.time.DateUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ProxyRepositoryPolicyViolation.PROXY_REPOSITORY_POLICY_VIOLATION;
 import static com.sonatype.insight.brain.utils.DateConverter.toLocalDate;
@@ -88,7 +88,7 @@ public class ProxyRepositoryComponentDAOTest
 
   private Repository repositoryTwo;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

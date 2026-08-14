@@ -18,11 +18,31 @@ import com.sonatype.insight.db.DatabaseConfig;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.TestInfo;
 
 public abstract class AbstractDatabaseTest
 {
   @Rule(order = 1)
   public DatabaseRule databaseRule = DatabaseRule.getInstance(AbstractDatabaseTest.class);
+
+  // JUnit 5 (Jupiter): the @Rule(order=1) does not fire under Jupiter, so provision the (reused) database
+  // fixture from a @BeforeEach. Inert under the Vintage engine, which drives the @Rule instead; this base is
+  // shared with still-JUnit 4 tests in insight-brain-data / insight-brain-service, so it is intentionally NOT
+  // switched to @ExtendWith (which would make those Vintage tests Jupiter-discoverable).
+  @BeforeEach
+  public void jupiterInitDatabaseRule(final TestInfo testInfo) {
+    databaseRule.beforeFromJupiter(testInfo.getTestClass().orElse(null), testInfo.getTestMethod().orElse(null));
+  }
+
+  // JUnit 5 (Jupiter) teardown: run DatabaseRule.after() so its per-test reset/dirty bookkeeping stays correct
+  // (the JUnit 4 @Rule runs after() per test; without this the reused fixture is never reset and data leaks).
+  // Runs last on teardown (superclass @AfterEach after subclass), matching the order=1 outer rule.
+  @AfterEach
+  public void jupiterCleanupDatabaseRule() {
+    databaseRule.afterFromJupiter();
+  }
 
   protected File getDatabasePath() {
     Map<String, Object> metadata = databaseRule.getMetadata();

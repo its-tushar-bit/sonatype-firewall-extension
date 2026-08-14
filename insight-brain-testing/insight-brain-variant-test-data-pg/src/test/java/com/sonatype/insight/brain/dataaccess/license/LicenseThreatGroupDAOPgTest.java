@@ -29,6 +29,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +57,7 @@ public class LicenseThreatGroupDAOPgTest
   private LicenseDAO licenseDAO;
 
   @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

@@ -14,8 +14,8 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -26,7 +26,7 @@ public class RepositoryConnectionDAOTest
 
   private DAOSecretRotator daoSecretRotator;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

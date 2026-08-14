@@ -18,8 +18,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO.MIN_DEFAULT_BRANCH_MONITORING_INTERVAL_HOURS;
 import static com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO.MIN_PULL_REQUEST_MONITORING_INTERVAL_SECONDS;
@@ -34,7 +34,7 @@ public class SourceControlConfigurationDAOTest
 {
   private SourceControlConfigurationDAO dao;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.model;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

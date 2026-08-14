@@ -9,8 +9,8 @@ import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -19,7 +19,7 @@ public class SystemConfigurationPropertyFeatureTest
 {
   private SystemConfigurationPropertyDAO dao;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     dao = daoFactory.createSystemConfigurationPropertyDAO();
   }

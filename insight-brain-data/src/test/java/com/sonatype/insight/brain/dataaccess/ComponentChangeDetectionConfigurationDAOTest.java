@@ -12,8 +12,8 @@ import java.util.Optional;
 
 import com.sonatype.insight.brain.model.ComponentChangeDetectionConfiguration;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,7 +22,7 @@ public class ComponentChangeDetectionConfigurationDAOTest
 {
   private ComponentChangeDetectionConfigurationDAO underTest;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     underTest = daoFactory.createComponentChangeDetectionConfigurationDAO();
   }

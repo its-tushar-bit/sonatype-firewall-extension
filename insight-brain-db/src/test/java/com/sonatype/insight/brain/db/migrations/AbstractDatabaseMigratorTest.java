@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.db.migrations;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -25,7 +25,7 @@ public abstract class AbstractDatabaseMigratorTest
   // note this will get used four times for each test, one for each data store
   public DataStoreMigrator mockDataStoreMigrator;
 
-  @Before
+  @BeforeEach
   public void before() {
     mockDataStoreMigrator = mock();
     databaseMigrator = createDatabaseMigratorForTest();

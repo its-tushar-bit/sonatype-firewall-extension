@@ -14,17 +14,18 @@ import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolationConstraintFacts;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class PolicyViolationConstraintFactsDAOTest
     extends AbstractDbDAOTest
 {
   private PolicyViolationConstraintFactsDAO dao;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();
@@ -50,20 +51,22 @@ public class PolicyViolationConstraintFactsDAOTest
 
   }
 
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void testUpdateNotSupported() {
     String hash = HashHelper.truncateHash(UUID.randomUUID().toString());
     String json = "json";
 
-    dao.update(new PolicyViolationConstraintFacts(hash, json));
+    assertThrows(UnsupportedOperationException.class,
+        () -> dao.update(new PolicyViolationConstraintFacts(hash, json)));
   }
 
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void testUpdateWithTransactionNotSupported() {
     String hash = HashHelper.truncateHash(UUID.randomUUID().toString());
     String json = "json";
 
-    dao.update(null, new PolicyViolationConstraintFacts(hash, json));
+    assertThrows(UnsupportedOperationException.class,
+        () -> dao.update(null, new PolicyViolationConstraintFacts(hash, json)));
   }
 
   @Test

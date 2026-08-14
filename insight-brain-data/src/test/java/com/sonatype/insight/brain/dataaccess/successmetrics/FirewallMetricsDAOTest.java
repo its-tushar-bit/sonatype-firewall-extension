@@ -20,8 +20,8 @@ import com.sonatype.insight.brain.model.successmetrics.ApiFirewallMetricsResultD
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetrics;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.COMPONENTS_AUTO_RELEASED;
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.COMPONENTS_QUARANTINED;
@@ -38,7 +38,7 @@ public class FirewallMetricsDAOTest
 {
   private FirewallMetricsDAO dao;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();
@@ -47,7 +47,7 @@ public class FirewallMetricsDAOTest
 
   private final List<Date> testLastUpdateDates = new ArrayList<>();
 
-  @Before
+  @BeforeEach
   public void init() {
     initTestDates();
   }

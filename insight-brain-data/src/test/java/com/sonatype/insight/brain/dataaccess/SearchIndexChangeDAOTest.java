@@ -15,8 +15,8 @@ import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.searchindex.SearchIndexHealth;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -28,7 +28,7 @@ public class SearchIndexChangeDAOTest
 
   private SearchIndexHealthDAO healthDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

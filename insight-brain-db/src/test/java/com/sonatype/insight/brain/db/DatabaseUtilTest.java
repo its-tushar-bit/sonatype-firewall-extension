@@ -10,7 +10,7 @@ import com.sonatype.insight.db.DatabaseException;
 import com.sonatype.insight.db.H2DatabaseEngine;
 import com.sonatype.insight.db.PostgresDatabaseEngine;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;

@@ -29,8 +29,8 @@ import com.sonatype.insight.brain.model.security.UserToken;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -59,7 +59,7 @@ public class UserDAOTest
 
   private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

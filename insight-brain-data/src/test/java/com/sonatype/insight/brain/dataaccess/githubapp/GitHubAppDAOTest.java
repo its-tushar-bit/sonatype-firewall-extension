@@ -12,8 +12,8 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -27,7 +27,7 @@ public class GitHubAppDAOTest
 
   private GitHubAppDAO gitHubAppDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

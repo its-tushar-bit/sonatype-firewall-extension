@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.common.test;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -186,6 +187,49 @@ public abstract class InsightFixtureRule<T, F extends InsightTestFixture>
             .filter(a -> getAnnotationTypes().contains(a.annotationType()))
             .findFirst();
     return annotation.orElse(null);
+  }
+
+  /**
+   * JUnit 5 (Jupiter) entry point. The JUnit 4 {@link #apply(Statement, Description)} does not run under the
+   * Jupiter engine, so a migrated test provisions the fixture from a {@code @BeforeEach} that supplies the
+   * running test class and method (from {@code TestInfo}). Mirrors {@code apply}: resolve the fixture annotation
+   * (method has priority over class), publish the test identity, then run the same {@link #before()}.
+   */
+  public final void beforeFromJupiter(final Class<?> testClass, final Method testMethod) {
+    annotation = getAnnotationFrom(testMethod, testClass);
+    testName = testMethod != null ? testMethod.getName() : null;
+    currentTestClass = testClass;
+    try {
+      before();
+    }
+    catch (Throwable t) {
+      throw new IllegalStateException("Failed to initialize test fixture for the JUnit 5 test context", t);
+    }
+  }
+
+  /**
+   * JUnit 5 (Jupiter) teardown counterpart to {@link #beforeFromJupiter}. Runs the same per-test {@link #after()}
+   * the JUnit 4 @Rule would run, so the fixture's dirty/reset bookkeeping stays correct across tests (otherwise the
+   * fixture is reused without reset and per-test data leaks, causing PK violations / stale-data failures).
+   */
+  public final void afterFromJupiter() {
+    after();
+  }
+
+  private Annotation getAnnotationFrom(final Method testMethod, final Class<?> testClass) {
+    Annotation[] methodAnnotations = testMethod != null ? testMethod.getAnnotations() : new Annotation[0];
+    Annotation[] classAnnotations = testClass != null ? testClass.getAnnotations() : new Annotation[0];
+
+    // reverse so the subclass / method has priority (mirrors getAnnotation(Description))
+    ArrayUtils.reverse(methodAnnotations);
+    ArrayUtils.reverse(classAnnotations);
+
+    Annotation[] annotations = ArrayUtils.addAll(methodAnnotations, classAnnotations);
+
+    return Arrays.stream(annotations)
+        .filter(a -> getAnnotationTypes().contains(a.annotationType()))
+        .findFirst()
+        .orElse(null);
   }
 
   /**

@@ -17,8 +17,8 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
@@ -28,7 +28,7 @@ public class SourceControlDefaultBranchCommitHistoryDAOTest
 {
   private SourceControlDefaultBranchCommitHistoryDAO defaultBranchCommitHistoryDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

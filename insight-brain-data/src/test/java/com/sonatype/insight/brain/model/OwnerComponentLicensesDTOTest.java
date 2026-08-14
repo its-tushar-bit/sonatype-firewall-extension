@@ -11,7 +11,7 @@ import java.util.Map;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.nexus.scm.api.common.JsonUtils;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 

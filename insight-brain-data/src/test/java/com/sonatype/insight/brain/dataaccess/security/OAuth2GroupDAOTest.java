@@ -15,8 +15,8 @@ import com.sonatype.insight.brain.model.security.OAuth2Group;
 import com.sonatype.insight.brain.model.security.OAuth2User;
 import com.sonatype.insight.brain.model.security.OAuth2UserGroup;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -27,7 +27,7 @@ public class OAuth2GroupDAOTest
 
   private OAuth2UserGroupDAO oAuth2UserGroupDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

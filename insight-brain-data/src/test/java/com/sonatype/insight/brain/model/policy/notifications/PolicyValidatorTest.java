@@ -24,8 +24,8 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.security.Role;
 
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.model.policy.ValidationAssert.assertValidationResultHasErrors;
 import static com.sonatype.insight.brain.model.policy.ValidationAssert.assertValidationResultHasNoErrors;
@@ -37,7 +37,7 @@ public class PolicyValidatorTest
 
   private final String applicationId = "PolicyTest_AppId";
 
-  @Before
+  @BeforeEach
   public void before() {
     UserNotificationValidator userNotificationValidator = new UserNotificationValidator();
     RoleNotificationValidator roleNotificationValidator =

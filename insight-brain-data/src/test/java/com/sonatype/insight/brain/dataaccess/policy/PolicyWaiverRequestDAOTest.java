@@ -35,9 +35,9 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.joda.time.DateTime;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.model.policy.PolicyWaiverRequestStatus.APPROVED;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiverRequestStatus.REJECTED;
@@ -54,7 +54,7 @@ public class PolicyWaiverRequestDAOTest
 
   private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();
@@ -565,8 +565,8 @@ public class PolicyWaiverRequestDAOTest
   /** Batch fetch must issue O(1) SELECTs regardless of owner count. Requires -DcustomMetrics=sqlcount. */
   @Test
   public void testGetByOwnerIds_issuesConstantSelectCount_notOnePerOwner() {
-    Assume.assumeTrue("Enable with -DargLine=\"-DcustomMetrics=sqlcount\" to run this validation",
-        JooqSqlCounterListener.getInstance().isEnabled());
+    Assumptions.assumeTrue(JooqSqlCounterListener.getInstance().isEnabled(),
+        "Enable with -DargLine=\"-DcustomMetrics=sqlcount\" to run this validation");
 
     Policy policy = tempEntity.newPolicy(organization);
     int ownerCount = 40;
@@ -599,8 +599,8 @@ public class PolicyWaiverRequestDAOTest
   /** Baseline: legacy per-owner path scales linearly. Guards the batch test against a same-side regression. */
   @Test
   public void testGetByOwnerId_perOwnerLoopIssuesOneSelectPerOwner_baseline() {
-    Assume.assumeTrue("Enable with -DargLine=\"-DcustomMetrics=sqlcount\" to run this validation",
-        JooqSqlCounterListener.getInstance().isEnabled());
+    Assumptions.assumeTrue(JooqSqlCounterListener.getInstance().isEnabled(),
+        "Enable with -DargLine=\"-DcustomMetrics=sqlcount\" to run this validation");
 
     Policy policy = tempEntity.newPolicy(organization);
     int ownerCount = 40;

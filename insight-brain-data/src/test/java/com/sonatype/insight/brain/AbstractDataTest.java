@@ -18,6 +18,8 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 
 import org.junit.Before;
 import org.junit.Rule;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * This base class is intended to be used <strong>ONLY</strong> when you need to test using a relational DB and you want
@@ -37,6 +39,7 @@ public abstract class AbstractDataTest
   public TemporaryEntity tempEntity = createTemporaryEntity();
 
   @Before
+  @BeforeEach
   public void initialize() {
     SystemConfigurationPropertyDAO.invalidateEntireCache();
     daoFactory = new TestDAOFactory(databaseRule);
@@ -48,6 +51,20 @@ public abstract class AbstractDataTest
     // Re-inject classes that have static dependencies
     ConditionTypesTestHelper.initConditionTypes(daoFactory);
     ConditionTypesTestHelper.initConditionValueTypes(daoFactory);
+  }
+
+  // JUnit 5 (Jupiter): drive the @Rule(order=2) TemporaryEntity.before() (inert under Vintage). Runs before the
+  // subclass @BeforeEach setup(). initialize() is dual-annotated (@Before + @BeforeEach) above so Jupiter invokes
+  // it exactly once and a subclass override replaces it — do NOT call it explicitly here, or an overriding
+  // @BeforeEach setUp would run twice (double DB inserts -> PK violations).
+  @BeforeEach
+  public void jupiterInitTempEntity() {
+    tempEntity.before();
+  }
+
+  @AfterEach
+  public void jupiterCleanupData() {
+    tempEntity.after();
   }
 
   /**

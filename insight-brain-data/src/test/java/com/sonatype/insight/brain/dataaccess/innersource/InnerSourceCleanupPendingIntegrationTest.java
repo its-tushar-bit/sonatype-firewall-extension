@@ -9,8 +9,8 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.innersource.InnerSourceApplication;
 import com.sonatype.insight.brain.model.innersource.InnerSourceCleanupPending;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -25,7 +25,7 @@ public class InnerSourceCleanupPendingIntegrationTest
 
   private InnerSourceApplicationDAO innerSourceApplicationDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

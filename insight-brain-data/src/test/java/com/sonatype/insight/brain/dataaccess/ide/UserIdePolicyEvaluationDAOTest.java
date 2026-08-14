@@ -10,8 +10,8 @@ import java.util.concurrent.TimeUnit;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -20,7 +20,7 @@ public class UserIdePolicyEvaluationDAOTest
 {
   private UserIdePolicyEvaluationDAO userIdePolicyEvaluationDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

@@ -6,16 +6,12 @@
 package com.sonatype.insight.brain.db.datastore;
 
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
-import com.sonatype.insight.test.LogOutput;
 
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class DefaultOperationalDataStoreTest
     extends AbstractDataStoreTest
 {
-  @Rule
-  public LogOutput logOutput = new LogOutput(DefaultOperationalDataStore.class);
 
   @Override
   protected DataStore getTestDataStore() {

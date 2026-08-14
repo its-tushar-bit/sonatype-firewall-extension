@@ -11,9 +11,9 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.searchindex.SearchIndexHealth;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,7 +22,7 @@ public class SearchIndexHealthDAOTest
 {
   private SearchIndexHealthDAO dao;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();
@@ -108,7 +108,7 @@ public class SearchIndexHealthDAOTest
    * re-creating it is not a leak. This mirrors how {@code TemporaryEntity} already exempts migration
    * trackers and system configuration properties that get re-inserted during a test.
    */
-  @After
+  @AfterEach
   public void forgetTheReseededSingleton() {
     AbstractOperationalSqlDAO.testEntityLeaksDetectionData.remove(SearchIndexHealth.CURRENT_ID);
   }

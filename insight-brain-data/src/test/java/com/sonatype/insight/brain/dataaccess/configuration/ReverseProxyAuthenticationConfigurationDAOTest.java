@@ -15,8 +15,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO.EMPTY_LOGOUT_URL_ERROR_MSG;
 import static com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO.INVALID_LOGOUT_URL_ERROR_MSG;
@@ -35,7 +35,7 @@ public class ReverseProxyAuthenticationConfigurationDAOTest
 {
   private ReverseProxyAuthenticationConfigurationDAO dao;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

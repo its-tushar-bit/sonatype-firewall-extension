@@ -14,8 +14,8 @@ import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.jooq.exception.IntegrityConstraintViolationException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -27,7 +27,7 @@ public class ProxyServerConfigurationDAOTest
 
   private DAOSecretRotator daoSecretRotator;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

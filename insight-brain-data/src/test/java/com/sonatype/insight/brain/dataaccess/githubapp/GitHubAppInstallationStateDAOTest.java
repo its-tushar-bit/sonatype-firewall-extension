@@ -13,11 +13,12 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.githubapp.GitHubAppInstallationState;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test class for GitHubAppInstallationStateDAO
@@ -33,7 +34,7 @@ public class GitHubAppInstallationStateDAOTest
 
   private final Set<String> tokensToCleanup = new HashSet<>();
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();
@@ -50,7 +51,7 @@ public class GitHubAppInstallationStateDAOTest
     registerTokenForCleanup(STATE_TOKEN);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     // Clean up all tokens created during tests
     try (TransactionContext tx = dao.createTransactionContext()) {
@@ -294,21 +295,23 @@ public class GitHubAppInstallationStateDAOTest
     }
   }
 
-  @Test(expected = Exception.class)
+  @Test
   public void testInsert_WithNullGitHubAppId_ShouldFail() {
-    Date expiresAt = new Date(System.currentTimeMillis() + 900000);
-    GitHubAppInstallationState state = new GitHubAppInstallationState();
-    state.setId("test-id-null-fk");
-    state.setStateToken("null-github-app-id-token");
-    state.setGithubAppId(null);
-    state.setExpiresAt(expiresAt);
-    state.setCreatedAt(new Date());
+    assertThrows(Exception.class, () -> {
+      Date expiresAt = new Date(System.currentTimeMillis() + 900000);
+      GitHubAppInstallationState state = new GitHubAppInstallationState();
+      state.setId("test-id-null-fk");
+      state.setStateToken("null-github-app-id-token");
+      state.setGithubAppId(null);
+      state.setExpiresAt(expiresAt);
+      state.setCreatedAt(new Date());
 
-    try (TransactionContext tx = dao.createTransactionContext()) {
-      tx.begin();
-      dao.insert(tx, state);
-      tx.commit();
-    }
+      try (TransactionContext tx = dao.createTransactionContext()) {
+        tx.begin();
+        dao.insert(tx, state);
+        tx.commit();
+      }
+    });
   }
 
   @Test

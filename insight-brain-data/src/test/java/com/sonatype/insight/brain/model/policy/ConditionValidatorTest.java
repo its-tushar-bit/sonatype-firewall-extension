@@ -9,7 +9,7 @@ import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.model.policy.ValidationAssert.assertValidationResultHasErrors;
 

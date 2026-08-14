@@ -14,9 +14,9 @@ import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.jooq.exception.IntegrityConstraintViolationException;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -28,7 +28,7 @@ public class MailConfigurationDAOTest
 
   private DAOSecretRotator daoSecretRotator;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();
@@ -36,7 +36,7 @@ public class MailConfigurationDAOTest
     daoSecretRotator = new DAOSecretRotator();
   }
 
-  @After
+  @AfterEach
   public void exit() {
     dao.delete();
   }

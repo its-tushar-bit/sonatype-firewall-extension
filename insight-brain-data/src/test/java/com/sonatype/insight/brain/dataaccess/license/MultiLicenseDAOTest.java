@@ -15,8 +15,8 @@ import com.sonatype.insight.brain.model.license.MultiLicenseLicenseInternal;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -36,7 +36,7 @@ public class MultiLicenseDAOTest
 
   private MultiLicenseDAO dao;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();
@@ -83,9 +83,10 @@ public class MultiLicenseDAOTest
     assertThat(multiLicenses).isNotEmpty();
   }
 
-  @Test(expected = NotFoundException.class)
+  @Test
   public void testGetLicensesByMultiLicenseIdNotFound() {
-    dao.getLicensesByMultiLicenseIdNotNull("Not-To-Be-Found");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> dao.getLicensesByMultiLicenseIdNotNull("Not-To-Be-Found"));
   }
 
   @Test

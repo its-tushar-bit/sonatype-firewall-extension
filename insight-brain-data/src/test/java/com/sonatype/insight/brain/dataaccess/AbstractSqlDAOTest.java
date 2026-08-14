@@ -12,9 +12,9 @@ import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.jooq.Table;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.MigrationTracker.MIGRATION_TRACKER;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,13 +25,13 @@ public class AbstractSqlDAOTest
   private StubbedAbstractSqlDAO stubbedAbstractSqlDAO;
 
   @Override
-  @Before
+  @BeforeEach
   public void setup() {
     super.setup();
     this.stubbedAbstractSqlDAO = new StubbedAbstractSqlDAO(databaseRule.getOperationalDataStore());
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     AbstractSqlDAO.MAX_ALLOWED_DB_RESULTS = AbstractSqlDAO.DEFAULT_MAX_ALLOWED_DB_RESULTS;
   }

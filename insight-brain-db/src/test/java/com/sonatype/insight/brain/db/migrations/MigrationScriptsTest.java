@@ -21,11 +21,11 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 
 import com.google.common.io.PatternFilenameFilter;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class MigrationScriptsTest
     extends AbstractDatabaseTest
@@ -40,7 +40,7 @@ public class MigrationScriptsTest
 
   private DataStore[] allDataStores;
 
-  @Before
+  @BeforeEach
   public void before() {
     operationalDataStore = databaseRule.getOperationalDataStore();
     dataMartDataStore = databaseRule.getDataMartDataStore();

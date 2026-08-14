@@ -65,8 +65,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.clm.dto.model.ComponentEndOfLifeStatus.END_OF_LIFE_TRUE;
 import static com.sonatype.clm.dto.model.ComponentEndOfLifeStatus.END_OF_LIFE_UNKNOWN;
@@ -113,7 +113,7 @@ public class ComponentLoaderTest
 
   private ComponentLoader componentLoader;
 
-  @Before
+  @BeforeEach
   public void setup() {
     organization = tempEntity.newOrganization("AbstractDbDAOTest");
     application = tempEntity.newApplication("AbstractDbDAOTest-AppName", "AbstractDbDAOTest-AppPublicId",

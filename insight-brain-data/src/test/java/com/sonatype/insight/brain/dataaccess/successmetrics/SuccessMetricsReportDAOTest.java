@@ -17,8 +17,8 @@ import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReportData;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -30,7 +30,7 @@ public class SuccessMetricsReportDAOTest
 
   private SuccessMetricsReportDataDAO successMetricsReportDataDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

@@ -39,8 +39,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.scan.file.SbomFormat;
 
 import org.apache.commons.lang3.time.DateUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.db.IdUtil.newUUID;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
@@ -60,7 +60,7 @@ public class ThirdPartySbomMetadataDAOTest
 
   private SearchIndexChangeDAO searchIndexChangeDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

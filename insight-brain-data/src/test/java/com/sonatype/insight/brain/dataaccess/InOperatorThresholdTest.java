@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.jooq.DialectHelper;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.dataaccess.AbstractSqlDAO.H2_IN_OPERATOR_THRESHOLD;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.MigrationTracker.MIGRATION_TRACKER;

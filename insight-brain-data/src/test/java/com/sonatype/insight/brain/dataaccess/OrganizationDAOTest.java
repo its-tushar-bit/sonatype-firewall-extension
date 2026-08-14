@@ -93,10 +93,9 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.utils.ScmUserMappingsHelper.getRandomMappings;
@@ -109,8 +108,8 @@ import static org.mockito.Mockito.when;
 public class OrganizationDAOTest
     extends NameableDAOTest<Organization>
 {
-  @Rule
-  public TemporaryFolder tmpDir = new TemporaryFolder();
+  @TempDir
+  java.nio.file.Path tmpDir;
 
   private LabelDAO labelDAO;
 
@@ -160,7 +159,7 @@ public class OrganizationDAOTest
 
   private OrganizationDAO dao;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

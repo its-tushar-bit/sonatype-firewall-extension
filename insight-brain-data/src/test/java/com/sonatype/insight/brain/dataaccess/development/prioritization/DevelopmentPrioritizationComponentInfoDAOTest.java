@@ -26,8 +26,8 @@ import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritization
 import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritizationComponentInfo;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import com.google.common.collect.ImmutableMap;
 
 import static com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationComponentInfoDAO.BATCH_INSERT_SIZE_LIMIT;
@@ -58,7 +58,7 @@ public class DevelopmentPrioritizationComponentInfoDAOTest
 
   private Random random = ThreadLocalRandom.current();
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

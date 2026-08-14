@@ -31,12 +31,12 @@ import com.sonatype.insight.brain.validation.SourceControlSshValidator;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO.PULL_REQUEST_POLLING_INITIAL_OFFSET_MS;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
@@ -49,7 +49,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class SourceControlDAOTest
     extends AbstractDbDAOTest
 {
@@ -79,7 +79,7 @@ public class SourceControlDAOTest
   private SourceControlSshValidator sourceControlSshValidator;
 
   @Override
-  @Before
+  @BeforeEach
   public void setup() {
     policyEvaluationDAO = daoFactory.createPolicyEvaluationDAO();
 
@@ -92,7 +92,7 @@ public class SourceControlDAOTest
     org = tempEntity.newOrganization();
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     if (sourceControlDAO != null) {
       sourceControlDAO.getAll().forEach(sourceControlDAO::delete);

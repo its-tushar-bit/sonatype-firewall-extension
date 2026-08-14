@@ -12,24 +12,23 @@ import java.nio.charset.StandardCharsets;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AuditingTest
     extends AbstractDbDAOTest
 {
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+  @TempDir
+  public File temporaryFolder;
 
   private JsonStore store;
 
-  @Before
+  @BeforeEach
   public void setUp() {
-    store = new JsonFileStore(new File(temporaryFolder.getRoot(), "audit-test"), "ownerId", clusterLockManager);
+    store = new JsonFileStore(new File(temporaryFolder, "audit-test"), "ownerId", clusterLockManager);
   }
 
   @Test

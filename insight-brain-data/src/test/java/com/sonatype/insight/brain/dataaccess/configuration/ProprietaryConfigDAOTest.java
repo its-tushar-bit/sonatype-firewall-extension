@@ -14,18 +14,19 @@ import com.sonatype.insight.brain.dataaccess.InvalidProprietaryConfigRegexExcept
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ProprietaryConfigDAOTest
     extends AbstractDbDAOTest
 {
   private ProprietaryConfigDAO dao;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();
@@ -101,19 +102,19 @@ public class ProprietaryConfigDAOTest
     }
   }
 
-  @Test(expected = InvalidProprietaryConfigRegexException.class)
+  @Test
   public void testInsert_InvalidRegexStar() {
     List<String> regexes = Collections.singletonList("*");
     ProprietaryConfig config = new ProprietaryConfig(application.getId(), null /* packages */, regexes);
-    dao.insert(config);
+    assertThrows(InvalidProprietaryConfigRegexException.class, () -> dao.insert(config));
   }
 
-  @Test(expected = InvalidProprietaryConfigRegexException.class)
+  @Test
   public void testInsert_InvalidRegexNull() {
     List<String> regexes = new ArrayList<>();
     regexes.add(null);
     ProprietaryConfig config = new ProprietaryConfig(application.getId(), null /* packages */, regexes);
-    dao.insert(config);
+    assertThrows(InvalidProprietaryConfigRegexException.class, () -> dao.insert(config));
   }
 
   @Test
@@ -128,23 +129,23 @@ public class ProprietaryConfigDAOTest
     }
   }
 
-  @Test(expected = InvalidProprietaryConfigRegexException.class)
+  @Test
   public void testUpdate_InvalidRegexStar() {
     ProprietaryConfig config = tempEntity.newProprietaryConfig(application.getId());
 
     List<String> regexes = Collections.singletonList("*");
     config.setRegexes(regexes);
-    dao.update(config);
+    assertThrows(InvalidProprietaryConfigRegexException.class, () -> dao.update(config));
   }
 
-  @Test(expected = InvalidProprietaryConfigRegexException.class)
+  @Test
   public void testUpdate_InvalidRegexNull() {
     ProprietaryConfig config = tempEntity.newProprietaryConfig(application.getId());
 
     List<String> regexes = new ArrayList<>();
     regexes.add(null);
     config.setRegexes(regexes);
-    dao.update(config);
+    assertThrows(InvalidProprietaryConfigRegexException.class, () -> dao.update(config));
   }
 
   @Test

@@ -11,8 +11,8 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.configuration.scanhealth.ScanHealthConfig;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.model.OwnerType.APPLICATION;
 import static com.sonatype.insight.brain.model.OwnerType.ORGANIZATION;
@@ -23,7 +23,7 @@ public class ScanHealthConfigDAOTest
 {
   private ScanHealthConfigDAO dao;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

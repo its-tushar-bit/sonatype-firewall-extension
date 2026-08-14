@@ -34,8 +34,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.common.collect.Sets;
 import org.joda.time.DateTime;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -49,7 +49,7 @@ public class OwnerComponentDAOTest
 
   private OwnerComponentLicenseDAO applicationComponentLicenseDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

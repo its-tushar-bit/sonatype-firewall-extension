@@ -22,8 +22,8 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.kie.api.io.ResourceType;
 import org.kie.internal.builder.KnowledgeBuilder;
 import org.kie.internal.builder.KnowledgeBuilderFactory;
@@ -36,7 +36,7 @@ public class DroolsGeneratorTest
 {
   private LabelDAO labelDAO;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     labelDAO = daoFactory.createLabelDAO();
   }

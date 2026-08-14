@@ -12,7 +12,7 @@ import java.util.List;
 import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

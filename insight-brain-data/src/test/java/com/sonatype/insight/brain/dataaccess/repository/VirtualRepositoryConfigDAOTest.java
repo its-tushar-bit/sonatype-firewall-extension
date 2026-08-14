@@ -20,8 +20,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.jooq.exception.IntegrityConstraintViolationException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.dataaccess.repository.VirtualRepositoryConfigDAO.MAX_URL_LENGTH;
 import static com.sonatype.insight.brain.dataaccess.repository.VirtualRepositoryConfigDAO.PACKAGE_HOST_URL_FIELD;
@@ -39,7 +39,7 @@ public class VirtualRepositoryConfigDAOTest
 
   private RepositoryDAO repositoryDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

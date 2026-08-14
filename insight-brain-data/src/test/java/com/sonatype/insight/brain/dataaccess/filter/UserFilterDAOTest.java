@@ -16,8 +16,8 @@ import com.sonatype.insight.brain.model.filter.UserFilterType;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.model.filter.UserFilter.ACTIVE_FILTER_NAME;
 import static com.sonatype.insight.brain.model.filter.UserFilterType.ADVANCED_LEGAL_PACK_DASHBOARD;
@@ -29,7 +29,7 @@ public class UserFilterDAOTest
 {
   private UserFilterDAO userFilterDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

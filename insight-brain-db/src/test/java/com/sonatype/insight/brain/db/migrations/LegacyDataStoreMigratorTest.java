@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.db.migrations;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.zip.ZipFile;
 
 import javax.sql.DataSource;
@@ -21,9 +22,8 @@ import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.db.H2DatabaseEngine;
 
 import org.apache.commons.lang3.NotImplementedException;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.springframework.jdbc.datasource.init.ScriptStatementFailedException;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,8 +33,8 @@ import static org.mockito.Mockito.mock;
 public class LegacyDataStoreMigratorTest
     extends AbstractDatabaseTest
 {
-  @Rule
-  public TemporaryFolder tempFolder = new TemporaryFolder();
+  @TempDir
+  public File tempFolder;
 
   @Test
   @H2DiskTest(
@@ -137,7 +137,7 @@ public class LegacyDataStoreMigratorTest
     File databaseDir = getDatabasePath();
 
     String dbName = "test";
-    File backupDir = tempFolder.newFolder("backup");
+    File backupDir = Files.createDirectory(tempFolder.toPath().resolve("backup")).toFile();
 
     // TODO
     newDataStoreMigrator(new TestDataStore(null, "test", "test")).backup(databaseDir, dbName, backupDir);

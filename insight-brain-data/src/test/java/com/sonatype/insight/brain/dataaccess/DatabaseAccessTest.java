@@ -12,8 +12,9 @@ import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 public class DatabaseAccessTest
     extends AbstractDbDAOTest
@@ -22,7 +23,7 @@ public class DatabaseAccessTest
 
   private ApplicationDAO applicationDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();
@@ -30,7 +31,8 @@ public class DatabaseAccessTest
     applicationDAO = daoFactory.createApplicationDAO();
   }
 
-  @Test(timeout = 20000)
+  @Test
+  @Timeout(value = 20000, unit = java.util.concurrent.TimeUnit.MILLISECONDS)
   @H2DiskTest
   public void testConcurrentDatabaseAccess() throws Exception {
     Organization org = new Organization("testConcurrentDatabaseAccess");

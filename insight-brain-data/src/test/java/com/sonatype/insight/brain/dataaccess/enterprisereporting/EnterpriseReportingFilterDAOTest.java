@@ -12,8 +12,8 @@ import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.enterprisereporting.EnterpriseReportingFilter;
 import com.sonatype.insight.brain.model.security.User;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -23,7 +23,7 @@ public class EnterpriseReportingFilterDAOTest
 {
   private EnterpriseReportingFilterDAO filterDao;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

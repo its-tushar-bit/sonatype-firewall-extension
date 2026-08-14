@@ -12,8 +12,8 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 
 import com.google.common.collect.Lists;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -46,7 +46,7 @@ public class PolicyWaiverReasonDAOTest
   public static final PolicyWaiverReason OTHER_WAIVER_REASON = new PolicyWaiverReason(
       "c991ef95866d4903ad0c6c217ac47c07", "system", "Other", 70);
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

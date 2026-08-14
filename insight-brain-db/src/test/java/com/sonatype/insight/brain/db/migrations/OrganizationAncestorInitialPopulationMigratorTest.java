@@ -16,9 +16,9 @@ import com.sonatype.insight.brain.db.datastore.DataStore;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -39,7 +39,7 @@ public class OrganizationAncestorInitialPopulationMigratorTest
 
   private LegacyDataStoreMigrator dataStoreMigrator;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     dataStore = databaseRule.getOperationalDataStore();
     connection = dataStore.getDataSource().getConnection();
@@ -59,7 +59,7 @@ public class OrganizationAncestorInitialPopulationMigratorTest
     populate();
   }
 
-  @After
+  @AfterEach
   public void closeConnection() throws Exception {
     if (connection != null) {
       connection.close();

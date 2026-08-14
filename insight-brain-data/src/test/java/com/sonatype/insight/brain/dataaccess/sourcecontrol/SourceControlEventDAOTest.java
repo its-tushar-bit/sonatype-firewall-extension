@@ -29,9 +29,9 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.*;
 import static java.lang.System.currentTimeMillis;
@@ -53,7 +53,7 @@ public class SourceControlEventDAOTest
   private final AtomicInteger prNumberCounter = new AtomicInteger(1000);
 
   @Override
-  @Before
+  @BeforeEach
   public void setup() {
     sourceControlEventDAO = daoFactory.createSourceControlEventDAO();
 
@@ -62,7 +62,7 @@ public class SourceControlEventDAOTest
     testStartTime = toDate(LocalDateTime.now().minusSeconds(1));
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     sourceControlEventDAO.getAll().stream().forEach(sourceControlEventDAO::delete);
   }

@@ -29,8 +29,8 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -50,7 +50,7 @@ public class OAuth2UserDAOTest
 
   private OAuth2UserGroupDAO oAuth2UserGroupDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

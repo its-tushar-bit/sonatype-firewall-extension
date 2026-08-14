@@ -35,8 +35,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.collect.Sets;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +56,7 @@ public class LicenseThreatGroupDAOTest
 
   private LicenseDAO licenseDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

@@ -25,7 +25,7 @@ import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.clm.dto.model.policy.Action.ID_FAIL;
 import static com.sonatype.clm.dto.model.policy.Action.ID_NOTIFY;

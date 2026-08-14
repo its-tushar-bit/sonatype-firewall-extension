@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.webhook;
 
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;

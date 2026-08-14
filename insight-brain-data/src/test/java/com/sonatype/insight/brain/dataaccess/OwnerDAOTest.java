@@ -49,8 +49,8 @@ import com.sonatype.insight.model.HasStringId;
 
 import com.google.common.collect.Sets;
 import org.joda.time.DateTime;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -85,7 +85,7 @@ public class OwnerDAOTest
 
   private LegalFileOverrideDAO legalFileOverrideDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

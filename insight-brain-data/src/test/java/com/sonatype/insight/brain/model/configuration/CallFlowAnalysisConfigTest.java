@@ -10,7 +10,7 @@ import java.util.Collections;
 
 import com.sonatype.clm.dto.model.callflowanalysis.CallFlowAlgorithm;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

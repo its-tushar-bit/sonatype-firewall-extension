@@ -16,9 +16,9 @@ import javax.sql.DataSource;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.commons.dbcp2.DelegatingConnection;
 import org.jooq.SQLDialect;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -39,7 +39,7 @@ public class TransactionContextConnectionPoolTest
 
   private BasicDataSource pool;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     pool = new BasicDataSource();
     pool.setUrl("jdbc:h2:mem:" + UUID.randomUUID() + ";DB_CLOSE_DELAY=-1");
@@ -54,7 +54,7 @@ public class TransactionContextConnectionPoolTest
     }
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     pool.close();
   }

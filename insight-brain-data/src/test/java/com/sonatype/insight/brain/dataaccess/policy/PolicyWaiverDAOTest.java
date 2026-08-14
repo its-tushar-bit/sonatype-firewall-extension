@@ -50,8 +50,8 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.joda.time.DateTime;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAOTest.ACKNOWLEDGED_VIOLATION_WAIVER_REASON;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
@@ -76,7 +76,7 @@ public class PolicyWaiverDAOTest
 
   private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

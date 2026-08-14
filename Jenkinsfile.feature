@@ -20,9 +20,9 @@
  ▼
  ┌──────────────────────────────────────────────────────────────────────────────────────────────┐
  │  2. PREPARE                                                                                 │
- │     • Install Node/Yarn                                                                     │
+ │     • Install Node/Yarn BINARIES only                                                       │
  │     • install-node-and-yarn                                                                 │
- │     • yarn install                                                                          │
+ │     • yarn install runs phase-bound during the parallel Build                               │
  └──────────────────────────────────────────────────────────────────────────────────────────────┘
  │
  ▼
@@ -149,10 +149,13 @@ pipeline {
       steps {
         script {
           dir(env.BUILD_DIR) {
-              // Install node/yarn binaries and download npm dependencies
+              // Install node/yarn BINARIES only (serial, ~40s, avoids any -T race on node install).
+              // The node_modules install (yarn-install) is intentionally NOT run here: the frontend
+              // module's own phase-bound yarn-install execution runs it during the parallel -T Build,
+              // where it overlaps the backend compile that gates the Build (frontend is not the Build
+              // critical path). This keeps ~110s of yarn install off the serial prefix on every build.
               mvn getFrontEndInstallConfig(),
-                  'com.github.eirslett:frontend-maven-plugin:install-node-and-yarn@install-node-and-yarn com.github.' +
-                      'eirslett:frontend-maven-plugin:yarn@yarn-install'
+                  'com.github.eirslett:frontend-maven-plugin:install-node-and-yarn@install-node-and-yarn'
           }
         }
       }
@@ -187,8 +190,10 @@ pipeline {
           steps {
             script {
               dir(env.BUILD_DIR) {
-                // Run Jest tests using cached node/yarn from Prepare stage
+                // Frontend lint (relocated off the serial Build critical path) + Jest tests,
+                // using cached node/yarn from the Prepare stage.
                 mvn getFrontEndTestConfig(),
+                    'com.github.eirslett:frontend-maven-plugin:yarn@ci-lint ' +
                     'com.github.eirslett:frontend-maven-plugin:yarn@jest'
               }
             }
@@ -505,8 +510,12 @@ pipeline {
                 allowEmptyArchive: true,
                 fingerprint: false
             )
-            // Single recordCoverage call merges XML reports from all distributed agents
-            recordCoverage(tools: [[parser: 'JACOCO', pattern: '**/target/site/jacoco/jacoco.xml']])
+            // Single recordCoverage call merges XML reports from all distributed agents.
+            // sourceCodeRetention NEVER: skip source-file painting. It resolves per-module sources
+            // against the reactor root and finds 0 of ~3650 (painting failed for ALL files), wasting
+            // ~180s on the critical path. Coverage metrics come from the parsed jacoco.xml regardless.
+            recordCoverage(tools: [[parser: 'JACOCO', pattern: '**/target/site/jacoco/jacoco.xml']],
+                sourceCodeRetention: 'NEVER')
           }
         }
       }
@@ -654,14 +663,21 @@ Map getMavenBuildConfig() {
   opts << "-DskipTests"
   opts << "-Dspotless.apply.skip=true"
   opts << "-Dspotless.check.skip=true"
-  opts << "-Dsource.skip=true"
+  opts << "-Dmaven.source.skip=true"
   opts << "-Dmaven.javadoc.skip=true"
+  // Keep frontend lint off the serial critical Build path; it runs in the parallel Frontend
+  // Tests stage instead (esbuild:build produces the same bundle without linting).
+  opts << "-Dfrontend.build.script=esbuild:build"
   // Note: Do NOT skip install - forked test processes need artifacts in local repo
+  //
+  // Maven Build Cache Extension: evaluated (warm service-change build 149s -> 101s) and REJECTED
+  // as too flaky - do NOT re-add .mvn/extensions.xml / cache config without new evidence. It never
+  // helped cold builds (the CI case here), and its false-positive cache hits risk skipping test
+  // execution. The kept wins (maven.source.skip, mtiq.package.skip) are compute-only and safe.
 
   // Bundling
   if (!isBundlingEnabled()) {
-    opts << "-Dshade.skip=true"
-    opts << "-DskipAssembly=true"
+    opts << "-Dmtiq.package.skip=true"
   }
 
   // Docker registry

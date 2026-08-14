@@ -19,6 +19,9 @@
   <properties>
     <node.version>v20.20.0</node.version>
     <yarn.version>v1.22.22</yarn.version>
+    <!-- Frontend build script for the Maven 'build' execution. Default runs lint + esbuild;
+         feature CI overrides to 'esbuild:build' to move lint into the parallel Frontend Tests stage. -->
+    <frontend.build.script>build</frontend.build.script>
     <sonar.sources>src/main/frontend</sonar.sources>
     <sonar.exclusions>src/main/frontend/lib/**/*,src/main/frontend/audit-report/lib/**/*</sonar.exclusions>
     <sonar.coverage.exclusions>
@@ -85,7 +88,25 @@
               <goal>yarn</goal>
             </goals>
             <configuration>
-              <arguments>run build</arguments>
+              <!-- Feature CI passes -Dfrontend.build.script=esbuild:build to keep lint off the
+                   serial critical Build path (lint runs in the parallel Frontend Tests stage).
+                   Default 'build' (lint + esbuild) is used for local/release builds. -->
+              <arguments>run ${frontend.build.script}</arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <!-- Frontend lint gate. Bound to phase 'none' to exclude it from the Maven lifecycle so
+                 it never runs on the serial Build critical path; the parallel Frontend Tests CI stage
+                 invokes it explicitly via yarn@ci-lint. NOTE: the frontend-maven-plugin 'yarn' goal
+                 defaults to the generate-resources phase, so an execution with no explicit phase
+                 (like build/yarn-install) would otherwise run during 'mvn install'. -->
+            <id>ci-lint</id>
+            <phase>none</phase>
+            <goals>
+              <goal>yarn</goal>
+            </goals>
+            <configuration>
+              <arguments>run ci-lint</arguments>
             </configuration>
           </execution>
           <execution>

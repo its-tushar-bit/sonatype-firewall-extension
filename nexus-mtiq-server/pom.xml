@@ -22,6 +22,9 @@
 
   <properties>
     <clm.server.jar>${project.artifactId}-${project.version}.jar</clm.server.jar>
+    <!-- When true, skip building the shaded uber jar + distro bundle (set by non-bundling CI
+         feature builds; those artifacts are only needed for the MTIQ image/release). -->
+    <mtiq.package.skip>false</mtiq.package.skip>
   </properties>
 
   <dependencies>
@@ -287,6 +290,9 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <!-- Skipped for non-bundling feature builds (-Dmtiq.package.skip=true): the shaded
+                   uber jar is not consumed by the test pipeline, only by the MTIQ image/release. -->
+              <skip>${mtiq.package.skip}</skip>
               <createDependencyReducedPom>false</createDependencyReducedPom>
               <finalName>nexus-mtiq-server</finalName> <!-- Note: version number is not included in the filename -->
               <shadedArtifactAttached>true</shadedArtifactAttached>
@@ -416,6 +422,9 @@
               <goal>single</goal>
             </goals>
             <configuration>
+              <!-- Skipped for non-bundling feature builds (-Dmtiq.package.skip=true): the distro
+                   bundle tar.gz is not consumed by the test pipeline, only by the MTIQ image/release. -->
+              <skipAssembly>${mtiq.package.skip}</skipAssembly>
               <descriptors>
                 <descriptor>src/main/assembly/server-bundle.xml</descriptor>
               </descriptors>

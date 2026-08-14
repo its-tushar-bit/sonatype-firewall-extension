@@ -383,7 +383,7 @@ public class ApiSourceControlResourceTest
 
     HttpResponse response = restRequest()
         .query("publicId", app.getPublicId())
-        .query("repositoryUrl", "https://not valid")
+        .query("repositoryUrl", "https://notvalid")
         .post();
 
     assertResponseStatus(400, response);
@@ -400,7 +400,7 @@ public class ApiSourceControlResourceTest
 
     HttpResponse response = restRequest()
         .query("publicId", app.getPublicId())
-        .query("repositoryUrl", "https://not valid")
+        .query("repositoryUrl", "https://notvalid")
         .post();
 
     assertResponseStatus(400, response);

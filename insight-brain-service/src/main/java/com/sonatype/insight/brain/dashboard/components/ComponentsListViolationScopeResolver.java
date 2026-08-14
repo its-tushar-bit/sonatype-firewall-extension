@@ -14,6 +14,7 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
+import com.sonatype.insight.brain.search.index.IndexFilterRestriction;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
@@ -25,10 +26,10 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * Resolves distinct {@code componentHash} values matching violation-scoped filters (stage, threat).
  * <p>
- * Discovery is capped at {@link Configuration#getMaxAdvancedSearchClauseCount()} unique hashes and
- * {@link #MAX_VIOLATION_DISCOVERY_RAW_PAGES} raw index pages. The raw-page budget is the estate-scale
- * guard (a hot hash can fill many consecutive pages without yielding new distinct hashes — stopping
- * on "no new hashes" would miss later components).
+ * Discovery is capped at a soft UX hash ceiling and {@link #MAX_VIOLATION_DISCOVERY_RAW_PAGES} raw
+ * index pages. The raw-page budget is the estate-scale guard (a hot hash can fill many consecutive
+ * pages without yielding new distinct hashes — stopping on "no new hashes" would miss later
+ * components). Discovered hashes are applied as budget-exempt term-set restrictions (CLM-44783).
  * <p>
  * V1 uses the legacy {@link SearchIndexClient#searchIndex} read path only (no Components session surface yet).
  */
@@ -41,10 +42,7 @@ final class ComponentsListViolationScopeResolver
   /** Hard cap on raw violation pages walked per discovery (500 × 80 = 40k docs). */
   static final int MAX_VIOLATION_DISCOVERY_RAW_PAGES = 80;
 
-  /**
-   * Fallback discovery cap when configuration is unset. Kept at the scoped-hash filter clause
-   * budget so discovered hashes can always be expressed as one Lucene OR without TooManyClauses.
-   */
+  /** Fallback discovery cap when configuration is unset (soft UX ceiling, not a Lucene clause budget). */
   private static final int DEFAULT_MAX_DISCOVERY_IDS =
       ComponentsListIndexQueryBuilder.MAX_SCOPED_COMPONENT_HASH_FILTER_CLAUSES;
 
@@ -66,19 +64,34 @@ final class ComponentsListViolationScopeResolver
       final Set<String> stageIds,
       final List<PolicyThreatLevelFilter> threatFilters)
   {
+    return resolveComponentHashes(baseComponentQuery, List.of(), stageIds, threatFilters);
+  }
+
+  Set<String> resolveComponentHashes(
+      final String baseComponentQuery,
+      final List<? extends IndexFilterRestriction> scopeRestrictions,
+      final Set<String> stageIds,
+      final List<PolicyThreatLevelFilter> threatFilters)
+  {
     String violationQuery = buildScopedViolationQuery(baseComponentQuery, stageIds, threatFilters);
     int maxIds = configuration.getMaxAdvancedSearchClauseCount();
     if (maxIds <= 0) {
       maxIds = DEFAULT_MAX_DISCOVERY_IDS;
     }
-    // Never discover more hashes than the componentHash OR clause can safely express.
+    // Soft UX ceiling on discovered hashes (applied later as term-set restrictions).
     maxIds = Math.min(maxIds, ComponentsListIndexQueryBuilder.MAX_SCOPED_COMPONENT_HASH_FILTER_CLAUSES);
-    return resolveHashesWithSearchIndex(violationQuery, maxIds);
+    return resolveHashesWithSearchIndex(violationQuery, scopeRestrictions, maxIds);
   }
 
-  private Set<String> resolveHashesWithSearchIndex(final String violationQuery, final int maxIds) {
+  private Set<String> resolveHashesWithSearchIndex(
+      final String violationQuery,
+      final List<? extends IndexFilterRestriction> scopeRestrictions,
+      final int maxIds)
+  {
     LinkedHashSet<String> hashes = new LinkedHashSet<>();
     int page = 0;
+    List<? extends IndexFilterRestriction> restrictions =
+        scopeRestrictions == null ? List.of() : scopeRestrictions;
     while (hashes.size() < maxIds && page < MAX_VIOLATION_DISCOVERY_RAW_PAGES) {
       SearchResultDTO searchResult = searchIndexClient.searchIndex(
           violationQuery,
@@ -86,7 +99,8 @@ final class ComponentsListViolationScopeResolver
           ComponentsListService.toSearchIndexPage(page),
           false,
           false,
-          List.of());
+          List.of(),
+          restrictions);
       if (searchResult == null || searchResult.groupingByDTOS == null || searchResult.groupingByDTOS.isEmpty()) {
         break;
       }

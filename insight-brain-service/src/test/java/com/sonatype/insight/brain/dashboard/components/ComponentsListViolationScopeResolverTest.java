@@ -43,7 +43,7 @@ public class ComponentsListViolationScopeResolverTest
   public void resolveComponentHashes_continuesPastHotHashPagesUntilLaterHashesAppear() {
     when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(100);
     AtomicInteger pageCalls = new AtomicInteger();
-    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
+    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), anyList()))
         .thenAnswer(invocation -> {
           int page = pageCalls.getAndIncrement();
           // First 15 full pages are the same hot hash — old consecutive-no-new guard would stop at 10.
@@ -66,7 +66,7 @@ public class ComponentsListViolationScopeResolverTest
   @Test
   public void resolveComponentHashes_throwsWhenMaxIdsReachedOnFullPage() {
     when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(2);
-    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
+    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), anyList()))
         .thenReturn(fullPageWithHashes("h1", "h2", "h3"));
 
     ComponentsListViolationScopeResolver resolver =
@@ -81,7 +81,7 @@ public class ComponentsListViolationScopeResolverTest
   @Test
   public void resolveComponentHashes_throwsWhenRawPageBudgetExhausted() {
     when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(10_000);
-    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
+    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), anyList()))
         .thenReturn(fullPageWithHashes("same-hash"));
 
     ComponentsListViolationScopeResolver resolver =

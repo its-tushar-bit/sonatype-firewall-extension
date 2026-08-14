@@ -24,12 +24,17 @@ import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.IdSetFilterQueries;
+import com.sonatype.insight.brain.search.index.IndexFilterRestriction;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.session.IndexReadSession;
 import com.sonatype.insight.brain.search.session.IndexReadSessionFactory;
 import com.sonatype.insight.brain.search.session.IndexTermsBucket;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.search.BooleanClause.Occur;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,26 +100,35 @@ final class ComponentsListFacetsBuilder
   }
 
   ComponentsListFacetsDTO buildFacets(final String componentQuery, final long totalComponents) {
+    return buildFacets(componentQuery, List.of(), totalComponents);
+  }
+
+  ComponentsListFacetsDTO buildFacets(
+      final String componentQuery,
+      final List<? extends IndexFilterRestriction> termSets,
+      final long totalComponents)
+  {
     ComponentsListFacetsDTO facets = new ComponentsListFacetsDTO();
     facets.totalComponents = totalComponents;
+    List<? extends IndexFilterRestriction> restrictions = termSets == null ? List.of() : termSets;
 
     try (IndexReadSession session = indexReadSessionFactory.open()) {
-      Set<String> organizationIds = discoverFacetKeys(session, componentQuery,
+      Set<String> organizationIds = discoverFacetKeys(session, componentQuery, restrictions,
           FieldIdentifier.ORGANIZATION_ID.label);
-      Set<String> applicationIds = discoverFacetKeys(session, componentQuery,
+      Set<String> applicationIds = discoverFacetKeys(session, componentQuery, restrictions,
           FieldIdentifier.APPLICATION_ID.label);
 
       if (!organizationIds.isEmpty() || !applicationIds.isEmpty()) {
-        facets.organizations = countByDimension(session, componentQuery,
+        facets.organizations = countByDimension(session, componentQuery, restrictions,
             FieldIdentifier.ORGANIZATION_ID.label, capped(organizationIds, MAX_ORGANIZATION_FACET_ENTRIES));
-        facets.applications = countByDimension(session, componentQuery,
+        facets.applications = countByDimension(session, componentQuery, restrictions,
             FieldIdentifier.APPLICATION_ID.label, capped(applicationIds, MAX_APPLICATION_FACET_ENTRIES));
         facets.organizationNames = resolveOrganizationNames(
             facets.organizations == null ? Set.of() : facets.organizations.keySet());
         facets.applicationNames = resolveApplicationNames(
             facets.applications == null ? Set.of() : facets.applications.keySet());
       }
-      facets.stages = countLicensedStages(session, componentQuery);
+      facets.stages = countLicensedStages(session, componentQuery, restrictions);
       facets.stageNames = resolveStageNames(facets.stages == null ? Set.of() : facets.stages.keySet());
       return facets;
     }
@@ -123,11 +137,12 @@ final class ComponentsListFacetsBuilder
   private Set<String> discoverFacetKeys(
       final IndexReadSession session,
       final String componentQuery,
+      final List<? extends IndexFilterRestriction> termSets,
       final String field)
   {
     try {
       List<IndexTermsBucket> buckets = session.termsAggregation(
-          conversionHelper.stringToQuery(componentQuery),
+          toScopedQuery(componentQuery, termSets),
           field,
           MAX_FACET_TERM_BUCKETS);
       Set<String> keys = new LinkedHashSet<>();
@@ -154,6 +169,7 @@ final class ComponentsListFacetsBuilder
   private Map<String, Long> countByDimension(
       final IndexReadSession session,
       final String componentQuery,
+      final List<? extends IndexFilterRestriction> termSets,
       final String groupField,
       final Set<String> groupValues)
   {
@@ -164,7 +180,7 @@ final class ComponentsListFacetsBuilder
     Map<String, Long> grouped;
     try {
       grouped = session.countDistinctGroupedBy(
-          conversionHelper.stringToQuery(componentQuery),
+          toScopedQuery(componentQuery, termSets),
           groupField,
           FieldIdentifier.COMPONENT_HASH.label,
           groupValues);
@@ -175,7 +191,7 @@ final class ComponentsListFacetsBuilder
           session.backendId(),
           groupValues.size(),
           groupField);
-      return countByDimensionPerKey(componentQuery, groupField, groupValues);
+      return countByDimensionPerKey(componentQuery, termSets, groupField, groupValues);
     }
 
     Map<String, Long> counts = new LinkedHashMap<>();
@@ -188,6 +204,7 @@ final class ComponentsListFacetsBuilder
 
   private Map<String, Long> countByDimensionPerKey(
       final String componentQuery,
+      final List<? extends IndexFilterRestriction> termSets,
       final String groupField,
       final Set<String> groupValues)
   {
@@ -197,9 +214,22 @@ final class ComponentsListFacetsBuilder
           + DashboardIndexDimensionQueryBuilder.escapeLuceneTerm(groupValue) + ")";
       counts.put(groupValue, searchIndexClient.countDistinct(
           componentQuery + " AND " + clause,
-          List.of(FieldIdentifier.COMPONENT_HASH.label)));
+          List.of(FieldIdentifier.COMPONENT_HASH.label),
+          termSets));
     }
     return counts.isEmpty() ? null : counts;
+  }
+
+  private Query toScopedQuery(final String componentQuery, final List<? extends IndexFilterRestriction> termSets) {
+    Query base = conversionHelper.stringToQuery(componentQuery);
+    Query filters = IdSetFilterQueries.combineLuceneFilters(termSets);
+    if (filters == null) {
+      return base;
+    }
+    return new BooleanQuery.Builder()
+        .add(base, Occur.MUST)
+        .add(filters, Occur.FILTER)
+        .build();
   }
 
   private static Set<String> capped(final Set<String> keys, final int maxEntries) {
@@ -248,7 +278,8 @@ final class ComponentsListFacetsBuilder
 
   private Map<String, Long> countLicensedStages(
       final IndexReadSession session,
-      final String componentQuery)
+      final String componentQuery,
+      final List<? extends IndexFilterRestriction> termSets)
   {
     List<String> licensedStageIds = stageTypeService.getLicensedStageTypes(StageTypeService.DASHBOARD_CONTEXT)
         .stream()
@@ -262,7 +293,7 @@ final class ComponentsListFacetsBuilder
     Map<String, Long> grouped;
     try {
       grouped = session.countDistinctGroupedBy(
-          conversionHelper.stringToQuery(violationQuery),
+          toScopedQuery(violationQuery, termSets),
           FieldIdentifier.POLICY_EVALUATION_STAGE.label,
           FieldIdentifier.COMPONENT_HASH.label,
           licensedStageIds);
@@ -272,7 +303,7 @@ final class ComponentsListFacetsBuilder
           "Grouped distinct counting unavailable for {} session; falling back to {} per-stage facet queries",
           session.backendId(),
           licensedStageIds.size());
-      grouped = countStagesPerKey(violationQuery, licensedStageIds);
+      grouped = countStagesPerKey(violationQuery, termSets, licensedStageIds);
     }
 
     Map<String, Long> counts = new LinkedHashMap<>();
@@ -300,13 +331,18 @@ final class ComponentsListFacetsBuilder
   }
 
   /** Keyed like {@code countDistinctGroupedBy} so the caller reads both paths with one lookup key. */
-  private Map<String, Long> countStagesPerKey(final String violationQuery, final List<String> stageIds) {
+  private Map<String, Long> countStagesPerKey(
+      final String violationQuery,
+      final List<? extends IndexFilterRestriction> termSets,
+      final List<String> stageIds)
+  {
     Map<String, Long> counts = new LinkedHashMap<>();
     for (String stageId : stageIds) {
       String stageClause = ComponentsListViolationQuerySupport.buildStageFilterClause(Set.of(stageId));
       counts.put(IndexGroupedCountKeys.lookupKey(stageId), searchIndexClient.countDistinct(
           violationQuery + " AND " + stageClause,
-          List.of(FieldIdentifier.COMPONENT_HASH.label)));
+          List.of(FieldIdentifier.COMPONENT_HASH.label),
+          termSets));
     }
     return counts;
   }

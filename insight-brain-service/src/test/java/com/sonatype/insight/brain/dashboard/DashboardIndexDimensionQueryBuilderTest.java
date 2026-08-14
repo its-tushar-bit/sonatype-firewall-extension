@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dashboard;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -13,6 +14,10 @@ import java.util.stream.IntStream;
 
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.IndexFilterRestriction;
+import com.sonatype.insight.brain.search.index.IndexOrTermSetGroup;
+import com.sonatype.insight.brain.search.index.IndexTermSetRestriction;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -58,7 +63,16 @@ public class DashboardIndexDimensionQueryBuilderTest
   }
 
   @Test
-  public void buildOrganizationFilterClause_stillRejectsOversizedExpansion() {
+  public void expandOrganizationFilterIds_doesNotRejectOversizedExpansion() {
+    when(organizationDAO.getAllChildOrganizationIds(any()))
+        .thenReturn(Set.of("a", "b", "c"));
+
+    assertThat(builder().expandOrganizationFilterIds(Set.of("org-huge")))
+        .containsExactlyInAnyOrder("a", "b", "c");
+  }
+
+  @Test
+  public void buildOrganizationFilterClause_rejectsOversizedExpansionForStringCallers() {
     when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(2);
     when(organizationDAO.getAllChildOrganizationIds(any()))
         .thenReturn(Set.of("a", "b", "c"));
@@ -66,6 +80,63 @@ public class DashboardIndexDimensionQueryBuilderTest
     assertThatThrownBy(() -> builder().buildOrganizationFilterClause(Set.of("org-huge")))
         .isInstanceOf(BadRequestException.class)
         .hasMessageContaining("too many organizations");
+  }
+
+  @Test
+  public void buildEscapedApplicationFilterClause_rejectsTooManyIdsForStringCallers() {
+    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(2);
+
+    assertThatThrownBy(() -> builder().buildEscapedApplicationFilterClause(Set.of("a", "b", "c")))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("too many ids");
+  }
+
+  @Test
+  public void buildScopeFilterRestrictions_bothOrgAndApp_isClassicOrGroup() {
+    when(organizationDAO.getAllChildOrganizationIds(any())).thenReturn(Set.of("org-a", "org-a-child"));
+
+    List<IndexFilterRestriction> restrictions =
+        builder().buildScopeFilterRestrictions(Set.of("org-a"), Set.of("app-1"));
+
+    assertThat(restrictions).hasSize(1);
+    assertThat(restrictions.get(0)).isInstanceOf(IndexOrTermSetGroup.class);
+    IndexOrTermSetGroup orGroup = (IndexOrTermSetGroup) restrictions.get(0);
+    assertThat(orGroup.alternatives()).hasSize(2);
+    assertThat(orGroup.alternatives().get(0).field()).isEqualTo(FieldIdentifier.ORGANIZATION_ID.label);
+    assertThat(orGroup.alternatives().get(0).ids()).containsExactlyInAnyOrder("org-a", "org-a-child");
+    assertThat(orGroup.alternatives().get(1).field()).isEqualTo(FieldIdentifier.APPLICATION_ID.label);
+    assertThat(orGroup.alternatives().get(1).ids()).containsExactly("app-1");
+  }
+
+  @Test
+  public void buildScopeFilterRestrictionsAnd_bothOrgAndApp_areSeparateTermSets() {
+    when(organizationDAO.getAllChildOrganizationIds(any())).thenReturn(Set.of("org-a"));
+
+    List<IndexFilterRestriction> restrictions =
+        builder().buildScopeFilterRestrictionsAnd(Set.of("org-a"), Set.of("app-1"));
+
+    assertThat(restrictions).hasSize(2);
+    assertThat(restrictions.get(0)).isInstanceOf(IndexTermSetRestriction.class);
+    assertThat(((IndexTermSetRestriction) restrictions.get(0)).field())
+        .isEqualTo(FieldIdentifier.ORGANIZATION_ID.label);
+    assertThat(((IndexTermSetRestriction) restrictions.get(0)).ids()).containsExactly("org-a");
+    assertThat(restrictions.get(1)).isInstanceOf(IndexTermSetRestriction.class);
+    assertThat(((IndexTermSetRestriction) restrictions.get(1)).field())
+        .isEqualTo(FieldIdentifier.APPLICATION_ID.label);
+    assertThat(((IndexTermSetRestriction) restrictions.get(1)).ids()).containsExactly("app-1");
+  }
+
+  @Test
+  public void expandOrganizationFilterIds_rootIsUnrestricted() {
+    assertThat(builder().expandOrganizationFilterIds(Set.of(Organization.ROOT_ORGANIZATION_ID))).isNull();
+  }
+
+  @Test
+  public void expandOrganizationFilterIds_emptyExpansion_returnsNoMatchSentinel() {
+    when(organizationDAO.getAllChildOrganizationIds(any())).thenReturn(Set.of());
+
+    assertThat(builder().expandOrganizationFilterIds(Set.of("org-orphan")))
+        .containsExactly(DashboardIndexDimensionQueryBuilder.NO_MATCH_ORGANIZATION_FILTER_ID);
   }
 
   @Test

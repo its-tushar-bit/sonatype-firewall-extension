@@ -33,7 +33,7 @@ public class ComponentsListDistinctPageFetcherTest
 
   @BeforeEach
   public void setUp() {
-    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
+    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), anyList()))
         .thenAnswer(invocation -> {
           int searchIndexPage = invocation.getArgument(2);
           // toSearchIndexPage: 0 → 0, 1 → 2, 2 → 3
@@ -69,7 +69,7 @@ public class ComponentsListDistinctPageFetcherTest
 
   @Test
   public void fetch_hasNextPageFalseWhenDistinctWindowExhausted() {
-    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
+    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), anyList()))
         .thenReturn(pageWithHashes(2, "only-a", "only-b"));
 
     ComponentsListDistinctPageFetcher fetcher = new ComponentsListDistinctPageFetcher(searchIndexClient);
@@ -81,7 +81,7 @@ public class ComponentsListDistinctPageFetcherTest
 
   @Test
   public void fetch_hasNextPageFalseWhenFullRawPagesOnlyRefoldKnownHashes() {
-    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
+    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), anyList()))
         .thenReturn(pageWithHashes(ComponentsListDistinctPageFetcher.RAW_FETCH_PAGE_SIZE, "hash-a", "hash-b"));
 
     ComponentsListDistinctPageFetcher fetcher = new ComponentsListDistinctPageFetcher(searchIndexClient);
@@ -93,7 +93,7 @@ public class ComponentsListDistinctPageFetcherTest
 
   @Test
   public void fetch_clampsDeepDistinctPages() {
-    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
+    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), anyList()))
         .thenReturn(pageWithHashes(2, "only-a", "only-b"));
 
     ComponentsListDistinctPageFetcher fetcher = new ComponentsListDistinctPageFetcher(searchIndexClient);

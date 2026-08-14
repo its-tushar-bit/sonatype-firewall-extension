@@ -23,6 +23,8 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dashboard.vulnerabilities.VulnerabilitiesListIndexQueryBuilder.FacetDimension;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.GroupedDistinctCounts;
+import com.sonatype.insight.brain.search.index.IndexFilterRestriction;
+import com.sonatype.insight.brain.search.index.IndexTermSetRestriction;
 import com.sonatype.insight.brain.search.index.RankedGroup;
 import com.sonatype.insight.brain.search.index.RankedGroupsResult;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
@@ -46,9 +48,10 @@ import org.apache.commons.lang3.StringUtils;
  * <p>
  * <b>Hydration:</b> a follow-up read fetches one representative document per ranked id on the current
  * page and supplies row title and ecosystem, stopping as soon as those ids are covered and bounded by
- * {@link #MAX_HYDRATION_DOCS}. Ids are read in batches sized to the backend's boolean clause budget.
- * Ranked ids are lower-cased by the index primitive, so hydrated documents are keyed on their lower-cased
- * id. Per-row application counts come from {@link SearchIndexClient#countDistinctGroupedBy} rather than
+ * {@link #MAX_HYDRATION_DOCS}. The page's ids are applied as a boolean-clause-budget-exempt terms
+ * filter (CLM-44783), so hydrate cost does not grow with organization-scope clause spend. Ranked ids
+ * are lower-cased by the index primitive, so hydrated documents are keyed on their lower-cased id.
+ * Per-row application counts come from {@link SearchIndexClient#countDistinctGroupedBy} rather than
  * from that walk, so a vulnerability spanning thousands of applications costs one aggregation instead of a
  * document-by-document scan.
  * <p>
@@ -94,21 +97,6 @@ public class VulnerabilitiesListService
 
   /** Reads allowed per id batch before giving up on ids that yield no document. */
   static final int MAX_HYDRATION_PAGES_PER_BATCH = 10;
-
-  /** Ceiling on ids per hydration read, before the configured clause budget narrows it further. */
-  static final int HYDRATION_ID_BATCH = 250;
-
-  /**
-   * Clause budget assumed when {@code maxAdvancedSearchClauseCount} is unset, matching its default.
-   */
-  private static final int DEFAULT_CLAUSE_BUDGET = 2048;
-
-  /**
-   * OpenSearch rejects a query above {@code indices.query.bool.max_clause_count}, which defaults to
-   * 1024 and cannot be raised on AWS managed clusters. Lucene enforces its own budget from
-   * {@code maxAdvancedSearchClauseCount}, so hydration sizes its batches under whichever is lower.
-   */
-  private static final int BACKEND_CLAUSE_CEILING = 1024;
 
   /** Max distinct applications materialized for a single vulnerability Applications tab. */
   static final int MAX_AFFECTED_APPLICATIONS = 500;
@@ -413,6 +401,7 @@ public class VulnerabilitiesListService
         : request.orderBy;
 
     String query = indexQueryBuilder.buildMyScanDataQuery(request);
+    List<IndexFilterRestriction> scopeRestrictions = indexQueryBuilder.buildScopeRestrictions(request);
 
     long consumed = ((long) page + 1) * pageSize;
     // Rank one group past the page so hasNextPage can be read off the ranked set. Deriving it from
@@ -426,7 +415,8 @@ public class VulnerabilitiesListService
         FieldIdentifier.VULNERABILITY_SEVERITY.label,
         rankDepth,
         "cvssScore".equals(orderBy),
-        CvssV3Severity.halfOpenScoreBands());
+        CvssV3Severity.halfOpenScoreBands(),
+        scopeRestrictions);
 
     List<RankedGroup> rankedGroups = ranked.groups();
     long fromL = (long) page * pageSize;
@@ -434,7 +424,7 @@ public class VulnerabilitiesListService
         ? List.of()
         : rankedGroups.subList((int) fromL, (int) Math.min(fromL + pageSize, rankedGroups.size()));
 
-    HydratedVulnerabilities hydrated = hydrate(query, pageGroups);
+    HydratedVulnerabilities hydrated = hydrate(query, scopeRestrictions, pageGroups);
     List<VulnerabilityRowDTO> pageRows = new ArrayList<>(pageGroups.size());
     for (RankedGroup group : pageGroups) {
       pageRows.add(toRow(group, hydrated));
@@ -463,6 +453,7 @@ public class VulnerabilitiesListService
    */
   private HydratedVulnerabilities hydrate(
       final String query,
+      final List<IndexFilterRestriction> scopeRestrictions,
       final List<RankedGroup> pageGroups)
   {
     LinkedHashSet<String> ids = new LinkedHashSet<>();
@@ -479,63 +470,42 @@ public class VulnerabilitiesListService
     LinkedHashMap<String, SearchResultItemDTO> items = new LinkedHashMap<>();
     HydrationBudget budget = new HydrationBudget();
     List<String> allIds = new ArrayList<>(ids);
-    int batchSize = hydrationIdBatch(query);
-    for (int start = 0; start < allIds.size() && !budget.exhausted(); start += batchSize) {
-      List<String> batch = allIds.subList(start, Math.min(start + batchSize, allIds.size()));
-      walkHydrationBatch(
-          indexQueryBuilder.restrictToVulnerabilityIds(query, batch), batch, items, budget);
-    }
+    // Org/app scope + vulnerability-id restriction are both budget-exempt term sets, so the whole
+    // page's ids fit one read regardless of organization expansion size (CLM-44783). Scope must be
+    // present on application-count aggregation so per-row counts stay within the user's filter.
+    List<IndexFilterRestriction> hydrationRestrictions =
+        mergeHydrationRestrictions(scopeRestrictions, allIds);
+    walkHydrationBatch(query, allIds, hydrationRestrictions, items, budget);
 
-    // Counted against the same restricted query the walk uses, not the base one. Restricting cannot
-    // change the answer — the counts only ever cover these ids — but it decides how much the read
-    // costs on Lucene, where the collector loads a document's stored fields before it can see whether
-    // the group was asked for. Handed the base query it would pay that for the whole estate on every
-    // page load, which is the cost this list exists to stop paying.
-    Map<String, Long> applicationCounts = new LinkedHashMap<>();
-    boolean applicationCountsExact = true;
-    for (int start = 0; start < allIds.size(); start += batchSize) {
-      List<String> batch = allIds.subList(start, Math.min(start + batchSize, allIds.size()));
-      GroupedDistinctCounts batchCounts = searchIndexClient.countDistinctGroupedByWithExactness(
-          indexQueryBuilder.restrictToVulnerabilityIds(query, batch),
-          FieldIdentifier.VULNERABILITY_ID.label,
-          FieldIdentifier.APPLICATION_PUBLIC_ID.label,
-          batch);
-      applicationCounts.putAll(batchCounts.counts());
-      applicationCountsExact = applicationCountsExact && batchCounts.exact();
-    }
-    // Application counts come from countDistinctGroupedBy (exact on Lucene, HLL on OpenSearch) — not
-    // from the ranking pass, which is now exact on both backends. Exactness follows the backend that
-    // produced each batch (hybrid failover must not borrow primary backendId()).
-    return new HydratedVulnerabilities(byRankedId(items), applicationCounts, applicationCountsExact);
+    // Term-set restriction scopes the Lucene collector the same way string id clauses did before
+    // CLM-44783, without spending the boolean clause budget. Exactness follows the producing backend
+    // (hybrid failover must not borrow primary backendId()).
+    GroupedDistinctCounts applicationCountResult = searchIndexClient.countDistinctGroupedByWithExactness(
+        query,
+        FieldIdentifier.VULNERABILITY_ID.label,
+        FieldIdentifier.APPLICATION_PUBLIC_ID.label,
+        allIds,
+        hydrationRestrictions);
+    return new HydratedVulnerabilities(
+        byRankedId(items), applicationCountResult.counts(), applicationCountResult.exact());
+  }
+
+  private static List<IndexFilterRestriction> mergeHydrationRestrictions(
+      final List<IndexFilterRestriction> scopeRestrictions,
+      final List<String> vulnerabilityIds)
+  {
+    List<IndexFilterRestriction> scope =
+        scopeRestrictions == null ? List.of() : scopeRestrictions;
+    List<IndexFilterRestriction> merged = new ArrayList<>(scope.size() + 1);
+    merged.addAll(scope);
+    merged.add(IndexTermSetRestriction.of(FieldIdentifier.VULNERABILITY_ID.label, vulnerabilityIds));
+    return List.copyOf(merged);
   }
 
   /**
-   * Ids per hydration read, sized so the restricting clause fits alongside the clauses the base query
-   * already spends. Both backends reject a query above a boolean clause budget, and on Lucene that
-   * budget is {@code maxAdvancedSearchClauseCount} — administrator-set, and tenant-set on MTIQ — so a
-   * fixed batch would 400 every page load for anyone who lowered it. A base query that already fills
-   * the budget on its own (an organization filter expanding to thousands of descendants) still leaves
-   * no room; only a clause-exempt term-set query would, which the index client does not yet expose.
-   */
-  private int hydrationIdBatch(final String query) {
-    int configured = configuration.getMaxAdvancedSearchClauseCount();
-    int budget = Math.min(configured > 0 ? configured : DEFAULT_CLAUSE_BUDGET, BACKEND_CLAUSE_CEILING);
-    return Math.max(1, Math.min(HYDRATION_ID_BATCH, budget - countQueryTerms(query)));
-  }
-
-  /**
-   * Upper bound on the clauses a built query contributes. The builder joins terms and clauses with
-   * whitespace, so a whitespace token count over-counts (field prefixes and {@code AND} are not
-   * clauses) and therefore only ever shrinks the batch.
-   */
-  private static int countQueryTerms(final String query) {
-    return StringUtils.isBlank(query) ? 0 : query.trim().split("\\s+").length;
-  }
-
-  /**
-   * Pages a single id batch only until every id in it has yielded a document. Rows need one
-   * representative hit each for title and ecosystem, so a vulnerability present in thousands of
-   * applications does not drag the whole batch through thousands of documents.
+   * Pages until every id has yielded a document. Rows need one representative hit each for title and
+   * ecosystem, so a vulnerability present in thousands of applications does not drag the walk through
+   * thousands of documents.
    * <p>
    * The page count is bounded as well as the document budget: an id that matches the ranking pass but
    * yields no document — one whose hits were deleted between the two reads — would otherwise never
@@ -544,8 +514,9 @@ public class VulnerabilitiesListService
    * small rather than the reverse.
    */
   private void walkHydrationBatch(
-      final String hydrationQuery,
+      final String baseQuery,
       final List<String> batch,
+      final List<IndexFilterRestriction> hydrationRestrictions,
       final LinkedHashMap<String, SearchResultItemDTO> items,
       final HydrationBudget budget)
   {
@@ -554,12 +525,13 @@ public class VulnerabilitiesListService
     Set<String> awaitingDocument = new HashSet<>(batch);
     for (int indexPage = 0; indexPage < MAX_HYDRATION_PAGES_PER_BATCH && !budget.exhausted(); indexPage++) {
       SearchResultDTO searchResult = searchIndexClient.searchIndex(
-          hydrationQuery,
+          baseQuery,
           HYDRATION_FETCH_PAGE_SIZE,
           toSearchIndexPage(indexPage),
           false,
           false,
-          List.of());
+          List.of(),
+          hydrationRestrictions);
       if (searchResult == null) {
         return;
       }
@@ -651,7 +623,8 @@ public class VulnerabilitiesListService
         FieldIdentifier.VULNERABILITY_SEVERITY.label,
         1,
         false,
-        CvssV3Severity.halfOpenScoreBands());
+        CvssV3Severity.halfOpenScoreBands(),
+        indexQueryBuilder.buildScopeRestrictions(request, FacetDimension.SEVERITY));
   }
 
   /**
@@ -664,7 +637,8 @@ public class VulnerabilitiesListService
         indexQueryBuilder.buildMyScanDataQuery(request, FacetDimension.ECOSYSTEM),
         FieldIdentifier.COMPONENT_FORMAT.label,
         FieldIdentifier.VULNERABILITY_ID.label,
-        ComponentIdentifier.getAllFormats());
+        ComponentIdentifier.getAllFormats(),
+        indexQueryBuilder.buildScopeRestrictions(request, FacetDimension.ECOSYSTEM));
   }
 
   private static boolean hasSeverityFilter(final VulnerabilitiesListRequestDTO request) {

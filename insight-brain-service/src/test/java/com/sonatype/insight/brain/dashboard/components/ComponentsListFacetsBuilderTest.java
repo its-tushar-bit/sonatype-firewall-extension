@@ -139,7 +139,7 @@ public class ComponentsListFacetsBuilderTest
         eq(FieldIdentifier.ORGANIZATION_ID.label), eq(FieldIdentifier.COMPONENT_HASH.label), anyCollection());
     verify(indexReadSession, times(1)).countDistinctGroupedBy(any(),
         eq(FieldIdentifier.APPLICATION_ID.label), eq(FieldIdentifier.COMPONENT_HASH.label), anyCollection());
-    verify(searchIndexClient, never()).countDistinct(anyString(), anyList());
+    verify(searchIndexClient, never()).countDistinct(anyString(), anyList(), anyList());
     verify(indexReadSessionFactory, times(1)).open();
   }
 
@@ -160,13 +160,13 @@ public class ComponentsListFacetsBuilderTest
     when(indexReadSession.backendId()).thenReturn("opensearch");
     when(indexReadSession.countDistinctGroupedBy(any(), anyString(), anyString(), anyCollection()))
         .thenThrow(new UnsupportedOperationException("not implemented"));
-    when(searchIndexClient.countDistinct(anyString(), anyList())).thenReturn(9L);
+    when(searchIndexClient.countDistinct(anyString(), anyList(), anyList())).thenReturn(9L);
 
     ComponentsListFacetsDTO facets =
         facetsBuilder.buildFacets(ComponentsListViolationQuerySupport.COMPONENT_ITEM_TYPE_CLAUSE, 42);
 
     assertThat(facets.organizations).containsEntry("org-1", 9L).containsEntry("org-2", 9L);
-    verify(searchIndexClient, times(2)).countDistinct(anyString(), anyList());
+    verify(searchIndexClient, times(2)).countDistinct(anyString(), anyList(), anyList());
   }
 
   @Test

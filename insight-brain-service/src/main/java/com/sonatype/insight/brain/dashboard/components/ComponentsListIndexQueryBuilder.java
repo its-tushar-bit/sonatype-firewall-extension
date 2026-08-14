@@ -13,7 +13,9 @@ import jakarta.inject.Named;
 
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
-import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.IndexFilterRestriction;
+import com.sonatype.insight.brain.search.index.IndexTermSetRestriction;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -37,8 +39,32 @@ final class ComponentsListIndexQueryBuilder
   }
 
   String buildComponentQuery(final ComponentsListRequestDTO request) {
+    return buildComponentIndexQuery(request).query();
+  }
+
+  ComponentsIndexQuery buildComponentIndexQuery(final ComponentsListRequestDTO request) {
     ComponentsListRequestDTO effectiveRequest = applyViolationScopedComponentHashes(request);
-    return String.join(" AND ", buildBaseComponentClauses(effectiveRequest));
+    String query = String.join(" AND ", buildBaseComponentClauses(effectiveRequest));
+    List<IndexFilterRestriction> termSets = buildComponentTermSets(effectiveRequest);
+    return new ComponentsIndexQuery(query, termSets);
+  }
+
+  private List<IndexFilterRestriction> buildComponentTermSets(final ComponentsListRequestDTO request) {
+    List<IndexFilterRestriction> scopeRestrictions = dimensionQueryBuilder.buildScopeFilterRestrictions(
+        request == null ? null : request.organizationIds,
+        request == null ? null : request.applicationIds);
+    List<IndexFilterRestriction> hashRestrictions = componentHashTermSets(
+        request == null ? null : request.componentHashes);
+    if (scopeRestrictions.isEmpty()) {
+      return hashRestrictions;
+    }
+    if (hashRestrictions.isEmpty()) {
+      return scopeRestrictions;
+    }
+    List<IndexFilterRestriction> merged = new ArrayList<>(scopeRestrictions.size() + hashRestrictions.size());
+    merged.addAll(scopeRestrictions);
+    merged.addAll(hashRestrictions);
+    return List.copyOf(merged);
   }
 
   private ComponentsListRequestDTO applyViolationScopedComponentHashes(final ComponentsListRequestDTO request) {
@@ -50,10 +76,14 @@ final class ComponentsListIndexQueryBuilder
     }
 
     String baseQuery = buildComponentQueryWithoutViolationScope(request);
+    List<IndexFilterRestriction> scopeRestrictions = dimensionQueryBuilder.buildScopeFilterRestrictions(
+        request.organizationIds,
+        request.applicationIds);
     List<PolicyThreatLevelFilter> threatFilters =
         ComponentsListViolationQuerySupport.effectiveThreatFilters(request);
     Set<String> scopedHashes = violationScopeResolver.resolveComponentHashes(
         baseQuery,
+        scopeRestrictions,
         request.stageIds,
         threatFilters);
 
@@ -85,52 +115,25 @@ final class ComponentsListIndexQueryBuilder
     if (organizationIds != null && !organizationIds.isEmpty()) {
       DashboardIndexDimensionQueryBuilder.rejectBlankFilterIds(organizationIds, "organizationIds");
     }
-    String organizationClause = dimensionQueryBuilder.buildOrganizationFilterClause(organizationIds);
-    String applicationClause = dimensionQueryBuilder.buildEscapedApplicationFilterClause(
-        request == null ? null : request.applicationIds);
-    if (organizationClause != null || applicationClause != null) {
-      List<String> dimensionClauses = new ArrayList<>();
-      if (organizationClause != null) {
-        dimensionClauses.add(organizationClause);
-      }
-      if (applicationClause != null) {
-        dimensionClauses.add(applicationClause);
-      }
-      clauses.add("(" + String.join(" OR ", dimensionClauses) + ")");
-    }
 
-    String hashClause = buildComponentHashFilterClause(request == null ? null : request.componentHashes);
-    if (hashClause != null) {
-      clauses.add(hashClause);
-    }
-
+    // org/app scope and componentHashes are applied as budget-exempt term-set restrictions (CLM-44783).
     return clauses;
   }
 
   /**
-   * Max hashes in a single {@code componentHash:(… OR …)} clause. Kept well below the generic
-   * advanced-search clause budget so page/facet walks do not trip Lucene {@code TooManyClauses}.
+   * Soft UX ceiling on scoped hash discovery (not a Lucene bool-clause budget). Violation-scope
+   * resolution still uses this to bound discovery walks.
    */
   static final int MAX_SCOPED_COMPONENT_HASH_FILTER_CLAUSES = 512;
 
-  private static String buildComponentHashFilterClause(final Set<String> componentHashes) {
+  private static List<IndexFilterRestriction> componentHashTermSets(final Set<String> componentHashes) {
     if (componentHashes == null || componentHashes.isEmpty()) {
-      return null;
+      return List.of();
     }
     DashboardIndexDimensionQueryBuilder.rejectBlankFilterIds(componentHashes, "componentHashes");
-    if (componentHashes.size() > MAX_SCOPED_COMPONENT_HASH_FILTER_CLAUSES) {
-      throw new BadRequestException(
-          "Too many componentHashes filters (max " + MAX_SCOPED_COMPONENT_HASH_FILTER_CLAUSES
-              + "). Narrow stage/threat filters.");
-    }
-    List<String> terms = new ArrayList<>(componentHashes.size());
-    for (String hash : DashboardIndexDimensionQueryBuilder.sortedCopy(componentHashes)) {
-      terms.add(DashboardIndexDimensionQueryBuilder.escapeLuceneTerm(hash));
-    }
-    if (terms.size() == 1) {
-      return "componentHash:" + terms.get(0);
-    }
-    return "componentHash:(" + String.join(" OR ", terms) + ")";
+    return IndexTermSetRestriction.singleton(
+        FieldIdentifier.COMPONENT_HASH.label,
+        DashboardIndexDimensionQueryBuilder.sortedCopy(componentHashes));
   }
 
   private static String buildSearchClause(final String search) {

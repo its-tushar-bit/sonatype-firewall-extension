@@ -10,14 +10,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.GroupedDistinctCounts;
+import com.sonatype.insight.brain.search.index.IndexTermSetRestriction;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.RankedGroup;
 import com.sonatype.insight.brain.search.index.RankedGroupsResult;
@@ -43,9 +41,9 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -80,6 +78,9 @@ public class VulnerabilitiesListServiceTest
     lenient().doReturn(Map.of())
         .when(searchIndexClient)
         .countDistinctGroupedBy(anyString(), anyString(), anyString(), anyCollection());
+    lenient().doReturn(Map.of())
+        .when(searchIndexClient)
+        .countDistinctGroupedBy(anyString(), anyString(), anyString(), anyCollection(), anyList());
     lenient().doAnswer(invocation -> new GroupedDistinctCounts(
         searchIndexClient.countDistinctGroupedBy(
             invocation.getArgument(0),
@@ -89,6 +90,17 @@ public class VulnerabilitiesListServiceTest
         searchIndexClient.isDistinctAggregationExact()))
         .when(searchIndexClient)
         .countDistinctGroupedByWithExactness(anyString(), anyString(), anyString(), anyCollection());
+    lenient().doAnswer(invocation -> new GroupedDistinctCounts(
+        searchIndexClient.countDistinctGroupedBy(
+            invocation.getArgument(0),
+            invocation.getArgument(1),
+            invocation.getArgument(2),
+            invocation.getArgument(3),
+            invocation.getArgument(4)),
+        searchIndexClient.isDistinctAggregationExact()))
+        .when(searchIndexClient)
+        .countDistinctGroupedByWithExactness(
+            anyString(), anyString(), anyString(), anyCollection(), anyList());
   }
 
   private VulnerabilitiesListService service() {
@@ -137,7 +149,7 @@ public class VulnerabilitiesListServiceTest
 
     ArgumentCaptor<Integer> limit = ArgumentCaptor.forClass(Integer.class);
     verify(searchIndexClient).rankGroupsByMaxMetric(
-        anyString(), anyString(), anyString(), limit.capture(), anyBoolean(), anyMap());
+        anyString(), anyString(), anyString(), limit.capture(), anyBoolean(), anyMap(), anyList());
     assertThat(limit.getValue()).isEqualTo(VulnerabilitiesListService.MAX_RANK_DEPTH);
   }
 
@@ -199,12 +211,13 @@ public class VulnerabilitiesListServiceTest
         List.of(rankedGroup("cve-critical", 9.5f)), 1L, true, narrowedBands, 0L);
     RankedGroupsResult estate = new RankedGroupsResult(List.of(), 8L, true, estateBands, 0L);
     when(searchIndexClient.rankGroupsByMaxMetric(
-        anyString(), anyString(), anyString(), anyInt(), anyBoolean(), anyMap()))
+        anyString(), anyString(), anyString(), anyInt(), anyBoolean(), anyMap(), anyList()))
             .thenAnswer(invocation -> carriesSeverityClause(invocation.getArgument(0))
                 ? narrowed
                 : estate);
-    when(searchIndexClient.searchIndex(anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
-        .thenReturn(resultOf(vulnerabilityItem("cve-critical")));
+    when(searchIndexClient.searchIndex(
+        anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), anyList()))
+            .thenReturn(resultOf(vulnerabilityItem("cve-critical")));
 
     VulnerabilitiesListRequestDTO request = new VulnerabilitiesListRequestDTO();
     request.severities = Set.of("critical");
@@ -239,7 +252,8 @@ public class VulnerabilitiesListServiceTest
         facetQuery.capture(),
         eq(FieldIdentifier.COMPONENT_FORMAT.label),
         anyString(),
-        anyCollection());
+        anyCollection(),
+        anyList());
     assertThat(facetQuery.getValue()).doesNotContain(FieldIdentifier.COMPONENT_FORMAT.label);
   }
 
@@ -257,7 +271,7 @@ public class VulnerabilitiesListServiceTest
       groups.add(rankedGroup("cve-" + i, 9.0f));
     }
     when(searchIndexClient.rankGroupsByMaxMetric(
-        anyString(), anyString(), anyString(), anyInt(), anyBoolean(), anyMap()))
+        anyString(), anyString(), anyString(), anyInt(), anyBoolean(), anyMap(), anyList()))
             .thenReturn(new RankedGroupsResult(groups, 4_200L, false, zeroedBands(), 26L));
 
     VulnerabilitiesListRequestDTO request = new VulnerabilitiesListRequestDTO();
@@ -268,7 +282,7 @@ public class VulnerabilitiesListServiceTest
     assertThat(service().listVulnerabilities(request).hasNextPage).isTrue();
 
     when(searchIndexClient.rankGroupsByMaxMetric(
-        anyString(), anyString(), anyString(), anyInt(), anyBoolean(), anyMap()))
+        anyString(), anyString(), anyString(), anyInt(), anyBoolean(), anyMap(), anyList()))
             .thenReturn(new RankedGroupsResult(
                 groups.subList(0, 25), 4_200L, false, zeroedBands(), 25L));
 
@@ -283,11 +297,12 @@ public class VulnerabilitiesListServiceTest
     Map<String, Long> bands = zeroedBands();
     bands.put("critical", 1L);
     when(searchIndexClient.rankGroupsByMaxMetric(
-        anyString(), anyString(), anyString(), anyInt(), anyBoolean(), anyMap()))
+        anyString(), anyString(), anyString(), anyInt(), anyBoolean(), anyMap(), anyList()))
             .thenReturn(new RankedGroupsResult(
                 List.of(rankedGroup("cve-2021-44228", 10.0f)), 1L, true, bands, 0L));
-    when(searchIndexClient.searchIndex(anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
-        .thenReturn(resultOf(vulnerabilityItem("CVE-2021-44228")));
+    when(searchIndexClient.searchIndex(
+        anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), anyList()))
+            .thenReturn(resultOf(vulnerabilityItem("CVE-2021-44228")));
     stubApplicationCounts(Map.of("cve-2021-44228", 1L));
 
     VulnerabilitiesListResponseDTO response = service().listVulnerabilities(new VulnerabilitiesListRequestDTO());
@@ -306,7 +321,7 @@ public class VulnerabilitiesListServiceTest
   @Test
   public void totalIsReportedInexactWhenTheBackendEstimatesTheDistinctCount() {
     when(searchIndexClient.rankGroupsByMaxMetric(
-        anyString(), anyString(), anyString(), anyInt(), anyBoolean(), anyMap()))
+        anyString(), anyString(), anyString(), anyInt(), anyBoolean(), anyMap(), anyList()))
             .thenReturn(new RankedGroupsResult(List.of(), 4_200L, false, zeroedBands(), 0L));
 
     VulnerabilitiesListRequestDTO request = new VulnerabilitiesListRequestDTO();
@@ -327,14 +342,16 @@ public class VulnerabilitiesListServiceTest
     Map<String, Long> bands = zeroedBands();
     bands.put("critical", 1L);
     when(searchIndexClient.rankGroupsByMaxMetric(
-        anyString(), anyString(), anyString(), anyInt(), anyBoolean(), anyMap()))
+        anyString(), anyString(), anyString(), anyInt(), anyBoolean(), anyMap(), anyList()))
             .thenReturn(new RankedGroupsResult(
                 List.of(rankedGroup("cve-2021-44228", 10.0f)), 1L, true, bands, 0L));
-    when(searchIndexClient.searchIndex(anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
-        .thenReturn(resultOf(vulnerabilityItem("cve-2021-44228")));
+    when(searchIndexClient.searchIndex(
+        anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), anyList()))
+            .thenReturn(resultOf(vulnerabilityItem("cve-2021-44228")));
     doReturn(new GroupedDistinctCounts(Map.of("cve-2021-44228", 4_812L), false))
         .when(searchIndexClient)
-        .countDistinctGroupedByWithExactness(anyString(), anyString(), anyString(), anyCollection());
+        .countDistinctGroupedByWithExactness(
+            anyString(), anyString(), anyString(), anyCollection(), anyList());
 
     VulnerabilitiesListResponseDTO response = service().listVulnerabilities(new VulnerabilitiesListRequestDTO());
 
@@ -344,12 +361,9 @@ public class VulnerabilitiesListServiceTest
   }
 
   @Test
-  public void hydrationSplitsIdsToFitTheConfiguredClauseBudget() {
-    // Every hydrated id becomes a boolean clause, and Lucene enforces maxAdvancedSearchClauseCount
-    // against the whole query. That property is administrator-set and tenant-set on MTIQ, so a fixed
-    // batch would put every page load over the ceiling for anyone who lowered it.
-    int budget = 20;
-    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(budget);
+  public void hydrationUsesOneIdSetRestrictedSearchRegardlessOfClauseBudget() {
+    // Id restriction is a budget-exempt terms filter, so a tiny maxAdvancedSearchClauseCount and a
+    // full page of ids must still hydrate in one searchIndex call — not one call per id.
     List<RankedGroup> groups = new ArrayList<>();
     for (int i = 0; i < 100; i++) {
       groups.add(rankedGroup(String.format("cve-2026-%05d", i), 9.0f));
@@ -357,12 +371,18 @@ public class VulnerabilitiesListServiceTest
     Map<String, Long> bands = zeroedBands();
     bands.put("critical", (long) groups.size());
     when(searchIndexClient.rankGroupsByMaxMetric(
-        anyString(), anyString(), anyString(), anyInt(), anyBoolean(), anyMap()))
+        anyString(), anyString(), anyString(), anyInt(), anyBoolean(), anyMap(), anyList()))
             .thenReturn(new RankedGroupsResult(groups, groups.size(), true, bands, 0L));
-    // A short page ends each batch's walk after one read, so the captured queries are exactly the
-    // batches rather than the batches times their paging.
-    when(searchIndexClient.searchIndex(anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
-        .thenReturn(resultOf(vulnerabilityItem("cve-2026-00000")));
+    when(searchIndexClient.searchIndex(
+        anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), anyList()))
+            .thenReturn(resultOf(vulnerabilityItem("cve-2026-00000")));
+    when(searchIndexClient.countDistinctGroupedByWithExactness(
+        anyString(),
+        eq(FieldIdentifier.VULNERABILITY_ID.label),
+        eq(FieldIdentifier.APPLICATION_PUBLIC_ID.label),
+        anyCollection(),
+        anyList()))
+            .thenReturn(new GroupedDistinctCounts(Map.of(), true));
 
     VulnerabilitiesListRequestDTO request = new VulnerabilitiesListRequestDTO();
     request.pageSize = 100;
@@ -370,30 +390,25 @@ public class VulnerabilitiesListServiceTest
 
     service().listVulnerabilities(request);
 
-    ArgumentCaptor<String> queries = ArgumentCaptor.forClass(String.class);
-    verify(searchIndexClient, atLeastOnce()).searchIndex(
-        queries.capture(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList());
-
-    int total = 0;
-    for (String query : queries.getAllValues()) {
-      int ids = countIdTerms(query);
-      assertThat(ids).isLessThanOrEqualTo(budget);
-      total += ids;
-    }
-    // Every page id is still hydrated, just spread across reads — this also proves the count above
-    // is really seeing ids rather than passing on an empty match.
-    assertThat(queries.getAllValues()).hasSizeGreaterThan(1);
-    assertThat(total).isEqualTo(groups.size());
+    ArgumentCaptor<String> query = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<java.util.List> ids = ArgumentCaptor.forClass(java.util.List.class);
+    verify(searchIndexClient, times(1)).searchIndex(
+        query.capture(),
+        anyInt(),
+        anyInt(),
+        anyBoolean(),
+        anyBoolean(),
+        anyList(),
+        ids.capture());
+    assertThat(query.getValue()).doesNotContain("vulnerabilityId:(");
+    assertThat(ids.getValue()).hasSize(1);
+    assertThat(((IndexTermSetRestriction) ids.getValue().get(0)).ids()).hasSize(100);
   }
 
   @Test
-  public void applicationCountsAreReadAgainstTheRestrictedQueryNotTheWholeEstate() {
-    // The Lucene collector behind this count loads a document's stored fields before it can see
-    // whether the group was asked for, so the query decides the cost: handed the base query it pays
-    // that for every document in the estate on every page load. It has to carry the same id
-    // restriction the hydration walk uses, and be split the same way to stay under the clause budget.
-    int budget = 20;
-    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(budget);
+  public void applicationCountsUseOneIdSetRestrictedGroupedDistinct() {
+    // Same id-set filter as hydration: one countDistinctGroupedBy for the whole page, base query
+    // without a string vulnerabilityId:(…) clause, even when the clause budget is tiny.
     List<RankedGroup> groups = new ArrayList<>();
     for (int i = 0; i < 100; i++) {
       groups.add(rankedGroup(String.format("cve-2026-%05d", i), 9.0f));
@@ -401,10 +416,18 @@ public class VulnerabilitiesListServiceTest
     Map<String, Long> bands = zeroedBands();
     bands.put("critical", (long) groups.size());
     when(searchIndexClient.rankGroupsByMaxMetric(
-        anyString(), anyString(), anyString(), anyInt(), anyBoolean(), anyMap()))
+        anyString(), anyString(), anyString(), anyInt(), anyBoolean(), anyMap(), anyList()))
             .thenReturn(new RankedGroupsResult(groups, groups.size(), true, bands, 0L));
-    when(searchIndexClient.searchIndex(anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
-        .thenReturn(resultOf(vulnerabilityItem("cve-2026-00000")));
+    when(searchIndexClient.searchIndex(
+        anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), anyList()))
+            .thenReturn(resultOf(vulnerabilityItem("cve-2026-00000")));
+    when(searchIndexClient.countDistinctGroupedByWithExactness(
+        anyString(),
+        eq(FieldIdentifier.VULNERABILITY_ID.label),
+        eq(FieldIdentifier.APPLICATION_PUBLIC_ID.label),
+        anyCollection(),
+        anyList()))
+            .thenReturn(new GroupedDistinctCounts(Map.of(), true));
 
     VulnerabilitiesListRequestDTO request = new VulnerabilitiesListRequestDTO();
     request.pageSize = 100;
@@ -412,35 +435,69 @@ public class VulnerabilitiesListServiceTest
 
     service().listVulnerabilities(request);
 
-    ArgumentCaptor<String> countQueries = ArgumentCaptor.forClass(String.class);
-    verify(searchIndexClient, atLeastOnce()).countDistinctGroupedByWithExactness(
-        countQueries.capture(),
+    ArgumentCaptor<String> query = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<java.util.List> ids = ArgumentCaptor.forClass(java.util.List.class);
+    verify(searchIndexClient, times(1)).countDistinctGroupedByWithExactness(
+        query.capture(),
         eq(FieldIdentifier.VULNERABILITY_ID.label),
         eq(FieldIdentifier.APPLICATION_PUBLIC_ID.label),
-        anyCollection());
-
-    int total = 0;
-    for (String query : countQueries.getAllValues()) {
-      int ids = countIdTerms(query);
-      assertThat(ids).isPositive().isLessThanOrEqualTo(budget);
-      total += ids;
-    }
-    // Every page id is still counted, just spread across reads.
-    assertThat(total).isEqualTo(groups.size());
+        anyCollection(),
+        ids.capture());
+    assertThat(query.getValue()).doesNotContain("vulnerabilityId:(");
+    assertThat(ids.getValue()).hasSize(1);
+    assertThat(((IndexTermSetRestriction) ids.getValue().get(0)).ids()).hasSize(100);
   }
 
-  /**
-   * Ids in the hydration clause, which the builder renders as {@code vulnerabilityId:(id1 id2 …)}.
-   * Counts the {@code cve} prefix rather than the whole id so the tally cannot be thrown off by the
-   * escaping the builder applies to each term.
-   */
-  private static int countIdTerms(final String query) {
-    int count = 0;
-    Matcher matcher = Pattern.compile("cve").matcher(query);
-    while (matcher.find()) {
-      count++;
-    }
-    return count;
+  @Test
+  public void hydrationAndApplicationCountsMergeOrgAppScopeWithVulnerabilityIdTermSet() {
+    // Org/app leave the Lucene string and become term sets; hydrate + application-count must still
+    // AND those scope sets with the page's vulnerability ids so per-row counts stay filter-scoped.
+    when(organizationDAO.getAllChildOrganizationIds(Set.of("org-1")))
+        .thenReturn(Set.of("org-1", "org-1-child"));
+
+    Map<String, Long> bands = zeroedBands();
+    bands.put("critical", 1L);
+    when(searchIndexClient.rankGroupsByMaxMetric(
+        anyString(), anyString(), anyString(), anyInt(), anyBoolean(), anyMap(), anyList()))
+            .thenReturn(new RankedGroupsResult(
+                List.of(rankedGroup("cve-2021-44228", 10.0f)), 1L, true, bands, 0L));
+    when(searchIndexClient.searchIndex(
+        anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), anyList()))
+            .thenReturn(resultOf(vulnerabilityItem("cve-2021-44228")));
+    when(searchIndexClient.countDistinctGroupedByWithExactness(
+        anyString(),
+        eq(FieldIdentifier.VULNERABILITY_ID.label),
+        eq(FieldIdentifier.APPLICATION_PUBLIC_ID.label),
+        anyCollection(),
+        anyList()))
+            .thenReturn(new GroupedDistinctCounts(Map.of("cve-2021-44228", 3L), true));
+
+    VulnerabilitiesListRequestDTO request = new VulnerabilitiesListRequestDTO();
+    request.organizationIds = Set.of("org-1");
+    request.applicationIds = Set.of("app-1");
+    request.includeFacets = false;
+
+    service().listVulnerabilities(request);
+
+    ArgumentCaptor<java.util.List> hydrateRestrictions = ArgumentCaptor.forClass(java.util.List.class);
+    verify(searchIndexClient).searchIndex(
+        anyString(),
+        anyInt(),
+        anyInt(),
+        anyBoolean(),
+        anyBoolean(),
+        anyList(),
+        hydrateRestrictions.capture());
+    assertHydrationRestrictionsMergeScopeAndIds(hydrateRestrictions.getValue());
+
+    ArgumentCaptor<java.util.List> countRestrictions = ArgumentCaptor.forClass(java.util.List.class);
+    verify(searchIndexClient).countDistinctGroupedByWithExactness(
+        anyString(),
+        eq(FieldIdentifier.VULNERABILITY_ID.label),
+        eq(FieldIdentifier.APPLICATION_PUBLIC_ID.label),
+        anyCollection(),
+        countRestrictions.capture());
+    assertHydrationRestrictionsMergeScopeAndIds(countRestrictions.getValue());
   }
 
   @Test
@@ -450,11 +507,12 @@ public class VulnerabilitiesListServiceTest
     Map<String, Long> bands = zeroedBands();
     bands.put("critical", 1L);
     when(searchIndexClient.rankGroupsByMaxMetric(
-        anyString(), anyString(), anyString(), anyInt(), anyBoolean(), anyMap()))
+        anyString(), anyString(), anyString(), anyInt(), anyBoolean(), anyMap(), anyList()))
             .thenReturn(new RankedGroupsResult(
                 List.of(rankedGroup("cve-2021-44228", 10.0f)), 1L, false, bands, 0L));
-    when(searchIndexClient.searchIndex(anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
-        .thenReturn(resultOf(vulnerabilityItem("cve-2021-44228")));
+    when(searchIndexClient.searchIndex(
+        anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), anyList()))
+            .thenReturn(resultOf(vulnerabilityItem("cve-2021-44228")));
     stubEcosystemCounts(Map.of("maven", 1L));
 
     VulnerabilitiesListRequestDTO request = new VulnerabilitiesListRequestDTO();
@@ -471,8 +529,9 @@ public class VulnerabilitiesListServiceTest
     // page whose ids exhaust the hydration budget has no such document, and the id reaches the user
     // exactly as rendered here.
     stubRankedGroups(rankedGroup("cve-2021-44228", 10.0f));
-    when(searchIndexClient.searchIndex(anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
-        .thenReturn(resultOf());
+    when(searchIndexClient.searchIndex(
+        anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), anyList()))
+            .thenReturn(resultOf());
 
     VulnerabilitiesListResponseDTO response = service().listVulnerabilities(new VulnerabilitiesListRequestDTO());
 
@@ -495,15 +554,15 @@ public class VulnerabilitiesListServiceTest
       }
     }
     lenient().when(searchIndexClient.rankGroupsByMaxMetric(
-        anyString(), anyString(), anyString(), anyInt(), anyBoolean(), anyMap()))
+        anyString(), anyString(), anyString(), anyInt(), anyBoolean(), anyMap(), anyList()))
         .thenReturn(new RankedGroupsResult(ranked, ranked.size(), true, bandCounts, unbanded));
 
     List<SearchResultItemDTO> items = new ArrayList<>(ranked.size());
     for (RankedGroup group : ranked) {
       items.add(vulnerabilityItem(group.groupValue()));
     }
-    lenient()
-        .when(searchIndexClient.searchIndex(anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
+    lenient().when(searchIndexClient.searchIndex(
+        anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), anyList()))
         .thenReturn(resultOf(items.toArray(new SearchResultItemDTO[0])));
 
     Map<String, Long> applicationCounts = new LinkedHashMap<>();
@@ -513,25 +572,40 @@ public class VulnerabilitiesListServiceTest
   }
 
   private void stubApplicationCounts(final Map<String, Long> countsByVulnerabilityId) {
-    lenient().doReturn(countsByVulnerabilityId)
-        .when(searchIndexClient)
-        .countDistinctGroupedBy(
-            anyString(), eq(FieldIdentifier.VULNERABILITY_ID.label), anyString(), anyCollection());
+    lenient().when(searchIndexClient.countDistinctGroupedBy(
+        anyString(),
+        eq(FieldIdentifier.VULNERABILITY_ID.label),
+        anyString(),
+        anyCollection(),
+        anyList()))
+        .thenReturn(countsByVulnerabilityId);
     lenient().doReturn(new GroupedDistinctCounts(countsByVulnerabilityId, true))
         .when(searchIndexClient)
         .countDistinctGroupedByWithExactness(
-            anyString(), eq(FieldIdentifier.VULNERABILITY_ID.label), anyString(), anyCollection());
+            anyString(), eq(FieldIdentifier.VULNERABILITY_ID.label), anyString(), anyCollection(), anyList());
   }
 
   private void stubEcosystemCounts(final Map<String, Long> countsByFormat) {
-    lenient().doReturn(countsByFormat)
-        .when(searchIndexClient)
-        .countDistinctGroupedBy(
-            anyString(), eq(FieldIdentifier.COMPONENT_FORMAT.label), anyString(), anyCollection());
+    lenient().when(searchIndexClient.countDistinctGroupedBy(
+        anyString(), eq(FieldIdentifier.COMPONENT_FORMAT.label), anyString(), anyCollection(), anyList()))
+        .thenReturn(countsByFormat);
     lenient().doReturn(new GroupedDistinctCounts(countsByFormat, true))
         .when(searchIndexClient)
         .countDistinctGroupedByWithExactness(
-            anyString(), eq(FieldIdentifier.COMPONENT_FORMAT.label), anyString(), anyCollection());
+            anyString(), eq(FieldIdentifier.COMPONENT_FORMAT.label), anyString(), anyCollection(), anyList());
+  }
+
+  private static void assertHydrationRestrictionsMergeScopeAndIds(final java.util.List<?> restrictions) {
+    assertThat(restrictions).hasSize(3);
+    IndexTermSetRestriction organization = (IndexTermSetRestriction) restrictions.get(0);
+    IndexTermSetRestriction application = (IndexTermSetRestriction) restrictions.get(1);
+    IndexTermSetRestriction vulnerability = (IndexTermSetRestriction) restrictions.get(2);
+    assertThat(organization.field()).isEqualTo(FieldIdentifier.ORGANIZATION_ID.label);
+    assertThat(organization.ids()).containsExactlyInAnyOrder("org-1", "org-1-child");
+    assertThat(application.field()).isEqualTo(FieldIdentifier.APPLICATION_ID.label);
+    assertThat(application.ids()).containsExactly("app-1");
+    assertThat(vulnerability.field()).isEqualTo(FieldIdentifier.VULNERABILITY_ID.label);
+    assertThat(vulnerability.ids()).containsExactly("cve-2021-44228");
   }
 
   private static RankedGroup rankedGroup(final String vulnerabilityId, final Float cvssScore) {

@@ -24,11 +24,16 @@ import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.IdSetFilterQueries;
+import com.sonatype.insight.brain.search.index.IndexFilterRestriction;
 import com.sonatype.insight.brain.search.session.IndexReadSession;
 import com.sonatype.insight.brain.search.session.IndexReadSessionFactory;
 import com.sonatype.insight.brain.search.session.IndexTermsBucket;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.search.BooleanClause.Occur;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,39 +109,55 @@ final class VulnerabilitiesListScopeFacetsBuilder
     String applicationQuery = indexQueryBuilder.buildMyScanDataQuery(request, FacetDimension.APPLICATION);
     String stageQuery = indexQueryBuilder.buildMyScanDataQuery(request, FacetDimension.STAGE);
 
+    Query orgLucene = toScopedQuery(organizationQuery,
+        indexQueryBuilder.buildScopeRestrictions(request, FacetDimension.ORGANIZATION));
+    Query appLucene = toScopedQuery(applicationQuery,
+        indexQueryBuilder.buildScopeRestrictions(request, FacetDimension.APPLICATION));
+    Query stageLucene = toScopedQuery(stageQuery,
+        indexQueryBuilder.buildScopeRestrictions(request, FacetDimension.STAGE));
+
     try (IndexReadSession session = indexReadSessionFactory.open()) {
       Set<String> organizationIds = capped(
-          discoverKeys(session, organizationQuery, FieldIdentifier.ORGANIZATION_ID.label));
+          discoverKeys(session, orgLucene, FieldIdentifier.ORGANIZATION_ID.label));
       Set<String> applicationIds = capped(
-          discoverKeys(session, applicationQuery, FieldIdentifier.APPLICATION_ID.label));
+          discoverKeys(session, appLucene, FieldIdentifier.APPLICATION_ID.label));
 
-      // Count each dimension independently so one failing backend call does not discard the others.
       facets.organizations = countDistinctVulnerabilities(
-          session, organizationQuery, FieldIdentifier.ORGANIZATION_ID.label, organizationIds);
+          session, orgLucene, FieldIdentifier.ORGANIZATION_ID.label, organizationIds);
       facets.applications = countDistinctVulnerabilities(
-          session, applicationQuery, FieldIdentifier.APPLICATION_ID.label, applicationIds);
+          session, appLucene, FieldIdentifier.APPLICATION_ID.label, applicationIds);
       facets.stages = countDistinctVulnerabilities(
-          session, stageQuery, FieldIdentifier.POLICY_EVALUATION_STAGE.label, licensedStageIds());
+          session, stageLucene, FieldIdentifier.POLICY_EVALUATION_STAGE.label, licensedStageIds());
 
       facets.organizationNames = resolveOrganizationNames(keysOf(facets.organizations));
       facets.applicationNames = resolveApplicationNames(keysOf(facets.applications));
       facets.stageNames = resolveStageNames(keysOf(facets.stages));
     }
     catch (RuntimeException e) {
-      // Session open / unexpected failure — degrade to severity/ecosystem rather than fail the list.
       log.warn("Vulnerabilities scope facets unavailable; returning the list without them", e);
     }
   }
 
+  private Query toScopedQuery(final String query, final List<IndexFilterRestriction> restrictions) {
+    Query base = conversionHelper.stringToQuery(query);
+    Query filters = IdSetFilterQueries.combineLuceneFilters(restrictions);
+    if (filters == null) {
+      return base;
+    }
+    return new BooleanQuery.Builder()
+        .add(base, Occur.MUST)
+        .add(filters, Occur.FILTER)
+        .build();
+  }
+
   private Set<String> discoverKeys(
       final IndexReadSession session,
-      final String query,
+      final Query query,
       final String field)
   {
     List<IndexTermsBucket> buckets;
     try {
-      buckets = session.termsAggregation(
-          conversionHelper.stringToQuery(query), field, MAX_FACET_TERM_BUCKETS);
+      buckets = session.termsAggregation(query, field, MAX_FACET_TERM_BUCKETS);
     }
     catch (RuntimeException e) {
       log.warn("Vulnerabilities list facet key discovery failed for field {}", field, e);
@@ -156,7 +177,7 @@ final class VulnerabilitiesListScopeFacetsBuilder
 
   private Map<String, Long> countDistinctVulnerabilities(
       final IndexReadSession session,
-      final String query,
+      final Query query,
       final String groupField,
       final Set<String> groupValues)
   {
@@ -166,14 +187,12 @@ final class VulnerabilitiesListScopeFacetsBuilder
     Map<String, Long> grouped;
     try {
       grouped = session.countDistinctGroupedBy(
-          conversionHelper.stringToQuery(query),
+          query,
           groupField,
           FieldIdentifier.VULNERABILITY_ID.label,
           groupValues);
     }
     catch (RuntimeException e) {
-      // Includes UnsupportedOperationException on backends without grouped distinct counting.
-      // Fail this dimension only — siblings may still succeed.
       log.warn(
           "Grouped distinct counting failed for {} session; omitting the {} facet",
           session.backendId(),

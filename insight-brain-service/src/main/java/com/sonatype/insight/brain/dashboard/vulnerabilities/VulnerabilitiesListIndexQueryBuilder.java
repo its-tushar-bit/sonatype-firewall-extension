@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.dashboard.vulnerabilities;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -16,6 +15,7 @@ import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.IndexFilterRestriction;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.utils.CvssV3Severity;
 
@@ -66,31 +66,6 @@ final class VulnerabilitiesListIndexQueryBuilder
   }
 
   /**
-   * Narrows {@code baseQuery} to the supplied vulnerability ids, so a hydration read touches only the
-   * documents behind an already-chosen set of rows. Each id is escaped as a Lucene term the same way
-   * every other clause here escapes its values, so an id is never re-parsed as query syntax.
-   *
-   * @return {@code baseQuery} unchanged when no usable id is supplied
-   */
-  String restrictToVulnerabilityIds(final String baseQuery, final Collection<String> vulnerabilityIds) {
-    if (vulnerabilityIds == null || vulnerabilityIds.isEmpty()) {
-      return baseQuery;
-    }
-    List<String> escapedIds = new ArrayList<>(vulnerabilityIds.size());
-    for (String vulnerabilityId : vulnerabilityIds) {
-      if (StringUtils.isBlank(vulnerabilityId)) {
-        continue;
-      }
-      escapedIds.add(DashboardIndexDimensionQueryBuilder.escapeLuceneTerm(vulnerabilityId.trim()));
-    }
-    if (escapedIds.isEmpty()) {
-      return baseQuery;
-    }
-    String clause = FieldIdentifier.VULNERABILITY_ID.label + ":(" + String.join(" ", escapedIds) + ")";
-    return StringUtils.isBlank(baseQuery) ? clause : baseQuery + " AND " + clause;
-  }
-
-  /**
    * @param omitted the dimension to leave out, so a facet count for that dimension still reflects
    *          every other active filter. The CVSS clamp travels with {@code SEVERITY} because both
    *          narrow the same {@code vulnerabilitySeverity} field.
@@ -113,21 +88,32 @@ final class VulnerabilitiesListIndexQueryBuilder
     if (omitted != FacetDimension.ECOSYSTEM) {
       addIfPresent(clauses, buildEcosystemClause(request == null ? null : request.ecosystems));
     }
-    if (omitted != FacetDimension.ORGANIZATION) {
-      addIfPresent(
-          clauses,
-          dimensionQueryBuilder.buildOrganizationFilterClause(request == null ? null : request.organizationIds));
-    }
-    if (omitted != FacetDimension.APPLICATION) {
-      addIfPresent(
-          clauses,
-          dimensionQueryBuilder.buildEscapedApplicationFilterClause(
-              request == null ? null : request.applicationIds));
-    }
+    // org/app scope is applied as budget-exempt AND term-set restrictions (CLM-44783).
     if (omitted != FacetDimension.STAGE) {
       addIfPresent(clauses, buildStageClause(request == null ? null : request.stageIds));
     }
     return String.join(" AND ", clauses);
+  }
+
+  /**
+   * AND-style scope restrictions for the vulnerabilities list (org narrows AND app narrows independently).
+   * Respects {@code omitted} so facet per-dimension counts remain correct.
+   */
+  List<IndexFilterRestriction> buildScopeRestrictions(
+      final VulnerabilitiesListRequestDTO request,
+      final FacetDimension omitted)
+  {
+    Set<String> orgIds = (omitted == FacetDimension.ORGANIZATION || request == null)
+        ? null
+        : request.organizationIds;
+    Set<String> appIds = (omitted == FacetDimension.APPLICATION || request == null)
+        ? null
+        : request.applicationIds;
+    return dimensionQueryBuilder.buildScopeFilterRestrictionsAnd(orgIds, appIds);
+  }
+
+  List<IndexFilterRestriction> buildScopeRestrictions(final VulnerabilitiesListRequestDTO request) {
+    return buildScopeRestrictions(request, FacetDimension.NONE);
   }
 
   private static String buildStageClause(final Set<String> stageIds) {

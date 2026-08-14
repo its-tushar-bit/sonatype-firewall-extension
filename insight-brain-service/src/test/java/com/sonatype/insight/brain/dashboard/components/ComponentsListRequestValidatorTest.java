@@ -93,10 +93,14 @@ public class ComponentsListRequestValidatorTest
 
   @Test
   public void validate_rejectsTooManyComponentHashes() {
-    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(2);
     validator = new ComponentsListRequestValidator(configuration);
     ComponentsListRequestDTO request = new ComponentsListRequestDTO();
-    request.componentHashes = Set.of("h1", "h2", "h3");
+    // Soft UX ceiling is MAX_SCOPED_COMPONENT_HASH_FILTER_CLAUSES (512), not clause-budget.
+    java.util.LinkedHashSet<String> hashes = new java.util.LinkedHashSet<>();
+    for (int i = 0; i < ComponentsListIndexQueryBuilder.MAX_SCOPED_COMPONENT_HASH_FILTER_CLAUSES + 1; i++) {
+      hashes.add("h" + i);
+    }
+    request.componentHashes = hashes;
 
     assertThatThrownBy(() -> validator.validate(request))
         .isInstanceOf(BadRequestException.class)

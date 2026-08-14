@@ -42,6 +42,8 @@ import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
+import com.sonatype.insight.brain.search.index.IdSetFilterQueries;
+import com.sonatype.insight.brain.search.index.IndexFilterRestriction;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.search.index.RankedGroupsResult;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
@@ -283,6 +285,19 @@ public class LuceneSearchIndexClient
       final boolean isSbomManagerMode,
       final List<String> searchAfter) throws SearchIndexException
   {
+    return searchIndex(searchQuery, pageSize, page, allComponents, isSbomManagerMode, searchAfter, null);
+  }
+
+  @Override
+  public SearchResultDTO searchIndex(
+      final String searchQuery,
+      final int pageSize,
+      final int page,
+      final boolean allComponents,
+      final boolean isSbomManagerMode,
+      final List<String> searchAfter,
+      final List<? extends IndexFilterRestriction> termSetRestrictions) throws SearchIndexException
+  {
     checkMode(isSbomManagerMode);
 
     boolean initialSearch = false;
@@ -295,6 +310,7 @@ public class LuceneSearchIndexClient
     }
 
     updateMaxQueryClauseCount();
+    Query idSetFilter = IdSetFilterQueries.combineLuceneFilters(termSetRestrictions);
 
     try {
       Optional<LuceneSearcherManagerHolder> searcherManagerHolder = getAvailableSearcherManagerHolder();
@@ -305,7 +321,7 @@ public class LuceneSearchIndexClient
           try {
             LuceneReaderTiming.endAcquisition();
             return searchIndexWithSearcher(searchQuery, pageSize, allComponents, isSbomManagerMode,
-                initialSearch, finalPage, indexSearcher);
+                initialSearch, finalPage, indexSearcher, idSetFilter);
           }
           finally {
             searcherManagerHolder.get().release(indexSearcher);
@@ -327,7 +343,7 @@ public class LuceneSearchIndexClient
         LuceneReaderTiming.endAcquisition();
         IndexSearcher indexSearcher = new IndexSearcher(indexReader);
         return searchIndexWithSearcher(searchQuery, pageSize, allComponents, isSbomManagerMode,
-            initialSearch, finalPage, indexSearcher);
+            initialSearch, finalPage, indexSearcher, idSetFilter);
       }
     }
     catch (Exception e) {
@@ -538,7 +554,8 @@ public class LuceneSearchIndexClient
       final boolean isSbomManagerMode,
       final boolean initialSearch,
       final int finalPage,
-      final IndexSearcher indexSearcher) throws Exception
+      final IndexSearcher indexSearcher,
+      final Query idSetFilter) throws Exception
   {
     LuceneReaderTiming.startExecution();
     LuceneReaderTiming.startQueryBuild();
@@ -563,6 +580,12 @@ public class LuceneSearchIndexClient
     // Passing 0 to IndexSearcher#search throws IllegalArgumentException with 'numHits must be > 0'
     LuceneReaderTiming.startQueryParse();
     Query query = wrapWithPermissionFilter(conversionHelper.stringToQuery(userQueryString), permissionFilter);
+    if (idSetFilter != null) {
+      BooleanQuery.Builder withIds = new BooleanQuery.Builder();
+      withIds.add(query, MUST);
+      withIds.add(idSetFilter, FILTER);
+      query = withIds.build();
+    }
     LuceneReaderTiming.endQueryParse();
     int collectN = Math.max(1, indexSearcher.getIndexReader().maxDoc());
     LuceneReaderTiming.startSearch();
@@ -623,8 +646,15 @@ public class LuceneSearchIndexClient
 
   @Override
   public long count(final String metricQuery) {
+    return count(metricQuery, null);
+  }
+
+  @Override
+  public long count(final String metricQuery, final List<? extends IndexFilterRestriction> termSetRestrictions) {
     updateMaxQueryClauseCount();
-    return withSearcher(indexSearcher -> countWithSearcher(indexSearcher, metricQuery, null, buildRbacFilterQuery()));
+    Query termSetFilter = IdSetFilterQueries.combineLuceneFilters(termSetRestrictions);
+    return withSearcher(
+        indexSearcher -> countWithSearcher(indexSearcher, metricQuery, termSetFilter, buildRbacFilterQuery()));
   }
 
   private RuntimeException mapSearchException(final Exception e) {
@@ -649,20 +679,32 @@ public class LuceneSearchIndexClient
       final String bucketField,
       final Map<String, int[]> ranges)
   {
+    return aggregateCountByField(metricQuery, bucketField, ranges, null);
+  }
+
+  @Override
+  public MetricAggregationResult aggregateCountByField(
+      final String metricQuery,
+      final String bucketField,
+      final Map<String, int[]> ranges,
+      final List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
     validateRangeBounds(ranges);
     updateMaxQueryClauseCount();
+    Query termSetFilter = IdSetFilterQueries.combineLuceneFilters(termSetRestrictions);
 
     // Share the NRT pooled searcher with count/rank so a Vulnerabilities list page that ranks then
     // hydrates counts cannot see NRT-only hits in one path and miss them on a staler committed reader.
     // Snapshot consistency for multi-read callers remains on IndexReadSession.
     return withSearcher(indexSearcher -> {
       Query rbac = buildRbacFilterQuery();
-      long total = countWithSearcher(indexSearcher, metricQuery, null, rbac);
+      long total = countWithSearcher(indexSearcher, metricQuery, termSetFilter, rbac);
       Map<String, Long> buckets = new LinkedHashMap<>();
       for (Map.Entry<String, int[]> entry : ranges.entrySet()) {
         int[] bounds = entry.getValue();
         Query bandFilter = IntPoint.newRangeQuery(bucketField, bounds[0], bounds[1]);
-        buckets.put(entry.getKey(), countWithSearcher(indexSearcher, metricQuery, bandFilter, rbac));
+        buckets.put(entry.getKey(),
+            countWithSearcher(indexSearcher, metricQuery, mergeFilters(termSetFilter, bandFilter), rbac));
       }
       return new MetricAggregationResult(total, buckets);
     });
@@ -675,15 +717,27 @@ public class LuceneSearchIndexClient
       final Map<String, float[]> ranges,
       final String distinctField)
   {
+    return aggregateCountByFloatField(metricQuery, bucketField, ranges, distinctField, null);
+  }
+
+  @Override
+  public MetricAggregationResult aggregateCountByFloatField(
+      final String metricQuery,
+      final String bucketField,
+      final Map<String, float[]> ranges,
+      final String distinctField,
+      final List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
     validateFloatRangeBounds(ranges);
     if (distinctField != null) {
       checkFieldNames(new HashSet<>(List.of(bucketField, distinctField)));
     }
     updateMaxQueryClauseCount();
+    Query termSetFilter = IdSetFilterQueries.combineLuceneFilters(termSetRestrictions);
 
     return withSearcher(indexSearcher -> {
       Query rbac = buildRbacFilterQuery();
-      long total = countWithSearcher(indexSearcher, metricQuery, null, rbac);
+      long total = countWithSearcher(indexSearcher, metricQuery, termSetFilter, rbac);
       Map<String, Long> buckets = new LinkedHashMap<>();
       for (Map.Entry<String, float[]> entry : ranges.entrySet()) {
         float[] bounds = entry.getValue();
@@ -693,9 +747,10 @@ public class LuceneSearchIndexClient
         // LuceneIndexReadSession.aggregateCountByFloatField.
         if (bounds[0] < bounds[1]) {
           Query bandFilter = FloatPoint.newRangeQuery(bucketField, bounds[0], FloatPoint.nextDown(bounds[1]));
+          Query extra = mergeFilters(termSetFilter, bandFilter);
           count = distinctField == null
-              ? countWithSearcher(indexSearcher, metricQuery, bandFilter, rbac)
-              : countDistinctWithSearcher(indexSearcher, metricQuery, List.of(distinctField), bandFilter, rbac);
+              ? countWithSearcher(indexSearcher, metricQuery, extra, rbac)
+              : countDistinctWithSearcher(indexSearcher, metricQuery, List.of(distinctField), extra, rbac);
         }
         buckets.put(entry.getKey(), count);
       }
@@ -705,11 +760,24 @@ public class LuceneSearchIndexClient
 
   @Override
   public long countDistinct(final String metricQuery, final List<String> compositeKeyFields) {
+    return countDistinct(metricQuery, compositeKeyFields, null);
+  }
+
+  @Override
+  public long countDistinct(
+      final String metricQuery,
+      final List<String> compositeKeyFields,
+      final List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
     validateCompositeKeyFields(compositeKeyFields);
     checkFieldNames(new HashSet<>(compositeKeyFields));
     updateMaxQueryClauseCount();
-    return withSearcher(indexSearcher -> countDistinctWithSearcher(
-        indexSearcher, metricQuery, compositeKeyFields, null, buildRbacFilterQuery()));
+    Query termSetFilter = IdSetFilterQueries.combineLuceneFilters(termSetRestrictions);
+
+    return withSearcher(indexSearcher -> {
+      Query rbac = buildRbacFilterQuery();
+      return countDistinctWithSearcher(indexSearcher, metricQuery, compositeKeyFields, termSetFilter, rbac);
+    });
   }
 
   @Override
@@ -719,13 +787,25 @@ public class LuceneSearchIndexClient
       final String distinctField,
       final Collection<String> groupValues)
   {
+    return countDistinctGroupedBy(metricQuery, groupField, distinctField, groupValues, null);
+  }
+
+  @Override
+  public Map<String, Long> countDistinctGroupedBy(
+      final String metricQuery,
+      final String groupField,
+      final String distinctField,
+      final Collection<String> groupValues,
+      final List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
     checkFieldNames(new HashSet<>(List.of(groupField, distinctField)));
     if (groupValues == null || groupValues.isEmpty()) {
       return Map.of();
     }
     updateMaxQueryClauseCount();
+    Query idSetFilter = IdSetFilterQueries.combineLuceneFilters(termSetRestrictions);
     return withSearcher(indexSearcher -> {
-      Query query = buildRbacFilteredMetricQuery(metricQuery, null, buildRbacFilterQuery());
+      Query query = buildRbacFilteredMetricQuery(metricQuery, idSetFilter, buildRbacFilterQuery());
       DistinctGroupedStoredFieldCollector collector = new DistinctGroupedStoredFieldCollector(
           indexSearcher.storedFields(), groupField, distinctField, groupValues);
       indexSearcher.search(query, collector);
@@ -742,16 +822,30 @@ public class LuceneSearchIndexClient
       final boolean ascending,
       final Map<String, float[]> metricBands)
   {
+    return rankGroupsByMaxMetric(metricQuery, groupField, metricField, limit, ascending, metricBands, null);
+  }
+
+  @Override
+  public RankedGroupsResult rankGroupsByMaxMetric(
+      final String metricQuery,
+      final String groupField,
+      final String metricField,
+      final int limit,
+      final boolean ascending,
+      final Map<String, float[]> metricBands,
+      final List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
     checkFieldNames(new HashSet<>(List.of(groupField, metricField)));
     validateFloatRangeBounds(metricBands);
     if (limit <= 0) {
       return RankedGroupsResult.empty(metricBands);
     }
     updateMaxQueryClauseCount();
+    Query termSetFilter = IdSetFilterQueries.combineLuceneFilters(termSetRestrictions);
     // Prefer the pooled searcher: Lucene caches the OrdinalMap against the reader, so a pooled
     // reader amortises ordinal map construction that a fresh DirectoryReader would repay every call.
     return withSearcher(indexSearcher -> rankGroupsWithSearcher(
-        indexSearcher, metricQuery, groupField, metricField, limit, ascending, metricBands));
+        indexSearcher, metricQuery, groupField, metricField, limit, ascending, metricBands, termSetFilter));
   }
 
   private RankedGroupsResult rankGroupsWithSearcher(
@@ -761,7 +855,8 @@ public class LuceneSearchIndexClient
       final String metricField,
       final int limit,
       final boolean ascending,
-      final Map<String, float[]> metricBands) throws Exception
+      final Map<String, float[]> metricBands,
+      final Query termSetFilter) throws Exception
   {
     IndexReader indexReader = indexSearcher.getIndexReader();
     SortedDocValues globalGroups = MultiDocValues.getSortedValues(indexReader, groupField);
@@ -776,7 +871,7 @@ public class LuceneSearchIndexClient
     Arrays.fill(maxByOrd, Float.NaN);
     FixedBitSet seen = new FixedBitSet(Math.max(ordCount, 1));
 
-    Query query = buildRbacFilteredMetricQuery(metricQuery, null, buildRbacFilterQuery());
+    Query query = buildRbacFilteredMetricQuery(metricQuery, termSetFilter, buildRbacFilterQuery());
     indexSearcher.search(query,
         new MaxMetricByGroupCollector(groupField, metricField, ordinalMap, maxByOrd, seen));
 
@@ -793,19 +888,34 @@ public class LuceneSearchIndexClient
       final String bandField,
       final Map<String, int[]> bands)
   {
+    return countDistinctGroupedByBands(
+        metricQuery, groupField, distinctField, groupValues, bandField, bands, null);
+  }
+
+  @Override
+  public Map<String, Map<String, Long>> countDistinctGroupedByBands(
+      final String metricQuery,
+      final String groupField,
+      final String distinctField,
+      final Collection<String> groupValues,
+      final String bandField,
+      final Map<String, int[]> bands,
+      final List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
     checkFieldNames(new HashSet<>(List.of(groupField, distinctField, bandField)));
     validateRangeBounds(bands);
     if (groupValues == null || groupValues.isEmpty() || bands == null || bands.isEmpty()) {
       return Map.of();
     }
     updateMaxQueryClauseCount();
+    Query termSetFilter = IdSetFilterQueries.combineLuceneFilters(termSetRestrictions);
     return withSearcher(indexSearcher -> {
       Query rbac = buildRbacFilterQuery();
       Map<String, Map<String, Long>> byGroup = new LinkedHashMap<>();
       for (Map.Entry<String, int[]> band : bands.entrySet()) {
         int[] bounds = band.getValue();
         Query bandFilter = IntPoint.newRangeQuery(bandField, bounds[0], bounds[1]);
-        Query query = buildRbacFilteredMetricQuery(metricQuery, bandFilter, rbac);
+        Query query = buildRbacFilteredMetricQuery(metricQuery, mergeFilters(termSetFilter, bandFilter), rbac);
         DistinctGroupedStoredFieldCollector collector = new DistinctGroupedStoredFieldCollector(
             indexSearcher.storedFields(), groupField, distinctField, groupValues);
         indexSearcher.search(query, collector);
@@ -815,6 +925,19 @@ public class LuceneSearchIndexClient
       }
       return byGroup;
     });
+  }
+
+  private static Query mergeFilters(final Query left, final Query right) {
+    if (left == null) {
+      return right;
+    }
+    if (right == null) {
+      return left;
+    }
+    BooleanQuery.Builder combined = new BooleanQuery.Builder();
+    combined.add(left, FILTER);
+    combined.add(right, FILTER);
+    return combined.build();
   }
 
   private long countWithSearcher(

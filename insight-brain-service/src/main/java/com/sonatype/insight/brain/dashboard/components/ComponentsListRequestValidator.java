@@ -75,7 +75,8 @@ final class ComponentsListRequestValidator
       return;
     }
     DashboardIndexDimensionQueryBuilder.rejectBlankFilterIds(request.componentHashes, "componentHashes");
-    int maxIds = maxClauseCount();
+    // Soft UX ceiling — hashes are applied as budget-exempt term sets (CLM-44783), not Lucene OR clauses.
+    int maxIds = ComponentsListIndexQueryBuilder.MAX_SCOPED_COMPONENT_HASH_FILTER_CLAUSES;
     if (request.componentHashes.size() > maxIds) {
       throw new BadRequestException("componentHashes contains too many ids (max " + maxIds + ").");
     }

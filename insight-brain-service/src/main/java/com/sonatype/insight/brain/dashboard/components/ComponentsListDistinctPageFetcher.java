@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.sonatype.insight.brain.search.index.IndexFilterRestriction;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
@@ -50,6 +51,15 @@ final class ComponentsListDistinctPageFetcher
   }
 
   DistinctPage fetch(final String query, final int page, final int pageSize) {
+    return fetch(query, List.of(), page, pageSize);
+  }
+
+  DistinctPage fetch(
+      final String query,
+      final List<? extends IndexFilterRestriction> termSets,
+      final int page,
+      final int pageSize)
+  {
     // Callers (ComponentsListService) soft-clamp; keep a defensive clamp for direct use/tests.
     int safePage = Math.min(Math.max(page, 0), MAX_DISTINCT_PAGE);
 
@@ -60,6 +70,7 @@ final class ComponentsListDistinctPageFetcher
     Map<String, Set<String>> affectedApps = new LinkedHashMap<>();
     boolean exhausted = false;
     int rawPage = 0;
+    List<? extends IndexFilterRestriction> restrictions = termSets == null ? List.of() : termSets;
 
     while (ordered.size() < distinctEnd && rawPage < MAX_RAW_PAGES_PER_REQUEST) {
       SearchResultDTO searchResult = searchIndexClient.searchIndex(
@@ -68,7 +79,8 @@ final class ComponentsListDistinctPageFetcher
           ComponentsListService.toSearchIndexPage(rawPage),
           false,
           false,
-          List.of());
+          List.of(),
+          restrictions);
       int rawHits = countRawHits(searchResult);
       if (rawHits == 0) {
         exhausted = true;
@@ -97,7 +109,7 @@ final class ComponentsListDistinctPageFetcher
       pageAffectedApps.put(hash, affectedApps.getOrDefault(hash, Set.of()));
     }
 
-    boolean hasNextPage = resolveHasNextPage(query, ordered, distinctEnd, exhausted, rawPage);
+    boolean hasNextPage = resolveHasNextPage(query, restrictions, ordered, distinctEnd, exhausted, rawPage);
     return new DistinctPage(pageItems, pageAffectedApps, hasNextPage);
   }
 
@@ -108,6 +120,7 @@ final class ComponentsListDistinctPageFetcher
    */
   private boolean resolveHasNextPage(
       final String query,
+      final List<? extends IndexFilterRestriction> termSets,
       final LinkedHashMap<String, SearchResultItemDTO> ordered,
       final int distinctEnd,
       final boolean exhausted,
@@ -125,7 +138,8 @@ final class ComponentsListDistinctPageFetcher
         ComponentsListService.toSearchIndexPage(nextRawPage),
         false,
         false,
-        List.of());
+        List.of(),
+        termSets);
     if (countRawHits(peek) == 0) {
       return false;
     }

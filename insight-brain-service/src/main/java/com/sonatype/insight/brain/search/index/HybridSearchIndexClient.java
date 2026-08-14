@@ -347,6 +347,53 @@ public class HybridSearchIndexClient
   }
 
   @Override
+  public SearchResultDTO searchIndex(
+      final String searchQuery,
+      final int pageSize,
+      final int page,
+      final boolean allComponents,
+      final boolean isSbomManagerMode,
+      final List<String> searchAfter,
+      final List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
+    log.debug("Searching index with term-set restrictions: {}",
+        termSetRestrictions == null ? 0 : termSetRestrictions.size());
+
+    Exception primaryException;
+    try {
+      SearchResultDTO result = primaryClient.searchIndex(
+          searchQuery, pageSize, page, allComponents, isSbomManagerMode, searchAfter, termSetRestrictions);
+      log.debug("Term-set restricted search completed successfully using primary client");
+      return result;
+    }
+    catch (Exception e) {
+      log.warn("Term-set restricted search failed on primary client, falling back to secondary. Error: {}",
+          e.getMessage(), e);
+      primaryException = e;
+    }
+
+    Exception secondaryException;
+    try {
+      SearchResultDTO result = secondaryClient.searchIndex(
+          searchQuery, pageSize, page, allComponents, isSbomManagerMode, searchAfter, termSetRestrictions);
+      log.debug("Term-set restricted search completed successfully using secondary client (fallback)");
+      return result;
+    }
+    catch (Exception e) {
+      log.error("Term-set restricted search failed on both primary and secondary clients", e);
+      secondaryException = e;
+    }
+
+    if (primaryException instanceof ConflictException conflictException) {
+      throw conflictException;
+    }
+    throw new SearchIndexException(
+        "Search failed on both primary and secondary clients. " + "Primary error: " + primaryException.getMessage() +
+            ", Secondary error: " + secondaryException.getMessage(),
+        secondaryException);
+  }
+
+  @Override
   public List<SearchIndexChange> getSearchIndexChanges() {
     return primaryClient.getSearchIndexChanges();
   }
@@ -388,6 +435,34 @@ public class HybridSearchIndexClient
     }
   }
 
+  @Override
+  public long count(String metricQuery, List<? extends IndexFilterRestriction> termSetRestrictions) {
+    Exception primaryException = null;
+    try {
+      return primaryClient.count(metricQuery, termSetRestrictions);
+    }
+    catch (Exception e) {
+      log.warn("Failed to count (term-set) from primary client, falling back to secondary", e);
+      primaryException = e;
+    }
+
+    try {
+      long result = secondaryClient.count(metricQuery, termSetRestrictions);
+      log.debug("Term-set count completed successfully using secondary client (fallback)");
+      return result;
+    }
+    catch (Exception e) {
+      log.error("Failed to count (term-set) from both primary and secondary clients", e);
+      if (primaryException instanceof ConflictException conflictException) {
+        throw conflictException;
+      }
+      throw new SearchIndexException(
+          "Count failed on both primary and secondary clients. Primary error: " + primaryException.getMessage() +
+              ", Secondary error: " + e.getMessage(),
+          e);
+    }
+  }
+
   /**
    * Attempts the primary client first, falling back to secondary when primary fails — same pattern
    * as {@link #count}.
@@ -415,6 +490,40 @@ public class HybridSearchIndexClient
     }
     catch (Exception e) {
       log.error("Failed to aggregate counts from both primary and secondary clients", e);
+      if (primaryException instanceof ConflictException conflictException) {
+        throw conflictException;
+      }
+      throw new SearchIndexException(
+          "Aggregate count failed on both primary and secondary clients. Primary error: " +
+              primaryException.getMessage() + ", Secondary error: " + e.getMessage(),
+          e);
+    }
+  }
+
+  @Override
+  public MetricAggregationResult aggregateCountByField(
+      String metricQuery,
+      String bucketField,
+      Map<String, int[]> ranges,
+      List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
+    Exception primaryException = null;
+    try {
+      return primaryClient.aggregateCountByField(metricQuery, bucketField, ranges, termSetRestrictions);
+    }
+    catch (Exception e) {
+      log.warn("Failed to aggregate counts (term-set) from primary client, falling back to secondary", e);
+      primaryException = e;
+    }
+
+    try {
+      MetricAggregationResult result =
+          secondaryClient.aggregateCountByField(metricQuery, bucketField, ranges, termSetRestrictions);
+      log.debug("Term-set aggregate count completed successfully using secondary client (fallback)");
+      return result;
+    }
+    catch (Exception e) {
+      log.error("Failed to aggregate counts (term-set) from both primary and secondary clients", e);
       if (primaryException instanceof ConflictException conflictException) {
         throw conflictException;
       }
@@ -464,6 +573,42 @@ public class HybridSearchIndexClient
   }
 
   @Override
+  public MetricAggregationResult aggregateCountByFloatField(
+      String metricQuery,
+      String bucketField,
+      Map<String, float[]> ranges,
+      String distinctField,
+      List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
+    Exception primaryException = null;
+    try {
+      return primaryClient.aggregateCountByFloatField(
+          metricQuery, bucketField, ranges, distinctField, termSetRestrictions);
+    }
+    catch (Exception e) {
+      log.warn("Failed to aggregate float counts (term-set) from primary client, falling back to secondary", e);
+      primaryException = e;
+    }
+
+    try {
+      MetricAggregationResult result = secondaryClient.aggregateCountByFloatField(
+          metricQuery, bucketField, ranges, distinctField, termSetRestrictions);
+      log.debug("Term-set float aggregate count completed successfully using secondary client (fallback)");
+      return result;
+    }
+    catch (Exception e) {
+      log.error("Failed to aggregate float counts (term-set) from both primary and secondary clients", e);
+      if (primaryException instanceof ConflictException conflictException) {
+        throw conflictException;
+      }
+      throw new SearchIndexException(
+          "Float aggregate count failed on both primary and secondary clients. Primary error: " +
+              primaryException.getMessage() + ", Secondary error: " + e.getMessage(),
+          e);
+    }
+  }
+
+  @Override
   public long countDistinct(String metricQuery, List<String> compositeKeyFields) {
     Exception primaryException = null;
     try {
@@ -481,6 +626,38 @@ public class HybridSearchIndexClient
     }
     catch (Exception e) {
       log.error("Failed to count distinct from both primary and secondary clients", e);
+      if (primaryException instanceof ConflictException conflictException) {
+        throw conflictException;
+      }
+      throw new SearchIndexException(
+          "Distinct count failed on both primary and secondary clients. Primary error: " +
+              primaryException.getMessage() + ", Secondary error: " + e.getMessage(),
+          e);
+    }
+  }
+
+  @Override
+  public long countDistinct(
+      String metricQuery,
+      List<String> compositeKeyFields,
+      List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
+    Exception primaryException = null;
+    try {
+      return primaryClient.countDistinct(metricQuery, compositeKeyFields, termSetRestrictions);
+    }
+    catch (Exception e) {
+      log.warn("Failed to count distinct (term-set) from primary client, falling back to secondary", e);
+      primaryException = e;
+    }
+
+    try {
+      long result = secondaryClient.countDistinct(metricQuery, compositeKeyFields, termSetRestrictions);
+      log.debug("Term-set distinct count completed successfully using secondary client (fallback)");
+      return result;
+    }
+    catch (Exception e) {
+      log.error("Failed to count distinct (term-set) from both primary and secondary clients", e);
       if (primaryException instanceof ConflictException conflictException) {
         throw conflictException;
       }
@@ -518,6 +695,44 @@ public class HybridSearchIndexClient
     }
     catch (Exception e) {
       log.error("Failed to rank groups from both primary and secondary clients", e);
+      if (primaryException instanceof ConflictException conflictException) {
+        throw conflictException;
+      }
+      throw new SearchIndexException(
+          "Ranked groups failed on both primary and secondary clients. Primary error: " +
+              primaryException.getMessage() + ", Secondary error: " + e.getMessage(),
+          e);
+    }
+  }
+
+  @Override
+  public RankedGroupsResult rankGroupsByMaxMetric(
+      String metricQuery,
+      String groupField,
+      String metricField,
+      int limit,
+      boolean ascending,
+      Map<String, float[]> metricBands,
+      List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
+    Exception primaryException = null;
+    try {
+      return primaryClient.rankGroupsByMaxMetric(
+          metricQuery, groupField, metricField, limit, ascending, metricBands, termSetRestrictions);
+    }
+    catch (Exception e) {
+      log.warn("Failed to rank groups (term-set) from primary client, falling back to secondary", e);
+      primaryException = e;
+    }
+
+    try {
+      RankedGroupsResult result = secondaryClient.rankGroupsByMaxMetric(
+          metricQuery, groupField, metricField, limit, ascending, metricBands, termSetRestrictions);
+      log.debug("Term-set ranked groups completed successfully using secondary client (fallback)");
+      return result;
+    }
+    catch (Exception e) {
+      log.error("Failed to rank groups (term-set) from both primary and secondary clients", e);
       if (primaryException instanceof ConflictException conflictException) {
         throw conflictException;
       }
@@ -575,6 +790,55 @@ public class HybridSearchIndexClient
   }
 
   @Override
+  public Map<String, Long> countDistinctGroupedBy(
+      final String metricQuery,
+      final String groupField,
+      final String distinctField,
+      final Collection<String> groupValues,
+      final List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
+    return countDistinctGroupedByWithExactness(
+        metricQuery, groupField, distinctField, groupValues, termSetRestrictions).counts();
+  }
+
+  @Override
+  public GroupedDistinctCounts countDistinctGroupedByWithExactness(
+      final String metricQuery,
+      final String groupField,
+      final String distinctField,
+      final Collection<String> groupValues,
+      final List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
+    Exception primaryException = null;
+    try {
+      Map<String, Long> counts = primaryClient.countDistinctGroupedBy(
+          metricQuery, groupField, distinctField, groupValues, termSetRestrictions);
+      return new GroupedDistinctCounts(counts, primaryClient.isDistinctAggregationExact());
+    }
+    catch (Exception e) {
+      log.warn("Failed to count distinct grouped (term-set) from primary client, falling back to secondary", e);
+      primaryException = e;
+    }
+
+    try {
+      Map<String, Long> counts = secondaryClient.countDistinctGroupedBy(
+          metricQuery, groupField, distinctField, groupValues, termSetRestrictions);
+      log.debug("Term-set grouped distinct count completed successfully using secondary client (fallback)");
+      return new GroupedDistinctCounts(counts, secondaryClient.isDistinctAggregationExact());
+    }
+    catch (Exception e) {
+      log.error("Failed to count distinct grouped (term-set) from both primary and secondary clients", e);
+      if (primaryException instanceof ConflictException conflictException) {
+        throw conflictException;
+      }
+      throw new SearchIndexException(
+          "Grouped distinct count failed on both primary and secondary clients. Primary error: " +
+              primaryException.getMessage() + ", Secondary error: " + e.getMessage(),
+          e);
+    }
+  }
+
+  @Override
   public Map<String, Map<String, Long>> countDistinctGroupedByBands(
       final String metricQuery,
       final String groupField,
@@ -601,6 +865,44 @@ public class HybridSearchIndexClient
     }
     catch (Exception e) {
       log.error("Failed to count distinct grouped bands from both primary and secondary clients", e);
+      if (primaryException instanceof ConflictException conflictException) {
+        throw conflictException;
+      }
+      throw new SearchIndexException(
+          "Grouped distinct band count failed on both primary and secondary clients. Primary error: " +
+              String.valueOf(primaryException.getMessage()) + ", Secondary error: " + e.getMessage(),
+          e);
+    }
+  }
+
+  @Override
+  public Map<String, Map<String, Long>> countDistinctGroupedByBands(
+      String metricQuery,
+      String groupField,
+      String distinctField,
+      Collection<String> groupValues,
+      String bandField,
+      Map<String, int[]> bands,
+      List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
+    Exception primaryException = null;
+    try {
+      return primaryClient.countDistinctGroupedByBands(
+          metricQuery, groupField, distinctField, groupValues, bandField, bands, termSetRestrictions);
+    }
+    catch (Exception e) {
+      log.warn("Failed to count distinct grouped bands (term-set) from primary client, falling back to secondary", e);
+      primaryException = e;
+    }
+
+    try {
+      Map<String, Map<String, Long>> result = secondaryClient.countDistinctGroupedByBands(
+          metricQuery, groupField, distinctField, groupValues, bandField, bands, termSetRestrictions);
+      log.debug("Term-set grouped distinct band count completed successfully using secondary client (fallback)");
+      return result;
+    }
+    catch (Exception e) {
+      log.error("Failed to count distinct grouped bands (term-set) from both primary and secondary clients", e);
       if (primaryException instanceof ConflictException conflictException) {
         throw conflictException;
       }

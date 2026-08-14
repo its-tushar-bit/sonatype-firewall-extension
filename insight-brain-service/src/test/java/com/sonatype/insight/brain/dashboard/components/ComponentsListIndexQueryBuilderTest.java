@@ -5,9 +5,12 @@
  */
 package com.sonatype.insight.brain.dashboard.components;
 
+import java.util.List;
 import java.util.Set;
 
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
+import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.IndexTermSetRestriction;
 import com.sonatype.insight.brain.search.index.ItemType;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -38,8 +41,7 @@ public class ComponentsListIndexQueryBuilderTest
 
   @Test
   public void buildComponentQuery_includesComponentItemTypes() {
-    when(dimensionQueryBuilder.buildOrganizationFilterClause(any())).thenReturn(null);
-    when(dimensionQueryBuilder.buildEscapedApplicationFilterClause(any())).thenReturn(null);
+    when(dimensionQueryBuilder.buildScopeFilterRestrictions(any(), any())).thenReturn(List.of());
 
     String query = queryBuilder.buildComponentQuery(new ComponentsListRequestDTO());
 
@@ -49,8 +51,7 @@ public class ComponentsListIndexQueryBuilderTest
 
   @Test
   public void buildComponentQuery_includesSearchAcrossComponentFields() {
-    when(dimensionQueryBuilder.buildOrganizationFilterClause(any())).thenReturn(null);
-    when(dimensionQueryBuilder.buildEscapedApplicationFilterClause(any())).thenReturn(null);
+    when(dimensionQueryBuilder.buildScopeFilterRestrictions(any(), any())).thenReturn(List.of());
 
     ComponentsListRequestDTO request = new ComponentsListRequestDTO();
     request.search = "log4j";
@@ -64,15 +65,32 @@ public class ComponentsListIndexQueryBuilderTest
 
   @Test
   public void buildComponentQuery_appliesOrganizationFilter() {
-    when(dimensionQueryBuilder.buildOrganizationFilterClause(Set.of("org-1")))
-        .thenReturn("organizationId:(org-1)");
-    when(dimensionQueryBuilder.buildEscapedApplicationFilterClause(any())).thenReturn(null);
+    when(dimensionQueryBuilder.buildScopeFilterRestrictions(Set.of("org-1"), null))
+        .thenReturn(IndexTermSetRestriction.singleton(FieldIdentifier.ORGANIZATION_ID.label, Set.of("org-1")));
 
     ComponentsListRequestDTO request = new ComponentsListRequestDTO();
     request.organizationIds = Set.of("org-1");
 
-    String query = queryBuilder.buildComponentQuery(request);
+    ComponentsIndexQuery result = queryBuilder.buildComponentIndexQuery(request);
 
-    assertThat(query).contains("organizationId:(org-1)");
+    assertThat(result.query()).doesNotContain("organizationId:");
+    assertThat(result.termSets()).isNotEmpty();
+  }
+
+  @Test
+  public void buildComponentIndexQuery_putsComponentHashesInTermSetsNotString() {
+    when(dimensionQueryBuilder.buildScopeFilterRestrictions(any(), any())).thenReturn(List.of());
+
+    ComponentsListRequestDTO request = new ComponentsListRequestDTO();
+    request.componentHashes = Set.of("hash-b", "hash-a");
+
+    ComponentsIndexQuery indexQuery = queryBuilder.buildComponentIndexQuery(request);
+
+    assertThat(indexQuery.query()).doesNotContain("componentHash:(");
+    assertThat(indexQuery.query()).doesNotContain("hash-a");
+    assertThat(indexQuery.termSets()).hasSize(1);
+    IndexTermSetRestriction restriction = (IndexTermSetRestriction) indexQuery.termSets().get(0);
+    assertThat(restriction.field()).isEqualTo(FieldIdentifier.COMPONENT_HASH.label);
+    assertThat(restriction.ids()).containsExactly("hash-a", "hash-b");
   }
 }

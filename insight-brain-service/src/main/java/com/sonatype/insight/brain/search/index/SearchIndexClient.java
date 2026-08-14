@@ -91,6 +91,25 @@ public interface SearchIndexClient
       boolean isSbomManagerMode,
       List<String> searchAfter);
 
+  /**
+   * Same as {@link #searchIndex(String, int, int, boolean, boolean, List)} but ANDs
+   * boolean-clause-budget-exempt term-set restrictions (Lucene {@code TermInSetQuery} / OpenSearch
+   * {@code terms}). Null or empty {@code termSetRestrictions} means no extra filters. An empty id
+   * set on a restriction matches nothing (fail closed). Ids are matched lower-cased. CLM-44783.
+   */
+  default SearchResultDTO searchIndex(
+      String searchQuery,
+      int pageSize,
+      int page,
+      boolean allComponents,
+      boolean isSbomManagerMode,
+      List<String> searchAfter,
+      List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
+    throw new UnsupportedOperationException(
+        getClass().getSimpleName() + " does not implement term-set restricted searchIndex()");
+  }
+
   List<SearchIndexChange> getSearchIndexChanges();
 
   /**
@@ -102,11 +121,33 @@ public interface SearchIndexClient
   long count(String metricQuery);
 
   /**
+   * Same as {@link #count(String)} with budget-exempt term-set restrictions. CLM-44783.
+   */
+  default long count(String metricQuery, List<? extends IndexFilterRestriction> termSetRestrictions) {
+    throw new UnsupportedOperationException(
+        getClass().getSimpleName() + " does not implement term-set restricted count()");
+  }
+
+  /**
    * RBAC-scoped bucketed count. {@code bucketField} is a numeric field (e.g.
    * policyViolationThreatLevel); {@code ranges} maps a bucket label to an [minInclusive, maxInclusive]
    * int pair. Implemented in CLM-40927 PR1.
    */
   MetricAggregationResult aggregateCountByField(String metricQuery, String bucketField, Map<String, int[]> ranges);
+
+  /**
+   * Same as {@link #aggregateCountByField(String, String, Map)} with budget-exempt term-set
+   * restrictions. CLM-44783.
+   */
+  default MetricAggregationResult aggregateCountByField(
+      String metricQuery,
+      String bucketField,
+      Map<String, int[]> ranges,
+      List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
+    throw new UnsupportedOperationException(
+        getClass().getSimpleName() + " does not implement term-set restricted aggregateCountByField()");
+  }
 
   /**
    * RBAC-scoped bucketed count over a <em>float</em> point field (the float sibling of
@@ -151,6 +192,21 @@ public interface SearchIndexClient
       String distinctField);
 
   /**
+   * Same as {@link #aggregateCountByFloatField(String, String, Map, String)} with budget-exempt
+   * term-set restrictions. CLM-44783.
+   */
+  default MetricAggregationResult aggregateCountByFloatField(
+      String metricQuery,
+      String bucketField,
+      Map<String, float[]> ranges,
+      String distinctField,
+      List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
+    throw new UnsupportedOperationException(
+        getClass().getSimpleName() + " does not implement term-set restricted aggregateCountByFloatField()");
+  }
+
+  /**
    * RBAC-scoped count of <em>distinct</em> composite keys among the documents matching {@code metricQuery}.
    * The composite key is the tuple of values of {@code compositeKeyFields} (e.g.
    * {@code [applicationId, componentHash]}); documents sharing the same tuple count once. This powers the
@@ -165,6 +221,18 @@ public interface SearchIndexClient
    * approximation; {@link HybridSearchIndexClient} falls back to the exact Lucene count when OpenSearch fails.
    */
   long countDistinct(String metricQuery, List<String> compositeKeyFields);
+
+  /**
+   * Same as {@link #countDistinct(String, List)} with budget-exempt term-set restrictions. CLM-44783.
+   */
+  default long countDistinct(
+      String metricQuery,
+      List<String> compositeKeyFields,
+      List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
+    throw new UnsupportedOperationException(
+        getClass().getSimpleName() + " does not implement term-set restricted countDistinct()");
+  }
 
   /**
    * RBAC-scoped, page-level distinct count: for the documents matching {@code metricQuery}, counts distinct
@@ -182,6 +250,21 @@ public interface SearchIndexClient
       Collection<String> groupValues);
 
   /**
+   * Same as {@link #countDistinctGroupedBy(String, String, String, Collection)} with budget-exempt
+   * term-set restrictions. CLM-44783.
+   */
+  default Map<String, Long> countDistinctGroupedBy(
+      String metricQuery,
+      String groupField,
+      String distinctField,
+      Collection<String> groupValues,
+      List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
+    throw new UnsupportedOperationException(
+        getClass().getSimpleName() + " does not implement term-set restricted countDistinctGroupedBy()");
+  }
+
+  /**
    * Same as {@link #countDistinctGroupedBy} but reports whether the producing backend's counts are
    * exact. Prefer this over combining {@link #countDistinctGroupedBy} with {@link #backendId()}:
    * hybrid failover can return secondary results while {@code backendId()} still names the primary.
@@ -194,6 +277,22 @@ public interface SearchIndexClient
   {
     return new GroupedDistinctCounts(
         countDistinctGroupedBy(metricQuery, groupField, distinctField, groupValues),
+        isDistinctAggregationExact());
+  }
+
+  /**
+   * Same as {@link #countDistinctGroupedByWithExactness(String, String, String, Collection)} with
+   * budget-exempt term-set restrictions. CLM-44783.
+   */
+  default GroupedDistinctCounts countDistinctGroupedByWithExactness(
+      final String metricQuery,
+      final String groupField,
+      final String distinctField,
+      final Collection<String> groupValues,
+      final List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
+    return new GroupedDistinctCounts(
+        countDistinctGroupedBy(metricQuery, groupField, distinctField, groupValues, termSetRestrictions),
         isDistinctAggregationExact());
   }
 
@@ -229,6 +328,23 @@ public interface SearchIndexClient
   }
 
   /**
+   * Same as {@link #rankGroupsByMaxMetric(String, String, String, int, boolean, Map)} with budget-exempt
+   * term-set restrictions. CLM-44783.
+   */
+  default RankedGroupsResult rankGroupsByMaxMetric(
+      String metricQuery,
+      String groupField,
+      String metricField,
+      int limit,
+      boolean ascending,
+      Map<String, float[]> metricBands,
+      List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
+    throw new UnsupportedOperationException(
+        getClass().getSimpleName() + " does not implement term-set restricted rankGroupsByMaxMetric()");
+  }
+
+  /**
    * RBAC-scoped, page-level distinct count split into numeric <em>bands</em>: for the documents matching
    * {@code metricQuery}, counts distinct {@code distinctField} values grouped by {@code groupField}
    * (restricted to {@code groupValues}) <em>within each</em> {@code [minInclusive, maxInclusive]} band of
@@ -252,6 +368,23 @@ public interface SearchIndexClient
       Collection<String> groupValues,
       String bandField,
       Map<String, int[]> bands);
+
+  /**
+   * Same as {@link #countDistinctGroupedByBands(String, String, String, Collection, String, Map)} with
+   * budget-exempt term-set restrictions. CLM-44783.
+   */
+  default Map<String, Map<String, Long>> countDistinctGroupedByBands(
+      String metricQuery,
+      String groupField,
+      String distinctField,
+      Collection<String> groupValues,
+      String bandField,
+      Map<String, int[]> bands,
+      List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
+    throw new UnsupportedOperationException(
+        getClass().getSimpleName() + " does not implement term-set restricted countDistinctGroupedByBands()");
+  }
 
   /**
    * Permission-filters {@code baseQuery}: looks up the caller's READ contexts, builds the filter,

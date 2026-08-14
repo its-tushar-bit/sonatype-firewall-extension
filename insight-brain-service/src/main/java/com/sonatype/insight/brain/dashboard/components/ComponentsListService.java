@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.dashboard.ComponentRiskDTOComparator;
 import com.sonatype.insight.brain.dashboard.DashboardComponentRiskService;
 import com.sonatype.insight.brain.dashboard.DashboardResultsDTO;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.IndexFilterRestriction;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -112,9 +113,10 @@ public class ComponentsListService
         ? ComponentsListRequestValidator.DEFAULT_ORDER_BY
         : request.orderBy;
 
-    String query = indexQueryBuilder.buildComponentQuery(request);
+    ComponentsIndexQuery indexQuery = indexQueryBuilder.buildComponentIndexQuery(request);
+    String query = indexQuery.query();
     ComponentsListDistinctPageFetcher.DistinctPage distinctPage =
-        distinctPageFetcher.fetch(query, page, pageSize);
+        distinctPageFetcher.fetch(query, indexQuery.termSets(), page, pageSize);
     LinkedHashMap<String, SearchResultItemDTO> pageItems = distinctPage.pageItems();
     Map<String, Set<String>> affectedApps = distinctPage.affectedApplicationIds();
 
@@ -145,7 +147,7 @@ public class ComponentsListService
     }
     rows.sort(new ComponentRiskDTOComparator(orderBy));
 
-    long total = countDistinctComponents(query);
+    long total = countDistinctComponents(query, indexQuery.termSets());
 
     ComponentsListResponseDTO response = new ComponentsListResponseDTO();
     response.components = rows;
@@ -157,7 +159,7 @@ public class ComponentsListService
     response.source = ComponentsListResponseDTO.SOURCE_INDEX;
     if (includeFacets) {
       try {
-        response.facets = facetsBuilder.buildFacets(query, total);
+        response.facets = facetsBuilder.buildFacets(query, indexQuery.termSets(), total);
       }
       catch (RuntimeException e) {
         log.warn("Components list facet build failed; returning page without facets", e);
@@ -166,9 +168,12 @@ public class ComponentsListService
     return response;
   }
 
-  private long countDistinctComponents(final String query) {
+  private long countDistinctComponents(final String query, final List<IndexFilterRestriction> termSets) {
     try {
-      return searchIndexClient.countDistinct(query, List.of(FieldIdentifier.COMPONENT_HASH.label));
+      return searchIndexClient.countDistinct(
+          query,
+          List.of(FieldIdentifier.COMPONENT_HASH.label),
+          termSets);
     }
     catch (RuntimeException e) {
       // Never fall back to raw multi-doc hit counts — those inflate CVE×app rows vs distinct hashes.

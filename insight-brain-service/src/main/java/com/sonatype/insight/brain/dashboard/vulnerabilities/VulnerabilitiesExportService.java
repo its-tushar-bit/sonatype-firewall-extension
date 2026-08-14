@@ -12,6 +12,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
+import com.sonatype.insight.brain.search.index.IndexFilterRestriction;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
@@ -74,7 +75,8 @@ public class VulnerabilitiesExportService
         : request.orderBy;
 
     String query = indexQueryBuilder.buildMyScanDataQuery(request);
-    List<SearchResultItemDTO> hits = collectHits(query);
+    List<IndexFilterRestriction> scopeRestrictions = indexQueryBuilder.buildScopeRestrictions(request);
+    List<SearchResultItemDTO> hits = collectHits(query, scopeRestrictions);
     if (hits.size() >= MAX_EXPORT_ROWS) {
       log.warn(
           "Vulnerabilities blast-radius export truncated at {} rows; results may be incomplete",
@@ -89,7 +91,10 @@ public class VulnerabilitiesExportService
     return rows;
   }
 
-  private List<SearchResultItemDTO> collectHits(final String query) {
+  private List<SearchResultItemDTO> collectHits(
+      final String query,
+      final List<IndexFilterRestriction> scopeRestrictions)
+  {
     List<SearchResultItemDTO> hits = new ArrayList<>();
     for (int indexPage = 0; indexPage < MAX_INDEX_PAGES && hits.size() < MAX_EXPORT_ROWS; indexPage++) {
       SearchResultDTO searchResult = searchIndexClient.searchIndex(
@@ -98,7 +103,8 @@ public class VulnerabilitiesExportService
           VulnerabilitiesListService.toSearchIndexPage(indexPage),
           false,
           false,
-          List.of());
+          List.of(),
+          scopeRestrictions);
       appendVulnerabilityHits(searchResult, hits);
       boolean exhaustedPage = searchResult.groupingByDTOS == null
           || searchResult.groupingByDTOS.isEmpty()

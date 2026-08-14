@@ -13,21 +13,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.IndexFilterRestriction;
+import com.sonatype.insight.brain.search.index.IndexOrTermSetGroup;
+import com.sonatype.insight.brain.search.index.IndexTermSetRestriction;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.regex.Pattern;
-
 /**
- * Shared Lucene dimension clauses for dashboard index queries (metrics + Martha applications list).
+ * Shared organization/application scope helpers for dashboard index queries (metrics + Martha lists).
+ * <p>
+ * Preferred path (CLM-44783): {@link #expandOrganizationFilterIds}, {@link #applicationFilterIds}, and
+ * {@link #buildScopeFilterRestrictions} — budget-exempt term sets (size is not charged against
+ * {@code maxAdvancedSearchClauseCount}). Deprecated string clause builders still enforce that cap so
+ * transitional Lucene-string callers cannot compose an unsafely large bool query.
  */
 @Named
 public class DashboardIndexDimensionQueryBuilder
@@ -60,7 +67,13 @@ public class DashboardIndexDimensionQueryBuilder
     this.configuration = configuration;
   }
 
-  public String buildOrganizationFilterClause(final Set<String> organizationIds) {
+  /**
+   * Expanded organization ids for a budget-exempt term-set filter.
+   * <p>
+   * {@code null} means unrestricted (null/empty input, or root present). Empty expansion yields a
+   * singleton no-match sentinel. Size is not charged against {@code maxAdvancedSearchClauseCount}.
+   */
+  public Set<String> expandOrganizationFilterIds(final Set<String> organizationIds) {
     if (organizationIds == null || organizationIds.isEmpty()) {
       return null;
     }
@@ -69,28 +82,72 @@ public class DashboardIndexDimensionQueryBuilder
     }
     Set<String> expandedOrgIds = organizationDAO.getAllChildOrganizationIds(organizationIds);
     if (expandedOrgIds.isEmpty()) {
-      return "organizationId:(" + NO_MATCH_ORGANIZATION_FILTER_ID + ")";
+      return Set.of(NO_MATCH_ORGANIZATION_FILTER_ID);
     }
-    int maxClauseCount = configuration.getMaxAdvancedSearchClauseCount();
-    if (expandedOrgIds.size() > maxClauseCount) {
-      throw new BadRequestException(
-          "Organization filter expands to too many organizations (max " + maxClauseCount + ").");
-    }
-    return "organizationId:(" + String.join(" ", sortedCopy(expandedOrgIds)) + ")";
+    return Set.copyOf(expandedOrgIds);
   }
 
   /**
-   * Builds a Lucene organization filter clause per input id using a single descendant-expansion
-   * query. Root organization ids and blank ids are omitted from the result (same skip semantics as
-   * a {@code null} return from {@link #buildOrganizationFilterClause} for those keys).
-   * <p>
-   * Unlike {@link #buildOrganizationFilterClause} (used for deliberate org filter selection), this
-   * method soft-skips any org whose expanded descendant set exceeds
-   * {@code maxAdvancedSearchClauseCount}: the id is omitted from the returned map rather than
-   * throwing. Callers (facet search / facet discovery) treat a missing clause as "skip this org" so
-   * one oversized hierarchy cannot 400 the whole list request.
+   * Normalized application ids for a budget-exempt term-set filter, or {@code null} when absent.
+   * Rejects blank ids. Size is not charged against {@code maxAdvancedSearchClauseCount}.
    */
-  public Map<String, String> buildOrganizationFilterClausesById(final Collection<String> organizationIds) {
+  public Set<String> applicationFilterIds(final Set<String> applicationIds) {
+    if (applicationIds == null || applicationIds.isEmpty()) {
+      return null;
+    }
+    rejectBlankFilterIds(applicationIds, "applicationIds");
+    return Set.copyOf(applicationIds);
+  }
+
+  /**
+   * Classic-union scope restrictions: org-only or app-only is a single term set; both present is an
+   * {@link IndexOrTermSetGroup} (OR). Empty list means unrestricted.
+   */
+  public List<IndexFilterRestriction> buildScopeFilterRestrictions(
+      final Set<String> organizationIds,
+      final Set<String> applicationIds)
+  {
+    Set<String> expandedOrgs = expandOrganizationFilterIds(organizationIds);
+    Set<String> apps = applicationFilterIds(applicationIds);
+    if (expandedOrgs == null && apps == null) {
+      return List.of();
+    }
+    if (expandedOrgs != null && apps == null) {
+      return IndexTermSetRestriction.singleton(FieldIdentifier.ORGANIZATION_ID.label, expandedOrgs);
+    }
+    if (expandedOrgs == null) {
+      return IndexTermSetRestriction.singleton(FieldIdentifier.APPLICATION_ID.label, apps);
+    }
+    return IndexOrTermSetGroup.singleton(
+        IndexTermSetRestriction.of(FieldIdentifier.ORGANIZATION_ID.label, expandedOrgs),
+        IndexTermSetRestriction.of(FieldIdentifier.APPLICATION_ID.label, apps));
+  }
+
+  /**
+   * AND semantics for org + app (Vulnerabilities list): each present dimension is its own term set.
+   */
+  public List<IndexFilterRestriction> buildScopeFilterRestrictionsAnd(
+      final Set<String> organizationIds,
+      final Set<String> applicationIds)
+  {
+    List<IndexFilterRestriction> restrictions = new ArrayList<>(2);
+    Set<String> expandedOrgs = expandOrganizationFilterIds(organizationIds);
+    if (expandedOrgs != null) {
+      restrictions.add(IndexTermSetRestriction.of(FieldIdentifier.ORGANIZATION_ID.label, expandedOrgs));
+    }
+    Set<String> apps = applicationFilterIds(applicationIds);
+    if (apps != null) {
+      restrictions.add(IndexTermSetRestriction.of(FieldIdentifier.APPLICATION_ID.label, apps));
+    }
+    return List.copyOf(restrictions);
+  }
+
+  /**
+   * Expanded org ids per input id for facet sibling counts. Soft-skips any org whose expanded set
+   * exceeds {@code maxAdvancedSearchClauseCount} (safety ceiling; not a Lucene bool-clause charge).
+   * Root and blank ids are omitted.
+   */
+  public Map<String, Set<String>> expandOrganizationFilterIdsById(final Collection<String> organizationIds) {
     if (organizationIds == null || organizationIds.isEmpty()) {
       return Map.of();
     }
@@ -109,28 +166,63 @@ public class DashboardIndexDimensionQueryBuilder
     Map<String, Set<String>> expandedByAncestor =
         organizationDAO.getChildOrganizationIdsGroupedByAncestor(toExpand);
     int maxClauseCount = configuration.getMaxAdvancedSearchClauseCount();
-    Map<String, String> clauses = new LinkedHashMap<>(toExpand.size());
+    Map<String, Set<String>> byId = new LinkedHashMap<>(toExpand.size());
     for (String organizationId : toExpand) {
       Set<String> expandedOrgIds = expandedByAncestor.getOrDefault(organizationId, Set.of());
       if (expandedOrgIds.isEmpty()) {
-        clauses.put(organizationId, "organizationId:(" + NO_MATCH_ORGANIZATION_FILTER_ID + ")");
+        byId.put(organizationId, Set.of(NO_MATCH_ORGANIZATION_FILTER_ID));
         continue;
       }
-      if (expandedOrgIds.size() > maxClauseCount) {
+      if (maxClauseCount > 0 && expandedOrgIds.size() > maxClauseCount) {
         // Soft-skip: facet paths must not abort the list because one named org is too wide.
         continue;
       }
-      clauses.put(organizationId, "organizationId:(" + String.join(" ", sortedCopy(expandedOrgIds)) + ")");
+      byId.put(organizationId, Set.copyOf(expandedOrgIds));
+    }
+    return byId;
+  }
+
+  /**
+   * @deprecated Prefer {@link #expandOrganizationFilterIds} / {@link #buildScopeFilterRestrictions}.
+   *             Still enforces {@code maxAdvancedSearchClauseCount} because the result is inlined into
+   *             the Lucene string query.
+   */
+  @Deprecated
+  public String buildOrganizationFilterClause(final Set<String> organizationIds) {
+    Set<String> expandedOrgIds = expandOrganizationFilterIds(organizationIds);
+    if (expandedOrgIds == null) {
+      return null;
+    }
+    rejectIfExceedsClauseBudget(expandedOrgIds.size(), "Organization filter expands to too many organizations");
+    return "organizationId:(" + String.join(" ", sortedCopy(expandedOrgIds)) + ")";
+  }
+
+  /**
+   * @deprecated Prefer {@link #expandOrganizationFilterIdsById}.
+   */
+  @Deprecated
+  public Map<String, String> buildOrganizationFilterClausesById(final Collection<String> organizationIds) {
+    Map<String, Set<String>> expandedById = expandOrganizationFilterIdsById(organizationIds);
+    Map<String, String> clauses = new LinkedHashMap<>(expandedById.size());
+    for (Map.Entry<String, Set<String>> entry : expandedById.entrySet()) {
+      clauses.put(entry.getKey(), "organizationId:(" + String.join(" ", sortedCopy(entry.getValue())) + ")");
     }
     return clauses;
   }
 
-  /** Metrics-style application clause (sorted ids, no escaping or size cap). */
+  /**
+   * Metrics-style application clause (sorted ids, no escaping). Prefer {@link #applicationFilterIds}.
+   *
+   * @deprecated Prefer term-set scope. Still enforces {@code maxAdvancedSearchClauseCount}.
+   */
+  @Deprecated
   public String buildApplicationFilterClause(final Set<String> applicationIds) {
-    if (applicationIds == null || applicationIds.isEmpty()) {
+    Set<String> ids = applicationFilterIds(applicationIds);
+    if (ids == null) {
       return null;
     }
-    return "applicationId:(" + String.join(" ", sortedCopy(applicationIds)) + ")";
+    rejectIfExceedsClauseBudget(ids.size(), "Application filter contains too many ids");
+    return "applicationId:(" + String.join(" ", sortedCopy(ids)) + ")";
   }
 
   public String buildPolicyEvaluationStageFilterClause(final Set<String> stageIds) {
@@ -142,23 +234,28 @@ public class DashboardIndexDimensionQueryBuilder
   }
 
   /**
-   * Martha list application clause: rejects blank ids, caps clause count, and escapes Lucene terms.
+   * @deprecated Prefer {@link #applicationFilterIds}. Blank rejection preserved; still enforces
+   *             {@code maxAdvancedSearchClauseCount} for Lucene-string callers.
    */
+  @Deprecated
   public String buildEscapedApplicationFilterClause(final Set<String> applicationIds) {
-    if (applicationIds == null || applicationIds.isEmpty()) {
+    Set<String> ids = applicationFilterIds(applicationIds);
+    if (ids == null) {
       return null;
     }
-    rejectBlankFilterIds(applicationIds, "applicationIds");
-    int maxClauseCount = configuration.getMaxAdvancedSearchClauseCount();
-    if (applicationIds.size() > maxClauseCount) {
-      throw new BadRequestException(
-          "Application filter contains too many ids (max " + maxClauseCount + ").");
-    }
-    List<String> escapedIds = new ArrayList<>(applicationIds.size());
-    for (String applicationId : sortedCopy(applicationIds)) {
+    rejectIfExceedsClauseBudget(ids.size(), "Application filter contains too many ids");
+    List<String> escapedIds = new ArrayList<>(ids.size());
+    for (String applicationId : sortedCopy(ids)) {
       escapedIds.add(escapeLuceneTerm(applicationId));
     }
     return "applicationId:(" + String.join(" ", escapedIds) + ")";
+  }
+
+  private void rejectIfExceedsClauseBudget(final int idCount, final String messagePrefix) {
+    int maxClauseCount = configuration.getMaxAdvancedSearchClauseCount();
+    if (maxClauseCount > 0 && idCount > maxClauseCount) {
+      throw new BadRequestException(messagePrefix + " (max " + maxClauseCount + ").");
+    }
   }
 
   /**

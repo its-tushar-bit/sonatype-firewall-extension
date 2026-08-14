@@ -42,9 +42,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
@@ -308,6 +310,65 @@ public class HybridSearchIndexClientTest
     assertThatThrownBy(() -> hybridClient.searchIndex("test", 10, 0, false, false, Collections.emptyList()))
         .isInstanceOf(SearchIndexException.class)
         .hasMessageContaining("Search failed on both primary and secondary clients");
+  }
+
+  @Test
+  public void searchIndexWithIdSet_usesPrimaryClient() {
+    SearchResultDTO expectedResult = new SearchResultDTO();
+    List<String> ids = List.of("cve-1", "cve-2");
+    List<IndexTermSetRestriction> restrictions =
+        List.of(IndexTermSetRestriction.of("vulnerabilityId", ids));
+    when(primaryClient.searchIndex(
+        anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), eq(restrictions)))
+            .thenReturn(expectedResult);
+
+    SearchResultDTO result =
+        hybridClient.searchIndex("test", 10, 0, false, false, Collections.emptyList(), restrictions);
+
+    assertThat(result).isSameAs(expectedResult);
+    verify(primaryClient).searchIndex(
+        "test", 10, 0, false, false, Collections.emptyList(), restrictions);
+    verify(secondaryClient, never()).searchIndex(
+        anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), anyList());
+  }
+
+  @Test
+  public void searchIndexWithIdSet_fallsBackToSecondaryWhenPrimaryFails() {
+    SearchResultDTO expectedResult = new SearchResultDTO();
+    List<String> ids = List.of("cve-1");
+    List<IndexTermSetRestriction> restrictions =
+        List.of(IndexTermSetRestriction.of("vulnerabilityId", ids));
+    when(primaryClient.searchIndex(
+        anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), eq(restrictions)))
+            .thenThrow(new RuntimeException("Primary client error"));
+    when(secondaryClient.searchIndex(
+        anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), eq(restrictions)))
+            .thenReturn(expectedResult);
+
+    SearchResultDTO result =
+        hybridClient.searchIndex("test", 10, 0, false, false, Collections.emptyList(), restrictions);
+
+    assertThat(result).isSameAs(expectedResult);
+    verify(secondaryClient).searchIndex(
+        "test", 10, 0, false, false, Collections.emptyList(), restrictions);
+  }
+
+  @Test
+  public void countDistinctGroupedByWithIdSet_usesPrimaryClient() {
+    Map<String, Long> expected = Map.of("cve-1", 3L);
+    List<String> ids = List.of("cve-1");
+    List<IndexTermSetRestriction> restrictions =
+        List.of(IndexTermSetRestriction.of("vulnerabilityId", ids));
+    when(primaryClient.countDistinctGroupedBy(
+        anyString(), anyString(), anyString(), anyCollection(), eq(restrictions)))
+            .thenReturn(expected);
+
+    Map<String, Long> result = hybridClient.countDistinctGroupedBy(
+        "itemType:SECURITY_VULNERABILITY", "vulnerabilityId", "applicationPublicId", ids, restrictions);
+
+    assertThat(result).isSameAs(expected);
+    verify(secondaryClient, never()).countDistinctGroupedBy(
+        anyString(), anyString(), anyString(), anyCollection(), anyList());
   }
 
   @Test

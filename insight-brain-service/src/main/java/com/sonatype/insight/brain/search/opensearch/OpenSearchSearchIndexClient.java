@@ -49,6 +49,10 @@ import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.search.SearchConfig.AwsHttpOpenSearchConfig;
 import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.IdSetFilterQueries;
+import com.sonatype.insight.brain.search.index.IndexFilterRestriction;
+import com.sonatype.insight.brain.search.index.IndexOrTermSetGroup;
+import com.sonatype.insight.brain.search.index.IndexTermSetRestriction;
 import com.sonatype.insight.brain.search.index.MetricAggregationResult;
 import com.sonatype.insight.brain.search.index.RankedGroupsResult;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
@@ -362,6 +366,19 @@ public class OpenSearchSearchIndexClient
       final boolean isSbomManagerMode,
       final List<String> searchAfter)
   {
+    return searchIndex(searchQuery, pageSize, page, allComponents, isSbomManagerMode, searchAfter, null);
+  }
+
+  @Override
+  public SearchResultDTO searchIndex(
+      final String searchQuery,
+      final int pageSize,
+      final int page,
+      final boolean allComponents,
+      final boolean isSbomManagerMode,
+      final List<String> searchAfter,
+      final List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
     checkMode(isSbomManagerMode);
 
     boolean initialSearch = false;
@@ -384,6 +401,7 @@ public class OpenSearchSearchIndexClient
       populateTelemetry(initialSearch, fieldNames);
       checkFieldNames(fieldNames);
       String finalQuery = createFinalQuery(initialQuery, isSbomManagerMode);
+      Query searchQueryDsl = buildSearchQuery(finalQuery, termSetRestrictions);
 
       List<Hit<Map>> results = new ArrayList<>();
       long totalNumberOfHits;
@@ -398,10 +416,7 @@ public class OpenSearchSearchIndexClient
       while (true) {
         SearchRequest.Builder searchRequestBuilder = new SearchRequest.Builder()
             .index(indexConfigProvider.getIndexConfig().getIndexName())
-            .query(q -> q
-                .queryString(qs -> qs
-                    .query(finalQuery)
-                    .defaultField(FieldIdentifier.VULNERABILITY_ID.label)))
+            .query(searchQueryDsl)
             .size(newPageSize)
             .trackTotalHits(new TrackHits.Builder().enabled(true).build())
             .sort(List.of(
@@ -865,6 +880,11 @@ public class OpenSearchSearchIndexClient
 
   @Override
   public long count(final String metricQuery) {
+    return count(metricQuery, null);
+  }
+
+  @Override
+  public long count(final String metricQuery, final List<? extends IndexFilterRestriction> termSetRestrictions) {
     try {
       String initialQuery = createInitialQuery(metricQuery, true);
       Set<String> fieldNames = getFieldNames(initialQuery);
@@ -874,7 +894,7 @@ public class OpenSearchSearchIndexClient
           .index(indexConfigProvider.getIndexConfig().getIndexName())
           .size(0)
           .trackTotalHits(new TrackHits.Builder().enabled(true).build())
-          .query(buildMetricQuery(initialQuery))
+          .query(andTermSetFilters(buildMetricQuery(initialQuery), termSetRestrictions))
           .build();
 
       SearchResponse<Map> searchResponse = getClient().search(searchRequest, Map.class);
@@ -895,6 +915,16 @@ public class OpenSearchSearchIndexClient
       final String bucketField,
       final Map<String, int[]> ranges)
   {
+    return aggregateCountByField(metricQuery, bucketField, ranges, null);
+  }
+
+  @Override
+  public MetricAggregationResult aggregateCountByField(
+      final String metricQuery,
+      final String bucketField,
+      final Map<String, int[]> ranges,
+      final List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
     validateRangeBounds(ranges);
     try {
       String initialQuery = createInitialQuery(metricQuery, true);
@@ -914,7 +944,7 @@ public class OpenSearchSearchIndexClient
           .index(indexConfigProvider.getIndexConfig().getIndexName())
           .size(0)
           .trackTotalHits(new TrackHits.Builder().enabled(true).build())
-          .query(buildMetricQuery(initialQuery))
+          .query(andTermSetFilters(buildMetricQuery(initialQuery), termSetRestrictions))
           .aggregations("metricBuckets", a -> a
               .range(r -> r
                   .field(bucketField)
@@ -954,6 +984,17 @@ public class OpenSearchSearchIndexClient
       final Map<String, float[]> ranges,
       final String distinctField)
   {
+    return aggregateCountByFloatField(metricQuery, bucketField, ranges, distinctField, null);
+  }
+
+  @Override
+  public MetricAggregationResult aggregateCountByFloatField(
+      final String metricQuery,
+      final String bucketField,
+      final Map<String, float[]> ranges,
+      final String distinctField,
+      final List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
     validateFloatRangeBounds(ranges);
     if (distinctField != null) {
       checkFieldNames(new HashSet<>(List.of(bucketField, distinctField)));
@@ -983,7 +1024,7 @@ public class OpenSearchSearchIndexClient
           .index(indexConfigProvider.getIndexConfig().getIndexName())
           .size(0)
           .trackTotalHits(new TrackHits.Builder().enabled(true).build())
-          .query(buildMetricQuery(initialQuery))
+          .query(andTermSetFilters(buildMetricQuery(initialQuery), termSetRestrictions))
           .aggregations("metricBuckets", a -> distinctLabel == null
               ? a.range(r -> r.field(bucketField).ranges(aggregationRanges))
               : a.range(r -> r.field(bucketField).ranges(aggregationRanges))
@@ -1024,6 +1065,15 @@ public class OpenSearchSearchIndexClient
 
   @Override
   public long countDistinct(final String metricQuery, final List<String> compositeKeyFields) {
+    return countDistinct(metricQuery, compositeKeyFields, null);
+  }
+
+  @Override
+  public long countDistinct(
+      final String metricQuery,
+      final List<String> compositeKeyFields,
+      final List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
     validateCompositeKeyFields(compositeKeyFields);
     checkFieldNames(new HashSet<>(compositeKeyFields));
     try {
@@ -1036,7 +1086,7 @@ public class OpenSearchSearchIndexClient
       SearchRequest searchRequest = new SearchRequest.Builder()
           .index(indexConfigProvider.getIndexConfig().getIndexName())
           .size(0)
-          .query(buildMetricQuery(initialQuery))
+          .query(andTermSetFilters(buildMetricQuery(initialQuery), termSetRestrictions))
           .aggregations("distinctCompositeKeys", a -> a
               .cardinality(c -> c
                   .script(compositeKeyScript)
@@ -1068,6 +1118,19 @@ public class OpenSearchSearchIndexClient
       final boolean ascending,
       final Map<String, float[]> metricBands)
   {
+    return rankGroupsByMaxMetric(metricQuery, groupField, metricField, limit, ascending, metricBands, null);
+  }
+
+  @Override
+  public RankedGroupsResult rankGroupsByMaxMetric(
+      final String metricQuery,
+      final String groupField,
+      final String metricField,
+      final int limit,
+      final boolean ascending,
+      final Map<String, float[]> metricBands,
+      final List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
     checkFieldNames(new HashSet<>(List.of(groupField, metricField)));
     validateFloatRangeBounds(metricBands);
     if (limit <= 0) {
@@ -1095,7 +1158,7 @@ public class OpenSearchSearchIndexClient
           request -> getClient().search(request, Map.class),
           () -> new SearchRequest.Builder()
               .pit(new Pit.Builder().id(pinnedPitId).keepAlive(pitKeepAlive).build())
-              .query(osQuery),
+              .query(andTermSetFilters(osQuery, termSetRestrictions)),
           groupLabel,
           metricField,
           limit,
@@ -1127,6 +1190,17 @@ public class OpenSearchSearchIndexClient
       final String distinctField,
       final Collection<String> groupValues)
   {
+    return countDistinctGroupedBy(metricQuery, groupField, distinctField, groupValues, null);
+  }
+
+  @Override
+  public Map<String, Long> countDistinctGroupedBy(
+      final String metricQuery,
+      final String groupField,
+      final String distinctField,
+      final Collection<String> groupValues,
+      final List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
     checkFieldNames(new HashSet<>(List.of(groupField, distinctField)));
     if (groupValues == null || groupValues.isEmpty()) {
       return Map.of();
@@ -1156,7 +1230,7 @@ public class OpenSearchSearchIndexClient
       SearchRequest searchRequest = new SearchRequest.Builder()
           .index(indexConfigProvider.getIndexConfig().getIndexName())
           .size(0)
-          .query(buildMetricQuery(initialQuery))
+          .query(andTermSetFilters(buildMetricQuery(initialQuery), termSetRestrictions))
           .aggregations("groups", a -> a
               .terms(t -> t.field(groupLabel)
                   .size(includeTerms.size())
@@ -1201,6 +1275,20 @@ public class OpenSearchSearchIndexClient
       final String bandField,
       final Map<String, int[]> bands)
   {
+    return countDistinctGroupedByBands(
+        metricQuery, groupField, distinctField, groupValues, bandField, bands, null);
+  }
+
+  @Override
+  public Map<String, Map<String, Long>> countDistinctGroupedByBands(
+      final String metricQuery,
+      final String groupField,
+      final String distinctField,
+      final Collection<String> groupValues,
+      final String bandField,
+      final Map<String, int[]> bands,
+      final List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
     checkFieldNames(new HashSet<>(List.of(groupField, distinctField, bandField)));
     validateRangeBounds(bands);
     if (groupValues == null || groupValues.isEmpty() || bands == null || bands.isEmpty()) {
@@ -1234,7 +1322,7 @@ public class OpenSearchSearchIndexClient
       SearchRequest searchRequest = new SearchRequest.Builder()
           .index(indexConfigProvider.getIndexConfig().getIndexName())
           .size(0)
-          .query(buildMetricQuery(initialQuery))
+          .query(andTermSetFilters(buildMetricQuery(initialQuery), termSetRestrictions))
           .aggregations("bands", a -> a
               .range(r -> r.field(bandField).ranges(aggregationRanges))
               .aggregations("groups", g -> g
@@ -1324,6 +1412,81 @@ public class OpenSearchSearchIndexClient
         .bool(b -> b
             .must(userQueryClause)
             .filter(rbacFilter)));
+  }
+
+  /**
+   * Search path query: keeps the historical query-string (+ string RBAC via {@code createFinalQuery})
+   * and optionally ANDs budget-exempt {@code terms} filters on known id sets (CLM-44783).
+   */
+  private Query buildSearchQuery(
+      final String finalQuery,
+      final List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
+    Query userQueryClause = Query.of(q -> q
+        .queryString(qs -> qs
+            .query(finalQuery)
+            .defaultField(FieldIdentifier.VULNERABILITY_ID.label)));
+    return andTermSetFilters(userQueryClause, termSetRestrictions);
+  }
+
+  private Query andTermSetFilters(
+      final Query baseQuery,
+      final List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
+    if (termSetRestrictions == null || termSetRestrictions.isEmpty()) {
+      return baseQuery;
+    }
+    if (termSetRestrictions.size() == 1) {
+      Query termSetFilter = toOpenSearchFilter(termSetRestrictions.get(0));
+      return Query.of(q -> q
+          .bool(b -> b
+              .must(baseQuery)
+              .filter(termSetFilter)));
+    }
+    return Query.of(q -> q
+        .bool(b -> {
+          b.must(baseQuery);
+          for (IndexFilterRestriction restriction : termSetRestrictions) {
+            b.filter(toOpenSearchFilter(restriction));
+          }
+          return b;
+        }));
+  }
+
+  private Query toOpenSearchFilter(final IndexFilterRestriction restriction) {
+    if (restriction instanceof IndexTermSetRestriction termSet) {
+      return buildOpenSearchIdSetFilter(termSet.field(), termSet.ids());
+    }
+    if (restriction instanceof IndexOrTermSetGroup orGroup) {
+      List<IndexTermSetRestriction> alternatives = orGroup.alternatives();
+      if (alternatives.size() == 1) {
+        return buildOpenSearchIdSetFilter(alternatives.get(0).field(), alternatives.get(0).ids());
+      }
+      return Query.of(q -> q
+          .bool(b -> {
+            for (IndexTermSetRestriction alternative : alternatives) {
+              b.should(buildOpenSearchIdSetFilter(alternative.field(), alternative.ids()));
+            }
+            b.minimumShouldMatch("1");
+            return b;
+          }));
+    }
+    throw new IllegalArgumentException("Unknown IndexFilterRestriction: " + restriction);
+  }
+
+  private Query buildOpenSearchIdSetFilter(final String idField, final Collection<String> ids) {
+    List<String> normalized = IdSetFilterQueries.normalizedIds(ids);
+    if (normalized.isEmpty()) {
+      return Query.of(q -> q.matchNone(m -> m));
+    }
+    List<FieldValue> terms = new ArrayList<>(normalized.size());
+    for (String id : normalized) {
+      terms.add(FieldValue.of(id));
+    }
+    return Query.of(q -> q
+        .terms(t -> t
+            .field(idField)
+            .terms(tv -> tv.value(terms))));
   }
 
   /**

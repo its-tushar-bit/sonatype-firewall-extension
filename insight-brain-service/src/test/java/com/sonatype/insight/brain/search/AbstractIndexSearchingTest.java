@@ -94,14 +94,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 /**
@@ -168,7 +165,6 @@ public abstract class AbstractIndexSearchingTest
   @Rule
   public HdsMockServerRule hdsMockServer = new HdsMockServerRule();
 
-  @Before
   @BeforeEach
   public void setUpSearchOverrides() {
     spyOrganizationDAO = spy(daoFactory.createOrganizationDAO());
@@ -183,7 +179,6 @@ public abstract class AbstractIndexSearchingTest
     // Skip default Root Org LTGs — policy violation tests create their own isolated LTGs
   }
 
-  @Before
   @BeforeEach
   public void before() {
     UserPrincipal userPrincipal = (UserPrincipal) subject.getPrincipal();
@@ -2014,7 +2009,6 @@ public abstract class AbstractIndexSearchingTest
     assertThat(svResults).isNotEmpty();
   }
 
-  @BeforeClass
   @BeforeAll
   public static void beforeClass() {
     System.setProperty("AdvancedSearch.createSearchIndex", "2");
@@ -2022,7 +2016,6 @@ public abstract class AbstractIndexSearchingTest
     System.setProperty("AdvancedSearch.createSearchIndex.component", "2");
   }
 
-  @AfterClass
   @AfterAll
   public static void afterClass() {
     System.clearProperty("AdvancedSearch.createSearchIndex");

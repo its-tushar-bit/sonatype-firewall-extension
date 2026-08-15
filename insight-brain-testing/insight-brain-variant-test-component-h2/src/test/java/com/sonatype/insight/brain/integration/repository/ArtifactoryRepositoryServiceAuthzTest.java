@@ -9,12 +9,14 @@ import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.repository.ConfigureRepositoriesRequest;
 import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
+@ComponentH2Test
 public class ArtifactoryRepositoryServiceAuthzTest
-    extends AbstractRepositoryServiceAuthzTest
+    extends AbstractRepositoryServiceAuthzH2Test
 {
   @Inject
   TestProductLicenseManager licenseManager;
@@ -27,7 +29,7 @@ public class ArtifactoryRepositoryServiceAuthzTest
     return repositoryService;
   }
 
-  @Before
+  @BeforeEach
   public void init() {
     licenseManager.setFeatures(LicensedFeature.FIREWALL_FOR_ARTIFACTORY);
   }

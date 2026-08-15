@@ -128,10 +128,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.junit.Before;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
@@ -220,7 +219,6 @@ public abstract class AbstractRepositoryServiceTest
 
   private PolicyViolationLogDTOAssert policyViolationLogDTOAssert;
 
-  @Before
   @BeforeEach
   public void before() {
     policyViolationLogDTOAssert = new PolicyViolationLogDTOAssert(repositoryManagerDAO);

@@ -11,9 +11,11 @@ import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.repository.ConfigureRepositoriesRequest;
 import com.sonatype.clm.dto.model.repository.RepositoryDTO;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 
+@ComponentH2Test
 public class ArtifactoryRepositoryServiceTest
-    extends AbstractRepositoryServiceTest
+    extends AbstractRepositoryServiceH2Test
 {
   @Inject
   private ArtifactoryRepositoryService repositoryService;

@@ -37,9 +37,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import org.junit.Before;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DASHBOARD_DISABLED;
 import static com.sonatype.insight.brain.utils.DisplayFieldValueAssertionUtil.assertDisplayFieldValues;
@@ -81,7 +80,6 @@ public abstract class AbstractComponentRiskServiceTest
 
   protected abstract DashboardComponentRiskService getComponentRiskService();
 
-  @Before
   @BeforeEach
   public void setup() {
     org = tempEntity.newOrganization();

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -27,7 +28,7 @@ import jakarta.inject.Inject;
 import java.util.List;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 public abstract class AbstractRepositoryServiceAuthzTest
@@ -62,15 +63,19 @@ public abstract class AbstractRepositoryServiceAuthzTest
     getRepositoryService().setAuditEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true, null);
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testSetAuditEnabled_NewRepositoryManager_NewRepository_Unauthenticated() {
-    getRepositoryService().setAuditEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true, null);
+    assertThrows(UnauthenticatedException.class, () -> {
+      getRepositoryService().setAuditEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true, null);
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testSetAuditEnabled_NewRepositoryManager_NewRepository_Unauthorized() {
-    login();
-    getRepositoryService().setAuditEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true, null);
+    assertThrows(UnauthorizedException.class, () -> {
+      login();
+      getRepositoryService().setAuditEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true, null);
+    });
   }
 
   @Test
@@ -80,17 +85,21 @@ public abstract class AbstractRepositoryServiceAuthzTest
     getRepositoryService().setAuditEnabled(repoManager.getInstanceId(), REPOSITORY_PUBLIC_ID, true, null);
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testSetAuditEnabled_ExistingRepositoryManager_NewRepository_Unauthenticated() {
-    RepositoryManager repoManager = tempEntity.newRepositoryManager();
-    getRepositoryService().setAuditEnabled(repoManager.getInstanceId(), REPOSITORY_PUBLIC_ID, true, null);
+    assertThrows(UnauthenticatedException.class, () -> {
+      RepositoryManager repoManager = tempEntity.newRepositoryManager();
+      getRepositoryService().setAuditEnabled(repoManager.getInstanceId(), REPOSITORY_PUBLIC_ID, true, null);
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testSetAuditEnabled_ExistingRepositoryManager_NewRepository_Unauthorized() {
-    RepositoryManager repoManager = tempEntity.newRepositoryManager();
-    login();
-    getRepositoryService().setAuditEnabled(repoManager.getInstanceId(), REPOSITORY_PUBLIC_ID, true, null);
+    assertThrows(UnauthorizedException.class, () -> {
+      RepositoryManager repoManager = tempEntity.newRepositoryManager();
+      login();
+      getRepositoryService().setAuditEnabled(repoManager.getInstanceId(), REPOSITORY_PUBLIC_ID, true, null);
+    });
   }
 
   @Test
@@ -101,19 +110,23 @@ public abstract class AbstractRepositoryServiceAuthzTest
     getRepositoryService().setAuditEnabled(repoManager.getInstanceId(), repo.getPublicId(), true, null);
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testSetAuditEnabled_ExistingRepository_Unauthenticated() {
-    RepositoryManager repoManager = tempEntity.newRepositoryManager();
-    Repository repo = tempEntity.newRepository(repoManager, "testPublicId");
-    getRepositoryService().setAuditEnabled(repoManager.getInstanceId(), repo.getPublicId(), true, null);
+    assertThrows(UnauthenticatedException.class, () -> {
+      RepositoryManager repoManager = tempEntity.newRepositoryManager();
+      Repository repo = tempEntity.newRepository(repoManager, "testPublicId");
+      getRepositoryService().setAuditEnabled(repoManager.getInstanceId(), repo.getPublicId(), true, null);
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testSetAuditEnabled_ExistingRepository_Unauthorized() {
-    RepositoryManager repoManager = tempEntity.newRepositoryManager();
-    Repository repo = tempEntity.newRepository(repoManager, "testPublicId");
-    login();
-    getRepositoryService().setAuditEnabled(repoManager.getInstanceId(), repo.getPublicId(), true, null);
+    assertThrows(UnauthorizedException.class, () -> {
+      RepositoryManager repoManager = tempEntity.newRepositoryManager();
+      Repository repo = tempEntity.newRepository(repoManager, "testPublicId");
+      login();
+      getRepositoryService().setAuditEnabled(repoManager.getInstanceId(), repo.getPublicId(), true, null);
+    });
   }
 
   protected Repository createRepository() {
@@ -128,17 +141,21 @@ public abstract class AbstractRepositoryServiceAuthzTest
     getRepositoryService().setQuarantine(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true, null);
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testSetQuarantine_Unauthenticated() {
-    createRepository();
-    getRepositoryService().setQuarantine(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true, null);
+    assertThrows(UnauthenticatedException.class, () -> {
+      createRepository();
+      getRepositoryService().setQuarantine(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true, null);
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testSetQuarantine_Unauthorized() {
-    createRepository();
-    grantWritePermission();
-    getRepositoryService().setQuarantine(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true, null);
+    assertThrows(UnauthorizedException.class, () -> {
+      createRepository();
+      grantWritePermission();
+      getRepositoryService().setQuarantine(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true, null);
+    });
   }
 
   @Test
@@ -148,17 +165,21 @@ public abstract class AbstractRepositoryServiceAuthzTest
     getRepositoryService().getPolicyEvaluationSummary(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, null);
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testGetPolicyEvaluationSummary_Unauthenticated() {
-    createRepository();
-    getRepositoryService().getPolicyEvaluationSummary(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, null);
+    assertThrows(UnauthenticatedException.class, () -> {
+      createRepository();
+      getRepositoryService().getPolicyEvaluationSummary(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, null);
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testGetPolicyEvaluationSummary_Unauthorized() {
-    createRepository();
-    grantWritePermission();
-    getRepositoryService().getPolicyEvaluationSummary(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, null);
+    assertThrows(UnauthorizedException.class, () -> {
+      createRepository();
+      grantWritePermission();
+      getRepositoryService().getPolicyEvaluationSummary(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, null);
+    });
   }
 
   @Test
@@ -168,17 +189,21 @@ public abstract class AbstractRepositoryServiceAuthzTest
     getRepositoryService().getRepositoryResultsUrl(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, null);
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testGetRepositoryResultsUrl_Unauthenticated() {
-    createRepository();
-    getRepositoryService().getRepositoryResultsUrl(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, null);
+    assertThrows(UnauthenticatedException.class, () -> {
+      createRepository();
+      getRepositoryService().getRepositoryResultsUrl(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, null);
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testGetRepositoryResultsUrl_Unauthorized() {
-    createRepository();
-    login();
-    getRepositoryService().getRepositoryResultsUrl(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, null);
+    assertThrows(UnauthorizedException.class, () -> {
+      createRepository();
+      login();
+      getRepositoryService().getRepositoryResultsUrl(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, null);
+    });
   }
 
   @Test
@@ -188,17 +213,21 @@ public abstract class AbstractRepositoryServiceAuthzTest
         null /* componentEvaluationDataRequestList */, false, null);
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testEvaluateComponents_Unauthenticated() {
-    getRepositoryService().evaluateComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(),
-        null /* componentEvaluationDataRequestList */, false, null);
+    assertThrows(UnauthenticatedException.class, () -> {
+      getRepositoryService().evaluateComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(),
+          null /* componentEvaluationDataRequestList */, false, null);
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testEvaluateComponents_Unauthorized() {
-    grantWritePermission();
-    getRepositoryService().evaluateComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(),
-        null /* componentEvaluationDataRequestList */, false, null);
+    assertThrows(UnauthorizedException.class, () -> {
+      grantWritePermission();
+      getRepositoryService().evaluateComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(),
+          null /* componentEvaluationDataRequestList */, false, null);
+    });
   }
 
   @Test
@@ -226,34 +255,40 @@ public abstract class AbstractRepositoryServiceAuthzTest
     getRepositoryService().removeComponent(MANUAL_REPO_MAN_INSTANCE_ID, repository.getPublicId(), pathname, null);
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testRemoveComponent_Unauthenticated() {
-    getRepositoryService().removeComponent(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), "somepath",
-        null);
+    assertThrows(UnauthenticatedException.class, () -> {
+      getRepositoryService().removeComponent(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), "somepath",
+          null);
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testRemoveComponent_Unauthorized() {
-    grantWritePermission();
-    getRepositoryService().removeComponent(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), "somepath",
-        null);
+    assertThrows(UnauthorizedException.class, () -> {
+      grantWritePermission();
+      getRepositoryService().removeComponent(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), "somepath",
+          null);
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testRemoveComponent_Unauthorized_DockerProxyRepository() {
-    login();
+    assertThrows(UnauthorizedException.class, () -> {
+      login();
 
-    Repository repository = createRepository();
-    repository.setRepositoryType(RepositoryType.proxy);
-    repository.setFormat("docker");
+      Repository repository = createRepository();
+      repository.setRepositoryType(RepositoryType.proxy);
+      repository.setFormat("docker");
 
-    String pathname = "containerImage-tag";
-    Application application = tempEntity.newApplicationWithParent("test-app-" + tempEntity.uuid(), pathname);
+      String pathname = "containerImage-tag";
+      Application application = tempEntity.newApplicationWithParent("test-app-" + tempEntity.uuid(), pathname);
 
-    repository.setRelatedOrganizationId(application.getOrganizationId());
-    repositoryDAO.update(repository);
+      repository.setRelatedOrganizationId(application.getOrganizationId());
+      repositoryDAO.update(repository);
 
-    getRepositoryService().removeComponent(MANUAL_REPO_MAN_INSTANCE_ID, repository.getPublicId(), pathname, null);
+      getRepositoryService().removeComponent(MANUAL_REPO_MAN_INSTANCE_ID, repository.getPublicId(), pathname, null);
+    });
   }
 
   @Test
@@ -263,32 +298,42 @@ public abstract class AbstractRepositoryServiceAuthzTest
         null);
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testGetUnquarantinedComponents_Unauthenticated() {
-    getRepositoryService().getUnquarantinedComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), 0,
-        null);
+    assertThrows(UnauthenticatedException.class, () -> {
+      getRepositoryService().getUnquarantinedComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(),
+          0,
+          null);
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testGetUnquarantinedComponents_Unauthorized() {
-    login();
-    getRepositoryService().getUnquarantinedComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), 0,
-        null);
+    assertThrows(UnauthorizedException.class, () -> {
+      login();
+      getRepositoryService().getUnquarantinedComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(),
+          0,
+          null);
+    });
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testAddProprietaryComponentNames_ExistingRepositoryManager_NewRepository_Unauthenticated() {
-    RepositoryManager repoManager = tempEntity.newRepositoryManager();
-    getRepositoryService().addProprietaryComponentNames(repoManager.getInstanceId(),
-        "testRepoPublicId", new ProprietaryComponentNames("npm", "private"));
+    assertThrows(UnauthenticatedException.class, () -> {
+      RepositoryManager repoManager = tempEntity.newRepositoryManager();
+      getRepositoryService().addProprietaryComponentNames(repoManager.getInstanceId(),
+          "testRepoPublicId", new ProprietaryComponentNames("npm", "private"));
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testAddProprietaryComponentNames_ExistingRepositoryManager_NewRepository_Unauthorized() {
-    RepositoryManager repoManager = tempEntity.newRepositoryManager();
-    login();
-    getRepositoryService().addProprietaryComponentNames(repoManager.getInstanceId(),
-        "testRepoPublicId", new ProprietaryComponentNames("npm", "private"));
+    assertThrows(UnauthorizedException.class, () -> {
+      RepositoryManager repoManager = tempEntity.newRepositoryManager();
+      login();
+      getRepositoryService().addProprietaryComponentNames(repoManager.getInstanceId(),
+          "testRepoPublicId", new ProprietaryComponentNames("npm", "private"));
+    });
   }
 
   @Test
@@ -299,21 +344,25 @@ public abstract class AbstractRepositoryServiceAuthzTest
         "testRepoPublicId", new ProprietaryComponentNames("npm", "private"));
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testAddProprietaryComponentNames_ExistingRepository_Unauthenticated() {
-    RepositoryManager repoManager = tempEntity.newRepositoryManager();
-    Repository repo = tempEntity.newHostedRepository(repoManager, "testRepoPublicId", "npm", true);
-    getRepositoryService().addProprietaryComponentNames(repoManager.getInstanceId(), repo.getPublicId(),
-        new ProprietaryComponentNames("npm", "private"));
+    assertThrows(UnauthenticatedException.class, () -> {
+      RepositoryManager repoManager = tempEntity.newRepositoryManager();
+      Repository repo = tempEntity.newHostedRepository(repoManager, "testRepoPublicId", "npm", true);
+      getRepositoryService().addProprietaryComponentNames(repoManager.getInstanceId(), repo.getPublicId(),
+          new ProprietaryComponentNames("npm", "private"));
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testAddProprietaryComponentNames_ExistingRepository_Unauthorized() {
-    RepositoryManager repoManager = tempEntity.newRepositoryManager();
-    Repository repo = tempEntity.newHostedRepository(repoManager, "testRepoPublicId", "npm", true);
-    login();
-    getRepositoryService().addProprietaryComponentNames(repoManager.getInstanceId(), repo.getPublicId(),
-        new ProprietaryComponentNames("npm", "private"));
+    assertThrows(UnauthorizedException.class, () -> {
+      RepositoryManager repoManager = tempEntity.newRepositoryManager();
+      Repository repo = tempEntity.newHostedRepository(repoManager, "testRepoPublicId", "npm", true);
+      login();
+      getRepositoryService().addProprietaryComponentNames(repoManager.getInstanceId(), repo.getPublicId(),
+          new ProprietaryComponentNames("npm", "private"));
+    });
   }
 
   @Test
@@ -325,17 +374,21 @@ public abstract class AbstractRepositoryServiceAuthzTest
         new ProprietaryComponentNames("npm", "private"));
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testAddProprietaryComponentNames_NewRepositoryManager_NewRepository_Unauthenticated() {
-    getRepositoryService().addProprietaryComponentNames("testRepoManagerInstanceId", "testRepoPublicId",
-        new ProprietaryComponentNames("npm", "private"));
+    assertThrows(UnauthenticatedException.class, () -> {
+      getRepositoryService().addProprietaryComponentNames("testRepoManagerInstanceId", "testRepoPublicId",
+          new ProprietaryComponentNames("npm", "private"));
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testAddProprietaryComponentNames_NewRepositoryManager_NewRepository_Unauthorized() {
-    login();
-    getRepositoryService().addProprietaryComponentNames("testRepoManagerInstanceId", "testRepoPublicId",
-        new ProprietaryComponentNames("npm", "private"));
+    assertThrows(UnauthorizedException.class, () -> {
+      login();
+      getRepositoryService().addProprietaryComponentNames("testRepoManagerInstanceId", "testRepoPublicId",
+          new ProprietaryComponentNames("npm", "private"));
+    });
   }
 
   @Test
@@ -368,19 +421,23 @@ public abstract class AbstractRepositoryServiceAuthzTest
     getRepositoryService().removeProprietaryComponentNames(repoManager.getInstanceId(), "testRepoPublicId");
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testRemoveProprietaryComponentNames_ExistingRepository_Unauthenticated() {
-    RepositoryManager repoManager = tempEntity.newRepositoryManager();
-    Repository repo = tempEntity.newHostedRepository(repoManager, "testRepoPublicId", "npm", true);
-    getRepositoryService().removeProprietaryComponentNames(repoManager.getInstanceId(), repo.getPublicId());
+    assertThrows(UnauthenticatedException.class, () -> {
+      RepositoryManager repoManager = tempEntity.newRepositoryManager();
+      Repository repo = tempEntity.newHostedRepository(repoManager, "testRepoPublicId", "npm", true);
+      getRepositoryService().removeProprietaryComponentNames(repoManager.getInstanceId(), repo.getPublicId());
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testRemoveProprietaryComponentNames_ExistingRepository_Unauthorized() {
-    RepositoryManager repoManager = tempEntity.newRepositoryManager();
-    Repository repo = tempEntity.newHostedRepository(repoManager, "testRepoPublicId", "npm", true);
-    login();
-    getRepositoryService().removeProprietaryComponentNames(repoManager.getInstanceId(), repo.getPublicId());
+    assertThrows(UnauthorizedException.class, () -> {
+      RepositoryManager repoManager = tempEntity.newRepositoryManager();
+      Repository repo = tempEntity.newHostedRepository(repoManager, "testRepoPublicId", "npm", true);
+      login();
+      getRepositoryService().removeProprietaryComponentNames(repoManager.getInstanceId(), repo.getPublicId());
+    });
   }
 
   @Test
@@ -411,21 +468,27 @@ public abstract class AbstractRepositoryServiceAuthzTest
     getRepositoryService().removeProprietaryComponentNames("testRepoManagerInstanceId", "testRepoPublicId");
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testGetQuarantinedComponentReportUrl_Unauthenticated() {
-    final RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    final Repository repository = tempEntity.newRepository(repositoryManager, "repo");
-    getRepositoryService().getQuarantinedComponentReportUrl(repositoryManager.getInstanceId(), repository.getPublicId(),
-        "", null);
+    assertThrows(UnauthenticatedException.class, () -> {
+      final RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+      final Repository repository = tempEntity.newRepository(repositoryManager, "repo");
+      getRepositoryService().getQuarantinedComponentReportUrl(repositoryManager.getInstanceId(),
+          repository.getPublicId(),
+          "", null);
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testGetQuarantinedComponentReportUrl_Unauthorized() {
-    login();
-    final RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    final Repository repository = tempEntity.newRepository(repositoryManager, "repo");
-    getRepositoryService().getQuarantinedComponentReportUrl(repositoryManager.getInstanceId(), repository.getPublicId(),
-        "", null);
+    assertThrows(UnauthorizedException.class, () -> {
+      login();
+      final RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+      final Repository repository = tempEntity.newRepository(repositoryManager, "repo");
+      getRepositoryService().getQuarantinedComponentReportUrl(repositoryManager.getInstanceId(),
+          repository.getPublicId(),
+          "", null);
+    });
   }
 
   @Test
@@ -450,17 +513,21 @@ public abstract class AbstractRepositoryServiceAuthzTest
         null /* componentEvaluationDataRequestList */, null);
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testEvaluateComponentMetadata_Unauthenticated() {
-    getRepositoryService().evaluateComponentMetadata(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(),
-        null /* componentEvaluationDataRequestList */, null);
+    assertThrows(UnauthenticatedException.class, () -> {
+      getRepositoryService().evaluateComponentMetadata(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(),
+          null /* componentEvaluationDataRequestList */, null);
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testEvaluateComponentMetadata_Unauthorized() {
-    grantWritePermission();
-    getRepositoryService().evaluateComponentMetadata(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(),
-        null /* componentEvaluationDataRequestList */, null);
+    assertThrows(UnauthorizedException.class, () -> {
+      grantWritePermission();
+      getRepositoryService().evaluateComponentMetadata(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(),
+          null /* componentEvaluationDataRequestList */, null);
+    });
   }
 
   @Test
@@ -470,17 +537,21 @@ public abstract class AbstractRepositoryServiceAuthzTest
         null);
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testConfigureRepositories_NewRepositoryManager_Unauthenticated() {
-    getRepositoryService().configureRepositories(MANUAL_REPO_MAN_INSTANCE_ID, null /* configureRepositoriesRequest */,
-        null);
+    assertThrows(UnauthenticatedException.class, () -> {
+      getRepositoryService().configureRepositories(MANUAL_REPO_MAN_INSTANCE_ID, null /* configureRepositoriesRequest */,
+          null);
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testConfigureRepositories_NewRepositoryManager_Unauthorized() {
-    login();
-    getRepositoryService().configureRepositories(MANUAL_REPO_MAN_INSTANCE_ID, null /* configureRepositoriesRequest */,
-        null);
+    assertThrows(UnauthorizedException.class, () -> {
+      login();
+      getRepositoryService().configureRepositories(MANUAL_REPO_MAN_INSTANCE_ID, null /* configureRepositoriesRequest */,
+          null);
+    });
   }
 
   @Test
@@ -491,34 +562,42 @@ public abstract class AbstractRepositoryServiceAuthzTest
         null);
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testConfigureRepositories_ExistingRepositoryManager_Unauthenticated() {
-    RepositoryManager repoManager = tempEntity.newRepositoryManager();
-    getRepositoryService().configureRepositories(repoManager.getInstanceId(), null /* configureRepositoriesRequest */,
-        null);
+    assertThrows(UnauthenticatedException.class, () -> {
+      RepositoryManager repoManager = tempEntity.newRepositoryManager();
+      getRepositoryService().configureRepositories(repoManager.getInstanceId(), null /* configureRepositoriesRequest */,
+          null);
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testConfigureRepositories_ExistingRepositoryManager_Unauthorized() {
-    RepositoryManager repoManager = tempEntity.newRepositoryManager();
-    login();
-    getRepositoryService().configureRepositories(repoManager.getInstanceId(), null /* configureRepositoriesRequest */,
-        null);
+    assertThrows(UnauthorizedException.class, () -> {
+      RepositoryManager repoManager = tempEntity.newRepositoryManager();
+      login();
+      getRepositoryService().configureRepositories(repoManager.getInstanceId(), null /* configureRepositoriesRequest */,
+          null);
+    });
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testRemoveRepository_Unauthenticated() {
-    RepositoryManager repoManager = tempEntity.newRepositoryManager();
-    Repository repo = tempEntity.newRepository(repoManager, "testPublicId");
-    getRepositoryService().removeRepository(repoManager.getInstanceId(), repo.getPublicId());
+    assertThrows(UnauthenticatedException.class, () -> {
+      RepositoryManager repoManager = tempEntity.newRepositoryManager();
+      Repository repo = tempEntity.newRepository(repoManager, "testPublicId");
+      getRepositoryService().removeRepository(repoManager.getInstanceId(), repo.getPublicId());
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testRemoveRepository_Unauthorized() {
-    RepositoryManager repoManager = tempEntity.newRepositoryManager();
-    Repository repo = tempEntity.newRepository(repoManager, "testPublicId");
-    login();
-    getRepositoryService().removeRepository(repoManager.getInstanceId(), repo.getPublicId());
+    assertThrows(UnauthorizedException.class, () -> {
+      RepositoryManager repoManager = tempEntity.newRepositoryManager();
+      Repository repo = tempEntity.newRepository(repoManager, "testPublicId");
+      login();
+      getRepositoryService().removeRepository(repoManager.getInstanceId(), repo.getPublicId());
+    });
   }
 
   @Test
@@ -540,34 +619,42 @@ public abstract class AbstractRepositoryServiceAuthzTest
     getRepositoryService().getConfiguredRepositories(repositoryManager.getInstanceId(), 0L, null);
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testGetConfiguredRepositories_Unauthenticated() {
-    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    getRepositoryService().getConfiguredRepositories(repositoryManager.getInstanceId(), 0L, null);
+    assertThrows(UnauthenticatedException.class, () -> {
+      RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+      getRepositoryService().getConfiguredRepositories(repositoryManager.getInstanceId(), 0L, null);
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testGetConfiguredRepositories_Unauthorized() {
-    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    login();
-    getRepositoryService().getConfiguredRepositories(repositoryManager.getInstanceId(), 0L, null);
+    assertThrows(UnauthorizedException.class, () -> {
+      RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+      login();
+      getRepositoryService().getConfiguredRepositories(repositoryManager.getInstanceId(), 0L, null);
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testAddProprietaryNamespaceNames_ExistingRepository_Unauthorized() {
-    RepositoryManager repoManager = tempEntity.newRepositoryManager();
-    Repository repo = tempEntity.newHostedRepository(repoManager, "testRepoPublicId", "npm", true);
-    login();
-    getRepositoryService().addProprietaryNamespaceNames(repoManager.getInstanceId(), repo.getPublicId(),
-        "npm", List.of("org.sonatype"));
+    assertThrows(UnauthorizedException.class, () -> {
+      RepositoryManager repoManager = tempEntity.newRepositoryManager();
+      Repository repo = tempEntity.newHostedRepository(repoManager, "testRepoPublicId", "npm", true);
+      login();
+      getRepositoryService().addProprietaryNamespaceNames(repoManager.getInstanceId(), repo.getPublicId(),
+          "npm", List.of("org.sonatype"));
+    });
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testAddProprietaryNamespaceNames_Unauthenticated() {
-    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    Repository repo = tempEntity.newHostedRepository(repositoryManager, "testRepoPublicId", "npm", true);
-    getRepositoryService().addProprietaryNamespaceNames(
-        repositoryManager.getInstanceId(), repo.getPublicId(), "npm", List.of("org.sonatype"));
+    assertThrows(UnauthenticatedException.class, () -> {
+      RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+      Repository repo = tempEntity.newHostedRepository(repositoryManager, "testRepoPublicId", "npm", true);
+      getRepositoryService().addProprietaryNamespaceNames(
+          repositoryManager.getInstanceId(), repo.getPublicId(), "npm", List.of("org.sonatype"));
+    });
   }
 
   @Test
@@ -579,12 +666,14 @@ public abstract class AbstractRepositoryServiceAuthzTest
         "npm", List.of("org.sonatype"));
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testRemoveProprietaryNamespaceNames_ExistingRepository_Unauthorized() {
-    RepositoryManager repoManager = tempEntity.newRepositoryManager();
-    Repository repo = tempEntity.newHostedRepository(repoManager, "testRepoPublicId", "npm", true);
-    login();
-    getRepositoryService().removeProprietaryNamespaceNames(repoManager.getInstanceId(), repo.getPublicId());
+    assertThrows(UnauthorizedException.class, () -> {
+      RepositoryManager repoManager = tempEntity.newRepositoryManager();
+      Repository repo = tempEntity.newHostedRepository(repoManager, "testRepoPublicId", "npm", true);
+      login();
+      getRepositoryService().removeProprietaryNamespaceNames(repoManager.getInstanceId(), repo.getPublicId());
+    });
   }
 
   @Test

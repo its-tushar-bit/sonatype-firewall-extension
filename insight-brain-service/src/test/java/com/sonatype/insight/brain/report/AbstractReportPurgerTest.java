@@ -34,10 +34,9 @@ import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jooq.exception.DataAccessException;
-import org.junit.Before;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
@@ -76,7 +75,6 @@ public abstract class AbstractReportPurgerTest
     return Date.from(ZonedDateTime.now().minusDays(days).toInstant());
   }
 
-  @Before
   @BeforeEach
   public void init() {
     org = tempEntity.newOrganization();

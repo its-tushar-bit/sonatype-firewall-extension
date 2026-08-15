@@ -8,13 +8,16 @@ package com.sonatype.insight.brain.integration.repository;
 import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.repository.ConfigureRepositoriesRequest;
+import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.variant.ComponentH2Test;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -25,11 +28,19 @@ public class RepositoryServiceAuthzTest
 {
 
   @Inject
+  TestProductLicenseManager licenseManager;
+
+  @Inject
   private RepositoryService repositoryService;
 
   @Override
   protected AbstractRepositoryService getRepositoryService() {
     return repositoryService;
+  }
+
+  @BeforeEach
+  public void setLicenseFeature() {
+    licenseManager.setFeatures(LicensedFeature.FIREWALL);
   }
 
   @Test

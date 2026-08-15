@@ -152,6 +152,9 @@ public class RepositoryPolicyEvaluatorTest
   private RepositoryPolicyEvaluator repositoryPolicyEvaluator;
 
   @Inject
+  private ProprietaryComponentNameDetector proprietaryComponentNameDetector;
+
+  @Inject
   private ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   @Inject
@@ -1213,6 +1216,9 @@ public class RepositoryPolicyEvaluatorTest
     Repository repoHosted =
         tempEntity.newRepository(repoMan, "hosted-repo", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
     tempEntity.newProprietaryComponentNamePattern(repoHosted, "@sonatype", null);
+    // The detector's per-format matcher is a Spring singleton and its cache never TTL-expires under H2, so
+    // a sibling test can leave an empty npm matcher cached before this pattern insert. Force a rebuild.
+    proprietaryComponentNameDetector.invalidateMatchers();
     Repository repo = tempEntity.newRepository(repoMan, "proxy-repo");
 
     Policy policy = new Policy(null, "Namespace Confusion");

@@ -350,6 +350,15 @@ public class OpenSearchIndexReadSession
     }
   }
 
+  /**
+   * Native nested aggregation ({@code terms} → {@code cardinality}), so a multi-valued group field
+   * contributes a bucket per value. {@code cardinality} is HyperLogLog++ and therefore approximate above
+   * its precision threshold, unlike the exact Lucene implementation; callers needing exact counts must use
+   * the Lucene backend.
+   * <p>
+   * <strong>NOT LIVE-VERIFIED:</strong> The OpenSearch test harness was removed (CLM-39882), so this
+   * implementation is not integration-tested. Unit tests verify query/aggregation construction.
+   */
   @Override
   public Map<String, Long> countDistinctGroupedBy(
       final Query query,

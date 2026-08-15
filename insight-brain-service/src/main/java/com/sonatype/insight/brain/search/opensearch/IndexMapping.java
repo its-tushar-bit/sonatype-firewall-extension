@@ -46,10 +46,12 @@ public class IndexMapping
 
     propertyMappings.put(FieldIdentifier.ITEM_TYPE.label, createProperty("keyword"));
 
-    propertyMappings.put(FieldIdentifier.ORGANIZATION_ID.label, createProperty("keyword"));
+    // Case-sensitive because faceted on the raw id (opaque UUID, sentinel, or hash)
+    propertyMappings.put(FieldIdentifier.ORGANIZATION_ID.label, createProperty("keyword_case_sensitive"));
     propertyMappings.put(FieldIdentifier.ORGANIZATION_NAME.label, createProperty("keyword"));
 
-    propertyMappings.put(FieldIdentifier.APPLICATION_ID.label, createProperty("keyword"));
+    // Case-sensitive because faceted on the raw id (opaque UUID)
+    propertyMappings.put(FieldIdentifier.APPLICATION_ID.label, createProperty("keyword_case_sensitive"));
     propertyMappings.put(FieldIdentifier.APPLICATION_NAME.label, createProperty("keyword"));
     propertyMappings.put(FieldIdentifier.APPLICATION_PUBLIC_ID.label, createProperty("keyword"));
     propertyMappings.put(FieldIdentifier.APPLICATION_VERSION.label, createProperty("keyword"));
@@ -58,7 +60,8 @@ public class IndexMapping
 
     propertyMappings.put(FieldIdentifier.REPORT_ID.label, createProperty("keyword"));
 
-    propertyMappings.put(FieldIdentifier.COMPONENT_HASH.label, createProperty("keyword"));
+    // Case-sensitive because faceted on the raw id (opaque hash)
+    propertyMappings.put(FieldIdentifier.COMPONENT_HASH.label, createProperty("keyword_case_sensitive"));
     propertyMappings.put(FieldIdentifier.COMPONENT_FORMAT.label, createProperty("keyword"));
     propertyMappings.put(FieldIdentifier.COMPONENT_NAME.label, createProperty("keyword"));
     for (String format : ComponentIdentifier.getAllFormats()) {
@@ -73,7 +76,8 @@ public class IndexMapping
     propertyMappings.put(FieldIdentifier.VULNERABILITY_STATUS.label, createProperty("keyword"));
     propertyMappings.put(FieldIdentifier.VULNERABILITY_DESCRIPTION.label, createProperty("text"));
 
-    propertyMappings.put(FieldIdentifier.APPLICATION_CATEGORY_ID.label, createProperty("keyword"));
+    // Case-sensitive because faceted on the raw id (opaque UUID)
+    propertyMappings.put(FieldIdentifier.APPLICATION_CATEGORY_ID.label, createProperty("keyword_case_sensitive"));
     propertyMappings.put(FieldIdentifier.APPLICATION_CATEGORY_NAME.label, createProperty("keyword"));
     propertyMappings.put(FieldIdentifier.APPLICATION_CATEGORY_COLOR.label, createProperty("keyword"));
     propertyMappings.put(FieldIdentifier.APPLICATION_CATEGORY_DESCRIPTION.label, createProperty("text"));
@@ -88,7 +92,8 @@ public class IndexMapping
     propertyMappings.put(FieldIdentifier.POLICY_THREAT_CATEGORY.label, createProperty("keyword"));
     propertyMappings.put(FieldIdentifier.POLICY_THREAT_LEVEL.label, createProperty("integer"));
 
-    propertyMappings.put(FieldIdentifier.PARENT_ORGANIZATION_ID.label, createProperty("keyword"));
+    // Case-sensitive because faceted on the raw id (opaque UUID, hierarchical closure)
+    propertyMappings.put(FieldIdentifier.PARENT_ORGANIZATION_ID.label, createProperty("keyword_case_sensitive"));
     propertyMappings.put(FieldIdentifier.PARENT_ORGANIZATION_NAME.label, createProperty("keyword"));
 
     propertyMappings.put(FieldIdentifier.SBOM_SPECIFICATION.label, createProperty("keyword"));
@@ -121,7 +126,8 @@ public class IndexMapping
     // filtering can be relied on.
     propertyMappings.put(FieldIdentifier.POLICY_WAIVER_ID.label, createProperty("keyword"));
     propertyMappings.put(FieldIdentifier.POLICY_WAIVER_POLICY_NAME.label, createProperty("keyword"));
-    propertyMappings.put(FieldIdentifier.POLICY_WAIVER_POLICY_ID.label, createProperty("keyword"));
+    // Case-sensitive because faceted on the raw id (opaque UUID)
+    propertyMappings.put(FieldIdentifier.POLICY_WAIVER_POLICY_ID.label, createProperty("keyword_case_sensitive"));
     propertyMappings.put(FieldIdentifier.POLICY_WAIVER_REASON.label, createProperty("text"));
     propertyMappings.put(FieldIdentifier.POLICY_WAIVER_COMMENT.label, createProperty("text"));
     // ISO-8601 stored as a single keyword token (DocumentBuilder intent); must not date-detect.

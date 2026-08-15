@@ -150,13 +150,14 @@ public class DocumentBuilderHelperTest
           Function<Set<String>, Map<String, IndexingContext.ViolationRollup>> loader = inv.getArgument(1);
           return loader.apply(ids);
         });
-    // Category names are memoized on the real IndexingContext; the mock has no cache, so route the
-    // loader inline (it now calls TagDAO.getByApplicationIdsGrouped) so H2-seeded tags are read back.
+    // Categories are memoized on the real IndexingContext; the mock has no cache, so route the loader
+    // inline (it calls TagDAO.getByApplicationIdsGrouped once for both projections) so H2-seeded tags
+    // are read back.
     lenient()
-        .when(indexingContextMock.getCategoryNamesByApp(anySet(), any()))
+        .when(indexingContextMock.getCategoriesByApp(anySet(), any()))
         .thenAnswer(inv -> {
           Set<String> ids = inv.getArgument(0);
-          Function<Set<String>, Map<String, List<String>>> loader = inv.getArgument(1);
+          Function<Set<String>, Map<String, IndexingContext.ApplicationCategories>> loader = inv.getArgument(1);
           return loader.apply(ids);
         });
   }
@@ -539,6 +540,55 @@ public class DocumentBuilderHelperTest
   }
 
   /**
+   * Part B: Application docs carry category IDs (raw, opaque) in addition to category names.
+   * Part C: Application docs get the full ancestor organization closure, not just the direct org.
+   */
+  @Test
+  public void testBuildApplicationDoc_categoryIdsAndParentOrgClosure() {
+    // Part B: Application docs carry category IDs (raw, opaque) in addition to category names.
+    // Part C: Application docs get the full ancestor organization closure, not just the direct org.
+
+    // Create a 3-level org hierarchy: grandparent -> parent -> org, with the app under org.
+    Organization grandparent = tempEntity.newOrganization("Grandparent");
+    Organization parent = tempEntity.newOrganization("Parent");
+    Organization org = tempEntity.newOrganization("Org");
+    Application app = tempEntity.newApplicationWithParent(org);
+
+    // Create two tags and associate with the app
+    Tag category1 = tempEntity.newTag(org.getId(), "Category1");
+    Tag category2 = tempEntity.newTag(org.getId(), "Category2");
+    tempEntity.newApplicationTag(app.getId(), category1.getId());
+    tempEntity.newApplicationTag(app.getId(), category2.getId());
+
+    when(indexingContextMock.getOwner(app.getOrganizationId())).thenReturn(org);
+    when(indexingContextMock.getOwner(org.getId())).thenReturn(org);
+    when(indexingContextMock.getOwner(parent.getId())).thenReturn(parent);
+    when(indexingContextMock.getOwner(grandparent.getId())).thenReturn(grandparent);
+    // The ancestor closure {self..root} that resolveAncestorOrganizations walks.
+    when(indexingContextMock.getAncestorOrgIds(org))
+        .thenReturn(List.of(org.getId(), parent.getId(), grandparent.getId()));
+    stubNoEvaluationsByDefault(app.getId());
+
+    Document doc = documentBuilderHelper.buildDocument(indexingContextMock, app);
+
+    // Part B: assert both category names and IDs are populated
+    assertThat(doc.getValues(FieldIdentifier.APPLICATION_CATEGORY_NAME.label))
+        .containsExactlyInAnyOrder(category1.getName(), category2.getName());
+    assertThat(doc.getValues(FieldIdentifier.APPLICATION_CATEGORY_ID.label))
+        .containsExactlyInAnyOrder(category1.getId(), category2.getId());
+
+    // Part C: the app doc carries the FULL ancestor closure (org + parent + grandparent), not just
+    // the singleton direct org that setOwner(org) writes.
+    assertThat(doc.getValues(FieldIdentifier.PARENT_ORGANIZATION_ID.label))
+        .containsExactlyInAnyOrder(org.getId(), parent.getId(), grandparent.getId());
+
+    // The name closure is the display-key half of the same write: the rails facet on ids and label the
+    // buckets from these names, so a missing name leaves an unlabelled bucket.
+    assertThat(doc.getValues(FieldIdentifier.PARENT_ORGANIZATION_NAME.label))
+        .containsExactlyInAnyOrder(org.getName(), parent.getName(), grandparent.getName());
+  }
+
+  /**
    * {@code applicationCategoryNames} is the shared category-names helper reached from the
    * POLICY_VIOLATION and LEGAL_VIOLATION paths with {@code application.getId()} passed straight
    * through (no per-caller null guard). Its {@code Set.of(applicationId)} rejects a null element, so
@@ -554,7 +604,7 @@ public class DocumentBuilderHelperTest
     List<String> result = (List<String>) method.invoke(documentBuilderHelper, indexingContextMock, null);
 
     assertThat(result).isEmpty();
-    verify(indexingContextMock, never()).getCategoryNamesByApp(anySet(), any());
+    verify(indexingContextMock, never()).getCategoriesByApp(anySet(), any());
   }
 
   @SuppressWarnings("unchecked")
@@ -621,6 +671,34 @@ public class DocumentBuilderHelperTest
   }
 
   /**
+   * Mirrors {@code testBuildPolicyViolationDocument_carriesApplicationCategoryName}: POLICY_VIOLATION
+   * docs must also carry the application's raw category IDs (not just names) so the category facet
+   * can be id-keyed for the VIOLATION index-query type.
+   */
+  @Test
+  public void testBuildPolicyViolationDocument_carriesApplicationCategoryId() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplicationWithParent(org);
+    Tag tag = tempEntity.newTag(org.getId(), "Finance");
+    tempEntity.newApplicationTag(app.getId(), tag.getId());
+
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
+        app.getId(), StageTypes.BUILD.getId(), "scan-pv-catid", new Date(), "commit-pv-catid");
+    PolicyViolation violation = tempEntity.newPolicyViolation(
+        eval, tempEntity.newPolicy(org.getId(), "crit-policy", 9), 9,
+        PolicyThreatCategory.SECURITY, "g", "a", "1");
+
+    List<Document> docs = buildPolicyViolationDocuments(
+        indexingContextMock, org, List.of(org), app, List.of(violation));
+
+    Document doc = docs.stream()
+        .filter(d -> ItemType.POLICY_VIOLATION.name().equals(itemTypeOf(d)))
+        .findFirst()
+        .orElseThrow();
+    assertThat(doc.getValues(FieldIdentifier.APPLICATION_CATEGORY_ID.label)).containsExactly(tag.getId());
+  }
+
+  /**
    * A POLICY_VIOLATION doc for an app with no category tags must omit the category field entirely.
    */
   @Test
@@ -667,6 +745,32 @@ public class DocumentBuilderHelperTest
         .findFirst()
         .orElseThrow();
     assertThat(doc.getValues(FieldIdentifier.APPLICATION_CATEGORY_NAME.label)).containsExactly("Finance");
+  }
+
+  /**
+   * Mirrors {@code testBuildLegalViolationDocument_carriesApplicationCategoryName}: LEGAL_VIOLATION
+   * docs must also carry the application's raw category IDs (not just names) so the category facet
+   * can be id-keyed for the VIOLATION index-query type.
+   */
+  @Test
+  public void testBuildLegalViolationDocument_carriesApplicationCategoryId() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplicationWithParent(org);
+    Tag tag = tempEntity.newTag(org.getId(), "Finance");
+    tempEntity.newApplicationTag(app.getId(), tag.getId());
+
+    Component component = new Component(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1", null, "jar"));
+    component.addDeclaredLicenseId("license-id-1");
+
+    List<Document> docs =
+        buildLegalViolationDocuments(indexingContextMock, org, List.of(org), app, component);
+
+    Document doc = docs.stream()
+        .filter(d -> ItemType.LEGAL_VIOLATION.name().equals(itemTypeOf(d)))
+        .findFirst()
+        .orElseThrow();
+    assertThat(doc.getValues(FieldIdentifier.APPLICATION_CATEGORY_ID.label)).containsExactly(tag.getId());
   }
 
   /**
@@ -733,7 +837,7 @@ public class DocumentBuilderHelperTest
         .orElseThrow();
     assertThat(legalDoc.getFields(FieldIdentifier.APPLICATION_CATEGORY_NAME.label)).isEmpty();
 
-    verify(indexingContextMock, never()).getCategoryNamesByApp(anySet(), any());
+    verify(indexingContextMock, never()).getCategoriesByApp(anySet(), any());
   }
 
   /**
@@ -1192,11 +1296,11 @@ public class DocumentBuilderHelperTest
     Map<Organization, Collection<Organization>> parentOrgsMap = new HashMap<>();
 
     assertThat(
-        documentBuilderHelper.buildSbomSVDocs(null, application, parentOrgsMap)).isEmpty();
+        documentBuilderHelper.buildSbomSVDocs(indexingContextMock, null, application, parentOrgsMap)).isEmpty();
     assertThat(
-        documentBuilderHelper.buildSbomSVDocs(organization, null, parentOrgsMap)).isEmpty();
+        documentBuilderHelper.buildSbomSVDocs(indexingContextMock, organization, null, parentOrgsMap)).isEmpty();
     assertThat(
-        documentBuilderHelper.buildSbomSVDocs(organization, application, null)).isEmpty();
+        documentBuilderHelper.buildSbomSVDocs(indexingContextMock, organization, application, null)).isEmpty();
   }
 
   @Test
@@ -1207,10 +1311,17 @@ public class DocumentBuilderHelperTest
     ThirdPartySbomMetadata sbomMetadata = tempEntity.newThirdPartySbomMetadata(application.getId(),
         ThirdPartySbomMetadataStatus.ACTIVE, "filename");
 
-    assertThat(documentBuilderHelper.buildSbomVersionSVDocs(null, application, sbomMetadata, parentOrgs)).isEmpty();
-    assertThat(documentBuilderHelper.buildSbomVersionSVDocs(organization, null, sbomMetadata, parentOrgs)).isEmpty();
-    assertThat(documentBuilderHelper.buildSbomVersionSVDocs(organization, application, null, parentOrgs)).isEmpty();
-    assertThat(documentBuilderHelper.buildSbomVersionSVDocs(organization, application, sbomMetadata, null)).isEmpty();
+    assertThat(
+        documentBuilderHelper.buildSbomVersionSVDocs(indexingContextMock, null, application, sbomMetadata, parentOrgs))
+            .isEmpty();
+    assertThat(
+        documentBuilderHelper.buildSbomVersionSVDocs(indexingContextMock, organization, null, sbomMetadata, parentOrgs))
+            .isEmpty();
+    assertThat(
+        documentBuilderHelper.buildSbomVersionSVDocs(indexingContextMock, organization, application, null, parentOrgs))
+            .isEmpty();
+    assertThat(documentBuilderHelper.buildSbomVersionSVDocs(indexingContextMock, organization, application,
+        sbomMetadata, null)).isEmpty();
   }
 
   @Test
@@ -1221,17 +1332,22 @@ public class DocumentBuilderHelperTest
     ThirdPartySbomMetadata sbomMetadata = tempEntity.newThirdPartySbomMetadata(application.getId(),
         ThirdPartySbomMetadataStatus.ACTIVE, "filename");
 
-    assertThat(documentBuilderHelper.buildSbomFileCoordinateSVDocs(null, application, sbomMetadata, parentOrgs,
+    assertThat(documentBuilderHelper.buildSbomFileCoordinateSVDocs(indexingContextMock, null, application, sbomMetadata,
+        parentOrgs,
         mock(ThirdPartyFileCoordinate.class))).isEmpty();
-    assertThat(documentBuilderHelper.buildSbomFileCoordinateSVDocs(organization, null, sbomMetadata, parentOrgs,
+    assertThat(documentBuilderHelper.buildSbomFileCoordinateSVDocs(indexingContextMock, organization, null,
+        sbomMetadata, parentOrgs,
         mock(ThirdPartyFileCoordinate.class))).isEmpty();
-    assertThat(documentBuilderHelper.buildSbomFileCoordinateSVDocs(organization, application, null, parentOrgs,
+    assertThat(documentBuilderHelper.buildSbomFileCoordinateSVDocs(indexingContextMock, organization, application, null,
+        parentOrgs,
         mock(ThirdPartyFileCoordinate.class))).isEmpty();
-    assertThat(documentBuilderHelper.buildSbomFileCoordinateSVDocs(organization, application, sbomMetadata, null,
+    assertThat(documentBuilderHelper.buildSbomFileCoordinateSVDocs(indexingContextMock, organization, application,
+        sbomMetadata, null,
         mock(ThirdPartyFileCoordinate.class))).isEmpty();
     assertThat(
-        documentBuilderHelper.buildSbomFileCoordinateSVDocs(organization, application, sbomMetadata, parentOrgs, null))
-            .isEmpty();
+        documentBuilderHelper.buildSbomFileCoordinateSVDocs(indexingContextMock, organization, application,
+            sbomMetadata, parentOrgs, null))
+                .isEmpty();
   }
 
   @Test
@@ -1548,6 +1664,42 @@ public class DocumentBuilderHelperTest
   public void testBuildDocument_PolicyWaiver_NullWhenMissingData() {
     assertThat(documentBuilderHelper.buildDocument(indexingContextMock, (PolicyWaiver) null)).isNull();
     assertThat(documentBuilderHelper.buildDocument(indexingContextMock, (AutoPolicyWaiver) null)).isNull();
+  }
+
+  /**
+   * An app-scoped waiver carries the owning application's categories so the Waivers rail's Categories
+   * facet aggregates from the waiver doc; an org-scoped waiver has no owning application and omits them.
+   */
+  @Test
+  public void testBuildDocument_PolicyWaiver_appScopedCarriesApplicationCategories() {
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getId());
+    Tag finance = tempEntity.newTag(organization.getId(), "Finance");
+    tempEntity.newApplicationTag(application.getId(), finance.getId());
+    Policy policy = tempEntity.newPolicy(organization.getId(), "my policy", 8);
+
+    // Real IndexingContext so the genuine batch-memoized category loader runs against H2.
+    IndexingContext realContext = new IndexingContext(ownerDAO, conversionHelper)
+    {
+      @Override
+      public void deleteDocuments(final String query) {
+      }
+
+      @Override
+      public void addDocuments(final List<Document> documents) {
+      }
+    };
+    realContext.addOwners(List.of(organization, application));
+
+    PolicyWaiver appWaiver = tempEntity.newWaiver("hash", policy.getId(), application.getId(), "comment");
+    Document appDoc = documentBuilderHelper.buildDocument(realContext, appWaiver);
+    assertThat(appDoc.getValues(FieldIdentifier.APPLICATION_CATEGORY_NAME.label)).containsExactly("Finance");
+    assertThat(appDoc.getValues(FieldIdentifier.APPLICATION_CATEGORY_ID.label)).containsExactly(finance.getId());
+
+    PolicyWaiver orgWaiver = tempEntity.newWaiver("hash2", policy.getId(), organization.getId(), "comment");
+    Document orgDoc = documentBuilderHelper.buildDocument(realContext, orgWaiver);
+    assertThat(orgDoc.getValues(FieldIdentifier.APPLICATION_CATEGORY_NAME.label)).isEmpty();
+    assertThat(orgDoc.getValues(FieldIdentifier.APPLICATION_CATEGORY_ID.label)).isEmpty();
   }
 
   @Test

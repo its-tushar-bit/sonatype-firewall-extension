@@ -69,28 +69,41 @@ public class IndexMappingTest
   }
 
   /**
-   * Pins the lowercase-normalizer contract for the major ID-family keyword fields. A regression
-   * that strips the normalizer from any of these (or, conversely, adds one to ALLOWED_CONTEXT_IDS)
-   * would silently change query semantics for callers relying on the legacy behaviour.
+   * Verifies the case-sensitive (no normalizer) contract for opaque ID fields that are faceted on
+   * the raw ID. These must NOT have a lowercase normalizer because facet bucket keys must match
+   * the DB primary keys byte-for-byte.
    */
   @Test
-  public void idFamilyKeywordFields_haveLowerCaseNormalizer() {
+  public void facetIdFields_areCaseSensitive() {
     Stream.of(
         FieldIdentifier.ORGANIZATION_ID,
         FieldIdentifier.APPLICATION_ID,
-        FieldIdentifier.APPLICATION_PUBLIC_ID,
+        FieldIdentifier.COMPONENT_HASH,
+        FieldIdentifier.APPLICATION_CATEGORY_ID,
         FieldIdentifier.PARENT_ORGANIZATION_ID,
+        FieldIdentifier.POLICY_WAIVER_POLICY_ID,
+        FieldIdentifier.ALLOWED_CONTEXT_IDS,
+        FieldIdentifier.DOCUMENT_KEY)
+        .forEach(field -> assertThat(keywordPropertyFor(field.label).normalizer())
+            .as("normalizer for %s should be null (case-sensitive)", field.label)
+            .isNull());
+  }
+
+  /**
+   * Pins the lowercase-normalizer contract for ID-family keyword fields that are NOT faceted on
+   * the raw ID (names, public IDs, etc). A regression that strips the normalizer from any of these
+   * would silently change query semantics for callers relying on the legacy behaviour.
+   */
+  @Test
+  public void nonFacetIdFields_haveLowerCaseNormalizer() {
+    Stream.of(
+        FieldIdentifier.APPLICATION_PUBLIC_ID,
         FieldIdentifier.POLICY_ID,
         FieldIdentifier.POLICY_VIOLATION_POLICY_ID,
-        FieldIdentifier.COMPONENT_LABEL_ID,
-        FieldIdentifier.APPLICATION_CATEGORY_ID)
+        FieldIdentifier.COMPONENT_LABEL_ID)
         .forEach(field -> assertThat(keywordPropertyFor(field.label).normalizer())
             .as("normalizer for %s", field.label)
             .isEqualTo("lowercase"));
-
-    assertThat(keywordPropertyFor(FieldIdentifier.ALLOWED_CONTEXT_IDS.label).normalizer())
-        .as("ALLOWED_CONTEXT_IDS must not pick up the lowercase normalizer")
-        .isNull();
   }
 
   @Test

@@ -29,6 +29,7 @@ import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.SortOptions;
 import org.opensearch.client.opensearch._types.SortOrder;
 import org.opensearch.client.opensearch._types.aggregations.Aggregate;
+import org.opensearch.client.opensearch._types.aggregations.Aggregation;
 import org.opensearch.client.opensearch._types.aggregations.StringTermsBucket;
 import org.opensearch.client.opensearch.core.SearchRequest;
 import org.opensearch.client.opensearch.core.SearchResponse;
@@ -50,6 +51,12 @@ import static org.mockito.Mockito.when;
 
 public class OpenSearchIndexReadSessionTest
 {
+  /**
+   * The cardinality precision threshold the read path asks OpenSearch for; below this many distinct
+   * values the count is exact.
+   */
+  private static final int CARDINALITY_PRECISION_THRESHOLD = 40_000;
+
   private OpenSearchClient client;
 
   private OpenSearchIndexReadSession session;
@@ -128,6 +135,38 @@ public class OpenSearchIndexReadSessionTest
     assertThat(captor.getValue().pit().id()).isEqualTo("pit-1");
     assertThat(captor.getValue().index()).isEmpty();
     assertThat(captor.getValue().aggregations()).containsKey("terms");
+  }
+
+  @Test
+  public void countDistinctGroupedBy_restrictsTermsBucketsToRequestedGroupsAndCountsDistinct() throws Exception {
+    stubAggregationResponse(Map.of());
+
+    session.countDistinctGroupedBy(
+        new MatchAllDocsQuery(),
+        "applicationId",
+        "componentHash",
+        List.of("APP-One", "app-two"));
+
+    ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+    verify(client).search(captor.capture(), eq(Map.class));
+
+    Aggregation groups = captor.getValue().aggregations().get("groups");
+    assertThat(groups).isNotNull();
+    assertThat(groups.terms().field()).isEqualTo("applicationId");
+    // The include filter carries the correctness of the counts, not just their size: a terms aggregation
+    // without it returns the corpus-wide top-N buckets by document count, so any requested group that
+    // falls outside that window comes back with no bucket at all and is silently reported as zero rather
+    // than as its real count. Requested values are lowercased so they match the indexed keyword bytes.
+    assertThat(groups.terms().include())
+        .as("terms aggregation must carry an include filter or out-of-window groups silently count zero")
+        .isNotNull();
+    assertThat(groups.terms().include().terms()).containsExactly("app-one", "app-two");
+    assertThat(groups.terms().size()).isEqualTo(2);
+
+    Aggregation distinct = groups.aggregations().get("distinct");
+    assertThat(distinct).isNotNull();
+    assertThat(distinct.cardinality().field()).isEqualTo("componentHash");
+    assertThat(distinct.cardinality().precisionThreshold()).isEqualTo(CARDINALITY_PRECISION_THRESHOLD);
   }
 
   @Test

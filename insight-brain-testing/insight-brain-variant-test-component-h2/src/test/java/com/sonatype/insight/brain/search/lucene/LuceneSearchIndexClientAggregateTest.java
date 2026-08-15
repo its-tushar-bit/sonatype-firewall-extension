@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.IndexTermSetRestriction;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.MetricAggregationResult;
 import com.sonatype.insight.brain.search.index.RankedGroup;
@@ -520,6 +521,27 @@ public class LuceneSearchIndexClientAggregateTest
     assertThat(result.buckets).containsEntry("medium", 0L);
     assertThat(result.buckets).containsEntry("high", 2L); // distinct CVE-A, CVE-B (not 4 docs)
     assertThat(result.buckets).containsEntry("critical", 1L); // distinct CVE-C (not 2 docs)
+  }
+
+  @Test
+  public void testAggregateCountByFloatField_DistinctField_HonoursTermSetRestriction() throws Exception {
+    // The single columnar pass over all bands and the per-band fallback searches must both narrow to the
+    // term-set restriction. Restricting to CVE-A alone leaves one distinct CVE in high and none in critical,
+    // where the unrestricted corpus has CVE-A and CVE-B in high and CVE-C in critical.
+    indexVulnDocs(
+        new String[]{"CVE-A", "CVE-A", "CVE-B", "CVE-C", "CVE-C"},
+        new float[]{7.5f, 8.0f, 8.9f, 9.5f, 9.5f});
+
+    MetricAggregationResult result = luceneSearchIndexClient.aggregateCountByFloatField(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.searchFieldName(),
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        CvssV3Severity.halfOpenScoreBands(),
+        FieldIdentifier.VULNERABILITY_ID.label,
+        IndexTermSetRestriction.singleton(FieldIdentifier.VULNERABILITY_ID.label, List.of("cve-a")));
+
+    assertThat(result.total).isEqualTo(2); // the two CVE-A docs, not all 5
+    assertThat(result.buckets).containsEntry("high", 1L); // distinct CVE-A only, not CVE-A + CVE-B
+    assertThat(result.buckets).containsEntry("critical", 0L); // CVE-C is outside the restriction
   }
 
   @Test

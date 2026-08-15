@@ -10,14 +10,13 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
 import com.sonatype.insight.brain.search.index.MetricAggregationResult;
@@ -33,7 +32,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.IntPoint;
+import org.apache.lucene.facet.FacetResult;
+import org.apache.lucene.facet.FacetsCollector;
+import org.apache.lucene.facet.LabelAndValue;
+import org.apache.lucene.facet.StringDocValuesReaderState;
+import org.apache.lucene.facet.StringValueFacetCounts;
 import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.DocValuesType;
+import org.apache.lucene.index.FieldInfo;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.MultiDocValues;
@@ -67,9 +73,9 @@ public class LuceneIndexReadSession
   public static final String BACKEND_ID = "lucene";
 
   /**
-   * Soft warn threshold for interim stored-field distinct-grouped scans (Track B replaces this).
-   * Compared against {@link DistinctGroupedStoredFieldCollector#matchedDocuments()}, which counts
-   * only docs with non-blank fields whose group value is in the allowed set — not every Lucene hit.
+   * Soft warn threshold for a distinct-grouped scan. Compared against
+   * {@link DistinctGroupedDocValuesCollector#matchedDocuments()}, which counts only docs with non-blank
+   * fields whose group value is in the allowed set — not every Lucene hit.
    */
   static final long COUNT_DISTINCT_GROUPED_WARN_MATCHED_DOCUMENTS = 50_000L;
 
@@ -91,6 +97,19 @@ public class LuceneIndexReadSession
   private final String snapshotHandle;
 
   private volatile boolean closed;
+
+  /**
+   * Per-field cache for StringDocValuesReaderState. The session pins one IndexReader for its lifetime,
+   * so this map is safe to populate lazily.
+   */
+  private final Map<String, StringDocValuesReaderState> facetStateCache = new HashMap<>();
+
+  /**
+   * Fields already reported as un-faceted in this session. A pre-reindex index would otherwise log the
+   * same warning for every field on every faceted request, so each field is warned once per session and
+   * logged at debug thereafter.
+   */
+  private final Set<String> missingDocValuesWarnedFields = new HashSet<>();
 
   public LuceneIndexReadSession(
       final IndexSearcher searcher,
@@ -173,44 +192,134 @@ public class LuceneIndexReadSession
       return List.of();
     }
 
+    Facetability facetability = facetability(field);
+    if (facetability != Facetability.FACETABLE) {
+      reportUnfacetableOnce(field, facetability);
+      return List.of();
+    }
+
     try {
-      Map<String, Long> counts = new HashMap<>();
-      StoredFields storedFields = searcher.storedFields();
-      searcher.search(withRbac(query), new SimpleCollector()
-      {
-        private int docBase;
+      FacetsCollector fc = new FacetsCollector();
+      searcher.search(withRbac(query), fc);
 
-        @Override
-        protected void doSetNextReader(final LeafReaderContext context) {
-          docBase = context.docBase;
-        }
+      StringValueFacetCounts counts = new StringValueFacetCounts(facetState(field), fc);
+      FacetResult top = counts.getTopChildren(maxBuckets, field);
 
-        @Override
-        public void collect(final int doc) throws IOException {
-          Document document = storedFields.document(docBase + doc, Set.of(field));
-          for (String value : document.getValues(field)) {
-            counts.merge(value, 1L, Long::sum);
-          }
-        }
+      if (top == null || top.labelValues == null || top.labelValues.length == 0) {
+        return List.of();
+      }
 
-        @Override
-        public ScoreMode scoreMode() {
-          return ScoreMode.COMPLETE_NO_SCORES;
-        }
-      });
-      // Match OpenSearch: top-N by doc count (desc), then term for stability — not lexicographic TreeMap order.
-      return counts.entrySet()
-          .stream()
-          .sorted(Comparator.<Map.Entry<String, Long>>comparingLong(Map.Entry::getValue)
-              .reversed()
-              .thenComparing(Map.Entry::getKey))
-          .limit(maxBuckets)
-          .map(entry -> new IndexTermsBucket(entry.getKey(), entry.getValue()))
-          .toList();
+      // Map to IndexTermsBucket, preserving the counter's ordering (top-N by count desc)
+      List<IndexTermsBucket> buckets = new ArrayList<>(top.labelValues.length);
+      for (LabelAndValue lv : top.labelValues) {
+        buckets.add(new IndexTermsBucket(lv.label, lv.value.longValue()));
+      }
+
+      return buckets;
     }
     catch (IOException e) {
       throw new SearchIndexException(e);
     }
+    catch (IllegalArgumentException | IllegalStateException e) {
+      // fieldHasFacetDocValues above screens the known cases, but StringDocValuesReaderState and
+      // StringValueFacetCounts also reject doc-values shapes it cannot see (for example a field whose
+      // type differs across segments). A faceted request degrades to an empty facet rather than a 500.
+      log.warn(
+          "termsAggregation failed for field '{}': the index cannot serve it as a facet ({}). "
+              + "A full index rebuild is required before this field can be faceted.",
+          field,
+          e.toString());
+      return List.of();
+    }
+  }
+
+  /**
+   * Reports a field that cannot be aggregated, once per field per session and at debug afterwards.
+   * <p>
+   * A field absent from every segment is only logged at debug: an estate with no application categories
+   * at all legitimately has no {@code applicationCategoryId} values, and an empty facet is the right
+   * answer, so warning would imply a rebuild that would change nothing. Only a field written without its
+   * doc-values column warrants a warning, because there a rebuild does fix it.
+   */
+  private void reportUnfacetableOnce(final String field, final Facetability facetability) {
+    boolean first = missingDocValuesWarnedFields.add(field);
+    if (facetability == Facetability.ABSENT) {
+      log.debug("termsAggregation returned no buckets for field '{}': no document carries a value for it.",
+          field);
+      return;
+    }
+    String message = "termsAggregation skipped for field '{}': documents carry it without facet doc values. "
+        + "A full index rebuild is required before this field can be faceted.";
+    if (first) {
+      log.warn(message, field);
+    }
+    else {
+      log.debug(message, field);
+    }
+  }
+
+  /**
+   * Returns true only when {@code field} is safe to feed to {@link StringValueFacetCounts}: every
+   * segment that carries the field must expose SORTED / SORTED_SET doc values, and at least one
+   * segment must have it. A field present without doc values (e.g. an index written before the
+   * facet doc-values were added) would make {@link StringDocValuesReaderState} throw; treat it as
+   * un-faceted instead.
+   */
+  private boolean fieldHasFacetDocValues(final String field) {
+    return facetability(field) == Facetability.FACETABLE;
+  }
+
+  /**
+   * Whether {@code field} can be aggregated, distinguishing a field no document has written yet from one
+   * written without its doc-values column. Both aggregate to nothing, but only the second means the index
+   * needs rebuilding.
+   */
+  private Facetability facetability(final String field) {
+    boolean anyUsable = false;
+    for (LeafReaderContext leaf : searcher.getIndexReader().leaves()) {
+      FieldInfo info = leaf.reader().getFieldInfos().fieldInfo(field);
+      if (info == null) {
+        continue;
+      }
+      DocValuesType type = info.getDocValuesType();
+      if (type == DocValuesType.SORTED || type == DocValuesType.SORTED_SET) {
+        anyUsable = true;
+      }
+      else {
+        return Facetability.NOT_FACETABLE;
+      }
+    }
+    return anyUsable ? Facetability.FACETABLE : Facetability.ABSENT;
+  }
+
+  private enum Facetability
+  {
+    /** Every segment carrying the field exposes facet doc values. */
+    FACETABLE,
+
+    /** No segment carries the field, so no document has a value for it yet. */
+    ABSENT,
+
+    /** A segment carries the field without facet doc values, so the index predates the column. */
+    NOT_FACETABLE
+  }
+
+  /**
+   * The facet-counting state for {@code field}, built once per session. Building it walks the field's
+   * doc-values ordinals across every segment, so two callers must not both pay for it: the state is
+   * computed atomically rather than with a get-then-put, which would let concurrent callers each build one
+   * and discard all but the last.
+   */
+  private StringDocValuesReaderState facetState(final String field) {
+    return facetStateCache.computeIfAbsent(field, f -> {
+      try {
+        return new StringDocValuesReaderState(searcher.getIndexReader(), f);
+      }
+      catch (IOException e) {
+        // Unwrapped by termsAggregation's caller, which degrades the facet rather than failing the page.
+        throw new SearchIndexException(e);
+      }
+    });
   }
 
   @Override
@@ -225,28 +334,78 @@ public class LuceneIndexReadSession
       return Map.of();
     }
     long startNanos = System.nanoTime();
-    DistinctGroupedStoredFieldCollector collector;
+    boolean columnar = groupedDistinctIsColumnar(groupField, distinctField);
+    GroupedDistinctPass pass;
     try {
-      collector = new DistinctGroupedStoredFieldCollector(
-          searcher.storedFields(), groupField, distinctField, groupValues);
-      searcher.search(withRbac(query), collector);
+      pass = runGroupedDistinctPass(withRbac(query), groupField, distinctField, groupValues, columnar);
     }
     catch (IOException e) {
       throw new SearchIndexException(e);
     }
     long durationMs = (System.nanoTime() - startNanos) / 1_000_000L;
-    long matchedDocuments = collector.matchedDocuments();
+    long matchedDocuments = pass.matchedDocuments();
     if (matchedDocuments > COUNT_DISTINCT_GROUPED_WARN_MATCHED_DOCUMENTS) {
       log.warn(
-          "countDistinctGroupedBy matched {} documents (threshold {}); consider Track B docValues cardinality",
+          "countDistinctGroupedBy matched {} documents (threshold {})",
           matchedDocuments,
           COUNT_DISTINCT_GROUPED_WARN_MATCHED_DOCUMENTS);
     }
     log.debug(
-        "DASHBOARD_BENCHMARK metric=count_distinct_grouped matchedDocuments={} durationMs={}",
+        "DASHBOARD_BENCHMARK metric=count_distinct_grouped source={} matchedDocuments={} durationMs={}",
+        columnar ? "docValues" : "storedFields",
         matchedDocuments,
         durationMs);
-    return collector.groupCounts();
+    return pass.groupCounts();
+  }
+
+  /**
+   * True when a grouped-distinct pass over these two fields can read doc-values columns. Both the group
+   * and the distinct field must carry facet doc values; otherwise the pass reads stored fields.
+   */
+  private boolean groupedDistinctIsColumnar(final String groupField, final String distinctField) {
+    return fieldHasFacetDocValues(groupField) && fieldHasFacetDocValues(distinctField);
+  }
+
+  /**
+   * True when every segment can serve a banded pass from doc values, so all bands are counted in one
+   * collect instead of one filtered search per band.
+   */
+  private boolean bandsAreColumnar(final String metricField, final String distinctField) throws IOException {
+    for (LeafReaderContext leaf : searcher.getIndexReader().leaves()) {
+      if (!BandedDistinctDocValuesCollector.canCollect(leaf.reader(), metricField, distinctField)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * One grouped-distinct pass over {@code scopedQuery} (RBAC and any band filter already applied).
+   * {@code columnar} selects the doc-values collector; when false the pass reads stored fields, which is
+   * what an index built before the facet doc-values columns existed requires to return correct counts.
+   */
+  private GroupedDistinctPass runGroupedDistinctPass(
+      final Query scopedQuery,
+      final String groupField,
+      final String distinctField,
+      final Collection<String> groupValues,
+      final boolean columnar) throws IOException
+  {
+    if (columnar) {
+      DistinctGroupedDocValuesCollector collector =
+          new DistinctGroupedDocValuesCollector(groupField, distinctField, groupValues);
+      searcher.search(scopedQuery, collector);
+      return new GroupedDistinctPass(collector.groupCounts(), collector.matchedDocuments());
+    }
+    DistinctGroupedStoredFieldCollector collector = new DistinctGroupedStoredFieldCollector(
+        searcher.storedFields(), groupField, distinctField, groupValues);
+    searcher.search(scopedQuery, collector);
+    return new GroupedDistinctPass(collector.groupCounts(), collector.matchedDocuments());
+  }
+
+  /** Result of one grouped-distinct pass: per-group distinct counts plus the matched-document total. */
+  private record GroupedDistinctPass(Map<String, Long> groupCounts, long matchedDocuments)
+  {
   }
 
   @Override
@@ -288,8 +447,9 @@ public class LuceneIndexReadSession
   }
 
   /**
-   * Lucene implements each int band as a separate filtered count (one scan per band). OpenSearch uses
-   * a single range aggregation. Track B docValues faceting replaces this fan-out.
+   * Lucene implements each int band as a separate filtered count (one scan per band); the counts are
+   * cheap term-index counts with no stored-field or doc-values reads. OpenSearch uses a single range
+   * aggregation.
    */
   @Override
   public MetricAggregationResult aggregateCountByField(
@@ -315,10 +475,11 @@ public class LuceneIndexReadSession
   }
 
   /**
-   * Lucene implements each float band as a separate filtered scan (and, when {@code distinctField} is
-   * set, an interim stored-field distinct collect). OpenSearch uses a single range aggregation.
-   * Track B docValues faceting replaces this fan-out. Distinct-cardinality warn fires at most once
-   * per call.
+   * Lucene resolves every float band in ONE pass from the metric's doc-values column (see
+   * {@link BandedDistinctDocValuesCollector}), including the per-band distinct count when
+   * {@code distinctField} is set. An index written before those columns existed falls back to one
+   * filtered scan per band, where the distinct collect reads stored fields and the
+   * distinct-cardinality warn fires at most once per call. OpenSearch uses a single range aggregation.
    */
   @Override
   public MetricAggregationResult aggregateCountByFloatField(
@@ -331,6 +492,14 @@ public class LuceneIndexReadSession
     AbstractSearchIndexClient.validateFloatRangeBounds(ranges);
     try {
       long total = searcher.count(withRbac(query));
+      // Single columnar pass over all bands when both columns carry doc values; the per-band filtered
+      // searches below remain for an index written before those columns existed.
+      if (bandsAreColumnar(bucketField, distinctField)) {
+        BandedDistinctDocValuesCollector collector =
+            new BandedDistinctDocValuesCollector(bucketField, distinctField, ranges);
+        searcher.search(withRbac(query), collector);
+        return new MetricAggregationResult(total, collector.bandCounts());
+      }
       Map<String, Long> buckets = new LinkedHashMap<>();
       boolean[] warnedDistinct = {false};
       for (Map.Entry<String, float[]> entry : ranges.entrySet()) {
@@ -353,8 +522,9 @@ public class LuceneIndexReadSession
   }
 
   /**
-   * Lucene runs one filtered distinct-grouped collect per band (interim stored-field path). OpenSearch
-   * uses a single nested range→terms→cardinality aggregation. Track B replaces this fan-out.
+   * Lucene runs one filtered grouped-distinct collect per band, each reading doc-values columns when the
+   * group and distinct fields carry them (stored fields otherwise). OpenSearch uses a single nested
+   * range→terms→cardinality aggregation.
    */
   @Override
   public Map<String, Map<String, Long>> countDistinctGroupedByBands(
@@ -372,13 +542,13 @@ public class LuceneIndexReadSession
     }
     Map<String, Map<String, Long>> byGroup = new LinkedHashMap<>();
     try {
+      boolean columnar = groupedDistinctIsColumnar(groupField, distinctField);
       for (Map.Entry<String, int[]> band : bands.entrySet()) {
         int[] bounds = band.getValue();
         Query bandFilter = IntPoint.newRangeQuery(bandField, bounds[0], bounds[1]);
-        DistinctGroupedStoredFieldCollector collector = new DistinctGroupedStoredFieldCollector(
-            searcher.storedFields(), groupField, distinctField, groupValues);
-        searcher.search(withRbacAndFilter(query, bandFilter), collector);
-        collector.groupCounts()
+        GroupedDistinctPass pass = runGroupedDistinctPass(
+            withRbacAndFilter(query, bandFilter), groupField, distinctField, groupValues, columnar);
+        pass.groupCounts()
             .forEach(
                 (group, count) -> byGroup.computeIfAbsent(group, g -> new LinkedHashMap<>()).put(band.getKey(), count));
       }

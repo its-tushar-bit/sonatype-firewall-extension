@@ -577,7 +577,8 @@ public abstract class AbstractSearchIndexClient
 
     Document sbomDoc = documentBuilderHelper.buildDocument(indexingContext, sbomMetadata);
     List<Document> sbomContentsDocs =
-        documentBuilderHelper.buildSbomVersionSVDocs(organization, application, sbomMetadata, parentOrganizations);
+        documentBuilderHelper.buildSbomVersionSVDocs(indexingContext, organization, application, sbomMetadata,
+            parentOrganizations);
 
     List<Document> docsToAdd = new ArrayList<>(sbomContentsDocs.size() + 1);
     docsToAdd.addAll(sbomContentsDocs);
@@ -696,7 +697,15 @@ public abstract class AbstractSearchIndexClient
       final String tagId,
       final IndexingContext indexingContext) throws IOException
   {
-    String queryForObsoleteDocs = indexingContext.newQuery(FieldIdentifier.APPLICATION_CATEGORY_ID, tagId);
+    // Guard on itemType:application_category. applicationCategoryId is denormalized onto every document
+    // type owned by a tagged application (application, violation, waiver, component), so an unscoped
+    // delete-by-category would remove all of them here and this method only rebuilds the category document
+    // itself - the rest would stay missing until a full reindex.
+    String queryForObsoleteDocs = "(" +
+        indexingContext.newQuery(FieldIdentifier.APPLICATION_CATEGORY_ID, tagId) +
+        " AND " +
+        indexingContext.newQuery(FieldIdentifier.ITEM_TYPE, ItemType.APPLICATION_CATEGORY.searchFieldName()) +
+        ")";
     indexingContext.deleteDocuments(queryForObsoleteDocs);
     Tag tag = tagDAO.getById(tagId);
 
@@ -1291,7 +1300,8 @@ public abstract class AbstractSearchIndexClient
 
     Function<Application, CompletableFuture<Void>> processSbomSVDocsForApplication =
         application -> populatePhase(indexingContext,
-            () -> documentBuilderHelper.buildSbomSVDocs(organizationById.get(application.getOrganizationId()),
+            () -> documentBuilderHelper.buildSbomSVDocs(indexingContext,
+                organizationById.get(application.getOrganizationId()),
                 application, parentsByOrganization),
             consecutiveFailures);
 

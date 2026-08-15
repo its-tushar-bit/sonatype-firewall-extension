@@ -29,6 +29,18 @@ public interface IndexReadSession
 
   long count(Query query);
 
+  /**
+   * Top {@code maxBuckets} values of {@code field} by document count, over the RBAC-scoped documents
+   * matching {@code query}. Lucene reads the field's facet doc-values column and OpenSearch uses a terms
+   * aggregation; a field the current index cannot serve as a facet yields an empty list rather than an
+   * error, so a rail degrades instead of failing the page.
+   * <p>
+   * Only for bounded vocabularies (organization, application, category, stage, enum). The Lucene
+   * implementation builds index-wide doc-values ordinals for the field, not ordinals for the matching
+   * documents alone, so an unbounded column such as {@code componentHash} or a CVE id would size that
+   * state to the whole corpus however selective the query is. Counting distinct values of an unbounded
+   * column is what {@link #countDistinctGroupedBy} is for.
+   */
   List<IndexTermsBucket> termsAggregation(Query query, String field, int maxBuckets);
 
   /**
@@ -102,8 +114,9 @@ public interface IndexReadSession
    * {@link #count(Query)}. The session applies {@code withRbac} to {@code query}.
    * <p>
    * Lucene currently implements bands as one filtered scan per band (interim stored-field distinct when
-   * {@code distinctField} is set). OpenSearch uses a single range aggregation. Track B docValues
-   * faceting replaces the Lucene fan-out.
+   * {@code distinctField} is set). OpenSearch uses a single range aggregation. Lucene resolves every
+   * band from the metric's doc-values column in one pass when that column and any distinct column carry
+   * doc values, and falls back to one filtered search per band for an index written before they existed.
    * <p>
    * When {@code distinctField} is non-null, Lucene counts exactly; OpenSearch uses HyperLogLog++
    * cardinality estimates ({@code precisionThreshold=40_000}) with no exactness flag on
@@ -146,7 +159,8 @@ public interface IndexReadSession
    * {@code query}.
    * <p>
    * Lucene currently runs one filtered collect per band (interim stored-field path). OpenSearch uses a
-   * single nested range aggregation. Track B docValues faceting replaces the Lucene fan-out.
+   * single nested range aggregation. Lucene runs one grouped-distinct collect per band, each reading
+   * doc-values columns when they are present.
    * <p>
    * Lucene returns exact distinct counts. OpenSearch banded distincts are HyperLogLog++ estimates
    * ({@code precisionThreshold=40_000}) with no exactness flag on the returned map.

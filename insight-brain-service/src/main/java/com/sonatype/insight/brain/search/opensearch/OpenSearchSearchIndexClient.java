@@ -1213,10 +1213,17 @@ public class OpenSearchSearchIndexClient
       String groupLabel = resolveCompositeKeyFieldLabel(groupField);
       String distinctLabel = resolveCompositeKeyFieldLabel(distinctField);
 
-      // The grouped keyword fields carry a lowercase normalizer (see IndexMapping), so aggregation
-      // bucket keys are already lowercase while groupValues arrive verbatim from _source (mixed case,
-      // e.g. "CVE-2021-44228"). Match and key the result map on the lowercased value so callers can look
-      // up counts consistently; enrichLocalCounts lowercases the lookup key the same way.
+      // Vocabulary group fields (e.g. vulnerability ids) are mapped as keyword with the lowercase
+      // normalizer (see IndexMapping), so their aggregation bucket keys come back lowercase while
+      // groupValues arrive verbatim from _source (mixed case, e.g. "CVE-2021-44228"). Match and key the
+      // result map on the lowercased value so callers can look up counts consistently; enrichLocalCounts
+      // lowercases the lookup key the same way.
+      //
+      // The opaque id columns (applicationId, componentHash, parentOrganizationId, ...) are mapped
+      // keyword_case_sensitive instead, so their indexed bytes are raw. Lowercasing is a no-op for them
+      // because IQ ids and hashes are lowercase hex. The one non-lowercase value in those columns is the
+      // ROOT_ORGANIZATION_ID sentinel, which never reaches an include term: buildOrganizationFilterClause
+      // treats a ROOT selection as unfiltered, and ancestor expansion skips it.
       Set<String> requested = new HashSet<>();
       for (String groupValue : groupValues) {
         requested.add(groupValue.toLowerCase(Locale.ROOT));

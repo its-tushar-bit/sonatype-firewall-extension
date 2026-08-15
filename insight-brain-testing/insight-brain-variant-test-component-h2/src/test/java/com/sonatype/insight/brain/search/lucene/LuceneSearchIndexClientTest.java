@@ -156,15 +156,24 @@ public class LuceneSearchIndexClientTest
     return tuple(fieldName, fieldValue, fieldType, stored);
   }
 
+  /**
+   * An organization document carries its own {@code {self..root}} ancestor closure, so one
+   * ancestor-match term on {@code parentOrganizationId} selects an organization and every organization
+   * beneath it. Without the closure a hierarchy-inclusive filter would match only the requested
+   * organization's own document.
+   */
   @Test
   public void testBuildDocument_Organization() {
     Organization org = tempEntity.newOrganization();
+    Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     assertFields(documentBuilderHelper.buildDocument(newIndexingContext(), org),
         field(FieldIdentifier.ITEM_TYPE, ItemType.ORGANIZATION.name(), TextField.class, true),
         field(FieldIdentifier.ORGANIZATION_ID, org.getId(), TextField.class, true),
         field(FieldIdentifier.ORGANIZATION_NAME, org.getName(), TextField.class, true),
         field(FieldIdentifier.PARENT_ORGANIZATION_NAME, org.getName(), TextField.class, true),
         field(FieldIdentifier.PARENT_ORGANIZATION_ID, org.getId(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, rootOrg.getName(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, rootOrg.getId(), TextField.class, true),
         field(FieldIdentifier.ALLOWED_CONTEXT_IDS, org.getId(), StringField.class, false));
   }
 
@@ -179,8 +188,13 @@ public class LuceneSearchIndexClientTest
         field(FieldIdentifier.APPLICATION_NAME, app.getName(), TextField.class, true),
         field(FieldIdentifier.ORGANIZATION_ID, org.getId(), TextField.class, true),
         field(FieldIdentifier.ORGANIZATION_NAME, org.getName(), TextField.class, true),
+        // parentOrganization* carry the {self..root} ancestor closure on APPLICATION docs, so an app
+        // under a top-level org contributes that org and the root: an ancestor-org facet bucket counts
+        // its whole subtree from one column read instead of expanding the org tree per query.
         field(FieldIdentifier.PARENT_ORGANIZATION_ID, org.getId(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, Organization.ROOT_ORGANIZATION_ID, TextField.class, true),
         field(FieldIdentifier.PARENT_ORGANIZATION_NAME, org.getName(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, "Root Organization", TextField.class, true),
         field(FieldIdentifier.ALLOWED_CONTEXT_IDS, app.getId(), StringField.class, false),
         field(FieldIdentifier.ALLOWED_CONTEXT_IDS, org.getId(), StringField.class, false));
   }
@@ -307,10 +321,17 @@ public class LuceneSearchIndexClientTest
         field(FieldIdentifier.ALLOWED_CONTEXT_IDS, org.getId(), StringField.class, false));
   }
 
+  /**
+   * A policy document carries the ancestor closure of its owning organization (here, its owning
+   * application's organization), so counting policies under a parent organization includes policies owned
+   * further down the subtree.
+   */
   @Test
   public void testBuildDocument_Policy() {
     Application app = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy(app);
+    Organization appOrg = organizationDAO.getById(app.getOrganizationId());
+    Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     assertFields(documentBuilderHelper.buildDocument(newIndexingContext(), policy),
         field(FieldIdentifier.ITEM_TYPE, ItemType.POLICY.name(), TextField.class, true),
         field(FieldIdentifier.POLICY_ID, policy.getId(), TextField.class, true),
@@ -321,6 +342,10 @@ public class LuceneSearchIndexClientTest
         field(FieldIdentifier.APPLICATION_ID, app.getId(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_NAME, app.getName(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, appOrg.getName(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, appOrg.getId(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, rootOrg.getName(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, rootOrg.getId(), TextField.class, true),
         field(FieldIdentifier.ALLOWED_CONTEXT_IDS, app.getId(), StringField.class, false),
         field(FieldIdentifier.ALLOWED_CONTEXT_IDS, app.getOrganizationId(), StringField.class, false));
   }

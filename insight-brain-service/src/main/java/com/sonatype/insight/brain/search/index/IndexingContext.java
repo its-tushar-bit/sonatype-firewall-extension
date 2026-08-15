@@ -36,32 +36,47 @@ public abstract class IndexingContext
   private final Map<String, String> licenseNameById = new ConcurrentHashMap<>();
 
   /**
-   * Memoized {@code applicationId} -> its category (tag) names, populated load-on-miss by
-   * {@link #getCategoryNamesByApp}. Apps with no categories are absent (so the caller omits the
-   * field), but {@link #categoryNamesLoadedApps} records the app ids already loaded so an app with
-   * no categories is not re-queried on every call.
+   * An application's categories (tags), held as both projections the index needs: names (display
+   * keys) and IDs (opaque, raw/case-sensitive facet keys). Both come from one tag load, so they are
+   * cached together rather than as two independently loaded maps.
    */
-  private final Map<String, List<String>> categoryNamesByApplicationId = new ConcurrentHashMap<>();
-
-  /** App ids whose category-name load has already run (present here even when they had no categories). */
-  private final Set<String> categoryNamesLoadedApps = ConcurrentHashMap.newKeySet();
+  public record ApplicationCategories(List<String> names, List<String> ids)
+  {
+    public boolean isEmpty() {
+      return CollectionUtils.isEmpty(names) && CollectionUtils.isEmpty(ids);
+    }
+  }
 
   /**
-   * Per-app category (tag) names, cached load-on-miss via {@code loader}. On each call the app ids
-   * not yet loaded are collected and passed to {@code loader} as a single batch; the loader returns
-   * the {@code appId -> category names} map for the apps that have categories (absent = none). The
+   * Memoized {@code applicationId} -> its categories, populated load-on-miss by
+   * {@link #getCategoriesByApp}. Apps with no categories are absent (so the caller omits the
+   * field), but {@link #categoriesLoadedApps} records the app ids already loaded so an app with
+   * no categories is not re-queried on every call.
+   */
+  private final Map<String, ApplicationCategories> categoriesByApplicationId = new ConcurrentHashMap<>();
+
+  /** App ids whose category load has already run (present here even when they had no categories). */
+  private final Set<String> categoriesLoadedApps = ConcurrentHashMap.newKeySet();
+
+  /**
+   * Per-app categories (tags), cached load-on-miss via {@code loader}. On each call the app ids not
+   * yet loaded are collected and passed to {@code loader} as a single batch; the loader returns the
+   * {@code appId -> categories} map for the apps that have categories (absent = none). The
    * full-reindex path pre-warms with all app ids (one chunked IN-clause query); the incremental
    * per-app path loads each missing app on demand (still a batch DAO call over just the missing
    * ids). Idempotent: an already-loaded app id is never re-queried, even when it has no categories.
    * Returns only the subset for {@code applicationIds} (O(requested)), so a caller cannot
    * accidentally iterate the whole accumulated cache; an app with no categories is absent.
+   * <p>
+   * Names and IDs share one cache entry because they are two projections of the same tag rows: a
+   * caller that needs both pays one query, not one per projection.
    */
-  public Map<String, List<String>> getCategoryNamesByApp(
+  public Map<String, ApplicationCategories> getCategoriesByApp(
       final Set<String> applicationIds,
-      final Function<Set<String>, Map<String, List<String>>> loader)
+      final Function<Set<String>, Map<String, ApplicationCategories>> loader)
   {
-    loadMissing(applicationIds, categoryNamesLoadedApps, loader, categoryNamesByApplicationId::putAll);
-    return subsetFor(applicationIds, categoryNamesByApplicationId);
+    loadMissing(applicationIds, categoriesLoadedApps, loader, categoriesByApplicationId::putAll);
+    return subsetFor(applicationIds, categoriesByApplicationId);
   }
 
   /**

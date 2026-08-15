@@ -738,6 +738,16 @@ public class LuceneSearchIndexClient
     return withSearcher(indexSearcher -> {
       Query rbac = buildRbacFilterQuery();
       long total = countWithSearcher(indexSearcher, metricQuery, termSetFilter, rbac);
+      // Single columnar pass over all bands when every segment carries the needed doc-values columns.
+      // The per-band filtered searches below remain for an index written before those columns existed.
+      // The term-set filter narrows this pass exactly as it narrows the per-band searches, so both
+      // paths count over the same documents.
+      if (bandsAreColumnar(indexSearcher, bucketField, distinctField)) {
+        BandedDistinctDocValuesCollector collector =
+            new BandedDistinctDocValuesCollector(bucketField, distinctField, ranges);
+        indexSearcher.search(buildRbacFilteredMetricQuery(metricQuery, termSetFilter, rbac), collector);
+        return new MetricAggregationResult(total, collector.bandCounts());
+      }
       Map<String, Long> buckets = new LinkedHashMap<>();
       for (Map.Entry<String, float[]> entry : ranges.entrySet()) {
         float[] bounds = entry.getValue();
@@ -1091,6 +1101,23 @@ public class LuceneSearchIndexClient
       }
     });
     return distinctKeys.size();
+  }
+
+  /**
+   * True when every segment can serve a banded pass from doc values, so all bands are counted in one
+   * collect instead of one filtered search per band.
+   */
+  private boolean bandsAreColumnar(
+      final IndexSearcher indexSearcher,
+      final String metricField,
+      final String distinctField) throws IOException
+  {
+    for (LeafReaderContext leaf : indexSearcher.getIndexReader().leaves()) {
+      if (!BandedDistinctDocValuesCollector.canCollect(leaf.reader(), metricField, distinctField)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private Query buildRbacFilteredMetricQuery(

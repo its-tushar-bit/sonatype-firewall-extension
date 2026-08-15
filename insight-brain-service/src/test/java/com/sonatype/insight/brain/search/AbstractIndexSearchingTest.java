@@ -1377,10 +1377,14 @@ public abstract class AbstractIndexSearchingTest
 
     List<SearchResultItemDTO> searchResults;
 
+    // Org-name search matches an org's whole subtree via the parentOrganizationName closure: every
+    // descendant application's own APPLICATION entry, and every descendant ORGANIZATION entry, since
+    // organization documents carry the closure too. foo's subtree therefore adds barApp, bazApp and the bar
+    // and baz organization documents; bar's adds bazApp and baz's organization document; baz's is itself.
     searchResults = search(FieldIdentifier.ORGANIZATION_NAME, fooOrg.getName());
-    assertThat(searchResults).hasSize(8);
+    assertThat(searchResults).hasSize(12);
     searchResults = search(FieldIdentifier.ORGANIZATION_NAME, barOrg.getName());
-    assertThat(searchResults).hasSize(6);
+    assertThat(searchResults).hasSize(8);
     searchResults = search(FieldIdentifier.ORGANIZATION_NAME, bazOrg.getName());
     assertThat(searchResults).hasSize(4);
 
@@ -1389,9 +1393,9 @@ public abstract class AbstractIndexSearchingTest
     indexChanges();
 
     searchResults = search(FieldIdentifier.ORGANIZATION_NAME, fooOrg.getName());
-    assertThat(searchResults).hasSize(8);
+    assertThat(searchResults).hasSize(12);
     searchResults = search(FieldIdentifier.ORGANIZATION_NAME, barOrg.getName());
-    assertThat(searchResults).hasSize(6);
+    assertThat(searchResults).hasSize(8);
     searchResults = search(FieldIdentifier.ORGANIZATION_NAME, bazOrg.getName());
     assertThat(searchResults).hasSize(4);
   }
@@ -1466,6 +1470,39 @@ public abstract class AbstractIndexSearchingTest
     indexChanges();
     assertThat(search(FieldIdentifier.POLICY_ID, policy.getId())).isEmpty();
     assertThat(search(FieldIdentifier.POLICY_NAME, policy.getName())).isEmpty();
+  }
+
+  /**
+   * Updating a category must not remove the documents of the applications carrying it.
+   * <p>
+   * {@code applicationCategoryId} is denormalized onto every document type owned by a tagged application, so
+   * a delete-by-category that is not scoped to the category document itself removes the application, its
+   * violations, its waivers and its components - and the category update only rebuilds the category
+   * document, so the rest stay missing until a full reindex.
+   */
+  @Test
+  public void testIncrementalUpdate_ApplicationCategoryChange_KeepsTheTaggedApplicationsDocuments() throws Exception {
+    index();
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    Tag tag = tempEntity.newTag(org.getId(), "Distributed");
+    tempEntity.newApplicationTag(app.getId(), tag.getId());
+    indexChanges();
+
+    assertThat(search(FieldIdentifier.APPLICATION_ID, app.getId()))
+        .describedAs("the tagged application is indexed before the category changes")
+        .isNotEmpty();
+
+    tag.setName("Hosted");
+    tagDAO.update(tag);
+    indexChanges();
+
+    assertThat(search(FieldIdentifier.APPLICATION_ID, app.getId()))
+        .describedAs("a category rename must not delete the documents of applications carrying it")
+        .isNotEmpty();
+    assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_NAME, "Hosted"))
+        .describedAs("the renamed category document is rebuilt")
+        .isNotEmpty();
   }
 
   @Test

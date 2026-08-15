@@ -90,6 +90,7 @@ import com.sonatype.insight.brain.report.LifecycleReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.search.index.IndexingContext;
+import com.sonatype.insight.brain.search.index.IndexingContext.ApplicationCategories;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.PolicyWaiverExpiryStatuses;
 import com.sonatype.insight.brain.search.index.VulnerabilityDescriptionFetcher;
@@ -127,7 +128,7 @@ public class DocumentBuilderHelper
    * Canonical indexed {@code policyViolationWaiverStatus} values written onto {@code POLICY_VIOLATION}
    * documents. Exposed as constants so read-side consumers (e.g. {@code ViolationWaiverStatus} on the
    * Nexus One violations list) bind to them directly and any change to the vocabulary is a compile-time
-   * break rather than a silent runtime divergence (CLM-42254 review).
+   * break rather than a silent runtime divergence.
    */
   public static final String POLICY_VIOLATION_WAIVER_STATUS_ACTIVE = "Active";
 
@@ -360,10 +361,13 @@ public class DocumentBuilderHelper
       return null;
     }
     List<String> allowedContextIds = resolveClosure(indexingContext, parentOrgsByOrganization, organization, null);
-    return new DocumentBuilder(ItemType.ORGANIZATION)
+    DocumentBuilder builder = new DocumentBuilder(ItemType.ORGANIZATION)
         .setOwner(organization)
-        .setAllowedContextIds(allowedContextIds)
-        .build();
+        .setAllowedContextIds(allowedContextIds);
+    // setOwner wrote just this organization; the closure makes an ancestor-match filter select the whole
+    // subtree, so filtering to a parent counts its descendant organizations too.
+    applyOrganizationAncestorClosure(builder, indexingContext, organization);
+    return builder.build();
   }
 
   /**
@@ -480,7 +484,7 @@ public class DocumentBuilderHelper
     // (the per-app buildDocument calls below read the warmed caches).
     latestEvaluationEpochMsByApp(indexingContext, applicationIds);
     violationRollupByApp(indexingContext, applicationIds);
-    categoryNamesByApp(indexingContext, applicationIds);
+    categoriesByApp(indexingContext, applicationIds);
     return applications.stream()
         .map(app -> buildDocument(indexingContext, app, parentOrgsByOrganization))
         .toList();
@@ -513,6 +517,12 @@ public class DocumentBuilderHelper
         .setOwner(org)
         .setAllowedContextIds(allowedContextIds);
 
+    // Expand parentOrganizationId to the full ancestor closure (self..root).
+    // setOwner(org) wrote a singleton parentOrganizationId; setParentOrganizationIds REPLACES it.
+    List<Organization> ancestors = resolveAncestorOrganizations(indexingContext, org);
+    builder.setParentOrganizationIds(ancestors);
+    builder.setParentOrganizationNames(ancestors);
+
     // The category and rollup lookups are keyed by application id and warmed via Set.of(id), which
     // rejects a null element. The batch path (buildApplicationDocs) filters null ids upstream, so
     // mirror that here: an app with no id simply omits the category / rollup fields.
@@ -521,6 +531,11 @@ public class DocumentBuilderHelper
       List<String> categoryNames = applicationCategoryNames(indexingContext, applicationId);
       if (!categoryNames.isEmpty()) {
         builder.setApplicationCategoryNames(categoryNames);
+      }
+
+      List<String> categoryIds = applicationCategoryIds(indexingContext, applicationId);
+      if (!categoryIds.isEmpty()) {
+        builder.setApplicationCategoryIds(categoryIds);
       }
 
       // Both rollups are memoized on the IndexingContext: the full-reindex path warms them once for
@@ -560,37 +575,66 @@ public class DocumentBuilderHelper
     if (applicationId == null) {
       return Collections.emptyList();
     }
-    return categoryNamesByApp(indexingContext, Set.of(applicationId))
-        .getOrDefault(applicationId, Collections.emptyList());
+    return applicationCategories(indexingContext, applicationId).names();
   }
 
   /**
-   * Per-app category (tag) names, memoized on {@code indexingContext} and warmed once per run by a
-   * single chunked IN-clause {@link TagDAO#getByApplicationIdsGrouped} query. An app with no
-   * categories is absent from the map (so the doc omits the field).
+   * Category (tag) IDs for an application, memoized on {@code indexingContext}. Mirrors
+   * {@link #applicationCategoryNames} for IDs (opaque, raw/case-sensitive facet keys).
    */
-  private Map<String, List<String>> categoryNamesByApp(
+  private List<String> applicationCategoryIds(final IndexingContext indexingContext, final String applicationId) {
+    if (applicationId == null) {
+      return Collections.emptyList();
+    }
+    return applicationCategories(indexingContext, applicationId).ids();
+  }
+
+  private static final ApplicationCategories EMPTY_CATEGORIES =
+      new ApplicationCategories(Collections.emptyList(), Collections.emptyList());
+
+  /**
+   * The memoized categories for one application, or empty lists when it has none.
+   */
+  private ApplicationCategories applicationCategories(
+      final IndexingContext indexingContext,
+      final String applicationId)
+  {
+    return categoriesByApp(indexingContext, Set.of(applicationId))
+        .getOrDefault(applicationId, EMPTY_CATEGORIES);
+  }
+
+  /**
+   * Per-app categories (tags), memoized on {@code indexingContext} and warmed once per run by a
+   * single chunked IN-clause {@link TagDAO#getByApplicationIdsGrouped} query (which preserves the
+   * app-to-tag association and auto-chunks large id sets). An app with no categories is absent from
+   * the map (so the doc omits the fields).
+   */
+  private Map<String, ApplicationCategories> categoriesByApp(
       final IndexingContext indexingContext,
       final Set<String> applicationIds)
   {
-    return indexingContext.getCategoryNamesByApp(applicationIds, this::loadCategoryNamesByApp);
+    return indexingContext.getCategoriesByApp(applicationIds, this::loadCategoriesByApp);
   }
 
-  private Map<String, List<String>> loadCategoryNamesByApp(final Set<String> applicationIds) {
+  /**
+   * Loads both projections from ONE tag query: names are the display keys, IDs the opaque
+   * raw/case-sensitive facet keys. An app whose tags yield neither is omitted so the doc skips the
+   * fields entirely.
+   */
+  private Map<String, ApplicationCategories> loadCategoriesByApp(final Set<String> applicationIds) {
     if (CollectionUtils.isEmpty(applicationIds)) {
       return Collections.emptyMap();
     }
-    Map<String, List<String>> namesByApp = new HashMap<>();
+    Map<String, ApplicationCategories> categoriesByApp = new HashMap<>();
     tagDAO.getByApplicationIdsGrouped(applicationIds).forEach((appId, tags) -> {
-      List<String> names = tags.stream()
-          .map(Tag::getName)
-          .filter(Objects::nonNull)
-          .toList();
-      if (!names.isEmpty()) {
-        namesByApp.put(appId, names);
+      List<String> names = tags.stream().map(Tag::getName).filter(Objects::nonNull).toList();
+      List<String> ids = tags.stream().map(Tag::getId).filter(Objects::nonNull).toList();
+      ApplicationCategories categories = new ApplicationCategories(names, ids);
+      if (!categories.isEmpty()) {
+        categoriesByApp.put(appId, categories);
       }
     });
-    return namesByApp;
+    return categoriesByApp;
   }
 
   /**
@@ -907,14 +951,21 @@ public class DocumentBuilderHelper
     if (owner == null) {
       return null;
     }
-    return new DocumentBuilder(ItemType.POLICY)
+    DocumentBuilder builder = new DocumentBuilder(ItemType.POLICY)
         .setPolicyId(policy.getId())
         .setPolicyName(policy.getName())
         .setPolicyThreatCategory(policy.getThreatCategory())
         .setPolicyThreatLevel(policy.getThreatLevel())
         .setOwner(owner)
-        .setAllowedContextIds(computeAllowedContextIdsForOwner(indexingContext, owner))
-        .build();
+        .setAllowedContextIds(computeAllowedContextIdsForOwner(indexingContext, owner));
+    // A policy is owned by an organization (or by an application, whose organization is its parent), and
+    // setOwner wrote only that immediate organization. The closure makes an ancestor-match filter count
+    // policies owned anywhere in the requested subtree.
+    Organization policyOrg = owningOrganization(indexingContext, owner);
+    if (policyOrg != null) {
+      applyOrganizationAncestorClosure(builder, indexingContext, policyOrg);
+    }
+    return builder.build();
   }
 
   /**
@@ -1281,6 +1332,17 @@ public class DocumentBuilderHelper
         builder.setOrganizationName(o.getName());
         org = o;
       }
+      // Categories belong to an application, so only an app-scoped waiver carries them; an org-scoped
+      // waiver has no owning application and omits the field. Both lookups are memoized on the
+      // indexing context, so this is a map read per waiver doc.
+      List<String> categoryNames = applicationCategoryNames(indexingContext, application.getId());
+      if (!categoryNames.isEmpty()) {
+        builder.setApplicationCategoryNames(categoryNames);
+      }
+      List<String> categoryIds = applicationCategoryIds(indexingContext, application.getId());
+      if (!categoryIds.isEmpty()) {
+        builder.setApplicationCategoryIds(categoryIds);
+      }
     }
     else if (owner instanceof Organization o) {
       org = o;
@@ -1288,6 +1350,36 @@ public class DocumentBuilderHelper
     if (org == null) {
       return;
     }
+    applyOrganizationAncestorClosure(builder, indexingContext, org);
+  }
+
+  /**
+   * The organization an owner sits in: itself when the owner is an organization, otherwise the
+   * application's parent organization. Null when it cannot be resolved.
+   */
+  private static Organization owningOrganization(final IndexingContext indexingContext, final Owner owner) {
+    if (owner instanceof Organization organization) {
+      return organization;
+    }
+    if (owner instanceof Application application) {
+      return indexingContext.getOwner(application.getOrganizationId()) instanceof Organization org ? org : null;
+    }
+    return null;
+  }
+
+  /**
+   * Replaces the singleton {@code parentOrganizationId} / {@code parentOrganizationName} that
+   * {@code setOwner} writes with the full {@code {self..root}} closure, so one ancestor-match term filters
+   * a whole subtree instead of only documents owned directly by the requested organization.
+   * <p>
+   * Every document type carrying an organization needs this, or a hierarchy-inclusive filter silently
+   * under-matches that type while matching others correctly.
+   */
+  private void applyOrganizationAncestorClosure(
+      final DocumentBuilder builder,
+      final IndexingContext indexingContext,
+      final Organization org)
+  {
     List<Organization> ancestors = resolveAncestorOrganizations(indexingContext, org);
     if (!ancestors.isEmpty()) {
       builder.setParentOrganizationNames(ancestors);
@@ -1710,7 +1802,9 @@ public class DocumentBuilderHelper
       // Vulnerabilities tab), which the new filters simply inherit.
       return Collections.singletonList(
           buildDocument(organization, parentOrganizations, application, stageType, reportId, component,
-              violationRollupByHash.get(component.getHash())));
+              violationRollupByHash.get(component.getHash()),
+              applicationCategoryNames(indexingContext, application.getId()),
+              applicationCategoryIds(indexingContext, application.getId())));
     }
     else {
       return Collections.emptyList();
@@ -1737,6 +1831,26 @@ public class DocumentBuilderHelper
       Component component,
       ComponentViolationRollup violationRollup)
   {
+    return buildDocument(
+        organization, parentOrganizations, application, stageType, reportId, component, violationRollup, null, null);
+  }
+
+  /**
+   * {@code categoryNames} / {@code categoryIds} are the owning application's categories, denormalized onto
+   * the component doc so the Components rail's Categories facet aggregates from this document alone.
+   * Resolved once per application by the caller (both lookups are memoized on the indexing context).
+   */
+  public Document buildDocument(
+      Organization organization,
+      Collection<Organization> parentOrganizations,
+      Application application,
+      StageType stageType,
+      String reportId,
+      Component component,
+      ComponentViolationRollup violationRollup,
+      List<String> categoryNames,
+      List<String> categoryIds)
+  {
     if (parentOrganizations == null || organization == null || application == null || component == null) {
       return null;
     }
@@ -1758,6 +1872,12 @@ public class DocumentBuilderHelper
           .setComponentViolationPolicyTypes(violationRollup.policyTypes())
           .setComponentViolationStates(violationRollup.states())
           .setComponentMaxPolicyThreatLevel(violationRollup.maxThreatLevel());
+    }
+    if (categoryNames != null && !categoryNames.isEmpty()) {
+      builder.setApplicationCategoryNames(categoryNames);
+    }
+    if (categoryIds != null && !categoryIds.isEmpty()) {
+      builder.setApplicationCategoryIds(categoryIds);
     }
     return builder.build();
   }
@@ -2137,11 +2257,12 @@ public class DocumentBuilderHelper
     }
 
     List<String> categoryNames = applicationCategoryNames(indexingContext, application.getId());
+    List<String> categoryIds = applicationCategoryIds(indexingContext, application.getId());
     List<Document> documents = new ArrayList<>();
     for (PolicyViolation violation : violations) {
       Document doc = buildPolicyViolationDocument(
           organization, parentOrganizations, application, stageType, reportId, violation, constraintNameByFactsId,
-          categoryNames);
+          categoryNames, categoryIds);
       if (doc != null) {
         documents.add(doc);
       }
@@ -2160,7 +2281,8 @@ public class DocumentBuilderHelper
       String reportId,
       PolicyViolation violation,
       Map<String, String> constraintNameByFactsId,
-      List<String> categoryNames)
+      List<String> categoryNames,
+      List<String> categoryIds)
   {
     if (violation == null) {
       return null;
@@ -2186,6 +2308,10 @@ public class DocumentBuilderHelper
 
     if (categoryNames != null && !categoryNames.isEmpty()) {
       builder.setApplicationCategoryNames(categoryNames);
+    }
+
+    if (categoryIds != null && !categoryIds.isEmpty()) {
+      builder.setApplicationCategoryIds(categoryIds);
     }
 
     if (violation.getPolicyId() != null) {
@@ -2239,6 +2365,7 @@ public class DocumentBuilderHelper
     List<Document> documents = new ArrayList<>();
     Map<String, String> licenseNameCache = indexingContext.getLicenseNameById();
     List<String> categoryNames = applicationCategoryNames(indexingContext, application.getId());
+    List<String> categoryIds = applicationCategoryIds(indexingContext, application.getId());
 
     for (String licenseId : licenseIds) {
       String cachedName = licenseNameCache.computeIfAbsent(licenseId, id -> {
@@ -2253,7 +2380,7 @@ public class DocumentBuilderHelper
         for (LicenseThreatGroup threatGroup : threatGroups) {
           Document doc = buildLegalViolationDocument(
               organization, parentOrganizations, application, stageType, reportId, component,
-              licenseId, licenseName, threatGroup, categoryNames);
+              licenseId, licenseName, threatGroup, categoryNames, categoryIds);
           if (doc != null) {
             documents.add(doc);
           }
@@ -2262,7 +2389,7 @@ public class DocumentBuilderHelper
       else {
         Document doc = buildLegalViolationDocument(
             organization, parentOrganizations, application, stageType, reportId, component,
-            licenseId, licenseName, null, categoryNames);
+            licenseId, licenseName, null, categoryNames, categoryIds);
         if (doc != null) {
           documents.add(doc);
         }
@@ -2284,7 +2411,8 @@ public class DocumentBuilderHelper
       String licenseId,
       String licenseName,
       LicenseThreatGroup threatGroup,
-      List<String> categoryNames)
+      List<String> categoryNames,
+      List<String> categoryIds)
   {
     if (component == null || licenseId == null) {
       return null;
@@ -2303,6 +2431,10 @@ public class DocumentBuilderHelper
 
     if (categoryNames != null && !categoryNames.isEmpty()) {
       builder.setApplicationCategoryNames(categoryNames);
+    }
+
+    if (categoryIds != null && !categoryIds.isEmpty()) {
+      builder.setApplicationCategoryIds(categoryIds);
     }
 
     if (component.getHash() != null) {
@@ -2327,6 +2459,7 @@ public class DocumentBuilderHelper
   }
 
   public List<Document> buildSbomSVDocs(
+      IndexingContext indexingContext,
       Organization organization,
       Application application,
       Map<Organization, Collection<Organization>> parentOrgsMap)
@@ -2338,6 +2471,7 @@ public class DocumentBuilderHelper
         .stream()
         .map(sbomMetadata -> CompletableFuture.supplyAsync(
             () -> buildSbomVersionSVDocs(
+                indexingContext,
                 organization,
                 application,
                 sbomMetadata,
@@ -2354,7 +2488,12 @@ public class DocumentBuilderHelper
             }));
   }
 
+  /**
+   * {@code indexingContext} supplies the owning application's categories, denormalized onto the
+   * SBOM-sourced component docs so the Components rail's Categories facet covers them too.
+   */
   public List<Document> buildSbomVersionSVDocs(
+      IndexingContext indexingContext,
       Organization organization,
       Application application,
       ThirdPartySbomMetadata sbomMetadata,
@@ -2367,6 +2506,7 @@ public class DocumentBuilderHelper
         .stream()
         .map(fileCoord -> CompletableFuture.supplyAsync(
             () -> buildSbomFileCoordinateSVDocs(
+                indexingContext,
                 organization,
                 application,
                 sbomMetadata,
@@ -2385,6 +2525,7 @@ public class DocumentBuilderHelper
   }
 
   public List<Document> buildSbomFileCoordinateSVDocs(
+      IndexingContext indexingContext,
       Organization organization,
       Application application,
       ThirdPartySbomMetadata sbomMetadata,
@@ -2407,7 +2548,9 @@ public class DocumentBuilderHelper
     }
     else if (thirdPartyFileCoord.getPackageUrl() != null) {
       return Collections.singletonList(
-          buildDocument(organization, application, sbomMetadata, thirdPartyFileCoord, parentOrganizations));
+          buildDocument(organization, application, sbomMetadata, thirdPartyFileCoord, parentOrganizations,
+              applicationCategoryNames(indexingContext, application.getId()),
+              applicationCategoryIds(indexingContext, application.getId())));
     }
     else {
       return Collections.emptyList();
@@ -2421,6 +2564,24 @@ public class DocumentBuilderHelper
       ThirdPartyFileCoordinate thirdPartyFileCoord,
       Collection<Organization> parentOrganizations)
   {
+    return buildDocument(
+        organization, application, sbomMetadata, thirdPartyFileCoord, parentOrganizations, null, null);
+  }
+
+  /**
+   * {@code categoryNames} / {@code categoryIds} are the owning application's categories, denormalized onto
+   * the SBOM-sourced component doc so the Components rail's Categories facet covers SBOM components as
+   * well as scanned ones.
+   */
+  public Document buildDocument(
+      Organization organization,
+      Application application,
+      ThirdPartySbomMetadata sbomMetadata,
+      ThirdPartyFileCoordinate thirdPartyFileCoord,
+      Collection<Organization> parentOrganizations,
+      List<String> categoryNames,
+      List<String> categoryIds)
+  {
     if (parentOrganizations == null || organization == null || application == null || sbomMetadata == null ||
         thirdPartyFileCoord == null)
     {
@@ -2433,6 +2594,12 @@ public class DocumentBuilderHelper
           .setComponentFormat(componentIdentifier.getFormat())
           .setComponentCoordinates(componentIdentifier)
           .setComponentName(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString());
+    }
+    if (categoryNames != null && !categoryNames.isEmpty()) {
+      documentBuilder.setApplicationCategoryNames(categoryNames);
+    }
+    if (categoryIds != null && !categoryIds.isEmpty()) {
+      documentBuilder.setApplicationCategoryIds(categoryIds);
     }
     return documentBuilder
         .setOwner(application)

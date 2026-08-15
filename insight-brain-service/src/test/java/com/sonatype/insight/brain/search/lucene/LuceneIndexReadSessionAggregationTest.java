@@ -539,6 +539,62 @@ public class LuceneIndexReadSessionAggregationTest
     }
   }
 
+  /**
+   * Bands are resolved from the metric column per document in one pass when the distinct column also has
+   * doc values, so the per-band counts must match what the per-band filtered searches produce.
+   */
+  @Test
+  public void aggregateCountByFloatField_withDistinctDocValues_countsAllBandsInOnePass() throws Exception {
+    try (Directory directory = new ByteBuffersDirectory();
+        Analyzer analyzer = new LowerCaseKeywordAnalyzer();
+        IndexWriter writer = new IndexWriter(directory, new IndexWriterConfig(analyzer)))
+    {
+      // Two distinct CVEs in "high", one of them repeated on another component (must not double-count),
+      // one CVE in "critical", and one below every band (counted only in the total).
+      writer.addDocument(distinctDocValuesVulnerabilityDocument("hashA", "CVE-1", 7.5f));
+      writer.addDocument(distinctDocValuesVulnerabilityDocument("hashB", "CVE-1", 8.5f));
+      writer.addDocument(distinctDocValuesVulnerabilityDocument("hashC", "CVE-2", 7.1f));
+      writer.addDocument(distinctDocValuesVulnerabilityDocument("hashD", "CVE-3", 9.8f));
+      writer.addDocument(distinctDocValuesVulnerabilityDocument("hashE", "CVE-4", 1.0f));
+      writer.commit();
+
+      try (LuceneSearcherManagerHolder holder = new LuceneSearcherManagerHolder(writer, (MeterRegistry) null)) {
+        IndexSearcher searcher = holder.acquire();
+        try (LuceneIndexReadSession session = new LuceneIndexReadSession(searcher, new MatchAllDocsQuery(), holder)) {
+          MetricAggregationResult distinctResult = session.aggregateCountByFloatField(
+              new MatchAllDocsQuery(), "vulnerabilitySeverity", cvssBands(), "cve");
+
+          assertThat(distinctResult.total).isEqualTo(5);
+          assertThat(distinctResult.buckets).containsExactly(
+              Map.entry("medium", 0L),
+              Map.entry("high", 2L),
+              Map.entry("critical", 1L));
+
+          // Same pass shape without a distinct column counts raw documents per band.
+          MetricAggregationResult documentResult = session.aggregateCountByFloatField(
+              new MatchAllDocsQuery(), "vulnerabilitySeverity", cvssBands());
+
+          assertThat(documentResult.total).isEqualTo(5);
+          assertThat(documentResult.buckets).containsExactly(
+              Map.entry("medium", 0L),
+              Map.entry("high", 3L),
+              Map.entry("critical", 1L));
+        }
+      }
+    }
+  }
+
+  /** Like {@link #vulnerabilityDocument}, plus the {@code cve} doc-values column the banded pass needs. */
+  private static Document distinctDocValuesVulnerabilityDocument(
+      final String hash,
+      final String cve,
+      final float severity)
+  {
+    Document doc = vulnerabilityDocument(hash, cve, severity);
+    doc.add(new SortedDocValuesField("cve", new BytesRef(cve)));
+    return doc;
+  }
+
   private static Document threatDocument(final String hash, final int threat) {
     Document doc = new Document();
     doc.add(new StringField("componentHash", hash, YES));

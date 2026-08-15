@@ -20,6 +20,8 @@ import com.sonatype.insight.brain.service.InsightWork;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.SortedSetDocValuesField;
+import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -212,6 +214,7 @@ public class IndexReadSessionContractTest
     Document document = new Document();
     document.add(new StringField("value", value, YES));
     document.add(new StringField("category", category, YES));
+    document.add(new SortedSetDocValuesField("category", new BytesRef(category)));
     return document;
   }
 

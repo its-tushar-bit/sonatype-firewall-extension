@@ -266,6 +266,8 @@ public class DocumentBuilder
 
   private Optional<Field[]> applicationCategoryNames = Optional.empty();
 
+  private Optional<Field[]> applicationCategoryIds = Optional.empty();
+
   private Optional<Field[]> applicationLastEvaluationTimeEpochMs = Optional.empty();
 
   private Optional<Field[]> applicationStageSeverityCounts = Optional.empty();
@@ -877,6 +879,22 @@ public class DocumentBuilder
   }
 
   /**
+   * Multi-valued category (tag) IDs for an APPLICATION doc, one {@link TextField} per ID (stored).
+   * The raw IDs back the {@code applicationCategoryId} facet (opaque ID, raw/case-sensitive).
+   * Mirrors {@link #setApplicationCategoryNames} for the ID field. A null/empty collection writes
+   * nothing.
+   */
+  public DocumentBuilder setApplicationCategoryIds(final Collection<String> categoryIds) {
+    if (categoryIds != null && !categoryIds.isEmpty()) {
+      this.applicationCategoryIds = Optional.of(categoryIds.stream()
+          .filter(Objects::nonNull)
+          .map(id -> new TextField(APPLICATION_CATEGORY_ID.label, id, Store.YES))
+          .toArray(Field[]::new));
+    }
+    return this;
+  }
+
+  /**
    * Epoch-millis of the application's latest evaluation. A {@link LongPoint} (indexed, not stored)
    * backs {@code [x TO *]} range filters; a {@link StoredField} keeps the display value. The numeric
    * sort doc-values twin is added in {@link LuceneIndexingContext#addDocuments}, not here, so no null
@@ -1106,6 +1124,7 @@ public class DocumentBuilder
     rejectionReason.ifPresent(this::setFields);
     noteToReviewer.ifPresent(this::setFields);
     applicationCategoryNames.ifPresent(this::setFields);
+    applicationCategoryIds.ifPresent(this::setFields);
     applicationLastEvaluationTimeEpochMs.ifPresent(this::setFields);
     applicationStageSeverityCounts.ifPresent(this::setFields);
     componentViolationPolicyTypes.ifPresent(this::setFields);

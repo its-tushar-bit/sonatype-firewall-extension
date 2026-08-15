@@ -1,0 +1,195 @@
+{
+  "bomFormat" : "CycloneDX",
+  "specVersion" : "1.6",
+  "version" : 1,
+  "metadata" : {
+    "tools" : {
+      "components" : [
+        {
+          "type" : "application",
+          "name" : "Sonatype SBOM Manager",
+          "version" : "1.188.0-SNAPSHOT"
+        }
+      ]
+    },
+    "component" : {
+      "type" : "application",
+      "bom-ref" : "ba740dde-daad-4206-870a-518d5e684a71",
+      "name" : "hrapp",
+      "version" : "20250212110445310"
+    }
+  },
+  "components" : [
+    {
+      "type" : "library",
+      "bom-ref" : "561b185af127451982d8950a3ebd1ec5",
+      "name" : "org.springframework.boot:spring-boot-autoconfigure",
+      "version" : "2.0.3.RELEASE",
+      "purl" : "pkg:maven/org.springframework.boot/spring-boot-autoconfigure@2.0.3.RELEASE?type=jar",
+      "properties" : [
+        {
+          "name" : "sonatype:match_state",
+          "value" : "exact"
+        },
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "Sonatype"
+        },
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "2b0949b"
+        },
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:maven/log4j/log4j@1.2.8?type=jar"
+        }
+      ]
+    }
+  ],
+  "vulnerabilities" : [
+    {
+      "bom-ref" : "CVE-2023-20883-64bb1ddef5c94d079cd4c2a48725c864",
+      "id" : "CVE-2023-20883",
+      "source" : {
+        "name" : "NVD",
+        "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-20883"
+      },
+      "ratings" : [
+        {
+          "source" : {
+            "name" : "NVD",
+            "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-20883"
+          },
+          "score" : 7.5,
+          "severity" : "high",
+          "method" : "CVSSv3",
+          "vector" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+        }
+      ],
+      "cwes" : [
+        400
+      ],
+      "affects" : [
+        {
+          "ref" : "561b185af127451982d8950a3ebd1ec5"
+        }
+      ],
+      "references" : [
+        {
+          "id" : "CVE-2023-20883",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2023-20883"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref" : "CVE-TEST-64bb1ddef5c94d079cd4c2a48725c864",
+      "id" : "CVE-TEST",
+      "source" : {
+        "name" : "NVD",
+        "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-TEST"
+      },
+      "ratings" : [
+        {
+          "source" : {
+            "name" : "NVD",
+            "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-TEST"
+          },
+          "score" : 7.5,
+          "severity" : "high",
+          "method" : "CVSSv3",
+          "vector" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+        }
+      ],
+      "cwes" : [
+        400
+      ],
+      "affects" : [
+        {
+          "ref" : "561b185af127451982d8950a3ebd1ec5"
+        }
+      ],
+      "properties" : [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "SBOM"
+        }
+      ],
+      "analysis" : {
+        "state" : "exploitable",
+        "justification" : "code_not_present",
+        "response" : [
+          "can_not_fix"
+        ],
+        "detail" : "TEST-ORIGINAL-VEX-INFO",
+        "firstIssued" : "2025-01-22T17:04:23Z",
+        "lastUpdated" : "2025-01-22T17:04:23Z"
+      },
+      "references" : [
+        {
+          "id" : "CVE-TEST",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/CVE-TEST"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "CVE-2018-6341-a1e171f9b0424bbbae700113cd34b78b",
+      "id": "CVE-2018-6341",
+      "source": {
+        "name": "NVD",
+        "url": "NVD-link"
+      },
+      "ratings": [
+        {
+          "source": {
+            "name": "NVD",
+            "url": "NVD-link"
+          },
+          "score": 6.1,
+          "severity": "medium",
+          "method": "CVSSv3",
+          "vector": "CVSS:3.1"
+        }
+      ],
+      "cwes": [
+        79
+      ],
+      "description": "DESC CVE-2018-6341",
+      "analysis": {
+        "state": "resolved",
+        "justification": "code_not_present",
+        "response": [
+          "update"
+        ],
+        "detail": "VEX detail",
+        "firstIssued": "2025-02-14T15:34:39Z",
+        "lastUpdated": "2025-02-14T15:34:39Z"
+      },
+      "affects": [
+        {
+          "ref": "561b185af127451982d8950a3ebd1ec5"
+        }
+      ],
+      "properties": [
+        {
+          "name": "sonatype:identification_sources",
+          "value": "SBOM,Sonatype"
+        }
+      ],
+      "references": [
+        {
+          "id": "CVE-2018-6341",
+          "source": {
+            "name": "Sonatype Guide",
+            "url": "https://links.sonatype.com/products/clm/vulnerability/CVE-2018-6341"
+          }
+        }
+      ]
+    }
+  ]
+}

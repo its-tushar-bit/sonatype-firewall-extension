@@ -35,6 +35,7 @@ import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jooq.exception.DataAccessException;
 import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -76,6 +77,7 @@ public abstract class AbstractReportPurgerTest
   }
 
   @Before
+  @BeforeEach
   public void init() {
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication(org.getId());

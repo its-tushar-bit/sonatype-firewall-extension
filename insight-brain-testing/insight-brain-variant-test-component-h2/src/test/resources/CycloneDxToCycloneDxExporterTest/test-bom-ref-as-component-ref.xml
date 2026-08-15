@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bom serialNumber="urn:uuid:1270d235-485f-4736-a574-7d4cbac62537" version="1" xmlns="http://cyclonedx.org/schema/bom/1.5">
+    <metadata>
+        <timestamp>2024-06-20T20:22:33Z</timestamp>
+        <component type="application">
+            <name>validation</name>
+        </component>
+    </metadata>
+    <components>
+        <component type="library" bom-ref="3f51629d-5b14-4a98-9f5b-3e0a489288b4">
+            <group>log4j</group>
+            <name>log4j</name>
+            <version>1.4.196</version>
+            <licenses>
+                <license>
+                    <id>MPL-2.0</id>
+                    <properties>
+                        <property name="identificationSources">SBOM,Sonatype</property>
+                    </properties>
+                </license>
+            </licenses>
+            <modified>false</modified>
+            <properties>
+                <property name="Sonatype truncated SHA1">dd0034398d593aa3588c</property>
+                <property name="Match State">exact</property>
+                <property name="Identification Source">Sonatype</property>
+            </properties>
+        </component>
+    </components>
+</bom>

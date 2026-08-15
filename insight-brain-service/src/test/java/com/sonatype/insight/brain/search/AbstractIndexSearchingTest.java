@@ -97,6 +97,9 @@ import java.util.stream.Collectors;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -166,6 +169,7 @@ public abstract class AbstractIndexSearchingTest
   public HdsMockServerRule hdsMockServer = new HdsMockServerRule();
 
   @Before
+  @BeforeEach
   public void setUpSearchOverrides() {
     spyOrganizationDAO = spy(daoFactory.createOrganizationDAO());
     applyBeanFieldOverride(OwnerDAO.class, "orgDAO", spyOrganizationDAO);
@@ -180,6 +184,7 @@ public abstract class AbstractIndexSearchingTest
   }
 
   @Before
+  @BeforeEach
   public void before() {
     UserPrincipal userPrincipal = (UserPrincipal) subject.getPrincipal();
     Role role = tempEntity.newRole(true, Permission.READ);
@@ -2010,6 +2015,7 @@ public abstract class AbstractIndexSearchingTest
   }
 
   @BeforeClass
+  @BeforeAll
   public static void beforeClass() {
     System.setProperty("AdvancedSearch.createSearchIndex", "2");
     System.setProperty("AdvancedSearch.createSearchIndex.eval", "2");
@@ -2017,6 +2023,7 @@ public abstract class AbstractIndexSearchingTest
   }
 
   @AfterClass
+  @AfterAll
   public static void afterClass() {
     System.clearProperty("AdvancedSearch.createSearchIndex");
     System.clearProperty("AdvancedSearch.createSearchIndex.eval");

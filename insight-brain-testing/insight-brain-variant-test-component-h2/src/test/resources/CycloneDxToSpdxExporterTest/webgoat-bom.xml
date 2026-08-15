@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bom serialNumber="urn:uuid:218214e0-8527-4865-9076-521b3b8ee137" version="1" xmlns="http://cyclonedx.org/schema/bom/1.5">
+  <metadata>
+    <timestamp>2024-03-29T18:32:15Z</timestamp>
+    <tools>
+      <tool>
+        <vendor>Sonatype Inc.</vendor>
+        <name>Nexus IQ Server</name>
+        <version>1.175.0-SNAPSHOT</version>
+      </tool>
+    </tools>
+    <component type="application" bom-ref="c9f3c210-670e-41c0-993b-af8a7768f25b">
+      <group>sonatype</group>
+      <name>iq_application_webgoat</name>
+      <version>218214e0852748659076521b3b8ee137</version>
+      <purl>pkg:generic/sonatype/iq_application_webgoat@218214e0852748659076521b3b8ee137</purl>
+    </component>
+    <properties>
+      <property name="Scan ID">218214e0852748659076521b3b8ee137</property>
+    </properties>
+  </metadata>
+  <components>
+    <component type="library" bom-ref="32dd9982-7edc-4cde-85f6-8946cabca003">
+      <group>log4j</group>
+      <name>log4j</name>
+      <version>1.2.8</version>
+      <licenses>
+        <license>
+          <id>Apache-1.1</id>
+        </license>
+      </licenses>
+      <purl>pkg:maven/log4j/log4j@1.2.8?type=jar</purl>
+      <modified>false</modified>
+      <properties>
+        <property name="Sonatype truncated SHA1">3640dd71069d7986c9a1</property>
+        <property name="Match State">exact</property>
+        <property name="Identification Source">Sonatype</property>
+      </properties>
+      <evidence>
+        <occurrences>
+          <occurrence>
+            <location>Unix_WebGoat-5.0.war/WEB-INF/lib/log4j-1.2.8.jar</location>
+          </occurrence>
+        </occurrences>
+      </evidence>
+    </component>
+    <component type="library" bom-ref="e6a49891-d1d5-4358-8688-b5a03a546f90">
+      <group>commons-collections</group>
+      <name>commons-collections</name>
+      <version>3.1</version>
+      <licenses>
+        <license>
+          <id>Apache-2.0</id>
+        </license>
+      </licenses>
+      <purl>pkg:maven/commons-collections/commons-collections@3.1?type=jar</purl>
+      <modified>false</modified>
+      <properties>
+        <property name="Sonatype truncated SHA1">40fb048097caeacdb11d</property>
+        <property name="Match State">exact</property>
+        <property name="Identification Source">Sonatype</property>
+      </properties>
+      <evidence>
+        <occurrences>
+          <occurrence>
+            <location>Unix_WebGoat-5.0.war/WEB-INF/lib/commons-collections-3.1.jar</location>
+          </occurrence>
+        </occurrences>
+      </evidence>
+    </component>
+    <component type="library" bom-ref="333584e5-0101-4a21-8f5b-61b10926cf3c">
+      <group>commons-digester</group>
+      <name>commons-digester</name>
+      <version>1.4.1</version>
+      <licenses>
+        <license>
+          <id>Apache-1.1</id>
+        </license>
+        <license>
+          <name>Not Declared</name>
+        </license>
+      </licenses>
+      <purl>pkg:maven/commons-digester/commons-digester@1.4.1?type=jar</purl>
+      <modified>false</modified>
+      <properties>
+        <property name="Sonatype truncated SHA1">51031e9c43ae47693c99</property>
+        <property name="Match State">exact</property>
+        <property name="Identification Source">Sonatype</property>
+      </properties>
+      <evidence>
+        <occurrences>
+          <occurrence>
+            <location>Unix_WebGoat-5.0.war/WEB-INF/lib/commons-digester.jar</location>
+          </occurrence>
+        </occurrences>
+      </evidence>
+    </component>
+    <component type="library" bom-ref="85e600ff-6842-4b60-bbc5-56a45e3a357c">
+      <group>commons-discovery</group>
+      <name>commons-discovery</name>
+      <version>0.2</version>
+      <licenses>
+        <license>
+          <id>Apache-1.1</id>
+        </license>
+        <license>
+          <name>Not Declared</name>
+        </license>
+      </licenses>
+      <cpe>cpe:/a:commons-discovery:commons-discovery:0.2</cpe>
+      <purl>pkg:maven/commons-discovery/commons-discovery@0.2?type=jar</purl>
+      <modified>false</modified>
+      <properties>
+        <property name="Sonatype truncated SHA1">7773ac7a7248f08ed2b8</property>
+        <property name="Match State">exact</property>
+        <property name="Identification Source">Sonatype</property>
+      </properties>
+      <evidence>
+        <occurrences>
+          <occurrence>
+            <location>Unix_WebGoat-5.0.war/WEB-INF/lib/commons-discovery-0.2.jar</location>
+          </occurrence>
+        </occurrences>
+      </evidence>
+    </component>
+    <component type="library" bom-ref="0cd0109c-4389-4c65-b95a-1d3b552d902a">
+      <group>commons-logging</group>
+      <name>commons-logging</name>
+      <version>1.0.4</version>
+      <licenses>
+        <license>
+          <id>Apache-2.0</id>
+        </license>
+        <license>
+          <name>See-License-Clause</name>
+        </license>
+      </licenses>
+      <cpe>cpe:2.3:a:commons-logging:commons-logging:1.0.4:*:*:*:*:*:*:*</cpe>
+      <purl>pkg:maven/commons-logging/commons-logging@1.0.4?type=jar</purl>
+      <modified>false</modified>
+      <properties>
+        <property name="Sonatype truncated SHA1">f029a2aefe2b3e151757</property>
+        <property name="Match State">exact</property>
+        <property name="Identification Source">Sonatype</property>
+      </properties>
+      <evidence>
+        <occurrences>
+          <occurrence>
+            <location>Unix_WebGoat-5.0.war/WEB-INF/lib/commons-logging-1.0.4.jar</location>
+          </occurrence>
+        </occurrences>
+      </evidence>
+    </component>
+  </components>
+  <externalReferences><reference type="bom"><url>http://localhost:8070/ui/links/application/webgoat/report/218214e0852748659076521b3b8ee137</url><comment>IQ Report</comment></reference></externalReferences>
+  <dependencies>
+    <dependency ref="c9f3c210-670e-41c0-993b-af8a7768f25b">
+      <dependency ref="333584e5-0101-4a21-8f5b-61b10926cf3c"/>
+      <dependency ref="32dd9982-7edc-4cde-85f6-8946cabca003"/>
+      <dependency ref="85e600ff-6842-4b60-bbc5-56a45e3a357c"/>
+    </dependency>
+    <dependency ref="333584e5-0101-4a21-8f5b-61b10926cf3c">
+      <dependency ref="e6a49891-d1d5-4358-8688-b5a03a546f90"/>
+      <dependency ref="0cd0109c-4389-4c65-b95a-1d3b552d902a"/>
+    </dependency>
+    <dependency ref="e6a49891-d1d5-4358-8688-b5a03a546f90"/>
+    <dependency ref="0cd0109c-4389-4c65-b95a-1d3b552d902a"/>
+    <dependency ref="32dd9982-7edc-4cde-85f6-8946cabca003"/>
+    <dependency ref="85e600ff-6842-4b60-bbc5-56a45e3a357c">
+      <dependency ref="0cd0109c-4389-4c65-b95a-1d3b552d902a"/>
+    </dependency>
+  </dependencies>
+  <vulnerabilities>
+    <vulnerability>
+      <id>sonatype-2010-0053</id>
+      <source>
+        <name>SONATYPE</name>
+        <url>http://localhost:8070/ui/links/vln/sonatype-2010-0053</url>
+      </source>
+      <ratings>
+        <rating>
+          <source>
+            <name>SONATYPE</name>
+          </source>
+          <score>7.8</score>
+          <severity>critical</severity>
+          <method>other</method>
+          <vector>CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H</vector>
+        </rating>
+      </ratings>
+      <cwes>
+        <cwe>426</cwe>
+      </cwes>
+      <affects>
+        <target>
+          <ref>32dd9982-7edc-4cde-85f6-8946cabca003</ref>
+        </target>
+      </affects>
+    </vulnerability>
+    <vulnerability>
+      <id>CVE-2022-23307</id>
+      <source>
+        <name>NVD</name>
+        <url>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-23307</url>
+      </source>
+      <ratings>
+        <rating>
+          <source>
+            <name>NVD</name>
+          </source>
+          <score>8.8</score>
+          <severity>critical</severity>
+          <method>CVSSv3</method>
+          <vector>CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H</vector>
+        </rating>
+      </ratings>
+      <cwes>
+        <cwe>502</cwe>
+      </cwes>
+      <analysis>
+        <state>exploitable</state>
+        <justification>code_not_present</justification>
+        <responses>
+          <response>can_not_fix</response>
+          <response>will_not_fix</response>
+        </responses>
+        <detail>lorem ipsum CVE-2022-23307</detail>
+      </analysis>
+      <affects>
+        <target>
+          <ref>32dd9982-7edc-4cde-85f6-8946cabca003</ref>
+        </target>
+      </affects>
+    </vulnerability>
+    <vulnerability>
+      <id>sonatype-2015-0002</id>
+      <source>
+        <name>SONATYPE</name>
+        <url>http://localhost:8070/ui/links/vln/sonatype-2015-0002</url>
+      </source>
+      <ratings>
+        <rating>
+          <source>
+            <name>SONATYPE</name>
+          </source>
+          <score>9.0</score>
+          <severity>critical</severity>
+          <method>other</method>
+          <vector>CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:C/C:H/I:H/A:H</vector>
+        </rating>
+      </ratings>
+      <cwes>
+        <cwe>502</cwe>
+      </cwes>
+      <affects>
+        <target>
+          <ref>e6a49891-d1d5-4358-8688-b5a03a546f90</ref>
+        </target>
+      </affects>
+    </vulnerability>
+  </vulnerabilities>
+</bom>

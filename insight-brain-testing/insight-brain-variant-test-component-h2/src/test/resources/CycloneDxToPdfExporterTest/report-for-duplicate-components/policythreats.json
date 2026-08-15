@@ -1,0 +1,294 @@
+{
+  "version" : 5,
+  "stageTypeId" : "compliance",
+  "aaData" : [ {
+    "hash" : "85e25187b46727232561",
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "Microsoft.Extensions.ApiDescription.Server",
+        "version" : "3.0.0"
+      }
+    },
+    "policyId" : "b7b2afde39ee48ebb4b8fbd7934064b6",
+    "policyName" : "Security-High",
+    "policyThreatLevel" : 9,
+    "activeViolations" : [ {
+      "policyId" : "b7b2afde39ee48ebb4b8fbd7934064b6",
+      "policyViolationId" : "d80290c50ae940a6820deca076c13603",
+      "policyName" : "Security-High",
+      "policyThreatLevel" : 9,
+      "policyOwnerId" : "ROOT_ORGANIZATION_ID",
+      "policyOwnerType" : "organization",
+      "waived" : false,
+      "waivedWithAutoWaiver" : false,
+      "grandfathered" : false,
+      "legacyViolation" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"42c68f808a2a4aa59fe41cd782617052\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability CVE-2024-21907 with severity >= 7 (severity = 7.5)\",\"reference\":{\"value\":\"CVE-2024-21907\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":null},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity < 9\",\"reason\":\"Found security vulnerability CVE-2024-21907 with severity < 9 (severity = 7.5)\",\"reference\":{\"value\":\"CVE-2024-21907\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "42c68f808a2a4aa59fe41cd782617052",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability CVE-2024-21907 with severity >= 7 (severity = 7.5)",
+          "conditionTriggerReference" : {
+            "value" : "CVE-2024-21907",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 9",
+          "conditionReason" : "Found security vulnerability CVE-2024-21907 with severity < 9 (severity = 7.5)",
+          "conditionTriggerReference" : {
+            "value" : "CVE-2024-21907",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY",
+      "reachabilityStatus" : null
+    }, {
+      "policyId" : "b7b2afde39ee48ebb4b8fbd7934064b6",
+      "policyViolationId" : "33a4e6caf1674459af68b5a4cddd6cb3",
+      "policyName" : "Security-High",
+      "policyThreatLevel" : 9,
+      "policyOwnerId" : "ROOT_ORGANIZATION_ID",
+      "policyOwnerType" : "organization",
+      "waived" : false,
+      "waivedWithAutoWaiver" : false,
+      "grandfathered" : false,
+      "legacyViolation" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"42c68f808a2a4aa59fe41cd782617052\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability sonatype-2021-0713 with severity >= 7 (severity = 7.5)\",\"reference\":{\"value\":\"sonatype-2021-0713\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":null},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity < 9\",\"reason\":\"Found security vulnerability sonatype-2021-0713 with severity < 9 (severity = 7.5)\",\"reference\":{\"value\":\"sonatype-2021-0713\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "42c68f808a2a4aa59fe41cd782617052",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability sonatype-2021-0713 with severity >= 7 (severity = 7.5)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2021-0713",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 9",
+          "conditionReason" : "Found security vulnerability sonatype-2021-0713 with severity < 9 (severity = 7.5)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2021-0713",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY",
+      "reachabilityStatus" : null
+    }, {
+      "policyId" : "b7b2afde39ee48ebb4b8fbd7934064b6",
+      "policyViolationId" : "eee115e7897a45ee9655bf3baf9980de",
+      "policyName" : "Security-High",
+      "policyThreatLevel" : 9,
+      "policyOwnerId" : "ROOT_ORGANIZATION_ID",
+      "policyOwnerType" : "organization",
+      "waived" : false,
+      "waivedWithAutoWaiver" : false,
+      "grandfathered" : false,
+      "legacyViolation" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"42c68f808a2a4aa59fe41cd782617052\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability sonatype-2022-5998 with severity >= 7 (severity = 7.5)\",\"reference\":{\"value\":\"sonatype-2022-5998\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":null},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity < 9\",\"reason\":\"Found security vulnerability sonatype-2022-5998 with severity < 9 (severity = 7.5)\",\"reference\":{\"value\":\"sonatype-2022-5998\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "42c68f808a2a4aa59fe41cd782617052",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability sonatype-2022-5998 with severity >= 7 (severity = 7.5)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2022-5998",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 9",
+          "conditionReason" : "Found security vulnerability sonatype-2022-5998 with severity < 9 (severity = 7.5)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2022-5998",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY",
+      "reachabilityStatus" : null
+    }, {
+      "policyId" : "fb0a41f7110e421aab4e9b1dfe84d2cd",
+      "policyViolationId" : "0d87ec5efb6d4c5eb0b7b50145581e2f",
+      "policyName" : "Architecture-Quality",
+      "policyThreatLevel" : 1,
+      "policyOwnerId" : "ROOT_ORGANIZATION_ID",
+      "policyOwnerType" : "organization",
+      "waived" : false,
+      "waivedWithAutoWaiver" : false,
+      "grandfathered" : false,
+      "legacyViolation" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"fbe59477d7784ead811c27dd2d85d562\",\"constraintName\":\"Version is old\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"AgeInDays\",\"conditionIndex\":0,\"summary\":\"Age older than 1825 days\",\"reason\":\"Found component older than 5 years\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "fbe59477d7784ead811c27dd2d85d562",
+        "constraintName" : "Version is old",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "AgeInDays",
+          "conditionSummary" : "Age older than 1825 days",
+          "conditionReason" : "Found component older than 5 years",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY",
+      "reachabilityStatus" : null
+    } ],
+    "waivedViolations" : [ ],
+    "allViolations" : [ {
+      "policyId" : "b7b2afde39ee48ebb4b8fbd7934064b6",
+      "policyViolationId" : "d80290c50ae940a6820deca076c13603",
+      "policyName" : "Security-High",
+      "policyThreatLevel" : 9,
+      "policyOwnerId" : "ROOT_ORGANIZATION_ID",
+      "policyOwnerType" : "organization",
+      "waived" : false,
+      "waivedWithAutoWaiver" : false,
+      "grandfathered" : false,
+      "legacyViolation" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"42c68f808a2a4aa59fe41cd782617052\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability CVE-2024-21907 with severity >= 7 (severity = 7.5)\",\"reference\":{\"value\":\"CVE-2024-21907\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":null},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity < 9\",\"reason\":\"Found security vulnerability CVE-2024-21907 with severity < 9 (severity = 7.5)\",\"reference\":{\"value\":\"CVE-2024-21907\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "42c68f808a2a4aa59fe41cd782617052",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability CVE-2024-21907 with severity >= 7 (severity = 7.5)",
+          "conditionTriggerReference" : {
+            "value" : "CVE-2024-21907",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 9",
+          "conditionReason" : "Found security vulnerability CVE-2024-21907 with severity < 9 (severity = 7.5)",
+          "conditionTriggerReference" : {
+            "value" : "CVE-2024-21907",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY",
+      "reachabilityStatus" : null
+    }, {
+      "policyId" : "b7b2afde39ee48ebb4b8fbd7934064b6",
+      "policyViolationId" : "33a4e6caf1674459af68b5a4cddd6cb3",
+      "policyName" : "Security-High",
+      "policyThreatLevel" : 9,
+      "policyOwnerId" : "ROOT_ORGANIZATION_ID",
+      "policyOwnerType" : "organization",
+      "waived" : false,
+      "waivedWithAutoWaiver" : false,
+      "grandfathered" : false,
+      "legacyViolation" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"42c68f808a2a4aa59fe41cd782617052\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability sonatype-2021-0713 with severity >= 7 (severity = 7.5)\",\"reference\":{\"value\":\"sonatype-2021-0713\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":null},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity < 9\",\"reason\":\"Found security vulnerability sonatype-2021-0713 with severity < 9 (severity = 7.5)\",\"reference\":{\"value\":\"sonatype-2021-0713\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "42c68f808a2a4aa59fe41cd782617052",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability sonatype-2021-0713 with severity >= 7 (severity = 7.5)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2021-0713",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 9",
+          "conditionReason" : "Found security vulnerability sonatype-2021-0713 with severity < 9 (severity = 7.5)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2021-0713",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY",
+      "reachabilityStatus" : null
+    }, {
+      "policyId" : "b7b2afde39ee48ebb4b8fbd7934064b6",
+      "policyViolationId" : "eee115e7897a45ee9655bf3baf9980de",
+      "policyName" : "Security-High",
+      "policyThreatLevel" : 9,
+      "policyOwnerId" : "ROOT_ORGANIZATION_ID",
+      "policyOwnerType" : "organization",
+      "waived" : false,
+      "waivedWithAutoWaiver" : false,
+      "grandfathered" : false,
+      "legacyViolation" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"42c68f808a2a4aa59fe41cd782617052\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability sonatype-2022-5998 with severity >= 7 (severity = 7.5)\",\"reference\":{\"value\":\"sonatype-2022-5998\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":null},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity < 9\",\"reason\":\"Found security vulnerability sonatype-2022-5998 with severity < 9 (severity = 7.5)\",\"reference\":{\"value\":\"sonatype-2022-5998\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "42c68f808a2a4aa59fe41cd782617052",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability sonatype-2022-5998 with severity >= 7 (severity = 7.5)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2022-5998",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 9",
+          "conditionReason" : "Found security vulnerability sonatype-2022-5998 with severity < 9 (severity = 7.5)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2022-5998",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY",
+      "reachabilityStatus" : null
+    }, {
+      "policyId" : "fb0a41f7110e421aab4e9b1dfe84d2cd",
+      "policyViolationId" : "0d87ec5efb6d4c5eb0b7b50145581e2f",
+      "policyName" : "Architecture-Quality",
+      "policyThreatLevel" : 1,
+      "policyOwnerId" : "ROOT_ORGANIZATION_ID",
+      "policyOwnerType" : "organization",
+      "waived" : false,
+      "waivedWithAutoWaiver" : false,
+      "grandfathered" : false,
+      "legacyViolation" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"fbe59477d7784ead811c27dd2d85d562\",\"constraintName\":\"Version is old\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"AgeInDays\",\"conditionIndex\":0,\"summary\":\"Age older than 1825 days\",\"reason\":\"Found component older than 5 years\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "fbe59477d7784ead811c27dd2d85d562",
+        "constraintName" : "Version is old",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "AgeInDays",
+          "conditionSummary" : "Age older than 1825 days",
+          "conditionReason" : "Found component older than 5 years",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY",
+      "reachabilityStatus" : null
+    } ]
+  } ]
+}

@@ -36,6 +36,7 @@ import jakarta.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mock;
 
 abstract class AbstractPdfExporterTest
@@ -92,6 +93,7 @@ abstract class AbstractPdfExporterTest
   protected Application app;
 
   @Before
+  @BeforeEach
   public void init() throws SbomExportException {
     app = tempEntity.newApplicationWithParent(APP_ID);
     thirdPartyFile = tempEntity.newThirdPartyFile(THIRD_PARTY_FILE);

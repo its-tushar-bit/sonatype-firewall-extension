@@ -1,0 +1,99 @@
+{
+  "bomFormat" : "CycloneDX",
+  "specVersion" : "1.7",
+  "version" : 1,
+  "metadata" : {
+    "timestamp" : "2024-12-09T21:30:24Z",
+    "tools" : {
+      "components" : [
+        {
+          "type" : "application",
+          "name" : "Sonatype SBOM Manager",
+          "version" : "1.185.0-SNAPSHOT"
+        }
+      ]
+    },
+    "component" : {
+      "type" : "application",
+      "bom-ref" : "66943a53-117e-45c5-9892-84256f1f409a",
+      "name" : "webgoat",
+      "version" : "v1"
+    }
+  },
+  "components" : [
+    {
+      "type" : "library",
+      "bom-ref" : "7870e53cfac04b2cae941c6fbf576e1d",
+      "name" : "pam/libpam-modules-bin",
+      "version" : "1.5.2-6+deb12u1",
+      "purl" : "pkg:generic/debian%3A12/pam%2Flibpam-modules-bin@1.5.2-6%2Bdeb12u1?nexustype=container",
+      "properties" : [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "Sonatype-Container"
+        },
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "abcdef"
+        },
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:generic/debian%3A12/pam%2Flibpam-modules-bin@1.5.2-6%2Bdeb12u1?nexustype=container"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "container:postgres:13.18/pkg:generic\\debian%3A12\\pam%2Flibpam-modules-bin@1.5.2-6%2Bdeb12u1?nexustype=container"
+          }
+        ]
+      }
+    }
+  ],
+  "vulnerabilities" : [
+    {
+      "bom-ref" : "CVE-2024-10041-66a07531c03d4ad5884918608b187605",
+      "id" : "CVE-2024-10041",
+      "source" : {
+        "name" : "Sonatype-Container",
+        "url" : "l1"
+      },
+      "ratings" : [
+        {
+          "source" : {
+            "name" : "Sonatype-Container",
+            "url" : "l1"
+          },
+          "score" : 4.7,
+          "severity" : "medium",
+          "method" : "other",
+          "vector" : "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:H/I:N/A:N"
+        }
+      ],
+      "cwes" : [
+        1234
+      ],
+      "description" : "DESC CVE-2024-10041",
+      "affects" : [
+        {
+          "ref" : "7870e53cfac04b2cae941c6fbf576e1d"
+        }
+      ],
+      "properties" : [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "Sonatype-Container"
+        }
+      ],
+      "references" : [
+        {
+          "id" : "CVE-2024-10041",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2024-10041"
+          }
+        }
+      ]
+    }
+  ]
+}

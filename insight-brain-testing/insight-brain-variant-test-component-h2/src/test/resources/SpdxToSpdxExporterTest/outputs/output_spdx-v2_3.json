@@ -1,0 +1,228 @@
+{
+  "SPDXID" : "SPDXRef-DOCUMENT",
+  "spdxVersion" : "SPDX-2.3",
+  "creationInfo" : {
+    "created" : "2025-08-01T21:23:06Z",
+    "creators" : [ "Tool: Sonatype SBOM Manager - 1.194.0-SNAPSHOT" ]
+  },
+  "name" : "DUMMY-PUBLIC-ID-5e8b398c50314100b051b46e4d07bfd3",
+  "dataLicense" : "CC0-1.0",
+  "documentNamespace" : "http://localhost:8070/ui/links/sbomManager/management/view/application/DUMMY-PUBLIC-ID-5e8b398c50314100b051b46e4d07bfd3/bom/1.0.1",
+  "packages" : [ {
+    "SPDXID" : "SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.13.2",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "comment" : "source: OSV",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://osv.dev/vulnerability/GHSA-5469-c5p2-xv5g",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: NVD",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://nvd.nist.gov/vuln/detail/CVE-2021-45105",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: NVD",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-45046",
+      "referenceType" : "advisory"
+    }, {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/org.apache.logging.log4j/log4j-core@2.13.2?type=jar",
+      "referenceType" : "purl"
+    }, {
+      "comment" : "source: SONATYPE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://localhost:8070/ui/links/vln/sonatype-2021-4560",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/GHSA-5469-c5p2-xv5g",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2021-45105",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2021-45046",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/sonatype-2021-4560",
+      "referenceType" : "advisory"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "Apache-2.0",
+    "licenseDeclared" : "Apache-2.0",
+    "name" : "org.apache.logging.log4j:log4j-core",
+    "versionInfo" : "2.13.2"
+  }, {
+    "SPDXID" : "SPDXRef-maven-junit-junit-4.12",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "comment" : "source: NVD",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-15250",
+      "referenceType" : "advisory"
+    }, {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/junit/junit@4.12?type=jar",
+      "referenceType" : "purl"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2020-15250",
+      "referenceType" : "advisory"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "EPL-1.0",
+    "licenseDeclared" : "EPL-1.0",
+    "name" : "junit:junit",
+    "versionInfo" : "4.12"
+  }, {
+    "SPDXID" : "SPDXRef-generic-sonatype-iq-application-SCM-Test",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:generic/sonatype/iq_application_SCM_Test",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "sonatype:iq_application_SCM Test 1",
+    "versionInfo" : "76b10b862e7b42009f2415097620928c"
+  }, {
+    "SPDXID" : "SPDXRef-maven-org.hamcrest-hamcrest-core-1.3",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/org.hamcrest/hamcrest-core@1.3?type=jar",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "(BSD-3-Clause AND BSD-2-Clause)",
+    "licenseDeclared" : "(BSD-3-Clause AND BSD-2-Clause)",
+    "name" : "org.hamcrest:hamcrest-core",
+    "versionInfo" : "1.3"
+  }, {
+    "SPDXID" : "SPDXRef-maven-org.apache.logging.log4j-log4j-api-2.13.2",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/org.apache.logging.log4j/log4j-api@2.13.2?type=jar",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "Apache-2.0",
+    "licenseDeclared" : "Apache-2.0",
+    "name" : "org.apache.logging.log4j:log4j-api",
+    "versionInfo" : "2.13.2"
+  }, {
+    "SPDXID" : "SPDXRef-maven-org.yaml-snakeyaml-1.29",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/org.yaml/snakeyaml@1.29?type=jar",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "Apache-2.0",
+    "licenseDeclared" : "Apache-2.0",
+    "name" : "org.yaml:snakeyaml",
+    "versionInfo" : "1.29"
+  }, {
+    "SPDXID" : "SPDXRef-997583b27e554729b7e310678f0b5690",
+    "attributionTexts" : [ "Evidence license text for: (EPL-1.0 AND LGPL-3.0 AND MPL-2.0 AND LGPL-3.0+)" ],
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "comment" : "source: SONATYPE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://localhost:8070/ui/links/vln/sonatype-2018-0863",
+      "referenceType" : "advisory"
+    }, {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/com.h2database/h2@2.3.232?type=jar",
+      "referenceType" : "purl"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/sonatype-2018-0863",
+      "referenceType" : "advisory"
+    } ],
+    "filesAnalyzed" : true,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "com.h2database:h2",
+    "packageVerificationCode" : {
+      "packageVerificationCodeValue" : "8ed9fdef1520210660a960e7f7b4613e4ef97bcf"
+    },
+    "primaryPackagePurpose" : "APPLICATION",
+    "versionInfo" : "2.3.232"
+  } ],
+  "files" : [ {
+    "SPDXID" : "SPDXRef-997583b27e554729b7e310678f0b5690-file",
+    "checksums" : [ {
+      "algorithm" : "SHA1",
+      "checksumValue" : "1915a4f74b1f1243ebe1d5e23e915f8a264e9e66"
+    }, {
+      "algorithm" : "MD5",
+      "checksumValue" : "486929f2b29510c678dc3c31a9f34271"
+    }, {
+      "algorithm" : "SHA512",
+      "checksumValue" : "790bbdde3eee17522cc51f2cd96af908815de0b0965ee30280d198b76195e38a75fdc8b65fe63e3568e48d42fce72d3afbff80b9dd258c6271e2fcca97f0ffda"
+    }, {
+      "algorithm" : "SHA256",
+      "checksumValue" : "4b1b6e884a83b7e34d165ca44527f5c081ae19eade65c25bf06acb44c693fc37"
+    } ],
+    "copyrightText" : "NOASSERTION",
+    "fileName" : "h2.jar",
+    "licenseConcluded" : "NOASSERTION",
+    "licenseInfoInFiles" : [ "NOASSERTION" ]
+  } ],
+  "relationships" : [ {
+    "spdxElementId" : "SPDXRef-DOCUMENT",
+    "relationshipType" : "DESCRIBES",
+    "relatedSpdxElement" : "SPDXRef-997583b27e554729b7e310678f0b5690"
+  }, {
+    "spdxElementId" : "SPDXRef-DOCUMENT",
+    "relationshipType" : "DESCRIBES",
+    "relatedSpdxElement" : "SPDXRef-generic-sonatype-iq-application-SCM-Test"
+  }, {
+    "spdxElementId" : "SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.13.2",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-maven-org.apache.logging.log4j-log4j-api-2.13.2"
+  }, {
+    "spdxElementId" : "SPDXRef-maven-junit-junit-4.12",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-maven-org.hamcrest-hamcrest-core-1.3"
+  }, {
+    "spdxElementId" : "SPDXRef-generic-sonatype-iq-application-SCM-Test",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-maven-junit-junit-4.12"
+  }, {
+    "spdxElementId" : "SPDXRef-generic-sonatype-iq-application-SCM-Test",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-maven-org.yaml-snakeyaml-1.29"
+  }, {
+    "spdxElementId" : "SPDXRef-generic-sonatype-iq-application-SCM-Test",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.13.2"
+  }, {
+    "spdxElementId" : "SPDXRef-997583b27e554729b7e310678f0b5690",
+    "relationshipType" : "CONTAINS",
+    "relatedSpdxElement" : "SPDXRef-997583b27e554729b7e310678f0b5690-file"
+  } ]
+}

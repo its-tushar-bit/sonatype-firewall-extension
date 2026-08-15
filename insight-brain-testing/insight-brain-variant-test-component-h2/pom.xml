@@ -238,6 +238,13 @@
       <artifactId>json-unit-assertj</artifactId>
       <scope>test</scope>
     </dependency>
+
+    <!-- xmlunit assertj (assertThat XML), used by the SBOM/PDF exporter tests to compare generated XML. -->
+    <dependency>
+      <groupId>org.xmlunit</groupId>
+      <artifactId>xmlunit-assertj</artifactId>
+      <scope>test</scope>
+    </dependency>
     <!--
       Legacy javax.xml.bind (JAXB 2.x) runtime impl. Mirrors insight-brain-service's runtime dep so
       any javax-namespace JAXBContext.newInstance in the component context resolves a provider.

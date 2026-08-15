@@ -1,0 +1,97 @@
+{
+   "bomFormat":"CycloneDX",
+   "specVersion":"1.6",
+   "version":1,
+   "metadata":{
+      "timestamp":"2025-08-21T10:30:07Z",
+      "tools":{
+         "components":[
+            {
+               "type":"application",
+               "name":"Sonatype SBOM Manager",
+               "version":"1.195.0-SNAPSHOT"
+            }
+         ]
+      },
+      "component":{
+         "type":"application",
+         "bom-ref":"c72292dd-786e-4fcb-a810-acd5f83701da",
+         "name":"sbom1",
+         "version":"17.7.2"
+      }
+   },
+   "components":[
+      {
+         "type":"library",
+         "name":"Microsoft.Extensions.ApiDescription.Server",
+         "version":"3.0.0",
+         "description":"Provides access to Windows Data Protection Api. Commonly Used Types: System.Security.Cryptography.DataProtectionScope System.Security.Cryptography.ProtectedData",
+         "licenses":[
+            {
+               "license":{
+                  "name":"MIT License"
+               }
+            }
+         ],
+         "purl":"pkg:nuget/Microsoft.Extensions.ApiDescription.Server@3.0.0",
+         "properties":[
+            {
+               "name":"project_name",
+               "value":"PowerPlan.UserManagement"
+            },
+            {
+               "name":"project_parent",
+               "value":"Welcome Center"
+            }
+         ]
+      },
+      {
+         "type":"library",
+         "name":"pkg:nuget/Microsoft.Extensions.ApiDescription.Server@3.0.0",
+         "version":"3.0.0",
+         "description":"Provides access to Windows Data Protection Api. Commonly Used Types: System.Security.Cryptography.DataProtectionScope System.Security.Cryptography.ProtectedData",
+         "licenses":[
+            {
+               "license":{
+                  "name":"MIT License"
+               }
+            }
+         ],
+         "purl":"pkg:nuget/Microsoft.Extensions.ApiDescription.Server@3.0.0",
+         "properties":[
+            {
+               "name":"project_name",
+               "value":"PowerPlan.IncomeTax"
+            },
+            {
+               "name":"project_parent",
+               "value":"TFA"
+            }
+         ]
+      },
+      {
+         "type":"library",
+         "name":"pkg:nuget/Microsoft.Extensions.ApiDescription.Server@3.0.0",
+         "version":"3.0.0",
+         "description":"Provides access to Windows Data Protection Api. Commonly Used Types: System.Security.Cryptography.DataProtectionScope System.Security.Cryptography.ProtectedData",
+         "licenses":[
+            {
+               "license":{
+                  "name":"MIT License"
+               }
+            }
+         ],
+         "purl":"pkg:nuget/Microsoft.Extensions.ApiDescription.Server@3.0.0",
+         "properties":[
+            {
+               "name":"project_name",
+               "value":"PowerPlan.IncomeTax"
+            },
+            {
+               "name":"project_parent",
+               "value":"Call Center"
+            }
+         ]
+      }
+   ]
+}

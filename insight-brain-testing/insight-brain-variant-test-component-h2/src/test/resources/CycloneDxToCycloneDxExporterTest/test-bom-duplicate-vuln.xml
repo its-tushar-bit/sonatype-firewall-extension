@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bom version="1" xmlns="http://cyclonedx.org/schema/bom/1.6">
+  <components>
+    <component type="library" bom-ref="pkg:npm/vue@2.2.4">
+      <name>vue</name>
+      <purl>pkg:npm/vue@2.2.4</purl>
+    </component>
+    <component type="library" bom-ref="pkg:npm/vue@2.2.5">
+      <name>vue</name>
+      <purl>pkg:npm/vue@2.2.5</purl>
+    </component>
+    <component type="library" bom-ref="pkg:npm/vue@2.2.6">
+      <name>vue</name>
+      <purl>pkg:npm/vue@2.2.6</purl>
+    </component>
+  </components>
+  <vulnerabilities>
+    <vulnerability bom-ref="CVE-2018-6341">
+      <id>CVE-2018-6341</id>
+      <affects>
+        <target>
+          <ref>pkg:npm/vue@2.2.4</ref>
+        </target>
+        <target>
+          <ref>pkg:npm/vue@2.2.5</ref>
+        </target>
+        <target>
+          <ref>pkg:npm/vue@2.2.6</ref>
+        </target>
+      </affects>
+    </vulnerability>
+  </vulnerabilities>
+</bom>

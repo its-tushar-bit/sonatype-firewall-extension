@@ -1,0 +1,247 @@
+{
+  "bomFormat" : "CycloneDX",
+  "specVersion" : "1.6",
+  "version" : 1,
+  "metadata" : {
+    "timestamp" : "2024-10-17T17:15:12Z",
+    "tools" : {
+      "components" : [
+        {
+          "type" : "application",
+          "name" : "Sonatype SBOM Manager",
+          "version" : "1.184.0-SNAPSHOT"
+        }
+      ]
+    },
+    "component" : {
+      "type" : "application",
+      "bom-ref" : "e065230f-acdc-4362-8a13-b38bc5025b16",
+      "name" : "webgoat",
+      "version" : "v1"
+    }
+  },
+  "components" : [
+    {
+      "type" : "library",
+      "bom-ref" : "pkg:npm/vue@2.2.4",
+      "name" : "vue",
+      "purl" : "pkg:npm/vue@2.2.4",
+      "properties" : [
+        {
+          "name" : "sonatype:match_state",
+          "value" : "exact"
+        },
+        {
+          "name": "sonatype:identification_sources",
+          "value": "SBOM"
+        },
+        {
+          "name": "sonatype:truncated_sha1",
+          "value": "2b0949b"
+        },
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:npm/vue@2.2.4"
+        }
+      ]
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "pkg:npm/vue@2.2.5",
+      "name" : "vue",
+      "purl" : "pkg:npm/vue@2.2.5",
+      "properties" : [
+        {
+          "name" : "sonatype:match_state",
+          "value" : "exact"
+        },
+        {
+          "name": "sonatype:identification_sources",
+          "value": "SBOM"
+        },
+        {
+          "name": "sonatype:truncated_sha1",
+          "value": "2b0949b"
+        },
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:npm/vue@2.2.5"
+        }
+      ]
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "pkg:npm/vue@2.2.6",
+      "name" : "vue",
+      "purl" : "pkg:npm/vue@2.2.6",
+      "properties" : [
+        {
+          "name" : "sonatype:match_state",
+          "value" : "exact"
+        },
+        {
+          "name": "sonatype:identification_sources",
+          "value": "SBOM"
+        },
+        {
+          "name": "sonatype:truncated_sha1",
+          "value": "2b0949b"
+        },
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:npm/vue@2.2.6"
+        }
+      ]
+    }
+  ],
+  "vulnerabilities" : [
+    {
+      "bom-ref" : "CVE-2018-6341",
+      "id" : "CVE-2018-6341",
+      "source" : {
+        "name" : "NVD",
+        "url" : "NVD-link"
+      },
+      "ratings" : [
+        {
+          "source" : {
+            "name" : "NVD",
+            "url" : "NVD-link"
+          },
+          "score" : 6.1,
+          "severity" : "medium",
+          "method" : "CVSSv3",
+          "vector" : "CVSS:3.1"
+        }
+      ],
+      "cwes" : [
+        79
+      ],
+      "description" : "DESC CVE-2018-6341",
+      "affects" : [
+        {
+          "ref" : "pkg:npm/vue@2.2.5"
+        },
+        {
+          "ref" : "pkg:npm/vue@2.2.6"
+        }
+      ],
+      "properties" : [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "SBOM,Sonatype"
+        }
+      ],
+      "references" : [
+        {
+          "id" : "CVE-2018-6341",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2018-6341"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref" : "CVE-2018-6341-7ccae3b653ae416b95887bd153f5567b",
+      "id" : "CVE-2018-6341",
+      "source" : {
+        "name" : "NVD",
+        "url" : "NVD-link"
+      },
+      "ratings" : [
+        {
+          "source" : {
+            "name" : "NVD",
+            "url" : "NVD-link"
+          },
+          "score" : 6.1,
+          "severity" : "medium",
+          "method" : "CVSSv3",
+          "vector" : "CVSS:3.1"
+        }
+      ],
+      "cwes" : [
+        79
+      ],
+      "description" : "DESC CVE-2018-6341",
+      "analysis" : {
+        "state" : "resolved",
+        "justification" : "code_not_present",
+        "response" : [
+          "update"
+        ],
+        "detail" : "VEX detail",
+        "firstIssued" : "2024-10-17T17:15:11Z",
+        "lastUpdated" : "2024-10-17T17:15:11Z"
+      },
+      "affects" : [
+        {
+          "ref" : "pkg:npm/vue@2.2.4"
+        }
+      ],
+      "properties" : [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "SBOM,Sonatype"
+        }
+      ],
+      "references" : [
+        {
+          "id" : "CVE-2018-6341",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2018-6341"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref" : "sonatype-2018-0504-96fc4e2c534a44e4b274b3addc87b920",
+      "id" : "sonatype-2018-0504",
+      "source" : {
+        "name" : "SONATYPE",
+        "url" : "NVD-link"
+      },
+      "ratings" : [
+        {
+          "source" : {
+            "name" : "SONATYPE",
+            "url" : "NVD-link"
+          },
+          "score" : 5.4,
+          "severity" : "high",
+          "method" : "other",
+          "vector" : "CVSS:3.1"
+        }
+      ],
+      "cwes" : [
+        400
+      ],
+      "description" : "DESC sonatype-2018-0504",
+      "affects" : [
+        {
+          "ref" : "pkg:npm/vue@2.2.4"
+        },
+        {
+          "ref" : "pkg:npm/vue@2.2.5"
+        }
+      ],
+      "properties" : [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "Sonatype"
+        }
+      ],
+      "references" : [
+        {
+          "id" : "sonatype-2018-0504",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/sonatype-2018-0504"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,352 @@
+<Document>
+  <SPDXID>SPDXRef-DOCUMENT</SPDXID>
+  <spdxVersion>SPDX-2.3</spdxVersion>
+  <creationInfo>
+    <created>2025-08-01T21:41:37Z</created>
+    <creators>Tool: Sonatype SBOM Manager - 1.194.0-SNAPSHOT</creators>
+  </creationInfo>
+  <name>DUMMY-PUBLIC-ID-a5d81334c8c9495f8b2342bc519449e1</name>
+  <dataLicense>CC0-1.0</dataLicense>
+  <documentNamespace>http://localhost:8070/ui/links/sbomManager/management/view/application/DUMMY-PUBLIC-ID-a5d81334c8c9495f8b2342bc519449e1/bom/1.0.1</documentNamespace>
+  <packages>
+    <SPDXID>SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.13.2</SPDXID>
+    <attributionTexts>Evidence license text for: (See-License-Clause AND Apache-2.0)</attributionTexts>
+    <copyrightText>NOASSERTION</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44832</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44228</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2021-45105</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2021-44228</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/sonatype-2021-4560</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2021-45046</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2021-44832</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-45105</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-45046</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/org.apache.logging.log4j/log4j-core@2.13.2?type=jar</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://localhost:8070/ui/links/vln/sonatype-2021-4560</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>Apache-2.0</licenseConcluded>
+    <licenseDeclared>Apache-2.0</licenseDeclared>
+    <name>org.apache.logging.log4j:log4j-core</name>
+    <versionInfo>2.13.2</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-maven-junit-junit-4.12</SPDXID>
+    <attributionTexts>Evidence license text for: (EPL-1.0)</attributionTexts>
+    <copyrightText>NOASSERTION</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2020-15250</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-15250</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/junit/junit@4.12?type=jar</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>EPL-1.0</licenseConcluded>
+    <licenseDeclared>EPL-1.0</licenseDeclared>
+    <name>junit:junit</name>
+    <versionInfo>4.12</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-generic-sonatype-iq-application-SCM-Test</SPDXID>
+    <copyrightText>NOASSERTION</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:generic/sonatype/iq_application_SCM_Test</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>NOASSERTION</licenseDeclared>
+    <name>sonatype:iq_application_SCM Test 1</name>
+    <versionInfo>76b10b862e7b42009f2415097620928c</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-maven-org.hamcrest-hamcrest-core-1.3</SPDXID>
+    <attributionTexts>Evidence license text for: (See-License-Clause AND BSD-3-Clause AND BSD-2-Clause)</attributionTexts>
+    <copyrightText>NOASSERTION</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/org.hamcrest/hamcrest-core@1.3?type=jar</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>(BSD-3-Clause AND BSD-2-Clause)</licenseConcluded>
+    <licenseDeclared>(BSD-3-Clause AND BSD-2-Clause)</licenseDeclared>
+    <name>org.hamcrest:hamcrest-core</name>
+    <versionInfo>1.3</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-maven-org.apache.logging.log4j-log4j-api-2.13.2</SPDXID>
+    <attributionTexts>Evidence license text for: (See-License-Clause AND Apache-2.0)</attributionTexts>
+    <copyrightText>NOASSERTION</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/org.apache.logging.log4j/log4j-api@2.13.2?type=jar</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>Apache-2.0</licenseConcluded>
+    <licenseDeclared>Apache-2.0</licenseDeclared>
+    <name>org.apache.logging.log4j:log4j-api</name>
+    <versionInfo>2.13.2</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-maven-org.yaml-snakeyaml-1.29</SPDXID>
+    <attributionTexts>Evidence license text for: (Apache-2.0)</attributionTexts>
+    <copyrightText>NOASSERTION</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-38749</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-41854</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/org.yaml/snakeyaml@1.29?type=jar</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-38751</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-38752</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-38750</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-25857</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-1471</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-38752</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-38750</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-38751</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-1471</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-25857</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-41854</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-38749</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>Apache-2.0</licenseConcluded>
+    <licenseDeclared>Apache-2.0</licenseDeclared>
+    <name>org.yaml:snakeyaml</name>
+    <versionInfo>1.29</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-997583b27e554729b7e310678f0b5690</SPDXID>
+    <attributionTexts>Evidence license text for: (EPL-1.0 AND LGPL-3.0 AND LGPL-3.0+ AND MPL-2.0)</attributionTexts>
+    <copyrightText>NOASSERTION</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/sonatype-2018-0863</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/com.h2database/h2@2.3.232?type=jar</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://localhost:8070/ui/links/vln/sonatype-2018-0863</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <filesAnalyzed>true</filesAnalyzed>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>NOASSERTION</licenseDeclared>
+    <name>com.h2database:h2</name>
+    <packageVerificationCode>
+      <packageVerificationCodeValue>8ed9fdef1520210660a960e7f7b4613e4ef97bcf</packageVerificationCodeValue>
+    </packageVerificationCode>
+    <primaryPackagePurpose>APPLICATION</primaryPackagePurpose>
+    <versionInfo>2.3.232</versionInfo>
+  </packages>
+  <files>
+    <SPDXID>SPDXRef-997583b27e554729b7e310678f0b5690-file</SPDXID>
+    <checksums>
+      <algorithm>SHA512</algorithm>
+      <checksumValue>790bbdde3eee17522cc51f2cd96af908815de0b0965ee30280d198b76195e38a75fdc8b65fe63e3568e48d42fce72d3afbff80b9dd258c6271e2fcca97f0ffda</checksumValue>
+    </checksums>
+    <checksums>
+      <algorithm>SHA1</algorithm>
+      <checksumValue>1915a4f74b1f1243ebe1d5e23e915f8a264e9e66</checksumValue>
+    </checksums>
+    <checksums>
+      <algorithm>SHA256</algorithm>
+      <checksumValue>4b1b6e884a83b7e34d165ca44527f5c081ae19eade65c25bf06acb44c693fc37</checksumValue>
+    </checksums>
+    <checksums>
+      <algorithm>MD5</algorithm>
+      <checksumValue>486929f2b29510c678dc3c31a9f34271</checksumValue>
+    </checksums>
+    <copyrightText>NOASSERTION</copyrightText>
+    <fileName>h2.jar</fileName>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseInfoInFiles>NOASSERTION</licenseInfoInFiles>
+  </files>
+  <relationships>
+    <spdxElementId>SPDXRef-DOCUMENT</spdxElementId>
+    <relationshipType>DESCRIBES</relationshipType>
+    <relatedSpdxElement>SPDXRef-generic-sonatype-iq-application-SCM-Test</relatedSpdxElement>
+  </relationships>
+  <relationships>
+    <spdxElementId>SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.13.2</spdxElementId>
+    <relationshipType>DEPENDS_ON</relationshipType>
+    <relatedSpdxElement>SPDXRef-maven-org.apache.logging.log4j-log4j-api-2.13.2</relatedSpdxElement>
+  </relationships>
+  <relationships>
+    <spdxElementId>SPDXRef-maven-junit-junit-4.12</spdxElementId>
+    <relationshipType>DEPENDS_ON</relationshipType>
+    <relatedSpdxElement>SPDXRef-maven-org.hamcrest-hamcrest-core-1.3</relatedSpdxElement>
+  </relationships>
+  <relationships>
+    <spdxElementId>SPDXRef-generic-sonatype-iq-application-SCM-Test</spdxElementId>
+    <relationshipType>DEPENDS_ON</relationshipType>
+    <relatedSpdxElement>SPDXRef-maven-org.yaml-snakeyaml-1.29</relatedSpdxElement>
+  </relationships>
+  <relationships>
+    <spdxElementId>SPDXRef-generic-sonatype-iq-application-SCM-Test</spdxElementId>
+    <relationshipType>DEPENDS_ON</relationshipType>
+    <relatedSpdxElement>SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.13.2</relatedSpdxElement>
+  </relationships>
+  <relationships>
+    <spdxElementId>SPDXRef-generic-sonatype-iq-application-SCM-Test</spdxElementId>
+    <relationshipType>DEPENDS_ON</relationshipType>
+    <relatedSpdxElement>SPDXRef-maven-junit-junit-4.12</relatedSpdxElement>
+  </relationships>
+  <relationships>
+    <spdxElementId>SPDXRef-997583b27e554729b7e310678f0b5690</spdxElementId>
+    <relationshipType>CONTAINS</relationshipType>
+    <relatedSpdxElement>SPDXRef-997583b27e554729b7e310678f0b5690-file</relatedSpdxElement>
+  </relationships>
+</Document>

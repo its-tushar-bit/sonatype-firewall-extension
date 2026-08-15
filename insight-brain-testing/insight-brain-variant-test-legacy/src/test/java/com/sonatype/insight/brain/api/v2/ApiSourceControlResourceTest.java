@@ -387,8 +387,7 @@ public class ApiSourceControlResourceTest
         .post();
 
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText())
-        .startsWith("Repository URL contains characters that are not allowed: whitespace");
+    assertThat(response.getBodyText()).startsWith("SourceControl repositoryUrl is invalid:");
   }
 
   @Test
@@ -405,8 +404,7 @@ public class ApiSourceControlResourceTest
         .post();
 
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText())
-        .startsWith("Repository URL contains characters that are not allowed: whitespace");
+    assertThat(response.getBodyText()).startsWith("Cannot validate SourceControl repositoryUrl");
   }
 
   @Test

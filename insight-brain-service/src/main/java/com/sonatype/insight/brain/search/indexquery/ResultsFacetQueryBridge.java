@@ -6,8 +6,10 @@
 package com.sonatype.insight.brain.search.indexquery;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -66,15 +68,19 @@ final class ResultsFacetQueryBridge
 
     final List<String> fieldClauses = new ArrayList<>();
     final List<String> waiverStatusClauses = new ArrayList<>();
+    final Map<String, List<String>> clausesByField = new LinkedHashMap<>();
     String autoWaiverRestrictionClause = null;
 
     for (final FieldNode node : topLevelFieldNodes(ast)) {
-      final Optional<String> clause = clauseFor(fieldMap, types, node);
+      final Optional<FieldClause> clause = clauseFor(fieldMap, types, node);
       if (clause.isEmpty()) {
         continue;
       }
-      final String c = clause.get();
+      final String c = clause.get().clause();
       fieldClauses.add(c);
+      // Keyed by the resolved index field so a facet on that field can subtract its own dimension and
+      // keep offering the values the user has not picked yet, as the structured filter path does.
+      clausesByField.computeIfAbsent(clause.get().indexField(), f -> new ArrayList<>()).add(c);
       // Mirror IndexQueryFilterCompiler's dimension tracking so the fixed states/waiverType and
       // WAIVER status facets count whole-corpus rather than self-restricting to the user's own
       // waiver-status / auto selection.
@@ -88,9 +94,18 @@ final class ResultsFacetQueryBridge
 
     // The count base omits the free-text refinement (matching IndexQueryFilterCompiler), so the q on
     // the CompiledQuery is only needed for symmetry; the facet engine reads it from fieldClauses.
+    // freeText is empty for the same reason: the bare terms in q are not lifted here.
     final String rebuiltQ = String.join(" ", fieldClauses);
     return new IndexQueryFilterCompiler.CompiledQuery(
-        rebuiltQ, fieldClauses, autoWaiverRestrictionClause, waiverStatusClauses, List.of());
+        rebuiltQ, fieldClauses, autoWaiverRestrictionClause, waiverStatusClauses, List.of(), clausesByField);
+  }
+
+  /**
+   * A compiled chip together with the index field it filters, so the caller can build the per-field
+   * clause map without repeating {@link FieldMap} resolution.
+   */
+  private record FieldClause(String indexField, String clause)
+  {
   }
 
   /**
@@ -124,7 +139,7 @@ final class ResultsFacetQueryBridge
    * becomes {@code label:[v TO v]}; NUMERIC range becomes {@code label:[lo TO hi]}. Returns empty when
    * the field is unknown, not allowed on the entity type, or carries an unsupported value shape.
    */
-  private static Optional<String> clauseFor(
+  private static Optional<FieldClause> clauseFor(
       final FieldMap fieldMap,
       final Set<ItemType> entityTypes,
       final FieldNode node)
@@ -141,10 +156,10 @@ final class ResultsFacetQueryBridge
     }
     final String label = entry.label();
     final FieldValue value = node.value();
-    if (entry.kind() == FieldKind.NUMERIC) {
-      return numericClause(label, value);
-    }
-    return textClause(label, value);
+    final Optional<String> clause = entry.kind() == FieldKind.NUMERIC
+        ? numericClause(label, value)
+        : textClause(label, value);
+    return clause.map(c -> new FieldClause(label, c));
   }
 
   private static Optional<String> textClause(final String label, final FieldValue value) {

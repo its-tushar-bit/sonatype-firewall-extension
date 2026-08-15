@@ -7,9 +7,15 @@ package com.sonatype.insight.brain.search.indexquery;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -21,9 +27,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
+import com.sonatype.insight.brain.integration.OrganizationSummaryService;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeatureTestSupport;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.global.FilterValidationException;
 import com.sonatype.insight.brain.search.global.FilterValidationExceptionMapper;
 import com.sonatype.insight.brain.search.global.GlobalSearchRequest;
@@ -37,6 +50,8 @@ import com.sonatype.insight.brain.search.index.PolicyWaiverExpiryStatuses;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.lucene.LowerCaseKeywordAnalyzer;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
+import com.sonatype.insight.brain.search.session.IndexReadSession;
+import com.sonatype.insight.brain.search.session.IndexReadSessionFactory;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
 
@@ -59,6 +74,9 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.ByteBuffersDirectory;
 import org.apache.lucene.store.Directory;
+import org.apache.shiro.mgt.SecurityManager;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.util.ThreadContext;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -85,10 +103,24 @@ public class IndexQueryEndpointTest
 
   private IndexSearcher searcher;
 
+  private IndexReadSessionFactory sessionFactory;
+
+  private IndexReadSession session;
+
+  private ConversionHelper conversionHelper;
+
+  private OrganizationSummaryService organizationSummaryService;
+
   private IndexQueryResource resource;
 
   @Before
   public void setUp() throws Exception {
+    // The organizations facet resolves bucket names through an @AuthzFilter-woven call, so a Shiro
+    // SecurityManager must be reachable from this thread. A null principal makes the filter pass every
+    // organization through, leaving the read gate to the mocked OrganizationSummaryService.
+    ThreadContext.bind(mock(SecurityManager.class));
+    ThreadContext.bind(mock(Subject.class));
+
     SystemConfigurationPropertyFeatureTestSupport.install();
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
 
@@ -139,13 +171,39 @@ public class IndexQueryEndpointTest
     when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
         .thenAnswer(inv -> runRealSearch(inv.getArgument(0)));
 
+    sessionFactory = mock(IndexReadSessionFactory.class);
+    session = mock(IndexReadSession.class);
+    conversionHelper = mock(ConversionHelper.class);
+    when(sessionFactory.open()).thenReturn(session);
+    when(conversionHelper.stringToQuery(anyString())).thenReturn(new org.apache.lucene.search.MatchAllDocsQuery());
+    when(session.termsAggregation(any(), anyString(), anyInt())).thenReturn(List.of());
+
+    OrganizationDAO organizationDAO = mock(OrganizationDAO.class);
+    Organization rootOrg = mock(Organization.class);
+    when(rootOrg.getName()).thenReturn("Root Org");
+    when(organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID)).thenReturn(rootOrg);
+
+    organizationSummaryService = mock(OrganizationSummaryService.class);
+    lenient().when(organizationSummaryService.getOrganizationsForRead(anySet())).thenAnswer(inv -> {
+      Set<String> ids = inv.getArgument(0);
+      return ids.stream().map(id -> {
+        Organization o = new Organization();
+        o.setId(id);
+        return o;
+      }).toList();
+    });
+
     IqLocalSearchService iq = new IqLocalSearchService(searchIndexClient);
-    IndexQueryService service = new IndexQueryService(iq, searchIndexClient, null);
+    IndexQueryService service =
+        new IndexQueryService(organizationDAO, mock(ApplicationDAO.class), mock(TagDAO.class), mock(PolicyDAO.class),
+            iq, searchIndexClient, sessionFactory, conversionHelper, organizationSummaryService, null);
     resource = new IndexQueryResource(service, searchIndexClient);
   }
 
   @After
   public void tearDown() throws Exception {
+    ThreadContext.unbindSubject();
+    ThreadContext.unbindSecurityManager();
     if (reader != null) {
       reader.close();
     }
@@ -235,7 +293,14 @@ public class IndexQueryEndpointTest
     when(altClient.searchGlobal(any(GlobalSearchRequest.class)))
         .thenAnswer(inv -> runRealSearchOn(altSearcher, altReader, inv.getArgument(0)));
     IqLocalSearchService iq = new IqLocalSearchService(altClient);
-    return new IndexQueryResource(new IndexQueryService(iq, altClient, null), altClient);
+    OrganizationDAO organizationDAO = mock(OrganizationDAO.class);
+    Organization rootOrg = mock(Organization.class);
+    when(rootOrg.getName()).thenReturn("Root Org");
+    when(organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID)).thenReturn(rootOrg);
+    return new IndexQueryResource(
+        new IndexQueryService(organizationDAO, mock(ApplicationDAO.class), mock(TagDAO.class), mock(PolicyDAO.class),
+            iq, altClient, sessionFactory, conversionHelper, organizationSummaryService, null),
+        altClient);
   }
 
   private static GlobalSearchResult runRealSearchOn(
@@ -295,38 +360,29 @@ public class IndexQueryEndpointTest
     return doc;
   }
 
-  @Test
-  public void applicationQuery_facetsRequested_areWholeCorpusCounts() {
-    // Org facet buckets by the display name (values from the page), counting the whole corpus, not the
-    // page tallies (2 and 1). The value equals the name so it round-trips back through the
-    // name-matching organizations filter.
-    when(searchIndexClient.count(org.mockito.ArgumentMatchers.contains("organizationName:\"Acme\"")))
-        .thenReturn(50L);
-    when(searchIndexClient.count(org.mockito.ArgumentMatchers.contains("organizationName:\"Widget Co\"")))
-        .thenReturn(7L);
-
-    IndexQueryRequest req = new IndexQueryRequest("APPLICATION", Map.of(), 1, 25, null, null, true);
-    IndexQueryResponse response = resource.query(req);
-    assertThat(response.facets()).isNotNull();
-    // Counts are whole-corpus filter-wide totals now, so the wire flag says so.
-    assertThat(response.facetsOverPageOnly()).isFalse();
-    assertThat(response.facets()).containsKey("organizations");
-    Map<String, Long> orgCounts = new HashMap<>();
-    response.facets().get("organizations").forEach(b -> orgCounts.put(b.value(), b.count()));
-    assertThat(orgCounts).containsEntry("Acme", 50L).containsEntry("Widget Co", 7L);
-  }
+  // Org facet bucket VALUES (the whole-corpus counts, id-keyed) are covered against a real index in
+  // IndexQueryServiceFacetsRealIndexTest, not here: the mocked IndexReadSession#termsAggregation in this
+  // endpoint test does not model real aggregation, so asserting bucket values would only test the stub.
 
   @Test
   public void applicationQuery_defaultView_neverAddsAutoWaiverRestriction() {
-    // Only WAIVER carries an AUTO_WAIVER_TOGGLE entry, so a non-WAIVER default view (absent toggle)
-    // must never emit the manual-only policyWaiverAuto:"false" clause -- the compiler's default-clause
-    // loop is skipped entirely for non-WAIVER types.
-    when(searchIndexClient.count(any())).thenReturn(1L);
+    // Only WAIVER carries an AUTO_WAIVER_TOGGLE entry, so a non-WAIVER default view must never emit the
+    // manual-only policyWaiverAuto:"false" clause. If it leaked into the page query or a facet base, an
+    // APPLICATION view would silently narrow to manually-waived data.
     IndexQueryRequest req = new IndexQueryRequest("APPLICATION", Map.of(), 1, 25, null, null, true);
     resource.query(req);
-    ArgumentCaptor<String> queries = ArgumentCaptor.forClass(String.class);
-    verify(searchIndexClient, atLeastOnce()).count(queries.capture());
-    assertThat(queries.getAllValues()).allSatisfy(q -> assertThat(q).doesNotContain("policyWaiverAuto"));
+
+    ArgumentCaptor<GlobalSearchRequest> pageRequests = ArgumentCaptor.forClass(GlobalSearchRequest.class);
+    verify(searchIndexClient, atLeastOnce()).searchGlobal(pageRequests.capture());
+    assertThat(pageRequests.getAllValues())
+        .isNotEmpty()
+        .allSatisfy(request -> assertThat(request.baseQuery().toString())
+            .as("APPLICATION page query must not carry the waiver auto/manual restriction")
+            .doesNotContain("policyWaiverAuto"));
+
+    // The fixed-vocabulary facet bases are the other place the clause could appear; APPLICATION has none
+    // of those facets, so no counted base may mention it either.
+    verify(searchIndexClient, never()).count(contains("policyWaiverAuto"));
   }
 
   @Test
@@ -503,20 +559,10 @@ public class IndexQueryEndpointTest
         .doesNotContain("w-widget-1");
   }
 
-  @Test
-  public void waiverQuery_facetsRequested_areWholeCorpusOrgCounts() {
-    when(searchIndexClient.count(org.mockito.ArgumentMatchers.contains("organizationName:\"Acme\"")))
-        .thenReturn(30L);
-    when(searchIndexClient.count(org.mockito.ArgumentMatchers.contains("organizationName:\"Widget Co\"")))
-        .thenReturn(5L);
-
-    IndexQueryRequest req = new IndexQueryRequest("WAIVER", Map.of(), 1, 25, null, null, true);
-    IndexQueryResponse response = resource.query(req);
-    assertThat(response.facets()).isNotNull().containsKey("organizationName");
-    Map<String, Long> orgCounts = new HashMap<>();
-    response.facets().get("organizationName").forEach(b -> orgCounts.put(b.value(), b.count()));
-    assertThat(orgCounts).containsEntry("Acme", 30L).containsEntry("Widget Co", 5L);
-  }
+  // WAIVER org facet bucket VALUES (the whole-corpus counts, now id-keyed on parentOrganizationId)
+  // are covered by the real-index service-layer tests (see IndexQueryServiceFacetsRealIndexTest,
+  // CLM-45220), not this mock-based endpoint test. (Removed
+  // waiverQuery_facetsRequested_areWholeCorpusOrgCounts, CLM-44713 slice 2b.)
 
   @Test
   public void waiverQuery_applicationsFilter_narrowsToAppScopedWaiver() {
@@ -581,6 +627,9 @@ public class IndexQueryEndpointTest
         .thenReturn(3L);
     when(searchIndexClient.count(org.mockito.ArgumentMatchers.contains("policyWaiverAuto:\"false\"")))
         .thenReturn(7L);
+    // NUMERIC facet via aggregateCountByField
+    when(searchIndexClient.aggregateCountByField(any(), eq("policyWaiverThreatLevel"), any()))
+        .thenReturn(new com.sonatype.insight.brain.search.index.MetricAggregationResult(0L, Map.of()));
 
     IndexQueryRequest req = new IndexQueryRequest(
         "WAIVER", Map.of("includeAutoWaivers", true), 1, 25, null, null, true);
@@ -596,8 +645,13 @@ public class IndexQueryEndpointTest
     // Classic both-kinds default view: the auto/manual facet still reports BOTH true and false counts
     // over the whole corpus (it tells the user what flipping the include toggle would show), so its
     // count base must NOT inherit the default policyWaiverAuto:"false" exclusion clause.
-    when(searchIndexClient.count(contains("policyWaiverAuto:\"true\""))).thenReturn(4L);
-    when(searchIndexClient.count(contains("policyWaiverAuto:\"false\""))).thenReturn(9L);
+    when(searchIndexClient.count(contains("policyWaiverAuto:\"true\"")))
+        .thenReturn(4L);
+    when(searchIndexClient.count(contains("policyWaiverAuto:\"false\"")))
+        .thenReturn(9L);
+    // NUMERIC facet via aggregateCountByField
+    when(searchIndexClient.aggregateCountByField(any(), eq("policyWaiverThreatLevel"), any()))
+        .thenReturn(new com.sonatype.insight.brain.search.index.MetricAggregationResult(0L, Map.of()));
 
     IndexQueryRequest req = new IndexQueryRequest("WAIVER", Map.of(), 1, 25, null, null, true);
     IndexQueryResponse response = resource.query(req);
@@ -614,8 +668,13 @@ public class IndexQueryEndpointTest
     // Explicit includeAutoWaivers:false restricts rows to manual only.
     // The auto/manual facet must still report BOTH buckets over the whole corpus: the explicit-false
     // restriction must be dropped from the facet base too, not only the default one.
-    when(searchIndexClient.count(contains("policyWaiverAuto:\"true\""))).thenReturn(5L);
-    when(searchIndexClient.count(contains("policyWaiverAuto:\"false\""))).thenReturn(11L);
+    when(searchIndexClient.count(contains("policyWaiverAuto:\"true\"")))
+        .thenReturn(5L);
+    when(searchIndexClient.count(contains("policyWaiverAuto:\"false\"")))
+        .thenReturn(11L);
+    // NUMERIC facet via aggregateCountByField
+    when(searchIndexClient.aggregateCountByField(any(), eq("policyWaiverThreatLevel"), any()))
+        .thenReturn(new com.sonatype.insight.brain.search.index.MetricAggregationResult(0L, Map.of()));
 
     IndexQueryRequest req = new IndexQueryRequest(
         "WAIVER", Map.of("includeAutoWaivers", false), 1, 25, null, null, true);
@@ -682,14 +741,14 @@ public class IndexQueryEndpointTest
 
   @Test
   public void waiverQuery_facetsRequested_includeThreatLevelBuckets() {
-    // Numeric threat-level facet counts per discrete value via an exact-value range [v TO v]
-    // (a phrase-quoted term does not match the IntPoint policyWaiverThreatLevel field).
-    when(searchIndexClient.count(org.mockito.ArgumentMatchers.contains("policyWaiverThreatLevel:[8 TO 8]")))
-        .thenReturn(3L);
-    when(searchIndexClient.count(org.mockito.ArgumentMatchers.contains("policyWaiverThreatLevel:[9 TO 9]")))
-        .thenReturn(2L);
-    when(searchIndexClient.count(org.mockito.ArgumentMatchers.contains("policyWaiverThreatLevel:[10 TO 10]")))
-        .thenReturn(1L);
+    // Numeric threat-level facet counts via aggregateCountByField (the discrete vocabulary is 0-10,
+    // built as point ranges [v, v]).
+    Map<String, Long> buckets = new HashMap<>();
+    buckets.put("8", 3L);
+    buckets.put("9", 2L);
+    buckets.put("10", 1L);
+    when(searchIndexClient.aggregateCountByField(any(), eq("policyWaiverThreatLevel"), any()))
+        .thenReturn(new com.sonatype.insight.brain.search.index.MetricAggregationResult(6L, buckets));
 
     IndexQueryRequest req = new IndexQueryRequest(
         "WAIVER", Map.of("includeAutoWaivers", true), 1, 25, null, null, true);

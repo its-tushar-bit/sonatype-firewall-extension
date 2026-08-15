@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.search.indexquery;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.List;
+
 import com.sonatype.insight.brain.search.indexquery.IndexQueryFilterCompiler.CompiledQuery;
 
 import org.junit.jupiter.api.Test;
@@ -34,6 +36,21 @@ public class ResultsFacetQueryBridgeTest
     assertThat(ResultsFacetQueryBridge.compile(IndexQueryType.APPLICATION, "").fieldClauses()).isEmpty();
     assertThat(ResultsFacetQueryBridge.compile(IndexQueryType.APPLICATION, null).fieldClauses()).isEmpty();
     assertThat(ResultsFacetQueryBridge.compile(IndexQueryType.APPLICATION, "   ").fieldClauses()).isEmpty();
+  }
+
+  @Test
+  public void clausesAreKeyedByIndexField_soAFacetCanSubtractItsOwnDimension() {
+    // The facet engine looks a facet's own clauses up by its index field. Two chips on one field must
+    // both land under that field, or the facet subtracts only part of its own selection and collapses to
+    // the value the user picked last.
+    CompiledQuery compiled = ResultsFacetQueryBridge.compile(
+        IndexQueryType.VIOLATION,
+        "policyViolationThreatCategory:security policyViolationThreatCategory:license policyEvaluationStage:build");
+    assertThat(compiled.clausesByField())
+        .containsEntry(
+            "policyViolationThreatCategory",
+            List.of("policyViolationThreatCategory:\"security\"", "policyViolationThreatCategory:\"license\""))
+        .containsEntry("policyEvaluationStage", List.of("policyEvaluationStage:\"build\""));
   }
 
   @Test

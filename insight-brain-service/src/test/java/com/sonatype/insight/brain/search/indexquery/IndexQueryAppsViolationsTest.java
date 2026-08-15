@@ -7,6 +7,10 @@ package com.sonatype.insight.brain.search.indexquery;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -16,12 +20,18 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
+import com.sonatype.insight.brain.integration.OrganizationSummaryService;
+import com.sonatype.insight.brain.model.Organization;
 
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeatureTestSupport;
+import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.global.GlobalSearchRequest;
 import com.sonatype.insight.brain.search.global.GlobalSearchResult;
-import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.global.IqLocalSearchService;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.ItemType;
@@ -29,6 +39,9 @@ import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.lucene.LowerCaseKeywordAnalyzer;
 import com.sonatype.insight.brain.search.lucene.LuceneComponents;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
+import com.sonatype.insight.brain.search.session.IndexReadSession;
+import com.sonatype.insight.brain.search.session.IndexReadSessionFactory;
+import com.sonatype.insight.brain.search.session.IndexTermsBucket;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
@@ -47,6 +60,9 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.ByteBuffersDirectory;
 import org.apache.lucene.store.Directory;
+import org.apache.shiro.mgt.SecurityManager;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.util.ThreadContext;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -67,10 +83,22 @@ public class IndexQueryAppsViolationsTest
 
   private ConversionHelper conversionHelper;
 
+  private IndexReadSessionFactory sessionFactory;
+
+  private IndexReadSession session;
+
   private IndexQueryResource resource;
+
+  private OrganizationSummaryService organizationSummaryService;
 
   @Before
   public void setUp() throws Exception {
+    // The organizations facet resolves bucket names through an @AuthzFilter-woven call, so a Shiro
+    // SecurityManager must be reachable from this thread. A null principal makes the filter pass every
+    // organization through, leaving the read gate to the mocked OrganizationSummaryService below.
+    ThreadContext.bind(mock(SecurityManager.class));
+    ThreadContext.bind(mock(Subject.class));
+
     SystemConfigurationPropertyFeatureTestSupport.install();
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
 
@@ -109,13 +137,76 @@ public class IndexQueryAppsViolationsTest
         .thenAnswer(inv -> runRealSearch(inv.getArgument(0)));
     when(searchIndexClient.count(any())).thenAnswer(inv -> countReal(inv.getArgument(0)));
 
+    // Mock session factory for VALUE facet termsAggregation
+    sessionFactory = mock(IndexReadSessionFactory.class);
+    session = mock(IndexReadSession.class);
+    when(sessionFactory.open()).thenReturn(session);
+    // Bounded-vocabulary facets only. The org/app/category facets aggregate on opaque ids
+    // (parentOrganizationId / applicationId / applicationCategoryId) and resolve display names from the
+    // DAOs, which a stub cannot model faithfully; their bucket values are asserted against a real index
+    // in IndexQueryServiceFacetsRealIndexTest instead. Stubbing them here would only assert the stub.
+    when(session.termsAggregation(any(), anyString(), anyInt())).thenAnswer(inv -> {
+      String field = inv.getArgument(1);
+      java.util.List<IndexTermsBucket> buckets = new java.util.ArrayList<>();
+      switch (field) {
+        case "applicationViolationStage":
+          buckets.add(new IndexTermsBucket("build", 3L));
+          buckets.add(new IndexTermsBucket("release", 1L));
+          buckets.add(new IndexTermsBucket("develop", 1L));
+          break;
+        case "applicationViolationPolicyType":
+          buckets.add(new IndexTermsBucket("security", 2L));
+          buckets.add(new IndexTermsBucket("license", 1L));
+          buckets.add(new IndexTermsBucket("quality", 1L));
+          break;
+        case "applicationViolationState":
+          buckets.add(new IndexTermsBucket("open", 2L));
+          buckets.add(new IndexTermsBucket("waived", 1L));
+          buckets.add(new IndexTermsBucket("AutoWaived", 1L));
+          break;
+        case "policyEvaluationStage":
+          buckets.add(new IndexTermsBucket("build", 2L));
+          buckets.add(new IndexTermsBucket("release", 1L));
+          break;
+        case "policyViolationThreatCategory":
+          buckets.add(new IndexTermsBucket("security", 2L));
+          buckets.add(new IndexTermsBucket("license", 1L));
+          buckets.add(new IndexTermsBucket("quality", 1L));
+          break;
+        default:
+          // Including the id-aggregated facets: no buckets, so the facet key is still present and empty.
+          break;
+      }
+      return buckets;
+    });
+
     IqLocalSearchService iq = new IqLocalSearchService(searchIndexClient);
-    IndexQueryService service = new IndexQueryService(iq, searchIndexClient, null);
+
+    OrganizationDAO organizationDAO = mock(OrganizationDAO.class);
+    Organization rootOrg = mock(Organization.class);
+    when(rootOrg.getName()).thenReturn("Root Org");
+    when(organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID)).thenReturn(rootOrg);
+
+    organizationSummaryService = mock(OrganizationSummaryService.class);
+    lenient().when(organizationSummaryService.getOrganizationsForRead(anySet())).thenAnswer(inv -> {
+      Set<String> ids = inv.getArgument(0);
+      return ids.stream().map(id -> {
+        Organization o = new Organization();
+        o.setId(id);
+        return o;
+      }).toList();
+    });
+
+    IndexQueryService service =
+        new IndexQueryService(organizationDAO, mock(ApplicationDAO.class), mock(TagDAO.class), mock(PolicyDAO.class),
+            iq, searchIndexClient, sessionFactory, conversionHelper, organizationSummaryService, null);
     resource = new IndexQueryResource(service, searchIndexClient);
   }
 
   @After
   public void tearDown() throws Exception {
+    ThreadContext.unbindSubject();
+    ThreadContext.unbindSecurityManager();
     if (reader != null) {
       reader.close();
     }
@@ -186,27 +277,11 @@ public class IndexQueryAppsViolationsTest
     // The stage buckets are the raw indexed stage ids, so a bucket value round-trips as a filter.
     assertThat(resp.facets().get("stages")).extracting(
         IndexQueryResponse.IndexQueryFacetBucket::value).contains("build", "release", "develop");
-    // Org/app facets bucket by the display name, so the emitted value round-trips back through the
-    // organizations/applications filter (which matches organizationName/applicationName).
-    assertThat(resp.facets().get("organizations")).anySatisfy(b -> {
-      assertThat(b.value()).isEqualTo("Acme");
-      assertThat(b.displayName()).isNull();
-    });
-    assertThat(resp.facets().get("applications")).extracting(
-        IndexQueryResponse.IndexQueryFacetBucket::value).contains("Acme Prod", "Acme Dev", "Widget Inventory");
-    assertThat(resp.facets().get("applicationCategories")).extracting(
-        IndexQueryResponse.IndexQueryFacetBucket::value).contains("Web");
-  }
-
-  @Test
-  public void applicationOrgFacetValue_roundTripsBackThroughOrganizationsFilter() {
-    IndexQueryResponse facetResp = resource.query(new IndexQueryRequest(
-        "APPLICATION", Map.of(), 1, 25, null, null, true));
-    String orgBucketValue = facetResp.facets().get("organizations").get(0).value();
-    // Feeding the facet bucket value straight back as a filter value must return matching rows.
-    IndexQueryResponse filtered = resource.query(new IndexQueryRequest(
-        "APPLICATION", Map.of("organizations", List.of(orgBucketValue)), 1, 25, null, null, false));
-    assertThat(filtered.rows()).isNotEmpty();
+    // Org/app/category facet bucket VALUES (id-keyed, with a resolved displayName) and the
+    // organizationIds/applicationIds/applicationCategoryIds round-trip are covered by the real-index
+    // service-layer tests (see IndexQueryServiceFacetsRealIndexTest, CLM-45220), not this mock-based
+    // endpoint test -- the mocked IndexReadSession#termsAggregation here does not model real
+    // aggregation, so asserting specific bucket values against it only tests the stub.
   }
 
   @Test
@@ -304,25 +379,9 @@ public class IndexQueryAppsViolationsTest
     Map<String, Long> waiverTypes = countsByValue(resp, "waiverType");
     assertThat(waiverTypes).containsEntry("AUTO", 1L).containsEntry("MANUAL", 1L);
 
-    // Org/app facets bucket by name so the value round-trips back through the name-matching filter.
-    assertThat(countsByValue(resp, "organizations")).containsKeys("Acme", "Widget Co");
-    assertThat(countsByValue(resp, "applications")).containsKeys("Acme Prod", "Widget Inventory");
-  }
-
-  @Test
-  public void violationOrgFacetValue_roundTripsBackThroughOrganizationsFilter() {
-    IndexQueryResponse facetResp = resource.query(new IndexQueryRequest(
-        "VIOLATION", Map.of(), 1, 25, null, null, true));
-    String appBucketValue = facetResp.facets()
-        .get("applications")
-        .stream()
-        .map(IndexQueryResponse.IndexQueryFacetBucket::value)
-        .filter("Acme Prod"::equals)
-        .findFirst()
-        .orElseThrow();
-    IndexQueryResponse filtered = resource.query(new IndexQueryRequest(
-        "VIOLATION", Map.of("applications", List.of(appBucketValue)), 1, 25, null, null, false));
-    assertThat(filtered.rows()).extracting(IndexQueryRow::getId).containsExactlyInAnyOrder("pv-open", "pv-manual");
+    // Org/app/category facet bucket VALUES (id-keyed) and the organizationIds/applicationIds/
+    // applicationCategoryIds round-trip are covered by the real-index service-layer tests (see
+    // IndexQueryServiceFacetsRealIndexTest, CLM-45220), not this mock-based endpoint test.
   }
 
   @Test
@@ -466,12 +525,19 @@ public class IndexQueryAppsViolationsTest
   // ---- policyThreatLevel RANGE + facets regression (Lucene pointsConfig) -------------------
 
   /**
-   * Regression: with a {@code policyThreatLevel} RANGE filter active AND facets requested, the
-   * range clause lands in the whole-corpus facet base query. The facet counts are computed via the
-   * real Lucene {@code newQueryParser()} points-config path, so if
-   * {@code applicationMaxPolicyThreatLevel} were missing from {@code pointsConfigsByFieldName} the
-   * {@code [7 TO 10]} clause would parse as a lexical term over an IntPoint-only field, matching
-   * nothing and zeroing every facet count. Non-zero counts prove the points config is registered.
+   * Regression: a {@code policyThreatLevel} RANGE filter compiles against
+   * {@code applicationMaxPolicyThreatLevel}, a real Lucene {@code newQueryParser()} points-config
+   * path -- if that field were missing from {@code pointsConfigsByFieldName}, the {@code [7 TO 10]}
+   * clause would parse as a lexical term over an IntPoint-only field, matching nothing and dropping
+   * every row instead of narrowing to the in-range ones. The row assertion below exercises the real
+   * (non-mocked) Lucene searcher, so it fails if the points config regresses.
+   * <p>
+   * This test previously also asserted the whole-corpus org facet count stayed non-zero under the
+   * same RANGE base query; that assertion is removed (CLM-44713 slice 2b) because
+   * {@link IndexReadSession#termsAggregation} is mocked here and ignores the query it is passed, so
+   * it could never actually detect a broken points config -- facet-count correctness under a RANGE
+   * filter is covered by the real-index service-layer tests instead (see
+   * {@code IndexQueryServiceFacetsRealIndexTest}, CLM-45220).
    */
   @Test
   public void applicationPolicyThreatLevelRange_withFacets_countsAreNotZeroed() throws Exception {
@@ -504,18 +570,24 @@ public class IndexQueryAppsViolationsTest
             .thenAnswer(inv -> (long) threatSearcher.count(realConversion.stringToQuery(inv.getArgument(0))));
 
         IqLocalSearchService iq = new IqLocalSearchService(client);
-        IndexQueryResource threatResource = new IndexQueryResource(new IndexQueryService(iq, client, null), client);
+
+        OrganizationDAO organizationDAO = mock(OrganizationDAO.class);
+        Organization rootOrg = mock(Organization.class);
+        when(rootOrg.getName()).thenReturn("Root Org");
+        when(organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID)).thenReturn(rootOrg);
+
+        IndexQueryResource threatResource =
+            new IndexQueryResource(
+                new IndexQueryService(organizationDAO, mock(ApplicationDAO.class), mock(TagDAO.class),
+                    mock(PolicyDAO.class), iq, client, sessionFactory, conversionHelper, organizationSummaryService,
+                    null),
+                client);
 
         // policyThreatLevel=[7,10] narrows result rows to acme-hi(9), acme-mid(7), widget-hi(8).
         IndexQueryResponse resp = threatResource.query(new IndexQueryRequest(
             "APPLICATION", Map.of("policyThreatLevel", List.of(7, 10)), 1, 25, null, null, true));
         assertThat(resp.rows()).extracting(IndexQueryRow::getId)
             .containsExactlyInAnyOrder("acme-hi", "acme-mid", "widget-hi");
-
-        // The whole-corpus org facet is counted against a base that carries the RANGE clause. Before
-        // the points-config fix these counts collapse to 0; after it, Acme=2 and Widget Co=1.
-        Map<String, Long> orgCounts = countsByValue(resp, "organizations");
-        assertThat(orgCounts).containsEntry("Acme", 2L).containsEntry("Widget Co", 1L);
       }
     }
   }

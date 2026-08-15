@@ -114,6 +114,19 @@ public final class IndexQueryFilterSchema
             Map.entry("organizations", new FilterDef("organizationName", Kind.TERMS)),
             Map.entry("applications", new FilterDef("applicationName", Kind.TERMS)),
             Map.entry("applicationCategories", new FilterDef("applicationCategoryName", Kind.TERMS)),
+            // applicationCategoryIds is the id-keyed structured filter: the categories facet
+            // aggregates on applicationCategoryId (see IndexQueryService FACET_FIELDS), so this
+            // must compile to that same field or the own-clause removal in computeFacets never
+            // finds it and the facet collapses to the current selection.
+            Map.entry("applicationCategoryIds", new FilterDef("applicationCategoryId", Kind.TERMS)),
+            // organizationIds/applicationIds are the id-keyed structured filters, mirroring
+            // applicationCategoryIds above and the WAIVER schema below: the organizations facet
+            // aggregates on parentOrganizationId and the applications facet on applicationId, so a
+            // rail sending bucket ids straight back must compile to those same fields. A name-keyed
+            // filter would not match an id at all, and own-clause removal keys on the aggregated
+            // field, so the rail would also collapse to the current selection.
+            Map.entry("organizationIds", new FilterDef("parentOrganizationId", Kind.TERMS)),
+            Map.entry("applicationIds", new FilterDef("applicationId", Kind.TERMS)),
             Map.entry("stages", new FilterDef("applicationViolationStage", Kind.TERMS)),
             Map.entry("policyTypes", new FilterDef("applicationViolationPolicyType", Kind.TERMS)),
             Map.entry("violationStates", new FilterDef("applicationViolationState", Kind.TERMS)),
@@ -121,7 +134,7 @@ public final class IndexQueryFilterSchema
             // age: RANGE over applicationLastEvaluationTimeEpochMs; caller resolves window -> [fromEpochMs, toEpochMs]
             // epoch bounds. No server-side window resolution is applied here.
             Map.entry("age", new FilterDef("applicationLastEvaluationTimeEpochMs", Kind.RANGE))),
-        // applicationCategoryName is now denormalized (multi-valued) onto violation docs, so the
+        // applicationCategoryName is denormalized (multi-valued) onto violation docs, so the
         // categories filter is honoured here too. states/waiverType compile against
         // policyViolationWaiverStatus (OPEN = not waived). Values within one filter are OR'd; distinct
         // filters AND-narrow (standard faceted-search rail).
@@ -130,6 +143,17 @@ public final class IndexQueryFilterSchema
             Map.entry("organizations", new FilterDef("organizationName", Kind.TERMS)),
             Map.entry("applications", new FilterDef("applicationName", Kind.TERMS)),
             Map.entry("applicationCategories", new FilterDef("applicationCategoryName", Kind.TERMS)),
+            // See the APPLICATION applicationCategoryIds comment above -- same id-keyed field, same
+            // reason (matches the applicationCategoryId aggregation the categories facet uses here too).
+            Map.entry("applicationCategoryIds", new FilterDef("applicationCategoryId", Kind.TERMS)),
+            // organizationIds/applicationIds are the id-keyed structured filters, mirroring
+            // applicationCategoryIds above and the WAIVER schema below: the organizations facet
+            // aggregates on parentOrganizationId and the applications facet on applicationId, so a
+            // rail sending bucket ids straight back must compile to those same fields. A name-keyed
+            // filter would not match an id at all, and own-clause removal keys on the aggregated
+            // field, so the rail would also collapse to the current selection.
+            Map.entry("organizationIds", new FilterDef("parentOrganizationId", Kind.TERMS)),
+            Map.entry("applicationIds", new FilterDef("applicationId", Kind.TERMS)),
             Map.entry("stages", new FilterDef("policyEvaluationStage", Kind.TERMS)),
             Map.entry("policyTypes", new FilterDef("policyViolationThreatCategory", Kind.TERMS)),
             Map.entry("states", new FilterDef("policyViolationWaiverStatus", Kind.STATE)),
@@ -137,10 +161,14 @@ public final class IndexQueryFilterSchema
             // policyViolationThreatLevel is set only on POLICY_VIOLATION docs; LEGAL_VIOLATION docs
             // carry no queryable threat-level field, so this range narrows policy violations only.
             Map.entry("policyThreatLevel", new FilterDef("policyViolationThreatLevel", Kind.RANGE))),
+        // organizationIds is the id-keyed structured filter matching the organizations facet's
+        // parentOrganizationId aggregation. Policy documents carry no applicationId, so there is no
+        // applicationIds counterpart.
         IndexQueryType.POLICY, Map.of(
             "query", FREE_TEXT_QUERY,
             "policyTypes", new FilterDef("policyThreatCategory", Kind.TERMS),
             "organizations", new FilterDef("organizationName", Kind.TERMS),
+            "organizationIds", new FilterDef("parentOrganizationId", Kind.TERMS),
             "policyThreatLevel", new FilterDef("policyThreatLevel", Kind.RANGE)),
         // policyThreatLevel resolves to POLICY_WAIVER_THREAT_LEVEL via the policyWaiverThreatLevel
         // FieldMap key. includeAutoWaivers filters on the indexed policyWaiverAuto discriminator:
@@ -157,10 +185,25 @@ public final class IndexQueryFilterSchema
         // policyWaiverRequestStatus discriminator; lifecycleStatus filters the committed-waiver
         // active/expiring/expired/auto-waived rail; scope by the indexed scope; policyTypes by
         // policyWaiverPolicyType. All standard TERMS are OR-within / AND-across.
+        // organizationIds/applicationIds are the id-keyed structured filters: the frontend rail
+        // sends facet bucket ids straight back. organizationIds compiles directly to
+        // parentOrganizationId -- the same field the organizations facet aggregates on (see
+        // IndexQueryService FACET_FIELDS) -- rather than organizationId, which relies on the
+        // organizationId->parentOrganizationId rewrite in AbstractSearchIndexClient#createInitialQuery.
+        // That rewrite runs on the raw query string AFTER IndexQueryFilterCompiler builds
+        // clausesByField (keyed by the field the filter COMPILED to, pre-rewrite), so computeFacets'
+        // own-clause removal -- compiled.clausesByField().get(facet.indexField()) -- would never find
+        // an organizationId clause under the facet's parentOrganizationId key, and the org facet would
+        // collapse to just the selected org whenever a client filtered by organizationIds. Targeting
+        // parentOrganizationId directly sidesteps the rewrite entirely (the name-keyed organizations
+        // filter still relies on the equivalent organizationName rewrite).
         IndexQueryType.WAIVER, Map.ofEntries(
             Map.entry("query", FREE_TEXT_QUERY),
             Map.entry("organizations", new FilterDef("organizationName", Kind.TERMS)),
+            Map.entry("organizationIds", new FilterDef("parentOrganizationId", Kind.TERMS)),
             Map.entry("applications", new FilterDef("applicationName", Kind.TERMS)),
+            Map.entry("applicationIds", new FilterDef("applicationId", Kind.TERMS)),
+            // Deprecated alias of applicationIds, kept for back-compat with an existing structured filter.
             Map.entry("applicationId", new FilterDef("applicationId", Kind.TERMS)),
             Map.entry("policy", new FilterDef("policyWaiverPolicyName", Kind.TERMS)),
             Map.entry("policyTypes", new FilterDef("policyWaiverPolicyType", Kind.TERMS)),

@@ -7,6 +7,9 @@ package com.sonatype.insight.brain.search.indexquery;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -14,15 +17,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
+import com.sonatype.insight.brain.integration.OrganizationSummaryService;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeatureTestSupport;
+import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.global.GlobalSearchRequest;
 import com.sonatype.insight.brain.search.global.GlobalSearchResult;
 import com.sonatype.insight.brain.search.global.IqLocalSearchService;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
+import com.sonatype.insight.brain.search.session.IndexReadSession;
+import com.sonatype.insight.brain.search.session.IndexReadSessionFactory;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 
+import org.apache.lucene.search.MatchAllDocsQuery;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,6 +43,12 @@ import org.junit.Test;
 public class IndexQueryResourceAuthzTest
 {
   private SearchIndexClient searchIndexClient;
+
+  private IndexReadSessionFactory sessionFactory;
+
+  private IndexReadSession session;
+
+  private ConversionHelper conversionHelper;
 
   private IndexQueryResource resource;
 
@@ -46,8 +65,31 @@ public class IndexQueryResourceAuthzTest
     when(searchIndexClient.buildPermittedQuery(any())).thenCallRealMethod();
     when(searchIndexClient.searchGlobal(any())).thenReturn(new GlobalSearchResult(List.of(), 0, List.of()));
 
+    sessionFactory = mock(IndexReadSessionFactory.class);
+    session = mock(IndexReadSession.class);
+    conversionHelper = mock(ConversionHelper.class);
+    when(sessionFactory.open()).thenReturn(session);
+    when(conversionHelper.stringToQuery(anyString())).thenReturn(new MatchAllDocsQuery());
+
+    OrganizationDAO organizationDAO = mock(OrganizationDAO.class);
+    Organization rootOrg = mock(Organization.class);
+    when(rootOrg.getName()).thenReturn("Root Org");
+    when(organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID)).thenReturn(rootOrg);
+
+    OrganizationSummaryService organizationSummaryService = mock(OrganizationSummaryService.class);
+    lenient().when(organizationSummaryService.getOrganizationsForRead(anySet())).thenAnswer(inv -> {
+      Set<String> ids = inv.getArgument(0);
+      return ids.stream().map(id -> {
+        Organization o = new Organization();
+        o.setId(id);
+        return o;
+      }).toList();
+    });
+
     IqLocalSearchService iq = new IqLocalSearchService(searchIndexClient);
-    IndexQueryService service = new IndexQueryService(iq, searchIndexClient, null);
+    IndexQueryService service =
+        new IndexQueryService(organizationDAO, mock(ApplicationDAO.class), mock(TagDAO.class), mock(PolicyDAO.class),
+            iq, searchIndexClient, sessionFactory, conversionHelper, organizationSummaryService, null);
     resource = new IndexQueryResource(service, searchIndexClient);
   }
 

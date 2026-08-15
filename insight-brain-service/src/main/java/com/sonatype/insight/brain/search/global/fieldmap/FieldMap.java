@@ -159,12 +159,17 @@ public final class FieldMap
 
   private static final Set<ItemType> WAIVER_REQUEST_TYPES = EnumSet.of(POLICY_WAIVER_REQUEST);
 
-  // applicationId is set on APPLICATION docs and on app-scoped waiver docs (setOwner(Application)); org-
-  // scoped waivers carry no applicationId so an applications filter narrows to app-scoped waivers only.
-  // POLICY_WAIVER only ADDS itself as an allowed type; allowedTypes is consulted per-entity-type in
-  // QueryCompiler.compileField, so APPLICATION/VIOLATION/VULN queries are unaffected.
-  private static final Set<ItemType> APP_ID_AND_WAIVER_TYPES =
-      EnumSet.of(APPLICATION, POLICY_WAIVER, POLICY_WAIVER_REQUEST);
+  // applicationId is set on APPLICATION docs, violation docs (setOwner(application) on POLICY_VIOLATION /
+  // LEGAL_VIOLATION) and app-scoped waiver docs; org-scoped waivers carry no applicationId. It is
+  // intentionally NOT on SECURITY_VULNERABILITY / NON_VULNERABLE_COMPONENT (application identity is not a
+  // component/vuln filter). The applications facet on the APPLICATION/VIOLATION/WAIVER tabs round-trips
+  // through this field, so those tabs must resolve it. allowedTypes is consumed via .contains(entityType).
+  private static final Set<ItemType> APP_ID_VIOLATION_AND_WAIVER_TYPES = EnumSet.of(
+      APPLICATION,
+      POLICY_VIOLATION,
+      LEGAL_VIOLATION,
+      POLICY_WAIVER,
+      POLICY_WAIVER_REQUEST);
 
   // applicationCategoryName is query-resolvable on APPLICATION, POLICY_VIOLATION and LEGAL_VIOLATION
   // docs (the denormalized app categories, multi-valued). The single-valued APPLICATION_CATEGORY
@@ -301,10 +306,10 @@ public final class FieldMap
     // filtered by their owning application; org-scoped waivers (no applicationName/Id) simply won't match.
     // applicationName also covers NON_VULNERABLE_COMPONENT so the catalog can filter components by app.
     m.put("applicationName", FieldEntry.keyword(APPLICATION_NAME.label, APP_VIOLATION_VULN_AND_WAIVER_TYPES));
-    m.put("applicationId", FieldEntry.keyword(APPLICATION_ID.label, APP_ID_AND_WAIVER_TYPES));
+    m.put("applicationId", FieldEntry.keyword(APPLICATION_ID.label, APP_ID_VIOLATION_AND_WAIVER_TYPES));
     m.put("applicationPublicId", FieldEntry.keyword(APPLICATION_PUBLIC_ID.label, APP_TYPES));
     m.put("applicationVersion", FieldEntry.keyword(APPLICATION_VERSION.label, APP_TYPES));
-    m.put("applicationCategoryId", FieldEntry.keyword(APPLICATION_CATEGORY_ID.label, APP_TYPES));
+    m.put("applicationCategoryId", FieldEntry.keyword(APPLICATION_CATEGORY_ID.label, CATEGORY_NAME_TYPES));
     m.put("applicationCategoryName", FieldEntry.keyword(APPLICATION_CATEGORY_NAME.label, CATEGORY_NAME_TYPES));
     // Application evaluation denormalization (indexed on APPLICATION docs).
     m.put("applicationLastEvaluationTimeEpochMs",
@@ -397,6 +402,11 @@ public final class FieldMap
     // is a single-token hex UUID, likewise exact-matched as KEYWORD.
     m.put("organizationId", FieldEntry.keyword(PARENT_ORGANIZATION_ID.label, ORG_CARRYING_TYPES));
     m.put("organizationName", FieldEntry.keyword(PARENT_ORGANIZATION_NAME.label, ORG_CARRYING_TYPES));
+    // The literal ancestor-closure fields are also addressable by name, so id-keyed org filters/facets
+    // (which compile directly to parentOrganizationId) resolve through the grammar rather than failing
+    // open. organizationId/Name above remain as convenience aliases for the same fields.
+    m.put("parentOrganizationId", FieldEntry.keyword(PARENT_ORGANIZATION_ID.label, ORG_CARRYING_TYPES));
+    m.put("parentOrganizationName", FieldEntry.keyword(PARENT_ORGANIZATION_NAME.label, ORG_CARRYING_TYPES));
 
     // Policy
     m.put("policyId", FieldEntry.keyword(POLICY_ID.label, POLICY_TYPES));

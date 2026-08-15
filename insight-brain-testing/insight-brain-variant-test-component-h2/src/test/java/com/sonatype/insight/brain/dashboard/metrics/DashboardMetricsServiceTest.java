@@ -74,7 +74,6 @@ import com.sonatype.insight.brain.search.indexquery.IndexQueryRequest;
 import com.sonatype.insight.brain.search.indexquery.IndexQueryResponse;
 import com.sonatype.insight.brain.search.indexquery.IndexQueryService;
 import com.sonatype.insight.brain.search.indexquery.IndexQueryType;
-import com.sonatype.insight.brain.search.global.IqLocalSearchService;
 import com.sonatype.insight.brain.search.lucene.DocumentBuilderHelper;
 import com.sonatype.insight.brain.search.lucene.LuceneSearchIndexClient;
 import com.sonatype.insight.brain.security.CurrentUser;
@@ -175,8 +174,7 @@ public class DashboardMetricsServiceTest
 
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
     try {
-      IndexQueryService indexQueryService = new IndexQueryService(
-          new IqLocalSearchService(luceneSearchIndexClient), luceneSearchIndexClient, null);
+      IndexQueryService indexQueryService = lookup(IndexQueryService.class);
       IndexQueryResponse waivers = indexQueryService.query(
           IndexQueryType.WAIVER, new IndexQueryRequest("WAIVER", Map.of(), 1, 25, null, null, true));
       long railExpiringCount = waivers.facets()

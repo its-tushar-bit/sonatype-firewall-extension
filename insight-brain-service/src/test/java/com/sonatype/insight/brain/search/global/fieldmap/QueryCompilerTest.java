@@ -136,6 +136,33 @@ public class QueryCompilerTest
   }
 
   @Test
+  public void applicationIdFacetRoundTripsOnViolationType() {
+    // The applications facet on the VIOLATION results tab emits applicationId bucket values; clicking
+    // one appends applicationId:"..." to the grammar query, which must resolve against POLICY_VIOLATION
+    // docs rather than compiling to MatchNoDocs.
+    CompiledQuery r = compile(new FieldNode("applicationId", new ExactValue("app-1")), ItemType.POLICY_VIOLATION);
+    assertThat(r.warnings()).isEmpty();
+    assertThat(r.luceneQuery()).isEqualTo(new TermQuery(new Term("applicationId", "app-1")));
+  }
+
+  @Test
+  public void applicationCategoryIdFacetRoundTripsOnViolationType() {
+    CompiledQuery r =
+        compile(new FieldNode("applicationCategoryId", new ExactValue("cat-1")), ItemType.POLICY_VIOLATION);
+    assertThat(r.warnings()).isEmpty();
+    assertThat(r.luceneQuery()).isEqualTo(new TermQuery(new Term("applicationCategoryId", "cat-1")));
+  }
+
+  @Test
+  public void applicationOnlyFieldOnViolationTypeMatchesNothing() {
+    // applicationPublicId is an APPLICATION-only field; used on a POLICY_VIOLATION query it correctly
+    // matches nothing (a legitimate cross-type mismatch, not a facet round-trip).
+    CompiledQuery r =
+        compile(new FieldNode("applicationPublicId", new ExactValue("pub-1")), ItemType.POLICY_VIOLATION);
+    assertThat(r.luceneQuery()).isInstanceOf(MatchNoDocsQuery.class);
+  }
+
+  @Test
   public void keywordPhraseValueLowercasesToTermQuery() {
     CompiledQuery r = compile(new FieldNode("applicationName", new PhraseValue("Acme Corp")));
     assertThat(r.warnings()).isEmpty();

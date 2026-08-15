@@ -70,13 +70,13 @@ public class ApplicationsListViolationScopeResolverTest
   @Test
   public void resolveApplicationIds_returnsWhenMatchCountEqualsMaxIdsOnShortPage() {
     when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(2);
-    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
+    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), anyList()))
         .thenReturn(partialPageWithApplicationIds("app-1", "app-2"));
 
     ApplicationsListViolationScopeResolver resolver =
         new ApplicationsListViolationScopeResolver(searchIndexClient, configuration);
 
-    Set<String> applicationIds = resolver.resolveApplicationIds("itemType:APPLICATION", noFilters);
+    Set<String> applicationIds = resolver.resolveApplicationIds("itemType:APPLICATION", List.of(), noFilters);
 
     assertThat(applicationIds).containsExactly("app-1", "app-2");
   }
@@ -84,13 +84,13 @@ public class ApplicationsListViolationScopeResolverTest
   @Test
   public void resolveApplicationIds_throwsWhenMaxIdsReachedOnFullPageWithRepeatedViolations() {
     when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(2);
-    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
+    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), anyList()))
         .thenReturn(fullPageWithApplicationIds("app-1", "app-2", "app-3"));
 
     ApplicationsListViolationScopeResolver resolver =
         new ApplicationsListViolationScopeResolver(searchIndexClient, configuration);
 
-    assertThatThrownBy(() -> resolver.resolveApplicationIds("itemType:APPLICATION", noFilters))
+    assertThatThrownBy(() -> resolver.resolveApplicationIds("itemType:APPLICATION", List.of(), noFilters))
         .isInstanceOf(BadRequestException.class)
         .hasMessageContaining("too many applications");
   }
@@ -98,13 +98,13 @@ public class ApplicationsListViolationScopeResolverTest
   @Test
   public void resolveApplicationIds_throwsWhenDiscoveryExceedsMaxIds() {
     when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(2);
-    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
+    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), anyList()))
         .thenReturn(fullPageHittingMaxIdsOnLastHit("app-1", "app-2"));
 
     ApplicationsListViolationScopeResolver resolver =
         new ApplicationsListViolationScopeResolver(searchIndexClient, configuration);
 
-    assertThatThrownBy(() -> resolver.resolveApplicationIds("itemType:APPLICATION", noFilters))
+    assertThatThrownBy(() -> resolver.resolveApplicationIds("itemType:APPLICATION", List.of(), noFilters))
         .isInstanceOf(BadRequestException.class)
         .hasMessageContaining("too many applications");
   }
@@ -112,13 +112,13 @@ public class ApplicationsListViolationScopeResolverTest
   @Test
   public void resolveApplicationIds_stopsWhenConsecutivePagesAddNoNewApplicationIds() {
     when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(100);
-    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
+    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), anyList()))
         .thenReturn(fullPageWithApplicationIds("app-1"));
 
     ApplicationsListViolationScopeResolver resolver =
         new ApplicationsListViolationScopeResolver(searchIndexClient, configuration);
 
-    Set<String> applicationIds = resolver.resolveApplicationIds("itemType:APPLICATION", noFilters);
+    Set<String> applicationIds = resolver.resolveApplicationIds("itemType:APPLICATION", List.of(), noFilters);
 
     assertThat(applicationIds).containsExactly("app-1");
   }
@@ -127,7 +127,7 @@ public class ApplicationsListViolationScopeResolverTest
   public void resolveApplicationIds_skipsBlankApplicationIdsWithoutThrowingOrInflatingIdCount() {
     when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(100);
     AtomicInteger pageCalls = new AtomicInteger();
-    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
+    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), anyList()))
         .thenAnswer(invocation -> {
           pageCalls.incrementAndGet();
           return fullPageWithBlankApplicationIds();
@@ -136,7 +136,7 @@ public class ApplicationsListViolationScopeResolverTest
     ApplicationsListViolationScopeResolver resolver =
         new ApplicationsListViolationScopeResolver(searchIndexClient, configuration);
 
-    Set<String> applicationIds = resolver.resolveApplicationIds("itemType:APPLICATION", noFilters);
+    Set<String> applicationIds = resolver.resolveApplicationIds("itemType:APPLICATION", List.of(), noFilters);
 
     assertThat(applicationIds).isEmpty();
     assertThat(pageCalls.get())
@@ -147,7 +147,7 @@ public class ApplicationsListViolationScopeResolverTest
   public void resolveApplicationIds_continuesPagingWhenEachPageAddsNewApplicationIds() {
     when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(100);
     AtomicInteger pageCalls = new AtomicInteger();
-    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
+    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), anyList()))
         .thenAnswer(invocation -> {
           int page = pageCalls.getAndIncrement();
           if (page < 12) {
@@ -159,7 +159,7 @@ public class ApplicationsListViolationScopeResolverTest
     ApplicationsListViolationScopeResolver resolver =
         new ApplicationsListViolationScopeResolver(searchIndexClient, configuration);
 
-    Set<String> applicationIds = resolver.resolveApplicationIds("itemType:APPLICATION", noFilters);
+    Set<String> applicationIds = resolver.resolveApplicationIds("itemType:APPLICATION", List.of(), noFilters);
 
     assertThat(applicationIds).hasSize(12);
     assertThat(pageCalls.get()).isGreaterThanOrEqualTo(12);
@@ -168,7 +168,7 @@ public class ApplicationsListViolationScopeResolverTest
   @Test
   public void resolveApplicationIds_passesDisjointThreatRangesToQuerySupport() {
     when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(100);
-    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
+    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), anyList()))
         .thenReturn(partialPageWithApplicationIds("critical-app"));
 
     ApplicationsListViolationScopeResolver resolver =
@@ -178,7 +178,7 @@ public class ApplicationsListViolationScopeResolverTest
         new PolicyThreatLevelFilter(8, 10),
         new PolicyThreatLevelFilter(1, 1));
 
-    Set<String> applicationIds = resolver.resolveApplicationIds("itemType:APPLICATION", request);
+    Set<String> applicationIds = resolver.resolveApplicationIds("itemType:APPLICATION", List.of(), request);
 
     assertThat(applicationIds).containsExactly("critical-app");
   }
@@ -191,7 +191,7 @@ public class ApplicationsListViolationScopeResolverTest
   @Test
   public void resolveApplicationIds_policyTypeAndState_andCombineOnOneViolationQuery() {
     when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(100);
-    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
+    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), anyList()))
         .thenReturn(partialPageWithApplicationIds("security-open-app"));
 
     ApplicationsListViolationScopeResolver resolver =
@@ -200,13 +200,13 @@ public class ApplicationsListViolationScopeResolverTest
     request.policyThreatCategories = new PolicyThreatCategoryFilter(Set.of(PolicyThreatCategory.SECURITY));
     request.policyViolationStates = new PolicyViolationStateFilter(Set.of(PolicyViolationState.OPEN));
 
-    Set<String> applicationIds = resolver.resolveApplicationIds("itemType:APPLICATION", request);
+    Set<String> applicationIds = resolver.resolveApplicationIds("itemType:APPLICATION", List.of(), request);
 
     assertThat(applicationIds).containsExactly("security-open-app");
 
     ArgumentCaptor<String> queryCaptor = ArgumentCaptor.forClass(String.class);
     verify(searchIndexClient)
-        .searchIndex(queryCaptor.capture(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList());
+        .searchIndex(queryCaptor.capture(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), anyList());
     assertThat(queryCaptor.getValue()).isEqualTo(
         "itemType:POLICY_VIOLATION"
             + " AND " + FieldIdentifier.POLICY_VIOLATION_THREAT_CATEGORY.label + ":(security)"
@@ -231,11 +231,12 @@ public class ApplicationsListViolationScopeResolverTest
           new ApplicationsListViolationScopeResolver(searchIndexClient, configuration, sessionFactory,
               conversionHelper);
 
-      Set<String> applicationIds = resolver.resolveApplicationIds("itemType:APPLICATION", noFilters);
+      Set<String> applicationIds = resolver.resolveApplicationIds("itemType:APPLICATION", List.of(), noFilters);
 
       assertThat(applicationIds).containsExactly("app-1", "app-2");
       verify(session).searchPage(any());
-      verify(searchIndexClient, never()).searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList());
+      verify(searchIndexClient, never()).searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(),
+          anyList());
     }
     finally {
       System.clearProperty("nexusOne.search.readPath.applications");

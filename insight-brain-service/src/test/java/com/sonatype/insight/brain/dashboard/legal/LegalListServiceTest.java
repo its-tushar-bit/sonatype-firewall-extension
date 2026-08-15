@@ -53,8 +53,9 @@ public class LegalListServiceTest
   @Test
   public void listLegalFindings_mapsLegalViolationHitToRowWithCompositeId() {
     when(indexQueryBuilder.buildLegalQuery(any())).thenReturn(QUERY);
-    when(searchIndexClient.searchIndex(anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
-        .thenReturn(searchResult(legalItem()));
+    when(searchIndexClient.searchIndex(anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(),
+        anyList()))
+            .thenReturn(searchResult(legalItem()));
 
     LegalListRequestDTO request = new LegalListRequestDTO();
     request.includeFacets = false;

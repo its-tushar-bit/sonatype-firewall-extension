@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.IndexFilterRestriction;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -61,14 +62,17 @@ final class LegalListIndexQueryBuilder
   private List<String> baseClauses(final LegalListRequestDTO request) {
     List<String> clauses = new ArrayList<>();
     clauses.add(FieldIdentifier.ITEM_TYPE.label + ":" + ItemType.LEGAL_VIOLATION.name());
-    // Align counted hits with row-eligibility in LegalListIndexItems.compositeLegalFindingId.
     clauses.add(FieldIdentifier.APPLICATION_ID.label + ":[* TO *]");
     clauses.add(FieldIdentifier.COMPONENT_HASH.label + ":[* TO *]");
     clauses.add(FieldIdentifier.COMPONENT_EFFECTIVE_LICENSE_ID.label + ":[* TO *]");
     clauses.add(FieldIdentifier.POLICY_EVALUATION_STAGE.label + ":[* TO *]");
 
     addIfPresent(clauses, buildSearchClause(request == null ? null : request.search));
-    addIfPresent(clauses, buildDimensionClause(request));
+    // org/app scope is applied as budget-exempt term-set restrictions (CLM-44783).
+    Set<String> organizationIds = request == null ? null : request.organizationIds;
+    if (organizationIds != null && !organizationIds.isEmpty()) {
+      DashboardIndexDimensionQueryBuilder.rejectBlankFilterIds(organizationIds, "organizationIds");
+    }
     addIfPresent(clauses, buildStageClause(request == null ? null : request.stageIds));
     addIfPresent(clauses, buildLicenseThreatGroupClause(request == null ? null : request.licenseThreatGroupNames));
     addIfPresent(clauses, buildThreatLevelClause(request == null ? null : request.licenseThreatLevelRange));
@@ -76,25 +80,10 @@ final class LegalListIndexQueryBuilder
     return clauses;
   }
 
-  private String buildDimensionClause(final LegalListRequestDTO request) {
-    Set<String> organizationIds = request == null ? null : request.organizationIds;
-    if (organizationIds != null && !organizationIds.isEmpty()) {
-      DashboardIndexDimensionQueryBuilder.rejectBlankFilterIds(organizationIds, "organizationIds");
-    }
-    String organizationClause = dimensionQueryBuilder.buildOrganizationFilterClause(organizationIds);
-    String applicationClause =
-        dimensionQueryBuilder.buildEscapedApplicationFilterClause(request == null ? null : request.applicationIds);
-    if (organizationClause == null && applicationClause == null) {
-      return null;
-    }
-    List<String> dimensionClauses = new ArrayList<>();
-    if (organizationClause != null) {
-      dimensionClauses.add(organizationClause);
-    }
-    if (applicationClause != null) {
-      dimensionClauses.add(applicationClause);
-    }
-    return "(" + String.join(" OR ", dimensionClauses) + ")";
+  List<IndexFilterRestriction> buildScopeRestrictions(final LegalListRequestDTO request) {
+    return dimensionQueryBuilder.buildScopeFilterRestrictions(
+        request == null ? null : request.organizationIds,
+        request == null ? null : request.applicationIds);
   }
 
   private static String buildSearchClause(final String search) {

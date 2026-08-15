@@ -32,8 +32,6 @@ import com.sonatype.insight.brain.search.session.IndexReadSessionFactory;
 import com.sonatype.insight.brain.search.session.IndexTermsBucket;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.lucene.search.BooleanClause.Occur;
-import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -221,15 +219,7 @@ final class ComponentsListFacetsBuilder
   }
 
   private Query toScopedQuery(final String componentQuery, final List<? extends IndexFilterRestriction> termSets) {
-    Query base = conversionHelper.stringToQuery(componentQuery);
-    Query filters = IdSetFilterQueries.combineLuceneFilters(termSets);
-    if (filters == null) {
-      return base;
-    }
-    return new BooleanQuery.Builder()
-        .add(base, Occur.MUST)
-        .add(filters, Occur.FILTER)
-        .build();
+    return IdSetFilterQueries.toScopedQuery(conversionHelper.stringToQuery(componentQuery), termSets);
   }
 
   private static Set<String> capped(final Set<String> keys, final int maxEntries) {

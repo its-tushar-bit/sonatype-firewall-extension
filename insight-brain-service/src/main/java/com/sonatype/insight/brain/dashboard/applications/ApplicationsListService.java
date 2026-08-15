@@ -25,6 +25,8 @@ import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
 import com.sonatype.insight.brain.dashboard.DashboardResultsDTO;
 import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.IdSetFilterQueries;
+import com.sonatype.insight.brain.search.index.IndexFilterRestriction;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
@@ -119,13 +121,16 @@ public class ApplicationsListService
         ? ApplicationsListRequestValidator.DEFAULT_ORDER_BY
         : request.orderBy;
 
-    String query = indexQueryBuilder.buildApplicationQuery(request);
+    ApplicationsIndexQuery indexQuery = indexQueryBuilder.buildApplicationIndexQuery(request);
+    String query = indexQuery.query();
+    List<IndexFilterRestriction> scopeRestrictions = indexQuery.termSets();
     if (SearchReadPathFlags.forSurface(SearchReadPathSurface.APPLICATIONS) == SearchReadPath.NEW) {
-      return listApplicationsWithSession(request, page, pageSize, includeFacets, orderBy, query);
+      return listApplicationsWithSession(request, page, pageSize, includeFacets, orderBy, query, scopeRestrictions);
     }
 
     SearchResultDTO searchResult =
-        searchIndexClient.searchIndex(query, pageSize, toSearchIndexPage(page), false, false, List.of());
+        searchIndexClient.searchIndex(query, pageSize, toSearchIndexPage(page), false, false, List.of(),
+            scopeRestrictions);
     LinkedHashMap<String, SearchResultItemDTO> pageItems =
         ApplicationsListIndexItems.extractApplicationItems(searchResult);
     Set<String> pageApplicationIds = pageItems.keySet();
@@ -162,10 +167,7 @@ public class ApplicationsListService
     response.source = ApplicationsListResponseDTO.SOURCE_INDEX;
     if (includeFacets) {
       try {
-        // CLM-42230: facets use the same filtered query as the list, so stage/threat filters
-        // narrow org/stage bucket counts in the sidebar. Full RBAC-scoped aggregate facets
-        // independent of the active filter selection are tracked under CLM-42230.
-        response.facets = facetsBuilder.buildFacets(query, searchResult.totalNumberOfHits);
+        response.facets = facetsBuilder.buildFacets(query, scopeRestrictions, searchResult.totalNumberOfHits);
       }
       catch (RuntimeException e) {
         log.warn("Applications list facet build failed; returning page without facets", e);
@@ -180,16 +182,16 @@ public class ApplicationsListService
       final int pageSize,
       final boolean includeFacets,
       final String orderBy,
-      final String query)
+      final String query,
+      final List<IndexFilterRestriction> scopeRestrictions)
   {
     try (IndexReadSession session = sessionFactory.open()) {
-      // Cap before range so "too deep" always returns 400, even when past total (empty).
       if (page > MAX_WALKABLE_PAGE) {
         throw new BadRequestException(
             "Invalid page: " + page + ". Page must be <= " + MAX_WALKABLE_PAGE + ".");
       }
 
-      Query sessionQuery = conversionHelper.stringToQuery(toSessionQueryString(query));
+      Query sessionQuery = toScopedQuery(toSessionQueryString(query), scopeRestrictions);
       long total = session.count(sessionQuery);
 
       LinkedHashMap<String, SearchResultItemDTO> pageItems = new LinkedHashMap<>();
@@ -219,10 +221,12 @@ public class ApplicationsListService
       if (includeFacets) {
         try {
           String violationQueryString = ApplicationsListViolationQuerySupport.toViolationQuery(query);
+          // Stage / policy-type / state facets read POLICY_VIOLATION docs; org/app term sets must
+          // stay on that query the same way the legacy SearchIndexClient path applies them.
           Query violationFacetQuery =
-              conversionHelper.stringToQuery(toSessionQueryString(violationQueryString));
+              toScopedQuery(toSessionQueryString(violationQueryString), scopeRestrictions);
           response.facets = facetsBuilder.buildFacets(
-              session, sessionQuery, violationFacetQuery, violationQueryString, total);
+              session, sessionQuery, violationFacetQuery, scopeRestrictions, violationQueryString, total);
         }
         catch (RuntimeException e) {
           log.warn("Applications list facet build failed; returning page without facets", e);
@@ -280,6 +284,10 @@ public class ApplicationsListService
    */
   static int toSearchIndexPage(final int zeroBasedPage) {
     return zeroBasedPage == 0 ? 0 : zeroBasedPage + 1;
+  }
+
+  private Query toScopedQuery(final String query, final List<IndexFilterRestriction> restrictions) {
+    return IdSetFilterQueries.toScopedQuery(conversionHelper.stringToQuery(query), restrictions);
   }
 
   static String escapeLuceneTerm(final String input) {

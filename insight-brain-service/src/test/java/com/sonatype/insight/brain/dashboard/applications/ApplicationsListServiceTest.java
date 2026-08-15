@@ -19,7 +19,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class ApplicationsListServiceTest
@@ -31,16 +30,16 @@ public class ApplicationsListServiceTest
   private ApplicationsListViolationScopeResolver violationScopeResolver;
 
   @Test
-  public void buildApplicationQuery_escapesApplicationIdSpecialCharacters() {
-    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(100);
-
+  public void buildApplicationQuery_appFilterMovedToTermSets() {
     ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
     request.applicationIds = Set.of("app+id");
-    String query = new ApplicationsListIndexQueryBuilder(
+    ApplicationsListIndexQueryBuilder builder = new ApplicationsListIndexQueryBuilder(
         new DashboardIndexDimensionQueryBuilder(null, configuration),
-        violationScopeResolver)
-            .buildApplicationQuery(request);
-    assertThat(query).isEqualTo("itemType:APPLICATION AND (applicationId:(app\\+id))");
+        violationScopeResolver);
+    String query = builder.buildApplicationQuery(request);
+    // App filter no longer in query string — handled by term-set restrictions (CLM-44783).
+    assertThat(query).doesNotContain("applicationId:");
+    assertThat(builder.buildScopeRestrictions(request)).isNotEmpty();
   }
 
   @Test

@@ -41,6 +41,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.apache.lucene.document.Field.Store.YES;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
@@ -96,7 +98,7 @@ public class ApplicationsListFacetsParityTest
         ApplicationsListFacetsBuilder.MAX_ORGANIZATION_FACET_ENTRIES))
             .thenReturn(List.of(new IndexTermsBucket("org-a", 0), new IndexTermsBucket("org-b", 2)));
 
-    ApplicationsListFacetsDTO facets = builder.buildFacets(session, query, query, VIOLATION_FACET_QUERY, 2);
+    ApplicationsListFacetsDTO facets = builder.buildFacets(session, query, query, List.of(), VIOLATION_FACET_QUERY, 2);
 
     assertThat(facets.organizations).containsExactly(Map.entry("org-b", 2L));
     assertThat(facets.organizationNames).containsEntry("org-b", "Alpha");
@@ -111,7 +113,7 @@ public class ApplicationsListFacetsParityTest
         ApplicationsListFacetsBuilder.MAX_ORGANIZATION_FACET_ENTRIES))
             .thenReturn(List.of(new IndexTermsBucket("org-a", 7), new IndexTermsBucket("org-b", 7)));
 
-    ApplicationsListFacetsDTO facets = builder.buildFacets(session, query, query, VIOLATION_FACET_QUERY, 2);
+    ApplicationsListFacetsDTO facets = builder.buildFacets(session, query, query, List.of(), VIOLATION_FACET_QUERY, 2);
 
     assertThat(facets.organizations).containsExactly(Map.entry("org-b", 7L), Map.entry("org-a", 7L));
   }
@@ -125,7 +127,8 @@ public class ApplicationsListFacetsParityTest
     when(session.termsAggregation(query, FieldIdentifier.ORGANIZATION_ID.label,
         ApplicationsListFacetsBuilder.MAX_ORGANIZATION_FACET_ENTRIES)).thenReturn(buckets);
 
-    ApplicationsListFacetsDTO facets = builder.buildFacets(session, query, query, VIOLATION_FACET_QUERY, 501);
+    ApplicationsListFacetsDTO facets =
+        builder.buildFacets(session, query, query, List.of(), VIOLATION_FACET_QUERY, 501);
 
     assertThat(facets.organizations).hasSize(ApplicationsListFacetsBuilder.MAX_ORGANIZATION_FACET_ENTRIES);
     verify(session).termsAggregation(query, FieldIdentifier.ORGANIZATION_ID.label,
@@ -137,7 +140,7 @@ public class ApplicationsListFacetsParityTest
     when(session.termsAggregation(query, FieldIdentifier.ORGANIZATION_ID.label,
         ApplicationsListFacetsBuilder.MAX_ORGANIZATION_FACET_ENTRIES)).thenReturn(List.of());
 
-    ApplicationsListFacetsDTO facets = builder.buildFacets(session, query, query, VIOLATION_FACET_QUERY, 2);
+    ApplicationsListFacetsDTO facets = builder.buildFacets(session, query, query, List.of(), VIOLATION_FACET_QUERY, 2);
 
     assertThat(facets.applications).containsExactly(Map.entry("app-alpha", 1L), Map.entry("app-beta", 1L));
     ArgumentCaptor<IndexPageRequest> pageRequest = ArgumentCaptor.forClass(IndexPageRequest.class);
@@ -155,7 +158,7 @@ public class ApplicationsListFacetsParityTest
     when(session.countDistinctGroupedBy(eq(query), eq(FieldIdentifier.POLICY_EVALUATION_STAGE.label),
         eq(FieldIdentifier.APPLICATION_ID.label), eq(List.of("build")))).thenReturn(Map.of("build", 3L));
 
-    ApplicationsListFacetsDTO facets = builder.buildFacets(session, query, query, VIOLATION_FACET_QUERY, 2);
+    ApplicationsListFacetsDTO facets = builder.buildFacets(session, query, query, List.of(), VIOLATION_FACET_QUERY, 2);
 
     assertThat(facets.stages).containsExactly(Map.entry("build", 3L));
     verify(session).countDistinctGroupedBy(eq(query), eq(FieldIdentifier.POLICY_EVALUATION_STAGE.label),
@@ -168,17 +171,18 @@ public class ApplicationsListFacetsParityTest
     StageType release = stage("release");
     when(stageTypeService.getLicensedStageTypes(StageTypeService.DASHBOARD_CONTEXT))
         .thenReturn(List.of(build, release));
-    when(searchIndexClient.searchIndex("itemType:APPLICATION", ApplicationsListFacetsBuilder.MAX_FACET_DISCOVERY_HITS,
-        0, false, false, List.of())).thenReturn(searchResult("app-alpha"));
-    when(searchIndexClient.count("itemType:APPLICATION AND organizationId:(org\\-a)")).thenReturn(1L);
+    when(searchIndexClient.searchIndex(eq("itemType:APPLICATION"),
+        eq(ApplicationsListFacetsBuilder.MAX_FACET_DISCOVERY_HITS),
+        eq(0), eq(false), eq(false), anyList(), anyList())).thenReturn(searchResult("app-alpha"));
+    when(searchIndexClient.count(eq("itemType:APPLICATION"), anyList())).thenReturn(1L);
     when(searchIndexClient.countDistinct(
-        "itemType:POLICY_VIOLATION AND policyEvaluationStage:build",
-        List.of(FieldIdentifier.APPLICATION_ID.label))).thenReturn(2L);
+        eq("itemType:POLICY_VIOLATION AND policyEvaluationStage:build"),
+        eq(List.of(FieldIdentifier.APPLICATION_ID.label)), anyList())).thenReturn(2L);
     when(searchIndexClient.countDistinct(
-        "itemType:POLICY_VIOLATION AND policyEvaluationStage:release",
-        List.of(FieldIdentifier.APPLICATION_ID.label))).thenReturn(0L);
+        eq("itemType:POLICY_VIOLATION AND policyEvaluationStage:release"),
+        eq(List.of(FieldIdentifier.APPLICATION_ID.label)), anyList())).thenReturn(0L);
 
-    ApplicationsListFacetsDTO facets = builder.buildFacets("itemType:APPLICATION", 1);
+    ApplicationsListFacetsDTO facets = builder.buildFacets("itemType:APPLICATION", List.of(), 1);
 
     assertThat(facets.stages).containsExactly(Map.entry("build", 2L));
   }
@@ -197,7 +201,7 @@ public class ApplicationsListFacetsParityTest
         eq(FieldIdentifier.APPLICATION_ID.label), eq(List.of(policyViolationBucket))))
             .thenReturn(Map.of(policyViolationBucket, 7L));
 
-    ApplicationsListFacetsDTO facets = builder.buildFacets(session, query, query, VIOLATION_FACET_QUERY, 9);
+    ApplicationsListFacetsDTO facets = builder.buildFacets(session, query, query, List.of(), VIOLATION_FACET_QUERY, 9);
 
     assertThat(facets.policyTypes).containsExactly(Map.entry("security", 5L), Map.entry("quality", 2L));
     assertThat(facets.violationStates).containsOnlyKeys("OPEN", "WAIVED", "LEGACY_VIOLATION");
@@ -214,7 +218,7 @@ public class ApplicationsListFacetsParityTest
     when(session.countDistinctGroupedBy(any(), any(), any(), any()))
         .thenThrow(new UnsupportedOperationException("not implemented by this backend"));
 
-    ApplicationsListFacetsDTO facets = builder.buildFacets(session, query, query, VIOLATION_FACET_QUERY, 2);
+    ApplicationsListFacetsDTO facets = builder.buildFacets(session, query, query, List.of(), VIOLATION_FACET_QUERY, 2);
 
     assertThat(facets.policyTypes).isNull();
     assertThat(facets.violationStates).isNull();
@@ -225,17 +229,20 @@ public class ApplicationsListFacetsParityTest
   @Test
   public void legacyPath_countsPolicyTypesAndViolationStatesOverViolationDocs() {
     when(stageTypeService.getLicensedStageTypes(StageTypeService.DASHBOARD_CONTEXT)).thenReturn(List.of());
-    when(searchIndexClient.searchIndex("itemType:APPLICATION", ApplicationsListFacetsBuilder.MAX_FACET_DISCOVERY_HITS,
-        0, false, false, List.of())).thenReturn(searchResult("app-alpha"));
+    when(searchIndexClient.searchIndex(eq("itemType:APPLICATION"),
+        eq(ApplicationsListFacetsBuilder.MAX_FACET_DISCOVERY_HITS),
+        eq(0), eq(false), eq(false), anyList(), anyList())).thenReturn(searchResult("app-alpha"));
     when(searchIndexClient.countDistinctGroupedBy(eq("itemType:POLICY_VIOLATION"),
-        eq(FieldIdentifier.POLICY_VIOLATION_THREAT_CATEGORY.label), eq(FieldIdentifier.APPLICATION_ID.label), any()))
+        eq(FieldIdentifier.POLICY_VIOLATION_THREAT_CATEGORY.label), eq(FieldIdentifier.APPLICATION_ID.label),
+        any(), anyList()))
             .thenReturn(Map.of("security", 4L));
-    when(searchIndexClient.countDistinct(any(), eq(List.of(FieldIdentifier.APPLICATION_ID.label)))).thenReturn(0L);
+    when(searchIndexClient.countDistinct(anyString(), eq(List.of(FieldIdentifier.APPLICATION_ID.label)), anyList()))
+        .thenReturn(0L);
     when(searchIndexClient.countDistinct(
-        "itemType:POLICY_VIOLATION AND " + PolicyViolationIndexClauses.openClause(false),
-        List.of(FieldIdentifier.APPLICATION_ID.label))).thenReturn(6L);
+        eq("itemType:POLICY_VIOLATION AND " + PolicyViolationIndexClauses.openClause(false)),
+        eq(List.of(FieldIdentifier.APPLICATION_ID.label)), anyList())).thenReturn(6L);
 
-    ApplicationsListFacetsDTO facets = builder.buildFacets("itemType:APPLICATION", 1);
+    ApplicationsListFacetsDTO facets = builder.buildFacets("itemType:APPLICATION", List.of(), 1);
 
     assertThat(facets.policyTypes).containsExactly(Map.entry("security", 4L));
     // Zero-count states are omitted so the rail renders them from its fixed domain at zero.

@@ -29,6 +29,44 @@ public final class IdSetFilterQueries
   }
 
   /**
+   * AND two restriction lists. Null/empty either side returns the other (or an empty list).
+   */
+  public static List<IndexFilterRestriction> combine(
+      final List<? extends IndexFilterRestriction> scopeRestrictions,
+      final List<? extends IndexFilterRestriction> additional)
+  {
+    if (scopeRestrictions == null || scopeRestrictions.isEmpty()) {
+      return additional == null || additional.isEmpty() ? List.of() : List.copyOf(additional);
+    }
+    if (additional == null || additional.isEmpty()) {
+      return List.copyOf(scopeRestrictions);
+    }
+    List<IndexFilterRestriction> combined =
+        new ArrayList<>(scopeRestrictions.size() + additional.size());
+    combined.addAll(scopeRestrictions);
+    combined.addAll(additional);
+    return List.copyOf(combined);
+  }
+
+  /**
+   * ANDs budget-exempt id-set restrictions onto {@code base} as a Lucene FILTER clause.
+   * Returns {@code base} unchanged when there are no restrictions.
+   */
+  public static Query toScopedQuery(
+      final Query base,
+      final List<? extends IndexFilterRestriction> restrictions)
+  {
+    Query filters = combineLuceneFilters(restrictions);
+    if (filters == null) {
+      return base;
+    }
+    return new BooleanQuery.Builder()
+        .add(base, Occur.MUST)
+        .add(filters, Occur.FILTER)
+        .build();
+  }
+
+  /**
    * Combines {@code restrictions} into a single Lucene FILTER query, or {@code null} when there are
    * no restrictions. Restrictions are ANDed. Each {@link IndexTermSetRestriction} is a
    * {@link TermInSetQuery} (or {@link MatchNoDocsQuery} when its id set is empty/blank-only). Each

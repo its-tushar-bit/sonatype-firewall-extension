@@ -24,6 +24,9 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.IdSetFilterQueries;
+import com.sonatype.insight.brain.search.index.IndexFilterRestriction;
+import com.sonatype.insight.brain.search.index.IndexTermSetRestriction;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
@@ -78,24 +81,30 @@ final class LegalListFacetsBuilder
     this.applicationDAO = applicationDAO;
   }
 
-  LegalListFacetsDTO buildFacets(final String legalQuery, final long totalFindings) {
+  LegalListFacetsDTO buildFacets(
+      final String legalQuery,
+      final long totalFindings,
+      final List<IndexFilterRestriction> scopeRestrictions)
+  {
     LegalListFacetsDTO facets = new LegalListFacetsDTO();
     facets.totalFindings = totalFindings;
     if (totalFindings == 0) {
       return facets;
     }
 
-    ToLongFunction<String> counter = searchIndexClient::count;
+    List<IndexFilterRestriction> restrictions = scopeRestrictions == null ? List.of() : scopeRestrictions;
+    ToLongFunction<String> counter = query -> searchIndexClient.count(query, restrictions);
     facets.stages = countLicensedStages(legalQuery, counter);
 
     SearchResultDTO discovery =
-        searchIndexClient.searchIndex(legalQuery, MAX_FACET_DISCOVERY_HITS, 0, false, false, List.of());
+        searchIndexClient.searchIndex(legalQuery, MAX_FACET_DISCOVERY_HITS, 0, false, false, List.of(),
+            restrictions);
     LinkedHashMap<String, SearchResultItemDTO> discoveredOwners = ownersByApplicationId(discovery);
     Set<String> ltgNames = licenseThreatGroupNames(discovery);
 
     if (!discoveredOwners.isEmpty()) {
-      facets.organizations = countOrganizations(legalQuery, discoveredOwners);
-      facets.applications = countApplications(legalQuery, discoveredOwners);
+      facets.organizations = countOrganizations(legalQuery, discoveredOwners, restrictions);
+      facets.applications = countApplications(legalQuery, discoveredOwners, restrictions);
     }
     facets.licenseThreatGroups = countLicenseThreatGroups(legalQuery, ltgNames, counter);
     attachOwnerLabels(facets, discoveredOwners);
@@ -143,7 +152,8 @@ final class LegalListFacetsBuilder
 
   private Map<String, Long> countOrganizations(
       final String legalQuery,
-      final LinkedHashMap<String, SearchResultItemDTO> discovered)
+      final LinkedHashMap<String, SearchResultItemDTO> discovered,
+      final List<IndexFilterRestriction> scopeRestrictions)
   {
     Set<String> organizationIds = new LinkedHashSet<>();
     discovered.values().forEach(item -> {
@@ -155,17 +165,20 @@ final class LegalListFacetsBuilder
       return null;
     }
 
+    Map<String, Set<String>> expandedById = dimensionQueryBuilder.expandOrganizationFilterIdsById(organizationIds);
     Map<String, Long> counts = new LinkedHashMap<>();
     int queries = 0;
     for (String organizationId : organizationIds) {
       if (queries >= MAX_ORGANIZATION_FACETS) {
         break;
       }
-      String orgClause = dimensionQueryBuilder.buildOrganizationFilterClause(Set.of(organizationId));
-      if (orgClause == null) {
+      Set<String> expandedOrgIds = expandedById.get(organizationId);
+      if (expandedOrgIds == null) {
         continue;
       }
-      counts.put(organizationId, searchIndexClient.count(legalQuery + " AND " + orgClause));
+      List<IndexFilterRestriction> combined = IdSetFilterQueries.combine(scopeRestrictions,
+          IndexTermSetRestriction.singleton(FieldIdentifier.ORGANIZATION_ID.label, expandedOrgIds));
+      counts.put(organizationId, searchIndexClient.count(legalQuery, combined));
       queries++;
     }
     return counts.isEmpty() ? null : counts;
@@ -173,7 +186,8 @@ final class LegalListFacetsBuilder
 
   private Map<String, Long> countApplications(
       final String legalQuery,
-      final LinkedHashMap<String, SearchResultItemDTO> discovered)
+      final LinkedHashMap<String, SearchResultItemDTO> discovered,
+      final List<IndexFilterRestriction> scopeRestrictions)
   {
     Map<String, Long> counts = new LinkedHashMap<>();
     int queries = 0;
@@ -181,11 +195,12 @@ final class LegalListFacetsBuilder
       if (queries >= MAX_APPLICATION_FACETS) {
         break;
       }
-      String appClause = dimensionQueryBuilder.buildEscapedApplicationFilterClause(Set.of(applicationId));
-      if (appClause == null) {
+      if (StringUtils.isBlank(applicationId)) {
         continue;
       }
-      counts.put(applicationId, searchIndexClient.count(legalQuery + " AND " + appClause));
+      List<IndexFilterRestriction> combined = IdSetFilterQueries.combine(scopeRestrictions,
+          IndexTermSetRestriction.singleton(FieldIdentifier.APPLICATION_ID.label, Set.of(applicationId)));
+      counts.put(applicationId, searchIndexClient.count(legalQuery, combined));
       queries++;
     }
     return counts.isEmpty() ? null : counts;
@@ -281,4 +296,5 @@ final class LegalListFacetsBuilder
     }
     return missing;
   }
+
 }

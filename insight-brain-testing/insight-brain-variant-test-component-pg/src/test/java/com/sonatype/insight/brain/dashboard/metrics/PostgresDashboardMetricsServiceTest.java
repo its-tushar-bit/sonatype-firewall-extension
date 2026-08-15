@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dashboard.metrics;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
@@ -47,7 +48,6 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
-import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -64,6 +64,8 @@ import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
+import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.IndexTermSetRestriction;
 import com.sonatype.insight.brain.search.index.MetricAggregationResult;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.indexquery.IndexQueryRequest;
@@ -677,22 +679,26 @@ public class PostgresDashboardMetricsServiceTest
   }
 
   @Test
-  public void testGetMetrics_OrganizationFilterRejectsOversizedExpansion() {
+  public void testGetMetrics_OrganizationFilterAppliesExpandedOrgTermSet() {
     OrganizationDAO organizationDAO = mock(OrganizationDAO.class);
     when(organizationDAO.getAllChildOrganizationIds(Set.of("big-org")))
         .thenReturn(Set.of("expanded-org-0", "expanded-org-1", "expanded-org-2", "expanded-org-3", "expanded-org-4",
             "expanded-org-5"));
 
     Configuration configuration = mock(Configuration.class);
-    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(5);
 
     CurrentUser currentUser = mock(CurrentUser.class);
     when(currentUser.getUserPrincipal()).thenReturn(
         new UserPrincipal("filter-user", "filter-user", User.INTERNAL_REALM_ID));
 
+    SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
+    stubEmptySearchIndexResults(searchIndexClient);
+    ArgumentCaptor<java.util.List> restrictions = ArgumentCaptor.forClass(java.util.List.class);
+    when(searchIndexClient.count(anyString(), restrictions.capture())).thenReturn(0L);
+
     DashboardMetricsService service =
         newServiceWithMocks(
-            mock(SearchIndexClient.class),
+            searchIndexClient,
             new MetricFilterValidator(),
             organizationDAO,
             configuration,
@@ -701,9 +707,51 @@ public class PostgresDashboardMetricsServiceTest
     DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
     request.organizationIds = Set.of("big-org");
 
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> service.getMetrics(request))
-        .withMessageContaining("too many organizations");
+    DashboardMetricsDTO response = service.getMetrics(request);
+    assertThat(response.applications).extracting("total").isEqualTo(0L);
+    assertThat(restrictions.getAllValues()).isNotEmpty();
+    assertThat(restrictions.getAllValues()).anySatisfy(list -> {
+      assertThat(list).isNotEmpty();
+      IndexTermSetRestriction orgRestriction = (IndexTermSetRestriction) list.get(0);
+      assertThat(orgRestriction.field()).isEqualTo(FieldIdentifier.ORGANIZATION_ID.label);
+      assertThat(orgRestriction.ids()).containsExactlyInAnyOrder(
+          "expanded-org-0", "expanded-org-1", "expanded-org-2", "expanded-org-3", "expanded-org-4",
+          "expanded-org-5");
+    });
+  }
+
+  @Test
+  public void testGetMetrics_EmptyOrganizationExpansionReturnsNoMatchSentinel() {
+    OrganizationDAO organizationDAO = mock(OrganizationDAO.class);
+    when(organizationDAO.getAllChildOrganizationIds(Set.of("empty-org"))).thenReturn(Set.of());
+
+    Configuration configuration = mock(Configuration.class);
+
+    CurrentUser currentUser = mock(CurrentUser.class);
+    when(currentUser.getUserPrincipal()).thenReturn(
+        new UserPrincipal("filter-user", "filter-user", User.INTERNAL_REALM_ID));
+
+    SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
+    stubEmptySearchIndexResults(searchIndexClient);
+    ArgumentCaptor<java.util.List> restrictions = ArgumentCaptor.forClass(java.util.List.class);
+    when(searchIndexClient.count(anyString(), restrictions.capture())).thenReturn(0L);
+
+    DashboardMetricsService service =
+        newServiceWithMocks(
+            searchIndexClient,
+            new MetricFilterValidator(),
+            organizationDAO,
+            configuration,
+            currentUser);
+
+    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
+    request.organizationIds = Set.of("empty-org");
+
+    assertThat(service.getMetrics(request).applications.total).isZero();
+    assertThat(restrictions.getAllValues()).anySatisfy(list -> {
+      IndexTermSetRestriction orgRestriction = (IndexTermSetRestriction) list.get(0);
+      assertThat(orgRestriction.ids()).containsExactly(DashboardMetricsService.NO_MATCH_ORGANIZATION_FILTER_ID);
+    });
   }
 
   @Test
@@ -720,7 +768,7 @@ public class PostgresDashboardMetricsServiceTest
         new UserPrincipal("filter-user", "filter-user", User.INTERNAL_REALM_ID));
 
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
-    when(searchIndexClient.count(anyString())).thenReturn(1L);
+    when(searchIndexClient.count(anyString(), anyList())).thenReturn(1L);
     stubEmptySearchIndexResults(searchIndexClient);
     when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
 
@@ -745,7 +793,7 @@ public class PostgresDashboardMetricsServiceTest
         .thenReturn(Set.of("child-org"));
 
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
-    when(searchIndexClient.count(anyString())).thenReturn(1L);
+    when(searchIndexClient.count(anyString(), anyList())).thenReturn(1L);
     stubEmptySearchIndexResults(searchIndexClient);
     when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
 
@@ -831,7 +879,7 @@ public class PostgresDashboardMetricsServiceTest
   @Test
   public void testGetMetrics_ShadowServesCompletedIndexDtoAndSchedulesComparison() {
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
-    when(searchIndexClient.count(anyString())).thenReturn(3L);
+    when(searchIndexClient.count(anyString(), anyList())).thenReturn(3L);
     when(searchIndexClient.getLastIndexTime()).thenReturn(1234L);
     CurrentUser currentUser = mock(CurrentUser.class);
     when(currentUser.getUserPrincipal()).thenReturn(
@@ -1006,8 +1054,8 @@ public class PostgresDashboardMetricsServiceTest
     assertUnavailable(metrics.policies);
     assertUnavailable(metrics.violations);
     assertUnavailable(metrics.waivers);
-    verify(searchIndexClient, never()).count(anyString());
-    verify(searchIndexClient, never()).aggregateCountByField(anyString(), anyString(), any());
+    verify(searchIndexClient, never()).count(anyString(), anyList());
+    verify(searchIndexClient, never()).aggregateCountByField(anyString(), anyString(), any(), anyList());
   }
 
   @Test
@@ -1086,8 +1134,8 @@ public class PostgresDashboardMetricsServiceTest
       DashboardMetricsScopeResolver stageSummaryResolver = mock(DashboardMetricsScopeResolver.class);
       DashboardMetricsSqlCoordinator stageSummaryCoordinator = mock(DashboardMetricsSqlCoordinator.class);
       SearchIndexClient stageSummaryIndex = mock(SearchIndexClient.class);
-      when(stageSummaryIndex.count(anyString())).thenReturn(7L);
-      when(stageSummaryIndex.countDistinct(anyString(), any())).thenReturn(7L);
+      when(stageSummaryIndex.count(anyString(), anyList())).thenReturn(7L);
+      when(stageSummaryIndex.countDistinct(anyString(), any(), anyList())).thenReturn(7L);
       when(stageSummaryIndex.getLastIndexTime()).thenReturn(1L);
       DashboardMetricsService stageSummaryService =
           newModeService(mode, stageSummaryIndex, mock(PolicyWaiverDAO.class), mock(PolicyWaiverRequestDAO.class),
@@ -1110,7 +1158,7 @@ public class PostgresDashboardMetricsServiceTest
       PolicyWaiverDAO tagSummaryWaiverDAO = mock(PolicyWaiverDAO.class);
       PolicyWaiverRequestDAO tagSummaryWaiverRequestDAO = mock(PolicyWaiverRequestDAO.class);
       SearchIndexClient tagSummaryIndex = mock(SearchIndexClient.class);
-      when(tagSummaryIndex.count(anyString())).thenReturn(5L);
+      when(tagSummaryIndex.count(anyString(), anyList())).thenReturn(5L);
       when(tagSummaryIndex.getLastIndexTime()).thenReturn(2L);
       DashboardMetricsService tagSummaryService =
           newModeService(mode, tagSummaryIndex, tagSummaryWaiverDAO, tagSummaryWaiverRequestDAO,
@@ -1321,7 +1369,7 @@ public class PostgresDashboardMetricsServiceTest
     CurrentUser currentUser = mock(CurrentUser.class);
     when(currentUser.getUserPrincipal()).thenReturn(
         new UserPrincipal("cache-test-user", "cache-test-user", User.INTERNAL_REALM_ID));
-    when(searchIndexClient.count(anyString())).thenReturn(7L);
+    when(searchIndexClient.count(anyString(), anyList())).thenReturn(7L);
     stubEmptySearchIndexResults(searchIndexClient);
     when(searchIndexClient.getLastIndexTime()).thenReturn(99_000L);
 
@@ -1340,9 +1388,9 @@ public class PostgresDashboardMetricsServiceTest
     assertThat(first.applications.total).isEqualTo(7);
     assertThat(second.applications.total).isEqualTo(7);
     // loadMetrics runs once (coalesced): count() x3, countDistinct() x9 (components x1, vulnerabilities x5, legal x3).
-    verify(searchIndexClient, times(3)).count(anyString());
-    verify(searchIndexClient, times(9)).countDistinct(anyString(), any());
-    verify(searchIndexClient, times(1)).aggregateCountByField(anyString(), anyString(), any());
+    verify(searchIndexClient, times(3)).count(anyString(), anyList());
+    verify(searchIndexClient, times(9)).countDistinct(anyString(), any(), anyList());
+    verify(searchIndexClient, times(1)).aggregateCountByField(anyString(), anyString(), any(), anyList());
     verify(searchIndexClient, times(1)).getLastIndexTime();
   }
 
@@ -1355,7 +1403,7 @@ public class PostgresDashboardMetricsServiceTest
   @Test
   public void testGetMetrics_NullRequestReturnsCompleteCompatibilityPayload() {
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
-    when(searchIndexClient.count(anyString())).thenReturn(7L);
+    when(searchIndexClient.count(anyString(), anyList())).thenReturn(7L);
     stubEmptySearchIndexResults(searchIndexClient);
     when(searchIndexClient.getLastIndexTime()).thenReturn(99_000L);
 
@@ -1381,16 +1429,16 @@ public class PostgresDashboardMetricsServiceTest
     assertThat(metrics.components).isNotNull();
     assertThat(metrics.vulnerabilities).isNotNull();
     assertThat(metrics.legal).isNotNull();
-    verify(searchIndexClient, times(3)).count(anyString());
-    verify(searchIndexClient, times(1)).aggregateCountByField(anyString(), anyString(), any());
-    verify(searchIndexClient, times(9)).countDistinct(anyString(), any());
+    verify(searchIndexClient, times(3)).count(anyString(), anyList());
+    verify(searchIndexClient, times(1)).aggregateCountByField(anyString(), anyString(), any(), anyList());
+    verify(searchIndexClient, times(9)).countDistinct(anyString(), any(), anyList());
     verify(searchIndexClient, times(1)).getLastIndexTime();
   }
 
   @Test
   public void testGetMetrics_CacheSeparatesSummaryHeavyAndCompatibilityLoads() {
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
-    when(searchIndexClient.count(anyString())).thenReturn(4L);
+    when(searchIndexClient.count(anyString(), anyList())).thenReturn(4L);
     stubEmptySearchIndexResults(searchIndexClient);
     when(searchIndexClient.getLastIndexTime()).thenReturn(88_000L);
 
@@ -1425,16 +1473,16 @@ public class PostgresDashboardMetricsServiceTest
     service.getMetrics(heavyRequest);
     service.getMetrics(null);
 
-    verify(searchIndexClient, times(6)).count(anyString());
-    verify(searchIndexClient, times(2)).aggregateCountByField(anyString(), anyString(), any());
-    verify(searchIndexClient, times(18)).countDistinct(anyString(), any());
+    verify(searchIndexClient, times(6)).count(anyString(), anyList());
+    verify(searchIndexClient, times(2)).aggregateCountByField(anyString(), anyString(), any(), anyList());
+    verify(searchIndexClient, times(18)).countDistinct(anyString(), any(), anyList());
     verify(searchIndexClient, times(3)).getLastIndexTime();
   }
 
   @Test
   public void testGetMetrics_SummaryTierSkipsHeavyIndexComputations() {
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
-    when(searchIndexClient.count(anyString())).thenReturn(1L);
+    when(searchIndexClient.count(anyString(), anyList())).thenReturn(1L);
     when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
 
     CurrentUser currentUser = mock(CurrentUser.class);
@@ -1456,8 +1504,8 @@ public class PostgresDashboardMetricsServiceTest
 
     assertThat(metrics.applications).isNotNull();
     assertThat(metrics.violations).isNull();
-    verify(searchIndexClient, never()).aggregateCountByField(anyString(), anyString(), any());
-    verify(searchIndexClient, never()).countDistinct(anyString(), any());
+    verify(searchIndexClient, never()).aggregateCountByField(anyString(), anyString(), any(), anyList());
+    verify(searchIndexClient, never()).countDistinct(anyString(), any(), anyList());
   }
 
   @Test
@@ -1499,7 +1547,7 @@ public class PostgresDashboardMetricsServiceTest
     assertThat(metrics.applications).isNull();
     assertThat(metrics.violations).isNotNull();
     assertThat(metrics.lastUpdatedAt).isNotNull();
-    verify(searchIndexClient, never()).count(anyString());
+    verify(searchIndexClient, never()).count(anyString(), anyList());
     verify(searchIndexClient, times(1)).getLastIndexTime();
     verify(policyWaiverDAO, never()).selectCount(any());
     verify(policyWaiverRequestDAO, never()).selectCount(any());
@@ -1508,8 +1556,8 @@ public class PostgresDashboardMetricsServiceTest
   @Test
   public void testGetMetrics_StageFilteredSummaryComputesIndexMetricsAndLeavesWaiversUnsupported() {
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
-    when(searchIndexClient.count(anyString())).thenReturn(4L);
-    when(searchIndexClient.countDistinct(anyString(), any())).thenReturn(4L);
+    when(searchIndexClient.count(anyString(), anyList())).thenReturn(4L);
+    when(searchIndexClient.countDistinct(anyString(), any(), anyList())).thenReturn(4L);
     when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
     CurrentUser currentUser = mock(CurrentUser.class);
     when(currentUser.getUserPrincipal()).thenReturn(
@@ -1548,9 +1596,9 @@ public class PostgresDashboardMetricsServiceTest
     assertUnsupported(metrics.waivers, "stageIds");
     assertThat(metrics.violations).isNull();
     // Orgs + policies still use count(); applications uses countDistinct on POLICY_VIOLATION.
-    verify(searchIndexClient, times(2)).count(anyString());
-    verify(searchIndexClient, times(1)).countDistinct(anyString(), any());
-    verify(searchIndexClient, never()).aggregateCountByField(anyString(), anyString(), any());
+    verify(searchIndexClient, times(2)).count(anyString(), anyList());
+    verify(searchIndexClient, times(1)).countDistinct(anyString(), any(), anyList());
+    verify(searchIndexClient, never()).aggregateCountByField(anyString(), anyString(), any(), anyList());
     verify(policyWaiverDAO, never()).selectCount(any());
     verify(policyWaiverRequestDAO, never()).selectCount(any());
   }
@@ -1559,7 +1607,7 @@ public class PostgresDashboardMetricsServiceTest
   public void testGetMetrics_TagFilteredSummaryComputesWaiversAndIndexMetrics() {
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
     ArgumentCaptor<String> countQuery = ArgumentCaptor.forClass(String.class);
-    when(searchIndexClient.count(countQuery.capture())).thenReturn(6L);
+    when(searchIndexClient.count(countQuery.capture(), anyList())).thenReturn(6L);
     when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
     CurrentUser currentUser = mock(CurrentUser.class);
     when(currentUser.getUserPrincipal()).thenReturn(
@@ -1616,16 +1664,16 @@ public class PostgresDashboardMetricsServiceTest
     assertThat(metrics.waivers.breakdown).containsEntry("existing", 2L).containsEntry("requested", 3L);
     assertThat(countQuery.getAllValues())
         .anyMatch(q -> q.contains("itemType:policy") && q.contains("applicationId:(taggedApp)"));
-    verify(searchIndexClient, times(3)).count(anyString());
-    verify(searchIndexClient, never()).aggregateCountByField(anyString(), anyString(), any());
-    verify(searchIndexClient, never()).countDistinct(anyString(), any());
+    verify(searchIndexClient, times(3)).count(anyString(), anyList());
+    verify(searchIndexClient, never()).aggregateCountByField(anyString(), anyString(), any(), anyList());
+    verify(searchIndexClient, never()).countDistinct(anyString(), any(), anyList());
     verify(scopeResolver, times(1)).resolve(request);
   }
 
   @Test
   public void testGetMetrics_OversizedTagFilterSoftDegradesTagScopedTiles() {
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
-    when(searchIndexClient.count(anyString())).thenReturn(3L);
+    when(searchIndexClient.count(anyString(), anyList())).thenReturn(3L);
     when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
     CurrentUser currentUser = mock(CurrentUser.class);
     when(currentUser.getUserPrincipal()).thenReturn(
@@ -1672,9 +1720,9 @@ public class PostgresDashboardMetricsServiceTest
     assertUnsupported(metrics.vulnerabilities, "tagIds");
     assertUnsupported(metrics.legal, "tagIds");
     assertUnsupported(metrics.waivers, "stageIds");
-    verify(searchIndexClient, times(1)).count(anyString());
-    verify(searchIndexClient, never()).countDistinct(anyString(), any());
-    verify(searchIndexClient, never()).aggregateCountByField(anyString(), anyString(), any());
+    verify(searchIndexClient, times(1)).count(anyString(), anyList());
+    verify(searchIndexClient, never()).countDistinct(anyString(), any(), anyList());
+    verify(searchIndexClient, never()).aggregateCountByField(anyString(), anyString(), any(), anyList());
   }
 
   @Test
@@ -1705,9 +1753,9 @@ public class PostgresDashboardMetricsServiceTest
     assertThat(metrics.components.total).isZero();
     assertThat(metrics.vulnerabilities.total).isZero();
     assertThat(metrics.legal.total).isZero();
-    verify(searchIndexClient, never()).count(anyString());
-    verify(searchIndexClient, times(1)).aggregateCountByField(anyString(), anyString(), any());
-    verify(searchIndexClient, times(9)).countDistinct(anyString(), any());
+    verify(searchIndexClient, never()).count(anyString(), anyList());
+    verify(searchIndexClient, times(1)).aggregateCountByField(anyString(), anyString(), any(), anyList());
+    verify(searchIndexClient, times(9)).countDistinct(anyString(), any(), anyList());
   }
 
   @Test
@@ -1748,7 +1796,7 @@ public class PostgresDashboardMetricsServiceTest
   @Test
   public void testGetMetrics_CacheKeyDifferentiatesNullRealmFromExplicitRealm() {
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
-    when(searchIndexClient.count(anyString())).thenReturn(3L, 11L);
+    when(searchIndexClient.count(anyString(), anyList())).thenReturn(3L, 11L);
     stubEmptySearchIndexResults(searchIndexClient);
     when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
 
@@ -1777,15 +1825,15 @@ public class PostgresDashboardMetricsServiceTest
     service.getMetrics(request);
 
     // Two cache misses x loadMetrics: count() x3, countDistinct() x9 per miss.
-    verify(searchIndexClient, times(6)).count(anyString());
-    verify(searchIndexClient, times(18)).countDistinct(anyString(), any());
-    verify(searchIndexClient, times(2)).aggregateCountByField(anyString(), anyString(), any());
+    verify(searchIndexClient, times(6)).count(anyString(), anyList());
+    verify(searchIndexClient, times(18)).countDistinct(anyString(), any(), anyList());
+    verify(searchIndexClient, times(2)).aggregateCountByField(anyString(), anyString(), any(), anyList());
   }
 
   @Test
   public void testGetMetrics_CacheKeyDifferentiatesSameUsernameDifferentRealm() {
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
-    when(searchIndexClient.count(anyString())).thenReturn(5L, 9L);
+    when(searchIndexClient.count(anyString(), anyList())).thenReturn(5L, 9L);
     stubEmptySearchIndexResults(searchIndexClient);
     when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
 
@@ -1815,9 +1863,9 @@ public class PostgresDashboardMetricsServiceTest
     service.getMetrics(request);
 
     // Two cache misses x loadMetrics: count() x3, countDistinct() x9 per miss.
-    verify(searchIndexClient, times(6)).count(anyString());
-    verify(searchIndexClient, times(18)).countDistinct(anyString(), any());
-    verify(searchIndexClient, times(2)).aggregateCountByField(anyString(), anyString(), any());
+    verify(searchIndexClient, times(6)).count(anyString(), anyList());
+    verify(searchIndexClient, times(18)).countDistinct(anyString(), any(), anyList());
+    verify(searchIndexClient, times(2)).aggregateCountByField(anyString(), anyString(), any(), anyList());
   }
 
   @Test
@@ -1826,7 +1874,7 @@ public class PostgresDashboardMetricsServiceTest
     CurrentUser currentUser = mock(CurrentUser.class);
     when(currentUser.getUserPrincipal()).thenReturn(
         new UserPrincipal("filter-user", "filter-user", User.INTERNAL_REALM_ID));
-    when(searchIndexClient.count(anyString())).thenReturn(2L);
+    when(searchIndexClient.count(anyString(), anyList())).thenReturn(2L);
     stubEmptySearchIndexResults(searchIndexClient);
     when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
 
@@ -1848,15 +1896,15 @@ public class PostgresDashboardMetricsServiceTest
     service.getMetrics(requestB);
 
     // Empty filter requests share one cache key => loadMetrics runs once (coalesced).
-    verify(searchIndexClient, times(3)).count(anyString());
-    verify(searchIndexClient, times(9)).countDistinct(anyString(), any());
-    verify(searchIndexClient, times(1)).aggregateCountByField(anyString(), anyString(), any());
+    verify(searchIndexClient, times(3)).count(anyString(), anyList());
+    verify(searchIndexClient, times(9)).countDistinct(anyString(), any(), anyList());
+    verify(searchIndexClient, times(1)).aggregateCountByField(anyString(), anyString(), any(), anyList());
   }
 
   private static void stubEmptySearchIndexResults(SearchIndexClient searchIndexClient) {
-    when(searchIndexClient.aggregateCountByField(anyString(), anyString(), any())).thenReturn(
+    when(searchIndexClient.aggregateCountByField(anyString(), anyString(), any(), anyList())).thenReturn(
         new MetricAggregationResult(0L, Map.of("critical", 0L, "severe", 0L, "moderate", 0L, "low", 0L)));
-    when(searchIndexClient.countDistinct(anyString(), any())).thenReturn(0L);
+    when(searchIndexClient.countDistinct(anyString(), any(), anyList())).thenReturn(0L);
   }
 
   private static void assertUnsupported(Object metric, String... unsupportedDimensions) {

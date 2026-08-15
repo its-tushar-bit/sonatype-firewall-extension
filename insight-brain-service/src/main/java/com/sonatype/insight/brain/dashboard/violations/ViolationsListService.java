@@ -24,6 +24,8 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.IdSetFilterQueries;
+import com.sonatype.insight.brain.search.index.IndexFilterRestriction;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
@@ -127,12 +129,14 @@ public class ViolationsListService
         : request.orderBy;
 
     String query = indexQueryBuilder.buildViolationQuery(request);
+    List<IndexFilterRestriction> scopeRestrictions = indexQueryBuilder.buildScopeRestrictions(request);
     if (SearchReadPathFlags.forSurface(SearchReadPathSurface.VIOLATIONS) == SearchReadPath.NEW) {
-      return listViolationsWithSession(request, page, pageSize, includeFacets, orderBy, query);
+      return listViolationsWithSession(request, page, pageSize, includeFacets, orderBy, query, scopeRestrictions);
     }
 
     SearchResultDTO searchResult =
-        searchIndexClient.searchIndex(query, pageSize, toSearchIndexPage(page), false, false, List.of());
+        searchIndexClient.searchIndex(query, pageSize, toSearchIndexPage(page), false, false, List.of(),
+            scopeRestrictions);
     LinkedHashMap<String, SearchResultItemDTO> pageItems =
         ViolationsListIndexItems.extractViolationItems(searchResult);
 
@@ -155,15 +159,14 @@ public class ViolationsListService
     response.hasNextPage = consumed < searchResult.totalNumberOfHits;
     response.source = ViolationsListResponseDTO.SOURCE_INDEX;
     if (includeFacets) {
-      // The waiver-type facet is single-select, so it is counted against the query minus its own clause
-      // (identical to `query` when no waiver-type filter is active) — see ViolationsListFacetsBuilder.
       String waiverFacetQuery = indexQueryBuilder.buildViolationQueryExcludingWaiverType(request);
       response.facets = facetsBuilder.buildFacets(
           query,
           waiverFacetQuery,
           searchResult.totalNumberOfHits,
           request == null ? null : request.organizationFacetSearch,
-          request == null ? null : request.applicationFacetSearch);
+          request == null ? null : request.applicationFacetSearch,
+          scopeRestrictions);
     }
     return response;
   }
@@ -174,9 +177,10 @@ public class ViolationsListService
       final int pageSize,
       final boolean includeFacets,
       final String orderBy,
-      final String query)
+      final String query,
+      final List<IndexFilterRestriction> scopeRestrictions)
   {
-    Query sessionQuery = conversionHelper.stringToQuery(query);
+    Query sessionQuery = toScopedQuery(query, scopeRestrictions);
     try (IndexReadSession session = sessionFactory.open()) {
       long total = session.count(sessionQuery);
       // Past-total over-cap pages return empty (soft). Only reject when the requested page still has hits.
@@ -214,7 +218,6 @@ public class ViolationsListService
       response.hasNextPage = consumed < total && page < MAX_WALKABLE_PAGE;
       response.source = ViolationsListResponseDTO.SOURCE_INDEX;
       if (includeFacets) {
-        // Same failure mode as the legacy path: facet errors propagate (no silent page-without-facets).
         String waiverFacetQuery = indexQueryBuilder.buildViolationQueryExcludingWaiverType(request);
         response.facets = facetsBuilder.buildFacets(
             session,
@@ -222,7 +225,8 @@ public class ViolationsListService
             waiverFacetQuery,
             total,
             request == null ? null : request.organizationFacetSearch,
-            request == null ? null : request.applicationFacetSearch);
+            request == null ? null : request.applicationFacetSearch,
+            scopeRestrictions);
       }
       return response;
     }
@@ -246,6 +250,10 @@ public class ViolationsListService
    */
   static int toSearchIndexPage(final int zeroBasedPage) {
     return zeroBasedPage == 0 ? 0 : zeroBasedPage + 1;
+  }
+
+  private Query toScopedQuery(final String query, final List<IndexFilterRestriction> restrictions) {
+    return IdSetFilterQueries.toScopedQuery(conversionHelper.stringToQuery(query), restrictions);
   }
 
   static Comparator<ViolationRowDTO> comparator(final String orderBy) {

@@ -16,6 +16,8 @@ import jakarta.inject.Singleton;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.IdSetFilterQueries;
+import com.sonatype.insight.brain.search.index.IndexFilterRestriction;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
@@ -99,6 +101,7 @@ final class ApplicationsListViolationScopeResolver
 
   Set<String> resolveApplicationIds(
       final String baseApplicationQuery,
+      final List<? extends IndexFilterRestriction> scopeRestrictions,
       final ApplicationsListRequestDTO request)
   {
     List<PolicyThreatLevelFilter> threatFilters =
@@ -109,13 +112,19 @@ final class ApplicationsListViolationScopeResolver
       // Misconfigured or zero clause cap — fall back to the product default.
       maxIds = DEFAULT_MAX_DISCOVERY_IDS;
     }
+    List<? extends IndexFilterRestriction> restrictions =
+        scopeRestrictions == null ? List.of() : scopeRestrictions;
     if (SearchReadPathFlags.forSurface(SearchReadPathSurface.APPLICATIONS) == SearchReadPath.NEW) {
-      return resolveApplicationIdsWithSession(violationQuery, maxIds);
+      return resolveApplicationIdsWithSession(violationQuery, restrictions, maxIds);
     }
-    return resolveApplicationIdsWithSearchIndex(violationQuery, maxIds);
+    return resolveApplicationIdsWithSearchIndex(violationQuery, restrictions, maxIds);
   }
 
-  private Set<String> resolveApplicationIdsWithSearchIndex(final String violationQuery, final int maxIds) {
+  private Set<String> resolveApplicationIdsWithSearchIndex(
+      final String violationQuery,
+      final List<? extends IndexFilterRestriction> scopeRestrictions,
+      final int maxIds)
+  {
     LinkedHashSet<String> applicationIds = new LinkedHashSet<>();
     int page = 0;
     int consecutivePagesWithoutNewIds = 0;
@@ -127,7 +136,8 @@ final class ApplicationsListViolationScopeResolver
           ApplicationsListService.toSearchIndexPage(page),
           false,
           false,
-          List.of());
+          List.of(),
+          scopeRestrictions);
       if (searchResult == null || searchResult.groupingByDTOS == null || searchResult.groupingByDTOS.isEmpty()) {
         break;
       }
@@ -180,7 +190,11 @@ final class ApplicationsListViolationScopeResolver
     return applicationIds;
   }
 
-  private Set<String> resolveApplicationIdsWithSession(final String violationQuery, final int maxIds) {
+  private Set<String> resolveApplicationIdsWithSession(
+      final String violationQuery,
+      final List<? extends IndexFilterRestriction> scopeRestrictions,
+      final int maxIds)
+  {
     if (conversionHelper == null || sessionFactory == null) {
       throw new IllegalStateException(
           "ApplicationsListViolationScopeResolver session dependencies are required when "
@@ -188,7 +202,9 @@ final class ApplicationsListViolationScopeResolver
     }
     LinkedHashSet<String> applicationIds = new LinkedHashSet<>();
     int consecutivePagesWithoutNewIds = 0;
-    Query query = conversionHelper.stringToQuery(ApplicationsListService.toSessionQueryString(violationQuery));
+    Query query = IdSetFilterQueries.toScopedQuery(
+        conversionHelper.stringToQuery(ApplicationsListService.toSessionQueryString(violationQuery)),
+        scopeRestrictions);
     List<Object> searchAfter = List.of();
     try (IndexReadSession session = sessionFactory.open()) {
       while (applicationIds.size() < maxIds) {
@@ -280,4 +296,5 @@ final class ApplicationsListViolationScopeResolver
     }
     return rawHits;
   }
+
 }

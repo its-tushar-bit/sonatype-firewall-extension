@@ -11,6 +11,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 import jakarta.inject.Inject;
@@ -32,6 +33,9 @@ import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.ItemType;
+import com.sonatype.insight.brain.search.index.IdSetFilterQueries;
+import com.sonatype.insight.brain.search.index.IndexFilterRestriction;
+import com.sonatype.insight.brain.search.index.IndexTermSetRestriction;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
@@ -149,7 +153,7 @@ final class ViolationsListFacetsBuilder
    * counted against the same query as every other facet.
    */
   ViolationsListFacetsDTO buildFacets(final String violationQuery, final long totalViolations) {
-    return buildFacets(violationQuery, violationQuery, totalViolations, null, null);
+    return buildFacets(violationQuery, violationQuery, totalViolations, null, null, List.of());
   }
 
   /**
@@ -168,7 +172,7 @@ final class ViolationsListFacetsBuilder
       final String waiverFacetQuery,
       final long totalViolations)
   {
-    return buildFacets(violationQuery, waiverFacetQuery, totalViolations, null, null);
+    return buildFacets(violationQuery, waiverFacetQuery, totalViolations, null, null, List.of());
   }
 
   /**
@@ -183,7 +187,8 @@ final class ViolationsListFacetsBuilder
       final String waiverFacetQuery,
       final long totalViolations,
       final String organizationFacetSearch,
-      final String applicationFacetSearch)
+      final String applicationFacetSearch,
+      final List<IndexFilterRestriction> scopeRestrictions)
   {
     ViolationsListFacetsDTO facets = new ViolationsListFacetsDTO();
     facets.totalViolations = totalViolations;
@@ -191,7 +196,8 @@ final class ViolationsListFacetsBuilder
       return facets;
     }
 
-    ToLongFunction<String> counter = searchIndexClient::count;
+    List<IndexFilterRestriction> restrictions = scopeRestrictions == null ? List.of() : scopeRestrictions;
+    ToLongFunction<String> counter = query -> searchIndexClient.count(query, restrictions);
     facets.states = countStates(violationQuery, counter);
     facets.waiverTypes = countWaiverTypes(waiverFacetQuery, counter);
     facets.threatCategories = countThreatCategories(violationQuery, counter);
@@ -202,20 +208,24 @@ final class ViolationsListFacetsBuilder
     LinkedHashMap<String, SearchResultItemDTO> discovered =
         organizationSearch && applicationSearch
             ? new LinkedHashMap<>()
-            : discoverViolationItems(violationQuery);
+            : discoverViolationItems(violationQuery, restrictions);
+    BiFunction<String, List<IndexFilterRestriction>, Long> scopedCounter =
+        (query, combined) -> searchIndexClient.count(query, combined);
     if (organizationSearch) {
       applyOrganizationFacetSearch(
-          facets, countOrganizationsMatchingName(violationQuery, organizationFacetSearch, counter));
+          facets,
+          countOrganizationsMatchingName(violationQuery, organizationFacetSearch, restrictions, scopedCounter));
     }
     else if (!discovered.isEmpty()) {
-      facets.organizations = countOrganizations(violationQuery, discovered);
+      facets.organizations = countOrganizations(violationQuery, discovered, restrictions);
     }
     if (applicationSearch) {
       applyApplicationFacetSearch(
-          facets, countApplicationsMatchingName(violationQuery, applicationFacetSearch, counter));
+          facets,
+          countApplicationsMatchingName(violationQuery, applicationFacetSearch, restrictions, scopedCounter));
     }
     else if (!discovered.isEmpty()) {
-      facets.applications = countApplications(violationQuery, discovered);
+      facets.applications = countApplications(violationQuery, discovered, restrictions);
     }
     attachOwnerLabels(facets, discovered);
     return facets;
@@ -230,9 +240,10 @@ final class ViolationsListFacetsBuilder
       final IndexReadSession session,
       final String violationQuery,
       final String waiverFacetQuery,
-      final long totalViolations)
+      final long totalViolations,
+      final List<IndexFilterRestriction> scopeRestrictions)
   {
-    return buildFacets(session, violationQuery, waiverFacetQuery, totalViolations, null, null);
+    return buildFacets(session, violationQuery, waiverFacetQuery, totalViolations, null, null, scopeRestrictions);
   }
 
   /**
@@ -245,7 +256,8 @@ final class ViolationsListFacetsBuilder
       final String waiverFacetQuery,
       final long totalViolations,
       final String organizationFacetSearch,
-      final String applicationFacetSearch)
+      final String applicationFacetSearch,
+      final List<IndexFilterRestriction> scopeRestrictions)
   {
     ViolationsListFacetsDTO facets = new ViolationsListFacetsDTO();
     facets.totalViolations = totalViolations;
@@ -253,23 +265,28 @@ final class ViolationsListFacetsBuilder
       return facets;
     }
 
-    Query sessionViolationQuery = conversionHelper.stringToQuery(violationQuery);
-    ToLongFunction<String> counter = query -> sessionCount(session, query);
+    List<IndexFilterRestriction> restrictions = scopeRestrictions == null ? List.of() : scopeRestrictions;
+    Query sessionViolationQuery = toScopedQuery(violationQuery, restrictions);
+    ToLongFunction<String> counter = query -> sessionCount(session, query, restrictions);
 
     facets.states = countStates(violationQuery, counter);
     facets.waiverTypes = countWaiverTypes(waiverFacetQuery, counter);
     facets.threatCategories = countThreatCategories(violationQuery, counter);
     facets.stages = countLicensedStages(violationQuery, counter);
+    BiFunction<String, List<IndexFilterRestriction>, Long> scopedCounter =
+        (query, combined) -> sessionCount(session, query, combined);
     if (StringUtils.isNotBlank(organizationFacetSearch)) {
       applyOrganizationFacetSearch(
-          facets, countOrganizationsMatchingName(violationQuery, organizationFacetSearch, counter));
+          facets,
+          countOrganizationsMatchingName(violationQuery, organizationFacetSearch, restrictions, scopedCounter));
     }
     else {
       facets.organizations = countOrganizations(session, sessionViolationQuery);
     }
     if (StringUtils.isNotBlank(applicationFacetSearch)) {
       applyApplicationFacetSearch(
-          facets, countApplicationsMatchingName(violationQuery, applicationFacetSearch, counter));
+          facets,
+          countApplicationsMatchingName(violationQuery, applicationFacetSearch, restrictions, scopedCounter));
     }
     else {
       facets.applications = countApplications(session, sessionViolationQuery);
@@ -426,9 +443,13 @@ final class ViolationsListFacetsBuilder
     return counts.isEmpty() ? null : counts;
   }
 
-  private LinkedHashMap<String, SearchResultItemDTO> discoverViolationItems(final String violationQuery) {
+  private LinkedHashMap<String, SearchResultItemDTO> discoverViolationItems(
+      final String violationQuery,
+      final List<IndexFilterRestriction> scopeRestrictions)
+  {
     SearchResultDTO searchResult =
-        searchIndexClient.searchIndex(violationQuery, MAX_FACET_DISCOVERY_HITS, 0, false, false, List.of());
+        searchIndexClient.searchIndex(violationQuery, MAX_FACET_DISCOVERY_HITS, 0, false, false, List.of(),
+            scopeRestrictions);
     LinkedHashMap<String, SearchResultItemDTO> items = new LinkedHashMap<>();
     if (searchResult.groupingByDTOS != null) {
       for (var group : searchResult.groupingByDTOS) {
@@ -485,7 +506,8 @@ final class ViolationsListFacetsBuilder
   private OwnerFacetSearchResult countOrganizationsMatchingName(
       final String violationQuery,
       final String organizationFacetSearch,
-      final ToLongFunction<String> counter)
+      final List<IndexFilterRestriction> scopeRestrictions,
+      final BiFunction<String, List<IndexFilterRestriction>, Long> scopedCounter)
   {
     List<Organization> candidates =
         organizationDAO.searchByNameSubstring(organizationFacetSearch, MAX_ORGANIZATION_FACET_SEARCH_CANDIDATES);
@@ -498,7 +520,6 @@ final class ViolationsListFacetsBuilder
         candidateIds.add(organization.getId());
       }
     }
-    // Id-scoped READ gate: fetch only name-match candidates (not the whole tenant) before AuthzFilter.
     Set<String> readableOrgIds = organizationSummaryService.getOrganizationsForRead(candidateIds)
         .stream()
         .map(Organization::getId)
@@ -513,20 +534,20 @@ final class ViolationsListFacetsBuilder
     for (Organization organization : matches) {
       matchedIds.add(organization.getId());
     }
-    // One descendant-expansion query for all matches (avoids N+1 getAllChildOrganizationIds).
-    Map<String, String> orgClauses = dimensionQueryBuilder.buildOrganizationFilterClausesById(matchedIds);
+    Map<String, Set<String>> expandedById = dimensionQueryBuilder.expandOrganizationFilterIdsById(matchedIds);
     Map<String, Long> counts = new LinkedHashMap<>();
     Map<String, String> names = new LinkedHashMap<>();
     for (Organization organization : matches) {
       if (counts.size() >= MAX_ORGANIZATION_FACETS) {
         break;
       }
-      String orgClause = orgClauses.get(organization.getId());
-      if (orgClause == null) {
-        // Missing clause: root/blank skip, or soft-skipped oversized descendant expansion.
+      Set<String> expandedOrgIds = expandedById.get(organization.getId());
+      if (expandedOrgIds == null) {
         continue;
       }
-      long count = counter.applyAsLong(violationQuery + " AND " + orgClause);
+      List<IndexFilterRestriction> combined = IdSetFilterQueries.combine(scopeRestrictions,
+          IndexTermSetRestriction.singleton(FieldIdentifier.ORGANIZATION_ID.label, expandedOrgIds));
+      long count = scopedCounter.apply(violationQuery, combined);
       if (count > 0) {
         counts.put(organization.getId(), count);
         if (StringUtils.isNotBlank(organization.getName())) {
@@ -545,7 +566,8 @@ final class ViolationsListFacetsBuilder
   private OwnerFacetSearchResult countApplicationsMatchingName(
       final String violationQuery,
       final String applicationFacetSearch,
-      final ToLongFunction<String> counter)
+      final List<IndexFilterRestriction> scopeRestrictions,
+      final BiFunction<String, List<IndexFilterRestriction>, Long> scopedCounter)
   {
     List<Application> candidates =
         applicationDAO.searchByNameSubstring(applicationFacetSearch, MAX_APPLICATION_FACET_SEARCH_CANDIDATES);
@@ -574,12 +596,9 @@ final class ViolationsListFacetsBuilder
       {
         continue;
       }
-      String appClause =
-          dimensionQueryBuilder.buildEscapedApplicationFilterClause(Set.of(application.getId()));
-      if (appClause == null) {
-        continue;
-      }
-      long count = counter.applyAsLong(violationQuery + " AND " + appClause);
+      List<IndexFilterRestriction> combined = IdSetFilterQueries.combine(scopeRestrictions,
+          IndexTermSetRestriction.singleton(FieldIdentifier.APPLICATION_ID.label, Set.of(application.getId())));
+      long count = scopedCounter.apply(violationQuery, combined);
       if (count > 0) {
         counts.put(application.getId(), count);
         if (StringUtils.isNotBlank(application.getName())) {
@@ -596,7 +615,8 @@ final class ViolationsListFacetsBuilder
 
   private Map<String, Long> countOrganizations(
       final String violationQuery,
-      final LinkedHashMap<String, SearchResultItemDTO> discovered)
+      final LinkedHashMap<String, SearchResultItemDTO> discovered,
+      final List<IndexFilterRestriction> scopeRestrictions)
   {
     Set<String> organizationIds = new LinkedHashSet<>();
     discovered.values().forEach(item -> {
@@ -608,18 +628,20 @@ final class ViolationsListFacetsBuilder
       return null;
     }
 
-    Map<String, String> orgClauses = dimensionQueryBuilder.buildOrganizationFilterClausesById(organizationIds);
+    Map<String, Set<String>> expandedById = dimensionQueryBuilder.expandOrganizationFilterIdsById(organizationIds);
     Map<String, Long> counts = new LinkedHashMap<>();
     int queries = 0;
     for (String organizationId : organizationIds) {
       if (queries >= MAX_ORGANIZATION_FACETS) {
         break;
       }
-      String orgClause = orgClauses.get(organizationId);
-      if (orgClause == null) {
+      Set<String> expandedOrgIds = expandedById.get(organizationId);
+      if (expandedOrgIds == null) {
         continue;
       }
-      counts.put(organizationId, searchIndexClient.count(violationQuery + " AND " + orgClause));
+      List<IndexFilterRestriction> combined = IdSetFilterQueries.combine(scopeRestrictions,
+          IndexTermSetRestriction.singleton(FieldIdentifier.ORGANIZATION_ID.label, expandedOrgIds));
+      counts.put(organizationId, searchIndexClient.count(violationQuery, combined));
       queries++;
     }
     return counts.isEmpty() ? null : counts;
@@ -638,7 +660,8 @@ final class ViolationsListFacetsBuilder
 
   private Map<String, Long> countApplications(
       final String violationQuery,
-      final LinkedHashMap<String, SearchResultItemDTO> discovered)
+      final LinkedHashMap<String, SearchResultItemDTO> discovered,
+      final List<IndexFilterRestriction> scopeRestrictions)
   {
     Map<String, Long> counts = new LinkedHashMap<>();
     int queries = 0;
@@ -646,11 +669,12 @@ final class ViolationsListFacetsBuilder
       if (queries >= MAX_APPLICATION_FACETS) {
         break;
       }
-      String appClause = dimensionQueryBuilder.buildEscapedApplicationFilterClause(Set.of(applicationId));
-      if (appClause == null) {
+      if (StringUtils.isBlank(applicationId)) {
         continue;
       }
-      counts.put(applicationId, searchIndexClient.count(violationQuery + " AND " + appClause));
+      List<IndexFilterRestriction> combined = IdSetFilterQueries.combine(scopeRestrictions,
+          IndexTermSetRestriction.singleton(FieldIdentifier.APPLICATION_ID.label, Set.of(applicationId)));
+      counts.put(applicationId, searchIndexClient.count(violationQuery, combined));
       queries++;
     }
     return counts.isEmpty() ? null : counts;
@@ -677,8 +701,17 @@ final class ViolationsListFacetsBuilder
     return counts.isEmpty() ? null : counts;
   }
 
-  private long sessionCount(final IndexReadSession session, final String query) {
-    return session.count(conversionHelper.stringToQuery(query));
+  private long sessionCount(
+      final IndexReadSession session,
+      final String query,
+      final List<IndexFilterRestriction> restrictions)
+  {
+    List<IndexFilterRestriction> normalized = restrictions == null ? List.of() : restrictions;
+    return session.count(toScopedQuery(query, normalized));
+  }
+
+  private Query toScopedQuery(final String query, final List<IndexFilterRestriction> restrictions) {
+    return IdSetFilterQueries.toScopedQuery(conversionHelper.stringToQuery(query), restrictions);
   }
 
 }

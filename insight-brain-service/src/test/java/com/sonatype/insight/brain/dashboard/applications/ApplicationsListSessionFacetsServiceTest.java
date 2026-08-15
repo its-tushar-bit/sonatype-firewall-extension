@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dashboard.applications;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.sonatype.insight.brain.dashboard.ApplicationRiskScoreDTO;
 import com.sonatype.insight.brain.dashboard.ApplicationRiskService;
@@ -28,11 +29,14 @@ import com.sonatype.insight.brain.service.Configuration;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.StringField;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.MatchAllDocsQuery;
+import org.apache.lucene.search.Query;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -42,7 +46,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -97,7 +103,8 @@ public class ApplicationsListSessionFacetsServiceTest
     service = new ApplicationsListService(
         searchIndexClient,
         applicationRiskService,
-        new ApplicationsListIndexQueryBuilder(new DashboardIndexDimensionQueryBuilder(null, configuration),
+        new ApplicationsListIndexQueryBuilder(
+            new DashboardIndexDimensionQueryBuilder(organizationDAO, configuration),
             violationScopeResolver),
         requestValidator,
         new ApplicationsListFacetsBuilder(searchIndexClient, stageTypeService, organizationDAO, applicationDAO,
@@ -134,6 +141,38 @@ public class ApplicationsListSessionFacetsServiceTest
     assertThat(response.facets.applications).containsExactly(Map.entry("app-1", 1L));
     assertThat(response.facets.stages).isNull();
     verify(searchIndexClient, never()).countDistinct(any(), anyList());
+  }
+
+  @Test
+  public void organizationScopeStaysOnSessionViolationFacetQueries() {
+    // Org/app leave the Lucene string as term sets; stage/policy/state facets must still FILTER
+    // those sets onto the POLICY_VIOLATION session query (same as the legacy SearchIndexClient path).
+    when(organizationDAO.getAllChildOrganizationIds(Set.of("org-1"))).thenReturn(Set.of("org-1"));
+
+    ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
+    request.page = 0;
+    request.pageSize = 50;
+    request.includeFacets = true;
+    request.organizationIds = Set.of("org-1");
+    Document application = applicationDocument("app-1", "org-1", "Org 1");
+    when(session.count(any())).thenReturn(1L);
+    when(session.searchPage(any())).thenReturn(new IndexPageResult(List.of(application), List.of(), false));
+    when(session.termsAggregation(any(), any(), anyInt()))
+        .thenReturn(List.of(new IndexTermsBucket("org-1", 1)));
+    when(stageTypeService.getLicensedStageTypes(StageTypeService.DASHBOARD_CONTEXT))
+        .thenReturn(List.of(stage("build")));
+    when(session.countDistinctGroupedBy(any(), any(), any(), anyList())).thenReturn(Map.of("build", 1L));
+
+    service.listApplications(request);
+
+    ArgumentCaptor<Query> facetQueries = ArgumentCaptor.forClass(Query.class);
+    verify(session, atLeastOnce()).countDistinctGroupedBy(
+        facetQueries.capture(),
+        eq(FieldIdentifier.POLICY_EVALUATION_STAGE.label),
+        eq(FieldIdentifier.APPLICATION_ID.label),
+        anyList());
+    assertThat(facetQueries.getAllValues()).isNotEmpty();
+    assertThat(facetQueries.getAllValues()).allMatch(BooleanQuery.class::isInstance);
   }
 
   private static DashboardResultsDTO<ApplicationRiskScoreDTO> emptyRiskResults() {

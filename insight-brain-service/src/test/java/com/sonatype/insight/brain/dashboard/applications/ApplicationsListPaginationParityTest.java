@@ -106,7 +106,7 @@ public class ApplicationsListPaginationParityTest
   @Test
   public void page0_oldVsNew_byteIdenticalRowsAndTotal() {
     ApplicationsListRequestDTO request = request();
-    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
+    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), anyList()))
         .thenReturn(searchResult("app-1", "app-2"));
     when(session.count(any())).thenReturn(2L);
     when(session.searchPage(any())).thenReturn(new IndexPageResult(List.of(
@@ -124,7 +124,7 @@ public class ApplicationsListPaginationParityTest
   @Test
   public void flagFlip_sameRequest_byteIdenticalAndUsesOneBackendPerFlag() {
     ApplicationsListRequestDTO request = request();
-    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
+    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(), anyList()))
         .thenReturn(searchResult("app-1"));
     when(session.count(any())).thenReturn(1L);
     when(session.searchPage(any())).thenReturn(new IndexPageResult(
@@ -136,7 +136,8 @@ public class ApplicationsListPaginationParityTest
     ApplicationsListResponseDTO newResponse = service.listApplications(request);
 
     assertEquivalent(oldResponse, newResponse);
-    verify(searchIndexClient, times(1)).searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList());
+    verify(searchIndexClient, times(1)).searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(),
+        anyList());
     ArgumentCaptor<IndexPageRequest> pageRequestCaptor = ArgumentCaptor.forClass(IndexPageRequest.class);
     verify(session, times(1)).searchPage(pageRequestCaptor.capture());
     SortField[] sortFields = pageRequestCaptor.getValue().sort().getSort();

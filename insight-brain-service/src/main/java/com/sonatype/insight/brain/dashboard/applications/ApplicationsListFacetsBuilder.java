@@ -19,7 +19,6 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
-import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
 import com.sonatype.insight.brain.dashboard.IndexGroupedCountKeys;
 import com.sonatype.insight.brain.dashboard.PolicyViolationIndexClauses;
 import com.sonatype.insight.brain.dashboard.PolicyViolationState;
@@ -32,6 +31,9 @@ import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.IdSetFilterQueries;
+import com.sonatype.insight.brain.search.index.IndexFilterRestriction;
+import com.sonatype.insight.brain.search.index.IndexTermSetRestriction;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
@@ -94,33 +96,35 @@ final class ApplicationsListFacetsBuilder
 
   ApplicationsListFacetsDTO buildFacets(
       final String applicationQuery,
+      final List<IndexFilterRestriction> scopeRestrictions,
       final long totalApplications)
   {
+    List<IndexFilterRestriction> restrictions = scopeRestrictions == null ? List.of() : scopeRestrictions;
     ApplicationsListFacetsDTO facets = new ApplicationsListFacetsDTO();
     facets.totalApplications = totalApplications;
 
-    LinkedHashMap<String, SearchResultItemDTO> discovered = discoverApplicationItems(applicationQuery);
+    LinkedHashMap<String, SearchResultItemDTO> discovered =
+        discoverApplicationItems(applicationQuery, restrictions);
     if (discovered.isEmpty()) {
       return facets;
     }
 
     String violationFacetQuery = toViolationFacetQuery(applicationQuery);
-    facets.organizations = countOrganizations(applicationQuery, discovered);
+    facets.organizations = countOrganizations(applicationQuery, discovered, restrictions);
     facets.applications = applicationFacetCountsFromDiscovery(discovered);
-    facets.stages = countLicensedStages(applicationQuery);
+    facets.stages = countLicensedStages(applicationQuery, restrictions);
     facets.policyTypes = countPolicyTypes(
         categoryNames -> searchIndexClient.countDistinctGroupedBy(
             violationFacetQuery,
             FieldIdentifier.POLICY_VIOLATION_THREAT_CATEGORY.label,
             FieldIdentifier.APPLICATION_ID.label,
-            categoryNames));
+            categoryNames,
+            restrictions));
     facets.violationStates = countViolationStates(
         stateClause -> searchIndexClient.countDistinct(
             violationFacetQuery + " AND " + stateClause,
-            List.of(FieldIdentifier.APPLICATION_ID.label)));
-    // Intentional on both read paths: Martha filter-rail labels need organizationNames /
-    // applicationNames even when facet ids are not on the current page (otherwise the UI
-    // falls back to raw internal ids). DAO fallback only runs for ids missing from discovery.
+            List.of(FieldIdentifier.APPLICATION_ID.label),
+            restrictions));
     attachDisplayNames(facets, discovered);
     return facets;
   }
@@ -129,6 +133,7 @@ final class ApplicationsListFacetsBuilder
       final IndexReadSession session,
       final Query applicationQuery,
       final Query violationQuery,
+      final List<IndexFilterRestriction> scopeRestrictions,
       final String violationFacetQuery,
       final long totalApplications)
   {
@@ -140,6 +145,7 @@ final class ApplicationsListFacetsBuilder
       return facets;
     }
 
+    List<IndexFilterRestriction> restrictions = scopeRestrictions == null ? List.of() : scopeRestrictions;
     facets.organizations = countOrganizations(session, applicationQuery, discovered);
     facets.applications = applicationFacetCountsFromDiscovery(discovered);
     facets.stages = countLicensedStages(session, violationQuery);
@@ -150,7 +156,7 @@ final class ApplicationsListFacetsBuilder
             FieldIdentifier.APPLICATION_ID.label,
             categoryNames));
     facets.violationStates = countViolationStates(
-        stateClause -> countDistinctApplications(session, violationFacetQuery, stateClause));
+        stateClause -> countDistinctApplications(session, violationFacetQuery, stateClause, restrictions));
     // See legacy overload: display-name maps are required for both read paths.
     attachDisplayNames(facets, discovered);
     return facets;
@@ -231,10 +237,12 @@ final class ApplicationsListFacetsBuilder
   private long countDistinctApplications(
       final IndexReadSession session,
       final String violationFacetQuery,
-      final String stateClause)
+      final String stateClause,
+      final List<IndexFilterRestriction> scopeRestrictions)
   {
     Query stateQuery = conversionHelper.stringToQuery(
         ApplicationsListService.toSessionQueryString(violationFacetQuery + " AND " + stateClause));
+    stateQuery = IdSetFilterQueries.toScopedQuery(stateQuery, scopeRestrictions);
     // Both backends key the grouped map by the lowercased group value - see IndexGroupedCountKeys.
     String policyViolationBucket = IndexGroupedCountKeys.lookupKey(ItemType.POLICY_VIOLATION.name());
     Map<String, Long> grouped = session.countDistinctGroupedBy(
@@ -341,9 +349,13 @@ final class ApplicationsListFacetsBuilder
     return names.isEmpty() ? null : names;
   }
 
-  private LinkedHashMap<String, SearchResultItemDTO> discoverApplicationItems(final String applicationQuery) {
+  private LinkedHashMap<String, SearchResultItemDTO> discoverApplicationItems(
+      final String applicationQuery,
+      final List<IndexFilterRestriction> scopeRestrictions)
+  {
     SearchResultDTO searchResult =
-        searchIndexClient.searchIndex(applicationQuery, MAX_FACET_DISCOVERY_HITS, 0, false, false, List.of());
+        searchIndexClient.searchIndex(applicationQuery, MAX_FACET_DISCOVERY_HITS, 0, false, false, List.of(),
+            scopeRestrictions);
     return ApplicationsListIndexItems.extractApplicationItems(searchResult);
   }
 
@@ -361,7 +373,8 @@ final class ApplicationsListFacetsBuilder
 
   private Map<String, Long> countOrganizations(
       final String applicationQuery,
-      final LinkedHashMap<String, SearchResultItemDTO> discovered)
+      final LinkedHashMap<String, SearchResultItemDTO> discovered,
+      final List<IndexFilterRestriction> scopeRestrictions)
   {
     Set<String> organizationIds = new LinkedHashSet<>();
     discovered.values().forEach(item -> {
@@ -379,8 +392,12 @@ final class ApplicationsListFacetsBuilder
       if (queries >= MAX_ORGANIZATION_FACET_COUNT_QUERIES) {
         break;
       }
-      String orgClause = buildExactOrganizationFilterClause(organizationId);
-      counts.put(organizationId, searchIndexClient.count(applicationQuery + " AND " + orgClause));
+      // APPLICATION documents store only the direct-parent organizationId (not ancestor ids). Match
+      // that field exactly — unlike Violations/Legal facets, which expand to descendants because
+      // violation docs can sit under child orgs while still belonging to the selected parent.
+      List<IndexFilterRestriction> combined = IdSetFilterQueries.combine(scopeRestrictions,
+          IndexTermSetRestriction.singleton(FieldIdentifier.ORGANIZATION_ID.label, Set.of(organizationId)));
+      counts.put(organizationId, searchIndexClient.count(applicationQuery, combined));
       queries++;
     }
     return counts.isEmpty() ? null : counts;
@@ -486,7 +503,10 @@ final class ApplicationsListFacetsBuilder
     return counts.isEmpty() ? null : counts;
   }
 
-  private Map<String, Long> countLicensedStages(final String applicationQuery) {
+  private Map<String, Long> countLicensedStages(
+      final String applicationQuery,
+      final List<IndexFilterRestriction> scopeRestrictions)
+  {
     String violationQuery = toViolationFacetQuery(applicationQuery);
     Map<String, Long> counts = new LinkedHashMap<>();
     for (StageType stageType : stageTypeService.getLicensedStageTypes(StageTypeService.DASHBOARD_CONTEXT)) {
@@ -494,7 +514,8 @@ final class ApplicationsListFacetsBuilder
       String stageClause = ApplicationsListViolationQuerySupport.buildStageFilterClause(Set.of(stageId));
       long count = searchIndexClient.countDistinct(
           violationQuery + " AND " + stageClause,
-          List.of(FieldIdentifier.APPLICATION_ID.label));
+          List.of(FieldIdentifier.APPLICATION_ID.label),
+          scopeRestrictions);
       if (count > 0) {
         counts.put(stageId, count);
       }
@@ -504,9 +525,5 @@ final class ApplicationsListFacetsBuilder
 
   private static String toViolationFacetQuery(final String applicationQuery) {
     return ApplicationsListViolationQuerySupport.toViolationQuery(applicationQuery);
-  }
-
-  private static String buildExactOrganizationFilterClause(final String organizationId) {
-    return "organizationId:(" + DashboardIndexDimensionQueryBuilder.escapeLuceneTerm(organizationId) + ")";
   }
 }

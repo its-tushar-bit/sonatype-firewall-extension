@@ -15,6 +15,7 @@ import jakarta.inject.Named;
 
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.IndexFilterRestriction;
 import com.sonatype.insight.brain.search.index.ItemType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -39,6 +40,10 @@ final class ApplicationsListIndexQueryBuilder
   }
 
   String buildApplicationQuery(final ApplicationsListRequestDTO request) {
+    return buildApplicationIndexQuery(request).query();
+  }
+
+  ApplicationsIndexQuery buildApplicationIndexQuery(final ApplicationsListRequestDTO request) {
     ApplicationsListRequestDTO effectiveRequest = applyViolationScopedApplicationIds(request);
     // Age is APPLICATION-doc only — apply on the final query, never on violation discovery.
     List<String> clauses = buildBaseApplicationClauses(effectiveRequest);
@@ -46,7 +51,7 @@ final class ApplicationsListIndexQueryBuilder
     if (ageClause != null) {
       clauses.add(ageClause);
     }
-    return String.join(" AND ", clauses);
+    return new ApplicationsIndexQuery(String.join(" AND ", clauses), buildScopeRestrictions(effectiveRequest));
   }
 
   private ApplicationsListRequestDTO applyViolationScopedApplicationIds(final ApplicationsListRequestDTO request) {
@@ -58,7 +63,9 @@ final class ApplicationsListIndexQueryBuilder
     }
 
     String baseQuery = buildApplicationQueryWithoutViolationScope(request);
-    Set<String> scopedApplicationIds = violationScopeResolver.resolveApplicationIds(baseQuery, request);
+    List<IndexFilterRestriction> scopeRestrictions = buildScopeRestrictions(request);
+    Set<String> scopedApplicationIds =
+        violationScopeResolver.resolveApplicationIds(baseQuery, scopeRestrictions, request);
     Set<String> effectiveApplicationIds =
         effectiveApplicationIdsAfterViolationScope(request, scopedApplicationIds);
 
@@ -109,20 +116,12 @@ final class ApplicationsListIndexQueryBuilder
     if (organizationIds != null && !organizationIds.isEmpty()) {
       DashboardIndexDimensionQueryBuilder.rejectBlankFilterIds(organizationIds, "organizationIds");
     }
-    String organizationClause = dimensionQueryBuilder.buildOrganizationFilterClause(organizationIds);
-    String applicationClause = dimensionQueryBuilder.buildEscapedApplicationFilterClause(
-        request == null ? null : request.applicationIds);
-    if (organizationClause != null || applicationClause != null) {
-      List<String> dimensionClauses = new ArrayList<>();
-      if (organizationClause != null) {
-        dimensionClauses.add(organizationClause);
-      }
-      if (applicationClause != null) {
-        dimensionClauses.add(applicationClause);
-      }
-      clauses.add("(" + String.join(" OR ", dimensionClauses) + ")");
+    Set<String> applicationIds = request == null ? null : request.applicationIds;
+    if (applicationIds != null && !applicationIds.isEmpty()) {
+      DashboardIndexDimensionQueryBuilder.rejectBlankFilterIds(applicationIds, "applicationIds");
     }
 
+    // org/app scope is applied as budget-exempt term-set restrictions (CLM-44783).
     return clauses;
   }
 
@@ -133,6 +132,12 @@ final class ApplicationsListIndexQueryBuilder
     long upper = System.currentTimeMillis();
     long lower = upper - TimeUnit.DAYS.toMillis(ageInDays);
     return FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label + ":[" + lower + " TO " + upper + "]";
+  }
+
+  List<IndexFilterRestriction> buildScopeRestrictions(final ApplicationsListRequestDTO request) {
+    return dimensionQueryBuilder.buildScopeFilterRestrictions(
+        request == null ? null : request.organizationIds,
+        request == null ? null : request.applicationIds);
   }
 
   /**

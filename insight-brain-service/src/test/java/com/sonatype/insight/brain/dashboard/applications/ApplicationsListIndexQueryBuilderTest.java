@@ -18,6 +18,8 @@ import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.IndexTermSetRestriction;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -31,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -54,52 +57,34 @@ public class ApplicationsListIndexQueryBuilderTest
   }
 
   @Test
-  public void buildApplicationQuery_rejectsTooManyApplicationIds() {
-    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(2);
-
+  public void buildApplicationQuery_allowsManyApplicationIdsWithoutClauseBudget() {
     ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
     request.applicationIds = Set.of("app-a", "app-b", "app-c");
 
     ApplicationsListIndexQueryBuilder builder = newBuilder();
+    ApplicationsIndexQuery indexQuery = builder.buildApplicationIndexQuery(request);
 
-    assertThatThrownBy(() -> builder.buildApplicationQuery(request))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessageContaining("too many ids");
+    assertThat(indexQuery.query()).isEqualTo("itemType:APPLICATION");
+    assertThat(indexQuery.query()).doesNotContain("applicationId:(");
+    IndexTermSetRestriction apps = (IndexTermSetRestriction) indexQuery.termSets().get(0);
+    assertThat(apps.field()).isEqualTo(FieldIdentifier.APPLICATION_ID.label);
+    assertThat(apps.ids()).containsExactlyInAnyOrder("app-a", "app-b", "app-c");
   }
 
   @Test
-  public void buildApplicationQuery_allowsApplicationIdsWithinClauseLimit() {
-    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(3);
-
-    ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
-    request.applicationIds = Set.of("app-a", "app-b");
-
-    ApplicationsListIndexQueryBuilder builder = newBuilder();
-
-    assertThatCode(() -> builder.buildApplicationQuery(request)).doesNotThrowAnyException();
-  }
-
-  @Test
-  public void buildApplicationQuery_rejectsApplicationIdsAboveConfiguredMax() {
-    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(100);
-
+  public void buildApplicationQuery_allowsApplicationIdsAboveFormerClauseLimit() {
     Set<String> applicationIds = new LinkedHashSet<>();
     IntStream.range(0, 101).forEach(i -> applicationIds.add("app-" + i));
 
     ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
     request.applicationIds = applicationIds;
 
-    ApplicationsListIndexQueryBuilder builder = newBuilder();
-
-    assertThatThrownBy(() -> builder.buildApplicationQuery(request))
-        .isInstanceOf(BadRequestException.class);
+    assertThatCode(() -> newBuilder().buildApplicationQuery(request)).doesNotThrowAnyException();
   }
 
   @Test
   public void buildApplicationQuery_blankSearch_returnsApplicationItemTypeOnly() {
     ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
-    ApplicationsListIndexQueryBuilder builder = newBuilder();
-
     assertThat(newBuilder().buildApplicationQuery(request)).isEqualTo("itemType:APPLICATION");
     request.search = "   ";
     assertThat(newBuilder().buildApplicationQuery(request)).isEqualTo("itemType:APPLICATION");
@@ -136,22 +121,24 @@ public class ApplicationsListIndexQueryBuilderTest
 
   @Test
   public void buildApplicationQuery_stageAndAge_keepsAgeOffViolationDiscoveryQuery() {
-    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(100);
     when(organizationDAO.getAllChildOrganizationIds(Set.of("org-a"))).thenReturn(Set.of("org-a"));
     ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
     request.organizationIds = Set.of("org-a");
     request.stageIds = Set.of("build");
     request.ageInDays = 30;
     ArgumentCaptor<String> discoveryBaseQuery = ArgumentCaptor.forClass(String.class);
-    when(violationScopeResolver.resolveApplicationIds(discoveryBaseQuery.capture(), same(request)))
+    when(violationScopeResolver.resolveApplicationIds(discoveryBaseQuery.capture(), anyList(), same(request)))
         .thenReturn(Set.of("build-app"));
 
-    String query = newBuilder().buildApplicationQuery(request);
+    ApplicationsIndexQuery indexQuery = newBuilder().buildApplicationIndexQuery(request);
 
     assertThat(discoveryBaseQuery.getValue()).doesNotContain("applicationLastEvaluationTimeEpochMs");
-    assertThat(query).contains("applicationLastEvaluationTimeEpochMs:[");
-    assertThat(query).contains("applicationId:(build\\-app)");
-    verify(violationScopeResolver).resolveApplicationIds(any(), same(request));
+    assertThat(indexQuery.query()).contains("applicationLastEvaluationTimeEpochMs:[");
+    assertThat(indexQuery.query()).doesNotContain("applicationId:(");
+    IndexTermSetRestriction apps = (IndexTermSetRestriction) indexQuery.termSets().get(0);
+    assertThat(apps.field()).isEqualTo(FieldIdentifier.APPLICATION_ID.label);
+    assertThat(apps.ids()).containsExactly("build-app");
+    verify(violationScopeResolver).resolveApplicationIds(any(), anyList(), same(request));
   }
 
   @Test
@@ -162,9 +149,7 @@ public class ApplicationsListIndexQueryBuilderTest
     applicationIds.add(null);
     request.applicationIds = applicationIds;
 
-    ApplicationsListIndexQueryBuilder builder = newBuilder();
-
-    assertThatThrownBy(() -> builder.buildApplicationQuery(request))
+    assertThatThrownBy(() -> newBuilder().buildApplicationQuery(request))
         .isInstanceOf(BadRequestException.class)
         .hasMessageContaining("applicationIds");
   }
@@ -180,67 +165,69 @@ public class ApplicationsListIndexQueryBuilderTest
 
   @Test
   public void buildApplicationQuery_stageFilter_usesViolationScopedApplicationIdsOnly() {
-    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(100);
     when(organizationDAO.getAllChildOrganizationIds(Set.of("org-a"))).thenReturn(Set.of("org-a"));
     ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
     request.organizationIds = Set.of("org-a");
     request.stageIds = Set.of("build");
-    when(violationScopeResolver.resolveApplicationIds(any(), same(request)))
+    when(violationScopeResolver.resolveApplicationIds(any(), anyList(), same(request)))
         .thenReturn(Set.of("build-app"));
 
-    String query = newBuilder().buildApplicationQuery(request);
+    ApplicationsIndexQuery indexQuery = newBuilder().buildApplicationIndexQuery(request);
 
-    assertThat(query).isEqualTo("itemType:APPLICATION AND (applicationId:(build\\-app))");
-    assertThat(query).doesNotContain("organizationId:");
+    assertThat(indexQuery.query()).isEqualTo("itemType:APPLICATION");
+    assertThat(indexQuery.query()).doesNotContain("organizationId:");
+    IndexTermSetRestriction apps = (IndexTermSetRestriction) indexQuery.termSets().get(0);
+    assertThat(apps.field()).isEqualTo(FieldIdentifier.APPLICATION_ID.label);
+    assertThat(apps.ids()).containsExactly("build-app");
   }
 
   @Test
-  public void buildApplicationQuery_threatFilter_usesViolationScopedApplicationIdsOnly() {
-    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(100);
+  public void buildApplicationQuery_threatFilter_putsScopedAppsInTermSetsNotString() {
     when(organizationDAO.getAllChildOrganizationIds(Set.of("org-a"))).thenReturn(Set.of("org-a"));
     PolicyThreatLevelFilter threatFilter = new PolicyThreatLevelFilter(8, 10);
     ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
     request.organizationIds = Set.of("org-a");
     request.policyThreatLevelRanges = List.of(threatFilter);
-    when(violationScopeResolver.resolveApplicationIds(any(), same(request)))
+    when(violationScopeResolver.resolveApplicationIds(any(), anyList(), same(request)))
         .thenReturn(Set.of("critical-app"));
 
-    String query = newBuilder().buildApplicationQuery(request);
+    ApplicationsIndexQuery indexQuery = newBuilder().buildApplicationIndexQuery(request);
 
-    assertThat(query).isEqualTo("itemType:APPLICATION AND (applicationId:(critical\\-app))");
-    assertThat(query).doesNotContain("organizationId:");
+    assertThat(indexQuery.query()).isEqualTo("itemType:APPLICATION");
+    IndexTermSetRestriction apps = (IndexTermSetRestriction) indexQuery.termSets().get(0);
+    assertThat(apps.ids()).containsExactly("critical-app");
   }
 
   @Test
   public void buildApplicationQuery_orgAndApplicationAndStageFilter_keepsAllViolationScopedOrgApps() {
-    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(100);
     when(organizationDAO.getAllChildOrganizationIds(Set.of("org-a"))).thenReturn(Set.of("org-a"));
     ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
     request.organizationIds = Set.of("org-a");
     request.applicationIds = Set.of("app-b");
     request.stageIds = Set.of("build");
-    when(violationScopeResolver.resolveApplicationIds(any(), same(request)))
+    when(violationScopeResolver.resolveApplicationIds(any(), anyList(), same(request)))
         .thenReturn(Set.of("org-app-1", "org-app-2", "app-b"));
 
-    String query = newBuilder().buildApplicationQuery(request);
+    ApplicationsIndexQuery indexQuery = newBuilder().buildApplicationIndexQuery(request);
 
-    assertThat(query).contains("org\\-app\\-1");
-    assertThat(query).contains("org\\-app\\-2");
-    assertThat(query).contains("app\\-b");
-    assertThat(query).doesNotContain("organizationId:");
+    assertThat(indexQuery.query()).isEqualTo("itemType:APPLICATION");
+    assertThat(indexQuery.query()).doesNotContain("organizationId:");
+    IndexTermSetRestriction apps = (IndexTermSetRestriction) indexQuery.termSets().get(0);
+    assertThat(apps.ids()).containsExactlyInAnyOrder("org-app-1", "org-app-2", "app-b");
   }
 
   @Test
   public void buildApplicationQuery_policyTypeAndStateFilter_usesViolationScopedApplicationIdsOnly() {
-    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(100);
     ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
     request.policyThreatCategories = new PolicyThreatCategoryFilter(Set.of(PolicyThreatCategory.SECURITY));
     request.policyViolationStates = new PolicyViolationStateFilter(Set.of(PolicyViolationState.OPEN));
-    when(violationScopeResolver.resolveApplicationIds(any(), same(request)))
+    when(violationScopeResolver.resolveApplicationIds(any(), anyList(), same(request)))
         .thenReturn(Set.of("security-open-app"));
 
-    String query = newBuilder().buildApplicationQuery(request);
+    ApplicationsIndexQuery indexQuery = newBuilder().buildApplicationIndexQuery(request);
 
-    assertThat(query).isEqualTo("itemType:APPLICATION AND (applicationId:(security\\-open\\-app))");
+    assertThat(indexQuery.query()).isEqualTo("itemType:APPLICATION");
+    IndexTermSetRestriction apps = (IndexTermSetRestriction) indexQuery.termSets().get(0);
+    assertThat(apps.ids()).containsExactly("security-open-app");
   }
 }

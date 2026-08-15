@@ -15,6 +15,7 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.search.index.IndexFilterRestriction;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
@@ -97,8 +98,10 @@ public class LegalListService
         : request.orderBy;
 
     String query = indexQueryBuilder.buildLegalQuery(request);
+    List<IndexFilterRestriction> scopeRestrictions = indexQueryBuilder.buildScopeRestrictions(request);
     SearchResultDTO searchResult =
-        searchIndexClient.searchIndex(query, pageSize, toSearchIndexPage(page), false, false, List.of());
+        searchIndexClient.searchIndex(query, pageSize, toSearchIndexPage(page), false, false, List.of(),
+            scopeRestrictions);
     LinkedHashMap<String, SearchResultItemDTO> pageItems = LegalListIndexItems.extractLegalItems(searchResult);
 
     List<LegalRowDTO> rows = new ArrayList<>(pageItems.size());
@@ -116,7 +119,7 @@ public class LegalListService
     response.hasNextPage = consumed < searchResult.totalNumberOfHits && page < MAX_WALKABLE_PAGE;
     response.source = LegalListResponseDTO.SOURCE_INDEX;
     if (includeFacets) {
-      response.facets = facetsBuilder.buildFacets(query, searchResult.totalNumberOfHits);
+      response.facets = facetsBuilder.buildFacets(query, searchResult.totalNumberOfHits, scopeRestrictions);
     }
     return response;
   }

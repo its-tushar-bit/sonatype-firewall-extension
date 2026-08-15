@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dashboard.legal;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
@@ -82,7 +83,7 @@ public class LegalListFacetsBuilderTest
 
   @Test
   public void buildFacets_zeroTotal_shortCircuitsWithoutIndexCalls() {
-    LegalListFacetsDTO facets = builder().buildFacets(QUERY, 0);
+    LegalListFacetsDTO facets = builder().buildFacets(QUERY, 0, List.of());
 
     assertThat(facets.totalFindings).isEqualTo(0);
     assertThat(facets.stages).isNull();
@@ -95,21 +96,22 @@ public class LegalListFacetsBuilderTest
   @Test
   public void buildFacets_quotesMultiWordLtgInCountQuery() {
     when(stageTypeService.getLicensedStageTypes(any())).thenReturn(List.of());
-    when(searchIndexClient.count(anyString())).thenReturn(1L);
+    when(searchIndexClient.count(anyString(), anyList())).thenReturn(1L);
 
     SearchResultItemDTO item = legalItem("app-1", "org-1", "Weak Copyleft");
-    when(searchIndexClient.searchIndex(anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
-        .thenReturn(resultWith(List.of(item)));
-    when(dimensionQueryBuilder.buildOrganizationFilterClause(Set.of("org-1"))).thenReturn("organizationId:(org-1)");
-    when(dimensionQueryBuilder.buildEscapedApplicationFilterClause(Set.of("app-1")))
-        .thenReturn("applicationId:(app-1)");
+    when(searchIndexClient.searchIndex(anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(),
+        anyList()))
+            .thenReturn(resultWith(List.of(item)));
+    when(dimensionQueryBuilder.expandOrganizationFilterIdsById(Set.of("org-1")))
+        .thenReturn(Map.of("org-1", Set.of("org-1")));
 
-    LegalListFacetsDTO facets = builder().buildFacets(QUERY, 1);
+    LegalListFacetsDTO facets = builder().buildFacets(QUERY, 1, List.of());
 
     assertThat(facets.licenseThreatGroups).containsEntry("Weak Copyleft", 1L);
-    verify(searchIndexClient).count(contains("componentLicenseThreatGroupName:(\"Weak Copyleft\")"));
+    verify(searchIndexClient).count(contains("componentLicenseThreatGroupName:(\"Weak Copyleft\")"), anyList());
     // Single discovery search for owners + LTG names (no duplicate LTG discovery query).
-    verify(searchIndexClient).searchIndex(anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList());
+    verify(searchIndexClient).searchIndex(anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(),
+        anyList());
   }
 
   @Test
@@ -118,12 +120,12 @@ public class LegalListFacetsBuilderTest
     SearchResultItemDTO item = legalItem("app-1", "org-1", "Permissive");
     item.organizationName = null;
     item.applicationName = null;
-    when(searchIndexClient.searchIndex(anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
-        .thenReturn(resultWith(List.of(item)));
-    when(searchIndexClient.count(anyString())).thenReturn(1L);
-    when(dimensionQueryBuilder.buildOrganizationFilterClause(Set.of("org-1"))).thenReturn("organizationId:(org-1)");
-    when(dimensionQueryBuilder.buildEscapedApplicationFilterClause(Set.of("app-1")))
-        .thenReturn("applicationId:(app-1)");
+    when(searchIndexClient.searchIndex(anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(),
+        anyList()))
+            .thenReturn(resultWith(List.of(item)));
+    when(searchIndexClient.count(anyString(), anyList())).thenReturn(1L);
+    when(dimensionQueryBuilder.expandOrganizationFilterIdsById(Set.of("org-1")))
+        .thenReturn(Map.of("org-1", Set.of("org-1")));
 
     Organization org = mock(Organization.class);
     when(org.getId()).thenReturn("org-1");
@@ -134,7 +136,7 @@ public class LegalListFacetsBuilderTest
     when(organizationDAO.getByIds(Set.of("org-1"))).thenReturn(List.of(org));
     when(applicationDAO.getByIds(Set.of("app-1"))).thenReturn(List.of(app));
 
-    LegalListFacetsDTO facets = builder().buildFacets(QUERY, 1);
+    LegalListFacetsDTO facets = builder().buildFacets(QUERY, 1, List.of());
 
     assertThat(facets.organizationNames).containsEntry("org-1", "Org From DAO");
     assertThat(facets.applicationNames).containsEntry("app-1", "App From DAO");

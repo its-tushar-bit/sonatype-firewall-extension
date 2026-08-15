@@ -37,7 +37,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -226,7 +229,8 @@ public class ViolationsListServiceSessionTest
         .thenReturn(new IndexPageResult(List.of(violationDoc("pv-1")), List.of(), false));
     ViolationsListFacetsDTO facets = new ViolationsListFacetsDTO();
     facets.totalViolations = 2;
-    when(facetsBuilder.buildFacets(session, QUERY, QUERY, 2L, null, null)).thenReturn(facets);
+    when(facetsBuilder.buildFacets(eq(session), eq(QUERY), eq(QUERY), eq(2L), isNull(), isNull(), anyList()))
+        .thenReturn(facets);
     when(indexQueryBuilder.buildViolationQueryExcludingWaiverType(any())).thenReturn(QUERY);
 
     ViolationsListRequestDTO request = request(0, 50);
@@ -234,7 +238,7 @@ public class ViolationsListServiceSessionTest
     ViolationsListResponseDTO response = service().listViolations(request);
 
     assertThat(response.facets).isSameAs(facets);
-    verify(facetsBuilder).buildFacets(session, QUERY, QUERY, 2L, null, null);
+    verify(facetsBuilder).buildFacets(eq(session), eq(QUERY), eq(QUERY), eq(2L), isNull(), isNull(), anyList());
   }
 
   @Test

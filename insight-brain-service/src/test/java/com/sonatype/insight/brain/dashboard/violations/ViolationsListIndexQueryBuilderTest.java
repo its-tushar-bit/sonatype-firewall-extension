@@ -338,30 +338,46 @@ public class ViolationsListIndexQueryBuilderTest
   }
 
   @Test
-  public void buildViolationQuery_rootOrgWithApplicationFilter_appFilterTakesPrecedence() {
-    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(10);
+  public void buildScopeRestrictions_blankOrganizationId_rejects() {
+    ViolationsListRequestDTO request = new ViolationsListRequestDTO();
+    request.organizationIds = Set.of("");
 
+    assertThatThrownBy(() -> newBuilder().buildScopeRestrictions(request))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("organizationIds");
+  }
+
+  @Test
+  public void buildScopeRestrictions_blankApplicationId_rejects() {
+    ViolationsListRequestDTO request = new ViolationsListRequestDTO();
+    request.applicationIds = Set.of("  ");
+
+    assertThatThrownBy(() -> newBuilder().buildScopeRestrictions(request))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("applicationIds");
+  }
+
+  @Test
+  public void buildViolationQuery_rootOrgWithApplicationFilter_appFilterInTermSets() {
     ViolationsListRequestDTO request = new ViolationsListRequestDTO();
     request.organizationIds = Set.of(Organization.ROOT_ORGANIZATION_ID);
     request.applicationIds = Set.of("appx");
 
-    // Root org yields a null org clause ("all orgs"); combined with an explicit app filter the query
-    // narrows to the app rather than widening back to all orgs (documented precedence, CLM-42254).
-    assertThat(newBuilder().buildViolationQuery(request))
-        .isEqualTo(BASE + " AND (applicationId:(appx))");
+    // Root org yields a null org scope; app filter goes to term-set restrictions (CLM-44783).
+    assertThat(newBuilder().buildViolationQuery(request)).isEqualTo(BASE);
+    assertThat(newBuilder().buildScopeRestrictions(request)).isNotEmpty();
   }
 
   @Test
-  public void buildViolationQuery_rejectsTooManyApplicationIds() {
-    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(2);
-
+  public void buildViolationQuery_largeApplicationSetHandledByTermSets() {
     Set<String> applicationIds = new LinkedHashSet<>();
     IntStream.range(0, 3).forEach(i -> applicationIds.add("app-" + i));
     ViolationsListRequestDTO request = new ViolationsListRequestDTO();
     request.applicationIds = applicationIds;
 
-    assertThatThrownBy(() -> newBuilder().buildViolationQuery(request))
-        .isInstanceOf(BadRequestException.class);
+    // No longer throws — term sets are budget-exempt (CLM-44783).
+    String query = newBuilder().buildViolationQuery(request);
+    assertThat(query).doesNotContain("applicationId:");
   }
 
   @Test

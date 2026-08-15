@@ -102,6 +102,10 @@ public class DashboardIndexDimensionQueryBuilder
   /**
    * Classic-union scope restrictions: org-only or app-only is a single term set; both present is an
    * {@link IndexOrTermSetGroup} (OR). Empty list means unrestricted.
+   * <p>
+   * Root organization is unrestricted on the org dimension ({@link #expandOrganizationFilterIds}
+   * returns {@code null}). Combined with an explicit application filter that therefore becomes
+   * application-only — it narrows to those apps rather than widening back to all orgs (CLM-42254).
    */
   public List<IndexFilterRestriction> buildScopeFilterRestrictions(
       final Set<String> organizationIds,

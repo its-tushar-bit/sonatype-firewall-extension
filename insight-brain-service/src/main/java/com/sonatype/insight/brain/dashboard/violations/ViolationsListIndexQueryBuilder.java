@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.IndexFilterRestriction;
 import com.sonatype.insight.brain.search.index.ItemType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -79,7 +80,7 @@ final class ViolationsListIndexQueryBuilder
 
     addIfPresent(clauses, buildSearchClause(request == null ? null : request.search));
     addIfPresent(clauses, buildComponentHashClause(request == null ? null : request.componentHash));
-    addIfPresent(clauses, buildDimensionClause(request));
+    // org/app scope is applied as budget-exempt term-set restrictions (CLM-44783).
     addIfPresent(clauses, buildStageClause(request == null ? null : request.stageIds));
     addIfPresent(clauses, buildThreatLevelClause(request == null ? null : request.policyThreatLevelRange));
     addIfPresent(clauses, buildThreatCategoryClause(request == null ? null : request.policyThreatCategories));
@@ -87,6 +88,20 @@ final class ViolationsListIndexQueryBuilder
     addIfPresent(clauses, buildApplicationCategoryClause(request == null ? null : request.applicationCategoryIds));
 
     return clauses;
+  }
+
+  List<IndexFilterRestriction> buildScopeRestrictions(final ViolationsListRequestDTO request) {
+    Set<String> organizationIds = request == null ? null : request.organizationIds;
+    Set<String> applicationIds = request == null ? null : request.applicationIds;
+    if (organizationIds != null && !organizationIds.isEmpty()) {
+      DashboardIndexDimensionQueryBuilder.rejectBlankFilterIds(organizationIds, "organizationIds");
+    }
+    if (applicationIds != null && !applicationIds.isEmpty()) {
+      DashboardIndexDimensionQueryBuilder.rejectBlankFilterIds(applicationIds, "applicationIds");
+    }
+    // Root+app precedence (CLM-42254) lives in buildScopeFilterRestrictions: root drops the org
+    // dimension, so an explicit application filter narrows to those apps rather than all orgs.
+    return dimensionQueryBuilder.buildScopeFilterRestrictions(organizationIds, applicationIds);
   }
 
   private static String buildComponentHashClause(final String componentHash) {
@@ -140,32 +155,6 @@ final class ViolationsListIndexQueryBuilder
       return "";
     }
     return raw.replace("\\", "").replace("\"", "").strip();
-  }
-
-  private String buildDimensionClause(final ViolationsListRequestDTO request) {
-    Set<String> organizationIds = request == null ? null : request.organizationIds;
-    if (organizationIds != null && !organizationIds.isEmpty()) {
-      DashboardIndexDimensionQueryBuilder.rejectBlankFilterIds(organizationIds, "organizationIds");
-    }
-    String organizationClause = dimensionQueryBuilder.buildOrganizationFilterClause(organizationIds);
-    String applicationClause =
-        dimensionQueryBuilder.buildEscapedApplicationFilterClause(request == null ? null : request.applicationIds);
-    if (organizationClause == null && applicationClause == null) {
-      return null;
-    }
-    List<String> dimensionClauses = new ArrayList<>();
-    if (organizationClause != null) {
-      dimensionClauses.add(organizationClause);
-    }
-    if (applicationClause != null) {
-      dimensionClauses.add(applicationClause);
-    }
-    // Org and app clauses are OR-ed (union). Note the root-organization interaction: a root org id
-    // produces a null org clause ("all orgs"), so combining organizationIds=[ROOT] with
-    // applicationIds=[X] yields just "(applicationId:X)" — the explicit application filter takes
-    // precedence and narrows to X rather than widening back to all orgs. That matches user intent
-    // (an explicit app filter should narrow) and RBAC still bounds the result either way.
-    return "(" + String.join(" OR ", dimensionClauses) + ")";
   }
 
   private static String buildSearchClause(final String search) {

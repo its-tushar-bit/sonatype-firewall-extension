@@ -30,7 +30,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class LegalListIndexQueryBuilderTest
@@ -180,28 +179,26 @@ public class LegalListIndexQueryBuilderTest
   }
 
   @Test
-  public void buildLegalQuery_rootOrgWithApplicationFilter_appFilterTakesPrecedence() {
-    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(10);
-
+  public void buildLegalQuery_rootOrgWithApplicationFilter_appFilterInTermSets() {
     LegalListRequestDTO request = new LegalListRequestDTO();
     request.organizationIds = Set.of(Organization.ROOT_ORGANIZATION_ID);
     request.applicationIds = Set.of("appx");
 
-    assertThat(newBuilder().buildLegalQuery(request))
-        .isEqualTo(BASE + " AND (applicationId:(appx))");
+    // Root org yields null scope; app filter goes to term-set restrictions (CLM-44783).
+    assertThat(newBuilder().buildLegalQuery(request)).isEqualTo(BASE);
+    assertThat(newBuilder().buildScopeRestrictions(request)).isNotEmpty();
   }
 
   @Test
-  public void buildLegalQuery_rejectsTooManyApplicationIds() {
-    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(2);
-
+  public void buildLegalQuery_largeApplicationSetHandledByTermSets() {
     Set<String> applicationIds = new LinkedHashSet<>();
     IntStream.range(0, 3).forEach(i -> applicationIds.add("app-" + i));
     LegalListRequestDTO request = new LegalListRequestDTO();
     request.applicationIds = applicationIds;
 
-    assertThatThrownBy(() -> newBuilder().buildLegalQuery(request))
-        .isInstanceOf(BadRequestException.class);
+    // No longer throws — term sets are budget-exempt (CLM-44783).
+    String query = newBuilder().buildLegalQuery(request);
+    assertThat(query).doesNotContain("applicationId:(");
   }
 
   @Test

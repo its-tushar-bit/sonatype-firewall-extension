@@ -31,8 +31,6 @@ import com.sonatype.insight.brain.search.session.IndexReadSessionFactory;
 import com.sonatype.insight.brain.search.session.IndexTermsBucket;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.lucene.search.BooleanClause.Occur;
-import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -139,15 +137,7 @@ final class VulnerabilitiesListScopeFacetsBuilder
   }
 
   private Query toScopedQuery(final String query, final List<IndexFilterRestriction> restrictions) {
-    Query base = conversionHelper.stringToQuery(query);
-    Query filters = IdSetFilterQueries.combineLuceneFilters(restrictions);
-    if (filters == null) {
-      return base;
-    }
-    return new BooleanQuery.Builder()
-        .add(base, Occur.MUST)
-        .add(filters, Occur.FILTER)
-        .build();
+    return IdSetFilterQueries.toScopedQuery(conversionHelper.stringToQuery(query), restrictions);
   }
 
   private Set<String> discoverKeys(

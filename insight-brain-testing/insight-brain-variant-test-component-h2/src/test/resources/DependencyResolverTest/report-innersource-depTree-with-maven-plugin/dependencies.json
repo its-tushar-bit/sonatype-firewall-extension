@@ -1,0 +1,171 @@
+{
+  "dependencyTree": {
+    "componentIdentifier": {
+      "format": "maven",
+      "coordinates": {
+        "artifactId": "InnerSource-Consumer",
+        "classifier": "",
+        "extension": "pom",
+        "groupId": "org.example",
+        "version": "1.0.0"
+      }
+    },
+    "packageUrl": "pkg:maven/org.example/innerSource-consumer@1.0.0?extension=pom",
+    "children": [
+      {
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "known-direct",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "com.innersource",
+            "version": "2.8.1"
+          }
+        },
+        "packageUrl": "pkg:maven/com.innersource/known-direct@2.8.1?type=jar",
+        "children": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "known-transitive1",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.innersource",
+                "version": "2.8.1"
+              }
+            },
+            "packageUrl": "pkg:maven/com.innersource/known-transitive1@2.8.1?type=jar",
+            "children": [
+              {
+                "componentIdentifier": {
+                  "format": "maven",
+                  "coordinates": {
+                    "artifactId": "known-transitive1-2",
+                    "classifier": "",
+                    "extension": "jar",
+                    "groupId": "com.innersource",
+                    "version": "2.8.1"
+                  }
+                },
+                "packageUrl": "pkg:maven/com.innersource/known-transitive1-2@2.8.1?type=jar",
+                "children": [
+                ]
+              }
+            ]
+          },
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "unknown-transitive1",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.innersource",
+                "version": "2.8.1"
+              }
+            },
+            "packageUrl": "pkg:maven/com.innersource/unknown-transitive1@2.8.1?type=jar",
+            "children": [
+            ]
+          }
+        ],
+        "direct": true
+      },
+      {
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "InnerSource-SubModule",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "com.innersource",
+            "version": "2.0.0"
+          }
+        },
+        "packageUrl": "pkg:maven/com.innersource/InnerSource-SubModule@2.0.0?type=jar",
+        "children": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "unknown-direct",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.innersource",
+                "version": "1.0.0-SNAPSHOT"
+              }
+            },
+            "packageUrl": "pkg:maven/com.innersource/unknown-direct@1.0.0-SNAPSHOT?type=jar",
+            "children": [
+              {
+                "componentIdentifier": {
+                  "format": "maven",
+                  "coordinates": {
+                    "artifactId": "known-transitive3",
+                    "classifier": "",
+                    "extension": "jar",
+                    "groupId": "com.innersource",
+                    "version": "1.0.0-SNAPSHOT"
+                  }
+                },
+                "packageUrl": "pkg:maven/com.innersource/known-transitive3@1.0.0-SNAPSHOT?type=jar",
+                "children": [
+                ]
+              },
+              {
+                "componentIdentifier": {
+                  "format": "maven",
+                  "coordinates": {
+                    "artifactId": "known-transitive1-2",
+                    "classifier": "",
+                    "extension": "jar",
+                    "groupId": "com.innersource",
+                    "version": "2.8.1"
+                  }
+                },
+                "packageUrl": "pkg:maven/com.innersource/known-transitive1-2@2.8.1?type=jar",
+                "children": [
+                ]
+              }
+            ],
+            "direct": true
+          }
+        ],
+        "module": true
+      },
+      {
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "InnerSource-Producer",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "com.innersource",
+            "version": "3.0.0"
+          }
+        },
+        "packageUrl": "pkg:maven/com.innersource/InnerSource-Producer@3.0.0?type=jar",
+        "children": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "producer-transitive",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.innersource",
+                "version": "3.0.0"
+              }
+            },
+            "packageUrl": "pkg:maven/com.innersource/producer-transitive@3.0.0?type=jar",
+            "children": [
+            ]
+          }
+        ],
+        "direct": true
+      }
+    ]
+  }
+}

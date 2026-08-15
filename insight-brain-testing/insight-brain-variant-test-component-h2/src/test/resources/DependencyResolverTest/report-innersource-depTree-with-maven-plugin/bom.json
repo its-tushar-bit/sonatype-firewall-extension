@@ -1,0 +1,520 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "known-direct",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.innersource",
+          "version": "2.8.1"
+        }
+      },
+      "packageUrl": "pkg:maven/com.innersource/known-direct@2.8.1?type=jar",
+      "groupId": "com.innersource",
+      "artifactId": "known-direct",
+      "version": "2.8.1",
+      "filenames": [
+        "known-direct-2.8.1.jar"
+      ],
+      "pathnames": [
+        "dependency:/com.innersource:known-direct:jar:2.8.1"
+      ],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "02a8e0aa38a2e21cb39e",
+      "relativePopularity": 0.12,
+      "createTime": 1496194739000,
+      "lastModifiedTime": 1558625688000,
+      "lastModifiedEntryTime": 1496187536000,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "mvn",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "com.innersource"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "known-direct"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "2.8.1"
+          }
+        ],
+        "name": "known-direct"
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "known-transitive1",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.innersource",
+          "version": "2.8.1"
+        }
+      },
+      "packageUrl": "pkg:maven/com.innersource/known-transitive1@2.8.1?type=jar",
+      "groupId": "com.innersource",
+      "artifactId": "known-transitive1",
+      "version": "2.8.1",
+      "filenames": [
+        "known-transitive1-2.8.1.jar"
+      ],
+      "pathnames": [
+        "dependency:/com.innersource:known-transitive1:jar:2.8.1"
+      ],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "02a8e0aa38a2e21cb39e",
+      "relativePopularity": 0.12,
+      "createTime": 1496194739000,
+      "lastModifiedTime": 1558625688000,
+      "lastModifiedEntryTime": 1496187536000,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "mvn",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "com.innersource"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "known-transitive1"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "2.8.1"
+          }
+        ],
+        "name": "known-transitive1"
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "known-transitive1-2",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.innersource",
+          "version": "2.8.1"
+        }
+      },
+      "packageUrl": "pkg:maven/com.innersource/known-transitive1-2@2.8.1?type=jar",
+      "groupId": "com.innersource",
+      "artifactId": "known-transitive1-2",
+      "version": "2.8.1",
+      "filenames": [
+        "known-transitive1-2-2.8.1.jar"
+      ],
+      "pathnames": [
+        "dependency:/com.innersource:known-transitive1-2:jar:2.8.1"
+      ],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "02a8e0aa38a2e21cb39e",
+      "relativePopularity": 0.12,
+      "createTime": 1496194739000,
+      "lastModifiedTime": 1558625688000,
+      "lastModifiedEntryTime": 1496187536000,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "mvn",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "com.innersource"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "known-transitive1-2"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "2.8.1"
+          }
+        ],
+        "name": "known-transitive1-2"
+      }
+    },
+    {
+      "componentIdentifier": null,
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "filenames": [
+        "unknown-transitive1.2.8.1.jar"
+      ],
+      "pathnames": [
+        "dependency:/com.innersource:unknown-transitive1:jar:2.8.1"
+      ],
+      "matchState": "unknown",
+      "scanError": false,
+      "proprietary": true,
+      "hash": "1b67c0a3d68766b3193e",
+      "relativePopularity": null,
+      "createTime": null,
+      "lastModifiedTime": 1598294404000,
+      "lastModifiedEntryTime": 1598294404000,
+      "website": null,
+      "identificationSource": null,
+      "componentCategories": [
+      ],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "mvn",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "displayName": {
+        "parts": [
+          {
+            "field": "Filename",
+            "value": "unknown-transitive1-2.8.1.jar"
+          }
+        ],
+        "name": "unknown-transitive1-2.8.1.jar"
+      }
+    },
+    {
+      "componentIdentifier": null,
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "filenames": [
+        "unknown-direct-1.0.0-SNAPSHOT.jar"
+      ],
+      "pathnames": [
+        "dependency:/com.innersource:unknown-direct:jar:1.0.0-SNAPSHOT"
+      ],
+      "matchState": "unknown",
+      "scanError": false,
+      "proprietary": true,
+      "hash": "1b67c0a3d68766b3193e",
+      "relativePopularity": null,
+      "createTime": null,
+      "lastModifiedTime": 1598294404000,
+      "lastModifiedEntryTime": 1598294404000,
+      "website": null,
+      "identificationSource": null,
+      "componentCategories": [
+      ],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "mvn",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "displayName": {
+        "parts": [
+          {
+            "field": "Filename",
+            "value": "unknown-direct-1.0.0-SNAPSHOT.jar"
+          }
+        ],
+        "name": "unknown-direct-1.0.0-SNAPSHOT.jar"
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "known-transitive3",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.innersource",
+          "version": "1.0.0-SNAPSHOT"
+        }
+      },
+      "packageUrl": "pkg:maven/com.innersource/known-transitive3@1.0.0-SNAPSHOT?type=jar",
+      "groupId": "com.innersource",
+      "artifactId": "known-transitive3",
+      "version": "1.0.0-SNAPSHOT",
+      "filenames": [
+        "known-transitive3-1.0.0-SNAPSHOT.jar"
+      ],
+      "pathnames": [
+        "dependency:/com.innersource:known-transitive3:jar:1.0.0-SNAPSHOT"
+      ],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "02a8e0aa38a2e21cb39e",
+      "relativePopularity": 0.12,
+      "createTime": 1496194739000,
+      "lastModifiedTime": 1558625688000,
+      "lastModifiedEntryTime": 1496187536000,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "mvn",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "com.innersource"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "known-transitive3"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "1.0.0-SNAPSHOT"
+          }
+        ],
+        "name": "known-transitive3"
+      }
+    },
+    {
+      "componentIdentifier": null,
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "filenames": [
+        "InnerSource-SubModule-2.0.0.jar"
+      ],
+      "pathnames": [
+        "dependency:/com.some.other:other-api:jar:1.0.0/com.innersource:InnerSource-SubModule:jar:2.0.0"
+      ],
+      "matchState": "unknown",
+      "scanError": false,
+      "proprietary": true,
+      "hash": "ba858b878b4502d3f4db",
+      "relativePopularity": null,
+      "createTime": null,
+      "lastModifiedTime": 1598294488000,
+      "lastModifiedEntryTime": 1598294490000,
+      "website": null,
+      "identificationSource": null,
+      "componentCategories": [],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "mvn",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "displayName": {
+        "parts": [
+          {
+            "field": "Filename",
+            "value": "InnerSource-SubModule-2.0.0.jar"
+          }
+        ],
+        "name": "InnerSource-SubModule-2.0.0.jar"
+      }
+    },
+    {
+      "componentIdentifier": null,
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "filenames": [
+        "InnerSource-Producer-3.0.0.jar"
+      ],
+      "pathnames": [
+        "dependency:/com.innersource:InnerSource-Producer:jar:3.0.0"
+      ],
+      "matchState": "unknown",
+      "scanError": false,
+      "proprietary": true,
+      "hash": "ba858b878b4502d3f4db",
+      "relativePopularity": null,
+      "createTime": null,
+      "lastModifiedTime": 1598294488000,
+      "lastModifiedEntryTime": 1598294490000,
+      "website": null,
+      "identificationSource": null,
+      "componentCategories": [],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "mvn",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "displayName": {
+        "parts": [
+          {
+            "field": "Filename",
+            "value": "InnerSource-Producer-3.0.0.jar"
+          }
+        ],
+        "name": "InnerSource-Producer-3.0.0.jar"
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "producer-transitive",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.innersource",
+          "version": "3.0.0"
+        }
+      },
+      "packageUrl": "pkg:maven/com.innersource/producer-transitive@3.0.0?type=jar",
+      "groupId": "com.innersource",
+      "artifactId": "producer-transitive",
+      "version": "3.0.0",
+      "filenames": [
+        "producer-transitive-3.0.0.jar"
+      ],
+      "pathnames": [
+        "dependency:/com.innersource:producer-transitive:jar:3.0.0"
+      ],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "02a8e0aa38a2e21cb39e",
+      "relativePopularity": 0.12,
+      "createTime": 1496194739000,
+      "lastModifiedTime": 1558625688000,
+      "lastModifiedEntryTime": 1496187536000,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "mvn",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "com.innersource"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "producer-transitive"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "3.0.0"
+          }
+        ],
+        "name": "producer-transitive"
+      }
+    }
+  ]
+}

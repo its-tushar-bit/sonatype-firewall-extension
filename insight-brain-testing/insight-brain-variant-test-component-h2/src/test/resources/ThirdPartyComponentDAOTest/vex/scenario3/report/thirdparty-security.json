@@ -1,0 +1,85 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "zip",
+        "name" : "numpy",
+        "qualifier" : "",
+        "version" : "1.19.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "737a0d93cb953911d68a",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-41495",
+    "reference" : "CVE-2024-5268795",
+    "source" : "NVD",
+    "score" : 5.3,
+    "cwe" : "476",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:L/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : null,
+    "matchState" : "exact",
+    "proprietary" : null,
+    "vulnerabilityCategories" : null,
+    "aliases" : null,
+    "vulnIds" : null,
+    "researchType" : null,
+    "analysis" : {
+      "state" : "resolved",
+      "justification" : "code_not_reachable",
+      "response" : "will_not_fix",
+      "detail" : "Some analysis details"
+    },
+    "fixedVersion" : null,
+    "description" : null,
+    "severity" : "high",
+    "ratingMethod" : "CVSSv3",
+    "recommendations" : null,
+    "advisories" : null,
+    "provider" : null,
+    "inputType" : null
+  }, {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "zip",
+        "name" : "numpy",
+        "qualifier" : "",
+        "version" : "1.19.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "737a0d93cb953911d68a",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-41496",
+    "reference" : "CVE-22024-123456",
+    "source" : "NVD",
+    "score" : 5.5,
+    "cwe" : "120",
+    "cvssVectorString" : "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : null,
+    "matchState" : "exact",
+    "proprietary" : null,
+    "vulnerabilityCategories" : null,
+    "aliases" : null,
+    "vulnIds" : null,
+    "researchType" : null,
+    "analysis" : {
+      "state" : "resolved",
+      "justification" : "code_not_reachable",
+      "response" : "will_not_fix",
+      "detail" : "Some analysis details"
+    },
+    "fixedVersion" : null,
+    "description" : null,
+    "severity" : "high",
+    "ratingMethod" : "CVSSv3",
+    "recommendations" : null,
+    "advisories" : null,
+    "provider" : null,
+    "inputType" : null
+  } ]
+}

@@ -1,0 +1,146 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "generic",
+      "coordinates" : {
+        "name" : "lintian",
+        "namespace" : "debian",
+        "sbom_type" : "library",
+        "version" : "1.23.14"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "19442645c98283636b4a",
+    "declaredLicenses" : [ "Not Provided" ],
+    "observedLicenses" : [ "Not Provided" ],
+    "effectiveLicenses" : [ "Not Provided" ],
+    "securityCounters" : {
+      "Critical" : 2,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 5,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : 7.5,
+    "catalogDate" : 0,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "lintian"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.23.14"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "namespace",
+        "value" : "debian"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "sbom_type",
+        "value" : "library"
+      } ],
+      "name" : "lintian"
+    },
+    "hiddenObservedLicenses" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "generic",
+      "coordinates" : {
+        "name" : "freebsd",
+        "namespace" : "freebsd",
+        "version" : "1.1.5.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "c9458323857f66e9a9ce",
+    "declaredLicenses" : [ "Not Provided" ],
+    "observedLicenses" : [ "Not Provided" ],
+    "effectiveLicenses" : [ "Not Provided" ],
+    "securityCounters" : {
+      "Critical" : 6,
+      "Severe" : 11,
+      "Moderate" : 2
+    },
+    "effectiveLicenseThreat" : 5,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : 10.0,
+    "catalogDate" : 0,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "freebsd"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.1.5.1"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "namespace",
+        "value" : "freebsd"
+      } ],
+      "name" : "freebsd"
+    },
+    "hiddenObservedLicenses" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.9"
+      }
+    },
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-databind",
+    "version" : "2.9.9",
+    "hash" : "d6eb9817d9c7289a91f0",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "See-License-Clause" ],
+    "effectiveLicenses" : [ "See-License-Clause" ],
+    "securityCounters" : {
+      "Critical" : 4,
+      "Severe" : 2,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 6,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : 7.5,
+    "catalogDate" : 1557976205000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.fasterxml.jackson.core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jackson-databind"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.9.9"
+      } ],
+      "name" : "jackson-databind"
+    },
+    "hiddenObservedLicenses" : false
+  } ]
+}

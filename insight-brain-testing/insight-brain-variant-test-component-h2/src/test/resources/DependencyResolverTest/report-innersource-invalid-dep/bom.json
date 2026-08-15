@@ -1,0 +1,673 @@
+{"aaData" : [
+   {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "javax.servlet-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "javax.servlet",
+        "version" : "3.1.0"
+      }
+    },
+    "packageUrl": "pkg:maven/javax.servlet/javax.servlet-api@3.1.0?type=jar",
+    "groupId" : "javax.servlet",
+    "artifactId" : "javax.servlet-api",
+    "version" : "3.1.0",
+    "filenames" : [ "javax.servlet-api-3.1.0.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-client-utils:jar:2.23.5-SNAPSHOT/javax.servlet:javax.servlet-api:jar:3.1.0", "dependency:/com.sonatype.insight.scan:insight-test-reverse-proxy:jar:2.23.5-SNAPSHOT/javax.servlet:javax.servlet-api:jar:3.1.0" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "3cd63d075497751784b2",
+    "relativePopularity" : 1.0,
+    "createTime" : 1471565476000,
+    "lastModifiedTime" : 1558625660000,
+    "lastModifiedEntryTime" : 1366926746000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "javax.servlet"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "javax.servlet-api"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.1.0"
+      } ],
+      "name" : "javax.servlet-api"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "hamcrest-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.hamcrest",
+        "version" : "1.3"
+      }
+    },
+    "packageUrl": "pkg:maven/org.hamcrest/hamcrest-core@1.3?type=jar",
+    "groupId" : "org.hamcrest",
+    "artifactId" : "hamcrest-core",
+    "version" : "1.3",
+    "filenames" : [ "hamcrest-core-1.3.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-archive-utils:jar:2.23.5-SNAPSHOT/org.hamcrest:hamcrest-core:jar:1.3", "dependency:/com.sonatype.insight.scan:insight-client-utils:jar:2.23.5-SNAPSHOT/org.hamcrest:hamcrest-core:jar:1.3", "dependency:/com.sonatype.insight.scan:insight-module-model:jar:2.23.5-SNAPSHOT/org.hamcrest:hamcrest-core:jar:1.3", "dependency:/com.sonatype.insight.scan:insight-scanner-archive:jar:2.23.5-SNAPSHOT/org.hamcrest:hamcrest-core:jar:1.3", "dependency:/com.sonatype.insight.scan:insight-scanner-core:jar:2.23.5-SNAPSHOT/org.hamcrest:hamcrest-core:jar:1.3", "dependency:/com.sonatype.insight.scan:insight-scanner-model-io:jar:2.23.5-SNAPSHOT/org.hamcrest:hamcrest-core:jar:1.3", "dependency:/com.sonatype.insight.scan:insight-scanner-model:jar:2.23.5-SNAPSHOT/org.hamcrest:hamcrest-core:jar:1.3" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "42a25dc3219429f0e5d0",
+    "relativePopularity" : 1.0,
+    "createTime" : 1341868082000,
+    "lastModifiedTime" : 1558621534000,
+    "lastModifiedEntryTime" : 1341884986000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.hamcrest"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "hamcrest-core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.3"
+      } ],
+      "name" : "hamcrest-core"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xstream",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.thoughtworks.xstream",
+        "version" : "1.4.11.1"
+      }
+    },
+    "packageUrl": "pkg:maven/com.thoughtworks.xstream/xstream@1.4.11.1?type=jar",
+    "groupId" : "com.thoughtworks.xstream",
+    "artifactId" : "xstream",
+    "version" : "1.4.11.1",
+    "filenames" : [ "xstream-1.4.11.1.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-module-model:jar:2.23.5-SNAPSHOT/com.thoughtworks.xstream:xstream:jar:1.4.11.1", "dependency:/com.sonatype.insight.scan:insight-scanner-archive:jar:2.23.5-SNAPSHOT/com.thoughtworks.xstream:xstream:jar:1.4.11.1", "dependency:/com.sonatype.insight.scan:insight-scanner-model-io:jar:2.23.5-SNAPSHOT/com.thoughtworks.xstream:xstream:jar:1.4.11.1" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "6c120c45a8c480bb2fea",
+    "relativePopularity" : 0.48,
+    "createTime" : 1540580867000,
+    "lastModifiedTime" : 1558625672000,
+    "lastModifiedEntryTime" : 1540606056000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.thoughtworks.xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.4.11.1"
+      } ],
+      "name" : "xstream"
+    }
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "test.zip" ],
+    "pathnames" : [ "binary.jar/test.zip" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "abc0f2d90f1bb02a4abc",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1342015544000,
+    "lastModifiedEntryTime" : 1342015296000,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : null
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-compress",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.commons",
+        "version" : "1.19"
+      }
+    },
+    "packageUrl": "pkg:maven/org.apache.commons/commons-compress@1.19?type=jar",
+    "groupId" : "org.apache.commons",
+    "artifactId" : "commons-compress",
+    "version" : "1.19",
+    "filenames" : [ "commons-compress-1.19.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-archive-utils:jar:2.23.5-SNAPSHOT/org.apache.commons:commons-compress:jar:1.19", "dependency:/com.sonatype.insight.scan:insight-scanner-archive:jar:2.23.5-SNAPSHOT/org.apache.commons:commons-compress:jar:1.19" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "7e65777fb451ddab6a9c",
+    "relativePopularity" : 0.16,
+    "createTime" : 1566663717000,
+    "lastModifiedTime" : 1567801672000,
+    "lastModifiedEntryTime" : 1566688494000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.apache.commons"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-compress"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.19"
+      } ],
+      "name" : "commons-compress"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-io",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-io",
+        "version" : "2.6"
+      }
+    },
+    "packageUrl": "pkg:maven/commons-io/commons-io@2.6?type=jar",
+    "groupId" : "commons-io",
+    "artifactId" : "commons-io",
+    "version" : "2.6",
+    "filenames" : [ "commons-io-2.6.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-scanner-archive:jar:2.23.5-SNAPSHOT/commons-io:commons-io:jar:2.6" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "815893df5f31da2ece40",
+    "relativePopularity" : 0.71,
+    "createTime" : 1519358738000,
+    "lastModifiedTime" : 1558625664000,
+    "lastModifiedEntryTime" : 1508086830000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "commons-io"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-io"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.6"
+      } ],
+      "name" : "commons-io"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "mockito-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.mockito",
+        "version" : "2.28.2"
+      }
+    },
+    "packageUrl": "pkg:maven/org.mockito/mockito-core@2.28.2?type=jar",
+    "groupId" : "org.mockito",
+    "artifactId" : "mockito-core",
+    "version" : "2.28.2",
+    "filenames" : [ "mockito-core-2.28.2.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-archive-utils:jar:2.23.5-SNAPSHOT/org.mockito:mockito-core:jar:2.28.2", "dependency:/com.sonatype.insight.scan:insight-scanner-archive:jar:2.23.5-SNAPSHOT/org.mockito:mockito-core:jar:2.28.2" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "91110215a8cb9b77a46e",
+    "relativePopularity" : 0.13,
+    "createTime" : 1559151630000,
+    "lastModifiedTime" : 1565005286000,
+    "lastModifiedEntryTime" : 1559169228000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 107,
+      "path" : "Test and Quality Management/Mocking Utilities"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.mockito"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "mockito-core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.28.2"
+      } ],
+      "name" : "mockito-core"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "asm",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.ow2.asm",
+        "version" : "7.1"
+      }
+    },
+    "packageUrl": "pkg:maven/org.ow2.asm/asm@7.1?type=jar",
+    "groupId" : "org.ow2.asm",
+    "artifactId" : "asm",
+    "version" : "7.1",
+    "filenames" : [ "asm-7.1.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-scanner-archive:jar:2.23.5-SNAPSHOT/org.ow2.asm:asm:jar:7.1" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "fa29aa438674ff19d5e1",
+    "relativePopularity" : 0.27,
+    "createTime" : 1551619264000,
+    "lastModifiedTime" : 1561124372000,
+    "lastModifiedEntryTime" : 1551637262000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.ow2.asm"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "asm"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "7.1"
+      } ],
+      "name" : "asm"
+    }
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "insight-test-reverse-proxy-2.23.5-SNAPSHOT.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-client-utils:jar:2.23.5-SNAPSHOT/com.sonatype.insight.scan:insight-test-reverse-proxy:jar:2.23.5-SNAPSHOT" ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "14405e8225f152fb8e8c",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1599661182000,
+    "lastModifiedEntryTime" : 1599661182000,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Filename",
+        "value" : "insight-test-reverse-proxy-2.23.5-SNAPSHOT.jar"
+      } ],
+      "name" : "insight-test-reverse-proxy-2.23.5-SNAPSHOT.jar"
+    }
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "insight-scanner-model-2.23.5-SNAPSHOT.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-scanner-archive:jar:2.23.5-SNAPSHOT/com.sonatype.insight.scan:insight-scanner-model:jar:2.23.5-SNAPSHOT", "dependency:/com.sonatype.insight.scan:insight-scanner-core:jar:2.23.5-SNAPSHOT/com.sonatype.insight.scan:insight-scanner-model:jar:2.23.5-SNAPSHOT", "dependency:/com.sonatype.insight.scan:insight-scanner-model-io:jar:2.23.5-SNAPSHOT/com.sonatype.insight.scan:insight-scanner-model:jar:2.23.5-SNAPSHOT" ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "27f6294db4ad3b57a90d",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1599661186000,
+    "lastModifiedEntryTime" : 1599661186000,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Filename",
+        "value" : "insight-scanner-model-2.23.5-SNAPSHOT.jar"
+      } ],
+      "name" : "insight-scanner-model-2.23.5-SNAPSHOT.jar"
+    }
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "insight-scanner-model-io-2.23.5-SNAPSHOT.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-scanner-archive:jar:2.23.5-SNAPSHOT/com.sonatype.insight.scan:insight-scanner-model-io:jar:2.23.5-SNAPSHOT" ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "3a117a2c08c779fafd28",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1599661186000,
+    "lastModifiedEntryTime" : 1599661186000,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Filename",
+        "value" : "insight-scanner-model-io-2.23.5-SNAPSHOT.jar"
+      } ],
+      "name" : "insight-scanner-model-io-2.23.5-SNAPSHOT.jar"
+    }
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "insight-scanner-core-2.23.5-SNAPSHOT.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-scanner-archive:jar:2.23.5-SNAPSHOT/com.sonatype.insight.scan:insight-scanner-core:jar:2.23.5-SNAPSHOT" ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "a5a42becb700d3ed4434",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1599661188000,
+    "lastModifiedEntryTime" : 1599661188000,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Filename",
+        "value" : "insight-scanner-core-2.23.5-SNAPSHOT.jar"
+      } ],
+      "name" : "insight-scanner-core-2.23.5-SNAPSHOT.jar"
+    }
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "insight-archive-utils-2.23.5-SNAPSHOT.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-scanner-archive:jar:2.23.5-SNAPSHOT/com.sonatype.insight.scan:insight-archive-utils:jar:2.23.5-SNAPSHOT" ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "6b6a3a14fcb4ae1510e7",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1599661184000,
+    "lastModifiedEntryTime" : 1599661184000,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Filename",
+        "value" : "insight-archive-utils-2.23.5-SNAPSHOT.jar"
+      } ],
+      "name" : "insight-archive-utils-2.23.5-SNAPSHOT.jar"
+    }
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "insight-scanner-hashing-1.12.0-01.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-scanner-archive:jar:2.23.5-SNAPSHOT/com.sonatype.insight.scan:insight-scanner-hashing:jar:1.12.0-01" ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "c2ebbba02aceaf0084ed",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1598295406000,
+    "lastModifiedEntryTime" : 1569419512000,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "mvn",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Filename",
+        "value" : "com.sonatype.insight.scan"
+      } ],
+      "name" : "com.sonatype.insight.scan"
+    },
+    "classifier" : "",
+    "extension" : "jar"
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "insight-scanner-hashing-asm60-1.12.0-01.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-scanner-archive:jar:2.23.5-SNAPSHOT/com.sonatype.insight.scan:insight-scanner-hashing-asm60:jar:1.12.0-01" ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "00e6d41dd13ae42d0be8",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1598295406000,
+    "lastModifiedEntryTime" : 1569419510000,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "mvn",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Filename",
+        "value" : "insight-scanner-hashing-asm60-1.12.0-01.jar"
+      } ],
+      "name" : "insight-scanner-hashing-asm60-1.12.0-01.jar"
+    },
+    "classifier" : "",
+    "extension" : "jar"
+  } ]
+}

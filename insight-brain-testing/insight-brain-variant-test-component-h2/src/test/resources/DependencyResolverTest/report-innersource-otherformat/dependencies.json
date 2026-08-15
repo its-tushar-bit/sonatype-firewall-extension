@@ -1,0 +1,55 @@
+{
+  "dependencyTree" : {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "whl",
+        "name" : "consumer",
+        "qualifier" : "py2.py3-none-any",
+        "version" : "1.1.1"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "pypi",
+        "coordinates" : {
+          "extension" : "zip",
+          "name" : "pypi-app",
+          "version" : "9.1.1"
+        }
+      },
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "pypi",
+          "coordinates" : {
+            "extension" : "tar.gz",
+            "name" : "django",
+            "version" : "1.6"
+          }
+        }
+      } ],
+      "direct" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "pypi",
+        "coordinates" : {
+          "extension" : "tar.gz",
+          "name" : "bdist-mpkg",
+          "version" : "0.5.0"
+        }
+      },
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "pypi",
+          "coordinates" : {
+            "extension" : "tar.gz",
+            "name" : "django",
+            "version" : "1.6"
+          }
+        }
+      } ],
+      "direct" : true
+    } ],
+    "module" : true
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-beanutils",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-beanutils",
+        "version" : "1.6"
+      }
+    },
+    "groupId" : "commons-beanutils",
+    "artifactId" : "commons-beanutils",
+    "version" : "1.6",
+    "filenames" : [ "commons-beanutils-1.6.jar" ],
+    "pathnames" : [ "22/commons-beanutils-1.6.jar" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "ed3c2b07d1b16ec11440",
+    "relativePopularity" : 0.01,
+    "createTime" : 1132682927000,
+    "lastModifiedTime" : 1413131596000,
+    "lastModifiedEntryTime" : 1043177940000,
+    "website" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "test",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "commons-beanutils"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-beanutils"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.6"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "glibc:2.24-11+deb9u3" ],
+    "pathnames" : [ "dependency:/clair-scanner-output.json/glibc:2.24-11+deb9u3" ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "e587ce87ed894c1d5283",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATES",
+      "scanClient" : "test",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Filename",
+        "value" : "glibc:2.24-11+deb9u3"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "apt:1.4.8" ],
+    "pathnames" : [ "dependency:/clair-scanner-output.json/apt:1.4.8" ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "683620ac905c1d32b58c",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATES",
+      "scanClient" : "test",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Filename",
+        "value" : "apt:1.4.8"
+      } ]
+    }
+  } ]
+}

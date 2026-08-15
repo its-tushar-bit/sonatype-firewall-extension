@@ -1,0 +1,71 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "hawk",
+        "qualifier" : "",
+        "version" : "1.1.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "browser.js" ],
+    "pathnames" : [ "hawk-1.1.1.tgz/package/lib/browser.js", "hawk-1.1.1.tgz/package/test/browser.js" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "0c015d07b5d6dd334a56",
+    "relativePopularity" : null,
+    "createTime" : 1378066960000,
+    "lastModifiedTime" : 1378066930000,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "hawk"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.1.1"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "hawk",
+        "version" : "1.1.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "hawk-1.1.1.tgz" ],
+    "pathnames" : [ "hawk-1.1.1.tgz" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "observedLicenses" : [ "EPL-1.0" ],
+    "hash" : "87cd491f9b46e4e2aeac",
+    "relativePopularity" : null,
+    "createTime" : 1378066960000,
+    "lastModifiedTime" : 1534522698000,
+    "lastModifiedEntryTime" : 1378066930000,
+    "website" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "hawk"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "1.1.1"
+      } ]
+    }
+  } ]
+}

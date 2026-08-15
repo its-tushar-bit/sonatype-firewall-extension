@@ -1,0 +1,28 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "reactivex:rxjs",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.webjars.npm",
+        "version" : "5.0.0-alpha.7"
+      }
+    },
+    "groupId" : "org.webjars.npm",
+    "artifactId" : "reactivex:rxjs",
+    "version" : "5.0.0-alpha.7",
+    "filenames" : [ "reactivex_rxjs-5.0.0-alpha.7.jar" ],
+    "pathnames" : [ "reactivex_rxjs-5.0.0-alpha.7.jar" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "9276b9bfccfcd3614dc2",
+    "relativePopularity" : 1.0,
+    "createTime" : 1447958674000,
+    "lastModifiedTime" : 1484947412000,
+    "lastModifiedEntryTime" : 1447950724000,
+    "website" : null
+  } ]
+}

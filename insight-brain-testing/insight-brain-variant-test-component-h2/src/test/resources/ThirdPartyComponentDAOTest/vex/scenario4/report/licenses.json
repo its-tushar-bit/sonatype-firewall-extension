@@ -1,0 +1,99 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "zip",
+        "name" : "numpy",
+        "qualifier" : "",
+        "version" : "1.19.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "0b1792c8a828d6a9fb14",
+    "declaredLicenses" : [ "BSD", "Non-Standard" ],
+    "observedLicenses" : [ "Apache-2.0", "BSD", "BSD-2-Clause", "BSD-2-Clause-Views", "BSD-3-Clause", "CC0-1.0", "CC0-UNSPECIFIED", "GPL-3.0", "JSON", "MIT", "PSF" ],
+    "effectiveLicenses" : [ "GPL-3.0" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 3,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 9,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : 5.5,
+    "catalogDate" : 1592685465000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "numpy"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.19.0"
+      }, {
+        "value" : " (."
+      }, {
+        "field" : "Extension",
+        "value" : "zip"
+      }, {
+        "value" : ")"
+      } ],
+      "name" : "numpy"
+    },
+    "hiddenObservedLicenses" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "zip",
+        "name" : "numpy",
+        "qualifier" : "",
+        "version" : "1.20.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "bcc35a0d8fe897f3b427",
+    "declaredLicenses" : [ "BSD" ],
+    "observedLicenses" : [ "Apache-2.0", "BSD", "BSD-2-Clause", "BSD-2-Clause-Views", "BSD-3-Clause", "CC0-1.0", "CC0-UNSPECIFIED", "GPL-3.0", "JSON", "MIT", "PSF" ],
+    "effectiveLicenses" : [ "GPL-3.0" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 3,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 9,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : 5.5,
+    "catalogDate" : 1612037068000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "numpy"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.20.0"
+      }, {
+        "value" : " (."
+      }, {
+        "field" : "Extension",
+        "value" : "zip"
+      }, {
+        "value" : ")"
+      } ],
+      "name" : "numpy"
+    },
+    "hiddenObservedLicenses" : false
+  } ]
+}

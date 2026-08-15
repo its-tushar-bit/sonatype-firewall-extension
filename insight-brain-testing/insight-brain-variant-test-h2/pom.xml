@@ -200,7 +200,11 @@
       <artifactId>insight-brain-common</artifactId>
       <type>test-jar</type>
     </dependency>
-
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-policy</artifactId>
+      <type>test-jar</type>
+    </dependency>
     <!-- SpringTestExecutionContext lives here. -->
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>

@@ -1,0 +1,728 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "gson",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.google.code.gson",
+        "version" : "2.8.1"
+      }
+    },
+    "packageUrl": "pkg:maven/com.google.code.gson/gson@2.8.1?type=jar",
+    "groupId" : "com.google.code.gson",
+    "artifactId" : "gson",
+    "version" : "2.8.1",
+    "filenames" : [ "gson-2.8.1.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.nexus:nexus-platform-api:jar:1.0.0/com.google.code.gson:gson:jar:2.8.1" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "02a8e0aa38a2e21cb39e",
+    "relativePopularity" : 0.12,
+    "createTime" : 1496194739000,
+    "lastModifiedTime" : 1558625688000,
+    "lastModifiedEntryTime" : 1496187536000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.google.code.gson"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "gson"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.8.1"
+      } ],
+      "name" : "gson"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.8"
+      }
+    },
+    "packageUrl": "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.9.8?type=jar",
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-core",
+    "version" : "2.9.8",
+    "filenames" : [ "jackson-core-2.9.8.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.nexus:nexus-platform-api:jar:1.0.0/com.fasterxml.jackson.core:jackson-core:jar:2.9.8" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "0f5a654e4675769c716e",
+    "relativePopularity" : 1.0,
+    "createTime" : 1544908773000,
+    "lastModifiedTime" : 1558630178000,
+    "lastModifiedEntryTime" : 1544897952000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.fasterxml.jackson.core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jackson-core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.9.8"
+      } ],
+      "name" : "jackson-core"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.8"
+      }
+    },
+    "packageUrl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.8?type=jar",
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-databind",
+    "version" : "2.9.8",
+    "filenames" : [ "jackson-databind-2.9.8.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.nexus:nexus-platform-api:jar:1.0.0/com.fasterxml.jackson.core:jackson-databind:jar:2.9.8" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "11283f21cc480aa86c4d",
+    "relativePopularity" : 1.0,
+    "createTime" : 1544911179000,
+    "lastModifiedTime" : 1558630178000,
+    "lastModifiedEntryTime" : 1544929146000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.fasterxml.jackson.core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jackson-databind"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.9.8"
+      } ],
+      "name" : "jackson-databind"
+    }
+  },   {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xmlpull",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "xmlpull",
+        "version" : "1.1.3.1"
+      }
+    },
+    "packageUrl": "pkg:maven/xmlpull/xmlpull@1.1.3.1?type=jar",
+    "groupId" : "xmlpull",
+    "artifactId" : "xmlpull",
+    "version" : "1.1.3.1",
+    "filenames" : [ "xmlpull-1.1.3.1.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.nexus:nexus-platform-api:jar:1.0.0/xmlpull:xmlpull:jar:1.1.3.1" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "2b8e230d2ab644e4ecaa",
+    "relativePopularity" : 1.0,
+    "createTime" : 1471563152000,
+    "lastModifiedTime" : 1558621470000,
+    "lastModifiedEntryTime" : 1053367978000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "xmlpull"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "xmlpull"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.1.3.1"
+      } ],
+      "name" : "xmlpull"
+    }
+  },  {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "selenium-leg-rc",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.seleniumhq.selenium",
+        "version" : "2.48.2"
+      }
+    },
+    "packageUrl": "pkg:maven/org.seleniumhq.selenium/selenium-leg-rc@2.48.2?type=jar",
+    "groupId" : "org.seleniumhq.selenium",
+    "artifactId" : "selenium-leg-rc",
+    "version" : "2.48.2",
+    "filenames" : [ "selenium-leg-rc-2.48.2.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.nexus:nexus-platform-api:jar:1.0.0/org.seleniumhq.selenium:selenium-leg-rc:jar:2.48.2" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "5a8fc124ecfcc2f99ff4",
+    "relativePopularity" : 0.62,
+    "createTime" : 1444421500000,
+    "lastModifiedTime" : 1597787358000,
+    "lastModifiedEntryTime" : 1444414298000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 108,
+      "path" : "Test and Quality Management/Testing Utilities and Frameworks"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.seleniumhq.selenium"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "selenium-leg-rc"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.48.2"
+      } ],
+      "name" : "selenium-leg-rc"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.seleniumhq.selenium.server selenium-server",
+        "qualifier" : "",
+        "version" : "1.0.2"
+      }
+    },
+    "packageUrl": "pkg:a-name/org.seleniumhq.selenium.server+selenium-server@1.0.2",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "htmlutils.js" ],
+    "pathnames" : [ "selenium-leg-rc-2.48.2.jar/com/thoughtworks/selenium/webdriven/htmlutils.js" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "732c443bf5eeaea8160a",
+    "relativePopularity" : null,
+    "createTime" : 1265200109000,
+    "lastModifiedTime" : 1444413284000,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.seleniumhq.selenium.server selenium-server"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.0.2"
+      } ],
+      "name" : "org.seleniumhq.selenium.server selenium-server"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "httpclient",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.httpcomponents",
+        "version" : "4.5.1"
+      }
+    },
+    "packageUrl": "pkg:maven/org.apache.httpcomponents/httpclient@4.5.1?type=jar",
+    "groupId" : "org.apache.httpcomponents",
+    "artifactId" : "httpclient",
+    "version" : "4.5.1",
+    "filenames" : [ "httpclient-4.5.1.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.nexus:nexus-platform-api:jar:1.0.0/org.apache.httpcomponents:httpclient:jar:4.5.1" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "7e3cecc566df91338c6c",
+    "relativePopularity" : 0.19,
+    "createTime" : 1441976150000,
+    "lastModifiedTime" : 1558707704000,
+    "lastModifiedEntryTime" : 1442001230000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.apache.httpcomponents"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "httpclient"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "4.5.1"
+      } ],
+      "name" : "httpclient"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "pecoff",
+      "coordinates" : {
+        "name" : "jnidispatch",
+        "namespace" : "Java(TM) Native Access (JNA)/Java(TM) Native Access",
+        "version" : "4.0.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "jnidispatch.dll" ],
+    "pathnames" : [ "jna-4.1.0.jar/com/sun/jna/win32-x86/jnidispatch.dll" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "8b32cc82740fc62afdf5",
+    "relativePopularity" : null,
+    "createTime" : 1407940380000,
+    "lastModifiedTime" : 1389597852000,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Namespace",
+        "value" : "Java(TM) Native Access (JNA)/Java(TM) Native Access"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Name",
+        "value" : "jnidispatch"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "4.0.0"
+      } ],
+      "name" : "jnidispatch"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "slf4j-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.slf4j",
+        "version" : "1.7.30"
+      }
+    },
+    "packageUrl": "pkg:maven/org.slf4j/slf4j-api@1.7.30?type=jar",
+    "groupId" : "org.slf4j",
+    "artifactId" : "slf4j-api",
+    "version" : "1.7.30",
+    "filenames" : [ "slf4j-api-1.7.30.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.nexus:nexus-platform-api:jar:1.0.0/org.slf4j:slf4j-api:jar:1.7.30" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "b5a4b6d16ab13e34a88f",
+    "relativePopularity" : 0.0,
+    "createTime" : 1576530216000,
+    "lastModifiedTime" : 1577131198000,
+    "lastModifiedEntryTime" : 1576551812000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.slf4j"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "slf4j-api"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.7.30"
+      } ],
+      "name" : "slf4j-api"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "selenium-remote-driver",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.seleniumhq.selenium",
+        "version" : "2.48.2"
+      }
+    },
+    "packageUrl": "pkg:maven/org.seleniumhq.selenium/selenium-remote-driver@2.48.2?type=jar",
+    "groupId" : "org.seleniumhq.selenium",
+    "artifactId" : "selenium-remote-driver",
+    "version" : "2.48.2",
+    "filenames" : [ "selenium-remote-driver-2.48.2.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.nexus:nexus-platform-api:jar:1.0.0/org.seleniumhq.selenium:selenium-remote-driver:jar:2.48.2" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "c35f3cbc64b254ae931c",
+    "relativePopularity" : 0.08,
+    "createTime" : 1444421341000,
+    "lastModifiedTime" : 1597787352000,
+    "lastModifiedEntryTime" : 1444414140000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 108,
+      "path" : "Test and Quality Management/Testing Utilities and Frameworks"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.seleniumhq.selenium"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "selenium-remote-driver"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.48.2"
+      } ],
+      "name" : "selenium-remote-driver"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "nwt",
+        "qualifier" : "",
+        "version" : "0.1.10"
+      }
+    },
+    "packageUrl": "pkg:a-name/nwt@0.1.10",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "sizzle.js" ],
+    "pathnames" : [ "selenium-leg-rc-2.48.2.jar/com/thoughtworks/selenium/webdriven/sizzle.js" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "ea421ab90f711976ace3",
+    "relativePopularity" : null,
+    "createTime" : 1332206029061,
+    "lastModifiedTime" : 1444413284000,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "nwt"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "0.1.10"
+      } ],
+      "name" : "nwt"
+    }
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "insight-client-utils-1.0.0-SNAPSHOT.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.nexus:nexus-platform-api:jar:1.0.0/com.sonatype.insight.scan:insight-client-utils:jar:1.0.0-SNAPSHOT" ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : true,
+    "hash" : "ba858b878b4502d3f4db",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1598294488000,
+    "lastModifiedEntryTime" : 1598294490000,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Filename",
+        "value" : "insight-client-utils-1.0.0-SNAPSHOT.jar"
+      } ],
+      "name" : "insight-client-utils-1.0.0-SNAPSHOT.jar"
+    }
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "insight-module-model-1.0.0-SNAPSHOT.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.nexus:nexus-platform-api:jar:1.0.0/com.sonatype.insight.scan:insight-module-model:jar:1.0.0-SNAPSHOT" ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : true,
+    "hash" : "8a8aa7d21754d585698d",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1598294268000,
+    "lastModifiedEntryTime" : 1598294270000,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Filename",
+        "value" : "insight-module-model-1.0.0-SNAPSHOT.jar"
+      } ],
+      "name" : "insight-module-model-1.0.0-SNAPSHOT.jar"
+    }
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "insight-scanner-archive-1.0.0-SNAPSHOT.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.nexus:nexus-platform-api:jar:1.0.0/com.sonatype.insight.scan:insight-scanner-archive:jar:1.0.0-SNAPSHOT" ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : true,
+    "hash" : "1b67c0a3d68766b3193e",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1598294404000,
+    "lastModifiedEntryTime" : 1598294404000,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Filename",
+        "value" : "insight-scanner-archive-1.0.0-SNAPSHOT.jar"
+      } ],
+      "name" : "insight-scanner-archive-1.0.0-SNAPSHOT.jar"
+    }
+  }
+  ]
+}

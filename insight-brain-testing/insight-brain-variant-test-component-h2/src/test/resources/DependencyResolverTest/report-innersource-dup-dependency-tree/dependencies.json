@@ -1,0 +1,91 @@
+{
+  "dependencyTree" : {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "hds",
+        "extension" : "jar",
+        "groupId" : "test",
+        "version" : "1.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/test/hds@1.0?type=jar",
+    "children" : [
+      {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "component1",
+          "extension" : "jar",
+          "groupId" : "test",
+          "version" : "1.0"
+        }
+      },
+      "packageUrl" : "pkg:maven/test/component1@1.0?type=jar",
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "hashing",
+            "extension" : "jar",
+            "groupId" : "test",
+            "version" : "1.0"
+          }
+        },
+        "packageUrl" : "pkg:maven/test/hashing@1.0?type=jar",
+        "children" : [ {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "asm70",
+              "extension" : "jar",
+              "groupId" : "test",
+              "version" : "1.0"
+            }
+          },
+          "packageUrl" : "pkg:maven/test/asm70@1.0?type=jar"
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "asm61",
+              "extension" : "jar",
+              "groupId" : "test",
+              "version" : "1.0"
+            }
+          },
+          "packageUrl" : "pkg:maven/test/asm61@1.0?type=jar"
+        } ],
+        "direct" : true
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "test",
+            "extension" : "jar",
+            "groupId" : "test",
+            "version" : "1.0"
+          }
+        },
+        "packageUrl" : "pkg:maven/test/test@1.0?type=jar",
+        "children" : [ {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "hashing",
+              "extension" : "jar",
+              "groupId" : "test",
+              "version" : "1.0"
+            }
+          },
+          "packageUrl" : "pkg:maven/test/hashing@1.0?type=jar"
+        } ],
+        "direct" : true
+      }
+      ],
+      "direct" : true,
+      "module" : true
+    } ],
+    "module" : true
+  }
+}

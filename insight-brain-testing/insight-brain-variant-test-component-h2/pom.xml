@@ -248,6 +248,13 @@
       <version>2.3.9</version>
       <scope>test</scope>
     </dependency>
+
+    <!-- ApacheDS runtime for EmbeddedLdapServer (LDAP-backed auth tests: User/UserToken/MembershipMapping). -->
+    <dependency>
+      <groupId>org.apache.directory.server</groupId>
+      <artifactId>apacheds-core-integ</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
 </project>

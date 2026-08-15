@@ -1,0 +1,283 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "known-direct-1",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.innersource",
+          "version": "2.8.1"
+        }
+      },
+      "groupId": "com.innersource",
+      "artifactId": "known-direct-1",
+      "version": "2.8.1",
+      "filenames": [
+        "known-direct-1-2.8.1.jar"
+      ],
+      "pathnames": [
+        "dependency:/com.innersource:known-direct-1:jar:2.8.1"
+      ],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "02a8e0aa38a2e21cb39e",
+      "relativePopularity": 0.12,
+      "createTime": 1496194739000,
+      "lastModifiedTime": 1558625688000,
+      "lastModifiedEntryTime": 1496187536000,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "mvn",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "com.innersource"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "known-direct-1"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "2.8.1"
+          }
+        ],
+        "name": "known-direct-1"
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "known-direct-2",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.innersource",
+          "version": "2.8.1"
+        }
+      },
+      "groupId": "com.innersource",
+      "artifactId": "known-direct-2",
+      "version": "2.8.1",
+      "filenames": [
+        "known-direct-2-2.8.1.jar"
+      ],
+      "pathnames": [
+        "dependency:/com.innersource:known-direct-2:jar:2.8.1"
+      ],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "02a8e0aa38a2e21cb39e",
+      "relativePopularity": 0.12,
+      "createTime": 1496194739000,
+      "lastModifiedTime": 1558625688000,
+      "lastModifiedEntryTime": 1496187536000,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "mvn",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "com.innersource"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "known-direct-2"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "2.8.1"
+          }
+        ],
+        "name": "known-direct-2"
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "known-transitive",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.innersource",
+          "version": "2.8.1"
+        }
+      },
+      "groupId": "com.innersource",
+      "artifactId": "known-transitive",
+      "version": "2.8.1",
+      "filenames": [
+        "known-transitive-2.8.1.jar"
+      ],
+      "pathnames": [
+        "dependency:/com.innersource:known-transitive:jar:2.8.1"
+      ],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "02a8e0aa38a2e21cb39e",
+      "relativePopularity": 0.12,
+      "createTime": 1496194739000,
+      "lastModifiedTime": 1558625688000,
+      "lastModifiedEntryTime": 1496187536000,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "mvn",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "com.innersource"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "known-transitive"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "2.8.1"
+          }
+        ],
+        "name": "known-transitive"
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "commons-io",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "commons-io",
+          "version": "2.6"
+        }
+      },
+      "groupId": "commons-io",
+      "artifactId": "commons-io",
+      "version": "2.6",
+      "filenames": [
+        "commons-io-2.6.jar"
+      ],
+      "pathnames": [
+        "dependency:/com.innersource:known-direct-1:jar:2.8.1",
+        "dependency:/com.innersource:known-direct-2:jar:2.8.1"
+      ],
+      "aggregateFiles": [],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "815893df5f31da2ece40",
+      "relativePopularity": 0.61,
+      "createTime": 1519358738000,
+      "lastModifiedTime": 1585418676000,
+      "lastModifiedEntryTime": 1508065230000,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "mvn",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "integrityRating": null,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "commons-io"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "commons-io"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "2.6"
+          }
+        ],
+        "name": "commons-io"
+      }
+    }
+  ]
+}

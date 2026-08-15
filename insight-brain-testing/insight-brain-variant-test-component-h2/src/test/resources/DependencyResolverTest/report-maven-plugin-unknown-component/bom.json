@@ -1,0 +1,33 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "test-1.0.jar" ],
+    "pathnames" : [ "dependency:/org.example:maven-deps:jar:1.0-SNAPSHOT/test:test:jar:1.0" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "0e9a15c973cf4490221b",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1666742248000,
+    "lastModifiedEntryTime" : 1509564258000,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : null
+  } ]
+}

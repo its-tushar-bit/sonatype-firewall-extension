@@ -37,10 +37,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -89,6 +87,10 @@ public class ViolationsListServiceSessionTest
     when(conversionHelper.stringToQuery(anyString())).thenReturn(SESSION_QUERY);
     when(indexQueryBuilder.buildViolationQuery(any())).thenReturn(QUERY);
     lenient().when(indexQueryBuilder.buildViolationQueryExcludingWaiverType(any())).thenReturn(QUERY);
+
+    lenient().when(indexQueryBuilder.buildViolationQueryExcludingState(any())).thenReturn(QUERY);
+    lenient().when(indexQueryBuilder.buildViolationQueryExcludingThreatCategory(any())).thenReturn(QUERY);
+    lenient().when(indexQueryBuilder.buildViolationQueryExcludingStage(any())).thenReturn(QUERY);
     lenient().when(policyViolationDAO.getByIds(any())).thenReturn(List.of());
   }
 
@@ -229,16 +231,41 @@ public class ViolationsListServiceSessionTest
         .thenReturn(new IndexPageResult(List.of(violationDoc("pv-1")), List.of(), false));
     ViolationsListFacetsDTO facets = new ViolationsListFacetsDTO();
     facets.totalViolations = 2;
-    when(facetsBuilder.buildFacets(eq(session), eq(QUERY), eq(QUERY), eq(2L), isNull(), isNull(), anyList()))
-        .thenReturn(facets);
     when(indexQueryBuilder.buildViolationQueryExcludingWaiverType(any())).thenReturn(QUERY);
+    when(facetsBuilder.buildFacets(eq(session), eq(QUERY), eq(2L),
+        any(ViolationsListFacetsBuilder.OwnerFacetBase.class), any(), any()))
+            .thenReturn(facets);
 
     ViolationsListRequestDTO request = request(0, 50);
     request.includeFacets = true;
     ViolationsListResponseDTO response = service().listViolations(request);
 
     assertThat(response.facets).isSameAs(facets);
-    verify(facetsBuilder).buildFacets(eq(session), eq(QUERY), eq(QUERY), eq(2L), isNull(), isNull(), anyList());
+    verify(facetsBuilder).buildFacets(eq(session), eq(QUERY), eq(2L),
+        any(ViolationsListFacetsBuilder.OwnerFacetBase.class), any(), any());
+  }
+
+  /**
+   * The sidebar enriches the list, so losing it must not lose the rows. A facet failure leaves the page
+   * intact with no facets rather than surfacing as a 500.
+   */
+  @Test
+  public void listViolations_session_facetBuildFails_returnsRowsWithoutFacets() {
+    when(session.count(SESSION_QUERY)).thenReturn(2L);
+    when(session.searchPage(any(IndexPageRequest.class)))
+        .thenReturn(new IndexPageResult(List.of(violationDoc("pv-1")), List.of(), false));
+    when(indexQueryBuilder.buildViolationQueryExcludingWaiverType(any())).thenReturn(QUERY);
+    when(facetsBuilder.buildFacets(eq(session), eq(QUERY), eq(2L),
+        any(ViolationsListFacetsBuilder.OwnerFacetBase.class), any(), any()))
+            .thenThrow(new IllegalStateException("facet aggregation failed"));
+
+    ViolationsListRequestDTO request = request(0, 50);
+    request.includeFacets = true;
+    ViolationsListResponseDTO response = service().listViolations(request);
+
+    assertThat(response.violations).hasSize(1);
+    assertThat(response.total).isEqualTo(2L);
+    assertThat(response.facets).isNull();
   }
 
   @Test

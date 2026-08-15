@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dashboard.violations;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -48,26 +50,32 @@ import org.apache.lucene.search.Query;
 /**
  * Builds Martha sidebar facet counts for the Violations list from RBAC-scoped index count queries.
  * <p>
- * Facet counts are computed against the same {@code violationQuery} as the list rows, so active sidebar
- * filters narrow both the result set and the facet counts (Martha V1 narrowing semantics; filter
- * interactions land in CLM-42258). The one exception is the single-select waiver-type facet, which is
- * counted against the query minus its own clause so the unselected option still shows a switchable count
- * (see {@link #buildFacets(String, String, long)}). Dimensions with a zero count are omitted.
+ * Legacy path ({@code nexusOne.search.readPath.violations=old}): every facet — {@code states},
+ * {@code threatCategories}, {@code stages}, {@code organizations}, {@code applications} — is counted
+ * against the same {@code violationQuery} as the list rows, so active sidebar filters narrow both the
+ * result set and the facet counts. {@code waiverTypes} is the one exception on this path, counted
+ * against {@code waiverFacetQuery} (the query minus its own clause) instead (see
+ * {@link #buildFacets(String, String, long)}).
  * <p>
- * On the PR-0 session path ({@code nexusOne.search.readPath.violations=new}), org/app facets use
- * {@link IndexReadSession#termsAggregation} against the shared session; small-vocabulary facets use
- * {@link IndexReadSession#count}. Legacy path keeps discovery + capped {@code SearchIndexClient.count}.
+ * Session path ({@code =new}): every facet is counted against a base query with only that facet's own
+ * clause removed — owner (org/app), waiver-type, state, threat-category, and stage each aggregate over
+ * a base with every OTHER active filter still applied but their own clause omitted — so selecting a
+ * value in one facet never collapses the other values in that same facet to zero (see
+ * {@link #buildFacets(IndexReadSession, String, String, long, OwnerFacetBase, FixedFacetBases)}).
+ * Dimensions with a zero count are omitted.
  * <p>
- * Session <em>default</em> org/app buckets are exact {@code organizationId}/{@code applicationId} terms
- * on the indexed document (no parent→descendant rollup). Session <em>name-search</em> org counts use
- * {@link DashboardIndexDimensionQueryBuilder#buildOrganizationFilterClausesById} (descendant-inclusive)
- * so the count matches what selecting that org as a list filter will return — a searched parent can
- * therefore show a larger count than its default exact-term row.
+ * On the session path the owner facets are one {@link IndexReadSession#termsAggregation} each and the
+ * small-vocabulary facets are {@link IndexReadSession#count} calls, all on the shared session. Organization
+ * buckets are the {@code parentOrganizationId} ancestor closure, so a parent's bucket counts its whole
+ * subtree and matches what selecting that organization as a list filter returns; the root organization and
+ * any organization outside the caller's read scope are dropped before the display cap. When the rail is
+ * being name-searched, the matching organizations are counted via
+ * {@link DashboardIndexDimensionQueryBuilder#buildOrganizationFilterClausesById} against the same
+ * owner-removed base, so searching while a selection is active still shows the other matches' real counts.
  * <p>
- * The legacy default path also expands discovered orgs via
- * {@link DashboardIndexDimensionQueryBuilder#buildOrganizationFilterClausesById}. Oversized descendant
- * expansions are soft-skipped (omitted from the rail) rather than 400'ing the list — intentional for
- * both top-by-count discovery and passive facet search.
+ * The legacy path discovers owners from capped list hits and counts each with
+ * {@code SearchIndexClient.count}, likewise one {@code parentOrganizationId} ancestor-match term per
+ * organization, so there is no descendant expansion or clause cap.
  */
 @Named
 @Singleton
@@ -83,6 +91,18 @@ final class ViolationsListFacetsBuilder
    */
   static final int MAX_ORGANIZATION_FACETS =
       Integer.getInteger("nexusOne.violations.facets.maxOrganizationCountQueries", 15);
+
+  /**
+   * Candidate buckets requested for the hierarchical organization facet, before root exclusion, the read
+   * gate and the {@link #MAX_ORGANIZATION_FACETS} display cap.
+   * <p>
+   * Sized well above the display cap rather than as a small multiple of it: the aggregation returns top-N by
+   * document count and ancestor-closure counts accumulate toward the root, so every ancestor outranks the
+   * leaves beneath it. A caller who can read only a low-count leaf would otherwise find the candidate window
+   * filled by higher-count ancestors it cannot read, and the read gate can only filter what the aggregation
+   * returned. Matches the applications rail and the index-query facets.
+   */
+  static final int MAX_ORGANIZATION_FACET_CANDIDATES = 500;
 
   /**
    * Cap on application facet keys returned (legacy: max count-query fan-out; session: maxBuckets).
@@ -106,7 +126,7 @@ final class ViolationsListFacetsBuilder
           "nexusOne.violations.facets.maxApplicationNameSearchCandidates",
           MAX_APPLICATION_FACETS * 10);
 
-  /** Waiver-type facet keys (CLM-42261); mirrored by the frontend radio labels. */
+  /** Waiver-type facet keys; mirrored by the frontend radio labels. */
   static final String WAIVER_TYPE_AUTO = "AUTO";
 
   static final String WAIVER_TYPE_MANUAL = "MANUAL";
@@ -176,7 +196,7 @@ final class ViolationsListFacetsBuilder
   }
 
   /**
-   * Legacy-path facets with optional org/app name search (CLM-42912).
+   * Legacy-path facets with optional org/app name search.
    * <p>
    * When {@code organizationFacetSearch} / {@code applicationFacetSearch} is non-blank, that owner
    * facet map is replaced with DAO name-substring matches that still have a positive count under
@@ -192,9 +212,6 @@ final class ViolationsListFacetsBuilder
   {
     ViolationsListFacetsDTO facets = new ViolationsListFacetsDTO();
     facets.totalViolations = totalViolations;
-    if (totalViolations == 0) {
-      return facets;
-    }
 
     List<IndexFilterRestriction> restrictions = scopeRestrictions == null ? List.of() : scopeRestrictions;
     ToLongFunction<String> counter = query -> searchIndexClient.count(query, restrictions);
@@ -232,64 +249,101 @@ final class ViolationsListFacetsBuilder
   }
 
   /**
-   * Session-path facets: share the caller's {@link IndexReadSession} (one RBAC compile + one snapshot).
-   * String queries are the same Martha query strings as the legacy path; conversion happens here so
-   * we never round-trip {@link Query#toString()}.
+   * Per-dimension facet base queries for the fixed/small-vocabulary Violations facets on the session
+   * path, each with only that facet's own clause removed from the fully-narrowed query (every other
+   * active filter still applied) — see
+   * {@link ViolationsListIndexQueryBuilder#buildViolationQueryExcludingState},
+   * {@link ViolationsListIndexQueryBuilder#buildViolationQueryExcludingThreatCategory}, and
+   * {@link ViolationsListIndexQueryBuilder#buildViolationQueryExcludingStage}.
    */
-  ViolationsListFacetsDTO buildFacets(
-      final IndexReadSession session,
-      final String violationQuery,
-      final String waiverFacetQuery,
-      final long totalViolations,
-      final List<IndexFilterRestriction> scopeRestrictions)
+  record FixedFacetBases(
+      String stateRemovedBase,
+      String threatCategoryRemovedBase,
+      String stageRemovedBase)
   {
-    return buildFacets(session, violationQuery, waiverFacetQuery, totalViolations, null, null, scopeRestrictions);
   }
 
   /**
-   * Session-path facets with optional org/app name search (CLM-42912). Search counts use the same
-   * dimension filter clauses as list filtering so selected owners match the counts shown.
+   * The owner-dimension facet base, in both forms the counting paths need, plus the rail's name-search
+   * terms.
+   * <p>
+   * Organization and application are one owner dimension, so both count against a base with the whole
+   * dimension removed. Name search counts the same way: a user typing in the organization rail while an
+   * organization is selected must still see the other matches, not just the selection.
+   *
+   * @param query owner-removed base for the doc-values aggregations
+   * @param queryString the same base as a query string, for the name-search clause counting
+   * @param organizationSearch organization rail name-search term, blank when the rail is not being searched
+   * @param applicationSearch application rail name-search term, blank when the rail is not being searched
+   */
+  record OwnerFacetBase(Query query, String queryString, String organizationSearch, String applicationSearch)
+  {
+    boolean hasOrganizationSearch() {
+      return StringUtils.isNotBlank(organizationSearch);
+    }
+
+    boolean hasApplicationSearch() {
+      return StringUtils.isNotBlank(applicationSearch);
+    }
+  }
+
+  /**
+   * Session-path facets with owner-removed base.
+   * <p>
+   * Owner facets (org + app) aggregate over the owner-removed base so selecting an org/app
+   * does NOT collapse the org/app rails. Org facet uses PARENT_ORGANIZATION_ID (hierarchical
+   * closure) and excludes root org before the display cap. The {@code states}, {@code threatCategories},
+   * and {@code stages} facets each aggregate over their own clause-removed base from
+   * {@code fixedFacetBases} for the same no-collapse reason.
+   *
+   * The fully-narrowed list query is deliberately absent: no facet counts against it, since every dimension
+   * counts against a base with its own clause removed.
+   *
+   * @param session the index read session
+   * @param waiverFacetQuery the query with waiver-type clause removed
+   * @param totalViolations total violation count
+   * @param ownerFacetBase the owner-removed base plus the rail's name-search terms
+   * @param fixedFacetBases per-dimension base queries for {@code states}/{@code threatCategories}/{@code stages}
    */
   ViolationsListFacetsDTO buildFacets(
       final IndexReadSession session,
-      final String violationQuery,
       final String waiverFacetQuery,
       final long totalViolations,
-      final String organizationFacetSearch,
-      final String applicationFacetSearch,
+      final OwnerFacetBase ownerFacetBase,
+      final FixedFacetBases fixedFacetBases,
       final List<IndexFilterRestriction> scopeRestrictions)
   {
     ViolationsListFacetsDTO facets = new ViolationsListFacetsDTO();
     facets.totalViolations = totalViolations;
-    if (totalViolations == 0) {
-      return facets;
-    }
 
+    // Fixed-vocabulary facets keep the caller's organization/application scope; each already counts
+    // against a base with only its own clause removed.
     List<IndexFilterRestriction> restrictions = scopeRestrictions == null ? List.of() : scopeRestrictions;
-    Query sessionViolationQuery = toScopedQuery(violationQuery, restrictions);
     ToLongFunction<String> counter = query -> sessionCount(session, query, restrictions);
 
-    facets.states = countStates(violationQuery, counter);
+    facets.states = countStates(fixedFacetBases.stateRemovedBase(), counter);
     facets.waiverTypes = countWaiverTypes(waiverFacetQuery, counter);
-    facets.threatCategories = countThreatCategories(violationQuery, counter);
-    facets.stages = countLicensedStages(violationQuery, counter);
+    facets.threatCategories = countThreatCategories(fixedFacetBases.threatCategoryRemovedBase(), counter);
+    facets.stages = countLicensedStages(fixedFacetBases.stageRemovedBase(), counter);
     BiFunction<String, List<IndexFilterRestriction>, Long> scopedCounter =
         (query, combined) -> sessionCount(session, query, combined);
-    if (StringUtils.isNotBlank(organizationFacetSearch)) {
-      applyOrganizationFacetSearch(
-          facets,
-          countOrganizationsMatchingName(violationQuery, organizationFacetSearch, restrictions, scopedCounter));
+    // Org and app are ONE owner dimension. Both count with the organization/application term-set
+    // restrictions withheld, so selecting an org/app does NOT collapse the org/app rails. A searched
+    // rail narrows to name matches instead of aggregating the whole dimension, and withholds the same
+    // restrictions for the same reason.
+    if (ownerFacetBase.hasOrganizationSearch()) {
+      applyOrganizationFacetSearch(facets, countOrganizationsMatchingName(
+          ownerFacetBase.queryString(), ownerFacetBase.organizationSearch(), List.of(), scopedCounter));
     }
     else {
-      facets.organizations = countOrganizations(session, sessionViolationQuery);
+      facets.organizations = countOrganizations(session, ownerFacetBase.query(), facets);
     }
-    if (StringUtils.isNotBlank(applicationFacetSearch)) {
-      applyApplicationFacetSearch(
-          facets,
-          countApplicationsMatchingName(violationQuery, applicationFacetSearch, restrictions, scopedCounter));
+    if (ownerFacetBase.hasApplicationSearch()) {
+      applyApplicationFacetSearch(facets, countApplicationsMatchingName(
+          ownerFacetBase.queryString(), ownerFacetBase.applicationSearch(), List.of(), scopedCounter));
     }
     else {
-      facets.applications = countApplications(session, sessionViolationQuery);
+      facets.applications = countApplications(session, ownerFacetBase.query());
     }
     attachOwnerLabels(facets);
     return facets;
@@ -497,11 +551,8 @@ final class ViolationsListFacetsBuilder
    * Pipeline: over-fetch name matches (up to {@link #MAX_ORGANIZATION_FACET_SEARCH_CANDIDATES}) →
    * intersect with {@link OrganizationSummaryService#getOrganizationsForRead(Set)} (id-scoped) so
    * parent orgs the caller cannot see are never emitted even when a visible child has violations →
-   * batch descendant clauses → count against the RBAC-scoped {@code violationQuery} → keep the first
-   * {@link #MAX_ORGANIZATION_FACETS} positive-count owners.
-   * <p>
-   * Oversized org hierarchies are soft-skipped by
-   * {@link DashboardIndexDimensionQueryBuilder#buildOrganizationFilterClausesById}.
+   * build per-org {@code parentOrganizationId} ancestor-match clauses → count against the RBAC-scoped
+   * {@code violationQuery} → keep the first {@link #MAX_ORGANIZATION_FACETS} positive-count owners.
    */
   private OwnerFacetSearchResult countOrganizationsMatchingName(
       final String violationQuery,
@@ -543,6 +594,7 @@ final class ViolationsListFacetsBuilder
       }
       Set<String> orgIds = expandedById.get(organization.getId());
       if (orgIds == null) {
+        // No entry for this organization: the builder omits root and blank ids.
         continue;
       }
       List<IndexFilterRestriction> combined = IdSetFilterQueries.combine(scopeRestrictions,
@@ -648,14 +700,91 @@ final class ViolationsListFacetsBuilder
   }
 
   /**
-   * Exact-match org buckets from the index (see class Javadoc). Caps at {@link #MAX_ORGANIZATION_FACETS}.
+   * Hierarchical org facets via ancestor closure.
+   * <p>
+   * Aggregates on PARENT_ORGANIZATION_ID (the {self..root} closure) over the owner-removed base,
+   * so parent/grandparent orgs appear with subtree counts. The root org is excluded before the
+   * display cap is applied (root is in every doc's closure and would consume the top bucket).
    */
-  private Map<String, Long> countOrganizations(final IndexReadSession session, final Query violationQuery) {
+  private Map<String, Long> countOrganizations(
+      final IndexReadSession session,
+      final Query ownerRemovedBase,
+      final ViolationsListFacetsDTO facets)
+  {
     List<IndexTermsBucket> buckets = session.termsAggregation(
-        violationQuery,
-        FieldIdentifier.ORGANIZATION_ID.label,
-        MAX_ORGANIZATION_FACETS);
-    return bucketsToCounts(buckets);
+        ownerRemovedBase,
+        FieldIdentifier.PARENT_ORGANIZATION_ID.label,
+        MAX_ORGANIZATION_FACET_CANDIDATES);
+    if (buckets.isEmpty()) {
+      return null;
+    }
+
+    Set<String> orgIds = new HashSet<>();
+    for (IndexTermsBucket bucket : buckets) {
+      if (StringUtils.isNotBlank(bucket.key())) {
+        orgIds.add(bucket.key());
+      }
+    }
+    // Read gate: the ancestor closure surfaces parent/grandparent orgs above the caller's scope, so
+    // intersect the bucket ids with the readable set before resolving names or emitting buckets — a
+    // caller must never see or filter by an org they cannot read.
+    // The read gate returns the rows themselves, so their names are reused for sorting rather than fetched
+    // again by id.
+    Set<String> readableOrgIds = new HashSet<>();
+    Map<String, String> organizationNames = new LinkedHashMap<>();
+    for (Organization organization : organizationSummaryService.getOrganizationsForRead(orgIds)) {
+      readableOrgIds.add(organization.getId());
+      if (StringUtils.isNotBlank(organization.getName())) {
+        organizationNames.putIfAbsent(organization.getId(), organization.getName());
+      }
+    }
+
+    List<IndexTermsBucket> nonZeroBuckets = new ArrayList<>();
+    for (IndexTermsBucket bucket : buckets) {
+      // Exclude root org (it's in every doc's ancestor closure and would dominate the facet) and any
+      // org outside the caller's read scope.
+      if (bucket.count() > 0
+          && StringUtils.isNotBlank(bucket.key())
+          && !Organization.ROOT_ORGANIZATION_ID.equals(bucket.key())
+          && readableOrgIds.contains(bucket.key()))
+      {
+        nonZeroBuckets.add(bucket);
+      }
+    }
+    nonZeroBuckets.sort(
+        Comparator
+            .comparing((IndexTermsBucket bucket) -> organizationNames.getOrDefault(bucket.key(), bucket.key()))
+            .thenComparing(IndexTermsBucket::key));
+
+    // Apply display cap after root exclusion
+    Map<String, Long> counts = new LinkedHashMap<>();
+    int entries = 0;
+    for (IndexTermsBucket bucket : nonZeroBuckets) {
+      if (entries >= MAX_ORGANIZATION_FACETS) {
+        break;
+      }
+      counts.put(bucket.key(), bucket.count());
+      entries++;
+    }
+    if (counts.isEmpty()) {
+      return null;
+    }
+    // Publish the names resolved above for the emitted buckets, so the label pass has nothing left to look
+    // up: it fetches only ids it has no name for.
+    Map<String, String> emittedNames = new LinkedHashMap<>();
+    for (String organizationId : counts.keySet()) {
+      String name = organizationNames.get(organizationId);
+      if (name != null) {
+        emittedNames.put(organizationId, name);
+      }
+    }
+    if (facets.organizationNames == null) {
+      facets.organizationNames = emittedNames;
+    }
+    else {
+      emittedNames.forEach(facets.organizationNames::putIfAbsent);
+    }
+    return counts;
   }
 
   private Map<String, Long> countApplications(
@@ -680,18 +809,24 @@ final class ViolationsListFacetsBuilder
     return counts.isEmpty() ? null : counts;
   }
 
-  private Map<String, Long> countApplications(final IndexReadSession session, final Query violationQuery) {
+  /**
+   * App facet via real aggregation over owner-removed base.
+   * <p>
+   * Aggregating over the owner-removed base lists ALL matching apps (unnarrowed by the owner
+   * selection), which prevents the app rail from collapsing when an org is selected.
+   */
+  private Map<String, Long> countApplications(
+      final IndexReadSession session,
+      final Query ownerRemovedBase)
+  {
     List<IndexTermsBucket> buckets = session.termsAggregation(
-        violationQuery,
+        ownerRemovedBase,
         FieldIdentifier.APPLICATION_ID.label,
         MAX_APPLICATION_FACETS);
-    return bucketsToCounts(buckets);
-  }
-
-  private static Map<String, Long> bucketsToCounts(final List<IndexTermsBucket> buckets) {
-    if (buckets == null || buckets.isEmpty()) {
+    if (buckets.isEmpty()) {
       return null;
     }
+
     Map<String, Long> counts = new LinkedHashMap<>();
     for (IndexTermsBucket bucket : buckets) {
       if (bucket.count() > 0 && StringUtils.isNotBlank(bucket.key())) {

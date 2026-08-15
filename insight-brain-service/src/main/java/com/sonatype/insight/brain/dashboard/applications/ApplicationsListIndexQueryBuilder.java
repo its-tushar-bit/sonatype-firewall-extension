@@ -39,19 +39,144 @@ final class ApplicationsListIndexQueryBuilder
     this.violationScopeResolver = violationScopeResolver;
   }
 
+  /**
+   * Violation-scoped filter dimensions that can be individually excluded from the pre-discovery
+   * violation-scope query, so a facet can be counted against a base where every OTHER active filter
+   * still narrows the violation-scoped application ids but that facet's own filter does not.
+   */
+  private enum ExcludableViolationScopedDimension
+  {
+    STAGE,
+    POLICY_TYPE,
+    VIOLATION_STATE
+  }
+
   String buildApplicationQuery(final ApplicationsListRequestDTO request) {
     return buildApplicationIndexQuery(request).query();
   }
 
   ApplicationsIndexQuery buildApplicationIndexQuery(final ApplicationsListRequestDTO request) {
-    ApplicationsListRequestDTO effectiveRequest = applyViolationScopedApplicationIds(request);
-    // Age is APPLICATION-doc only — apply on the final query, never on violation discovery.
+    return finalizeApplicationQuery(applyViolationScopedApplicationIds(request));
+  }
+
+  /**
+   * The same query and restrictions as {@link #buildApplicationIndexQuery} but with the caller's own
+   * organization/application selection cleared. Used as the base for owner facet aggregations so
+   * selecting an org or app does not collapse the org/app rails. Age (an APPLICATION-doc filter, not an
+   * owner dimension) is still applied.
+   * <p>
+   * Only the owner dimension is dropped: the violation-scoped filters (stage, threat, policy type,
+   * violation state) must still narrow the rails, or a stage-filtered page would show owner counts for
+   * the whole estate. Those filters reach an APPLICATION document by resolving to application ids, which
+   * is also how the user's own application filter is expressed. Clearing the owner selection *before*
+   * resolution keeps them separable: the resolved ids become the only term-set restriction, so the owner
+   * dimension is absent while violation narrowing survives.
+   */
+  ApplicationsIndexQuery buildApplicationIndexQueryWithoutOwner(final ApplicationsListRequestDTO request) {
+    return finalizeApplicationQuery(
+        applyViolationScopedApplicationIds(request == null ? null : copyWithoutOwnerSelection(request)));
+  }
+
+  /** A copy of {@code request} with the owner-dimension selection cleared; other filters are preserved. */
+  private static ApplicationsListRequestDTO copyWithoutOwnerSelection(final ApplicationsListRequestDTO request) {
+    ApplicationsListRequestDTO copy = new ApplicationsListRequestDTO();
+    copy.search = request.search;
+    copy.organizationIds = null;
+    copy.applicationIds = null;
+    copy.tagIds = request.tagIds;
+    copy.stageIds = request.stageIds;
+    copy.policyThreatCategories = request.policyThreatCategories;
+    copy.policyThreatLevelRange = request.policyThreatLevelRange;
+    copy.policyThreatLevelRanges = request.policyThreatLevelRanges;
+    copy.policyViolationStates = request.policyViolationStates;
+    copy.ageInDays = request.ageInDays;
+    return copy;
+  }
+
+  /**
+   * Same as {@link #buildApplicationQuery(ApplicationsListRequestDTO)} but the violation-scoped
+   * discovery that resolves the owner-dimension application ids ignores the {@code stageIds} filter
+   * (every other active filter, including threat/policy-type/violation-state, still narrows). Used as
+   * the base for the {@code stages} facet so selecting a stage does not collapse the other stages.
+   */
+  ApplicationsIndexQuery buildApplicationIndexQueryExcludingStage(final ApplicationsListRequestDTO request) {
+    return finalizeApplicationQuery(applyViolationScopedApplicationIds(
+        withDimensionExcluded(request, ExcludableViolationScopedDimension.STAGE)));
+  }
+
+  /**
+   * Same as {@link #buildApplicationQuery(ApplicationsListRequestDTO)} but the violation-scoped
+   * discovery ignores the {@code policyThreatCategories} filter. Used as the base for the
+   * {@code policyTypes} facet so selecting a policy type does not collapse the other policy types.
+   */
+  ApplicationsIndexQuery buildApplicationIndexQueryExcludingPolicyType(
+      final ApplicationsListRequestDTO request)
+  {
+    return finalizeApplicationQuery(applyViolationScopedApplicationIds(
+        withDimensionExcluded(request, ExcludableViolationScopedDimension.POLICY_TYPE)));
+  }
+
+  /**
+   * Same as {@link #buildApplicationQuery(ApplicationsListRequestDTO)} but the violation-scoped
+   * discovery ignores the {@code policyViolationStates} filter. Used as the base for the
+   * {@code violationStates} facet so selecting a violation state does not collapse the other states.
+   */
+  ApplicationsIndexQuery buildApplicationIndexQueryExcludingViolationState(
+      final ApplicationsListRequestDTO request)
+  {
+    return finalizeApplicationQuery(applyViolationScopedApplicationIds(
+        withDimensionExcluded(request, ExcludableViolationScopedDimension.VIOLATION_STATE)));
+  }
+
+  /** Age is APPLICATION-doc only — applied on the final query, never on violation discovery. */
+  private ApplicationsIndexQuery finalizeApplicationQuery(final ApplicationsListRequestDTO effectiveRequest) {
+    // Age is APPLICATION-doc only - apply on the final query, never on violation discovery.
     List<String> clauses = buildBaseApplicationClauses(effectiveRequest);
     String ageClause = buildAgeClause(effectiveRequest == null ? null : effectiveRequest.ageInDays);
     if (ageClause != null) {
       clauses.add(ageClause);
     }
     return new ApplicationsIndexQuery(String.join(" AND ", clauses), buildScopeRestrictions(effectiveRequest));
+  }
+
+  /**
+   * Shallow-copies {@code request} with one violation-scoped filter field nulled, so
+   * {@link #applyViolationScopedApplicationIds} resolves violation-scoped application ids without that
+   * one dimension narrowing them (every other field, including owner ids, is unchanged).
+   */
+  private static ApplicationsListRequestDTO withDimensionExcluded(
+      final ApplicationsListRequestDTO request,
+      final ExcludableViolationScopedDimension excluded)
+  {
+    if (request == null) {
+      return null;
+    }
+    ApplicationsListRequestDTO copy = copyOfRequest(request);
+    switch (excluded) {
+      case STAGE -> copy.stageIds = null;
+      case POLICY_TYPE -> copy.policyThreatCategories = null;
+      case VIOLATION_STATE -> copy.policyViolationStates = null;
+    }
+    return copy;
+  }
+
+  private static ApplicationsListRequestDTO copyOfRequest(final ApplicationsListRequestDTO request) {
+    ApplicationsListRequestDTO copy = new ApplicationsListRequestDTO();
+    copy.search = request.search;
+    copy.page = request.page;
+    copy.pageSize = request.pageSize;
+    copy.organizationIds = request.organizationIds;
+    copy.applicationIds = request.applicationIds;
+    copy.stageIds = request.stageIds;
+    copy.tagIds = request.tagIds;
+    copy.policyThreatCategories = request.policyThreatCategories;
+    copy.policyThreatLevelRange = request.policyThreatLevelRange;
+    copy.policyThreatLevelRanges = request.policyThreatLevelRanges;
+    copy.policyViolationStates = request.policyViolationStates;
+    copy.ageInDays = request.ageInDays;
+    copy.orderBy = request.orderBy;
+    copy.includeFacets = request.includeFacets;
+    return copy;
   }
 
   private ApplicationsListRequestDTO applyViolationScopedApplicationIds(final ApplicationsListRequestDTO request) {
@@ -103,6 +228,10 @@ final class ApplicationsListIndexQueryBuilder
     return String.join(" AND ", buildBaseApplicationClauses(request));
   }
 
+  /**
+   * Builds the base application query clauses. Organization and application scope is not included: it
+   * travels as budget-exempt term-set restrictions alongside the query.
+   */
   private List<String> buildBaseApplicationClauses(final ApplicationsListRequestDTO request) {
     List<String> clauses = new ArrayList<>();
     clauses.add("itemType:" + ItemType.APPLICATION.name());
@@ -121,7 +250,9 @@ final class ApplicationsListIndexQueryBuilder
       DashboardIndexDimensionQueryBuilder.rejectBlankFilterIds(applicationIds, "applicationIds");
     }
 
-    // org/app scope is applied as budget-exempt term-set restrictions (CLM-44783).
+    // Organization and application are ONE owner dimension and are not query text: they travel as
+    // budget-exempt term-set restrictions, so the owner dimension is excluded by clearing the selection
+    // before resolution rather than by omitting a clause here.
     return clauses;
   }
 

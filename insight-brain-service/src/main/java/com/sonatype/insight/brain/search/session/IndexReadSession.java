@@ -40,6 +40,9 @@ public interface IndexReadSession
    * documents alone, so an unbounded column such as {@code componentHash} or a CVE id would size that
    * state to the whole corpus however selective the query is. Counting distinct values of an unbounded
    * column is what {@link #countDistinctGroupedBy} is for.
+   *
+   * @return the buckets, never null; an empty list when there is nothing to aggregate, so callers need no
+   *         null check
    */
   List<IndexTermsBucket> termsAggregation(Query query, String field, int maxBuckets);
 

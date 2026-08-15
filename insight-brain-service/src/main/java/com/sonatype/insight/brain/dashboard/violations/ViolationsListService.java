@@ -43,6 +43,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Index-backed Martha V1 Violations list.
@@ -55,17 +57,19 @@ import org.apache.lucene.search.Sort;
  * <p>
  * {@code orderBy=-policyThreatLevel} (the default) and {@code orderBy=policyThreatLevel} are pushed
  * into the index {@link Sort} on the session path ({@link IndexReadSession}), so threat ordering is
- * stable across page boundaries (CLM-44036). The legacy {@link SearchIndexClient} path still sorts
+ * stable across page boundaries. The legacy {@link SearchIndexClient} path still sorts
  * rows in memory after retrieval.
  * <p>
  * When {@code nexusOne.search.readPath.violations=new}, list + facets share one
- * {@link IndexReadSession} opened via {@link IndexReadSessionFactory} (PR-0 / CLM-42705). Default
+ * {@link IndexReadSession} opened via {@link IndexReadSessionFactory} (PR-0). Default
  * remains the legacy {@link SearchIndexClient} path.
  */
 @Named
 @Singleton
 public class ViolationsListService
 {
+  private static final Logger log = LoggerFactory.getLogger(ViolationsListService.class);
+
   public static final int DEFAULT_PAGE_SIZE = 50;
 
   public static final int MAX_PAGE_SIZE = 100;
@@ -218,15 +222,38 @@ public class ViolationsListService
       response.hasNextPage = consumed < total && page < MAX_WALKABLE_PAGE;
       response.source = ViolationsListResponseDTO.SOURCE_INDEX;
       if (includeFacets) {
-        String waiverFacetQuery = indexQueryBuilder.buildViolationQueryExcludingWaiverType(request);
-        response.facets = facetsBuilder.buildFacets(
-            session,
-            query,
-            waiverFacetQuery,
-            total,
-            request == null ? null : request.organizationFacetSearch,
-            request == null ? null : request.applicationFacetSearch,
-            scopeRestrictions);
+        try {
+          // Owner facets aggregate over a base that withholds the organization/application term-set
+          // restrictions, so selecting an org/app does not collapse the org/app rails. Those dimensions
+          // are not query text, so the base query string here is the unmodified one.
+          String ownerRemovedQueryString = indexQueryBuilder.buildViolationQuery(request);
+          Query ownerRemovedBase = conversionHelper.stringToQuery(ownerRemovedQueryString);
+          String waiverFacetQuery = indexQueryBuilder.buildViolationQueryExcludingWaiverType(request);
+          // Each fixed-vocabulary facet aggregates over a base with only its own clause removed, so
+          // selecting a value in that facet does not collapse the other values in the same facet.
+          ViolationsListFacetsBuilder.FixedFacetBases fixedFacetBases = new ViolationsListFacetsBuilder.FixedFacetBases(
+              indexQueryBuilder.buildViolationQueryExcludingState(request),
+              indexQueryBuilder.buildViolationQueryExcludingThreatCategory(request),
+              indexQueryBuilder.buildViolationQueryExcludingStage(request));
+          // Rail name search counts against the owner-removed base too, so typing in the organization
+          // rail while an organization is selected still shows the other matches.
+          ViolationsListFacetsBuilder.OwnerFacetBase ownerFacetBase =
+              new ViolationsListFacetsBuilder.OwnerFacetBase(
+                  ownerRemovedBase,
+                  ownerRemovedQueryString,
+                  request == null ? null : request.organizationFacetSearch,
+                  request == null ? null : request.applicationFacetSearch);
+          response.facets = facetsBuilder.buildFacets(
+              session,
+              waiverFacetQuery,
+              total,
+              ownerFacetBase,
+              fixedFacetBases,
+              scopeRestrictions);
+        }
+        catch (RuntimeException e) {
+          log.warn("Violations list facet build failed; returning page without facets", e);
+        }
       }
       return response;
     }

@@ -23,10 +23,12 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  * display names used in the Martha filter rail (so the UI never has to fall back to raw UUIDs for
  * facet keys that are not on the current result page).
  * <p>
- * Counts reflect the active list query scope (narrowing filters reduce facet counts as well as rows;
- * see CLM-42258). Organization and application counts are discovery-capped (see {@link ViolationsListFacetsBuilder})
- * because violation volume is far higher than application volume; full aggregate facets land under
- * the scale-test story (CLM-42262).
+ * On the session read path each facet is counted against a base query with only that facet's own
+ * clause removed (every other active filter still applied), so selecting a value in one facet does
+ * not collapse the other values in that same facet to zero; see {@link ViolationsListFacetsBuilder}.
+ * Organization and application counts are discovery-capped on the legacy path (see
+ * {@link ViolationsListFacetsBuilder}) because violation volume is far higher than application volume;
+ * full aggregate facets land under the scale-test story (CLM-42262).
  */
 public class ViolationsListFacetsDTO
 {

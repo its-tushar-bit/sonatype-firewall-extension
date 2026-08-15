@@ -15,6 +15,9 @@ import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
 import com.sonatype.insight.brain.dashboard.DashboardResultsDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.integration.OrganizationSummaryService;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.security.SecurityAspectControl;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.search.ConversionHelper;
@@ -90,6 +93,9 @@ public class ApplicationsListSessionFacetsServiceTest
   @Mock
   private ApplicationDAO applicationDAO;
 
+  @Mock
+  private OrganizationSummaryService organizationSummaryService;
+
   private ApplicationsListService service;
 
   @BeforeEach
@@ -98,6 +104,14 @@ public class ApplicationsListSessionFacetsServiceTest
     lenient().when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(2048);
     when(conversionHelper.stringToQuery(any())).thenReturn(new MatchAllDocsQuery());
     when(sessionFactory.open()).thenReturn(session);
+    lenient().when(organizationSummaryService.getOrganizationsForRead(anySet())).thenAnswer(invocation -> {
+      Set<String> ids = invocation.getArgument(0);
+      return ids.stream().map(id -> {
+        Organization organization = new Organization();
+        organization.setId(id);
+        return organization;
+      }).toList();
+    });
     lenient().when(applicationRiskService.getApplicationRiskCards(isNull(), anySet(), isNull(), isNull(), isNull(),
         isNull(), isNull())).thenReturn(emptyRiskResults());
     service = new ApplicationsListService(
@@ -108,13 +122,17 @@ public class ApplicationsListSessionFacetsServiceTest
             violationScopeResolver),
         requestValidator,
         new ApplicationsListFacetsBuilder(searchIndexClient, stageTypeService, organizationDAO, applicationDAO,
-            conversionHelper),
+            conversionHelper, organizationSummaryService),
         sessionFactory,
         conversionHelper);
+    // The org value-facet path calls the @AuthzFilter-woven OrganizationSummaryService#getOrganizationsForRead;
+    // this pure-Mockito test binds no Shiro SecurityManager, so disable CTW enforcement for the aspect.
+    SecurityAspectControl.disableEnforcement();
   }
 
   @AfterEach
   public void tearDown() {
+    SecurityAspectControl.enableEnforcement();
     System.clearProperty("nexusOne.search.readPath.applications");
   }
 
@@ -127,8 +145,10 @@ public class ApplicationsListSessionFacetsServiceTest
     Document application = applicationDocument("app-1", "org-1", "Org 1");
     when(session.count(any())).thenReturn(1L);
     when(session.searchPage(any())).thenReturn(new IndexPageResult(List.of(application), List.of(), false));
-    when(session.termsAggregation(any(), any(), anyInt()))
+    when(session.termsAggregation(any(), eq(FieldIdentifier.PARENT_ORGANIZATION_ID.label), anyInt()))
         .thenReturn(List.of(new IndexTermsBucket("org-1", 1)));
+    when(session.termsAggregation(any(), eq(FieldIdentifier.APPLICATION_ID.label), anyInt()))
+        .thenReturn(List.of(new IndexTermsBucket("app-1", 1)));
     when(stageTypeService.getLicensedStageTypes(StageTypeService.DASHBOARD_CONTEXT))
         .thenReturn(List.of(stage("build")));
     when(session.countDistinctGroupedBy(any(), any(), any(), anyList())).thenThrow(new UnsupportedOperationException(

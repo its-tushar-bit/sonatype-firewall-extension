@@ -62,6 +62,10 @@ public class OrganizationSummaryService
    * Prefer this over {@link #getOrganizationsForRead()} when the candidate set is already known
    * (Martha Violations facet name-search): fetches only those ids before {@code @AuthzFilter} runs,
    * avoiding a full-tenant load on every search settle.
+   *
+   * @return fully populated organization rows, never containing null and never containing the root
+   *         organization, so callers can read {@code getId()} / {@code getName()} directly and need not
+   *         re-fetch names by id
    */
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.ORGANIZATION)
   public List<Organization> getOrganizationsForRead(Set<String> organizationIds) {

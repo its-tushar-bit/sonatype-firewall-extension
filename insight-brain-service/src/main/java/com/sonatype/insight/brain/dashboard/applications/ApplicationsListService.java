@@ -57,7 +57,7 @@ import org.slf4j.LoggerFactory;
  * <p>
  * Request defaults: {@code page=0}, {@code pageSize=50}, {@code includeFacets=true} when omitted.
  * <p>
- * {@code orderBy=-maxPolicyThreatLevel} uses the CLM-44036 session sort:
+ * {@code orderBy=-maxPolicyThreatLevel} uses a stable session sort:
  * max threat, recency, and document key, so max-threat ordering is stable across pages.
  */
 @Named
@@ -197,7 +197,7 @@ public class ApplicationsListService
       LinkedHashMap<String, SearchResultItemDTO> pageItems = new LinkedHashMap<>();
       if ((long) page * pageSize < total) {
         // searchAfter walk from page 0 — known O(page) cost; gated by readPath.applications=new
-        // and MAX_WALKABLE_PAGE until Track B offset/cursor API. Acceptable for flag-gated rollout.
+        // and MAX_WALKABLE_PAGE until an offset/cursor API is available. Acceptable for flag-gated rollout.
         IndexPageResult result = null;
         List<Object> searchAfter = List.of();
         Sort sort = sessionSort(orderBy);
@@ -220,13 +220,44 @@ public class ApplicationsListService
           buildResponse(request, page, pageSize, total, pageItems);
       if (includeFacets) {
         try {
-          String violationQueryString = ApplicationsListViolationQuerySupport.toViolationQuery(query);
-          // Stage / policy-type / state facets read POLICY_VIOLATION docs; org/app term sets must
-          // stay on that query the same way the legacy SearchIndexClient path applies them.
-          Query violationFacetQuery =
-              toScopedQuery(toSessionQueryString(violationQueryString), scopeRestrictions);
+          // Owner facets aggregate over a base built from an owner-cleared request, so its term sets
+          // carry only the violation scope and selecting an org/app does NOT collapse the org/app rails.
+          ApplicationsIndexQuery ownerRemoved = indexQueryBuilder.buildApplicationIndexQueryWithoutOwner(request);
+          Query ownerRemovedBase =
+              toScopedQuery(toSessionQueryString(ownerRemoved.query()), ownerRemoved.termSets());
+
+          // Each fixed-vocabulary facet aggregates over a base with only its own violation-scoped
+          // filter excluded, so selecting a value in that facet does not collapse the other values.
+          // Each base carries its own term sets: the violation-scope resolution differs per excluded
+          // dimension, so the restrictions differ with it.
+          ApplicationsIndexQuery stageRemoved = indexQueryBuilder.buildApplicationIndexQueryExcludingStage(request);
+          Query stageRemovedViolationQuery = toScopedQuery(
+              toSessionQueryString(ApplicationsListViolationQuerySupport.toViolationQuery(stageRemoved.query())),
+              stageRemoved.termSets());
+
+          ApplicationsIndexQuery policyTypeRemoved =
+              indexQueryBuilder.buildApplicationIndexQueryExcludingPolicyType(request);
+          Query policyTypeRemovedViolationQuery = toScopedQuery(
+              toSessionQueryString(
+                  ApplicationsListViolationQuerySupport.toViolationQuery(policyTypeRemoved.query())),
+              policyTypeRemoved.termSets());
+
+          ApplicationsIndexQuery violationStateRemoved =
+              indexQueryBuilder.buildApplicationIndexQueryExcludingViolationState(request);
+          String violationStateRemovedViolationFacetQuery =
+              ApplicationsListViolationQuerySupport.toViolationQuery(violationStateRemoved.query());
+
+          ApplicationsListFacetsBuilder.FixedFacetBases fixedFacetBases =
+              new ApplicationsListFacetsBuilder.FixedFacetBases(
+                  stageRemovedViolationQuery, policyTypeRemovedViolationQuery,
+                  violationStateRemovedViolationFacetQuery);
           response.facets = facetsBuilder.buildFacets(
-              session, sessionQuery, violationFacetQuery, scopeRestrictions, violationQueryString, total);
+              session,
+              sessionQuery,
+              ownerRemovedBase,
+              fixedFacetBases,
+              violationStateRemoved.termSets(),
+              total);
         }
         catch (RuntimeException e) {
           log.warn("Applications list facet build failed; returning page without facets", e);
@@ -328,7 +359,7 @@ public class ApplicationsListService
   /**
    * Stable total order for session {@code searchAfter} walks.
    * <p>
-   * CLM-44036 sorts by indexed application risk fields, then uses {@link FieldIdentifier#DOCUMENT_KEY}
+   * Sorts by indexed application risk fields, then uses {@link FieldIdentifier#DOCUMENT_KEY}
    * as a unique ascending tie-breaker.
    */
   static Sort sessionSort(final String orderBy) {

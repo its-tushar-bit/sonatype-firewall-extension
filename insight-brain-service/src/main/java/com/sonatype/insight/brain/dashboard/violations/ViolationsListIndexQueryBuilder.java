@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dashboard.violations;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -57,8 +58,23 @@ final class ViolationsListIndexQueryBuilder
     this.tagDAO = tagDAO;
   }
 
+  /**
+   * Fixed/small-vocabulary filter dimensions that can be individually omitted from
+   * {@link #baseClauses} so a facet can be counted against a base with only its own clause removed,
+   * per {@link ViolationsListFacetsBuilder}.
+   * <p>
+   * The owner dimension is absent because organization and application scope is not query text: it is
+   * withheld by passing no term-set restrictions instead.
+   */
+  private enum ExcludableDimension
+  {
+    STAGE,
+    THREAT_CATEGORY,
+    STATE
+  }
+
   String buildViolationQuery(final ViolationsListRequestDTO request) {
-    List<String> clauses = baseClauses(request);
+    List<String> clauses = baseClauses(request, EnumSet.noneOf(ExcludableDimension.class));
     addIfPresent(clauses, buildWaiverTypeClause(request == null ? null : request.waivedWithAutoWaiver));
     return String.join(" AND ", clauses);
   }
@@ -71,20 +87,64 @@ final class ViolationsListIndexQueryBuilder
    * every other active filter). See {@link ViolationsListFacetsBuilder#buildFacets}.
    */
   String buildViolationQueryExcludingWaiverType(final ViolationsListRequestDTO request) {
-    return String.join(" AND ", baseClauses(request));
+    return String.join(" AND ", baseClauses(request, EnumSet.noneOf(ExcludableDimension.class)));
   }
 
-  private List<String> baseClauses(final ViolationsListRequestDTO request) {
+  /**
+   * Same as {@link #buildViolationQuery} but with the STATE clause omitted (owner, waiver-type, and
+   * every other active filter are retained). Used as the base for the {@code states} facet so
+   * selecting a state does not collapse the other state values. See
+   * {@link ViolationsListFacetsBuilder#buildFacets}.
+   */
+  String buildViolationQueryExcludingState(final ViolationsListRequestDTO request) {
+    List<String> clauses = baseClauses(request, EnumSet.of(ExcludableDimension.STATE));
+    addIfPresent(clauses, buildWaiverTypeClause(request == null ? null : request.waivedWithAutoWaiver));
+    return String.join(" AND ", clauses);
+  }
+
+  /**
+   * Same as {@link #buildViolationQuery} but with the THREAT_CATEGORY clause omitted (owner,
+   * waiver-type, and every other active filter are retained). Used as the base for the
+   * {@code threatCategories} facet so selecting a category does not collapse the other categories.
+   * See {@link ViolationsListFacetsBuilder#buildFacets}.
+   */
+  String buildViolationQueryExcludingThreatCategory(final ViolationsListRequestDTO request) {
+    List<String> clauses = baseClauses(request, EnumSet.of(ExcludableDimension.THREAT_CATEGORY));
+    addIfPresent(clauses, buildWaiverTypeClause(request == null ? null : request.waivedWithAutoWaiver));
+    return String.join(" AND ", clauses);
+  }
+
+  /**
+   * Same as {@link #buildViolationQuery} but with the STAGE clause omitted (owner, waiver-type, and
+   * every other active filter are retained). Used as the base for the {@code stages} facet so
+   * selecting a stage does not collapse the other stages. See
+   * {@link ViolationsListFacetsBuilder#buildFacets}.
+   */
+  String buildViolationQueryExcludingStage(final ViolationsListRequestDTO request) {
+    List<String> clauses = baseClauses(request, EnumSet.of(ExcludableDimension.STAGE));
+    addIfPresent(clauses, buildWaiverTypeClause(request == null ? null : request.waivedWithAutoWaiver));
+    return String.join(" AND ", clauses);
+  }
+
+  private List<String> baseClauses(final ViolationsListRequestDTO request, final Set<ExcludableDimension> excluded) {
     List<String> clauses = new ArrayList<>();
     clauses.add(FieldIdentifier.ITEM_TYPE.label + ":" + ItemType.POLICY_VIOLATION.name());
 
     addIfPresent(clauses, buildSearchClause(request == null ? null : request.search));
     addIfPresent(clauses, buildComponentHashClause(request == null ? null : request.componentHash));
-    // org/app scope is applied as budget-exempt term-set restrictions (CLM-44783).
-    addIfPresent(clauses, buildStageClause(request == null ? null : request.stageIds));
+    // Organization and application scope is not query text: it travels as budget-exempt term-set
+    // restrictions, so the owner dimension is excluded by withholding those restrictions rather than by
+    // omitting a clause here.
+    if (!excluded.contains(ExcludableDimension.STAGE)) {
+      addIfPresent(clauses, buildStageClause(request == null ? null : request.stageIds));
+    }
     addIfPresent(clauses, buildThreatLevelClause(request == null ? null : request.policyThreatLevelRange));
-    addIfPresent(clauses, buildThreatCategoryClause(request == null ? null : request.policyThreatCategories));
-    addIfPresent(clauses, buildStateClause(request == null ? null : request.policyViolationStates));
+    if (!excluded.contains(ExcludableDimension.THREAT_CATEGORY)) {
+      addIfPresent(clauses, buildThreatCategoryClause(request == null ? null : request.policyThreatCategories));
+    }
+    if (!excluded.contains(ExcludableDimension.STATE)) {
+      addIfPresent(clauses, buildStateClause(request == null ? null : request.policyViolationStates));
+    }
     addIfPresent(clauses, buildApplicationCategoryClause(request == null ? null : request.applicationCategoryIds));
 
     return clauses;

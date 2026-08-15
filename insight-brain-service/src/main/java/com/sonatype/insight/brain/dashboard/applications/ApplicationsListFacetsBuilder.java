@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.dashboard.PolicyViolationState;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.integration.OrganizationSummaryService;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.StageType;
@@ -49,11 +50,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Builds Martha sidebar facet counts from RBAC-scoped index queries (CLM-42228 Phase B).
+ * Builds Applications sidebar facet counts from RBAC-scoped index queries.
+ * {@link ApplicationsListFacetsDTO#totalApplications} always reflects the full RBAC-scoped total from the
+ * list query, whichever path produced the facets.
  * <p>
- * Discovery is capped at {@link #MAX_FACET_DISCOVERY_HITS} APPLICATION hits for per-org and
- * per-application count queries; {@link ApplicationsListFacetsDTO#totalApplications} reflects the
- * full RBAC-scoped total from the list query. Full aggregate facets are tracked under CLM-42230.
+ * <b>Session path</b> ({@code nexusOne.search.readPath.applications=new}): owner facets are one doc-values
+ * aggregation each over a base with the whole owner dimension removed, so selecting an organization or
+ * application never collapses the owner rails, and values outside the current page still appear. The
+ * organization facet aggregates the {@code parentOrganizationId} ancestor closure, so a parent shows its
+ * whole subtree; the root organization and any organization outside the caller's read scope are dropped
+ * before the display cap.
+ * <p>
+ * <b>Legacy path</b>: per-organization and per-application counts are discovered from at most
+ * {@link #MAX_FACET_DISCOVERY_HITS} APPLICATION hits and counted one query each, so the rails are limited
+ * to owners present in those hits.
  */
 @Named
 @Singleton
@@ -67,6 +77,18 @@ final class ApplicationsListFacetsBuilder
 
   static final int MAX_ORGANIZATION_FACET_ENTRIES = 500;
 
+  /**
+   * Candidate buckets requested for the hierarchical organization facet, before root exclusion and the read
+   * gate drop entries and {@link #MAX_ORGANIZATION_FACET_ENTRIES} caps what is displayed.
+   * <p>
+   * Larger than the display cap because the aggregation returns top-N by document count and
+   * ancestor-closure counts accumulate toward the root: every ancestor outranks the leaves beneath it, so
+   * the buckets the read gate removes cluster at the top of the window rather than spreading through it. A
+   * caller scoped to a low-count leaf would otherwise find the window filled by organizations it cannot
+   * read, and the gate can only filter what the aggregation returned.
+   */
+  static final int MAX_ORGANIZATION_FACET_CANDIDATES = MAX_ORGANIZATION_FACET_ENTRIES * 2;
+
   static final int MAX_APPLICATION_FACET_ENTRIES = 25;
 
   private final SearchIndexClient searchIndexClient;
@@ -79,19 +101,23 @@ final class ApplicationsListFacetsBuilder
 
   private final ConversionHelper conversionHelper;
 
+  private final OrganizationSummaryService organizationSummaryService;
+
   @Inject
   ApplicationsListFacetsBuilder(
       final SearchIndexClient searchIndexClient,
       final StageTypeService stageTypeService,
       final OrganizationDAO organizationDAO,
       final ApplicationDAO applicationDAO,
-      final ConversionHelper conversionHelper)
+      final ConversionHelper conversionHelper,
+      final OrganizationSummaryService organizationSummaryService)
   {
     this.searchIndexClient = searchIndexClient;
     this.stageTypeService = stageTypeService;
     this.organizationDAO = organizationDAO;
     this.applicationDAO = applicationDAO;
     this.conversionHelper = conversionHelper;
+    this.organizationSummaryService = organizationSummaryService;
   }
 
   ApplicationsListFacetsDTO buildFacets(
@@ -129,41 +155,67 @@ final class ApplicationsListFacetsBuilder
     return facets;
   }
 
+  /**
+   * Per-dimension facet base queries for the fixed/small-vocabulary Applications facets on the session
+   * path, each with only that facet's own violation-scoped filter excluded from the violation-scope
+   * discovery (every other active filter still narrows) — see
+   * {@link ApplicationsListIndexQueryBuilder#buildApplicationQueryExcludingStage},
+   * {@link ApplicationsListIndexQueryBuilder#buildApplicationQueryExcludingPolicyType}, and
+   * {@link ApplicationsListIndexQueryBuilder#buildApplicationQueryExcludingViolationState}.
+   *
+   * @param stageRemovedViolationQuery base for the {@code stages} facet
+   * @param policyTypeRemovedViolationQuery base for the {@code policyTypes} facet
+   * @param violationStateRemovedViolationFacetQuery pre-session-mapped base for the {@code violationStates} facet
+   */
+  record FixedFacetBases(
+      Query stageRemovedViolationQuery,
+      Query policyTypeRemovedViolationQuery,
+      String violationStateRemovedViolationFacetQuery)
+  {
+  }
+
+  /**
+   * @param fixedFacetBases per-dimension base queries for {@code stages}/{@code policyTypes}/{@code violationStates}
+   */
   ApplicationsListFacetsDTO buildFacets(
       final IndexReadSession session,
       final Query applicationQuery,
-      final Query violationQuery,
+      final Query ownerRemovedBase,
+      final FixedFacetBases fixedFacetBases,
       final List<IndexFilterRestriction> scopeRestrictions,
-      final String violationFacetQuery,
       final long totalApplications)
   {
     ApplicationsListFacetsDTO facets = new ApplicationsListFacetsDTO();
     facets.totalApplications = totalApplications;
 
     LinkedHashMap<String, SearchResultItemDTO> discovered = discoverApplicationItems(session, applicationQuery);
-    if (discovered.isEmpty()) {
-      return facets;
-    }
 
     List<IndexFilterRestriction> restrictions = scopeRestrictions == null ? List.of() : scopeRestrictions;
-    facets.organizations = countOrganizations(session, applicationQuery, discovered);
-    facets.applications = applicationFacetCountsFromDiscovery(discovered);
-    facets.stages = countLicensedStages(session, violationQuery);
+    // Org and app are ONE owner dimension. Both aggregate over the owner-removed base - a Query the
+    // caller built with the owner term sets withheld - so selecting an org/app does NOT collapse the
+    // org/app rails.
+    Map<String, String> resolvedOrganizationNames = new LinkedHashMap<>();
+    facets.organizations = countOrganizations(session, ownerRemovedBase, discovered, resolvedOrganizationNames);
+    facets.applications = countApplications(session, ownerRemovedBase);
+    // Each fixed-vocabulary facet aggregates over a base with only its own violation-scoped filter
+    // excluded, so selecting a value in that facet does NOT collapse the other values in the facet.
+    facets.stages = countLicensedStages(session, fixedFacetBases.stageRemovedViolationQuery());
     facets.policyTypes = countPolicyTypes(
         categoryNames -> session.countDistinctGroupedBy(
-            violationQuery,
+            fixedFacetBases.policyTypeRemovedViolationQuery(),
             FieldIdentifier.POLICY_VIOLATION_THREAT_CATEGORY.label,
             FieldIdentifier.APPLICATION_ID.label,
             categoryNames));
     facets.violationStates = countViolationStates(
-        stateClause -> countDistinctApplications(session, violationFacetQuery, stateClause, restrictions));
+        stateClause -> countDistinctApplications(
+            session, fixedFacetBases.violationStateRemovedViolationFacetQuery(), stateClause, restrictions));
     // See legacy overload: display-name maps are required for both read paths.
-    attachDisplayNames(facets, discovered);
+    attachDisplayNames(facets, discovered, resolvedOrganizationNames);
     return facets;
   }
 
   /**
-   * Policy-type buckets (CLM-43211) from one grouped pass over {@code policyViolationThreatCategory}.
+   * Policy-type buckets from one grouped pass over {@code policyViolationThreatCategory}.
    * The field is single-valued per violation doc, so each bucket is already an exact
    * distinct-application count. Like stage facets, this degrades to no facet on backends without
    * grouped distinct counts rather than falling back to a per-category scan.
@@ -197,7 +249,7 @@ final class ApplicationsListFacetsBuilder
   }
 
   /**
-   * Violation-state buckets (CLM-43211): one distinct-application count per state, so three constant
+   * Violation-state buckets: one distinct-application count per state, so three constant
    * round trips regardless of estate size.
    * <p>
    * These cannot be folded into a single grouped pass over {@code policyViolationWaiverStatus}. WAIVED
@@ -277,7 +329,21 @@ final class ApplicationsListFacetsBuilder
       final ApplicationsListFacetsDTO facets,
       final LinkedHashMap<String, SearchResultItemDTO> discovered)
   {
-    facets.organizationNames = resolveOrganizationNames(facets.organizations, discovered);
+    attachDisplayNames(facets, discovered, Map.of());
+  }
+
+  /**
+   * @param alreadyResolvedOrganizationNames organization names the caller resolved already (the session
+   *          organization facet resolves them from the read-gate rows to sort its buckets); they seed the
+   *          name map so those ids are not loaded again as missing
+   */
+  private void attachDisplayNames(
+      final ApplicationsListFacetsDTO facets,
+      final LinkedHashMap<String, SearchResultItemDTO> discovered,
+      final Map<String, String> alreadyResolvedOrganizationNames)
+  {
+    facets.organizationNames =
+        resolveOrganizationNames(facets.organizations, discovered, alreadyResolvedOrganizationNames);
     facets.applicationNames = resolveApplicationNames(facets.applications, discovered);
   }
 
@@ -285,13 +351,24 @@ final class ApplicationsListFacetsBuilder
       final Map<String, Long> organizationCounts,
       final LinkedHashMap<String, SearchResultItemDTO> discovered)
   {
+    return resolveOrganizationNames(organizationCounts, discovered, Map.of());
+  }
+
+  private Map<String, String> resolveOrganizationNames(
+      final Map<String, Long> organizationCounts,
+      final LinkedHashMap<String, SearchResultItemDTO> discovered,
+      final Map<String, String> alreadyResolved)
+  {
     return resolveNames(
         organizationCounts,
-        names -> discovered.values().forEach(item -> {
-          if (StringUtils.isNotBlank(item.organizationId) && StringUtils.isNotBlank(item.organizationName)) {
-            names.putIfAbsent(item.organizationId, item.organizationName);
-          }
-        }),
+        names -> {
+          names.putAll(alreadyResolved);
+          discovered.values().forEach(item -> {
+            if (StringUtils.isNotBlank(item.organizationId) && StringUtils.isNotBlank(item.organizationName)) {
+              names.putIfAbsent(item.organizationId, item.organizationName);
+            }
+          });
+        },
         missing -> {
           Map<String, String> loaded = new LinkedHashMap<>();
           for (Organization organization : organizationDAO.getByIds(missing)) {
@@ -404,24 +481,51 @@ final class ApplicationsListFacetsBuilder
   }
 
   /**
-   * Session-path org facets intentionally allow up to {@link #MAX_ORGANIZATION_FACET_ENTRIES}
-   * (vs legacy {@link #MAX_ORGANIZATION_FACET_COUNT_QUERIES}) and sort by display name. This is an
-   * intentional improvement of the flag-gated path, not parity with the N+1 count() legacy cap.
+   * Hierarchical org facets via ancestor closure.
+   * <p>
+   * Aggregates on PARENT_ORGANIZATION_ID (the {self..root} closure) over the owner-removed base,
+   * so parent/grandparent orgs appear with subtree counts. The root org is excluded before the
+   * display cap is applied (root is in every doc's closure and would consume the top bucket).
+   *
+   * @param resolvedNamesOut receives the organization names resolved here (from the read-gate rows), so the
+   *          display-name pass does not load them a second time
    */
   private Map<String, Long> countOrganizations(
       final IndexReadSession session,
-      final Query applicationQuery,
-      final LinkedHashMap<String, SearchResultItemDTO> discovered)
+      final Query ownerRemovedBase,
+      final LinkedHashMap<String, SearchResultItemDTO> discovered,
+      final Map<String, String> resolvedNamesOut)
   {
     List<IndexTermsBucket> buckets = session.termsAggregation(
-        applicationQuery,
-        FieldIdentifier.ORGANIZATION_ID.label,
-        MAX_ORGANIZATION_FACET_ENTRIES);
+        ownerRemovedBase,
+        FieldIdentifier.PARENT_ORGANIZATION_ID.label,
+        // Candidate window, not the display cap: root and any organization outside the caller's read scope
+        // are dropped before the cap, and ancestors outrank leaves by count, so it is sized well above the
+        // number of buckets actually shown.
+        MAX_ORGANIZATION_FACET_CANDIDATES);
     if (buckets.isEmpty()) {
       return null;
     }
 
+    // Read gate: the ancestor closure surfaces parent orgs above the caller's scope, so only emit org
+    // buckets the caller may read.
+    Set<String> bucketOrgIds = new HashSet<>();
+    for (IndexTermsBucket bucket : buckets) {
+      if (StringUtils.isNotBlank(bucket.key())) {
+        bucketOrgIds.add(bucket.key());
+      }
+    }
+    // Names come from the rows the read gate already loaded, so ancestor orgs surfaced by the closure sort
+    // by name like everything else. Discovery hits only carry each application's own organization, so
+    // seeding from them alone would leave every parent and grandparent sorting by raw id.
     Map<String, String> organizationNames = new LinkedHashMap<>();
+    Set<String> readableOrgIds = new HashSet<>();
+    for (Organization organization : organizationSummaryService.getOrganizationsForRead(bucketOrgIds)) {
+      readableOrgIds.add(organization.getId());
+      if (StringUtils.isNotBlank(organization.getName())) {
+        organizationNames.put(organization.getId(), organization.getName());
+      }
+    }
     discovered.values().forEach(item -> {
       if (StringUtils.isNotBlank(item.organizationId) && StringUtils.isNotBlank(item.organizationName)) {
         organizationNames.putIfAbsent(item.organizationId, item.organizationName);
@@ -430,7 +534,13 @@ final class ApplicationsListFacetsBuilder
 
     List<IndexTermsBucket> nonZeroBuckets = new ArrayList<>();
     for (IndexTermsBucket bucket : buckets) {
-      if (bucket.count() > 0 && StringUtils.isNotBlank(bucket.key())) {
+      // Exclude root org (it's in every doc's ancestor closure and would dominate the facet) and any
+      // org outside the caller's read scope.
+      if (bucket.count() > 0
+          && StringUtils.isNotBlank(bucket.key())
+          && !Organization.ROOT_ORGANIZATION_ID.equals(bucket.key())
+          && readableOrgIds.contains(bucket.key()))
+      {
         nonZeroBuckets.add(bucket);
       }
     }
@@ -438,9 +548,53 @@ final class ApplicationsListFacetsBuilder
         .comparing((IndexTermsBucket bucket) -> organizationNames.getOrDefault(bucket.key(), bucket.key()))
         .thenComparing(IndexTermsBucket::key));
 
+    // Apply display cap after root exclusion
     Map<String, Long> counts = new LinkedHashMap<>();
+    int entries = 0;
     for (IndexTermsBucket bucket : nonZeroBuckets) {
+      if (entries >= MAX_ORGANIZATION_FACET_ENTRIES) {
+        break;
+      }
       counts.put(bucket.key(), bucket.count());
+      entries++;
+    }
+    if (counts.isEmpty()) {
+      return null;
+    }
+    // Hand back the names for the emitted buckets so the display-name pass has nothing left to load.
+    for (String organizationId : counts.keySet()) {
+      String name = organizationNames.get(organizationId);
+      if (name != null) {
+        resolvedNamesOut.put(organizationId, name);
+      }
+    }
+    return counts;
+  }
+
+  /**
+   * App facet via real aggregation over owner-removed base.
+   * <p>
+   * APPLICATION docs are 1:1 with applications, so counts are always 1. Aggregating over the
+   * owner-removed base lists ALL matching apps (unnarrowed by the owner selection), which prevents
+   * the app rail from collapsing when an org is selected.
+   */
+  private Map<String, Long> countApplications(
+      final IndexReadSession session,
+      final Query ownerRemovedBase)
+  {
+    List<IndexTermsBucket> buckets = session.termsAggregation(
+        ownerRemovedBase,
+        FieldIdentifier.APPLICATION_ID.label,
+        MAX_APPLICATION_FACET_ENTRIES);
+    if (buckets.isEmpty()) {
+      return null;
+    }
+
+    Map<String, Long> counts = new LinkedHashMap<>();
+    for (IndexTermsBucket bucket : buckets) {
+      if (bucket.count() > 0 && StringUtils.isNotBlank(bucket.key())) {
+        counts.put(bucket.key(), bucket.count());
+      }
     }
     return counts.isEmpty() ? null : counts;
   }
@@ -478,8 +632,8 @@ final class ApplicationsListFacetsBuilder
 
     Map<String, Long> collectedCounts;
     try {
-      // Stage sidebar is Lucene-only until Track B docValues cardinality; OpenSearch/hybrid
-      // sessions omit stages (org/app facets still return) - accepted V1 degradation.
+      // Stage sidebar is Lucene-only; OpenSearch/hybrid sessions omit stages (org/app facets
+      // still return) until docValues cardinality aggregation supports this field - accepted V1 degradation.
       collectedCounts = session.countDistinctGroupedBy(
           violationQuery,
           FieldIdentifier.POLICY_EVALUATION_STAGE.label,

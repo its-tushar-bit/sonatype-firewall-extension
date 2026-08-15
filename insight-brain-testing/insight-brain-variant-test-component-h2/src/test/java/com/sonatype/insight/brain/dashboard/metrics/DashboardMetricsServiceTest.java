@@ -66,8 +66,6 @@ import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
-import com.sonatype.insight.brain.search.index.FieldIdentifier;
-import com.sonatype.insight.brain.search.index.IndexTermSetRestriction;
 import com.sonatype.insight.brain.search.index.MetricAggregationResult;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.indexquery.IndexQueryRequest;
@@ -622,6 +620,9 @@ public class DashboardMetricsServiceTest
     tempEntity.newApplication(parentOrg.getId());
     tempEntity.newApplication(childOrg.getId());
     tempEntity.newApplication(childOrg.getId());
+    // One policy per level, so a parent-scoped count that misses the subtree is visibly wrong.
+    tempEntity.newPolicy(parentOrg.getId(), "metrics-parent-policy", 5);
+    tempEntity.newPolicy(childOrg.getId(), "metrics-child-policy", 5);
     Application siblingApp = tempEntity.newApplication(siblingOrg.getId());
     tempEntity.newApplication(siblingOrg.getId());
     tempEntity.newApplication(siblingOrg.getId());
@@ -647,6 +648,16 @@ public class DashboardMetricsServiceTest
     DashboardMetricsRequestDTO filterByParent = new DashboardMetricsRequestDTO();
     filterByParent.organizationIds = Set.of(parentOrg.getId());
     assertThat(dashboardMetricsService.getMetrics(filterByParent).applications.total).isEqualTo(3);
+
+    // The organization and policy tiles must be subtree-inclusive too: filtering to the parent counts the
+    // parent AND the child, and counts the child-owned policy, not just what the named organization owns
+    // directly. This holds only because organization and policy documents carry their own ancestor
+    // closure -- with a singleton parentOrganizationId the same ancestor-match term would report one
+    // organization and zero child policies while the applications tile correctly reported three.
+    assertThat(dashboardMetricsService.getMetrics(filterByParent).organizations.total).isEqualTo(2);
+    assertThat(dashboardMetricsService.getMetrics(filterByParent).policies.total).isEqualTo(2);
+    assertThat(dashboardMetricsService.getMetrics(filterByChild).organizations.total).isEqualTo(1);
+    assertThat(dashboardMetricsService.getMetrics(filterByChild).policies.total).isEqualTo(1);
 
     DashboardMetricsRequestDTO filterBySibling = new DashboardMetricsRequestDTO();
     filterBySibling.organizationIds = Set.of(siblingOrg.getId());
@@ -676,144 +687,9 @@ public class DashboardMetricsServiceTest
     assertThat(dashboardMetricsService.getMetrics(unknownOrg).applications.total).isZero();
   }
 
-  @Test
-  public void testGetMetrics_OrganizationFilterAppliesExpandedOrgTermSet() {
-    OrganizationDAO organizationDAO = mock(OrganizationDAO.class);
-    when(organizationDAO.getAllChildOrganizationIds(Set.of("big-org")))
-        .thenReturn(Set.of("expanded-org-0", "expanded-org-1", "expanded-org-2", "expanded-org-3", "expanded-org-4",
-            "expanded-org-5"));
-
-    Configuration configuration = mock(Configuration.class);
-
-    CurrentUser currentUser = mock(CurrentUser.class);
-    when(currentUser.getUserPrincipal()).thenReturn(
-        new UserPrincipal("filter-user", "filter-user", User.INTERNAL_REALM_ID));
-
-    SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
-    stubEmptySearchIndexResults(searchIndexClient);
-    ArgumentCaptor<java.util.List> restrictions = ArgumentCaptor.forClass(java.util.List.class);
-    when(searchIndexClient.count(anyString(), restrictions.capture())).thenReturn(0L);
-
-    DashboardMetricsService service =
-        newServiceWithMocks(
-            searchIndexClient,
-            new MetricFilterValidator(),
-            organizationDAO,
-            configuration,
-            currentUser);
-
-    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
-    request.organizationIds = Set.of("big-org");
-
-    DashboardMetricsDTO response = service.getMetrics(request);
-    assertThat(response.applications).extracting("total").isEqualTo(0L);
-    assertThat(restrictions.getAllValues()).isNotEmpty();
-    assertThat(restrictions.getAllValues()).anySatisfy(list -> {
-      assertThat(list).isNotEmpty();
-      IndexTermSetRestriction orgRestriction = (IndexTermSetRestriction) list.get(0);
-      assertThat(orgRestriction.field()).isEqualTo(FieldIdentifier.ORGANIZATION_ID.label);
-      assertThat(orgRestriction.ids()).containsExactlyInAnyOrder(
-          "expanded-org-0", "expanded-org-1", "expanded-org-2", "expanded-org-3", "expanded-org-4",
-          "expanded-org-5");
-    });
-  }
-
-  @Test
-  public void testGetMetrics_EmptyOrganizationExpansionReturnsNoMatchSentinel() {
-    OrganizationDAO organizationDAO = mock(OrganizationDAO.class);
-    when(organizationDAO.getAllChildOrganizationIds(Set.of("empty-org"))).thenReturn(Set.of());
-
-    Configuration configuration = mock(Configuration.class);
-
-    CurrentUser currentUser = mock(CurrentUser.class);
-    when(currentUser.getUserPrincipal()).thenReturn(
-        new UserPrincipal("filter-user", "filter-user", User.INTERNAL_REALM_ID));
-
-    SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
-    stubEmptySearchIndexResults(searchIndexClient);
-    ArgumentCaptor<java.util.List> restrictions = ArgumentCaptor.forClass(java.util.List.class);
-    when(searchIndexClient.count(anyString(), restrictions.capture())).thenReturn(0L);
-
-    DashboardMetricsService service =
-        newServiceWithMocks(
-            searchIndexClient,
-            new MetricFilterValidator(),
-            organizationDAO,
-            configuration,
-            currentUser);
-
-    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
-    request.organizationIds = Set.of("empty-org");
-
-    assertThat(service.getMetrics(request).applications.total).isZero();
-    assertThat(restrictions.getAllValues()).anySatisfy(list -> {
-      IndexTermSetRestriction orgRestriction = (IndexTermSetRestriction) list.get(0);
-      assertThat(orgRestriction.ids()).containsExactly(DashboardMetricsService.NO_MATCH_ORGANIZATION_FILTER_ID);
-    });
-  }
-
-  @Test
-  public void testGetMetrics_OrganizationFilterAcceptsExpansionAtMaxClauseCount() {
-    OrganizationDAO organizationDAO = mock(OrganizationDAO.class);
-    when(organizationDAO.getAllChildOrganizationIds(Set.of("max-org")))
-        .thenReturn(Set.of("expanded-org-0", "expanded-org-1", "expanded-org-2", "expanded-org-3", "expanded-org-4"));
-
-    Configuration configuration = mock(Configuration.class);
-
-    CurrentUser currentUser = mock(CurrentUser.class);
-    when(currentUser.getUserPrincipal()).thenReturn(
-        new UserPrincipal("filter-user", "filter-user", User.INTERNAL_REALM_ID));
-
-    SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
-    when(searchIndexClient.count(anyString(), anyList())).thenReturn(1L);
-    stubEmptySearchIndexResults(searchIndexClient);
-    when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
-
-    DashboardMetricsService service =
-        newServiceWithMocks(
-            searchIndexClient,
-            new MetricFilterValidator(),
-            organizationDAO,
-            configuration,
-            currentUser);
-
-    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
-    request.organizationIds = Set.of("max-org");
-
-    assertThat(service.getMetrics(request).applications.total).isEqualTo(1);
-  }
-
-  @Test
-  public void testGetMetrics_OrganizationExpansionComputedOncePerRequest() {
-    OrganizationDAO organizationDAO = mock(OrganizationDAO.class);
-    when(organizationDAO.getAllChildOrganizationIds(Set.of("parent-org")))
-        .thenReturn(Set.of("child-org"));
-
-    SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
-    when(searchIndexClient.count(anyString(), anyList())).thenReturn(1L);
-    stubEmptySearchIndexResults(searchIndexClient);
-    when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
-
-    Configuration configuration = mock(Configuration.class);
-
-    CurrentUser currentUser = mock(CurrentUser.class);
-    when(currentUser.getUserPrincipal()).thenReturn(
-        new UserPrincipal("filter-user", "filter-user", User.INTERNAL_REALM_ID));
-
-    DashboardMetricsService service =
-        newServiceWithMocks(
-            searchIndexClient,
-            new MetricFilterValidator(),
-            organizationDAO,
-            configuration,
-            currentUser);
-
-    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
-    request.organizationIds = Set.of("parent-org");
-    service.getMetrics(request);
-
-    verify(organizationDAO, times(1)).getAllChildOrganizationIds(Set.of("parent-org"));
-  }
+  // The org filter is a single ancestor-match term on parentOrganizationId, so there is no descendant
+  // expansion to bound and no clause-count guard to exercise. Clause shape is covered by
+  // DashboardIndexDimensionQueryBuilderTest.
 
   @Test
   public void testGetMetrics_ApplicationsCountFromIndex() {
@@ -899,7 +775,7 @@ public class DashboardMetricsServiceTest
         scopeResolver,
         mock(DashboardMetricsSqlCoordinator.class),
         shadowComparisonService,
-        new DashboardIndexDimensionQueryBuilder(mock(OrganizationDAO.class), mockConfiguration()),
+        new DashboardIndexDimensionQueryBuilder(mockConfiguration()),
         mock(OwnerDAO.class),
         mockConfiguration(),
         mock(StageTypeService.class),
@@ -939,7 +815,7 @@ public class DashboardMetricsServiceTest
         mock(DashboardMetricsScopeResolver.class),
         mock(DashboardMetricsSqlCoordinator.class),
         shadowComparisonService,
-        new DashboardIndexDimensionQueryBuilder(mock(OrganizationDAO.class), mockConfiguration()),
+        new DashboardIndexDimensionQueryBuilder(mockConfiguration()),
         mock(OwnerDAO.class),
         mockConfiguration(),
         mock(StageTypeService.class),
@@ -1529,7 +1405,7 @@ public class DashboardMetricsServiceTest
         mock(DashboardMetricsScopeResolver.class),
         mock(DashboardMetricsSqlCoordinator.class),
         mock(DashboardMetricsShadowComparisonService.class),
-        new DashboardIndexDimensionQueryBuilder(mock(OrganizationDAO.class), mockConfiguration()),
+        new DashboardIndexDimensionQueryBuilder(mockConfiguration()),
         mock(OwnerDAO.class),
         mockConfiguration(),
         mock(StageTypeService.class),
@@ -1574,7 +1450,7 @@ public class DashboardMetricsServiceTest
         mock(DashboardMetricsScopeResolver.class),
         mock(DashboardMetricsSqlCoordinator.class),
         mock(DashboardMetricsShadowComparisonService.class),
-        new DashboardIndexDimensionQueryBuilder(mock(OrganizationDAO.class), mockConfiguration()),
+        new DashboardIndexDimensionQueryBuilder(mockConfiguration()),
         mock(OwnerDAO.class),
         mockConfiguration(),
         mock(StageTypeService.class),
@@ -1641,7 +1517,7 @@ public class DashboardMetricsServiceTest
         scopeResolver,
         mock(DashboardMetricsSqlCoordinator.class),
         mock(DashboardMetricsShadowComparisonService.class),
-        new DashboardIndexDimensionQueryBuilder(mock(OrganizationDAO.class), mockConfiguration()),
+        new DashboardIndexDimensionQueryBuilder(mockConfiguration()),
         ownerDAO,
         mockConfiguration(),
         mock(StageTypeService.class),
@@ -1696,7 +1572,7 @@ public class DashboardMetricsServiceTest
         mock(DashboardMetricsScopeResolver.class),
         mock(DashboardMetricsSqlCoordinator.class),
         mock(DashboardMetricsShadowComparisonService.class),
-        new DashboardIndexDimensionQueryBuilder(mock(OrganizationDAO.class), configuration),
+        new DashboardIndexDimensionQueryBuilder(configuration),
         ownerDAO,
         configuration,
         mock(StageTypeService.class),
@@ -2066,7 +1942,7 @@ public class DashboardMetricsServiceTest
         scopeResolver,
         coordinator,
         mock(DashboardMetricsShadowComparisonService.class),
-        new DashboardIndexDimensionQueryBuilder(mock(OrganizationDAO.class), mockConfiguration()),
+        new DashboardIndexDimensionQueryBuilder(mockConfiguration()),
         mock(OwnerDAO.class),
         mockConfiguration(),
         mock(StageTypeService.class),
@@ -2123,7 +1999,7 @@ public class DashboardMetricsServiceTest
         queryableScopeResolver(),
         mock(DashboardMetricsSqlCoordinator.class),
         mock(DashboardMetricsShadowComparisonService.class),
-        new DashboardIndexDimensionQueryBuilder(organizationDAO, configuration),
+        new DashboardIndexDimensionQueryBuilder(configuration),
         mock(OwnerDAO.class),
         configuration,
         stageTypeService,

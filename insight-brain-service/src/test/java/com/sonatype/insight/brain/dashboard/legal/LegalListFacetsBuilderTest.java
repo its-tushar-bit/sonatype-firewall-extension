@@ -102,7 +102,7 @@ public class LegalListFacetsBuilderTest
     when(searchIndexClient.searchIndex(anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(),
         anyList()))
             .thenReturn(resultWith(List.of(item)));
-    when(dimensionQueryBuilder.expandOrganizationFilterIdsById(Set.of("org-1")))
+    when(dimensionQueryBuilder.organizationFilterIdsById(Set.of("org-1")))
         .thenReturn(Map.of("org-1", Set.of("org-1")));
 
     LegalListFacetsDTO facets = builder().buildFacets(QUERY, 1, List.of());
@@ -124,7 +124,7 @@ public class LegalListFacetsBuilderTest
         anyList()))
             .thenReturn(resultWith(List.of(item)));
     when(searchIndexClient.count(anyString(), anyList())).thenReturn(1L);
-    when(dimensionQueryBuilder.expandOrganizationFilterIdsById(Set.of("org-1")))
+    when(dimensionQueryBuilder.organizationFilterIdsById(Set.of("org-1")))
         .thenReturn(Map.of("org-1", Set.of("org-1")));
 
     Organization org = mock(Organization.class);

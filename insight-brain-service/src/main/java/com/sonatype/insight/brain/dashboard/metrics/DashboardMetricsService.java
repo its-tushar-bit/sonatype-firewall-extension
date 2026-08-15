@@ -517,7 +517,7 @@ public class DashboardMetricsService
       }
     }
     return MetricFilterContext.of(
-        dimensionQueryBuilder.expandOrganizationFilterIds(organizationIds),
+        dimensionQueryBuilder.organizationFilterIds(organizationIds),
         dimensionQueryBuilder.applicationFilterIds(applicationIds),
         dimensionQueryBuilder.buildPolicyEvaluationStageFilterClause(stageIds),
         taggedApplicationClause,
@@ -561,7 +561,25 @@ public class DashboardMetricsService
   }
 
   /**
-   * Builds a metric query for the given item type (no org/app embedded — those are term-set restrictions).
+   * Builds a metric query for the given item type. Organization and application scope are not embedded
+   * in this query: they travel separately as budget-exempt term-set restrictions. RBAC scopes to the
+   * user's readable contexts inside {@link SearchIndexClient#count},
+   * {@link SearchIndexClient#aggregateCountByField} and {@link SearchIndexClient#countDistinct}.
+   * <p>
+   * Every organization-carrying document indexes the full {@code parentOrganizationId} ancestor closure
+   * ({@code self..ROOT_ORGANIZATION_ID}; see {@code DocumentBuilderHelper}), so the organization term set
+   * carries the requested ids themselves and still matches each one's whole subtree - no descendant
+   * expansion. POLICY_VIOLATION documents carry {@code organizationId}, {@code parentOrganizationId} and
+   * {@code applicationId}, so violations narrow consistently with applications.
+   * <p>
+   * When both organizations and applications are present the two dimensions are combined with
+   * {@code OR}, matching Classic dashboard resolution in
+   * {@link com.sonatype.insight.brain.organization.ApplicationService#getAppsByIds} (union of apps in the
+   * selected org subtrees plus explicitly selected apps).
+   * <p>
+   * {@link ItemType#ORGANIZATION} documents have no {@code applicationId} in the index, so for that item
+   * type only the organization dimension applies and requested applications are ignored rather than
+   * zeroing organization totals. {@link ItemType#POLICY} can be org- or app-scoped and keeps both.
    */
   private static String buildFilteredMetricQuery(ItemType itemType, MetricFilterContext filterContext) {
     String baseQuery = "itemType:" + itemType.searchFieldName();
@@ -589,13 +607,13 @@ public class DashboardMetricsService
       return List.of();
     }
     if (expandedOrgs != null && apps == null) {
-      return IndexTermSetRestriction.singleton(FieldIdentifier.ORGANIZATION_ID.label, expandedOrgs);
+      return IndexTermSetRestriction.singleton(FieldIdentifier.PARENT_ORGANIZATION_ID.label, expandedOrgs);
     }
     if (expandedOrgs == null) {
       return IndexTermSetRestriction.singleton(FieldIdentifier.APPLICATION_ID.label, apps);
     }
     return IndexOrTermSetGroup.singleton(
-        IndexTermSetRestriction.of(FieldIdentifier.ORGANIZATION_ID.label, expandedOrgs),
+        IndexTermSetRestriction.of(FieldIdentifier.PARENT_ORGANIZATION_ID.label, expandedOrgs),
         IndexTermSetRestriction.of(FieldIdentifier.APPLICATION_ID.label, apps));
   }
 

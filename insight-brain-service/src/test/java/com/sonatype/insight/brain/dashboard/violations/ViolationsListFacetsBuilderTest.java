@@ -313,7 +313,7 @@ public class ViolationsListFacetsBuilderTest
                 item("app-2", Organization.ROOT_ORGANIZATION_ID))));
 
     // Root is omitted from the expanded id map (same skip semantics as a null single-id clause).
-    when(dimensionQueryBuilder.expandOrganizationFilterIdsById(any()))
+    when(dimensionQueryBuilder.organizationFilterIdsById(any()))
         .thenReturn(Map.of("org-A", Set.of("org-A")));
 
     when(searchIndexClient.count(anyString(), anyList())).thenAnswer(invocation -> {
@@ -322,7 +322,8 @@ public class ViolationsListFacetsBuilderTest
       boolean hasOrgA = restrictions.stream()
           .filter(r -> r instanceof IndexTermSetRestriction)
           .map(r -> (IndexTermSetRestriction) r)
-          .anyMatch(r -> r.field().equals(FieldIdentifier.ORGANIZATION_ID.label) && r.ids().contains("org-A"));
+          .anyMatch(r -> r.field().equals(FieldIdentifier.PARENT_ORGANIZATION_ID.label)
+              && r.ids().contains("org-A"));
       boolean hasApp1 = restrictions.stream()
           .filter(r -> r instanceof IndexTermSetRestriction)
           .map(r -> (IndexTermSetRestriction) r)
@@ -360,7 +361,7 @@ public class ViolationsListFacetsBuilderTest
     when(searchIndexClient.searchIndex(anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(),
         anyList()))
             .thenReturn(resultWith(items));
-    when(dimensionQueryBuilder.expandOrganizationFilterIdsById(any()))
+    when(dimensionQueryBuilder.organizationFilterIdsById(any()))
         .thenReturn(Map.of("org-A", Set.of("org-A")));
     when(searchIndexClient.count(anyString(), anyList())).thenReturn(1L);
 
@@ -487,7 +488,7 @@ public class ViolationsListFacetsBuilderTest
     when(searchIndexClient.searchIndex(anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(),
         anyList()))
             .thenReturn(resultWith(List.of(discovered)));
-    when(dimensionQueryBuilder.expandOrganizationFilterIdsById(Set.of("org-A")))
+    when(dimensionQueryBuilder.organizationFilterIdsById(Set.of("org-A")))
         .thenReturn(Map.of("org-A", Set.of("org-A")));
     when(searchIndexClient.count(anyString(), anyList())).thenReturn(1L);
 
@@ -506,7 +507,7 @@ public class ViolationsListFacetsBuilderTest
     when(organizationDAO.searchByNameSubstring(
         "zeta", ViolationsListFacetsBuilder.MAX_ORGANIZATION_FACET_SEARCH_CANDIDATES))
             .thenReturn(List.of(match));
-    when(dimensionQueryBuilder.expandOrganizationFilterIdsById(Set.of("org-zeta")))
+    when(dimensionQueryBuilder.organizationFilterIdsById(Set.of("org-zeta")))
         .thenReturn(Map.of("org-zeta", Set.of("org-zeta")));
     when(searchIndexClient.count(anyString(), anyList())).thenReturn(9L);
     // Application facet still uses discovery when only org search is set.
@@ -522,9 +523,9 @@ public class ViolationsListFacetsBuilderTest
     verify(organizationDAO).searchByNameSubstring(
         "zeta", ViolationsListFacetsBuilder.MAX_ORGANIZATION_FACET_SEARCH_CANDIDATES);
     verify(organizationDAO, never()).getByIds(any());
-    verify(dimensionQueryBuilder).expandOrganizationFilterIdsById(Set.of("org-zeta"));
+    verify(dimensionQueryBuilder).organizationFilterIdsById(Set.of("org-zeta"));
     verify(dimensionQueryBuilder, never())
-        .expandOrganizationFilterIdsById(argThat(ids -> ids != null && ids.contains("org-A")));
+        .organizationFilterIdsById(argThat(ids -> ids != null && ids.contains("org-A")));
   }
 
   @Test
@@ -535,7 +536,7 @@ public class ViolationsListFacetsBuilderTest
     when(organizationDAO.searchByNameSubstring(
         "ab", ViolationsListFacetsBuilder.MAX_ORGANIZATION_FACET_SEARCH_CANDIDATES))
             .thenReturn(List.of(matchA, matchB));
-    when(dimensionQueryBuilder.expandOrganizationFilterIdsById(Set.of("org-a", "org-b")))
+    when(dimensionQueryBuilder.organizationFilterIdsById(Set.of("org-a", "org-b")))
         .thenReturn(Map.of(
             "org-a", Set.of("org-a"),
             "org-b", Set.of("org-b", "org-b-child")));
@@ -563,7 +564,7 @@ public class ViolationsListFacetsBuilderTest
     assertThat(facets.organizations)
         .containsEntry("org-a", 3L)
         .containsEntry("org-b", 5L);
-    verify(dimensionQueryBuilder, times(1)).expandOrganizationFilterIdsById(Set.of("org-a", "org-b"));
+    verify(dimensionQueryBuilder, times(1)).organizationFilterIdsById(Set.of("org-a", "org-b"));
     verify(dimensionQueryBuilder, never()).buildOrganizationFilterClause(any());
   }
 
@@ -574,7 +575,7 @@ public class ViolationsListFacetsBuilderTest
     when(organizationDAO.searchByNameSubstring(
         "zero", ViolationsListFacetsBuilder.MAX_ORGANIZATION_FACET_SEARCH_CANDIDATES))
             .thenReturn(List.of(match));
-    when(dimensionQueryBuilder.expandOrganizationFilterIdsById(Set.of("org-zero")))
+    when(dimensionQueryBuilder.organizationFilterIdsById(Set.of("org-zero")))
         .thenReturn(Map.of("org-zero", Set.of("org-zero")));
     when(searchIndexClient.count(anyString(), anyList())).thenReturn(0L);
     stubEmptyDiscovery();
@@ -593,7 +594,7 @@ public class ViolationsListFacetsBuilderTest
         "org", ViolationsListFacetsBuilder.MAX_ORGANIZATION_FACET_SEARCH_CANDIDATES))
             .thenReturn(List.of(huge, ok));
     // Soft-skip contract: oversized expansions are omitted from the expanded id map.
-    when(dimensionQueryBuilder.expandOrganizationFilterIdsById(Set.of("org-huge", "org-ok")))
+    when(dimensionQueryBuilder.organizationFilterIdsById(Set.of("org-huge", "org-ok")))
         .thenReturn(Map.of("org-ok", Set.of("org-ok")));
     when(searchIndexClient.count(anyString(), anyList())).thenReturn(4L);
     stubEmptyDiscovery();
@@ -618,7 +619,7 @@ public class ViolationsListFacetsBuilderTest
     when(organizationDAO.searchByNameSubstring(
         "a", ViolationsListFacetsBuilder.MAX_ORGANIZATION_FACET_SEARCH_CANDIDATES))
             .thenReturn(candidates);
-    when(dimensionQueryBuilder.expandOrganizationFilterIdsById(anySet())).thenAnswer(invocation -> {
+    when(dimensionQueryBuilder.organizationFilterIdsById(anySet())).thenAnswer(invocation -> {
       @SuppressWarnings("unchecked")
       Set<String> ids = invocation.getArgument(0);
       Map<String, Set<String>> expanded = new java.util.LinkedHashMap<>();
@@ -661,7 +662,7 @@ public class ViolationsListFacetsBuilderTest
     assertThat(facets.organizations).isNull();
     assertThat(facets.organizationNames).isNull();
     verify(organizationSummaryService).getOrganizationsForRead(Set.of("org-parent"));
-    verify(dimensionQueryBuilder, never()).expandOrganizationFilterIdsById(anySet());
+    verify(dimensionQueryBuilder, never()).organizationFilterIdsById(anySet());
   }
 
   @Test
@@ -675,7 +676,7 @@ public class ViolationsListFacetsBuilderTest
     when(searchIndexClient.searchIndex(anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList(),
         anyList()))
             .thenReturn(resultWith(List.of(item("app-1", "org-A"))));
-    when(dimensionQueryBuilder.expandOrganizationFilterIdsById(Set.of("org-A")))
+    when(dimensionQueryBuilder.organizationFilterIdsById(Set.of("org-A")))
         .thenReturn(Map.of("org-A", Set.of("org-A")));
 
     ViolationsListFacetsDTO facets = builder().buildFacets(QUERY, QUERY, 10, null, "billing", List.of());
@@ -686,7 +687,7 @@ public class ViolationsListFacetsBuilderTest
     verify(applicationDAO).searchByNameSubstring(
         "billing", ViolationsListFacetsBuilder.MAX_APPLICATION_FACET_SEARCH_CANDIDATES);
     verify(applicationDAO, never()).getByIds(any());
-    verify(dimensionQueryBuilder).expandOrganizationFilterIdsById(Set.of("org-A"));
+    verify(dimensionQueryBuilder).organizationFilterIdsById(Set.of("org-A"));
   }
 
   @Test
@@ -722,7 +723,7 @@ public class ViolationsListFacetsBuilderTest
     when(organizationDAO.searchByNameSubstring(
         "zeta", ViolationsListFacetsBuilder.MAX_ORGANIZATION_FACET_SEARCH_CANDIDATES))
             .thenReturn(List.of(match));
-    when(dimensionQueryBuilder.expandOrganizationFilterIdsById(Set.of("org-zeta")))
+    when(dimensionQueryBuilder.organizationFilterIdsById(Set.of("org-zeta")))
         .thenReturn(Map.of("org-zeta", Set.of("org-zeta")));
     // Session-path org name-search counts must stay on the shared IndexReadSession snapshot.
     when(session.count(any(Query.class))).thenReturn(7L);
@@ -755,7 +756,7 @@ public class ViolationsListFacetsBuilderTest
     when(applicationDAO.searchByNameSubstring(
         "billing", ViolationsListFacetsBuilder.MAX_APPLICATION_FACET_SEARCH_CANDIDATES))
             .thenReturn(List.of(application));
-    when(dimensionQueryBuilder.expandOrganizationFilterIdsById(Set.of("org-zeta")))
+    when(dimensionQueryBuilder.organizationFilterIdsById(Set.of("org-zeta")))
         .thenReturn(Map.of("org-zeta", Set.of("org-zeta")));
     when(searchIndexClient.count(anyString(), anyList())).thenReturn(2L);
 

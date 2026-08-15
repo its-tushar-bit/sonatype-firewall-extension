@@ -165,19 +165,19 @@ final class LegalListFacetsBuilder
       return null;
     }
 
-    Map<String, Set<String>> expandedById = dimensionQueryBuilder.expandOrganizationFilterIdsById(organizationIds);
+    Map<String, Set<String>> expandedById = dimensionQueryBuilder.organizationFilterIdsById(organizationIds);
     Map<String, Long> counts = new LinkedHashMap<>();
     int queries = 0;
     for (String organizationId : organizationIds) {
       if (queries >= MAX_ORGANIZATION_FACETS) {
         break;
       }
-      Set<String> expandedOrgIds = expandedById.get(organizationId);
-      if (expandedOrgIds == null) {
+      Set<String> orgIds = expandedById.get(organizationId);
+      if (orgIds == null) {
         continue;
       }
       List<IndexFilterRestriction> combined = IdSetFilterQueries.combine(scopeRestrictions,
-          IndexTermSetRestriction.singleton(FieldIdentifier.ORGANIZATION_ID.label, expandedOrgIds));
+          IndexTermSetRestriction.singleton(FieldIdentifier.PARENT_ORGANIZATION_ID.label, orgIds));
       counts.put(organizationId, searchIndexClient.count(legalQuery, combined));
       queries++;
     }

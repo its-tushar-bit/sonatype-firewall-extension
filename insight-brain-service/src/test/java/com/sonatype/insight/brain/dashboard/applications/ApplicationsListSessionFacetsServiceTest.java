@@ -104,7 +104,7 @@ public class ApplicationsListSessionFacetsServiceTest
         searchIndexClient,
         applicationRiskService,
         new ApplicationsListIndexQueryBuilder(
-            new DashboardIndexDimensionQueryBuilder(organizationDAO, configuration),
+            new DashboardIndexDimensionQueryBuilder(configuration),
             violationScopeResolver),
         requestValidator,
         new ApplicationsListFacetsBuilder(searchIndexClient, stageTypeService, organizationDAO, applicationDAO,
@@ -147,7 +147,7 @@ public class ApplicationsListSessionFacetsServiceTest
   public void organizationScopeStaysOnSessionViolationFacetQueries() {
     // Org/app leave the Lucene string as term sets; stage/policy/state facets must still FILTER
     // those sets onto the POLICY_VIOLATION session query (same as the legacy SearchIndexClient path).
-    when(organizationDAO.getAllChildOrganizationIds(Set.of("org-1"))).thenReturn(Set.of("org-1"));
+    // The organization set needs no hierarchy read: it matches the indexed ancestor closure.
 
     ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
     request.page = 0;

@@ -392,11 +392,11 @@ final class ApplicationsListFacetsBuilder
       if (queries >= MAX_ORGANIZATION_FACET_COUNT_QUERIES) {
         break;
       }
-      // APPLICATION documents store only the direct-parent organizationId (not ancestor ids). Match
-      // that field exactly — unlike Violations/Legal facets, which expand to descendants because
-      // violation docs can sit under child orgs while still belonging to the selected parent.
+      // APPLICATION documents carry the full parentOrganizationId ancestor closure, so one term on that
+      // field counts the applications in this organization's whole subtree with no descendant expansion.
       List<IndexFilterRestriction> combined = IdSetFilterQueries.combine(scopeRestrictions,
-          IndexTermSetRestriction.singleton(FieldIdentifier.ORGANIZATION_ID.label, Set.of(organizationId)));
+          IndexTermSetRestriction.singleton(
+              FieldIdentifier.PARENT_ORGANIZATION_ID.label, Set.of(organizationId)));
       counts.put(organizationId, searchIndexClient.count(applicationQuery, combined));
       queries++;
     }

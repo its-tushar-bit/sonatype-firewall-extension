@@ -16,7 +16,6 @@ import com.sonatype.insight.brain.dashboard.PolicyViolationState;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.IndexTermSetRestriction;
@@ -45,14 +44,11 @@ public class ApplicationsListIndexQueryBuilderTest
   private Configuration configuration;
 
   @Mock
-  private OrganizationDAO organizationDAO;
-
-  @Mock
   private ApplicationsListViolationScopeResolver violationScopeResolver;
 
   private ApplicationsListIndexQueryBuilder newBuilder() {
     return new ApplicationsListIndexQueryBuilder(
-        new DashboardIndexDimensionQueryBuilder(organizationDAO, configuration),
+        new DashboardIndexDimensionQueryBuilder(configuration),
         violationScopeResolver);
   }
 
@@ -121,7 +117,6 @@ public class ApplicationsListIndexQueryBuilderTest
 
   @Test
   public void buildApplicationQuery_stageAndAge_keepsAgeOffViolationDiscoveryQuery() {
-    when(organizationDAO.getAllChildOrganizationIds(Set.of("org-a"))).thenReturn(Set.of("org-a"));
     ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
     request.organizationIds = Set.of("org-a");
     request.stageIds = Set.of("build");
@@ -165,7 +160,6 @@ public class ApplicationsListIndexQueryBuilderTest
 
   @Test
   public void buildApplicationQuery_stageFilter_usesViolationScopedApplicationIdsOnly() {
-    when(organizationDAO.getAllChildOrganizationIds(Set.of("org-a"))).thenReturn(Set.of("org-a"));
     ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
     request.organizationIds = Set.of("org-a");
     request.stageIds = Set.of("build");
@@ -183,7 +177,6 @@ public class ApplicationsListIndexQueryBuilderTest
 
   @Test
   public void buildApplicationQuery_threatFilter_putsScopedAppsInTermSetsNotString() {
-    when(organizationDAO.getAllChildOrganizationIds(Set.of("org-a"))).thenReturn(Set.of("org-a"));
     PolicyThreatLevelFilter threatFilter = new PolicyThreatLevelFilter(8, 10);
     ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
     request.organizationIds = Set.of("org-a");
@@ -200,7 +193,6 @@ public class ApplicationsListIndexQueryBuilderTest
 
   @Test
   public void buildApplicationQuery_orgAndApplicationAndStageFilter_keepsAllViolationScopedOrgApps() {
-    when(organizationDAO.getAllChildOrganizationIds(Set.of("org-a"))).thenReturn(Set.of("org-a"));
     ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
     request.organizationIds = Set.of("org-a");
     request.applicationIds = Set.of("app-b");

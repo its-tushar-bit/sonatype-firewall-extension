@@ -33,7 +33,7 @@ public class ApplicationsListViolationQuerySupportTest
     ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
     request.search = "apple";
     String query = new ApplicationsListIndexQueryBuilder(
-        new com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder(null, configuration),
+        new com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder(configuration),
         violationScopeResolver)
             .buildApplicationQuery(request);
 

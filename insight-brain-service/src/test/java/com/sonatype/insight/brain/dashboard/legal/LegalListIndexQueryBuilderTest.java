@@ -51,7 +51,7 @@ public class LegalListIndexQueryBuilderTest
 
   private LegalListIndexQueryBuilder newBuilder() {
     return new LegalListIndexQueryBuilder(
-        new DashboardIndexDimensionQueryBuilder(organizationDAO, configuration),
+        new DashboardIndexDimensionQueryBuilder(configuration),
         stageTypeService);
   }
 

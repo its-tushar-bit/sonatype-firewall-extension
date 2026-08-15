@@ -107,7 +107,7 @@ public class VulnerabilitiesListServiceTest
     return new VulnerabilitiesListService(
         searchIndexClient,
         new VulnerabilitiesListIndexQueryBuilder(
-            new DashboardIndexDimensionQueryBuilder(organizationDAO, configuration)),
+            new DashboardIndexDimensionQueryBuilder(configuration)),
         requestValidator,
         catalogListService,
         scopeFacetsBuilder,
@@ -452,9 +452,7 @@ public class VulnerabilitiesListServiceTest
   public void hydrationAndApplicationCountsMergeOrgAppScopeWithVulnerabilityIdTermSet() {
     // Org/app leave the Lucene string and become term sets; hydrate + application-count must still
     // AND those scope sets with the page's vulnerability ids so per-row counts stay filter-scoped.
-    when(organizationDAO.getAllChildOrganizationIds(Set.of("org-1")))
-        .thenReturn(Set.of("org-1", "org-1-child"));
-
+    // The organization set needs no hierarchy read: it matches the indexed ancestor closure.
     Map<String, Long> bands = zeroedBands();
     bands.put("critical", 1L);
     when(searchIndexClient.rankGroupsByMaxMetric(
@@ -600,8 +598,10 @@ public class VulnerabilitiesListServiceTest
     IndexTermSetRestriction organization = (IndexTermSetRestriction) restrictions.get(0);
     IndexTermSetRestriction application = (IndexTermSetRestriction) restrictions.get(1);
     IndexTermSetRestriction vulnerability = (IndexTermSetRestriction) restrictions.get(2);
-    assertThat(organization.field()).isEqualTo(FieldIdentifier.ORGANIZATION_ID.label);
-    assertThat(organization.ids()).containsExactlyInAnyOrder("org-1", "org-1-child");
+    // The organization term set matches on the indexed ancestor closure, so it carries the selected
+    // organization rather than an enumeration of its descendants.
+    assertThat(organization.field()).isEqualTo(FieldIdentifier.PARENT_ORGANIZATION_ID.label);
+    assertThat(organization.ids()).containsExactly("org-1");
     assertThat(application.field()).isEqualTo(FieldIdentifier.APPLICATION_ID.label);
     assertThat(application.ids()).containsExactly("app-1");
     assertThat(vulnerability.field()).isEqualTo(FieldIdentifier.VULNERABILITY_ID.label);

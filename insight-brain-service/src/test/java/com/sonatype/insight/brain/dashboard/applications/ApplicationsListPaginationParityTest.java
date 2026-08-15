@@ -90,7 +90,7 @@ public class ApplicationsListPaginationParityTest
     service = new ApplicationsListService(
         searchIndexClient,
         applicationRiskService,
-        new ApplicationsListIndexQueryBuilder(new DashboardIndexDimensionQueryBuilder(null, configuration),
+        new ApplicationsListIndexQueryBuilder(new DashboardIndexDimensionQueryBuilder(configuration),
             violationScopeResolver),
         requestValidator,
         facetsBuilder,

@@ -34,10 +34,10 @@ public class ApplicationsListServiceTest
     ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
     request.applicationIds = Set.of("app+id");
     ApplicationsListIndexQueryBuilder builder = new ApplicationsListIndexQueryBuilder(
-        new DashboardIndexDimensionQueryBuilder(null, configuration),
+        new DashboardIndexDimensionQueryBuilder(configuration),
         violationScopeResolver);
     String query = builder.buildApplicationQuery(request);
-    // App filter no longer in query string — handled by term-set restrictions (CLM-44783).
+    // The application filter travels as a budget-exempt term-set restriction, not as query text.
     assertThat(query).doesNotContain("applicationId:");
     assertThat(builder.buildScopeRestrictions(request)).isNotEmpty();
   }

@@ -58,7 +58,7 @@ public class VulnerabilitiesListServiceAffectedApplicationsTest
 
   private VulnerabilitiesListIndexQueryBuilder indexQueryBuilder() {
     return new VulnerabilitiesListIndexQueryBuilder(
-        new DashboardIndexDimensionQueryBuilder(organizationDAO, configuration));
+        new DashboardIndexDimensionQueryBuilder(configuration));
   }
 
   private VulnerabilitiesListService service() {

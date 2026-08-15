@@ -534,19 +534,19 @@ final class ViolationsListFacetsBuilder
     for (Organization organization : matches) {
       matchedIds.add(organization.getId());
     }
-    Map<String, Set<String>> expandedById = dimensionQueryBuilder.expandOrganizationFilterIdsById(matchedIds);
+    Map<String, Set<String>> expandedById = dimensionQueryBuilder.organizationFilterIdsById(matchedIds);
     Map<String, Long> counts = new LinkedHashMap<>();
     Map<String, String> names = new LinkedHashMap<>();
     for (Organization organization : matches) {
       if (counts.size() >= MAX_ORGANIZATION_FACETS) {
         break;
       }
-      Set<String> expandedOrgIds = expandedById.get(organization.getId());
-      if (expandedOrgIds == null) {
+      Set<String> orgIds = expandedById.get(organization.getId());
+      if (orgIds == null) {
         continue;
       }
       List<IndexFilterRestriction> combined = IdSetFilterQueries.combine(scopeRestrictions,
-          IndexTermSetRestriction.singleton(FieldIdentifier.ORGANIZATION_ID.label, expandedOrgIds));
+          IndexTermSetRestriction.singleton(FieldIdentifier.PARENT_ORGANIZATION_ID.label, orgIds));
       long count = scopedCounter.apply(violationQuery, combined);
       if (count > 0) {
         counts.put(organization.getId(), count);
@@ -628,19 +628,19 @@ final class ViolationsListFacetsBuilder
       return null;
     }
 
-    Map<String, Set<String>> expandedById = dimensionQueryBuilder.expandOrganizationFilterIdsById(organizationIds);
+    Map<String, Set<String>> expandedById = dimensionQueryBuilder.organizationFilterIdsById(organizationIds);
     Map<String, Long> counts = new LinkedHashMap<>();
     int queries = 0;
     for (String organizationId : organizationIds) {
       if (queries >= MAX_ORGANIZATION_FACETS) {
         break;
       }
-      Set<String> expandedOrgIds = expandedById.get(organizationId);
-      if (expandedOrgIds == null) {
+      Set<String> orgIds = expandedById.get(organizationId);
+      if (orgIds == null) {
         continue;
       }
       List<IndexFilterRestriction> combined = IdSetFilterQueries.combine(scopeRestrictions,
-          IndexTermSetRestriction.singleton(FieldIdentifier.ORGANIZATION_ID.label, expandedOrgIds));
+          IndexTermSetRestriction.singleton(FieldIdentifier.PARENT_ORGANIZATION_ID.label, orgIds));
       counts.put(organizationId, searchIndexClient.count(violationQuery, combined));
       queries++;
     }

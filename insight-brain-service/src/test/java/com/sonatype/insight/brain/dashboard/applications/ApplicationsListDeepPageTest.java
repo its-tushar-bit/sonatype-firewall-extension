@@ -83,7 +83,7 @@ public class ApplicationsListDeepPageTest
     service = new ApplicationsListService(
         null,
         applicationRiskService,
-        new ApplicationsListIndexQueryBuilder(new DashboardIndexDimensionQueryBuilder(null, configuration),
+        new ApplicationsListIndexQueryBuilder(new DashboardIndexDimensionQueryBuilder(configuration),
             violationScopeResolver),
         requestValidator,
         facetsBuilder,

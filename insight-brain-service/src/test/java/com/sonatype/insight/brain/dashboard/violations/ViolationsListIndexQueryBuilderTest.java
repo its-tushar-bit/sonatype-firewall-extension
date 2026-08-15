@@ -54,7 +54,7 @@ public class ViolationsListIndexQueryBuilderTest
 
   private ViolationsListIndexQueryBuilder newBuilder() {
     return new ViolationsListIndexQueryBuilder(
-        new DashboardIndexDimensionQueryBuilder(organizationDAO, configuration),
+        new DashboardIndexDimensionQueryBuilder(configuration),
         tagDAO);
   }
 

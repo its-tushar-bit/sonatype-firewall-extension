@@ -60,7 +60,7 @@ public class VulnerabilitiesListServiceImpactedComponentsTest
     return new VulnerabilitiesListService(
         searchIndexClient,
         new VulnerabilitiesListIndexQueryBuilder(
-            new DashboardIndexDimensionQueryBuilder(organizationDAO, configuration)),
+            new DashboardIndexDimensionQueryBuilder(configuration)),
         requestValidator,
         catalogListService,
         scopeFacetsBuilder,

@@ -30,11 +30,15 @@ import com.sonatype.insight.brain.search.index.RankedGroupsResult;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
+import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.search.Query;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Index-backed Martha V1 Vulnerabilities list (My Scan Data).
@@ -65,7 +69,7 @@ import org.apache.commons.lang3.StringUtils;
  * Catalog tab delegates to {@link VulnerabilitiesCatalogListService} (HDS vulnerability search).
  * <p>
  * Row and count reads go through {@link SearchIndexClient} so {@code ReadableContextAuthzCache}
- * (PR-0 / CLM-42705) applies automatically — do not fork a parallel session/authz stack for them.
+ * (PR-0) applies automatically — do not fork a parallel session/authz stack for them.
  * The scope facets builder is the one exception and opens its own short-lived read session for
  * term aggregation, which {@link SearchIndexClient} does not expose; it applies RBAC through the
  * session the same way {@code ComponentsListFacetsBuilder} does.
@@ -74,6 +78,8 @@ import org.apache.commons.lang3.StringUtils;
 @Singleton
 public class VulnerabilitiesListService
 {
+  private static final Logger log = LoggerFactory.getLogger(VulnerabilitiesListService.class);
+
   public static final int DEFAULT_PAGE_SIZE = 25;
 
   public static final int MAX_PAGE_SIZE = 100;
@@ -120,6 +126,8 @@ public class VulnerabilitiesListService
 
   private final VulnerabilitiesListScopeFacetsBuilder scopeFacetsBuilder;
 
+  private final ConversionHelper conversionHelper;
+
   private final Configuration configuration;
 
   @Inject
@@ -129,6 +137,7 @@ public class VulnerabilitiesListService
       final VulnerabilitiesListRequestValidator requestValidator,
       final VulnerabilitiesCatalogListService catalogListService,
       final VulnerabilitiesListScopeFacetsBuilder scopeFacetsBuilder,
+      final ConversionHelper conversionHelper,
       final Configuration configuration)
   {
     this.searchIndexClient = searchIndexClient;
@@ -136,6 +145,7 @@ public class VulnerabilitiesListService
     this.requestValidator = requestValidator;
     this.catalogListService = catalogListService;
     this.scopeFacetsBuilder = scopeFacetsBuilder;
+    this.conversionHelper = conversionHelper;
     this.configuration = configuration;
   }
 
@@ -439,7 +449,12 @@ public class VulnerabilitiesListService
     response.hasNextPage = rankedGroups.size() > consumed && consumed < MAX_RANK_DEPTH;
     response.source = VulnerabilitiesListResponseDTO.SOURCE_INDEX;
     if (includeFacets) {
-      response.facets = buildFacets(request, ranked);
+      try {
+        response.facets = buildFacets(request, ranked);
+      }
+      catch (RuntimeException e) {
+        log.warn("Vulnerabilities list facet build failed; returning page without facets", e);
+      }
     }
     return response;
   }
@@ -599,8 +614,18 @@ public class VulnerabilitiesListService
     // Ecosystem counts come from countDistinctGroupedBy (exact on Lucene, HLL on OpenSearch) — not
     // from the ranking pass. Exactness is reported by the producing backend (hybrid-safe).
     facets.ecosystemsExact = ecosystems.exact();
-    // Scope facets need their own read session for term aggregation — see the builder.
-    scopeFacetsBuilder.attachScopeFacets(facets, request);
+    // Hierarchical owner (org/app) facets, aggregated over an owner-removed base so that selecting an
+    // org/app does not collapse the org/app rails. The builder opens its own read session and degrades to
+    // no owner facets on failure, so the query build and parse sit inside the same guard: a failure there
+    // must cost the owner rails only, not the severity and ecosystem bands already populated above.
+    try {
+      String ownerRemovedQueryString = indexQueryBuilder.buildVulnerabilityQueryWithoutOwner(request);
+      Query ownerRemovedBase = conversionHelper.stringToQuery(ownerRemovedQueryString);
+      scopeFacetsBuilder.attachScopeFacets(facets, ownerRemovedBase, request);
+    }
+    catch (RuntimeException e) {
+      log.warn("Vulnerabilities owner facets unavailable; returning the other facets", e);
+    }
     return facets;
   }
 

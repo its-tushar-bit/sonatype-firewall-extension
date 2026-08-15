@@ -41,8 +41,8 @@ public interface IndexReadSession
    * state to the whole corpus however selective the query is. Counting distinct values of an unbounded
    * column is what {@link #countDistinctGroupedBy} is for.
    *
-   * @return the buckets, never null; an empty list when there is nothing to aggregate, so callers need no
-   *         null check
+   * @return the buckets, never null and never containing null, in descending count order; an empty list when
+   *         there is nothing to aggregate, so callers need no null checks
    */
   List<IndexTermsBucket> termsAggregation(Query query, String field, int maxBuckets);
 

@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.search.results.GroupingByDTO;
@@ -51,6 +52,9 @@ public class VulnerabilitiesListServiceAffectedApplicationsTest
   private VulnerabilitiesListScopeFacetsBuilder scopeFacetsBuilder;
 
   @Mock
+  private ConversionHelper conversionHelper;
+
+  @Mock
   private OrganizationDAO organizationDAO;
 
   @Mock
@@ -68,6 +72,7 @@ public class VulnerabilitiesListServiceAffectedApplicationsTest
         requestValidator,
         catalogListService,
         scopeFacetsBuilder,
+        conversionHelper,
         configuration);
   }
 

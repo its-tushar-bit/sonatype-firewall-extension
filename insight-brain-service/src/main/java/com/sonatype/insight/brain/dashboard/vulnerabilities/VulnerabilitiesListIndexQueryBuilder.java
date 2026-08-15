@@ -40,9 +40,11 @@ final class VulnerabilitiesListIndexQueryBuilder
     NONE,
     SEVERITY,
     ECOSYSTEM,
+    STAGE,
     ORGANIZATION,
     APPLICATION,
-    STAGE
+    /** Organization and application together: they are one owner dimension, dropped as a unit. */
+    OWNER_GROUP
   }
 
   private final DashboardIndexDimensionQueryBuilder dimensionQueryBuilder;
@@ -54,6 +56,16 @@ final class VulnerabilitiesListIndexQueryBuilder
 
   String buildMyScanDataQuery(final VulnerabilitiesListRequestDTO request) {
     return buildMyScanDataQuery(request, FacetDimension.NONE);
+  }
+
+  /**
+   * Builds the same query as {@link #buildMyScanDataQuery(VulnerabilitiesListRequestDTO)}
+   * but omits the owner-dimension clauses (organization + application filters).
+   * Used as the base for owner facet aggregations so selecting an org or app does not collapse
+   * the org/app rails.
+   */
+  String buildVulnerabilityQueryWithoutOwner(final VulnerabilitiesListRequestDTO request) {
+    return buildMyScanDataQuery(request, FacetDimension.OWNER_GROUP);
   }
 
   /**
@@ -88,7 +100,9 @@ final class VulnerabilitiesListIndexQueryBuilder
     if (omitted != FacetDimension.ECOSYSTEM) {
       addIfPresent(clauses, buildEcosystemClause(request == null ? null : request.ecosystems));
     }
-    // org/app scope is applied as budget-exempt AND term-set restrictions (CLM-44783).
+    // Organization and application scope is not query text: it travels as budget-exempt term-set
+    // restrictions, and organization and application are ONE owner dimension that is omitted as a unit
+    // (see buildScopeRestrictions and FacetDimension.OWNER_GROUP).
     if (omitted != FacetDimension.STAGE) {
       addIfPresent(clauses, buildStageClause(request == null ? null : request.stageIds));
     }
@@ -103,13 +117,19 @@ final class VulnerabilitiesListIndexQueryBuilder
       final VulnerabilitiesListRequestDTO request,
       final FacetDimension omitted)
   {
-    Set<String> orgIds = (omitted == FacetDimension.ORGANIZATION || request == null)
+    // OWNER_GROUP omits organization AND application together: they are one dimension, so an owner-facet
+    // base must withhold both or selecting an org would still collapse the application rail.
+    boolean omitOwnerGroup = omitted == FacetDimension.OWNER_GROUP;
+    Set<String> orgIds = (omitted == FacetDimension.ORGANIZATION || omitOwnerGroup || request == null)
         ? null
         : request.organizationIds;
-    Set<String> appIds = (omitted == FacetDimension.APPLICATION || request == null)
+    Set<String> appIds = (omitted == FacetDimension.APPLICATION || omitOwnerGroup || request == null)
         ? null
         : request.applicationIds;
-    return dimensionQueryBuilder.buildScopeFilterRestrictionsAnd(orgIds, appIds);
+    // Organization and application are ONE owner dimension, so the two term sets are OR-ed rather than
+    // ANDed: selecting an organization plus an application in a different subtree returns the union,
+    // matching Classic resolution in ApplicationService#getAppsByIds. An intersection would be empty.
+    return dimensionQueryBuilder.buildScopeFilterRestrictions(orgIds, appIds);
   }
 
   List<IndexFilterRestriction> buildScopeRestrictions(final VulnerabilitiesListRequestDTO request) {

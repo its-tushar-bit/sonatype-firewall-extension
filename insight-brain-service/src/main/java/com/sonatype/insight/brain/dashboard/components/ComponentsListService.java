@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.dashboard.ComponentRiskDTO;
 import com.sonatype.insight.brain.dashboard.ComponentRiskDTOComparator;
 import com.sonatype.insight.brain.dashboard.DashboardComponentRiskService;
 import com.sonatype.insight.brain.dashboard.DashboardResultsDTO;
+import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.IndexFilterRestriction;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
@@ -29,6 +30,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.search.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +46,7 @@ import org.slf4j.LoggerFactory;
  * requested distinct-hash window is filled ({@link ComponentsListDistinctPageFetcher}) so
  * {@code page}/{@code hasNextPage}/{@code total} stay in distinct-hash units.
  * <p>
- * Index reads use {@link SearchIndexClient} (PR-0 / CLM-42705). RBAC for the current user is applied
+ * Index reads use {@link SearchIndexClient} (PR-0). RBAC for the current user is applied
  * via {@code resolveReadableContextRbacFilterForCurrentUser()} — {@code ReadableContextAuthzCache}
  * is injected into the client stack. There is no {@code SearchReadPathSurface.COMPONENTS} yet; do
  * not fork a parallel session/authz stack.
@@ -79,13 +81,16 @@ public class ComponentsListService
 
   private final DashboardComponentRiskService componentRiskService;
 
+  private final ConversionHelper conversionHelper;
+
   @Inject
   public ComponentsListService(
       final SearchIndexClient searchIndexClient,
       final ComponentsListIndexQueryBuilder indexQueryBuilder,
       final ComponentsListRequestValidator requestValidator,
       final ComponentsListFacetsBuilder facetsBuilder,
-      final DashboardComponentRiskService componentRiskService)
+      final DashboardComponentRiskService componentRiskService,
+      final ConversionHelper conversionHelper)
   {
     this.searchIndexClient = searchIndexClient;
     this.distinctPageFetcher = new ComponentsListDistinctPageFetcher(searchIndexClient);
@@ -93,6 +98,7 @@ public class ComponentsListService
     this.requestValidator = requestValidator;
     this.facetsBuilder = facetsBuilder;
     this.componentRiskService = componentRiskService;
+    this.conversionHelper = conversionHelper;
   }
 
   public ComponentsListResponseDTO listComponents(final ComponentsListRequestDTO request) {
@@ -159,7 +165,22 @@ public class ComponentsListService
     response.source = ComponentsListResponseDTO.SOURCE_INDEX;
     if (includeFacets) {
       try {
-        response.facets = facetsBuilder.buildFacets(query, indexQuery.termSets(), total);
+        // Owner facets aggregate over a base with the organization/application term sets withheld, so
+        // selecting an org/app does NOT collapse the org/app rails. The component-hash term set stays,
+        // so violation-scoped filters still narrow them.
+        ComponentsIndexQuery ownerRemoved = indexQueryBuilder.buildComponentIndexQueryWithoutOwner(request);
+        Query ownerRemovedBase =
+            conversionHelper.stringToQuery(ownerRemoved.query());
+        // Stages facet aggregates over a base with the stage filter removed, so selecting a stage
+        // does NOT collapse the stages rail. Each base carries its own term sets, since the
+        // violation-scope hash resolution differs with the excluded dimension.
+        ComponentsIndexQuery stageRemoved = indexQueryBuilder.buildComponentIndexQueryExcludingStage(request);
+        response.facets = facetsBuilder.buildFacets(
+            ownerRemovedBase,
+            ownerRemoved.termSets(),
+            stageRemoved.query(),
+            stageRemoved.termSets(),
+            total);
       }
       catch (RuntimeException e) {
         log.warn("Components list facet build failed; returning page without facets", e);

@@ -45,8 +45,7 @@ final class ComponentsListIndexQueryBuilder
   ComponentsIndexQuery buildComponentIndexQuery(final ComponentsListRequestDTO request) {
     ComponentsListRequestDTO effectiveRequest = applyViolationScopedComponentHashes(request);
     String query = String.join(" AND ", buildBaseComponentClauses(effectiveRequest));
-    List<IndexFilterRestriction> termSets = buildComponentTermSets(effectiveRequest);
-    return new ComponentsIndexQuery(query, termSets);
+    return new ComponentsIndexQuery(query, buildComponentTermSets(effectiveRequest));
   }
 
   private List<IndexFilterRestriction> buildComponentTermSets(final ComponentsListRequestDTO request) {
@@ -65,6 +64,39 @@ final class ComponentsListIndexQueryBuilder
     merged.addAll(scopeRestrictions);
     merged.addAll(hashRestrictions);
     return List.copyOf(merged);
+  }
+
+  /**
+   * The same query as {@link #buildComponentIndexQuery} but with the organization/application term sets
+   * withheld. Used as the base for owner facet aggregations so selecting an org or app does not collapse
+   * the org/app rails.
+   * <p>
+   * The component-hash term set is retained: the violation-scoped filters (stage, threat) reach a
+   * component document by resolving to component hashes, and they must still narrow the rails or a
+   * stage-filtered page would show owner counts for the whole estate.
+   */
+  ComponentsIndexQuery buildComponentIndexQueryWithoutOwner(final ComponentsListRequestDTO request) {
+    ComponentsListRequestDTO effectiveRequest = applyViolationScopedComponentHashes(request);
+    String query = String.join(" AND ", buildBaseComponentClauses(effectiveRequest));
+    return new ComponentsIndexQuery(
+        query,
+        componentHashTermSets(effectiveRequest == null ? null : effectiveRequest.componentHashes));
+  }
+
+  /**
+   * The same query as {@link #buildComponentIndexQuery} but with the stage filter omitted (every other
+   * active filter, including owner and threat, is retained). Stage on the Components rail is a
+   * violation-scoped filter resolved into component hashes, so it is removed by clearing
+   * {@code stageIds} before hash resolution. Used as the base for the {@code stages} facet so selecting
+   * a stage does not collapse the other stages. See {@link ComponentsListFacetsBuilder}.
+   */
+  ComponentsIndexQuery buildComponentIndexQueryExcludingStage(final ComponentsListRequestDTO request) {
+    if (request == null) {
+      return buildComponentIndexQuery(null);
+    }
+    ComponentsListRequestDTO stageRemoved = request.copy();
+    stageRemoved.stageIds = null;
+    return buildComponentIndexQuery(stageRemoved);
   }
 
   private ComponentsListRequestDTO applyViolationScopedComponentHashes(final ComponentsListRequestDTO request) {
@@ -89,11 +121,11 @@ final class ComponentsListIndexQueryBuilder
 
     // Stage/threat already applied via hash discovery; keep them on the DTO for future enrichment.
     if (scopedHashes == null || scopedHashes.isEmpty()) {
-      ComponentsListRequestDTO scoped = request.copy();
-      scoped.organizationIds = Set.of(DashboardIndexDimensionQueryBuilder.NO_MATCH_ORGANIZATION_FILTER_ID);
-      scoped.applicationIds = null;
-      scoped.componentHashes = null;
-      return scoped;
+      // No component satisfies the violation-scoped filters. The no-match sentinel goes on the hash
+      // dimension, not the owner dimension: the owner-removed facet base drops owner clauses, so an
+      // owner-carried sentinel would vanish there and the rails would aggregate the whole estate while the
+      // results page was empty.
+      return request.withComponentHashes(Set.of(NO_MATCH_COMPONENT_HASH));
     }
     return request.withComponentHashes(scopedHashes);
   }
@@ -116,6 +148,10 @@ final class ComponentsListIndexQueryBuilder
       DashboardIndexDimensionQueryBuilder.rejectBlankFilterIds(organizationIds, "organizationIds");
     }
 
+    // Organization, application and component-hash scope are not query text: they travel as
+    // budget-exempt term-set restrictions, so the owner dimension is excluded by withholding the
+    // organization/application term sets while the component-hash set is retained.
+
     // org/app scope and componentHashes are applied as budget-exempt term-set restrictions (CLM-44783).
     return clauses;
   }
@@ -125,6 +161,12 @@ final class ComponentsListIndexQueryBuilder
    * resolution still uses this to bound discovery walks.
    */
   static final int MAX_SCOPED_COMPONENT_HASH_FILTER_CLAUSES = 512;
+
+  /**
+   * Stands in for "no component matches" when the violation-scoped filters resolve to nothing. A real hash
+   * is a hex digest, so this can never collide with one.
+   */
+  static final String NO_MATCH_COMPONENT_HASH = "__no_match__";
 
   private static List<IndexFilterRestriction> componentHashTermSets(final Set<String> componentHashes) {
     if (componentHashes == null || componentHashes.isEmpty()) {

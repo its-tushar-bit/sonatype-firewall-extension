@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.GroupedDistinctCounts;
+import com.sonatype.insight.brain.search.index.IndexOrTermSetGroup;
 import com.sonatype.insight.brain.search.index.IndexTermSetRestriction;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.RankedGroup;
@@ -23,6 +24,7 @@ import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.results.GroupingByDTO;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
+import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.utils.CvssV3Severity;
 
@@ -68,6 +70,9 @@ public class VulnerabilitiesListServiceTest
   @Mock
   private Configuration configuration;
 
+  @Mock
+  private ConversionHelper conversionHelper;
+
   @BeforeEach
   public void setUp() {
     // Default exactness for WithExactness stubs below; hybrid-safe path no longer uses backendId().
@@ -111,6 +116,7 @@ public class VulnerabilitiesListServiceTest
         requestValidator,
         catalogListService,
         scopeFacetsBuilder,
+        conversionHelper,
         configuration);
   }
 
@@ -594,16 +600,20 @@ public class VulnerabilitiesListServiceTest
   }
 
   private static void assertHydrationRestrictionsMergeScopeAndIds(final java.util.List<?> restrictions) {
-    assertThat(restrictions).hasSize(3);
-    IndexTermSetRestriction organization = (IndexTermSetRestriction) restrictions.get(0);
-    IndexTermSetRestriction application = (IndexTermSetRestriction) restrictions.get(1);
-    IndexTermSetRestriction vulnerability = (IndexTermSetRestriction) restrictions.get(2);
+    // Organization and application are ONE owner dimension, so they arrive as a single OR group rather
+    // than two ANDed term sets; the page's vulnerability ids are a separate AND restriction.
+    assertThat(restrictions).hasSize(2);
+    IndexOrTermSetGroup owner = (IndexOrTermSetGroup) restrictions.get(0);
+    IndexTermSetRestriction vulnerability = (IndexTermSetRestriction) restrictions.get(1);
+
+    assertThat(owner.alternatives()).hasSize(2);
     // The organization term set matches on the indexed ancestor closure, so it carries the selected
     // organization rather than an enumeration of its descendants.
-    assertThat(organization.field()).isEqualTo(FieldIdentifier.PARENT_ORGANIZATION_ID.label);
-    assertThat(organization.ids()).containsExactly("org-1");
-    assertThat(application.field()).isEqualTo(FieldIdentifier.APPLICATION_ID.label);
-    assertThat(application.ids()).containsExactly("app-1");
+    assertThat(owner.alternatives().get(0).field()).isEqualTo(FieldIdentifier.PARENT_ORGANIZATION_ID.label);
+    assertThat(owner.alternatives().get(0).ids()).containsExactly("org-1");
+    assertThat(owner.alternatives().get(1).field()).isEqualTo(FieldIdentifier.APPLICATION_ID.label);
+    assertThat(owner.alternatives().get(1).ids()).containsExactly("app-1");
+
     assertThat(vulnerability.field()).isEqualTo(FieldIdentifier.VULNERABILITY_ID.label);
     assertThat(vulnerability.ids()).containsExactly("cve-2021-44228");
   }

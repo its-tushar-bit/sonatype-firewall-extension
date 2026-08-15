@@ -321,18 +321,26 @@ public class DocumentBuilder
     return this;
   }
 
+  /**
+   * Writes one value per ancestor organization. A Lucene field rejects a null value, so an ancestor
+   * with no name is skipped: the remaining closure still filters correctly, whereas failing here would
+   * drop the whole document from the index.
+   */
   public DocumentBuilder setParentOrganizationNames(Collection<Organization> parentOrganizations) {
     this.parentOrganizationNames = Optional.of(parentOrganizations.stream()
-        .map(
-            parentOrg -> new TextField(PARENT_ORGANIZATION_NAME.label, parentOrg.getName(), Store.YES))
+        .map(Organization::getName)
+        .filter(Objects::nonNull)
+        .map(name -> new TextField(PARENT_ORGANIZATION_NAME.label, name, Store.YES))
         .toArray(Field[]::new));
     return this;
   }
 
+  /** Mirrors {@link #setParentOrganizationNames}, skipping an ancestor with no id. */
   public DocumentBuilder setParentOrganizationIds(Collection<Organization> parentOrganizations) {
     this.parentOrganizationIds = Optional.of(parentOrganizations.stream()
-        .map(
-            parentOrg -> new TextField(PARENT_ORGANIZATION_ID.label, parentOrg.getId(), Store.YES))
+        .map(Organization::getId)
+        .filter(Objects::nonNull)
+        .map(id -> new TextField(PARENT_ORGANIZATION_ID.label, id, Store.YES))
         .toArray(Field[]::new));
     return this;
   }

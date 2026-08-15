@@ -34,9 +34,9 @@ describe('waiversListApi (index-query)', () => {
       sort: '-policyWaiverCreatedAt',
       filters: {
         ...EMPTY_WAIVERS_LIST_FILTERS,
-        organizationIds: new Set(['Java Team']),
-        applicationIds: new Set(['Apple - Java']),
-        policyIds: new Set(['Critical CVSS 9+']),
+        organizationIds: new Set(['org-java']),
+        applicationIds: new Set(['app-internal-1']),
+        policyIds: new Set(['policy-crit']),
         threatLevelIds: new Set(['Critical']),
         lifecycleStatusIds: new Set(['expiring']),
         autoStatusIds: new Set(['Manual']),
@@ -48,9 +48,10 @@ describe('waiversListApi (index-query)', () => {
     expect(request.entityType).toBe('WAIVER');
     expect(request.filters).toEqual({
       query: 'guava',
-      organizations: ['Java Team'],
-      applications: ['Apple - Java'],
-      policy: ['Critical CVSS 9+'],
+      // Id-keyed structured filters, not the deprecated name-keyed ones.
+      organizationIds: ['org-java'],
+      applicationIds: ['app-internal-1'],
+      policyIds: ['policy-crit'],
       policyThreatLevel: [8, 10],
       lifecycleStatus: ['expiring'],
       includeAutoWaivers: false,
@@ -126,14 +127,17 @@ describe('waiversListApi (index-query)', () => {
     expect(mapped.total).toBe(2);
     expect(mapped.exactTotalEstimate).toBe(true);
     expect(mapped.hasNextPage).toBe(false);
+    // id/label come from the bucket's value/displayName respectively, and a bucket with no displayName
+    // falls back to its id so the rail never renders an empty label.
     expect(mapped.facets.organizations).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ id: 'Java Team', count: 1 }),
-        expect.objectContaining({ id: 'Platform', count: 1 }),
+        expect.objectContaining({ id: 'org-java', label: 'Java Team', count: 1 }),
+        expect.objectContaining({ id: 'org-root', label: 'Platform', count: 1 }),
+        expect.objectContaining({ id: 'org-orphan', label: 'org-orphan', count: 1 }),
       ]),
     );
     expect(mapped.facets.applications).toEqual([
-      expect.objectContaining({ id: 'Apple - Java', count: 1 }),
+      expect.objectContaining({ id: 'app-internal-1', label: 'Apple - Java', count: 1 }),
     ]);
     // Threat + lifecycle + auto + state sections are always populated with API counts overlaid.
     expect(mapped.facets.threatLevels).toEqual(
@@ -170,9 +174,9 @@ describe('waiversListApi (index-query)', () => {
         expect.objectContaining({ id: 'other', count: 1 }),
       ]),
     );
-    // Policies come from the Ana policyName facet (display names, not ids).
+    // Policies come from the Ana policy facet, now id-keyed with a resolved displayName (CLM-44713).
     expect(mapped.facets.policies).toEqual([
-      { id: 'Critical CVSS 9+', label: 'Critical CVSS 9+', count: 1 },
+      { id: 'policy-crit', label: 'Critical CVSS 9+', count: 1 },
     ]);
   });
 

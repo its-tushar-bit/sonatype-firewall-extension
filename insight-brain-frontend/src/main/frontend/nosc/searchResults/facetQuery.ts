@@ -15,8 +15,25 @@
  * the query grammar IS the filter channel (mirrors the omnibar FilterBar).
  *
  * A facet key does not always equal the query-grammar field it filters on:
- *   - VALUE facets round-trip as `<indexField>:"<bucketValue>"` where indexField
- *     is the grammar field name (e.g. organizations → organizationName).
+ *   - VALUE facets round-trip as `<field>:"<bucketValue>"` where field is the
+ *     grammar field name. For the id-carrying entity facets
+ *     (organizations/applications/applicationCategories/policy), `value` is
+ *     the entity's opaque id and `displayName` is the resolved name (rendering
+ *     already handles this generically — see {@link ../search/searchTypes}'s
+ *     doc comment and SearchResultsFilters' `bucketLabel`), and each
+ *     descriptor's `field` is that entity's id grammar field, which is also the
+ *     index field the facet aggregates on: organizations →
+ *     `parentOrganizationId`, applications → `applicationId`,
+ *     applicationCategories → `applicationCategoryId`, policy →
+ *     `policyWaiverPolicyId`. Each of these is a known FieldMap grammar entry, so
+ *     the appended predicate is parsed by the same QueryParser + FieldMap pipeline
+ *     the omnibar uses (see ResultsFacetQueryBridge / IqLocalSearchService) without
+ *     any field-name translation. Note these are not all FILTER_TREE leaves:
+ *     FILTER_TREE offers `organizationId` and `policyId`, whereas a facet has to
+ *     use the field its aggregation groups on — `parentOrganizationId` for the
+ *     hierarchical org closure, `policyWaiverPolicyId` for a waiver's policy — or
+ *     own-clause removal would not find the selection and the rail would collapse
+ *     to it.
  *   - Fixed-vocabulary facets (states / waiverType / status) have bucket values
  *     that are lifecycle keys (OPEN / WAIVED / AUTO / ACTIVE …), not raw field
  *     values, so each key maps to a specific grammar predicate.
@@ -49,9 +66,14 @@ export interface FacetDescriptor {
 }
 
 /**
- * Per-facet-key descriptors. Keys mirror the backend FACET_FIELDS map; the value
- * fields mirror each Facet's indexField, and the fixed tokens mirror the
- * grammar's accepted values for the corresponding lifecycle filter.
+ * Per-facet-key descriptors. Keys mirror the backend FACET_FIELDS map; the fixed
+ * tokens mirror the grammar's accepted values for the corresponding lifecycle
+ * filter. For every VALUE facet, `field` is the grammar field that matches the
+ * index field the backend aggregates on — for the id-carrying entity facets
+ * (organizations/applications/applicationCategories/policy) that field
+ * carries the entity's id (see the module doc comment above); for every other
+ * VALUE facet it carries the bucket value the backend emits directly
+ * (denormalized keyword sets, not ids).
  *
  * Shared across tabs by key: `organizations`/`applications`/`applicationCategories`/
  * `policyTypes`/`stages` appear on multiple tabs with the same round-trip, so one
@@ -98,22 +120,19 @@ export const FACET_DESCRIPTORS: Readonly<Record<string, FacetDescriptor>> = {
     kind: 'fixed',
     fixedTokens: {},
   },
-  // Two live backend keys for the same section, not an old/new rename pair: the WAIVER tab counts
-  // organizations under `organizationName`, every other tab under `organizations`. Both resolve through
-  // the organizationName grammar field, and no single tab emits both, so the rail renders one section.
-  organizations: { label: 'Organizations', kind: 'value', field: 'organizationName' },
-  organizationName: { label: 'Organizations', kind: 'value', field: 'organizationName' },
-  applications: { label: 'Applications', kind: 'value', field: 'applicationName' },
-  applicationCategories: { label: 'Categories', kind: 'value', field: 'applicationCategoryName' },
+  // Every tab emits its owner facets under `organizations` / `applications`, keyed by the entity's opaque
+  // id (see the module doc comment above).
+  organizations: { label: 'Organizations', kind: 'value', field: 'parentOrganizationId' },
+  applications: { label: 'Applications', kind: 'value', field: 'applicationId' },
+  applicationCategories: { label: 'Categories', kind: 'value', field: 'applicationCategoryId' },
   stages: { label: 'Stages', kind: 'value', field: 'policyEvaluationStage' },
   policyTypes: { label: 'Policy Types', kind: 'value', field: 'policyViolationThreatCategory' },
   policyType: { label: 'Policy Type', kind: 'value', field: 'policyWaiverPolicyType' },
   scope: { label: 'Scope', kind: 'value', field: 'policyWaiverScope' },
   auto: { label: 'Auto', kind: 'value', field: 'policyWaiverAuto' },
-  // The WAIVER tab emits its application facet under `applicationName`, a distinct key from the
-  // `applications` one the APPLICATION and VIOLATION tabs use, so it needs its own descriptor.
-  applicationName: { label: 'Applications', kind: 'value', field: 'applicationName' },
-  policyName: { label: 'Policy Name', kind: 'value', field: 'policyWaiverPolicyName' },
+  // The WAIVER tab's policy facet. Bucket value is the policy id, and policyWaiverPolicyId is the grammar
+  // field it aggregates on -- distinct from `policyId`, which is a Policy-tab field, not a waiver's policy.
+  policy: { label: 'Policy Name', kind: 'value', field: 'policyWaiverPolicyId' },
 };
 
 /**
@@ -156,9 +175,10 @@ export const THREAT_LEVEL_MIN = 0;
 export const THREAT_LEVEL_MAX = 10;
 
 /**
- * Wrap a value in double quotes when it contains whitespace or a quote, matching
- * the omnibar grammar's quoting so a value with spaces (an org / app name) stays
- * a single predicate. A bare value is left unquoted like the FilterBar leaves.
+ * Wrap a value in double quotes when it contains whitespace or a quote, matching the omnibar grammar's
+ * quoting so the value stays a single predicate. Owner bucket values are opaque ids and so are normally
+ * left bare, like the FilterBar leaves; the quoting matters for fixed-vocabulary values that carry spaces
+ * and as a guard for any id shape that would otherwise be split.
  */
 export function quoteValue(value: string): string {
   // Brackets are range syntax in the grammar, so a bucket value containing one
@@ -298,7 +318,7 @@ export function isPredicateToken(token: string): boolean {
 /**
  * Strip every structured predicate from a query, keeping the free-text terms.
  * Tokenizing first is what keeps quoted and bracketed predicates whole: splitting
- * on raw whitespace would shatter `organizationName:"Sandbox Org"` and
+ * on raw whitespace would shatter `parentOrganizationId:"legacy org id"` and
  * `policyViolationThreatLevel:[3 TO 7]`, leaving fragments behind as free text.
  */
 export function stripPredicates(query: string): string {
@@ -382,11 +402,9 @@ const FACET_ORDER: readonly string[] = [
   'policyType',
   'stages',
   'organizations',
-  'organizationName',
   'applications',
-  'applicationName',
   'applicationCategories',
-  'policyName',
+  'policy',
   'auto',
 ];
 

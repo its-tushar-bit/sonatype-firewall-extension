@@ -31,9 +31,21 @@ describe('facetQuery — facet-rail → query round-trip (CLM-42453)', () => {
       expect(facetPredicate('stages', 'build')).toBe('policyEvaluationStage:build');
     });
 
-    it('quotes values containing spaces', () => {
-      expect(facetPredicate('organizations', 'Sandbox Organization')).toBe('organizationName:"Sandbox Organization"');
-      expect(facetPredicate('applications', 'my app')).toBe('applicationName:"my app"');
+    it('filters owner facets on the id field, using the bucket id rather than its display name', () => {
+      // A bucket value is the entity's opaque id, and the descriptor's field is the id grammar field the
+      // facet aggregates on. Sending a display name on these fields would match nothing, so the values
+      // here are ids -- a test using display names would pass either way.
+      expect(facetPredicate('organizations', 'e129e2e537f04aae931bdcaccefef00c'))
+        .toBe('parentOrganizationId:e129e2e537f04aae931bdcaccefef00c');
+      expect(facetPredicate('applications', '11b6aeabc7cc4b93a511d8acb232bc5b'))
+        .toBe('applicationId:11b6aeabc7cc4b93a511d8acb232bc5b');
+      expect(facetPredicate('applicationCategories', '8a02fe1b5154426ebd2f4275674a5bc9'))
+        .toBe('applicationCategoryId:8a02fe1b5154426ebd2f4275674a5bc9');
+    });
+
+    it('quotes an id containing spaces so the predicate stays a single token', () => {
+      // Ids are opaque, so the quoting has to hold even for a value the grammar would otherwise split.
+      expect(facetPredicate('organizations', 'legacy org id')).toBe('parentOrganizationId:"legacy org id"');
     });
 
     it('maps fixed-vocabulary state keys to their grammar predicate', () => {
@@ -152,7 +164,7 @@ describe('facetQuery — facet-rail → query round-trip (CLM-42453)', () => {
       expect(facetPredicate('applications', 'app trailing\\')).toBeNull();
       // A value without one still round-trips normally.
       expect(facetPredicate('organizations', 'Sandbox Organization')).toBe(
-        'organizationName:"Sandbox Organization"'
+        'parentOrganizationId:"Sandbox Organization"'
       );
     });
 
@@ -331,15 +343,18 @@ describe('facetQuery — facet-rail → query round-trip (CLM-42453)', () => {
     // A key the backend emits with no descriptor is dropped by isRenderableFacet, so the section
     // silently disappears from the rail. threatLevel is the one deliberate omission: it renders as
     // the client-side slider instead of checkbox buckets.
+    // These are the keys IndexQueryService.FACET_FIELDS emits for IndexQueryType.WAIVER. They must match it
+    // exactly: a key with no descriptor renders nothing, so listing a key the backend does not send hides
+    // the absence of one it does.
     const WAIVER_KEYS = [
       'status',
       'auto',
       'threatLevel',
       'scope',
       'policyType',
-      'organizationName',
-      'applicationName',
-      'policyName',
+      'policy',
+      'organizations',
+      'applications',
     ];
 
     it('has a descriptor for every WAIVER facet key except the slider-backed one', () => {
@@ -347,13 +362,15 @@ describe('facetQuery — facet-rail → query round-trip (CLM-42453)', () => {
       expect(missing).toEqual([]);
     });
 
-    it('maps the WAIVER application and policy-name facets to their grammar fields', () => {
-      expect(FACET_DESCRIPTORS.applicationName.field).toBe('applicationName');
-      expect(FACET_DESCRIPTORS.policyName.field).toBe('policyWaiverPolicyName');
+    it('maps the WAIVER application and policy facets to their id grammar fields', () => {
+      // These facets' bucket values are entity ids.
+      expect(FACET_DESCRIPTORS.applications.field).toBe('applicationId');
+      // The waiver's policy, not the Policy tab's policyId.
+      expect(FACET_DESCRIPTORS.policy.field).toBe('policyWaiverPolicyId');
     });
 
-    it('treats a policy-name predicate as structured so Reset strips it', () => {
-      const token = facetPredicate('policyName', 'Security Policy');
+    it('treats a policy predicate as structured so Reset strips it', () => {
+      const token = facetPredicate('policy', 'policy-crit');
       expect(isPredicateToken(token)).toBe(true);
       expect(stripPredicates(`log4j ${token}`)).toBe('log4j');
     });

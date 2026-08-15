@@ -45,7 +45,9 @@ const VIOLATION_FACETS: Record<string, FacetBucket[]> = {
     { value: 'SECURITY', displayName: 'Security', count: 6290 },
     { value: 'LICENSE', displayName: 'License', count: 2324 },
   ],
-  organizations: [{ value: 'Sandbox Organization', count: 12 }],
+  // Production shape: value is the organization's opaque id, displayName the resolved name. A fixture using
+  // the name as the value would pass through bucketLabel's fallback and prove nothing about the round-trip.
+  organizations: [{ value: 'e129e2e537f04aae931bdcaccefef00c', displayName: 'Sandbox Organization', count: 12 }],
 };
 
 describe('SearchResultsFilters — per-tab facet rail (CLM-42453)', () => {

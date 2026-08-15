@@ -10,6 +10,10 @@ import type { WaiversIndexQueryResponse } from 'MainRoot/nosc/waivers/waiversLis
  * {@code entityType: WAIVER}. Row 1 is a manual application-scoped waiver; row 2 is an
  * auto-waiver on an organization scope. Facets include both organizations + applications,
  * which is what the backend returns for the WAIVER entity type.
+ *
+ * The organizations/applications/policy facet buckets carry {@code value} = the
+ * entity's opaque id and {@code displayName} = the resolved name, matching the backend's id-keyed
+ * entity facets (IndexQueryService#FACET_FIELDS).
  */
 export const MOCK_WAIVERS_INDEX_QUERY_RESPONSE: WaiversIndexQueryResponse = {
   entityType: 'WAIVER',
@@ -92,12 +96,15 @@ export const MOCK_WAIVERS_INDEX_QUERY_RESPONSE: WaiversIndexQueryResponse = {
       { value: '9', count: 3 },
       { value: '3', count: 2 },
     ],
-    organizationName: [
-      { value: 'Java Team', count: 1 },
-      { value: 'Platform', count: 1 },
+    organizations: [
+      { value: 'org-java', displayName: 'Java Team', count: 1 },
+      { value: 'org-root', displayName: 'Platform', count: 1 },
+      // No displayName: an id the backend could not resolve to a name (deleted entity, or one outside the
+      // caller's scope). The rail has to render the id rather than an empty label.
+      { value: 'org-orphan', count: 1 },
     ],
-    applications: [{ value: 'Apple - Java', count: 1 }],
-    policy: [{ value: 'Critical CVSS 9+', count: 1 }],
+    applications: [{ value: 'app-internal-1', displayName: 'Apple - Java', count: 1 }],
+    policy: [{ value: 'policy-crit', displayName: 'Critical CVSS 9+', count: 1 }],
     scope: [
       { value: 'application', count: 1 },
       { value: 'organization', count: 1 },

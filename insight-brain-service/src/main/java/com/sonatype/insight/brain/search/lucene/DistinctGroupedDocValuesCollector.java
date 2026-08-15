@@ -34,9 +34,11 @@ import org.apache.lucene.util.BytesRef;
  * group fields. Uses {@link DocValues#getSortedSet} for uniform handling: single-valued fields are
  * wrapped as a singleton set.
  * <p>
- * Group keys are compared and returned lowercased so this backend matches the OpenSearch backend,
- * whose keyword fields carry a lowercase normalizer (see IndexMapping). Callers look up the
- * resulting map with a lowercased key.
+ * Group keys are compared and returned lowercased so both backends key the result map identically:
+ * OpenSearch bucket keys come back lowercased for vocabulary fields that carry the lowercase
+ * normalizer, and its include terms are lowercased for the rest, so callers look up this map with a
+ * lowercased key on either backend. Opaque id columns are mapped case-sensitively (see IndexMapping),
+ * but their values are lowercase hex, so folding them is a no-op rather than a mismatch.
  * <p>
  * The distinct field is read via {@link SortedDocValues} (single-valued).
  */
@@ -148,6 +150,12 @@ public final class DistinctGroupedDocValuesCollector
     DocValuesType type = info == null ? DocValuesType.NONE : info.getDocValuesType();
     if (type == DocValuesType.SORTED) {
       return DocValues.getSorted(reader, field);
+    }
+    if (type == DocValuesType.SORTED_SET) {
+      // The distinct column is read single-valued. A multi-valued column would count as zero on every
+      // document, which is indistinguishable from "no matches", so say so rather than under-report.
+      throw new IllegalArgumentException(
+          "distinct field '" + field + "' is multi-valued (SORTED_SET); it must be single-valued (SORTED)");
     }
     return DocValues.emptySorted();
   }

@@ -139,6 +139,12 @@ final class BandedDistinctDocValuesCollector
     if (type == DocValuesType.SORTED) {
       return DocValues.getSorted(reader, field);
     }
+    if (type == DocValuesType.SORTED_SET) {
+      // The distinct column is read single-valued. A multi-valued column would count as zero on every
+      // document, which is indistinguishable from "no matches", so say so rather than under-report.
+      throw new IllegalArgumentException(
+          "distinct field '" + field + "' is multi-valued (SORTED_SET); it must be single-valued (SORTED)");
+    }
     return DocValues.emptySorted();
   }
 

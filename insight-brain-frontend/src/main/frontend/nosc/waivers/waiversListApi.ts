@@ -39,9 +39,16 @@ export type ApiWaiverRow = {
   readonly href?: string | null;
 };
 
-/** Mirrors backend {@code IndexQueryFacetBucket}. */
+/**
+ * Mirrors backend {@code IndexQueryFacetBucket}. The id-carrying entity facets
+ * (organizations/applications/policy) emit {@code value} = the entity's opaque id and
+ * {@code displayName} = the resolved human-readable name; fixed-vocabulary / enum facets
+ * (status, auto, threatLevel, scope, policyType) carry no {@code displayName} and `value` IS the
+ * label.
+ */
 export type ApiIndexQueryFacetBucket = {
   readonly value?: string;
+  readonly displayName?: string;
   readonly count?: number;
 };
 
@@ -169,9 +176,13 @@ function facetEntriesFromBuckets(
     .filter((bucket) => typeof bucket.value === 'string' && bucket.value.trim().length > 0)
     .map((bucket) => {
       const id = bucket.value!.trim();
+      // The bucket value is the entity id; displayName carries the resolved name for rendering/sorting.
+      // Falls back to the id when displayName is absent, which happens for an id the backend could not
+      // resolve to a name -- a deleted entity, or one outside the caller's scope.
+      const displayName = bucket.displayName?.trim();
       return {
         id,
-        label: id,
+        label: displayName && displayName.length > 0 ? displayName : id,
         count: typeof bucket.count === 'number' ? bucket.count : 0,
       };
     })
@@ -262,7 +273,11 @@ export function mapWaiversFacets(
       policyTypeBuckets,
       policyTypeFacetLabel,
     ),
-    organizations: facetEntriesFromBuckets(facets.organizationName),
+    // The WAIVER organizations/applications/policy facets are all keyed by their id-carrying facet
+    // key (see IndexQueryService#FACET_FIELDS[WAIVER] and IndexQueryServiceResultsFacetsTest's
+    // waiversTab_returnsWaiverFacetSet, which asserts this exact key set) — organizationName is not a
+    // key the backend ever emits here.
+    organizations: facetEntriesFromBuckets(facets.organizations),
     applications: facetEntriesFromBuckets(facets.applications),
     policies: facetEntriesFromBuckets(facets.policy),
   };

@@ -88,14 +88,17 @@ describe('waiversListFilters', () => {
     expect(waiversListFiltersToRequest(step2).policyThreatLevel).toEqual([1, 10]);
   });
 
-  it('serializes free-form set filters (orgs, apps, policies) as arrays', () => {
-    let filters = toggleWaiversListFilterId(EMPTY_WAIVERS_LIST_FILTERS, 'organizationIds', 'Java Team');
-    filters = toggleWaiversListFilterId(filters, 'applicationIds', 'Apple - Java');
-    filters = toggleWaiversListFilterId(filters, 'policyIds', 'Critical CVSS 9+');
+  it('serializes free-form set filters (orgs, apps, policies) as id-keyed arrays', () => {
+    // These sets hold entity ids, and serialize to the backend's id-keyed
+    // structured filter keys (organizationIds/applicationIds/policyIds), not the deprecated
+    // name-keyed organizations/applications/policy keys.
+    let filters = toggleWaiversListFilterId(EMPTY_WAIVERS_LIST_FILTERS, 'organizationIds', 'org-java');
+    filters = toggleWaiversListFilterId(filters, 'applicationIds', 'app-internal-1');
+    filters = toggleWaiversListFilterId(filters, 'policyIds', 'policy-crit');
     const req = waiversListFiltersToRequest(filters);
-    expect(req.organizations).toEqual(['Java Team']);
-    expect(req.applications).toEqual(['Apple - Java']);
-    expect(req.policy).toEqual(['Critical CVSS 9+']);
+    expect(req.organizationIds).toEqual(['org-java']);
+    expect(req.applicationIds).toEqual(['app-internal-1']);
+    expect(req.policyIds).toEqual(['policy-crit']);
   });
 
   it('maps waiverStates / scope / policyTypes and never emits excluded', () => {

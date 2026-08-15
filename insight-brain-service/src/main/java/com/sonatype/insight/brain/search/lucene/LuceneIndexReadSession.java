@@ -10,7 +10,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -102,14 +102,14 @@ public class LuceneIndexReadSession
    * Per-field cache for StringDocValuesReaderState. The session pins one IndexReader for its lifetime,
    * so this map is safe to populate lazily.
    */
-  private final Map<String, StringDocValuesReaderState> facetStateCache = new HashMap<>();
+  private final Map<String, StringDocValuesReaderState> facetStateCache = new ConcurrentHashMap<>();
 
   /**
    * Fields already reported as un-faceted in this session. A pre-reindex index would otherwise log the
    * same warning for every field on every faceted request, so each field is warned once per session and
    * logged at debug thereafter.
    */
-  private final Set<String> missingDocValuesWarnedFields = new HashSet<>();
+  private final Set<String> missingDocValuesWarnedFields = ConcurrentHashMap.newKeySet();
 
   public LuceneIndexReadSession(
       final IndexSearcher searcher,

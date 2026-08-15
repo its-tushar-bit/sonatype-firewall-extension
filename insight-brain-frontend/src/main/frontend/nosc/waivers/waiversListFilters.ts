@@ -96,9 +96,11 @@ export type WaiversListFilterState = {
   readonly waiverStateIds: ReadonlySet<WaiversStateId>;
   readonly scopeIds: ReadonlySet<WaiversScopeId>;
   readonly policyTypeIds: ReadonlySet<WaiversPolicyTypeId>;
+  /** Selected organization ids (wire {@code organizationIds} TERMS on parentOrganizationId). */
   readonly organizationIds: ReadonlySet<string>;
+  /** Selected application ids (wire {@code applicationIds} TERMS on applicationId). */
   readonly applicationIds: ReadonlySet<string>;
-  /** Selected policy display names (wire {@code policy} TERMS on policyWaiverPolicyName). */
+  /** Selected policy ids (wire {@code policyIds} TERMS on policyWaiverPolicyId). */
   readonly policyIds: ReadonlySet<string>;
 };
 
@@ -128,8 +130,8 @@ export const EMPTY_WAIVERS_LIST_FILTERS: WaiversListFilterState = {
  * tile total (which SQL-filters out expired waivers via {@code EXPIRY_TIME > now()}). Reset also
  * returns to this state; users who want to see expired waivers explicitly toggle the
  * {@code Expired} chip in the rail's "Status" section. Any user chip change surfaces via
- * {@link hasActiveWaiversListFilters}. Aligned with CLM-44905's decision to wire the "Status"
- * rail to {@code lifecycleStatus} rather than {@code expiryStatus}.
+ * {@link hasActiveWaiversListFilters}. The "Status" rail wires to {@code lifecycleStatus}
+ * rather than {@code expiryStatus}.
  */
 export const INITIAL_WAIVERS_LIST_FILTERS: WaiversListFilterState = {
   ...EMPTY_WAIVERS_LIST_FILTERS,
@@ -220,10 +222,20 @@ function buildThreatLevelRange(
 }
 
 export interface WaiversIndexQueryFilterFields {
-  readonly organizations?: ReadonlyArray<string>;
-  readonly applications?: ReadonlyArray<string>;
-  /** Policy display names → Ana {@code policy} TERMS on policyWaiverPolicyName. */
-  readonly policy?: ReadonlyArray<string>;
+  /**
+   * Organization ids → the id-keyed structured filter, compiled directly to
+   * parentOrganizationId (the same field the organizations facet aggregates on -- see backend
+   * IndexQueryFilterSchema/IndexQueryService).
+   */
+  readonly organizationIds?: ReadonlyArray<string>;
+  /**
+   * Application ids → the id-keyed structured filter, compiled to applicationId.
+   */
+  readonly applicationIds?: ReadonlyArray<string>;
+  /**
+   * Policy ids → the id-keyed structured filter, compiled to policyWaiverPolicyId.
+   */
+  readonly policyIds?: ReadonlyArray<string>;
   readonly policyThreatLevel?: readonly [number, number];
   readonly lifecycleStatus?: ReadonlyArray<WaiversLifecycleStatusId>;
   /** Classic: {@code false}=manual only; omitted otherwise (true is not sent). */
@@ -250,9 +262,9 @@ export function waiversListFiltersToRequest(
   filters: WaiversListFilterState,
 ): WaiversIndexQueryFilterFields {
   const out: {
-    organizations?: ReadonlyArray<string>;
-    applications?: ReadonlyArray<string>;
-    policy?: ReadonlyArray<string>;
+    organizationIds?: ReadonlyArray<string>;
+    applicationIds?: ReadonlyArray<string>;
+    policyIds?: ReadonlyArray<string>;
     policyThreatLevel?: readonly [number, number];
     lifecycleStatus?: ReadonlyArray<WaiversLifecycleStatusId>;
     includeAutoWaivers?: boolean;
@@ -263,13 +275,13 @@ export function waiversListFiltersToRequest(
   } = {};
 
   if (filters.organizationIds.size > 0) {
-    out.organizations = Array.from(filters.organizationIds);
+    out.organizationIds = Array.from(filters.organizationIds);
   }
   if (filters.applicationIds.size > 0) {
-    out.applications = Array.from(filters.applicationIds);
+    out.applicationIds = Array.from(filters.applicationIds);
   }
   if (filters.policyIds.size > 0) {
-    out.policy = Array.from(filters.policyIds);
+    out.policyIds = Array.from(filters.policyIds);
   }
   const range = buildThreatLevelRange(filters.threatLevelIds);
   if (range) {

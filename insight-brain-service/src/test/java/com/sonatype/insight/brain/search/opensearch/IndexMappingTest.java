@@ -69,12 +69,12 @@ public class IndexMappingTest
   }
 
   /**
-   * Verifies the case-sensitive (no normalizer) contract for opaque ID fields that are faceted on
-   * the raw ID. These must NOT have a lowercase normalizer because facet bucket keys must match
-   * the DB primary keys byte-for-byte.
+   * Verifies the case-sensitive (no normalizer) contract for the opaque-identifier fields. Facet and
+   * group keys must match the DB primary keys byte-for-byte, and the permission-filter and cursor
+   * fields must match the ids they are compared against, so none of these may fold case.
    */
   @Test
-  public void facetIdFields_areCaseSensitive() {
+  public void opaqueIdentifierFields_areCaseSensitive() {
     Stream.of(
         FieldIdentifier.ORGANIZATION_ID,
         FieldIdentifier.APPLICATION_ID,

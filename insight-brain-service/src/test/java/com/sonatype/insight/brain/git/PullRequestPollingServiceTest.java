@@ -37,8 +37,8 @@ import com.sonatype.nexus.scm.github.dto.GitHubProjectUrl;
 import com.sonatype.nexus.scm.github.dto.GithubPullRequest;
 import com.sonatype.nexus.scm.gitlab.dto.GitlabMergeRequestResponse;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -77,7 +77,7 @@ public class PullRequestPollingServiceTest
     super(PullRequestPollingService.class);
   }
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     sourceControlDAO = daoFactory.createSourceControlDAO();

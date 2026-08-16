@@ -20,8 +20,8 @@ import com.sonatype.nexus.scm.api.model.DefaultCommentResponse;
 
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -56,7 +56,7 @@ public class PullRequestCommentingClientTest
     super(PullRequestCommentingClient.class);
   }
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     MockitoAnnotations.openMocks(this);

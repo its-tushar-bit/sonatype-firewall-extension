@@ -28,8 +28,8 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -75,7 +75,7 @@ public class PullRequestCommentingEventHandlerTest
 
   private IqForScmLicenseChecker licenseChecker;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     MockitoAnnotations.openMocks(this);

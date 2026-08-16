@@ -31,8 +31,8 @@ import com.sonatype.nexus.iq.manager.PullRequestResult;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -96,7 +96,7 @@ public class PullRequestRemediationServiceTest
     super(PullRequestRemediationService.class);
   }
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     MockitoAnnotations.openMocks(this);

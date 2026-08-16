@@ -38,9 +38,9 @@ import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.groups.Tuple;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -107,7 +107,7 @@ public class SourceControlEventProcessorTest
     super(SourceControlEventProcessor.class);
   }
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     MockitoAnnotations.openMocks(this);
@@ -135,7 +135,7 @@ public class SourceControlEventProcessorTest
     log.setLevel(Level.DEBUG);
   }
 
-  @After
+  @AfterEach
   public void teardown() {
     // Restore original logger level to avoid affecting other tests
     Logger log =

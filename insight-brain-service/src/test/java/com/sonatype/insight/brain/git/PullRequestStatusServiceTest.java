@@ -16,8 +16,8 @@ import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.Status;
 import com.sonatype.nexus.scm.api.model.StatusRequest;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -72,7 +72,7 @@ public class PullRequestStatusServiceTest
     super(PullRequestStatusService.class);
   }
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     MockitoAnnotations.openMocks(this);

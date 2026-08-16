@@ -10,8 +10,8 @@ import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.scm.api.model.PullRequest;
 import com.sonatype.nexus.scm.api.model.PullRequestState;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -29,7 +29,7 @@ public class PullRequestEligibilityValidatorTest
   }
 
   @Override
-  @Before
+  @BeforeEach
   public void setup() {
     super.setup();
     // test scenario initialized with default values that result in an eligible pull request

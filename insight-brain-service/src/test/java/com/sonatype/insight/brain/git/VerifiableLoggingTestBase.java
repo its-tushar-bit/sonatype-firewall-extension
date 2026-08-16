@@ -14,6 +14,8 @@ import ch.qos.logback.core.read.ListAppender;
 import org.assertj.core.groups.Tuple;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,6 +33,7 @@ public class VerifiableLoggingTestBase
   }
 
   @Before
+  @BeforeEach
   public void setup() {
     Logger log = (Logger) LoggerFactory.getLogger(classUnderTest);
     listAppender = new ListAppender<>();
@@ -39,6 +42,7 @@ public class VerifiableLoggingTestBase
   }
 
   @After
+  @AfterEach
   public void tearDown() {
     Logger log = (Logger) LoggerFactory.getLogger(classUnderTest);
     log.detachAppender(listAppender);

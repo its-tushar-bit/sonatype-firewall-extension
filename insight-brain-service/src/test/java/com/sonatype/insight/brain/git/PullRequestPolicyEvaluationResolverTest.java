@@ -23,8 +23,8 @@ import com.sonatype.nexus.scm.api.model.PullRequest;
 import com.sonatype.nexus.scm.github.dto.GithubPullRequest;
 import com.sonatype.nexus.scm.gitlab.dto.GitlabMergeRequestResponse;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -61,7 +61,7 @@ public class PullRequestPolicyEvaluationResolverTest
     super(PullRequestPolicyEvaluationResolver.class);
   }
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

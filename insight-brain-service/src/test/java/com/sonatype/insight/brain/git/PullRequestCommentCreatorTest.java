@@ -36,8 +36,8 @@ import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.model.CommentResponse;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -72,7 +72,7 @@ public class PullRequestCommentCreatorTest
 
   private TelemetryUtils telemetryUtils = new TelemetryUtils(new TelemetryDataObfuscator(configurationMock));
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     MockitoAnnotations.openMocks(this);

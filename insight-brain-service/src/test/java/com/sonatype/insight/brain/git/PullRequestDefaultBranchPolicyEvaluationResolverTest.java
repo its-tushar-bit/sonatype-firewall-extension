@@ -19,8 +19,8 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.model.Commit;
 import com.sonatype.nexus.scm.api.model.CommitInformation;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -46,7 +46,7 @@ public class PullRequestDefaultBranchPolicyEvaluationResolverTest
     super(PullRequestDefaultBranchPolicyEvaluationResolver.class);
   }
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

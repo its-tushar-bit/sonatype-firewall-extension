@@ -18,8 +18,8 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -48,7 +48,7 @@ public class PullRequestCommentingServiceTest
     super(PullRequestCommentingService.class);
   }
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     MockitoAnnotations.openMocks(this);

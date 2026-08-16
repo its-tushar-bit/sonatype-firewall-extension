@@ -676,13 +676,13 @@ public class PostgresDashboardMetricsServiceTest
     assertThat(dashboardMetricsService.getMetrics(unknownOrg).applications.total).isZero();
   }
 
+  /**
+   * Organization scope reaches the index as a {@code parentOrganizationId} term set carrying the
+   * requested ids verbatim, and never as a clause in the query string. The indexed ancestor closure
+   * resolves each id's subtree, so the ids are not expanded.
+   */
   @Test
-  public void testGetMetrics_OrganizationFilterAppliesExpandedOrgTermSet() {
-    OrganizationDAO organizationDAO = mock(OrganizationDAO.class);
-    when(organizationDAO.getAllChildOrganizationIds(Set.of("big-org")))
-        .thenReturn(Set.of("expanded-org-0", "expanded-org-1", "expanded-org-2", "expanded-org-3", "expanded-org-4",
-            "expanded-org-5"));
-
+  public void testGetMetrics_OrganizationScopeTravelsAsParentOrganizationTermSet() {
     Configuration configuration = mock(Configuration.class);
 
     CurrentUser currentUser = mock(CurrentUser.class);
@@ -691,130 +691,69 @@ public class PostgresDashboardMetricsServiceTest
 
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
     stubEmptySearchIndexResults(searchIndexClient);
+    ArgumentCaptor<String> queries = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<java.util.List> restrictions = ArgumentCaptor.forClass(java.util.List.class);
-    when(searchIndexClient.count(anyString(), restrictions.capture())).thenReturn(0L);
+    when(searchIndexClient.count(queries.capture(), restrictions.capture())).thenReturn(0L);
 
     DashboardMetricsService service =
         newServiceWithMocks(
             searchIndexClient,
             new MetricFilterValidator(),
-            organizationDAO,
+            mock(OrganizationDAO.class),
             configuration,
             currentUser);
 
     DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
-    request.organizationIds = Set.of("big-org");
-
-    DashboardMetricsDTO response = service.getMetrics(request);
-    assertThat(response.applications).extracting("total").isEqualTo(0L);
-    assertThat(restrictions.getAllValues()).isNotEmpty();
-    assertThat(restrictions.getAllValues()).anySatisfy(list -> {
-      assertThat(list).isNotEmpty();
-      IndexTermSetRestriction orgRestriction = (IndexTermSetRestriction) list.get(0);
-      assertThat(orgRestriction.field()).isEqualTo(FieldIdentifier.ORGANIZATION_ID.label);
-      assertThat(orgRestriction.ids()).containsExactlyInAnyOrder(
-          "expanded-org-0", "expanded-org-1", "expanded-org-2", "expanded-org-3", "expanded-org-4",
-          "expanded-org-5");
-    });
-  }
-
-  @Test
-  public void testGetMetrics_EmptyOrganizationExpansionReturnsNoMatchSentinel() {
-    OrganizationDAO organizationDAO = mock(OrganizationDAO.class);
-    when(organizationDAO.getAllChildOrganizationIds(Set.of("empty-org"))).thenReturn(Set.of());
-
-    Configuration configuration = mock(Configuration.class);
-
-    CurrentUser currentUser = mock(CurrentUser.class);
-    when(currentUser.getUserPrincipal()).thenReturn(
-        new UserPrincipal("filter-user", "filter-user", User.INTERNAL_REALM_ID));
-
-    SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
-    stubEmptySearchIndexResults(searchIndexClient);
-    ArgumentCaptor<java.util.List> restrictions = ArgumentCaptor.forClass(java.util.List.class);
-    when(searchIndexClient.count(anyString(), restrictions.capture())).thenReturn(0L);
-
-    DashboardMetricsService service =
-        newServiceWithMocks(
-            searchIndexClient,
-            new MetricFilterValidator(),
-            organizationDAO,
-            configuration,
-            currentUser);
-
-    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
-    request.organizationIds = Set.of("empty-org");
+    request.organizationIds = Set.of("parent-org", "sibling-org");
 
     assertThat(service.getMetrics(request).applications.total).isZero();
-    assertThat(restrictions.getAllValues()).anySatisfy(list -> {
+    assertThat(queries.getAllValues()).isNotEmpty();
+    assertThat(queries.getAllValues()).noneMatch(query -> query.contains("rganizationId"));
+    assertThat(restrictions.getAllValues()).isNotEmpty();
+    assertThat(restrictions.getAllValues()).allSatisfy(list -> {
+      assertThat(list).hasSize(1);
       IndexTermSetRestriction orgRestriction = (IndexTermSetRestriction) list.get(0);
-      assertThat(orgRestriction.ids()).containsExactly(DashboardMetricsService.NO_MATCH_ORGANIZATION_FILTER_ID);
+      assertThat(orgRestriction.field()).isEqualTo(FieldIdentifier.PARENT_ORGANIZATION_ID.label);
+      assertThat(orgRestriction.ids()).containsExactlyInAnyOrder("parent-org", "sibling-org");
     });
   }
 
+  /**
+   * Term sets are not charged against {@code maxAdvancedSearchClauseCount}, so an organization
+   * selection larger than the budget resolves instead of failing with a 400 (CLM-44783).
+   */
   @Test
-  public void testGetMetrics_OrganizationFilterAcceptsExpansionAtMaxClauseCount() {
-    OrganizationDAO organizationDAO = mock(OrganizationDAO.class);
-    when(organizationDAO.getAllChildOrganizationIds(Set.of("max-org")))
-        .thenReturn(Set.of("expanded-org-0", "expanded-org-1", "expanded-org-2", "expanded-org-3", "expanded-org-4"));
-
+  public void testGetMetrics_OrganizationTermSetIsExemptFromClauseBudget() {
     Configuration configuration = mock(Configuration.class);
-    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(5);
+    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(1);
 
     CurrentUser currentUser = mock(CurrentUser.class);
     when(currentUser.getUserPrincipal()).thenReturn(
         new UserPrincipal("filter-user", "filter-user", User.INTERNAL_REALM_ID));
 
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
-    when(searchIndexClient.count(anyString(), anyList())).thenReturn(1L);
     stubEmptySearchIndexResults(searchIndexClient);
+    ArgumentCaptor<java.util.List> restrictions = ArgumentCaptor.forClass(java.util.List.class);
+    when(searchIndexClient.count(anyString(), restrictions.capture())).thenReturn(1L);
     when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
 
     DashboardMetricsService service =
         newServiceWithMocks(
             searchIndexClient,
             new MetricFilterValidator(),
-            organizationDAO,
+            mock(OrganizationDAO.class),
             configuration,
             currentUser);
 
     DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
-    request.organizationIds = Set.of("max-org");
+    request.organizationIds = Set.of("org-a", "org-b", "org-c");
 
     assertThat(service.getMetrics(request).applications.total).isEqualTo(1);
-  }
-
-  @Test
-  public void testGetMetrics_OrganizationExpansionComputedOncePerRequest() {
-    OrganizationDAO organizationDAO = mock(OrganizationDAO.class);
-    when(organizationDAO.getAllChildOrganizationIds(Set.of("parent-org")))
-        .thenReturn(Set.of("child-org"));
-
-    SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
-    when(searchIndexClient.count(anyString(), anyList())).thenReturn(1L);
-    stubEmptySearchIndexResults(searchIndexClient);
-    when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
-
-    Configuration configuration = mock(Configuration.class);
-    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(100);
-
-    CurrentUser currentUser = mock(CurrentUser.class);
-    when(currentUser.getUserPrincipal()).thenReturn(
-        new UserPrincipal("filter-user", "filter-user", User.INTERNAL_REALM_ID));
-
-    DashboardMetricsService service =
-        newServiceWithMocks(
-            searchIndexClient,
-            new MetricFilterValidator(),
-            organizationDAO,
-            configuration,
-            currentUser);
-
-    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
-    request.organizationIds = Set.of("parent-org");
-    service.getMetrics(request);
-
-    verify(organizationDAO, times(1)).getAllChildOrganizationIds(Set.of("parent-org"));
+    assertThat(restrictions.getAllValues()).isNotEmpty();
+    assertThat(restrictions.getAllValues()).allSatisfy(list -> {
+      IndexTermSetRestriction orgRestriction = (IndexTermSetRestriction) list.get(0);
+      assertThat(orgRestriction.ids()).containsExactlyInAnyOrder("org-a", "org-b", "org-c");
+    });
   }
 
   @Test

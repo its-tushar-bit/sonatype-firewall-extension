@@ -106,13 +106,6 @@ public class DashboardMetricsService
       FieldIdentifier.COMPONENT_HASH.label,
       FieldIdentifier.COMPONENT_EFFECTIVE_LICENSE_ID.label);
 
-  /**
-   * Sentinel org id for a filter that must match zero APPLICATION docs. Valid under
-   * {@link MetricFilterValidator#ID_PATTERN} but never indexed as an organization owner.
-   */
-  static final String NO_MATCH_ORGANIZATION_FILTER_ID =
-      DashboardIndexDimensionQueryBuilder.NO_MATCH_ORGANIZATION_FILTER_ID;
-
   static final String NO_MATCH_APPLICATION_FILTER_ID =
       DashboardIndexDimensionQueryBuilder.NO_MATCH_APPLICATION_FILTER_ID;
 
@@ -599,21 +592,21 @@ public class DashboardMetricsService
       ItemType itemType,
       MetricFilterContext filterContext)
   {
-    Set<String> expandedOrgs = filterContext.expandedOrganizationIds();
+    Set<String> orgs = filterContext.organizationIds();
     Set<String> apps = APPLICATION_FILTER_EXCLUDED_ITEM_TYPES.contains(itemType)
         ? null
         : filterContext.applicationIds();
-    if (expandedOrgs == null && apps == null) {
+    if (orgs == null && apps == null) {
       return List.of();
     }
-    if (expandedOrgs != null && apps == null) {
-      return IndexTermSetRestriction.singleton(FieldIdentifier.PARENT_ORGANIZATION_ID.label, expandedOrgs);
+    if (orgs != null && apps == null) {
+      return IndexTermSetRestriction.singleton(FieldIdentifier.PARENT_ORGANIZATION_ID.label, orgs);
     }
-    if (expandedOrgs == null) {
+    if (orgs == null) {
       return IndexTermSetRestriction.singleton(FieldIdentifier.APPLICATION_ID.label, apps);
     }
     return IndexOrTermSetGroup.singleton(
-        IndexTermSetRestriction.of(FieldIdentifier.PARENT_ORGANIZATION_ID.label, expandedOrgs),
+        IndexTermSetRestriction.of(FieldIdentifier.PARENT_ORGANIZATION_ID.label, orgs),
         IndexTermSetRestriction.of(FieldIdentifier.APPLICATION_ID.label, apps));
   }
 
@@ -683,7 +676,7 @@ public class DashboardMetricsService
   }
 
   private record MetricFilterContext(
-      Set<String> expandedOrganizationIds,
+      Set<String> organizationIds,
       Set<String> applicationIds,
       String policyEvaluationStageClause,
       String taggedApplicationClause,
@@ -694,14 +687,14 @@ public class DashboardMetricsService
     }
 
     static MetricFilterContext of(
-        final Set<String> expandedOrganizationIds,
+        final Set<String> organizationIds,
         final Set<String> applicationIds,
         final String policyEvaluationStageClause,
         final String taggedApplicationClause,
         final boolean tagFilterUnsupported)
     {
       return new MetricFilterContext(
-          expandedOrganizationIds,
+          organizationIds,
           applicationIds,
           policyEvaluationStageClause,
           taggedApplicationClause,

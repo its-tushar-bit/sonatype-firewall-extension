@@ -20,9 +20,9 @@ import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -47,7 +47,7 @@ public class MembershipMappingDAOPgTest
           .thenComparing(MembershipMapping::getMemberName)
           .thenComparing(MembershipMapping::getMemberType);
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();
@@ -56,7 +56,7 @@ public class MembershipMappingDAOPgTest
     roleDeveloper = roleDAO.getByName("Developer");
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     for (MembershipMapping membership : membershipDAO.getByContextId(contextId)) {
       membershipDAO.delete(membership);

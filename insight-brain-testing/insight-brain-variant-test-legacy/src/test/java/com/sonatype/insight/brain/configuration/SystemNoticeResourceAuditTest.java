@@ -10,9 +10,11 @@ import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.configuration.SystemNotice;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
+@LegacyServerTest
 public class SystemNoticeResourceAuditTest
     extends AbstractAuditTest
 {

@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 
 import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -39,6 +40,7 @@ public abstract class AbstractResourceAuthzTest
   protected User authorized;
 
   @Before
+  @BeforeEach
   public void createEntities() {
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication(org.getId());

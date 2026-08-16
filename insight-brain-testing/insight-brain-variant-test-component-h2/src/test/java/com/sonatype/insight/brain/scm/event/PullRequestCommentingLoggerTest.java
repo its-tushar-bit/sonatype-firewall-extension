@@ -21,7 +21,6 @@ import ch.qos.logback.classic.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.slf4j.LoggerFactory;
@@ -48,7 +47,6 @@ public class PullRequestCommentingLoggerTest
   @Mock
   private CurrentUser currentUser;
 
-  @Rule
   public LogOutput logOutput = new LogOutput(SCM_EVENT_LOGGER_NAME);
 
   private Organization organization;

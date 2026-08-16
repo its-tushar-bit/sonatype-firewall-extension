@@ -13,7 +13,6 @@ import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
 import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.test.LogOutput;
 
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class CrowdClientFactoryTest
     extends AbstractComponentH2Test
 {
-  @Rule
   public LogOutput logOutput = new LogOutput(CrowdClientFactory.class);
 
   @Inject

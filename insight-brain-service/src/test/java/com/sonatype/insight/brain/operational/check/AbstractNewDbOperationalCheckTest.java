@@ -33,18 +33,18 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
 import org.apache.commons.dbcp2.BasicDataSource;
-import org.junit.Before;
-import org.junit.After;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.MethodOrderer;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.Status;
 
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@RunWith(MockitoJUnitRunner.class)
+@TestMethodOrder(MethodOrderer.MethodName.class)
+@ExtendWith(MockitoExtension.class)
 abstract class AbstractNewDbOperationalCheckTest
     extends AbstractDatabaseTest
 {
@@ -60,7 +60,7 @@ abstract class AbstractNewDbOperationalCheckTest
 
   private DataStore[] allDataStores;
 
-  @Before
+  @BeforeEach
   public void before() {
     operationalDataStore = spy(databaseRule.getOperationalDataStore());
     dataMartDataStore = spy(databaseRule.getDataMartDataStore());
@@ -74,7 +74,7 @@ abstract class AbstractNewDbOperationalCheckTest
         aggregationDataStore, thirdPartyScansDataStore);
   }
 
-  @After
+  @AfterEach
   public void resetReadOnly() {
     if (allDataStores == null) {
       return;

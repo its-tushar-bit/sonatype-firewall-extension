@@ -11,9 +11,11 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.networking.SslProperties;
-import org.junit.After;
-import org.junit.Test;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
+@LegacyServerTest
 public class LandingResourceTest
     extends AbstractResourceTest
 {
@@ -226,7 +228,7 @@ public class LandingResourceTest
     assertThat(response.getHeader("Location")).startsWith(BASE_URL);
   }
 
-  @After
+  @AfterEach
   public void clearSslOverrides() {
     configureServerSslSystemProperties(false);
     if (testCLMServer != null) {

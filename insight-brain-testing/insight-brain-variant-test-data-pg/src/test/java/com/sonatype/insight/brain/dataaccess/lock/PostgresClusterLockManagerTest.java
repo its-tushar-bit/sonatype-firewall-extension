@@ -14,8 +14,9 @@ import com.sonatype.insight.brain.dataaccess.TestDAOFactory;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -30,7 +31,7 @@ public class PostgresClusterLockManagerTest
   private PostgresClusterLockManager postgresClusterLockManager;
 
   @Override
-  @Before
+  @BeforeEach
   public void before() {
     DAOFactory daoFactory = new TestDAOFactory(databaseRule);
     postgresAdvisoryLockDAO = daoFactory.createPostgresAdvisoryLockDAO();
@@ -58,7 +59,8 @@ public class PostgresClusterLockManagerTest
     }
   }
 
-  @Test(timeout = 60_000)
+  @Test
+  @Timeout(value = 60, unit = TimeUnit.SECONDS)
   public void testLock_Postgres_LocksDoNotCompeteWithRegularQueriesForConnections() throws Exception {
     ClusterLockId clusterLockId = ClusterLockId.forDataMigration();
     Thread other;

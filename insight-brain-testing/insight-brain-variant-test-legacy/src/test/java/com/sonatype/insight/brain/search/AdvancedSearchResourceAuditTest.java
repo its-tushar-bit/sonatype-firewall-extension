@@ -9,9 +9,11 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
+@LegacyServerTest
 public class AdvancedSearchResourceAuditTest
     extends AbstractAuditTest
 {

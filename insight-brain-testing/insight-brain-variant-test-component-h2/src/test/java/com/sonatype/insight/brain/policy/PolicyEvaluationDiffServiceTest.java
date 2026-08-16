@@ -22,7 +22,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.test.LogOutput;
 
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -49,7 +48,6 @@ public class PolicyEvaluationDiffServiceTest
 
   private Application app;
 
-  @Rule
   public LogOutput logOutput =
       new LogOutput(1, PolicyEvaluationDiffServiceTest.class, PolicyEvaluationDiffService.class);
 

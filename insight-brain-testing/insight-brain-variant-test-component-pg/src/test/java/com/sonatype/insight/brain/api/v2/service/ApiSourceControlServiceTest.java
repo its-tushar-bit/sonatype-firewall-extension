@@ -76,14 +76,11 @@ import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.github.dto.GithubRateLimitResponse;
 import com.sonatype.nexus.scm.github.dto.GithubRateLimitsResponse;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControl.FAKE_SECRET_KEY;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.DISCOVERED_PULL_REQUEST_EVENT;
@@ -167,9 +164,6 @@ public class ApiSourceControlServiceTest
 
   @Inject
   private InsightProxy insightProxy;
-
-  @Rule
-  public WireMockRule githubMockServer = new WireMockRule(wireMockConfig().dynamicPort());
 
   private Application app;
 

@@ -43,7 +43,6 @@ import com.sonatype.insight.test.LogOutput;
 import jakarta.inject.Inject;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -53,7 +52,6 @@ import org.mockito.Mockito;
 public class WaivedComponentUpgradeInspectorTest
     extends AbstractComponentH2Test
 {
-  @Rule
   public LogOutput logOutput = new LogOutput(WaivedComponentUpgradeInspector.class);
 
   @Inject

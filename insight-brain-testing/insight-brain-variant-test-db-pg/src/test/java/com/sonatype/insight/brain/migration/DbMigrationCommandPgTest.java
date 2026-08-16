@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.migration;
 
 import java.sql.Connection;
+import java.nio.file.Path;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
@@ -25,17 +26,19 @@ import com.sonatype.insight.brain.db.rule.DatabaseContainerRule;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -43,14 +46,13 @@ import static org.mockito.Mockito.when;
 /**
  * PostgreSQL-backed tests relocated from {@link DbMigrationCommandTest} (CLM-45228).
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 @PostgresTest
 public class DbMigrationCommandPgTest
 {
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+  @TempDir
+  public Path temporaryFolder;
 
-  @Rule
   public DatabaseContainerRule databaseContainerRule =
       DatabaseContainerRule.getInstance(DbMigrationCommandPgTest.class);
 
@@ -67,15 +69,17 @@ public class DbMigrationCommandPgTest
 
   private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
-  @Before
-  public void before() throws Exception {
+  @BeforeEach
+  public void before(final TestInfo testInfo) throws Exception {
+    databaseContainerRule.beforeFromJupiter(testInfo.getTestClass().orElse(null),
+        testInfo.getTestMethod().orElse(null));
     systemConfigurationPropertyDAO =
         new SystemConfigurationPropertyDAO(databaseContainerRule.getOperationalDataStore());
 
     insightConfig = new InsightConfig();
-    insightConfig.setSonatypeWork(temporaryFolder.newFolder().getAbsolutePath());
+    insightConfig.setSonatypeWork(temporaryFolder.toFile().getAbsolutePath());
 
-    when(mockClusterLockManager.createForSchemaMigration()).thenReturn(mock(ClusterLock.class));
+    lenient().when(mockClusterLockManager.createForSchemaMigration()).thenReturn(mock(ClusterLock.class));
 
     spyDatabaseMigrations = spy(new DatabaseMigrations(databaseContainerRule, mockClusterLockManager));
     spyDatabaseProvisioner = spy(new DatabaseProvisioner(databaseContainerRule, spyDatabaseMigrations));
@@ -89,6 +93,11 @@ public class DbMigrationCommandPgTest
             spyDatabaseProvisioner);
       }
     });
+  }
+
+  @AfterEach
+  public void afterEach() {
+    databaseContainerRule.afterFromJupiter();
   }
 
   @Test

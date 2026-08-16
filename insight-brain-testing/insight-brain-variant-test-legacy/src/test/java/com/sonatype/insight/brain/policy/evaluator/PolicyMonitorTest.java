@@ -86,16 +86,18 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPOutputStream;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mockito;
 
+@LegacyServerTest
 public class PolicyMonitorTest
     extends AbstractBrainServiceIntegrationTest
 {
-  @Rule
+  @RegisterExtension
   public LogOutput logOutput = new LogOutput(PolicyMonitor.class);
 
   private PolicyMonitor policyMonitor;
@@ -126,7 +128,7 @@ public class PolicyMonitorTest
     return mailConfiguration;
   }
 
-  @Before
+  @BeforeEach
   public void setup() {
     setBaseUrl("http://clm.sonatype.com/test");
     insightWork = getCLMServer().getInstance(InsightWork.class);
@@ -142,7 +144,7 @@ public class PolicyMonitorTest
     mailConfigurationDAO.set(testMailConfiguration);
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     if (handler != null) {
       asyncEventBus.unregister(handler);

@@ -18,8 +18,8 @@ import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotif
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.security.SamlUser;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -42,7 +42,7 @@ public class SamlUserDAOPgTest
 
   private SamlUserGroupDAO samlUserGroupDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

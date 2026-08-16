@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.test.LogOutput;
 import jakarta.inject.Inject;
 import java.io.File;
-import org.junit.Rule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,7 +29,6 @@ import org.mockito.Mock;
 public class SourceControlConfigurationMigratorTest
     extends AbstractComponentH2Test
 {
-  @Rule
   public LogOutput logOutput = new LogOutput(SourceControlConfigurationMigrator.class);
 
   @Inject

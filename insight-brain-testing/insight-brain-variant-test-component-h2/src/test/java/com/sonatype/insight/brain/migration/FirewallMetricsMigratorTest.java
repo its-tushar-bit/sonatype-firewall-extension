@@ -63,7 +63,6 @@ import java.util.List;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 import org.apache.commons.lang3.time.DateUtils;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -72,7 +71,6 @@ import org.mockito.Mock;
 public class FirewallMetricsMigratorTest
     extends AbstractComponentH2Test
 {
-  @Rule
   public LogOutput logOutput = new LogOutput(FirewallMetricsMigrator.class);
 
   @Inject

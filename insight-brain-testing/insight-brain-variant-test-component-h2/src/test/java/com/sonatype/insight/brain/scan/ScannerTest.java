@@ -35,17 +35,12 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.TemporaryFolder;
 
 @ComponentH2Test
 public class ScannerTest
     extends AbstractBrainInjectedH2Test
 {
-  @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
-
   @Inject
   private Scanner scanner;
 

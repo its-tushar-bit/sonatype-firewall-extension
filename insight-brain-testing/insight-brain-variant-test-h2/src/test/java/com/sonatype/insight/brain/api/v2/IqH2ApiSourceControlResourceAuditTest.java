@@ -49,7 +49,6 @@ import java.util.stream.Collectors;
 
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
-import org.junit.Rule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -77,7 +76,6 @@ class IqH2ApiSourceControlResourceAuditTest
   private final TestLogOutput logOutput =
       new TestLogOutput(com.sonatype.insight.brain.audit.AuditRecorder.BASE_LOGGER_NAME);
 
-  @Rule
   public WireMockRule gitService = new WireMockRule(wireMockConfig().dynamicPort());
 
   @BeforeEach

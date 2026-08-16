@@ -30,7 +30,6 @@ import jakarta.inject.Inject;
 import java.io.ByteArrayInputStream;
 import java.time.Duration;
 import java.util.List;
-import org.junit.Rule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,7 +41,6 @@ import org.quartz.JobExecutionException;
 public class ZScalerUpdaterTest
     extends AbstractComponentH2Test
 {
-  @Rule
   public LogOutput logOutput = new LogOutput(ZScalerUpdater.class);
 
   @Mock

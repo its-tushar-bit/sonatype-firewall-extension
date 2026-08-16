@@ -39,7 +39,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
 import org.joda.time.DateTimeConstants;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
@@ -57,7 +56,6 @@ public class ScanFileCleanerTest
   @Inject
   private MigrationTrackerDAO migrationTrackerDAO;
 
-  @Rule
   public LogOutput logOutput = new LogOutput(ScanFileCleaner.class);
 
   @Inject

@@ -37,7 +37,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.discovered;
@@ -61,7 +60,6 @@ public class ApiMetricsReportingServiceV2Test
   @Inject
   private ApiMetricsReportingServiceV2 service;
 
-  @Rule
   public FakeDateRule fakeDateRule = new FakeDateRule();
 
   @Test

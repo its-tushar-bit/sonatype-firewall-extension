@@ -18,7 +18,6 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.MemberType;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,10 +34,8 @@ public class MemberAttributeResolverTest
 
   private MemberAttributeResolver memberAttributeResolver;
 
-  @Rule
   public TestLdapServer embeddedLdapServer1 = new TestLdapServer();
 
-  @Rule
   public TestLdapServer embeddedLdapServer2 = new TestLdapServer();
 
   @BeforeEach

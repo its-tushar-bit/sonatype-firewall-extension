@@ -20,17 +20,17 @@ import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import java.sql.Connection;
 import java.util.Map;
 import javax.sql.DataSource;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.MethodOrderer;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.Status;
 
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@RunWith(MockitoJUnitRunner.class)
+@TestMethodOrder(MethodOrderer.MethodName.class)
+@ExtendWith(MockitoExtension.class)
 abstract class AbstractExistingDbOperationalCheckTest
     extends AbstractDatabaseTest
 {
@@ -46,7 +46,7 @@ abstract class AbstractExistingDbOperationalCheckTest
 
   private DataStore[] allDataStores;
 
-  @Before
+  @BeforeEach
   public void before() {
     operationalDataStore = spy(databaseRule.getOperationalDataStore());
     dataMartDataStore = spy(databaseRule.getDataMartDataStore());

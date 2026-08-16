@@ -27,7 +27,6 @@ import com.sonatype.insight.test.LogOutput;
 import jakarta.inject.Inject;
 import java.util.Arrays;
 import java.util.Collections;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
@@ -35,7 +34,6 @@ import org.mockito.Mock;
 public class PolicyAlertNotifierTest
     extends AbstractComponentH2Test
 {
-  @Rule
   public LogOutput logOutput = new LogOutput(PolicyAlertNotifier.class);
 
   @Inject

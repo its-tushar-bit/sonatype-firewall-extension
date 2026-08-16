@@ -29,7 +29,6 @@ import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
 import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.test.LogOutput;
 
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -52,7 +51,6 @@ public class SourceControlUserActivityServiceTest
   @Inject
   private SourceControlUserActivityService sourceControlUserActivityService;
 
-  @Rule
   public LogOutput logOutput = new LogOutput(SourceControlUserActivityService.class);
 
   private final DefaultDBTestData testData = new DefaultDBTestData();

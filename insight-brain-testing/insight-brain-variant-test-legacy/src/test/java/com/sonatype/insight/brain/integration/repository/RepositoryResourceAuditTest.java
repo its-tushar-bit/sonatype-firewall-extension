@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
 
 import org.cyclonedx.Version;
 import org.cyclonedx.generators.BomGeneratorFactory;
@@ -25,10 +26,11 @@ import org.cyclonedx.model.Component;
 import org.cyclonedx.model.Component.Type;
 import org.cyclonedx.model.Metadata;
 import org.cyclonedx.model.Property;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.clm.dto.model.repository.container.image.FirewallContainerImageUtils.SONATYPE_NEXUS_REPOSITORY_BASE_URL_PROPERTY_NAME;
 
+@LegacyServerTest
 public class RepositoryResourceAuditTest
     extends AbstractRepositoryResourceAuditTest
 {

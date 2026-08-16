@@ -7,8 +7,8 @@ package com.sonatype.insight.brain.dataaccess.repository;
 
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 /**
  * Postgres flavor of {@link ProxyRepositoryComponentDAOTest}.
@@ -40,10 +40,10 @@ public class ProxyRepositoryComponentDAOPostgresTest
    * Inherited from the parent test class but specific to the H2 dialect — it asserts
    * {@code isDatabaseEmbedded() == true} which is false under Postgres. The Postgres equivalent
    * is the sibling {@code testDeleteByRepositoryId_Postgres} in the parent, which IS exercised
-   * here. Override with {@link Ignore} so the Postgres run does not pick up the H2-only check.
+   * here. Override with {@link Disabled} so the Postgres run does not pick up the H2-only check.
    */
   @Test
-  @Ignore("H2-only: covered by testDeleteByRepositoryId_Postgres under this Postgres flavor")
+  @Disabled("H2-only: covered by testDeleteByRepositoryId_Postgres under this Postgres flavor")
   @Override
   public void testDeleteByRepositoryId_H2() {
   }

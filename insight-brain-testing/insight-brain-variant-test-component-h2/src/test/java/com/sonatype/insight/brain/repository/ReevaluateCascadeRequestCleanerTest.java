@@ -29,7 +29,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -56,7 +55,6 @@ public class ReevaluateCascadeRequestCleanerTest
   @Mock
   private TransactionContext transactionContextMock;
 
-  @Rule
   public LogOutput logOutput = new LogOutput(ReevaluateCascadeRequestCleaner.class.getName());
 
   @Test

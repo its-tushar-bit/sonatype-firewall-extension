@@ -25,7 +25,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -34,7 +33,6 @@ import org.mockito.Captor;
 public class ApiCrowdConfigurationServiceTest
     extends AbstractComponentH2Test
 {
-  @Rule
   public CrowdMockServerRule crowdMockServer = new CrowdMockServerRule();
 
   @Inject

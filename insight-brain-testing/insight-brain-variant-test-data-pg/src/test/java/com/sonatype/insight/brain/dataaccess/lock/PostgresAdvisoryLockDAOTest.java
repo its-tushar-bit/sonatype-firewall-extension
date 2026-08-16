@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.AbstractDataTest;
@@ -19,9 +20,10 @@ import com.sonatype.insight.test.LogOutput;
 
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 
@@ -82,12 +84,12 @@ public class PostgresAdvisoryLockDAOTest
     }
   }
 
-  @Rule
+  @RegisterExtension
   public LogOutput logOutput = new LogOutput(PostgresAdvisoryLockDAO.class);
 
   private DataSource dataSource;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     dataSource = databaseRule.getOperationalDataStore().getDataSourceForLocks();
   }
@@ -186,7 +188,8 @@ public class PostgresAdvisoryLockDAOTest
     }
   }
 
-  @Test(timeout = 1000)
+  @Test
+  @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
   public void testAcquireLock_Write_NoBlocksReentrantWrite() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection1 = getConnection()) {
@@ -197,7 +200,8 @@ public class PostgresAdvisoryLockDAOTest
     }
   }
 
-  @Test(timeout = 1000)
+  @Test
+  @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
   public void testAcquireLock_Write_NoBlocksReentrantRead() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection1 = getConnection()) {
@@ -261,7 +265,8 @@ public class PostgresAdvisoryLockDAOTest
     }
   }
 
-  @Test(timeout = 1000)
+  @Test
+  @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
   public void testAcquireLock_Read_NoBlocksReentrantWrite() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection1 = getConnection()) {
@@ -274,7 +279,8 @@ public class PostgresAdvisoryLockDAOTest
     }
   }
 
-  @Test(timeout = 1000)
+  @Test
+  @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
   public void testAcquireLock_Read_NoBlocksReentrantRead() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection1 = getConnection()) {

@@ -18,8 +18,8 @@ import com.sonatype.insight.test.LogOutput;
 
 import ch.qos.logback.classic.Level;
 import org.jooq.impl.DSL;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -33,7 +33,7 @@ public class TemporaryTableHelperPgTest
 {
   private final TemporaryTableHelper temporaryTableHelper = new TemporaryTableHelper();
 
-  @Rule
+  @RegisterExtension
   public LogOutput logOutput = new LogOutput(TemporaryTableHelper.class);
 
   @Test

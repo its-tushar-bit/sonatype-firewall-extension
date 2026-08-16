@@ -16,7 +16,6 @@ import jakarta.inject.Inject;
 
 import ch.qos.logback.classic.Level;
 import org.jooq.exception.DataAccessException;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -32,7 +31,6 @@ import static org.mockito.Mockito.spy;
 public class PerpetualLockManagerTest
     extends AbstractComponentH2Test
 {
-  @Rule
   public LogOutput logOutput = new LogOutput(PerpetualLockManager.class);
 
   @Inject

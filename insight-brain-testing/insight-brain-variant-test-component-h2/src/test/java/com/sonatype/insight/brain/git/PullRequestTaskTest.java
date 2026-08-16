@@ -45,7 +45,6 @@ import com.sonatype.nexus.scm.api.model.PullRequestResponse;
 
 import jakarta.inject.Inject;
 import org.apache.commons.io.FileUtils;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -80,7 +79,6 @@ public class PullRequestTaskTest
 
   private static final String APP_INTERNAL_ID = "8f9a4a2973804402ab5c6bd0ee453ed9";
 
-  @Rule
   public LogOutput logOutput = new LogOutput(PullRequestTask.class);
 
   @Mock

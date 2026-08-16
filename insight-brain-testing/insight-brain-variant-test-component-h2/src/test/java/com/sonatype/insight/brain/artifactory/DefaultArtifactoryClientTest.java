@@ -32,7 +32,6 @@ import com.sonatype.insight.error.exception.NotAuthenticatedException;
 import com.sonatype.insight.test.LogOutput;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -47,10 +46,8 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class DefaultArtifactoryClientTest
     extends AbstractComponentH2Test
 {
-  @Rule
   public LogOutput logOutput = new LogOutput(ArtifactoryClient.class);
 
-  @Rule
   public ArtifactoryMockServerRule artifactoryMockServer = new ArtifactoryMockServerRule();
 
   @Inject

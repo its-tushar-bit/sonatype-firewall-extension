@@ -7,7 +7,9 @@ package com.sonatype.insight.brain.ide;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.hds.AbstractComponentInfoResourceAuditBaseTest;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
 
+@LegacyServerTest
 public class IDEComponentInfoResourceAuditTest
     extends AbstractComponentInfoResourceAuditBaseTest
 {

@@ -32,12 +32,14 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.organization.SampleDataCreator;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@LegacyServerTest
 public class NewInstancePopulatorTest
     extends AbstractBrainServiceIntegrationTest
 {
@@ -57,7 +59,7 @@ public class NewInstancePopulatorTest
 
   private PolicyTagDAO policyTagDAO;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     // Using DAOFactory instead of lookup as we have several tests using @ManualIqServerInit annotation
     applicationDAO = daoFactory.createApplicationDAO();

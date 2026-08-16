@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.security.SsoUserService;
 
 import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.Rule;
 
 /**
@@ -37,6 +38,7 @@ public abstract class AbstractBrainServiceIntegrationTest
   }
 
   @After
+  @AfterEach
   public void disableSso() {
     if (testCLMServer == null || !testCLMServer.isRunning()) {
       return;

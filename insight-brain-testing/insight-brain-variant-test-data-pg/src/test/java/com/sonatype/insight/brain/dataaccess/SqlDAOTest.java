@@ -16,7 +16,7 @@ import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -31,19 +31,22 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
+@LegacyServerTest
 public class AdminServletTest
     extends AbstractBrainServiceIntegrationTest
 {
-  @Rule
+  @RegisterExtension
   public LogOutput logOutput = new LogOutput(ShutdownHandler.class);
 
   /**
@@ -75,7 +78,7 @@ public class AdminServletTest
    * Spring Boot's logging initialization during test context startup can remove
    * appenders added by rules that run earlier.
    */
-  @Before
+  @BeforeEach
   public void reconfigureLogOutput() throws Exception {
     // Force reconfigure LogOutput after Spring Boot test context has initialized
     // The configureLoggers() method is private, so we use reflection
@@ -84,7 +87,8 @@ public class AdminServletTest
     configureLoggers.invoke(logOutput);
   }
 
-  @Test(timeout = 60_000)
+  @Test
+  @Timeout(value = 60, unit = TimeUnit.SECONDS)
   public void testCpuProfiling_NoEndlessBusyLoopOnNegativeFrequency_CLM_16983() throws Exception {
     assertThat(adminRequest().path("pprof").query("frequency", -1).query("duration", "1").get()).isNotNull();
   }

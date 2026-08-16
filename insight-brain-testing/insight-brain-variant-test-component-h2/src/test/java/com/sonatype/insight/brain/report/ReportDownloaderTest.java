@@ -18,7 +18,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.test.LogOutput;
 
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -41,7 +40,6 @@ public class ReportDownloaderTest
 {
   private ReportDownloader reportDownloader;
 
-  @Rule
   public LogOutput logOutput = new LogOutput(ReportDownloader.class);
 
   @Inject

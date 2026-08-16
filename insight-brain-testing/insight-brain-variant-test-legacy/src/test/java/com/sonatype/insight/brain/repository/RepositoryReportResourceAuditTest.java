@@ -10,16 +10,18 @@ import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.hds.AbstractComponentInfoResourceAuditTest;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
+@LegacyServerTest
 public class RepositoryReportResourceAuditTest
     extends AbstractComponentInfoResourceAuditTest
 {
   private Repository repository;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     repository = tempEntity.newRepository("repoPublicId");
   }

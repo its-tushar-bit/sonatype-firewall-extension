@@ -26,7 +26,6 @@ import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.test.LogOutput;
 
 import org.assertj.core.util.Sets;
-import org.junit.Rule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +36,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SamlUserGroupMigratorTest
     extends AbstractComponentH2Test
 {
-  @Rule
   public LogOutput logOutput = new LogOutput(SamlUserGroupMigrator.class);
 
   @Inject

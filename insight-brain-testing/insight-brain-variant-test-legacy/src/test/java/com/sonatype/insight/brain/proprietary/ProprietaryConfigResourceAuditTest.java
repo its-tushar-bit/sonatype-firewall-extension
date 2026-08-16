@@ -19,13 +19,15 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigResource.FilePathRegex;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
+@LegacyServerTest
 public class ProprietaryConfigResourceAuditTest
     extends AbstractAuditTest
 {
@@ -33,7 +35,7 @@ public class ProprietaryConfigResourceAuditTest
 
   private Organization org;
 
-  @Before
+  @BeforeEach
   public void before() {
     org = tempEntity.newOrganization();
     app = tempEntity.newApplicationWithParent();

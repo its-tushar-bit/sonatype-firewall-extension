@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * PostgreSQL-backed re-runs of the {@link SourceControlUserDAOTest} cases relocated from insight-brain-data

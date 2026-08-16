@@ -128,11 +128,7 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <dependency>
-      <groupId>org.junit.vintage</groupId>
-      <artifactId>junit-vintage-engine</artifactId>
-      <scope>test</scope>
-    </dependency>
+    <!-- junit-vintage-engine removed (CLM-45352): the relocated tests now run under JUnit 5 (Jupiter). -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

@@ -10,9 +10,11 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
+@LegacyServerTest
 public class PolicyMonitoringResourceAuthzTest
     extends AbstractResourceAuthzTest
 {

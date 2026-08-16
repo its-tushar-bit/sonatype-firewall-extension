@@ -10,7 +10,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public abstract class AbstractComponentInfoResourceAuditBaseTest
     extends AbstractComponentInfoResourceAuditTest

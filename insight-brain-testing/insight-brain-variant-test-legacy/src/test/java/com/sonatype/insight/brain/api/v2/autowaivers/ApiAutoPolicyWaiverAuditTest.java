@@ -18,25 +18,27 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.api.v2.autowaivers.ApiAutoPolicyWaiverResource.BY_AUTO_POLICY_WAIVER_ID_PATH;
 import static com.sonatype.insight.brain.api.v2.autowaivers.ApiAutoPolicyWaiverResource.OWNERS_PATH;
 import static org.mockito.Mockito.when;
 
+@LegacyServerTest
 public class ApiAutoPolicyWaiverAuditTest
     extends AbstractAuditTest
 {
-  @Before
+  @BeforeEach
   public void setup() {
     when(mockDeveloperEnablementService.shouldEnableDeveloperProduct()).thenReturn(true);
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     licenseManager.reset();
   }

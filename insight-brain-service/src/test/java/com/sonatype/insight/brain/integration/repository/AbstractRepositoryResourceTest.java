@@ -32,7 +32,8 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -48,6 +49,7 @@ public abstract class AbstractRepositoryResourceTest
   protected RepositoryManagerDAO repositoryManagerDAO;
 
   @Before
+  @BeforeEach
   public void setUp() {
     repositoryDAO = lookup(RepositoryDAO.class);
     proprietaryComponentNamePatternDAO = lookup(ProprietaryComponentNamePatternDAO.class);

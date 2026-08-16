@@ -104,7 +104,6 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.apache.tika.utils.StringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -130,7 +129,6 @@ public class ApiSbomServiceTest
     }
   }
 
-  @Rule
   public LogOutput logOutput = new LogOutput(1, ApiSbomServiceTest.class, ApiSbomService.class);
 
   private static final String DUMMY_USER_AGENT = RandomStringUtils.random(10, true, true);

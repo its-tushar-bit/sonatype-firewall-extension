@@ -13,10 +13,12 @@ import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
+@LegacyServerTest
 public class ApiSearchResourceV2AuditTest
     extends AbstractAuditTest
 {

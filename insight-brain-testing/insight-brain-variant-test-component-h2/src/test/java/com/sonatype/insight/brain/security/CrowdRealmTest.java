@@ -14,7 +14,6 @@ import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.SimpleAuthenticationInfo;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authc.credential.AllowAllCredentialsMatcher;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -30,7 +29,6 @@ import static org.mockito.Mockito.when;
 public class CrowdRealmTest
     extends AbstractComponentH2Test
 {
-  @Rule
   public CrowdMockServerRule crowdMockServer = new CrowdMockServerRule();
 
   @Mock

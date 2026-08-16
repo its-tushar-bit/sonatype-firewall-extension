@@ -62,7 +62,6 @@ import org.apache.shiro.subject.SimplePrincipalCollection;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
@@ -74,7 +73,6 @@ public class ApiComponentReleaseQuarantineServiceTest
 
   private static final String REPO_PUBLIC_ID = "repoPublicId";
 
-  @Rule
   public LogOutput policyViolationLoggerOutput =
       new LogOutput(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
 

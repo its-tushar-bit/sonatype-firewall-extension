@@ -24,7 +24,6 @@ import com.sonatype.insight.brain.variant.ComponentH2Test;
 
 import com.google.common.collect.Sets;
 import org.joda.time.LocalDate;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -34,7 +33,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiMetricsReportingServiceV2AuthzTest
     extends AbstractComponentH2AuthzTest
 {
-  @Rule
   public FakeDateRule fakeDateRule = new FakeDateRule();
 
   @Inject

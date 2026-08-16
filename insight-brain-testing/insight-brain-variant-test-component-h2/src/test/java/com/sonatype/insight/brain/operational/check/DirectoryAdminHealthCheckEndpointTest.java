@@ -7,14 +7,14 @@ package com.sonatype.insight.brain.operational.check;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 
 import com.sonatype.insight.brain.operational.check.AdminHealthCheckEndpoint.HealthCheckResponse;
 import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
 import com.sonatype.insight.brain.variant.ComponentH2Test;
 
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,8 +22,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class DirectoryAdminHealthCheckEndpointTest
     extends AbstractComponentH2Test
 {
-  @Rule
-  public TemporaryFolder folder = new TemporaryFolder();
+  @TempDir
+  public File folder;
 
   private DirectoryAdminHealthCheckEndpoint directoryAdminHealthCheckEndpoint;
 
@@ -43,10 +43,10 @@ public class DirectoryAdminHealthCheckEndpointTest
   {
     File file;
     if (validDirectory) {
-      file = folder.newFolder();
+      file = Files.createDirectory(folder.toPath().resolve("dir")).toFile();
     }
     else {
-      file = folder.newFile("test");
+      file = Files.createFile(folder.toPath().resolve("test")).toFile();
     }
     directoryAdminHealthCheckEndpoint = new DirectoryAdminHealthCheckEndpoint("test", "test", file);
     assertThat(directoryAdminHealthCheckEndpoint.getHealthCheckResponse())

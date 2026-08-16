@@ -114,6 +114,9 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
@@ -243,6 +246,7 @@ public abstract class AbstractBaseIntegrationTest
   public abstract void setUpTestLicenseThreatGroups();
 
   @BeforeClass
+  @BeforeAll
   public static void disableWaitToCloseOldClients() {
     HdsClient.waitToCloseOldClients = false;
   }
@@ -256,6 +260,7 @@ public abstract class AbstractBaseIntegrationTest
   }
 
   @Before
+  @BeforeEach
   public void initTest() throws Exception {
     log.info("@Before (AbstractBaseIntegrationTest.initTest): {}", testName.getMethodName());
     testMocks = MockitoAnnotations.openMocks(this);
@@ -434,6 +439,7 @@ public abstract class AbstractBaseIntegrationTest
   }
 
   @After
+  @AfterEach
   public void cleanupTest() throws Exception {
     log.info("@After (AbstractBaseIntegrationTest.cleanupTest): {}", testName.getMethodName());
 

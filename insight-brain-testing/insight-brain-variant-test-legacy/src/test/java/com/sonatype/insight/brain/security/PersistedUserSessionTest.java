@@ -10,9 +10,11 @@ import java.net.HttpCookie;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.organization.OrganizationResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
+@LegacyServerTest
 public class PersistedUserSessionTest
     extends AbstractResourceTest
 {

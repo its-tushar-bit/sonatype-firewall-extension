@@ -18,11 +18,11 @@ import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static com.sonatype.insight.brain.tenancy.Tenant.SINGLE_TENANT;
@@ -41,7 +41,7 @@ import static org.mockito.Mockito.mock;
  * allowing verification of the multi-tenant fallback behavior without requiring
  * actual database connections.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class SystemConfigurationPropertyDAOMultiTenantTest
     extends MultiTenantTestSupport
 {
@@ -60,7 +60,7 @@ public class SystemConfigurationPropertyDAOMultiTenantTest
 
   MockSystemConfigurationPropertyDAO underTest;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

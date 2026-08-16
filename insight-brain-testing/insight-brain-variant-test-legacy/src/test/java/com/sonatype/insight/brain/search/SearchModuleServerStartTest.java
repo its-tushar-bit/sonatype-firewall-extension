@@ -15,8 +15,10 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.brain.testing.SpringTestInsightBrainService;
-import org.junit.Test;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
+import org.junit.jupiter.api.Test;
 
+@LegacyServerTest
 public class SearchModuleServerStartTest
     extends AbstractBrainServiceIntegrationTest
 {

@@ -53,7 +53,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -65,7 +64,6 @@ public class JiraPolicyAlertNotifierTest
 {
   private static final Duration NOTIFICATION_WAIT_TIMEOUT = Duration.ofMillis(5000);
 
-  @Rule
   public LogOutput logOutput = new LogOutput(JiraPolicyAlertNotifier.class);
 
   @Inject

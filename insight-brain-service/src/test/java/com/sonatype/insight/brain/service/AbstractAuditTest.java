@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.test.LogOutput;
 
 import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
 
 public abstract class AbstractAuditTest
@@ -36,6 +37,7 @@ public abstract class AbstractAuditTest
   }
 
   @Before
+  @BeforeEach
   public void setupCommonFixture() {
     logOutput.before();
     logOutput.clear();

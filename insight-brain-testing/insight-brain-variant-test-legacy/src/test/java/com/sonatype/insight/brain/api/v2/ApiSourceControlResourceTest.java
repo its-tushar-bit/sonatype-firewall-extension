@@ -40,15 +40,16 @@ import org.assertj.core.api.Assertions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -63,6 +64,7 @@ import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID
 import static com.sonatype.insight.brain.utils.ScmUserMappingsHelper.getRandomMappings;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+@LegacyServerTest
 public class ApiSourceControlResourceTest
     extends AbstractResourceTest
 {
@@ -83,10 +85,12 @@ public class ApiSourceControlResourceTest
   @Inject
   private ApiSourceControlAdapter apiSourceControlAdapter;
 
-  @Rule
-  public WireMockRule gitService = new WireMockRule(wireMockConfig().dynamicPort());
+  @RegisterExtension
+  public final WireMockExtension gitService = WireMockExtension.newInstance()
+      .options(wireMockConfig().dynamicPort())
+      .build();
 
-  @Before
+  @BeforeEach
   public void setup() {
     gitService.stubFor(get(urlPathEqualTo("/api/v3/user"))
         .willReturn(aResponse()

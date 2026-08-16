@@ -22,7 +22,6 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.test.LogOutput;
 import jakarta.inject.Inject;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -46,7 +45,6 @@ public class ProxyServerConfigurationMigratorTest
   @Inject
   private InsightConfig insightConfig;
 
-  @Rule
   public LogOutput logOutput = new LogOutput(ProxyServerConfigurationMigrator.class);
 
   @Mock

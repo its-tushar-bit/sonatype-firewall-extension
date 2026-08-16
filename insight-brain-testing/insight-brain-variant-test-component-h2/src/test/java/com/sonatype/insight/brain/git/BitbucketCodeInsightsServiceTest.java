@@ -54,7 +54,6 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
 import org.apache.http.client.HttpResponseException;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -117,7 +116,6 @@ public class BitbucketCodeInsightsServiceTest
 
   private SourceControlComponentDetails componentDetails;
 
-  @Rule
   public LogOutput logOutput = new LogOutput(BitbucketCodeInsightsService.class);
 
   @BeforeEach

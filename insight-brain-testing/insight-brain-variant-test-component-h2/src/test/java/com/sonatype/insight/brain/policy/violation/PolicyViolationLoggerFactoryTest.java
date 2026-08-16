@@ -23,7 +23,6 @@ import com.sonatype.insight.test.LogOutput;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +34,6 @@ public class PolicyViolationLoggerFactoryTest
     extends AbstractComponentH2Test
 {
   // the rule also ensures the violation logger is generally enabled during tests and reset afterwards
-  @Rule
   public LogOutput logOutput = new LogOutput(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME,
       PolicyViolationLoggerFactory.class.getName());
 

@@ -20,8 +20,8 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.prioritization.IntegrationStatusSummary;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -32,7 +32,7 @@ public class IntegrationStatusDAOTest
 
   private static final Date CUTOFF_DATE = new Date(TimeUnit.DAYS.toMillis(84));
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

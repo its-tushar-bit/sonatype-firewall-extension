@@ -28,19 +28,21 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataSt
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.quartz.JobExecutionContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
+@LegacyServerTest
 public class EvaluationQueueIntegrationTest
     extends AbstractBrainServiceIntegrationTest
 {
-  @Before
+  @BeforeEach
   public void disableEvaluationQueueProducer() {
     getCLMServer().getInstance(EvaluationQueueProducer.class).disableForTesting = true;
     // Clear any stale checkpoint that may have been created by automatic execution during server startup.

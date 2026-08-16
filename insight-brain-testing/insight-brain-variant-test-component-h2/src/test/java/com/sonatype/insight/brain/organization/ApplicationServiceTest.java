@@ -51,7 +51,6 @@ import com.sonatype.insight.test.LogOutput;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.Rule;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
@@ -67,7 +66,6 @@ import static org.mockito.Mockito.verify;
 public class ApplicationServiceTest
     extends AbstractComponentH2Test
 {
-  @Rule
   public LogOutput logOutput = new LogOutput(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
 
   @Inject

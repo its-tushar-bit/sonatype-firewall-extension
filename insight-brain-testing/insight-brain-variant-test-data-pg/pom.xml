@@ -108,7 +108,8 @@
   </build>
 
   <dependencies>
-    <!-- JUnit 5 (Jupiter) platform + Vintage engine (the relocated DAO tests are JUnit 4). -->
+    <!-- JUnit 5 (Jupiter) platform. The relocated DAO tests were migrated to Jupiter (CLM-45352), so the
+         junit-vintage-engine is no longer needed; keep it excluded from spring-boot-starter-test. -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
@@ -119,11 +120,6 @@
           <artifactId>junit-vintage-engine</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.vintage</groupId>
-      <artifactId>junit-vintage-engine</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>junit</groupId>

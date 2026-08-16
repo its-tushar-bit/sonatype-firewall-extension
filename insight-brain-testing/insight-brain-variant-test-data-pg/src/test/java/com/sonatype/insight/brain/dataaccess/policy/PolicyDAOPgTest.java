@@ -16,8 +16,8 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -30,7 +30,7 @@ public class PolicyDAOPgTest
 {
   private PolicyDAO policyDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

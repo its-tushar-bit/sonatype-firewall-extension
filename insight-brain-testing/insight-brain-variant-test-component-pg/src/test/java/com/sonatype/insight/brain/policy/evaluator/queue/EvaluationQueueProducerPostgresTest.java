@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -55,7 +54,6 @@ import org.quartz.JobExecutionContext;
 public class EvaluationQueueProducerPostgresTest
     extends AbstractComponentPgTest
 {
-  @Rule
   public LogOutput logOutput = new LogOutput(EvaluationQueueProducer.class);
 
   @Inject

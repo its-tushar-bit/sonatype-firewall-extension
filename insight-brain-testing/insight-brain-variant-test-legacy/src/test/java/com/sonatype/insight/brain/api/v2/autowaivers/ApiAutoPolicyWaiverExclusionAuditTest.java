@@ -29,26 +29,28 @@ import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
 import com.sonatype.insight.license.model.LicensedFeature;
 import java.util.Date;
 import java.util.List;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("deprecation")
+@LegacyServerTest
 public class ApiAutoPolicyWaiverExclusionAuditTest
     extends AbstractAuditTest
 {
   private static final String REPORT_RESOURCE = "/ApiAutoPolicyWaiverExclusionResourceTest/report";
 
-  @Before
+  @BeforeEach
   public void setup() {
     when(mockDeveloperEnablementService.shouldEnableDeveloperProduct()).thenReturn(true);
     testProductLicense.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD, LicensedFeature.AUTO_WAIVER_MANAGEMENT);
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     licenseManager.reset();
   }

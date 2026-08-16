@@ -29,7 +29,8 @@ import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.hds.ComponentInfoResourceTestUtils.convertToHdsUrl;
 import static com.sonatype.insight.brain.hds.ComponentInfoResourceTestUtils.newComponentDetails;
@@ -104,6 +105,7 @@ public abstract class AbstractComponentInfoResourceTest
   }
 
   @Before
+  @BeforeEach
   public void before() throws Exception {
     /*
      * License restrictions on enforcement points are checked when uploading scan data, report data retrieval is

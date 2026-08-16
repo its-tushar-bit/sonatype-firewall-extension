@@ -53,6 +53,7 @@ import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -61,13 +62,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.apache.commons.lang3.ArrayUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
+@LegacyServerTest
 public class PolicyResourceTest
     extends AbstractResourceTest
 {
@@ -86,7 +88,7 @@ public class PolicyResourceTest
     return configs;
   }
 
-  @Before
+  @BeforeEach
   public void setUp() {
     policyDAO = lookup(PolicyDAO.class);
     organizationDAO = lookup(OrganizationDAO.class);

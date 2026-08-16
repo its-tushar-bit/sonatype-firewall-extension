@@ -19,7 +19,6 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +33,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SourceControlEventLoggerFactoryTest
     extends AbstractComponentH2Test
 {
-  @Rule
   public LogOutput logOutput = new LogOutput(SCM_EVENT_LOGGER_NAME);
 
   @Inject

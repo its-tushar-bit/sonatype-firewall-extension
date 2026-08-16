@@ -23,12 +23,12 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.validation.SourceControlSshValidator;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
@@ -38,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * PostgreSQL-backed tests relocated from {@link SourceControlDAOTest} (CLM-45228).
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 @PostgresTest
 public class SourceControlDAOPgTest
     extends AbstractDbDAOTest
@@ -69,7 +69,7 @@ public class SourceControlDAOPgTest
   private SourceControlSshValidator sourceControlSshValidator;
 
   @Override
-  @Before
+  @BeforeEach
   public void setup() {
     policyEvaluationDAO = daoFactory.createPolicyEvaluationDAO();
 
@@ -82,7 +82,7 @@ public class SourceControlDAOPgTest
     org = tempEntity.newOrganization();
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     if (sourceControlDAO != null) {
       sourceControlDAO.getAll().forEach(sourceControlDAO::delete);

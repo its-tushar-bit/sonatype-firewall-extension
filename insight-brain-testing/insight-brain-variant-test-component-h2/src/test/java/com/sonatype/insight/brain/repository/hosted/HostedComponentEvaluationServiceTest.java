@@ -27,7 +27,6 @@ import com.sonatype.insight.brain.variant.ComponentH2Test;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.ClassRule;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -37,7 +36,6 @@ import static org.awaitility.Awaitility.await;
 public class HostedComponentEvaluationServiceTest
     extends AbstractComponentH2Test
 {
-  @ClassRule
   public static HdsMockServerRule hdsMockServer = new HdsMockServerRule();
 
   @Inject

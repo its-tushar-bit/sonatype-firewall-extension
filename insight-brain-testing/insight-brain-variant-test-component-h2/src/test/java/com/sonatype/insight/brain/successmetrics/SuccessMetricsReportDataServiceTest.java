@@ -57,7 +57,6 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
 import org.joda.time.LocalDate;
 import org.jooq.exception.DataAccessException;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -86,7 +85,6 @@ public class SuccessMetricsReportDataServiceTest
 {
   private static final double TOLERANCE = 0.00001;
 
-  @Rule
   public FakeDateRule fakeDateRule = new FakeDateRule();
 
   @Inject

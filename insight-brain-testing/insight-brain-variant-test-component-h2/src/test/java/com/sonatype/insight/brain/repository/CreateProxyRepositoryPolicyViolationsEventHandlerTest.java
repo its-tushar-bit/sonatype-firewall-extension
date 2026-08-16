@@ -42,7 +42,6 @@ import com.sonatype.insight.test.LogOutput;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.NAMESPACE_ATTACKS_BLOCKED;
@@ -56,7 +55,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class CreateProxyRepositoryPolicyViolationsEventHandlerTest
     extends AbstractComponentH2Test
 {
-  @Rule
   public LogOutput logOutput = new LogOutput(CreateProxyRepositoryPolicyViolationsEventHandler.class);
 
   @Inject

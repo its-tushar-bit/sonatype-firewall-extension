@@ -9,13 +9,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 public class MultiTenantDbMigrationCommandTest
     extends AbstractMultiTenantDatabaseTest
 {
-  @After
+  @AfterEach
   public void after() {
     // databases for this are not reusable
     databaseRule.markFixtureAsDirty();

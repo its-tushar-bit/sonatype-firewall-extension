@@ -36,8 +36,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.jooq.Record;
 import org.jooq.UpdatableRecord;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ArtifactoryConnection.ARTIFACTORY_CONNECTION;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.Label.LABEL;
@@ -71,7 +71,7 @@ public class JooqRecordMappingTest
 {
   private OrganizationDAO organizationDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

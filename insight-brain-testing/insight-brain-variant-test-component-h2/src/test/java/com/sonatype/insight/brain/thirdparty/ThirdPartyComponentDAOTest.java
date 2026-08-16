@@ -52,7 +52,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.google.common.collect.ImmutableMap;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
@@ -77,7 +76,6 @@ import static org.mockito.Mockito.verify;
 public class ThirdPartyComponentDAOTest
     extends AbstractComponentH2Test
 {
-  @Rule
   public LogOutput logOutput = new LogOutput(ThirdPartyComponentDAO.class);
 
   private ReportService reportService;

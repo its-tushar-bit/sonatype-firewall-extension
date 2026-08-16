@@ -33,12 +33,14 @@ import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.organization.IconUtils;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@LegacyServerTest
 public class RepositoryResourceAuditTest
     extends AbstractAuditTest
 {
@@ -52,7 +54,7 @@ public class RepositoryResourceAuditTest
 
   private RepositoryManagerDAO repositoryManagerDAO;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     repositoryDAO = lookup(RepositoryDAO.class);
     policyDAO = lookup(PolicyDAO.class);

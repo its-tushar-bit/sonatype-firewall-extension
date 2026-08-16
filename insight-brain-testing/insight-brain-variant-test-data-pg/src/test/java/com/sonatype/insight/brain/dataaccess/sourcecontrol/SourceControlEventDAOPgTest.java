@@ -20,9 +20,9 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -42,7 +42,7 @@ public class SourceControlEventDAOPgTest
   private Date testStartTime;
 
   @Override
-  @Before
+  @BeforeEach
   public void setup() {
     sourceControlEventDAO = daoFactory.createSourceControlEventDAO();
 
@@ -51,7 +51,7 @@ public class SourceControlEventDAOPgTest
     testStartTime = toDate(LocalDateTime.now().minusSeconds(1));
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     sourceControlEventDAO.getAll().stream().forEach(sourceControlEventDAO::delete);
   }

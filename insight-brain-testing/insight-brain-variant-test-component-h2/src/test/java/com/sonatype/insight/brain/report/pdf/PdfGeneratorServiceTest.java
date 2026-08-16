@@ -47,7 +47,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.utils.DateUtils;
-import org.junit.ClassRule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
@@ -63,7 +62,6 @@ import static org.mockito.Mockito.spy;
 public class PdfGeneratorServiceTest
     extends AbstractComponentH2Test
 {
-  @ClassRule
   public static HdsMockServerRule hdsMockServer = new HdsMockServerRule();
 
   @Inject

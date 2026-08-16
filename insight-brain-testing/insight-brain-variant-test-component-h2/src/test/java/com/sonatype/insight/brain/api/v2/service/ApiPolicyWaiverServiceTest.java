@@ -105,7 +105,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -167,7 +166,6 @@ public class ApiPolicyWaiverServiceTest
   @Mock
   private PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator;
 
-  @Rule
   public LogOutput logOutput = new LogOutput(ApiPolicyWaiverService.class);
 
   @BeforeEach

@@ -12,9 +12,11 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
+@LegacyServerTest
 public class ApiAdvancedSearchResourceV2AuditTest
     extends AbstractAuditTest
 {

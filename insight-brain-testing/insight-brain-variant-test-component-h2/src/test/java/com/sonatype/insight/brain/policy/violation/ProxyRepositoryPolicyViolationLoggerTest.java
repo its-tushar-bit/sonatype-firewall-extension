@@ -20,7 +20,6 @@ import com.sonatype.insight.test.LogOutput;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.slf4j.LoggerFactory;
@@ -35,7 +34,6 @@ public class ProxyRepositoryPolicyViolationLoggerTest
   @Mock
   private CurrentUser currentUser;
 
-  @Rule
   public LogOutput logOutput = new LogOutput(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
 
   @Inject

@@ -31,7 +31,8 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public abstract class AbstractApiAdvancedSearchResourceV2Test
     extends AbstractResourceTest
@@ -41,6 +42,7 @@ public abstract class AbstractApiAdvancedSearchResourceV2Test
   private TaskScheduler taskScheduler;
 
   @Before
+  @BeforeEach
   public void before() throws Exception {
     taskScheduler = getCLMServer().getInstance(TaskScheduler.class);
     taskScheduler.disableForTesting = false;

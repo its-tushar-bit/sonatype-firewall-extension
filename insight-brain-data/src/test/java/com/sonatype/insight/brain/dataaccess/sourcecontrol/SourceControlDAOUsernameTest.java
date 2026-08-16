@@ -6,9 +6,8 @@
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Application;
@@ -18,17 +17,15 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.ImmutableList;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlTestUtils.getTestUrlForProvider;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITLAB;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(Parameterized.class)
 public class SourceControlDAOUsernameTest
     extends AbstractDbDAOTest
 {
@@ -37,25 +34,16 @@ public class SourceControlDAOUsernameTest
 
   private SourceControlDAO sourceControlDAO;
 
-  private final SourceControlProvider sourceControlProvider;
-
   private Application app;
 
   private Organization org;
 
-  public SourceControlDAOUsernameTest(final SourceControlProvider sourceControlProvider) {
-    this.sourceControlProvider = sourceControlProvider;
-  }
-
-  @Parameterized.Parameters(name = "provider={0}")
-  public static Collection<Object[]> data() {
+  static Stream<SourceControlProvider> data() {
     // dynamically compute the test provider set
-    return Arrays.stream(SourceControlProvider.values())
-        .map(v -> new Object[]{v})
-        .collect(Collectors.toList());
+    return Arrays.stream(SourceControlProvider.values());
   }
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();
@@ -64,8 +52,9 @@ public class SourceControlDAOUsernameTest
     org = tempEntity.newOrganization();
   }
 
-  @Test
-  public void testUsernameNotAllowed() {
+  @ParameterizedTest(name = "provider={0}")
+  @MethodSource("data")
+  public void testUsernameNotAllowed(final SourceControlProvider sourceControlProvider) {
     createRootOrgWithProvider(sourceControlProvider);
     SourceControl sourceControl = tempEntity
         .newSourceControl(app.getId(), getTestUrlForProvider(sourceControlProvider), null, null);

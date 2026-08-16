@@ -39,11 +39,12 @@ import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverr
 import com.sonatype.insight.brain.repository.RepositoryQueryService;
 import com.sonatype.insight.brain.service.Configuration;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -57,11 +58,14 @@ import static com.sonatype.insight.brain.model.license.License.UNSPECIFIED_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
+@LegacyServerTest
 public class ComponentInfoResourceTest
     extends AbstractComponentInfoResourceTest
 {
-  @Rule
-  public WireMockRule nxrm3MockSever = new WireMockRule(wireMockConfig().dynamicPort());
+  @RegisterExtension
+  public final WireMockExtension nxrm3MockSever = WireMockExtension.newInstance()
+      .options(wireMockConfig().dynamicPort())
+      .build();
 
   private Repository repository;
 
@@ -71,7 +75,7 @@ public class ComponentInfoResourceTest
 
   private Configuration configurationService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     applicationDAO = lookup(ApplicationDAO.class);
     multiLicenseDAO = lookup(MultiLicenseDAO.class);
@@ -138,7 +142,7 @@ public class ComponentInfoResourceTest
     return multiLicensesRequest(componentIdentifier, null, null, path);
   }
 
-  @Before
+  @BeforeEach
   public void createRepository() {
     repository = tempEntity.newRepository();
   }

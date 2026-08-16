@@ -81,7 +81,6 @@ import org.cyclonedx.model.vulnerability.Vulnerability10.ScoreSource;
 import org.cyclonedx.model.vulnerability.Vulnerability10.Severity;
 import org.cyclonedx.parsers.Parser;
 import org.cyclonedx.parsers.XmlParser;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -150,10 +149,8 @@ public class SbomResultHandlerTest
 
   private final String loggerName = SbomResultHandler.class.getName();
 
-  @Rule
   public LogOutput logOutput = new LogOutput(loggerName);
 
-  @Rule
   public LogOutput logOutputUtils = new LogOutput(ThirdPartyUtils.class.getName());
 
   @BeforeEach

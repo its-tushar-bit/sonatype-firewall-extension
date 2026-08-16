@@ -213,7 +213,6 @@ import org.slf4j.LoggerFactory;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -227,7 +226,6 @@ public class ScanPolicyEvaluatorTest
 {
   private static final Logger log = LoggerFactory.getLogger(ScanPolicyEvaluatorTest.class);
 
-  @Rule
   public LogOutput policyViolationLoggerOutput =
       new LogOutput(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
 

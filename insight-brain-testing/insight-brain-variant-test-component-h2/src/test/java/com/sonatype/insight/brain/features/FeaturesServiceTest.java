@@ -26,7 +26,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.junit.ClassRule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -35,7 +34,6 @@ import org.mockito.Mock;
 public class FeaturesServiceTest
     extends AbstractComponentH2Test
 {
-  @ClassRule
   public static HdsMockServerRule hdsMockServer = new HdsMockServerRule();
 
   @Inject

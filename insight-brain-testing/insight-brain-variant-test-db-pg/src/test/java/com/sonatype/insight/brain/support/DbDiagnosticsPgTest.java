@@ -8,9 +8,10 @@ package com.sonatype.insight.brain.support;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,8 +24,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class DbDiagnosticsPgTest
     extends AbstractDatabaseTest
 {
-  @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
+  @TempDir
+  public Path tempDir;
 
   @Test
   public void testGetDBFileInfo_Postgres() throws Exception {

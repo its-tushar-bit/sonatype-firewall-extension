@@ -23,7 +23,6 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,7 +31,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RequestSafeComponentsAutoSelectMetricEventHandlerTest
     extends AbstractComponentH2Test
 {
-  @Rule
   public LogOutput logOutput = new LogOutput(RequestSafeComponentsAutoSelectMetricEventHandler.class);
 
   @Inject

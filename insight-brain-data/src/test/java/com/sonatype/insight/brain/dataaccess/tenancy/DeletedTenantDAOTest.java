@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.tenancy;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -13,10 +14,9 @@ import java.util.UUID;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestName;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,12 +25,16 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class DeletedTenantDAOTest
     extends AbstractDbDAOTest
 {
-  @Rule
-  public TestName name = new TestName();
+  private String methodName;
 
   private DeletedTenantDAO dao;
 
-  @Before
+  @BeforeEach
+  public void captureMethodName(final TestInfo testInfo) {
+    this.methodName = testInfo.getTestMethod().map(Method::getName).orElse("");
+  }
+
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();
@@ -40,7 +44,7 @@ public class DeletedTenantDAOTest
   @Test
   public void testCRUD() {
     // Create
-    DeletedTenant deletedTenant = tempEntity.newDeletedTenant("t_" + name.getMethodName());
+    DeletedTenant deletedTenant = tempEntity.newDeletedTenant("t_" + methodName);
 
     // Update - test lastUpdated since created is immutable after insert
     deletedTenant = dao.getById(deletedTenant.getId());
@@ -62,7 +66,7 @@ public class DeletedTenantDAOTest
 
   @Test
   public void testGetTenantByTenantSlug() {
-    String tenantSlug = "t_" + name.getMethodName();
+    String tenantSlug = "t_" + methodName;
     Date createdDate = new Date();
 
     DeletedTenant deletedTenant = tempEntity.newDeletedTenant(tenantSlug, createdDate);
@@ -76,9 +80,9 @@ public class DeletedTenantDAOTest
   @Test
   public void testGetAllTenantDeletions() {
     List<String> tenantIds = Arrays.asList(
-        "t_1_" + name.getMethodName(),
-        "t_2_" + name.getMethodName(),
-        "t_3_" + name.getMethodName());
+        "t_1_" + methodName,
+        "t_2_" + methodName,
+        "t_3_" + methodName);
     tenantIds.forEach(tempEntity::newDeletedTenant);
 
     List<DeletedTenant> tenants = dao.getAllTenantDeletions();
@@ -90,11 +94,11 @@ public class DeletedTenantDAOTest
   @Test
   public void testGetAllTenantDeletions_filterDeletedTenants() {
     List<String> tenantIds = Arrays.asList(
-        "t_1_" + name.getMethodName(),
-        "t_2_" + name.getMethodName(),
-        "t_3_" + name.getMethodName());
+        "t_1_" + methodName,
+        "t_2_" + methodName,
+        "t_3_" + methodName);
     tenantIds.forEach(tempEntity::newDeletedTenant);
-    tempEntity.newDeletedTenantWithDeleteCompleted("t_4_" + name.getMethodName());
+    tempEntity.newDeletedTenantWithDeleteCompleted("t_4_" + methodName);
 
     List<DeletedTenant> tenants = dao.getAllTenantDeletions();
 
@@ -104,11 +108,11 @@ public class DeletedTenantDAOTest
 
   @Test
   public void testGetTenantsOlderThanRetentionTime() {
-    tempEntity.newDeletedTenant("t_" + name.getMethodName());
+    tempEntity.newDeletedTenant("t_" + methodName);
     List<DeletedTenant> tenants = dao.getAllTenantDeletionsOlderThanRetentionPeriod(1L);
     assertThat(tenants).isEmpty();
 
-    String olderTenantName = "t_" + name.getMethodName() + "_older";
+    String olderTenantName = "t_" + methodName + "_older";
     Date fiveHoursAgo = new Date(System.currentTimeMillis() - (5 * 60 * 60 * 1000));
     tempEntity.newDeletedTenant(olderTenantName, fiveHoursAgo);
     tenants = dao.getAllTenantDeletionsOlderThanRetentionPeriod(1L);
@@ -119,14 +123,14 @@ public class DeletedTenantDAOTest
 
   @Test
   public void testGetTenantsOlderThanRetentionTime_filterDeletedTenants() {
-    tempEntity.newDeletedTenant("t_" + name.getMethodName());
+    tempEntity.newDeletedTenant("t_" + methodName);
     List<DeletedTenant> tenants = dao.getAllTenantDeletionsOlderThanRetentionPeriod(1L);
     assertThat(tenants).isEmpty();
 
-    String olderTenantName = "t_1_" + name.getMethodName();
+    String olderTenantName = "t_1_" + methodName;
     Date fiveHoursAgo = new Date(System.currentTimeMillis() - (5 * 60 * 60 * 1000));
     tempEntity.newDeletedTenant(olderTenantName, fiveHoursAgo);
-    tempEntity.newDeletedTenantWithDeleteCompleted("t_2_" + name.getMethodName(), fiveHoursAgo);
+    tempEntity.newDeletedTenantWithDeleteCompleted("t_2_" + methodName, fiveHoursAgo);
     tenants = dao.getAllTenantDeletionsOlderThanRetentionPeriod(1L);
 
     assertThat(tenants).hasSize(1);
@@ -135,7 +139,7 @@ public class DeletedTenantDAOTest
 
   @Test
   public void testIsScheduledForDeletion() {
-    String tenantSlug = "t_" + name.getMethodName();
+    String tenantSlug = "t_" + methodName;
 
     tempEntity.newDeletedTenant(tenantSlug);
 
@@ -145,7 +149,7 @@ public class DeletedTenantDAOTest
 
   @Test
   public void testIsScheduledForDeletion_filterDeletedTenants() {
-    String tenantSlug = "t_" + name.getMethodName();
+    String tenantSlug = "t_" + methodName;
 
     tempEntity.newDeletedTenantWithDeleteCompleted(tenantSlug);
 

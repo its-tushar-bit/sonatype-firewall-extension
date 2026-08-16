@@ -14,14 +14,16 @@ import com.sonatype.insight.brain.hds.ReferencePolicyFetcher;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.policy.AbstractPolicyImportAuditTest;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
+@LegacyServerTest
 public class NewInstancePopulatorAuditTest
     extends AbstractPolicyImportAuditTest
 {
-  @Before
+  @BeforeEach
   @Override
   public void setUp() {
     // Using DAOFactory instead of lookup as we have several tests using @ManualIqServerInit annotation

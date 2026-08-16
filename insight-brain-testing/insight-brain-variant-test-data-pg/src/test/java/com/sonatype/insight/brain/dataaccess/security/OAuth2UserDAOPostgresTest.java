@@ -13,8 +13,8 @@ import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.security.OAuth2User;
 
 import org.apache.commons.dbcp2.BasicDataSource;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -33,7 +33,7 @@ public class OAuth2UserDAOPostgresTest
 {
   private OAuth2UserDAO oAuth2UserDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

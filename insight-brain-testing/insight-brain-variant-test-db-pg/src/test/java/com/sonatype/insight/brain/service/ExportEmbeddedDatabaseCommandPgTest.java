@@ -30,10 +30,9 @@ import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.db.DatabaseConfig;
 
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -44,8 +43,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ExportEmbeddedDatabaseCommandPgTest
     extends AbstractDatabaseTest
 {
-  @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
+  @TempDir
+  public File tempDir;
 
   private InsightConfig newServiceConfig() {
     Path databaseFile = Paths.get(getDatabasePath().getAbsolutePath(), "ods.h2.db");
@@ -67,7 +66,7 @@ public class ExportEmbeddedDatabaseCommandPgTest
     }
   }
 
-  @Ignore("CLM-39891: Fix embedded-postgres schema validation after testcontainers removal")
+  @Disabled("CLM-39891: Fix embedded-postgres schema validation after testcontainers removal")
   @Test
   @H2DiskTest
   public void testRun_DumpImportableIntoPostgres() throws Exception {
@@ -78,7 +77,7 @@ public class ExportEmbeddedDatabaseCommandPgTest
     try (PostgresDatabaseFixture postgresDatabaseFixture = new PostgresDatabaseFixture(
         "testRun_DumpImportableIntoPostgres", postgresTest))
     {
-      File dumpFile = new File(tempDir.getRoot(), "dump.sql");
+      File dumpFile = new File(tempDir, "dump.sql");
       initData();
 
       InsightConfig config = newServiceConfig();

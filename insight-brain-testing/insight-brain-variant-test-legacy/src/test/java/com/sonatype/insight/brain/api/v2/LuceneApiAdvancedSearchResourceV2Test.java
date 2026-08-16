@@ -8,14 +8,16 @@ package com.sonatype.insight.brain.api.v2;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
+@LegacyServerTest
 public class LuceneApiAdvancedSearchResourceV2Test
     extends AbstractApiAdvancedSearchResourceV2Test
 {
-  @Before
-  @After
+  @BeforeEach
+  @AfterEach
   public void cleanSearchIndexDir() throws Exception {
     InsightWork insightWork = getCLMServer().getInstance(InsightWork.class);
     FileUtils.deleteDirectory(insightWork.getSearchIndexDir());

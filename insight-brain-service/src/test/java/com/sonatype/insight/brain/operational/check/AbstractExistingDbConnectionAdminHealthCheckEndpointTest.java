@@ -16,12 +16,12 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.operational.check.AdminHealthCheckEndpoint.HealthCheckResponse;
 
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.MethodOrderer;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -29,8 +29,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@RunWith(MockitoJUnitRunner.class)
+@TestMethodOrder(MethodOrderer.MethodName.class)
+@ExtendWith(MockitoExtension.class)
 abstract class AbstractExistingDbConnectionAdminHealthCheckEndpointTest
     extends AbstractDatabaseTest
 {
@@ -48,7 +48,7 @@ abstract class AbstractExistingDbConnectionAdminHealthCheckEndpointTest
 
   private DataStore[] allDataStores;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     operationalDataStore = spy(databaseRule.getOperationalDataStore());
     dataMartDataStore = spy(databaseRule.getDataMartDataStore());

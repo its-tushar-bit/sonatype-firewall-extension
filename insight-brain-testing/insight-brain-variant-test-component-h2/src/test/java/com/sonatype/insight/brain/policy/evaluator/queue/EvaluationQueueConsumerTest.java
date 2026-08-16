@@ -64,7 +64,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.exception.UncheckedInterruptedException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -73,7 +72,6 @@ import org.mockito.Mock;
 public class EvaluationQueueConsumerTest
     extends AbstractComponentH2Test
 {
-  @Rule
   public LogOutput logOutput = new LogOutput(EvaluationQueueConsumer.class);
 
   @Inject

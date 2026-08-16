@@ -13,8 +13,8 @@ import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
 import org.quartz.Trigger;
@@ -38,7 +38,7 @@ public class QuartzPostgreSQLDelegateTest
 
   private OperationalDataStore operationalDataStore;
 
-  @Before
+  @BeforeEach
   public void before() {
     this.operationalDataStore = databaseRule.getOperationalDataStore();
   }

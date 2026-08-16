@@ -10,12 +10,14 @@ import java.util.HashMap;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.mockito.Mockito.when;
 
+@LegacyServerTest
 public class JiraResourceAuthzTest
     extends AbstractResourceAuthzTest
 {
@@ -24,7 +26,7 @@ public class JiraResourceAuthzTest
     return super.restRequest().path(JiraResource.RESOURCE_PATH);
   }
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     createJiraConfiguration();
     JiraIssueCreateMeta jiraIssueCreateMeta = new JiraIssueCreateMeta();

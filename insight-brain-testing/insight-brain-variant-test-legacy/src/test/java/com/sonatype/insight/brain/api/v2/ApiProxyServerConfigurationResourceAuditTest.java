@@ -16,18 +16,20 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@LegacyServerTest
 public class ApiProxyServerConfigurationResourceAuditTest
     extends AbstractAuditTest
 {
   private ProxyServerConfigurationDAO proxyServerConfigurationDAO;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     proxyServerConfigurationDAO = lookup(ProxyServerConfigurationDAO.class);
   }

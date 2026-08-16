@@ -15,10 +15,12 @@ import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthentication
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.test.networking.SslProperties;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
 import java.net.HttpCookie;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
+@LegacyServerTest
 public class AntiCsrfFilterTest
     extends AbstractBrainServiceIntegrationTest
 {
@@ -27,7 +29,7 @@ public class AntiCsrfFilterTest
 
   private ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     reverseProxyAuthenticationConfigurationDAO = lookup(ReverseProxyAuthenticationConfigurationDAO.class);
     if (reverseProxyAuthenticationConfigurationDAO != null) {

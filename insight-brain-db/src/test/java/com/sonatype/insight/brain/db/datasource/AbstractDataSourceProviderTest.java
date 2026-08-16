@@ -5,10 +5,8 @@
  */
 package com.sonatype.insight.brain.db.datasource;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.Properties;
+import java.util.stream.Stream;
 
 import javax.sql.DataSource;
 
@@ -16,37 +14,25 @@ import com.sonatype.insight.db.DatabaseConfig;
 
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.commons.lang3.reflect.FieldUtils;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.sonatype.insight.brain.db.datasource.AbstractDataSourceProvider.DEFAULT_MAX_CONNECTIONS;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-@RunWith(Parameterized.class)
 public abstract class AbstractDataSourceProviderTest
 {
-  @Parameters(name = "{index} - {0}")
-  public static Collection<Object[]> testParameters() {
-    final List<Object[]> testIterations = new ArrayList<>();
-    testIterations.add(new Object[]{"default DatabaseConfig", newTestDatabaseConfig()});
-    testIterations.add(new Object[]{
-      "customized DatabaseConfig",
-      newTestDatabaseConfig(10, 11, "sessionVariables", "options", "applicationName")
-    });
-    return testIterations;
+  static Stream<Arguments> testParameters() {
+    return Stream.of(
+        Arguments.of("default DatabaseConfig", newTestDatabaseConfig()),
+        Arguments.of("customized DatabaseConfig",
+            newTestDatabaseConfig(10, 11, "sessionVariables", "options", "applicationName")));
   }
 
-  @Parameter(0)
-  public String testDescription;
-
-  @Parameter(1)
-  public DatabaseConfig testDatabaseConfig;
-
-  @Test
-  public void testGetDataSource() {
+  @ParameterizedTest(name = "{index} - {0}")
+  @MethodSource("testParameters")
+  public void testGetDataSource(final String testDescription, final DatabaseConfig testDatabaseConfig) {
     DataSourceProvider dataSourceProvider = createTestDataSourceProvider();
     DataSource odsDataSource = dataSourceProvider.getDataSource(testDatabaseConfig, "insight_brain_ods");
     DataSource dmDataSource = dataSourceProvider.getDataSource(testDatabaseConfig, "insight_brain_dm");

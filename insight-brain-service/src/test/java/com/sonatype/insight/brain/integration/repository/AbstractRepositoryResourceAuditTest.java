@@ -39,7 +39,8 @@ import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -55,6 +56,7 @@ public abstract class AbstractRepositoryResourceAuditTest
   private RepositoryDAO repositoryDAO;
 
   @Before
+  @BeforeEach
   public void setUp() {
     proxyRepositoryComponentDAO = lookup(ProxyRepositoryComponentDAO.class);
     repositoryDAO = lookup(RepositoryDAO.class);

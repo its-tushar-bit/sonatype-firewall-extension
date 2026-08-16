@@ -7,9 +7,11 @@ package com.sonatype.insight.brain.organization;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
+@LegacyServerTest
 public class OrganizationResourceAuthzTest
     extends AbstractResourceAuthzTest
 {

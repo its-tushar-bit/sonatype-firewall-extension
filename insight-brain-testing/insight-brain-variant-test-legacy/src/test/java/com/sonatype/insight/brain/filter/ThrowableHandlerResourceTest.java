@@ -17,13 +17,15 @@ import com.sonatype.insight.brain.organization.OrganizationResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
+@LegacyServerTest
 public class ThrowableHandlerResourceTest
     extends AbstractResourceTest
 {

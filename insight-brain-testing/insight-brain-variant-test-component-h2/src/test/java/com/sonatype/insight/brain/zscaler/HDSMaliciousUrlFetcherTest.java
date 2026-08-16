@@ -24,7 +24,6 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
@@ -32,7 +31,6 @@ import org.mockito.Mock;
 public class HDSMaliciousUrlFetcherTest
     extends AbstractComponentH2Test
 {
-  @Rule
   public LogOutput logOutput = new LogOutput(HDSMaliciousUrlFetcher.class);
 
   @Mock

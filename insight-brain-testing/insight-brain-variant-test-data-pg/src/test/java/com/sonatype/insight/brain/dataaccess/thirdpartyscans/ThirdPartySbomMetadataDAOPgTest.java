@@ -35,8 +35,8 @@ import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.dataaccess.TemporaryEntity.uuid;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
@@ -58,7 +58,7 @@ public class ThirdPartySbomMetadataDAOPgTest
 
   private SearchIndexChangeDAO searchIndexChangeDAO;
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

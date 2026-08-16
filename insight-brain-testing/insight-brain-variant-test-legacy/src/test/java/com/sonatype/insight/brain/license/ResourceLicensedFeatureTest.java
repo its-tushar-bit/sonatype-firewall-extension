@@ -86,11 +86,13 @@ import com.sonatype.insight.brain.successmetrics.SuccessMetricsResource;
 import com.sonatype.insight.brain.tag.PolicyTagResource;
 import com.sonatype.insight.brain.vulnerability.SecurityVulnerabilityOverrideResource;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@LegacyServerTest
 public class ResourceLicensedFeatureTest
     extends AbstractResourceTest
 {

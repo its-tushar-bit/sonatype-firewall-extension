@@ -26,7 +26,6 @@ import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.test.LogOutput;
 
 import org.apache.shiro.authz.UnauthorizedException;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -49,7 +48,6 @@ public class CpeMatchingConfigurationServiceTest
   @Inject
   private TestProductLicense productLicense;
 
-  @Rule
   public LogOutput logOutput = new LogOutput(CpeMatchingConfigurationService.class);
 
   @BeforeEach

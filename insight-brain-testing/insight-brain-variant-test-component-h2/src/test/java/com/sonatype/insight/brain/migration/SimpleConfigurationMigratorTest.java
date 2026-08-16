@@ -34,7 +34,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
@@ -50,7 +49,6 @@ public class SimpleConfigurationMigratorTest
   private static final String EXPECTED_OBSOLETE_SUFFIX = " is now configured using the REST API. "
       + "The configuration in the config.yml or via system properties is obsolete.";
 
-  @Rule
   public LogOutput logOutput = new LogOutput(SimpleConfigurationMigrator.class);
 
   @Inject

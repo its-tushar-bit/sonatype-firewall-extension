@@ -136,7 +136,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.awaitility.Awaitility;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -211,7 +210,6 @@ public class RepositoryPolicyEvaluatorTest
   @Mock
   private CurrentUser currentUser;
 
-  @Rule
   public LogOutput policyViolationLoggerOutput = new LogOutput(
       AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
 

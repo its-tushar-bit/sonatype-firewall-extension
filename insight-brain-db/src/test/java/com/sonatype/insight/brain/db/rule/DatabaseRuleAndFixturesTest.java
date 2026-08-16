@@ -21,16 +21,27 @@ import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import org.assertj.core.api.Assertions;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class DatabaseRuleAndFixturesTest
 {
-  @Rule(order = 1)
   public DatabaseRule databaseRule = new DatabaseRule();
+
+  @BeforeEach
+  public void jupiterInitDatabaseRule(final TestInfo testInfo) {
+    databaseRule.beforeFromJupiter(testInfo.getTestClass().orElse(null), testInfo.getTestMethod().orElse(null));
+  }
+
+  @AfterEach
+  public void jupiterCleanupDatabaseRule() {
+    databaseRule.afterFromJupiter();
+  }
 
   @Test
   public void testRegularDatabaseFixture() throws SQLException {

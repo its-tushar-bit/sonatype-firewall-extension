@@ -35,7 +35,6 @@ import com.atlassian.crowd.search.query.entity.restriction.Property;
 import com.atlassian.crowd.search.query.entity.restriction.TermRestriction;
 import com.atlassian.crowd.search.query.entity.restriction.constants.UserTermKeys;
 import org.apache.shiro.authc.UsernamePasswordToken;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -46,7 +45,6 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class CrowdClientTest
     extends AbstractComponentH2Test
 {
-  @Rule
   public CrowdMockServerRule crowdMockServer = new CrowdMockServerRule();
 
   @Inject

@@ -19,14 +19,15 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -38,6 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * hard-coded assumptions about the policy file contents. Mainly, that the number of entities in the JSON matches the
  * number of entities in the database tables after the import.
  */
+@LegacyServerTest
 public class ReferencePolicyImportIntegrationTest
     extends AbstractBrainServiceIntegrationTest
 {
@@ -53,7 +55,7 @@ public class ReferencePolicyImportIntegrationTest
 
   private PolicyTagDAO policyTagDAO;
 
-  @Before
+  @BeforeEach
   public void cleanup() {
     // Using DAOFactory instead of lookup as we have tests using @ManualIqServerInit annotation
     policyDAO = daoFactory.createPolicyDAO();

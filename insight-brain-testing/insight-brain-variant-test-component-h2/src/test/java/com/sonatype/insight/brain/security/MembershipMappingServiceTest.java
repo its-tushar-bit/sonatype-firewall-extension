@@ -58,7 +58,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.jupiter.api.AfterEach;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
@@ -117,7 +116,6 @@ public class MembershipMappingServiceTest
   @Inject
   private OrganizationDAO organizationDAO;
 
-  @Rule
   public TestLdapServer testLdapServer = new TestLdapServer();
 
   private TestEventHandler<RoleEvent> handler;

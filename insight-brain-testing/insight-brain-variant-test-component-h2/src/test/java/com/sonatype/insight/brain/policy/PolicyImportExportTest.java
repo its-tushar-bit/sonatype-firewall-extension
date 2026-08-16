@@ -62,10 +62,8 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.collect.Lists;
 import org.joda.time.DateTime;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -77,9 +75,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class PolicyImportExportTest
     extends AbstractComponentH2Test
 {
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
-
   @Inject
   private PolicyDAO policyDAO;
 

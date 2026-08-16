@@ -38,7 +38,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
 
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
@@ -51,7 +50,6 @@ import static org.mockito.Mockito.when;
 public class LegacyViolationServiceTest
     extends AbstractComponentH2Test
 {
-  @Rule
   public LogOutput policyViolationLoggerOutput =
       new LogOutput(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
 

@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -47,6 +48,7 @@ public abstract class AbstractPolicyImportAuditTest
   protected RoleDAO roleDAO;
 
   @Before
+  @BeforeEach
   public void setUp() {
     roleDAO = lookup(RoleDAO.class);
     policyDAO = lookup(PolicyDAO.class);

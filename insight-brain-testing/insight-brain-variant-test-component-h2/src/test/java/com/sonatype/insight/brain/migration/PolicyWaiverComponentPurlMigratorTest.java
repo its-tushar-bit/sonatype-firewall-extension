@@ -32,7 +32,6 @@ import jakarta.inject.Inject;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -40,7 +39,6 @@ import org.junit.jupiter.api.Test;
 public class PolicyWaiverComponentPurlMigratorTest
     extends AbstractComponentH2Test
 {
-  @Rule
   public LogOutput logOutput = new LogOutput(PolicyWaiverComponentPurlMigrator.class);
 
   @Inject

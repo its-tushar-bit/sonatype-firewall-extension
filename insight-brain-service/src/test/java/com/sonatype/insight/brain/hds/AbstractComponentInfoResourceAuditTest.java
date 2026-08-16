@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 
 import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 import static com.sonatype.insight.brain.hds.ComponentInfoResourceTestUtils.convertToHdsUrl;
 import static com.sonatype.insight.brain.hds.ComponentInfoResourceTestUtils.newComponentDetails;
@@ -39,6 +40,7 @@ public abstract class AbstractComponentInfoResourceAuditTest
   protected MultiLicenseDAO multiLicenseDAO;
 
   @Before
+  @BeforeEach
   public void before() {
     multiLicenseDAO = lookup(MultiLicenseDAO.class);
     application = tempEntity.newApplicationWithParent();

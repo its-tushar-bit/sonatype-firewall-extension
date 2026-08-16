@@ -17,8 +17,8 @@ import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.datastore.DataStore;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -39,7 +39,7 @@ public class CollapseOwnerWideningCompatViewsMigratorTest
 
   private final CollapseOwnerWideningCompatViewsMigrator migrator = new CollapseOwnerWideningCompatViewsMigrator();
 
-  @Before
+  @BeforeEach
   public void setup() {
     dataStore = databaseRule.getOperationalDataStore();
     schema = dataStore.getDatabaseSchema();

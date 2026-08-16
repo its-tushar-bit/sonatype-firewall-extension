@@ -18,7 +18,8 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -33,6 +34,15 @@ public abstract class AbstractClusterLockManagerTest
   @Before
   public void before() {
     clusterLockManager = createClusterLockManager();
+  }
+
+  // JUnit 5 (Jupiter): the @Rule DatabaseRule does not fire, so provision the (reused) database fixture from a
+  // @BeforeEach and then run the JUnit 4 before() body. Inert under the Vintage engine, which drives the @Rule
+  // and @Before instead.
+  @BeforeEach
+  public void jupiterProvisionDatabaseAndSetup() {
+    databaseRule.ensureInitializedForSpringContext();
+    before();
   }
 
   protected abstract ClusterLockManager createClusterLockManager();

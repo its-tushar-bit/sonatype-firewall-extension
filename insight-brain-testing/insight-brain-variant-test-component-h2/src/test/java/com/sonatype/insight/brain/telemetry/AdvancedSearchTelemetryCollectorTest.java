@@ -21,6 +21,7 @@ import jakarta.inject.Inject;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
@@ -43,9 +44,24 @@ public class AdvancedSearchTelemetryCollectorTest
   @Mock
   private TelemetrySender telemetrySenderMock;
 
+  /**
+   * The H2 component context is shared across all classes in the module and is NOT rebuilt per test
+   * (see {@code @ComponentH2Test}). The search-metrics singleton is not transactional, so searches
+   * recorded by sibling test classes can leak in. Drain it before each test so search telemetry is
+   * driven only by this test.
+   */
+  @BeforeEach
+  public void resetSearchMetrics() {
+    metrics.computeStatsAndReset();
+  }
+
   @Test
   public void testCollectAllData_NoData() {
-    assertThat(collector.collectAllData()).isEmpty();
+    // The shared Lucene index may already be populated by a sibling test class, which would add an
+    // ADVANCED_SEARCH_INDEXING entry. This test only asserts that no search telemetry is produced
+    // when no searches were recorded.
+    assertThat(collector.collectAllData())
+        .noneMatch(telemetryData -> telemetryData.getPurpose() == TelemetryPurpose.ADVANCED_SEARCH);
   }
 
   @Test
@@ -53,10 +69,14 @@ public class AdvancedSearchTelemetryCollectorTest
     metrics.addSearch(new HashSet<>(Collections.singletonList("foo")));
     metrics.addSearch(new HashSet<>(Collections.singletonList("foo")));
 
-    List<TelemetryData> allTelemetryData = collector.collectAllData();
-    assertThat(allTelemetryData).hasSize(1);
+    // Filter to search telemetry: the shared index may add an unrelated ADVANCED_SEARCH_INDEXING entry.
+    List<TelemetryData> searchTelemetry = collector.collectAllData()
+        .stream()
+        .filter(telemetryData -> telemetryData.getPurpose() == TelemetryPurpose.ADVANCED_SEARCH)
+        .toList();
+    assertThat(searchTelemetry).hasSize(1);
 
-    TelemetryData telemetryData = allTelemetryData.get(0);
+    TelemetryData telemetryData = searchTelemetry.get(0);
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.ADVANCED_SEARCH);
     @SuppressWarnings("unchecked")
     List<SearchCount> actualSearchCounts =

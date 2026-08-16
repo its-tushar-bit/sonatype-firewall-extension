@@ -13,15 +13,17 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.Configuration;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -32,7 +34,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class RepositoryEvaluationQueueSchedulerTest
 {
   private static final int POLICY_MONITORING_HOUR = 2;
@@ -52,17 +55,17 @@ public class RepositoryEvaluationQueueSchedulerTest
 
   private RepositoryEvaluationQueueScheduler underTest;
 
-  @BeforeClass
+  @BeforeAll
   public static void installFeatureFlagShim() {
     HostedRepositoryEvaluationFeatureFlagTestRule.install();
   }
 
-  @AfterClass
+  @AfterAll
   public static void uninstallFeatureFlagShim() {
     HostedRepositoryEvaluationFeatureFlagTestRule.uninstall();
   }
 
-  @Before
+  @BeforeEach
   public void setup() {
     SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.setEnabled(false);
     when(configuration.getPolicyMonitoringHour()).thenReturn(POLICY_MONITORING_HOUR);
@@ -70,7 +73,7 @@ public class RepositoryEvaluationQueueSchedulerTest
     underTest = new RepositoryEvaluationQueueScheduler(configuration, taskScheduler, producer);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.setEnabled(false);
   }

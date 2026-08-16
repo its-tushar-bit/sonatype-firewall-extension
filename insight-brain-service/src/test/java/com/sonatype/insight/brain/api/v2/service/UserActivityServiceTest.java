@@ -26,18 +26,19 @@ import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.brain.security.SecurityAspectControl;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.SimplePrincipalCollection;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -49,11 +50,12 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class UserActivityServiceTest
 {
-  @Rule
-  public TemporaryFolder tempFolder = new TemporaryFolder();
+  @TempDir
+  public File tempFolder;
 
   @Mock
   private AuditLogFilesProvider mockAuditLogFilesProvider;
@@ -67,7 +69,7 @@ public class UserActivityServiceTest
   @Mock
   private ShutdownHandler mockShutdownHandler;
 
-  @Before
+  @BeforeEach
   public void bindSecurityManager() {
     SecurityManager securityManager = mock(SecurityManager.class);
     ThreadContext.bind(securityManager);
@@ -80,7 +82,7 @@ public class UserActivityServiceTest
     ThreadContext.bind(subject);
   }
 
-  @After
+  @AfterEach
   public void unbindSecurityManager() {
     SecurityAspectControl.enableEnforcement();
     ThreadContext.unbindSubject();
@@ -132,7 +134,7 @@ public class UserActivityServiceTest
 
   private UserActivityService userActivityService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     when(mockClusterLockManager.createForAuditJsonFileStore(any())).thenReturn(mockClusterLock);
     userActivityService = new UserActivityService(mockAuditLogFilesProvider, mockClusterLockManager,
@@ -399,7 +401,7 @@ public class UserActivityServiceTest
   @Test
   public void testGetUserActivitySummary_handlesNonExistentFiles_gracefully() throws IOException {
     // Given - Non-existent file
-    File nonExistentFile = new File(tempFolder.getRoot(), "non-existent.log");
+    File nonExistentFile = new File(tempFolder, "non-existent.log");
 
     when(mockAuditLogFilesProvider.getAuditLogFiles(any(LocalDate.class), any(LocalDate.class)))
         .thenReturn(List.of(nonExistentFile));
@@ -1017,7 +1019,7 @@ public class UserActivityServiceTest
   // Helper methods for testing
 
   private File givenAuditFile(String name, String... jsonLines) throws IOException {
-    File f = tempFolder.newFile(name);
+    File f = java.nio.file.Files.createFile(tempFolder.toPath().resolve(name)).toFile();
     Files.writeString(f.toPath(), String.join("\n", jsonLines));
     return f;
   }
@@ -1040,7 +1042,7 @@ public class UserActivityServiceTest
   }
 
   private File createAuditLogFile(String filename, String... lines) throws IOException {
-    Path auditFile = tempFolder.newFile(filename).toPath();
+    Path auditFile = java.nio.file.Files.createFile(tempFolder.toPath().resolve(filename));
     Files.write(auditFile, List.of(lines));
     return auditFile.toFile();
   }

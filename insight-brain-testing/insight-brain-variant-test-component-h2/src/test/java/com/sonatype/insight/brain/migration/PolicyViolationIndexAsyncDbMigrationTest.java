@@ -9,26 +9,28 @@ import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.model.MigrationTracker;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
-public class SloViolationIndexAsyncDbMigrationTest
-    extends AbstractComponentTest
+@ComponentH2Test
+public class PolicyViolationIndexAsyncDbMigrationTest
+    extends AbstractComponentH2Test
 {
   @Inject
   protected MigrationTrackerDAO migrationTrackerDAO;
 
   @Inject
-  protected SloViolationIndexAsyncDbMigration underTest;
+  protected PolicyViolationIndexAsyncDbMigration underTest;
 
-  @Before
+  @BeforeEach
   public void setup() {
     migrationTrackerDAO.deleteById(underTest.getMigrationName());
   }
@@ -45,7 +47,7 @@ public class SloViolationIndexAsyncDbMigrationTest
   public void testRunMigration_skipsWhenTrackerExists() {
     migrationTrackerDAO.insertTracker(underTest.getMigrationName());
 
-    SloViolationIndexAsyncDbMigration spied = spy(underTest);
+    PolicyViolationIndexAsyncDbMigration spied = spy(underTest);
     spied.runMigration();
 
     verify(spied, never()).onStart();

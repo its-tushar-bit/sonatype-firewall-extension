@@ -14,12 +14,12 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.test.LogOutput;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DASHBOARD_METRICS_SQL_MODE;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DASHBOARD_METRICS_SQL_READINESS_GRACE_MINUTES;
@@ -29,10 +29,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class DashboardMetricsSqlModeProviderTest
 {
-  @Rule
+  @RegisterExtension
   public LogOutput logOutput = new LogOutput(DashboardMetricsSqlModeProvider.class);
 
   @Mock
@@ -40,7 +40,7 @@ public class DashboardMetricsSqlModeProviderTest
 
   private DashboardMetricsSqlModeProvider underTest;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     underTest = new DashboardMetricsSqlModeProvider(propertyDAO);
   }

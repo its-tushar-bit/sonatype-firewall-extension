@@ -16,12 +16,14 @@ import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.ForbiddenException;
 import jakarta.ws.rs.NotFoundException;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -40,7 +42,8 @@ import static org.mockito.Mockito.when;
  * upstream, so there is no null-principal path to test here — an authenticated caller with no
  * readable context is the 403 case.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class GlobalSearchResourceTest
 {
   @Mock
@@ -51,14 +54,14 @@ public class GlobalSearchResourceTest
 
   private GlobalSearchResource underTest;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     SystemConfigurationPropertyFeatureTestSupport.install();
     underTest = new GlobalSearchResource(
         resultsService, org.mockito.Mockito.mock(SuggestService.class), searchIndexClient);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     SystemConfigurationPropertyFeatureTestSupport.uninstall();
   }

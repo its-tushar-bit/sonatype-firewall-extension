@@ -17,20 +17,20 @@ import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.security.SecurityAspectControl;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ApiHostedRepositoryComponentReportDataResourceV2Test
 {
   private static final String HRC_ID = "hrc-uuid-123";
@@ -48,7 +48,7 @@ public class ApiHostedRepositoryComponentReportDataResourceV2Test
 
   private HostedRepositoryComponent hrc;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     // SystemConfigurationPropertyFeature uses static injection; wire a Mockito-friendly DAO stub
     // so setEnabled(...) below can create a transaction context. Mirrors the pattern used in
@@ -65,7 +65,7 @@ public class ApiHostedRepositoryComponentReportDataResourceV2Test
     when(hostedRepositoryComponentDAO.getByIdNotNull(HRC_ID)).thenReturn(hrc);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     SecurityAspectControl.enableEnforcement();
     SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.setEnabled(false);

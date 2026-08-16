@@ -11,13 +11,13 @@ import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.test.LogOutput;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class RemediationPullRequestFeatureCheckTest
 {
   private static final String PUBLIC_ID = "abc123";
@@ -70,10 +70,10 @@ public class RemediationPullRequestFeatureCheckTest
   @Mock
   private PullRequestRepositoryValidator pullRequestRepositoryValidator;
 
-  @Rule
+  @RegisterExtension
   public LogOutput logOutput = new LogOutput(PullRequestFeatureCheck.class);
 
-  @Before
+  @BeforeEach
   public void setup() {
     remediationPullRequestFeatureCheck =
         new RemediationPullRequestFeatureCheck(licenseChecker, pullRequestRepositoryValidator);

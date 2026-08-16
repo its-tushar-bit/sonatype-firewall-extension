@@ -27,12 +27,14 @@ import com.google.common.collect.Multimap;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.ForbiddenException;
 import jakarta.ws.rs.NotFoundException;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -53,7 +55,8 @@ import static org.mockito.Mockito.when;
  * covers the source states: flag off, local rows, catalog hits, catalog empty, catalog 5xx, BEST MATCH
  * dedup, and the fixed-order group envelope.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class SuggestEndpointTest
 {
   @Mock
@@ -72,7 +75,7 @@ public class SuggestEndpointTest
 
   private GlobalSearchResource resource;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     SystemConfigurationPropertyFeatureTestSupport.install();
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
@@ -92,7 +95,7 @@ public class SuggestEndpointTest
         mock(ResultsService.class), service, searchIndexClient);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     SystemConfigurationPropertyFeatureTestSupport.uninstall();
   }

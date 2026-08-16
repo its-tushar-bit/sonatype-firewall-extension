@@ -30,13 +30,12 @@ import com.sonatype.insight.error.exception.ConflictException;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.search.MatchAllDocsQuery;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -56,7 +55,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class HybridSearchIndexClientTest
 {
   @Mock
@@ -65,12 +64,12 @@ public class HybridSearchIndexClientTest
   @Mock
   private SearchIndexClient secondaryClient;
 
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+  @TempDir
+  public File temporaryFolder;
 
   private HybridSearchIndexClient hybridClient;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     hybridClient = new HybridSearchIndexClient(primaryClient, secondaryClient);
   }
@@ -472,7 +471,7 @@ public class HybridSearchIndexClientTest
    */
   @Test
   public void testPopulateIndex_CancelDuringThePrimaryPhaseDoesNotPoisonTheNextLuceneRebuild() throws Exception {
-    File search = new File(temporaryFolder.getRoot(), "hybrid-cancel");
+    File search = new File(temporaryFolder, "hybrid-cancel");
     Files.createDirectories(search.toPath());
     InsightWork insightWork = mock(InsightWork.class);
     lenient().when(insightWork.getSearchDir()).thenReturn(search);

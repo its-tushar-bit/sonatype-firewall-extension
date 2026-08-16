@@ -59,15 +59,18 @@ import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class IndexQueryServiceTest
 {
   @Mock
@@ -96,7 +99,7 @@ public class IndexQueryServiceTest
 
   private OrganizationSummaryService organizationSummaryService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     // ROOT org exclusion is now id-based (Organization.ROOT_ORGANIZATION_ID), so no
     // organizationDAO.getById stub is needed to drive it (CLM-44713 slice 2).
@@ -137,7 +140,7 @@ public class IndexQueryServiceTest
     SecurityAspectControl.disableEnforcement();
   }
 
-  @After
+  @AfterEach
   public void restoreSecurityEnforcement() {
     SecurityAspectControl.enableEnforcement();
   }

@@ -12,19 +12,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.index.VulnerabilityDescriptionFetcher;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics.SearchCount;
+import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import jakarta.inject.Inject;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
+@ComponentH2Test
 public class AdvancedSearchTelemetryCollectorTest
-    extends AbstractComponentTest
+    extends AbstractComponentH2Test
 {
   @Inject
   private AdvancedSearchTelemetryCollector collector;

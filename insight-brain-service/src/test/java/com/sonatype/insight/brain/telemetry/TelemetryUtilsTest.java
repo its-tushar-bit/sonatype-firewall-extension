@@ -25,13 +25,15 @@ import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetry.Re
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import com.sonatype.insight.brain.security.TestEnvironmentVariables;
 
 import static com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetryCreator.POLICY_VIOLATION_TELEMETRY;
 import static com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetryCreator.REPOSITORY_COMPONENT_TELEMETRY;
@@ -40,11 +42,16 @@ import static org.assertj.core.api.Assertions.entry;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class TelemetryUtilsTest
 {
-  @Rule
-  public EnvironmentVariables environmentVariables = new EnvironmentVariables();
+  @AfterEach
+  public void restoreEnvironment() {
+    environmentVariables.restore();
+  }
+
+  private final TestEnvironmentVariables environmentVariables = new TestEnvironmentVariables();
 
   @Mock
   private Configuration configuration;
@@ -53,7 +60,7 @@ public class TelemetryUtilsTest
 
   private TelemetryUtils telemetryUtils;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     // Default: advanced reporting is enabled (real_application_id is not obfuscated)
     when(configuration.getAdvanceReportingInsightsEnabled()).thenReturn(true);

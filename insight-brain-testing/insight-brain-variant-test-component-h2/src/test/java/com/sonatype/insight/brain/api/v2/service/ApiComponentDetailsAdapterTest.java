@@ -23,13 +23,15 @@ import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 
 import jakarta.inject.Inject;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
+@ComponentH2Test
 public class ApiComponentDetailsAdapterTest
-    extends AbstractComponentTest
+    extends AbstractComponentH2Test
 {
   @Inject
   private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;

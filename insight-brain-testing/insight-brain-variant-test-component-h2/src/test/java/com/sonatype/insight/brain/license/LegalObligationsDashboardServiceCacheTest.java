@@ -7,9 +7,10 @@ package com.sonatype.insight.brain.license;
 
 import jakarta.inject.Inject;
 
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,8 +24,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * unmodifiable-list (mutation-isolation) guarantee is covered in isolation by the factory-level unit tests in
  * {@link LegalObligationsDashboardServiceTest}.
  */
+@ComponentH2Test
 public class LegalObligationsDashboardServiceCacheTest
-    extends AbstractComponentTest
+    extends AbstractComponentH2Test
 {
   @Inject
   private LegalObligationsDashboardService service;

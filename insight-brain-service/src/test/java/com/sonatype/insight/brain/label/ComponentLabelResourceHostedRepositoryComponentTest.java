@@ -10,15 +10,15 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.repository.hosted.HrcOwnerTypeFeatureGuard;
 import com.sonatype.insight.brain.security.SecurityAspectControl;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.MockedStatic;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -30,7 +30,7 @@ import static org.mockito.Mockito.when;
  * a Mockito call-through here is what proves the request no longer 404s at the JAX-RS layer for
  * HRC owners.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ComponentLabelResourceHostedRepositoryComponentTest
 {
   private static final String HRC_ID = "hrc-1";
@@ -45,7 +45,7 @@ public class ComponentLabelResourceHostedRepositoryComponentTest
 
   private MockedStatic<HrcOwnerTypeFeatureGuard> guardMock;
 
-  @Before
+  @BeforeEach
   public void bypassHrcFeatureGuard() {
     // The runtime HrcOwnerTypeFeatureGuard added in CLM-44276 (Bhavat review) delegates to
     // SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.isEnabled(), which requires
@@ -58,7 +58,7 @@ public class ComponentLabelResourceHostedRepositoryComponentTest
     SecurityAspectControl.disableEnforcement();
   }
 
-  @After
+  @AfterEach
   public void restoreHrcFeatureGuard() {
     SecurityAspectControl.enableEnforcement();
     guardMock.close();

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.search.index;
 
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -232,6 +233,91 @@ public interface SearchIndexClient
   {
     throw new UnsupportedOperationException(
         getClass().getSimpleName() + " does not implement term-set restricted countDistinct()");
+  }
+
+  /**
+   * Several {@link #countDistinct(String, List)} composites over the same {@code metricQuery}. The default
+   * walks each named key independently. Backends that can count several named keys in one index pass
+   * should override so legal/KPI breakdowns share that pass.
+   */
+  default Map<String, Long> countDistinctNamed(
+      String metricQuery,
+      Map<String, List<String>> namedCompositeKeyFields)
+  {
+    return countDistinctNamed(metricQuery, namedCompositeKeyFields, null);
+  }
+
+  /**
+   * Same as {@link #countDistinctNamed(String, Map)} with budget-exempt term-set restrictions.
+   */
+  default Map<String, Long> countDistinctNamed(
+      String metricQuery,
+      Map<String, List<String>> namedCompositeKeyFields,
+      List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
+    Map<String, Long> counts = new LinkedHashMap<>();
+    if (namedCompositeKeyFields == null || namedCompositeKeyFields.isEmpty()) {
+      return counts;
+    }
+    namedCompositeKeyFields.forEach(
+        (name, fields) -> counts.put(name, countDistinct(metricQuery, fields, termSetRestrictions)));
+    return counts;
+  }
+
+  /**
+   * Distinct {@code compositeKeyFields} total plus per-band distinct counts on {@code bucketField} for
+   * the same matching documents. {@code compositeKeyFields} must contain exactly one field — a
+   * multi-field list throws. Default is {@link #countDistinct} then
+   * {@link #aggregateCountByFloatField(String, String, Map, String)}. {@code total} is the overall
+   * distinct count (including unscored docs that sit in no band); buckets are distinct-per-band only.
+   * An empty or null list returns a zero total and no buckets.
+   */
+  default MetricAggregationResult countDistinctAndFloatBands(
+      String metricQuery,
+      List<String> compositeKeyFields,
+      String bucketField,
+      Map<String, float[]> ranges)
+  {
+    return countDistinctAndFloatBands(metricQuery, compositeKeyFields, bucketField, ranges, null);
+  }
+
+  /**
+   * Same as {@link #countDistinctAndFloatBands(String, List, String, Map)} with budget-exempt
+   * term-set restrictions.
+   */
+  default MetricAggregationResult countDistinctAndFloatBands(
+      String metricQuery,
+      List<String> compositeKeyFields,
+      String bucketField,
+      Map<String, float[]> ranges,
+      List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
+    if (!hasSingleDistinctAndFloatBandsKey(compositeKeyFields)) {
+      return new MetricAggregationResult(0L, Map.of());
+    }
+    long total = countDistinct(metricQuery, compositeKeyFields, termSetRestrictions);
+    String distinctField = compositeKeyFields.get(0);
+    MetricAggregationResult bands = aggregateCountByFloatField(
+        metricQuery, bucketField, ranges, distinctField, termSetRestrictions);
+    return new MetricAggregationResult(total, bands.buckets);
+  }
+
+  /**
+   * Empty/null and single-field contract for {@link #countDistinctAndFloatBands}.
+   *
+   * @return {@code false} when {@code compositeKeyFields} is null or empty (callers return a zero
+   *         total and no buckets)
+   * @throws IllegalArgumentException when more than one field is supplied
+   */
+  static boolean hasSingleDistinctAndFloatBandsKey(List<String> compositeKeyFields) {
+    if (compositeKeyFields == null || compositeKeyFields.isEmpty()) {
+      return false;
+    }
+    if (compositeKeyFields.size() > 1) {
+      throw new IllegalArgumentException(
+          "countDistinctAndFloatBands supports a single distinct field; got " + compositeKeyFields);
+    }
+    return true;
   }
 
   /**

@@ -15,8 +15,14 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
@@ -44,15 +50,18 @@ import com.sonatype.insight.brain.search.index.IndexTermSetRestriction;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.MetricAggregationResult;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
+import com.sonatype.insight.brain.lifecycle.Managed;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.security.CurrentUser;
-import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantReference;
+import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.brain.utils.ThreatLevel;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,6 +69,7 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class DashboardMetricsService
+    implements Managed
 {
   private static final Logger log = LoggerFactory.getLogger(DashboardMetricsService.class);
 
@@ -70,12 +80,12 @@ public class DashboardMetricsService
   static final Map<String, int[]> VIOLATIONS_THREAT_LEVEL_BANDS = ThreatLevel.searchAggregationBands();
 
   /**
-   * CVSS bands for the Vulnerabilities tile breakdown. Keys match the frontend contract
-   * ({@code critical}, {@code high}, {@code medium}, {@code low}). {@link CvssV3Severity#NONE}
-   * is omitted — unscored CVEs contribute to {@code total} only.
+   * Half-open CVSS bands for {@link SearchIndexClient#countDistinctAndFloatBands} — Low/Medium/High/Critical
+   * only. Unscored ({@link CvssV3Severity#NONE}) CVEs are counted in {@code total} via
+   * overall distinct and omitted from the breakdown.
    */
-  private static final List<CvssV3Severity> VULNERABILITY_SEVERITY_BUCKETS =
-      List.of(CvssV3Severity.CRITICAL, CvssV3Severity.HIGH, CvssV3Severity.MEDIUM, CvssV3Severity.LOW);
+  static final Map<String, float[]> VULNERABILITY_SEVERITY_BANDS = CvssV3Severity.halfOpenScoreBands(
+      Set.of(CvssV3Severity.CRITICAL, CvssV3Severity.HIGH, CvssV3Severity.MEDIUM, CvssV3Severity.LOW));
 
   /**
    * Index item types with no {@code applicationId} field on indexed documents ({@link ItemType#ORGANIZATION} only
@@ -100,11 +110,6 @@ public class DashboardMetricsService
    */
   private static final List<String> ESTATE_VULNERABILITY_KEY_FIELDS =
       List.of(FieldIdentifier.VULNERABILITY_ID.label);
-
-  private static final List<String> LEGAL_OBLIGATION_KEY_FIELDS = List.of(
-      FieldIdentifier.APPLICATION_ID.label,
-      FieldIdentifier.COMPONENT_HASH.label,
-      FieldIdentifier.COMPONENT_EFFECTIVE_LICENSE_ID.label);
 
   static final String NO_MATCH_APPLICATION_FILTER_ID =
       DashboardIndexDimensionQueryBuilder.NO_MATCH_APPLICATION_FILTER_ID;
@@ -142,13 +147,13 @@ public class DashboardMetricsService
 
   private final OwnerDAO ownerDAO;
 
-  private final Configuration configuration;
-
   private final StageTypeService stageTypeService;
 
   private final CurrentUser currentUser;
 
   private final TenantReference<Cache<DashboardMetricsCacheKey, DashboardMetricsDTO>> caches;
+
+  private final ExecutorService heavyMetricExecutor;
 
   @Inject
   public DashboardMetricsService(
@@ -164,9 +169,9 @@ public class DashboardMetricsService
       DashboardMetricsShadowComparisonService shadowComparisonService,
       DashboardIndexDimensionQueryBuilder dimensionQueryBuilder,
       OwnerDAO ownerDAO,
-      Configuration configuration,
       StageTypeService stageTypeService,
-      CurrentUser currentUser)
+      CurrentUser currentUser,
+      ShutdownHandler shutdownHandler)
   {
     this.searchIndexClient = searchIndexClient;
     this.metricFilterValidator = metricFilterValidator;
@@ -180,10 +185,31 @@ public class DashboardMetricsService
     this.shadowComparisonService = shadowComparisonService;
     this.dimensionQueryBuilder = dimensionQueryBuilder;
     this.ownerDAO = ownerDAO;
-    this.configuration = configuration;
     this.stageTypeService = stageTypeService;
     this.currentUser = currentUser;
     this.caches = new TenantReference<>(this::createCache);
+    int corePoolSize = Runtime.getRuntime().availableProcessors();
+    int maximumPoolSize = Math.max(corePoolSize * 8, 32);
+    TenantThreadPoolExecutor executor = new TenantThreadPoolExecutor(
+        corePoolSize,
+        maximumPoolSize,
+        60L,
+        TimeUnit.SECONDS,
+        new LinkedBlockingQueue<>(256),
+        new ThreadFactoryBuilder()
+            .setNameFormat("dashboard-metrics-heavy-%d")
+            .build(),
+        new ThreadPoolExecutor.AbortPolicy(),
+        "dashboard_metrics",
+        "DashboardMetricsService");
+    executor.allowCoreThreadTimeOut(true);
+    this.heavyMetricExecutor = executor;
+    shutdownHandler.add(executor);
+  }
+
+  @Override
+  public void stop() {
+    heavyMetricExecutor.shutdown();
   }
 
   /**
@@ -221,12 +247,11 @@ public class DashboardMetricsService
         sqlReadiness.effectiveMode(sqlModeProvider.configuredMode());
     Set<String> stageIds = request == null ? null : request.stageIds;
     MetricsLoadPlan plan = MetricsLoadPlan.from(request, effectiveMode, stageIds);
-    ResolvedScope sqlScope = null;
     MetricFilterContext filterContext =
         plan.needsIndexFilterContext() ? buildMetricFilterContext(request) : MetricFilterContext.empty();
-    if (plan.needsWaiverScope() || plan.needsMigratedScope()) {
-      sqlScope = sqlScopeResolver.resolve(request);
-    }
+    ResolvedScope sqlScope = (plan.needsWaiverScope() || plan.needsMigratedScope())
+        ? sqlScopeResolver.resolve(request)
+        : null;
     boolean includeSummary = plan.includeSummary();
     boolean includeHeavy = plan.includeHeavy();
     boolean useSqlForMigratedMetrics = plan.useSqlForMigratedMetrics();
@@ -240,18 +265,6 @@ public class DashboardMetricsService
         applicationsMetric = sqlCoordinator.countApplications(sqlScope);
         organizationsMetric = sqlCoordinator.countOrganizations(sqlScope);
         policiesMetric = sqlCoordinator.countPolicies(sqlScope);
-      }
-      else if (filterContext.tagFilterUnsupported()) {
-        applicationsMetric = MetricValueDTO.unsupported(List.of("tagIds"));
-        long organizationsStartedAt = System.nanoTime();
-        organizationsMetric = new MetricValueDTO(
-            searchIndexClient.count(
-                buildFilteredMetricQuery(ItemType.ORGANIZATION, filterContext),
-                metricScopeRestrictions(ItemType.ORGANIZATION, filterContext)),
-            null,
-            METRIC_SOURCE_INDEX);
-        logBenchmarkDuration("organizations", organizationsStartedAt);
-        policiesMetric = MetricValueDTO.unsupported(List.of("tagIds"));
       }
       else {
         long applicationsStartedAt = System.nanoTime();
@@ -306,13 +319,10 @@ public class DashboardMetricsService
     MetricValueDTO vulnerabilitiesMetric = null;
     MetricValueDTO legalMetric = null;
     if (includeHeavy) {
-      if (useSqlForMigratedMetrics) {
-        violationsMetric = sqlCoordinator.countViolations(sqlScope);
-      }
-      else if (filterContext.tagFilterUnsupported()) {
-        violationsMetric = MetricValueDTO.unsupported(List.of("tagIds"));
-      }
-      else {
+      CompletableFuture<MetricValueDTO> violationsFuture = supplyHeavyMetric(() -> {
+        if (useSqlForMigratedMetrics) {
+          return sqlCoordinator.countViolations(sqlScope);
+        }
         long violationsStartedAt = System.nanoTime();
         MetricAggregationResult violationsAggregation = searchIndexClient.aggregateCountByField(
             buildFilteredMetricQuery(ItemType.POLICY_VIOLATION, filterContext),
@@ -320,25 +330,42 @@ public class DashboardMetricsService
             VIOLATIONS_THREAT_LEVEL_BANDS,
             metricScopeRestrictions(ItemType.POLICY_VIOLATION, filterContext));
         logBenchmarkDuration("violations", violationsStartedAt);
-        violationsMetric = new MetricValueDTO(
+        return new MetricValueDTO(
             violationsAggregation.total, violationsAggregation.buckets, METRIC_SOURCE_INDEX);
-      }
-      if (filterContext.tagFilterUnsupported()) {
-        componentsMetric = MetricValueDTO.unsupported(List.of("tagIds"));
-        vulnerabilitiesMetric = MetricValueDTO.unsupported(List.of("tagIds"));
-        legalMetric = MetricValueDTO.unsupported(List.of("tagIds"));
-      }
-      else {
+      });
+      CompletableFuture<MetricValueDTO> componentsFuture = supplyHeavyMetric(() -> {
         long componentsStartedAt = System.nanoTime();
-        componentsMetric =
+        MetricValueDTO metric =
             new MetricValueDTO(countScannedComponents(filterContext, stageIds), null, METRIC_SOURCE_INDEX);
         logBenchmarkDuration("components", componentsStartedAt);
-        long vulnerabilitiesStartedAt = System.nanoTime();
-        vulnerabilitiesMetric = countVulnerabilities(filterContext);
-        logBenchmarkDuration("vulnerabilities", vulnerabilitiesStartedAt);
+        return metric;
+      });
+      CompletableFuture<MetricValueDTO> vulnerabilitiesFuture =
+          supplyHeavyMetric(() -> {
+            long vulnerabilitiesStartedAt = System.nanoTime();
+            MetricValueDTO metric = countVulnerabilities(filterContext);
+            logBenchmarkDuration("vulnerabilities", vulnerabilitiesStartedAt);
+            return metric;
+          });
+      CompletableFuture<MetricValueDTO> legalFuture = supplyHeavyMetric(() -> {
         long legalStartedAt = System.nanoTime();
-        legalMetric = countLegalObligations(filterContext);
+        MetricValueDTO metric = countLegalObligations(filterContext);
         logBenchmarkDuration("legal", legalStartedAt);
+        return metric;
+      });
+      try {
+        CompletableFuture.allOf(violationsFuture, componentsFuture, vulnerabilitiesFuture, legalFuture).join();
+        violationsMetric = violationsFuture.join();
+        componentsMetric = componentsFuture.join();
+        vulnerabilitiesMetric = vulnerabilitiesFuture.join();
+        legalMetric = legalFuture.join();
+      }
+      catch (CompletionException e) {
+        Throwable cause = e.getCause() != null ? e.getCause() : e;
+        if (cause instanceof RuntimeException runtimeException) {
+          throw runtimeException;
+        }
+        throw new RuntimeException("Failed to load dashboard heavy metrics", cause);
       }
     }
 
@@ -432,7 +459,7 @@ public class DashboardMetricsService
           metricScopeRestrictions(ItemType.POLICY_VIOLATION, filterContext));
     }
     return searchIndexClient.countDistinct(
-        buildFilteredScannedComponentsQuery(filterContext),
+        buildFilteredScannedComponentsQuery(),
         COMPONENT_HASH_KEY_FIELDS,
         metricScopeRestrictions(ItemType.NON_VULNERABLE_COMPONENT, filterContext));
   }
@@ -444,24 +471,21 @@ public class DashboardMetricsService
    */
   private MetricValueDTO countVulnerabilities(MetricFilterContext filterContext) {
     String baseQuery = buildFilteredMetricQuery(ItemType.SECURITY_VULNERABILITY, filterContext);
-    List<IndexFilterRestriction> restrictions =
-        metricScopeRestrictions(ItemType.SECURITY_VULNERABILITY, filterContext);
-    long total = searchIndexClient.countDistinct(baseQuery, ESTATE_VULNERABILITY_KEY_FIELDS, restrictions);
-    Map<String, Long> breakdown = new LinkedHashMap<>();
-    for (CvssV3Severity band : VULNERABILITY_SEVERITY_BUCKETS) {
-      breakdown.put(
-          band.getDisplayName().toLowerCase(),
-          searchIndexClient.countDistinct(
-              appendVulnerabilitySeverityRange(baseQuery, band),
-              ESTATE_VULNERABILITY_KEY_FIELDS,
-              restrictions));
-    }
-    return new MetricValueDTO(total, breakdown, METRIC_SOURCE_INDEX);
+    MetricAggregationResult bands = searchIndexClient.countDistinctAndFloatBands(
+        baseQuery,
+        ESTATE_VULNERABILITY_KEY_FIELDS,
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        VULNERABILITY_SEVERITY_BANDS,
+        metricScopeRestrictions(ItemType.SECURITY_VULNERABILITY, filterContext));
+    return new MetricValueDTO(bands.total, bands.buckets, METRIC_SOURCE_INDEX);
   }
 
-  private static String appendVulnerabilitySeverityRange(String baseQuery, CvssV3Severity band) {
-    return baseQuery + " AND " + FieldIdentifier.VULNERABILITY_SEVERITY.label + ":["
-        + band.getStartScoreRange() + " TO " + band.getEndScoreRange() + "]";
+  /**
+   * Runs an independent heavy-tier metric on a dedicated platform-thread pool so Lucene mmap
+   * page-faults can unmount. Submitted tasks capture the request tenant and Shiro subject.
+   */
+  private <T> CompletableFuture<T> supplyHeavyMetric(final Supplier<T> supplier) {
+    return CompletableFuture.supplyAsync(supplier, heavyMetricExecutor);
   }
 
   /**
@@ -473,23 +497,20 @@ public class DashboardMetricsService
   }
 
   /**
-   * Legal total is distinct {@code (applicationId, componentHash, componentEffectiveLicenseId)} obligations;
-   * breakdown counts affected applications and distinct {@code (applicationId, componentHash)} pairs.
+   * Distinct affected applications and {@code (applicationId, componentHash)} pairs for the Legal
+   * tile dual-hero. {@link MetricValueDTO#total} is unused by that card and is always {@code 0}.
    */
   private MetricValueDTO countLegalObligations(MetricFilterContext filterContext) {
     String legalQuery = buildFilteredMetricQuery(ItemType.LEGAL_VIOLATION, filterContext);
-    List<IndexFilterRestriction> restrictions =
-        metricScopeRestrictions(ItemType.LEGAL_VIOLATION, filterContext);
-    long legalApplications =
-        searchIndexClient.countDistinct(legalQuery, List.of(FieldIdentifier.APPLICATION_ID.label), restrictions);
-    long legalComponents = searchIndexClient.countDistinct(legalQuery, APPLICATION_COMPONENT_KEY_FIELDS, restrictions);
+    Map<String, List<String>> legalKeys = new LinkedHashMap<>();
+    legalKeys.put("applications", List.of(FieldIdentifier.APPLICATION_ID.label));
+    legalKeys.put("components", APPLICATION_COMPONENT_KEY_FIELDS);
+    Map<String, Long> legalCounts = searchIndexClient.countDistinctNamed(
+        legalQuery, legalKeys, metricScopeRestrictions(ItemType.LEGAL_VIOLATION, filterContext));
     Map<String, Long> legalBreakdown = new LinkedHashMap<>();
-    legalBreakdown.put("applications", legalApplications);
-    legalBreakdown.put("components", legalComponents);
-    return new MetricValueDTO(
-        searchIndexClient.countDistinct(legalQuery, LEGAL_OBLIGATION_KEY_FIELDS, restrictions),
-        legalBreakdown,
-        METRIC_SOURCE_INDEX);
+    legalBreakdown.put("applications", legalCounts.getOrDefault("applications", 0L));
+    legalBreakdown.put("components", legalCounts.getOrDefault("components", 0L));
+    return new MetricValueDTO(0L, legalBreakdown, METRIC_SOURCE_INDEX);
   }
 
   private MetricFilterContext buildMetricFilterContext(DashboardMetricsRequestDTO request) {
@@ -497,24 +518,12 @@ public class DashboardMetricsService
     Set<String> applicationIds = request == null ? null : request.applicationIds;
     Set<String> stageIds = request == null ? null : request.stageIds;
     Set<String> tagIds = request == null ? null : request.tagIds;
-    Set<String> taggedIds = taggedApplicationIds(tagIds, applicationIds);
-    boolean tagFilterUnsupported = false;
-    String taggedApplicationClause = null;
-    if (hasFilter(tagIds)) {
-      int maxClauseCount = configuration.getMaxAdvancedSearchClauseCount();
-      if (taggedIds.size() > maxClauseCount) {
-        tagFilterUnsupported = true;
-      }
-      else {
-        taggedApplicationClause = dimensionQueryBuilder.buildEscapedApplicationFilterClause(taggedIds);
-      }
-    }
+    Set<String> taggedIds = hasFilter(tagIds) ? taggedApplicationIds(tagIds, applicationIds) : null;
     return MetricFilterContext.of(
         dimensionQueryBuilder.organizationFilterIds(organizationIds),
         dimensionQueryBuilder.applicationFilterIds(applicationIds),
         dimensionQueryBuilder.buildPolicyEvaluationStageFilterClause(stageIds),
-        taggedApplicationClause,
-        tagFilterUnsupported);
+        taggedIds);
   }
 
   /**
@@ -579,44 +588,47 @@ public class DashboardMetricsService
     List<String> clauses = new ArrayList<>();
     clauses.add(baseQuery);
     addIfPresent(clauses, stageClauseForItemType(itemType, filterContext));
-    addIfPresent(clauses, taggedApplicationClauseForItemType(itemType, filterContext));
     return String.join(" AND ", clauses);
   }
 
   /**
    * Scope restrictions for a metric query. {@link ItemType#ORGANIZATION} documents have no
    * {@code applicationId}, so the app restriction is omitted for that item type. Classic OR
-   * semantics apply when both org + app are present on all other types.
+   * semantics apply when both org + app are present on all other types. A tag restriction is a
+   * separate {@code applicationId} term-set ANDed with that org/app scope (intersection).
    */
   private static List<IndexFilterRestriction> metricScopeRestrictions(
       ItemType itemType,
       MetricFilterContext filterContext)
   {
     Set<String> orgs = filterContext.organizationIds();
-    Set<String> apps = APPLICATION_FILTER_EXCLUDED_ITEM_TYPES.contains(itemType)
-        ? null
-        : filterContext.applicationIds();
-    if (orgs == null && apps == null) {
-      return List.of();
+    boolean excludeApplicationScope = APPLICATION_FILTER_EXCLUDED_ITEM_TYPES.contains(itemType);
+    Set<String> apps = excludeApplicationScope ? null : filterContext.applicationIds();
+    Set<String> tagged = excludeApplicationScope ? null : filterContext.taggedApplicationIds();
+    List<IndexFilterRestriction> restrictions = new ArrayList<>();
+    if (orgs != null && apps != null) {
+      restrictions.add(IndexOrTermSetGroup.of(
+          IndexTermSetRestriction.of(FieldIdentifier.PARENT_ORGANIZATION_ID.label, orgs),
+          IndexTermSetRestriction.of(FieldIdentifier.APPLICATION_ID.label, apps)));
     }
-    if (orgs != null && apps == null) {
-      return IndexTermSetRestriction.singleton(FieldIdentifier.PARENT_ORGANIZATION_ID.label, orgs);
+    else if (orgs != null) {
+      restrictions.add(IndexTermSetRestriction.of(FieldIdentifier.PARENT_ORGANIZATION_ID.label, orgs));
     }
-    if (orgs == null) {
-      return IndexTermSetRestriction.singleton(FieldIdentifier.APPLICATION_ID.label, apps);
+    else if (apps != null) {
+      restrictions.add(IndexTermSetRestriction.of(FieldIdentifier.APPLICATION_ID.label, apps));
     }
-    return IndexOrTermSetGroup.singleton(
-        IndexTermSetRestriction.of(FieldIdentifier.PARENT_ORGANIZATION_ID.label, orgs),
-        IndexTermSetRestriction.of(FieldIdentifier.APPLICATION_ID.label, apps));
+    // Tags resolve to an applicationId term-set. combineLuceneFilters ANDs list entries, so this
+    // intersects the org/app scope above (already one OR group when both are present) rather than
+    // widening it.
+    if (tagged != null) {
+      restrictions.add(IndexTermSetRestriction.of(FieldIdentifier.APPLICATION_ID.label, tagged));
+    }
+    return restrictions;
   }
 
-  private static String buildFilteredScannedComponentsQuery(MetricFilterContext filterContext) {
-    String baseQuery = "(itemType:" + ItemType.NON_VULNERABLE_COMPONENT.searchFieldName()
+  private static String buildFilteredScannedComponentsQuery() {
+    return "(itemType:" + ItemType.NON_VULNERABLE_COMPONENT.searchFieldName()
         + " OR itemType:" + ItemType.SECURITY_VULNERABILITY.searchFieldName() + ")";
-    List<String> clauses = new ArrayList<>();
-    clauses.add(baseQuery);
-    addIfPresent(clauses, filterContext.taggedApplicationClause());
-    return String.join(" AND ", clauses);
   }
 
   private Set<String> taggedApplicationIds(final Set<String> tagIds, final Set<String> applicationIds) {
@@ -647,17 +659,6 @@ public class DashboardMetricsService
     };
   }
 
-  private static String taggedApplicationClauseForItemType(
-      final ItemType itemType,
-      final MetricFilterContext filterContext)
-  {
-    return switch (itemType) {
-      case APPLICATION, POLICY, POLICY_VIOLATION, SECURITY_VULNERABILITY, LEGAL_VIOLATION -> filterContext
-          .taggedApplicationClause();
-      default -> null;
-    };
-  }
-
   private static void addIfPresent(final List<String> clauses, final String clause) {
     if (clause != null) {
       clauses.add(clause);
@@ -679,26 +680,23 @@ public class DashboardMetricsService
       Set<String> organizationIds,
       Set<String> applicationIds,
       String policyEvaluationStageClause,
-      String taggedApplicationClause,
-      boolean tagFilterUnsupported)
+      Set<String> taggedApplicationIds)
   {
     static MetricFilterContext empty() {
-      return new MetricFilterContext(null, null, null, null, false);
+      return new MetricFilterContext(null, null, null, null);
     }
 
     static MetricFilterContext of(
         final Set<String> organizationIds,
         final Set<String> applicationIds,
         final String policyEvaluationStageClause,
-        final String taggedApplicationClause,
-        final boolean tagFilterUnsupported)
+        final Set<String> taggedApplicationIds)
     {
       return new MetricFilterContext(
           organizationIds,
           applicationIds,
           policyEvaluationStageClause,
-          taggedApplicationClause,
-          tagFilterUnsupported);
+          taggedApplicationIds);
     }
   }
 }

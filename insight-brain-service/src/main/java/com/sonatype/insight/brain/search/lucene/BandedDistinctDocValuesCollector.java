@@ -62,6 +62,16 @@ final class BandedDistinctDocValuesCollector
   /** Distinct decoded values per band; used when {@code distinctField} is non-null. */
   private final List<Set<String>> distinctValuesByBand;
 
+  /**
+   * Distinct decoded values across every matching document, including documents whose metric value
+   * falls in no band (unscored). Used when {@code distinctField} is non-null.
+   * <p>
+   * Peak heap is this set plus the per-band sets (about 2× the distinct cardinality). Band sets
+   * cannot replace this set: the same value can land in more than one band, and unscored values
+   * land in none. Accepted ceiling for dashboard CVE counts (CLM-40928).
+   */
+  private final Set<String> overallDistinct;
+
   private SortedNumericDocValues metricValues;
 
   private SortedDocValues distinctValues;
@@ -81,6 +91,7 @@ final class BandedDistinctDocValuesCollector
     this.bandMinInclusive = new float[ranges.size()];
     this.bandMaxExclusive = new float[ranges.size()];
     this.distinctValuesByBand = new ArrayList<>(ranges.size());
+    this.overallDistinct = new LinkedHashSet<>();
     int index = 0;
     for (Map.Entry<String, float[]> entry : ranges.entrySet()) {
       bandLabels.add(entry.getKey());
@@ -93,8 +104,11 @@ final class BandedDistinctDocValuesCollector
   }
 
   /**
-   * True when this collector can read both columns it needs from doc values. An index written before those
-   * columns existed fails this check, so callers keep their per-band filtered-search path for it.
+   * True when this collector can read both columns it needs from doc values. A miss means a required
+   * column is absent or the wrong {@code DocValuesType}.
+   * {@link LuceneSearchIndexClient#countDistinctAndFloatBands} treats that as a zero aggregation;
+   * {@link LuceneSearchIndexClient#aggregateCountByFloatField} keeps its per-band filtered-search
+   * fallback.
    */
   static boolean canCollect(
       final LeafReader reader,
@@ -151,6 +165,10 @@ final class BandedDistinctDocValuesCollector
   @Override
   public void collect(final int doc) throws IOException {
     matchedDocuments++;
+    String distinctValue = distinctField == null ? null : distinctValueForDoc(doc);
+    if (distinctValue != null) {
+      overallDistinct.add(distinctValue);
+    }
     if (!metricValues.advanceExact(doc)) {
       return;
     }
@@ -166,7 +184,6 @@ final class BandedDistinctDocValuesCollector
         documentCountByBand[band]++;
         continue;
       }
-      String distinctValue = distinctValueForDoc(doc);
       if (distinctValue != null) {
         distinctValuesByBand.get(band).add(distinctValue);
       }
@@ -222,5 +239,14 @@ final class BandedDistinctDocValuesCollector
 
   long matchedDocuments() {
     return matchedDocuments;
+  }
+
+  /**
+   * Distinct values of {@code distinctField} across every matching document, including unscored
+   * documents that sit in no band. When {@code distinctField} is null this is the raw matching
+   * document count.
+   */
+  long overallDistinctCount() {
+    return distinctField == null ? matchedDocuments : overallDistinct.size();
   }
 }

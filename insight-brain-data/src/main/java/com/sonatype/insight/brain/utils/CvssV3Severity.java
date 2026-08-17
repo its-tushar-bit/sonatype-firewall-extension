@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Severity;
 
@@ -79,6 +80,24 @@ public enum CvssV3Severity
 
   public static Map<String, float[]> halfOpenScoreBands() {
     return HALF_OPEN_SCORE_BANDS;
+  }
+
+  /**
+   * Subset of {@link #halfOpenScoreBands()} for the given severities, keyed by lowercase enum name,
+   * in enum declaration order.
+   */
+  public static Map<String, float[]> halfOpenScoreBands(Set<CvssV3Severity> severities) {
+    if (severities == null || severities.isEmpty()) {
+      return Map.of();
+    }
+    Map<String, float[]> selected = new LinkedHashMap<>();
+    for (CvssV3Severity severity : values()) {
+      if (severities.contains(severity)) {
+        String key = severity.name().toLowerCase(Locale.ROOT);
+        selected.put(key, HALF_OPEN_SCORE_BANDS.get(key));
+      }
+    }
+    return Collections.unmodifiableMap(selected);
   }
 
   public static Severity resolveRatingSeverity(float severityScore) {

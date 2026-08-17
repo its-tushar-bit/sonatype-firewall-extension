@@ -65,6 +65,7 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.IndexFilterRestriction;
 import com.sonatype.insight.brain.search.index.IndexTermSetRestriction;
 import com.sonatype.insight.brain.search.index.MetricAggregationResult;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
@@ -308,7 +309,7 @@ public class PostgresDashboardMetricsServiceTest
     assertThat(metrics.legal.source).isEqualTo("index");
     assertThat(metrics.legal.breakdown).containsEntry("applications", 1L);
     assertThat(metrics.legal.breakdown).containsEntry("components", 6L);
-    assertThat(metrics.legal.total).isEqualTo(7L);
+    assertThat(metrics.legal.total).isZero();
   }
 
   @Test
@@ -842,9 +843,9 @@ public class PostgresDashboardMetricsServiceTest
         shadowComparisonService,
         new DashboardIndexDimensionQueryBuilder(mockConfiguration()),
         mock(OwnerDAO.class),
-        mockConfiguration(),
         mock(StageTypeService.class),
-        currentUser);
+        currentUser,
+        mock(ShutdownHandler.class));
     DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
     request.includeHeavyMetrics = false;
 
@@ -882,9 +883,9 @@ public class PostgresDashboardMetricsServiceTest
         shadowComparisonService,
         new DashboardIndexDimensionQueryBuilder(mockConfiguration()),
         mock(OwnerDAO.class),
-        mockConfiguration(),
         mock(StageTypeService.class),
-        currentUser);
+        currentUser,
+        mock(ShutdownHandler.class));
     DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
     request.includeHeavyMetrics = true;
 
@@ -922,10 +923,12 @@ public class PostgresDashboardMetricsServiceTest
 
   @Test
   public void testGetMetrics_OnResolvesScopeOncePerTier() {
+    SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
+    stubEmptySearchIndexResults(searchIndexClient);
     DashboardMetricsScopeResolver scopeResolver = queryableScopeResolver();
     DashboardMetricsSqlCoordinator coordinator = sqlCoordinatorReturning(1L);
     DashboardMetricsService service = newSqlModeService(
-        mock(SearchIndexClient.class),
+        searchIndexClient,
         mock(PolicyWaiverDAO.class),
         mock(PolicyWaiverRequestDAO.class),
         mock(AutoPolicyWaiverDAO.class),
@@ -950,8 +953,10 @@ public class PostgresDashboardMetricsServiceTest
     when(coordinator.countPolicies(noAccess)).thenReturn(sqlMetric(0L));
     when(coordinator.countViolations(noAccess)).thenReturn(
         new MetricValueDTO(0L, Map.of("low", 0L, "moderate", 0L, "severe", 0L, "critical", 0L), "sql"));
+    SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
+    stubEmptySearchIndexResults(searchIndexClient);
     DashboardMetricsService service =
-        newSqlModeService(mock(SearchIndexClient.class), waiverDAO, waiverRequestDAO,
+        newSqlModeService(searchIndexClient, waiverDAO, waiverRequestDAO,
             mock(AutoPolicyWaiverDAO.class), scopeResolver, coordinator);
 
     DashboardMetricsDTO metrics = service.getMetrics(new DashboardMetricsRequestDTO());
@@ -968,6 +973,7 @@ public class PostgresDashboardMetricsServiceTest
   @Test
   public void testGetMetrics_OnResolutionFailedReturnsMetricUnavailableWithoutFallback() {
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
+    stubEmptySearchIndexResults(searchIndexClient);
     DashboardMetricsScopeResolver scopeResolver = mock(DashboardMetricsScopeResolver.class);
     ResolvedScope failed = ResolvedScope.denyAll(ResolvedScope.DenyReason.RESOLUTION_FAILED);
     when(scopeResolver.resolve(any())).thenReturn(failed);
@@ -1005,8 +1011,10 @@ public class PostgresDashboardMetricsServiceTest
     when(coordinator.countOrganizations(scope)).thenReturn(sqlMetric(2L));
     when(coordinator.countPolicies(scope)).thenReturn(sqlMetric(3L));
     when(coordinator.countViolations(scope)).thenReturn(sqlMetric(4L));
+    SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
+    stubEmptySearchIndexResults(searchIndexClient);
     DashboardMetricsService service = newSqlModeService(
-        mock(SearchIndexClient.class),
+        searchIndexClient,
         mock(PolicyWaiverDAO.class),
         mock(PolicyWaiverRequestDAO.class),
         mock(AutoPolicyWaiverDAO.class),
@@ -1024,6 +1032,7 @@ public class PostgresDashboardMetricsServiceTest
   @Test
   public void testGetMetrics_OnKeepsViolationsHeavy() {
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
+    stubEmptySearchIndexResults(searchIndexClient);
     DashboardMetricsScopeResolver scopeResolver = queryableScopeResolver();
     DashboardMetricsSqlCoordinator coordinator = sqlCoordinatorReturning(5L);
     DashboardMetricsService service = newSqlModeService(
@@ -1324,10 +1333,13 @@ public class PostgresDashboardMetricsServiceTest
 
     assertThat(first.applications.total).isEqualTo(7);
     assertThat(second.applications.total).isEqualTo(7);
-    // loadMetrics runs once (coalesced): count() x3, countDistinct() x9 (components x1, vulnerabilities x5, legal x3).
+    // loadMetrics runs once (coalesced): count() x3, countDistinct() x1 (components),
+    // countDistinctNamed() x1 (legal), countDistinctAndFloatBands() x1 (vulnerabilities).
     verify(searchIndexClient, times(3)).count(anyString(), anyList());
-    verify(searchIndexClient, times(9)).countDistinct(anyString(), any(), anyList());
+    verify(searchIndexClient, times(1)).countDistinct(anyString(), any(), anyList());
+    verify(searchIndexClient, times(1)).countDistinctNamed(anyString(), any(), anyList());
     verify(searchIndexClient, times(1)).aggregateCountByField(anyString(), anyString(), any(), anyList());
+    verify(searchIndexClient, times(1)).countDistinctAndFloatBands(anyString(), any(), anyString(), any(), anyList());
     verify(searchIndexClient, times(1)).getLastIndexTime();
   }
 
@@ -1368,7 +1380,9 @@ public class PostgresDashboardMetricsServiceTest
     assertThat(metrics.legal).isNotNull();
     verify(searchIndexClient, times(3)).count(anyString(), anyList());
     verify(searchIndexClient, times(1)).aggregateCountByField(anyString(), anyString(), any(), anyList());
-    verify(searchIndexClient, times(9)).countDistinct(anyString(), any(), anyList());
+    verify(searchIndexClient, times(1)).countDistinct(anyString(), any(), anyList());
+    verify(searchIndexClient, times(1)).countDistinctNamed(anyString(), any(), anyList());
+    verify(searchIndexClient, times(1)).countDistinctAndFloatBands(anyString(), any(), anyString(), any(), anyList());
     verify(searchIndexClient, times(1)).getLastIndexTime();
   }
 
@@ -1412,7 +1426,9 @@ public class PostgresDashboardMetricsServiceTest
 
     verify(searchIndexClient, times(6)).count(anyString(), anyList());
     verify(searchIndexClient, times(2)).aggregateCountByField(anyString(), anyString(), any(), anyList());
-    verify(searchIndexClient, times(18)).countDistinct(anyString(), any(), anyList());
+    verify(searchIndexClient, times(2)).countDistinct(anyString(), any(), anyList());
+    verify(searchIndexClient, times(2)).countDistinctNamed(anyString(), any(), anyList());
+    verify(searchIndexClient, times(2)).countDistinctAndFloatBands(anyString(), any(), anyString(), any(), anyList());
     verify(searchIndexClient, times(3)).getLastIndexTime();
   }
 
@@ -1472,9 +1488,9 @@ public class PostgresDashboardMetricsServiceTest
         mock(DashboardMetricsShadowComparisonService.class),
         new DashboardIndexDimensionQueryBuilder(mockConfiguration()),
         mock(OwnerDAO.class),
-        mockConfiguration(),
         mock(StageTypeService.class),
-        currentUser);
+        currentUser,
+        mock(ShutdownHandler.class));
 
     DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
     request.includeHeavyMetrics = true;
@@ -1517,9 +1533,9 @@ public class PostgresDashboardMetricsServiceTest
         mock(DashboardMetricsShadowComparisonService.class),
         new DashboardIndexDimensionQueryBuilder(mockConfiguration()),
         mock(OwnerDAO.class),
-        mockConfiguration(),
         mock(StageTypeService.class),
-        currentUser);
+        currentUser,
+        mock(ShutdownHandler.class));
 
     DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
     request.stageIds = Set.of(Stage.ID_BUILD);
@@ -1544,7 +1560,10 @@ public class PostgresDashboardMetricsServiceTest
   public void testGetMetrics_TagFilteredSummaryComputesWaiversAndIndexMetrics() {
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
     ArgumentCaptor<String> countQuery = ArgumentCaptor.forClass(String.class);
-    when(searchIndexClient.count(countQuery.capture(), anyList())).thenReturn(6L);
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<List<IndexFilterRestriction>> restrictions =
+        ArgumentCaptor.forClass(List.class);
+    when(searchIndexClient.count(countQuery.capture(), restrictions.capture())).thenReturn(6L);
     when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
     CurrentUser currentUser = mock(CurrentUser.class);
     when(currentUser.getUserPrincipal()).thenReturn(
@@ -1584,9 +1603,9 @@ public class PostgresDashboardMetricsServiceTest
         mock(DashboardMetricsShadowComparisonService.class),
         new DashboardIndexDimensionQueryBuilder(mockConfiguration()),
         ownerDAO,
-        mockConfiguration(),
         mock(StageTypeService.class),
-        currentUser);
+        currentUser,
+        mock(ShutdownHandler.class));
 
     DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
     request.tagIds = Set.of("tag-1");
@@ -1600,7 +1619,11 @@ public class PostgresDashboardMetricsServiceTest
     assertThat(metrics.waivers.total).isEqualTo(5);
     assertThat(metrics.waivers.breakdown).containsEntry("existing", 2L).containsEntry("requested", 3L);
     assertThat(countQuery.getAllValues())
-        .anyMatch(q -> q.contains("itemType:policy") && q.contains("applicationId:(taggedApp)"));
+        .anyMatch(q -> q.contains("itemType:policy"));
+    assertThat(countQuery.getAllValues())
+        .noneMatch(q -> q.contains("applicationId:(taggedApp)"));
+    assertThat(restrictions.getAllValues())
+        .anyMatch(list -> hasApplicationIdTermSet(list, "taggedApp"));
     verify(searchIndexClient, times(3)).count(anyString(), anyList());
     verify(searchIndexClient, never()).aggregateCountByField(anyString(), anyString(), any(), anyList());
     verify(searchIndexClient, never()).countDistinct(anyString(), any(), anyList());
@@ -1608,9 +1631,13 @@ public class PostgresDashboardMetricsServiceTest
   }
 
   @Test
-  public void testGetMetrics_OversizedTagFilterSoftDegradesTagScopedTiles() {
+  public void testGetMetrics_OversizedTagFilterUsesTermSetRestriction() {
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
-    when(searchIndexClient.count(anyString(), anyList())).thenReturn(3L);
+    stubEmptySearchIndexResults(searchIndexClient);
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<List<IndexFilterRestriction>> restrictions =
+        ArgumentCaptor.forClass(List.class);
+    when(searchIndexClient.count(anyString(), restrictions.capture())).thenReturn(3L);
     when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
     CurrentUser currentUser = mock(CurrentUser.class);
     when(currentUser.getUserPrincipal()).thenReturn(
@@ -1639,9 +1666,9 @@ public class PostgresDashboardMetricsServiceTest
         mock(DashboardMetricsShadowComparisonService.class),
         new DashboardIndexDimensionQueryBuilder(configuration),
         ownerDAO,
-        configuration,
         mock(StageTypeService.class),
-        currentUser);
+        currentUser,
+        mock(ShutdownHandler.class));
 
     DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
     request.tagIds = Set.of("broad-tag");
@@ -1649,17 +1676,19 @@ public class PostgresDashboardMetricsServiceTest
 
     DashboardMetricsDTO metrics = service.getMetrics(request);
 
-    assertUnsupported(metrics.applications, "tagIds");
     assertThat(metrics.organizations.total).isEqualTo(3);
-    assertUnsupported(metrics.policies, "tagIds");
-    assertUnsupported(metrics.violations, "tagIds");
-    assertUnsupported(metrics.components, "tagIds");
-    assertUnsupported(metrics.vulnerabilities, "tagIds");
-    assertUnsupported(metrics.legal, "tagIds");
+    assertThat(metrics.policies.total).isEqualTo(3);
+    assertThat(metrics.applications.errorCode).isNull();
+    assertThat(metrics.violations.errorCode).isNull();
+    assertThat(metrics.legal.errorCode).isNull();
     assertUnsupported(metrics.waivers, "stageIds");
-    verify(searchIndexClient, times(1)).count(anyString(), anyList());
-    verify(searchIndexClient, never()).countDistinct(anyString(), any(), anyList());
-    verify(searchIndexClient, never()).aggregateCountByField(anyString(), anyString(), any(), anyList());
+    assertThat(restrictions.getAllValues())
+        .anyMatch(list -> hasApplicationIdTermSet(list, "app-0", "app-1", "app-2"));
+    verify(searchIndexClient, times(2)).count(anyString(), anyList());
+    verify(searchIndexClient, times(2)).countDistinct(anyString(), any(), anyList());
+    verify(searchIndexClient, times(1)).aggregateCountByField(anyString(), anyString(), any(), anyList());
+    verify(searchIndexClient, times(1)).countDistinctNamed(anyString(), any(), anyList());
+    verify(searchIndexClient, times(1)).countDistinctAndFloatBands(anyString(), any(), anyString(), any(), anyList());
   }
 
   @Test
@@ -1692,7 +1721,9 @@ public class PostgresDashboardMetricsServiceTest
     assertThat(metrics.legal.total).isZero();
     verify(searchIndexClient, never()).count(anyString(), anyList());
     verify(searchIndexClient, times(1)).aggregateCountByField(anyString(), anyString(), any(), anyList());
-    verify(searchIndexClient, times(9)).countDistinct(anyString(), any(), anyList());
+    verify(searchIndexClient, times(1)).countDistinct(anyString(), any(), anyList());
+    verify(searchIndexClient, times(1)).countDistinctNamed(anyString(), any(), anyList());
+    verify(searchIndexClient, times(1)).countDistinctAndFloatBands(anyString(), any(), anyString(), any(), anyList());
   }
 
   @Test
@@ -1761,10 +1792,13 @@ public class PostgresDashboardMetricsServiceTest
     service.getMetrics(request);
     service.getMetrics(request);
 
-    // Two cache misses x loadMetrics: count() x3, countDistinct() x9 per miss.
+    // Two cache misses x loadMetrics: count() x3, countDistinct() x1, countDistinctNamed() x1,
+    // countDistinctAndFloatBands() x1 per miss.
     verify(searchIndexClient, times(6)).count(anyString(), anyList());
-    verify(searchIndexClient, times(18)).countDistinct(anyString(), any(), anyList());
+    verify(searchIndexClient, times(2)).countDistinct(anyString(), any(), anyList());
+    verify(searchIndexClient, times(2)).countDistinctNamed(anyString(), any(), anyList());
     verify(searchIndexClient, times(2)).aggregateCountByField(anyString(), anyString(), any(), anyList());
+    verify(searchIndexClient, times(2)).countDistinctAndFloatBands(anyString(), any(), anyString(), any(), anyList());
   }
 
   @Test
@@ -1799,10 +1833,13 @@ public class PostgresDashboardMetricsServiceTest
     service.getMetrics(request);
     service.getMetrics(request);
 
-    // Two cache misses x loadMetrics: count() x3, countDistinct() x9 per miss.
+    // Two cache misses x loadMetrics: count() x3, countDistinct() x1, countDistinctNamed() x1,
+    // countDistinctAndFloatBands() x1 per miss.
     verify(searchIndexClient, times(6)).count(anyString(), anyList());
-    verify(searchIndexClient, times(18)).countDistinct(anyString(), any(), anyList());
+    verify(searchIndexClient, times(2)).countDistinct(anyString(), any(), anyList());
+    verify(searchIndexClient, times(2)).countDistinctNamed(anyString(), any(), anyList());
     verify(searchIndexClient, times(2)).aggregateCountByField(anyString(), anyString(), any(), anyList());
+    verify(searchIndexClient, times(2)).countDistinctAndFloatBands(anyString(), any(), anyString(), any(), anyList());
   }
 
   @Test
@@ -1834,20 +1871,36 @@ public class PostgresDashboardMetricsServiceTest
 
     // Empty filter requests share one cache key => loadMetrics runs once (coalesced).
     verify(searchIndexClient, times(3)).count(anyString(), anyList());
-    verify(searchIndexClient, times(9)).countDistinct(anyString(), any(), anyList());
+    verify(searchIndexClient, times(1)).countDistinct(anyString(), any(), anyList());
+    verify(searchIndexClient, times(1)).countDistinctNamed(anyString(), any(), anyList());
     verify(searchIndexClient, times(1)).aggregateCountByField(anyString(), anyString(), any(), anyList());
+    verify(searchIndexClient, times(1)).countDistinctAndFloatBands(anyString(), any(), anyString(), any(), anyList());
   }
 
   private static void stubEmptySearchIndexResults(SearchIndexClient searchIndexClient) {
-    when(searchIndexClient.aggregateCountByField(anyString(), anyString(), any(), anyList())).thenReturn(
-        new MetricAggregationResult(0L, Map.of("critical", 0L, "severe", 0L, "moderate", 0L, "low", 0L)));
-    when(searchIndexClient.countDistinct(anyString(), any(), anyList())).thenReturn(0L);
+    lenient().when(searchIndexClient.aggregateCountByField(anyString(), anyString(), any(), anyList()))
+        .thenReturn(
+            new MetricAggregationResult(0L, Map.of("critical", 0L, "severe", 0L, "moderate", 0L, "low", 0L)));
+    lenient().when(searchIndexClient.countDistinctAndFloatBands(anyString(), any(), anyString(), any(), anyList()))
+        .thenReturn(
+            new MetricAggregationResult(0L, Map.of("critical", 0L, "high", 0L, "medium", 0L, "low", 0L)));
+    lenient().when(searchIndexClient.countDistinct(anyString(), any(), anyList())).thenReturn(0L);
+    lenient().when(searchIndexClient.countDistinctNamed(anyString(), any(), anyList()))
+        .thenReturn(
+            Map.of("applications", 0L, "components", 0L));
   }
 
   private static void assertUnsupported(Object metric, String... unsupportedDimensions) {
     assertThat(metric).extracting("total").isNull();
     assertThat(metric).extracting("errorCode").isEqualTo("UNSUPPORTED_FILTER_COMBINATION");
     assertThat(metric).extracting("unsupportedDimensions").isEqualTo(List.of(unsupportedDimensions));
+  }
+
+  private static boolean hasApplicationIdTermSet(List<IndexFilterRestriction> restrictions, String... ids) {
+    return restrictions.stream()
+        .anyMatch(restriction -> restriction instanceof IndexTermSetRestriction termSet
+            && FieldIdentifier.APPLICATION_ID.label.equals(termSet.field())
+            && termSet.ids().containsAll(List.of(ids)));
   }
 
   private void seedComponentsReport(Application app, String scanId) throws Exception {
@@ -2009,9 +2062,9 @@ public class PostgresDashboardMetricsServiceTest
         mock(DashboardMetricsShadowComparisonService.class),
         new DashboardIndexDimensionQueryBuilder(mockConfiguration()),
         mock(OwnerDAO.class),
-        mockConfiguration(),
         mock(StageTypeService.class),
-        currentUser);
+        currentUser,
+        mock(ShutdownHandler.class));
   }
 
   private static void assertUnavailable(final MetricValueDTO metric) {
@@ -2066,9 +2119,9 @@ public class PostgresDashboardMetricsServiceTest
         mock(DashboardMetricsShadowComparisonService.class),
         new DashboardIndexDimensionQueryBuilder(configuration),
         mock(OwnerDAO.class),
-        configuration,
         stageTypeService,
-        currentUser);
+        currentUser,
+        mock(ShutdownHandler.class));
   }
 
   private void loginAs(final User user) {

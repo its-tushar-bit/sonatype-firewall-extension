@@ -136,8 +136,8 @@ public class DashboardMetricsServiceAuthzTest
     assertThat(metricsForUserA.policies.total).isEqualTo(1);
     // orgAApp componentsMetricReport => 4 distinct CVEs; orgALegalApp policyViolationReport => +1 CVE.
     assertThat(metricsForUserA.vulnerabilities.total).isEqualTo(5);
-    // policyViolationReport licenses => 7 distinct (app, component, license) obligations on orgALegalApp.
-    assertThat(metricsForUserA.legal.total).isEqualTo(7);
+    assertThat(metricsForUserA.legal.breakdown).containsEntry("applications", 1L);
+    assertThat(metricsForUserA.legal.breakdown).containsEntry("components", 6L);
     assertThat(metricsForUserA.waivers.total).isEqualTo(1);
     assertThat(metricsForUserA.waivers.source).isEqualTo(DashboardMetricsService.METRIC_SOURCE_SQL);
 
@@ -148,7 +148,8 @@ public class DashboardMetricsServiceAuthzTest
     assertThat(metricsForUserB.organizations.total).isEqualTo(1);
     assertThat(metricsForUserB.policies.total).isEqualTo(2);
     assertThat(metricsForUserB.vulnerabilities.total).isZero();
-    assertThat(metricsForUserB.legal.total).isZero();
+    assertThat(metricsForUserB.legal.breakdown).containsEntry("applications", 0L);
+    assertThat(metricsForUserB.legal.breakdown).containsEntry("components", 0L);
     assertThat(metricsForUserB.waivers.total).isZero();
     assertThat(metricsForUserB.waivers.source).isEqualTo(DashboardMetricsService.METRIC_SOURCE_SQL);
   }

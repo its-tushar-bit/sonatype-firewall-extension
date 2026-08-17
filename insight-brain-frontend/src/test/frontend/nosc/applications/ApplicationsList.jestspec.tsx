@@ -21,6 +21,10 @@ import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 import { renderNexusOneRoute } from 'TestRoot/nosc/renderNexusOneRoute';
 import { installRadixJsdomShims } from 'TestRoot/nosc/shell/radixJsdomShims';
 
+function applicationsToolbarSearch() {
+  return within(screen.getByRole('search')).getByLabelText('Search applications');
+}
+
 const API_LIST_RESPONSE = {
   applications: [
     {
@@ -193,10 +197,10 @@ describe('ApplicationsList (CLM-42224)', () => {
     renderNexusOneRoute(<ApplicationsList />, 'nexusOneApplications', { q: 'apple' });
 
     await waitFor(() => {
-      expect(screen.getByTestId('applications-toolbar-search')).toBeInTheDocument();
+      expect(applicationsToolbarSearch()).toBeInTheDocument();
     });
 
-    const searchInput = screen.getByTestId('applications-toolbar-search');
+    const searchInput = applicationsToolbarSearch();
     await waitFor(() => expect(searchInput).toHaveValue('apple'));
     await userEvent.clear(searchInput);
     await userEvent.type(searchInput, 'banana{enter}');
@@ -319,7 +323,7 @@ describe('ApplicationsList (CLM-42224)', () => {
     await waitFor(() => {
       expect(screen.getByTestId('applications-toolbar-count')).toHaveTextContent('3 applications');
     });
-    expect(screen.getByTestId('applications-toolbar-search')).toBeInTheDocument();
+    expect(applicationsToolbarSearch()).toBeInTheDocument();
     expect(screen.getByTestId('applications-toolbar-sort')).toBeInTheDocument();
     expect(screen.getByLabelText('Sort')).toHaveTextContent('Highest threat');
     expect(screen.getByTestId('applications-toolbar-csv')).toBeEnabled();
@@ -333,10 +337,10 @@ describe('ApplicationsList (CLM-42224)', () => {
     axiosMock.onPost(listUrl).reply(200, API_LIST_RESPONSE);
     renderList();
     await waitFor(() => {
-      expect(screen.getByTestId('applications-toolbar-search')).toBeInTheDocument();
+      expect(applicationsToolbarSearch()).toBeInTheDocument();
     });
 
-    const searchInput = screen.getByLabelText('Search applications');
+    const searchInput = applicationsToolbarSearch();
     await userEvent.type(searchInput, 'apple{enter}');
 
     await waitFor(() => {

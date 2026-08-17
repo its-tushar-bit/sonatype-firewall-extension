@@ -18,6 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 
@@ -296,8 +297,14 @@ public class LuceneSearchIndexClientAggregateTest
     long distinct = luceneSearchIndexClient.countDistinct(
         "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
         List.of(FieldIdentifier.APPLICATION_ID.label, FieldIdentifier.COMPONENT_HASH.label));
-
     assertThat(distinct).isEqualTo(3);
+
+    Map<String, Long> named = luceneSearchIndexClient.countDistinctNamed(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
+        Map.of("components", List.of(FieldIdentifier.APPLICATION_ID.label, FieldIdentifier.COMPONENT_HASH.label)));
+
+    assertThat(named).containsOnlyKeys("components");
+    assertThat(named).containsEntry("components", distinct);
   }
 
   @Test
@@ -316,6 +323,11 @@ public class LuceneSearchIndexClientAggregateTest
         "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
         List.of(FieldIdentifier.APPLICATION_ID.label, FieldIdentifier.COMPONENT_HASH.label));
 
+    Map<String, Long> named = luceneSearchIndexClient.countDistinctNamed(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
+        Map.of("components", List.of(FieldIdentifier.APPLICATION_ID.label, FieldIdentifier.COMPONENT_HASH.label)));
+
+    assertThat(named).containsEntry("components", distinct);
     assertThat(distinct).isEqualTo(6);
   }
 
@@ -334,8 +346,12 @@ public class LuceneSearchIndexClientAggregateTest
     long distinct = luceneSearchIndexClient.countDistinct(
         "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
         List.of(FieldIdentifier.APPLICATION_ID.label, FieldIdentifier.COMPONENT_HASH.label));
+    Map<String, Long> named = luceneSearchIndexClient.countDistinctNamed(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
+        Map.of("components", List.of(FieldIdentifier.APPLICATION_ID.label, FieldIdentifier.COMPONENT_HASH.label)));
 
     assertThat(distinct).isZero();
+    assertThat(named).containsEntry("components", 0L);
   }
 
   @Test
@@ -918,5 +934,140 @@ public class LuceneSearchIndexClientAggregateTest
     assertThat(result.groupingByDTOS.get(2).groupBy).isEqualTo("CVE-A");
     assertThat(result.groupingByDTOS.get(2).searchResultItemDTOS).hasSize(1);
     assertThat(result.groupingByDTOS.get(2).searchResultItemDTOS.get(0).resultIndex).isEqualTo(4);
+  }
+
+  @Test
+  public void testCountDistinctAndFloatBands_rejectsCompositeKey() {
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> luceneSearchIndexClient.countDistinctAndFloatBands(
+            "itemType:" + ItemType.SECURITY_VULNERABILITY.searchFieldName(),
+            List.of(FieldIdentifier.APPLICATION_ID.label, FieldIdentifier.COMPONENT_HASH.label),
+            FieldIdentifier.VULNERABILITY_SEVERITY.label,
+            kpiSeverityBands()))
+        .withMessageContaining("single distinct field");
+  }
+
+  @Test
+  public void testCountDistinctAndFloatBands_CvssBandBoundariesLandInExactlyOneBand() throws Exception {
+    indexVulnDocsWithSeverities(0.1f, 3.9f, 4.0f, 6.9f, 7.0f, 8.9f, 9.0f, 10.0f);
+
+    MetricAggregationResult result = luceneSearchIndexClient.countDistinctAndFloatBands(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.searchFieldName(),
+        List.of(FieldIdentifier.VULNERABILITY_ID.label),
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        kpiSeverityBands());
+
+    assertThat(result.total).isEqualTo(8);
+    assertThat(result.buckets).containsOnlyKeys("low", "medium", "high", "critical");
+    assertThat(result.buckets).containsEntry("low", 2L);
+    assertThat(result.buckets).containsEntry("medium", 2L);
+    assertThat(result.buckets).containsEntry("high", 2L);
+    assertThat(result.buckets).containsEntry("critical", 2L);
+    assertThat(result.buckets.values().stream().mapToLong(Long::longValue).sum()).isEqualTo(result.total);
+  }
+
+  @Test
+  public void testCountDistinctAndFloatBands_UnscoredCveCountsInTotalNotBuckets() throws Exception {
+    indexVulnDocsOptionalSeverity(
+        new String[]{"CVE-SCORED", "CVE-UNSCORED"},
+        new Float[]{7.5f, null});
+
+    MetricAggregationResult result = luceneSearchIndexClient.countDistinctAndFloatBands(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.searchFieldName(),
+        List.of(FieldIdentifier.VULNERABILITY_ID.label),
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        kpiSeverityBands());
+
+    assertThat(result.total).isEqualTo(2);
+    assertThat(result.buckets).doesNotContainKey("none");
+    assertThat(result.buckets).containsEntry("high", 1L);
+    assertThat(result.buckets).containsEntry("low", 0L);
+    assertThat(result.buckets).containsEntry("medium", 0L);
+    assertThat(result.buckets).containsEntry("critical", 0L);
+    assertThat(result.buckets.values().stream().mapToLong(Long::longValue).sum()).isEqualTo(1);
+  }
+
+  @Test
+  public void testCountDistinctNamed_LegalApplicationsAndComponents_OmitsTotalKey() throws Exception {
+    indexLegalDocs(
+        new String[]{"appa", "appa", "appa", "appb"},
+        new String[]{"hash-one", "hash-two", "hash-one", "hash-one"});
+
+    Map<String, List<String>> keys = new LinkedHashMap<>();
+    keys.put("applications", List.of(FieldIdentifier.APPLICATION_ID.label));
+    keys.put("components", List.of(FieldIdentifier.APPLICATION_ID.label, FieldIdentifier.COMPONENT_HASH.label));
+
+    Map<String, Long> named = luceneSearchIndexClient.countDistinctNamed(
+        "itemType:" + ItemType.LEGAL_VIOLATION.searchFieldName(),
+        keys);
+
+    long applications = luceneSearchIndexClient.countDistinct(
+        "itemType:" + ItemType.LEGAL_VIOLATION.searchFieldName(),
+        List.of(FieldIdentifier.APPLICATION_ID.label));
+    long components = luceneSearchIndexClient.countDistinct(
+        "itemType:" + ItemType.LEGAL_VIOLATION.searchFieldName(),
+        List.of(FieldIdentifier.APPLICATION_ID.label, FieldIdentifier.COMPONENT_HASH.label));
+
+    assertThat(named).containsOnlyKeys("applications", "components");
+    assertThat(named).containsEntry("applications", applications);
+    assertThat(named).containsEntry("components", components);
+    assertThat(applications).isEqualTo(2L);
+    assertThat(components).isEqualTo(3L);
+  }
+
+  @Test
+  public void testCountDistinctNamed_HonoursLargeApplicationIdTermSetRestriction() throws Exception {
+    indexLegalDocs(
+        new String[]{"app-in-0", "app-in-1", "app-out"},
+        new String[]{"hash-a", "hash-b", "hash-c"});
+    List<String> tagged = new ArrayList<>();
+    for (int i = 0; i < 64; i++) {
+      tagged.add("app-in-" + i);
+    }
+    Map<String, List<String>> keys = new LinkedHashMap<>();
+    keys.put("applications", List.of(FieldIdentifier.APPLICATION_ID.label));
+    keys.put("components", List.of(FieldIdentifier.APPLICATION_ID.label, FieldIdentifier.COMPONENT_HASH.label));
+
+    Map<String, Long> named = luceneSearchIndexClient.countDistinctNamed(
+        "itemType:" + ItemType.LEGAL_VIOLATION.searchFieldName(),
+        keys,
+        List.of(IndexTermSetRestriction.of(FieldIdentifier.APPLICATION_ID.label, tagged)));
+
+    assertThat(named).containsOnlyKeys("applications", "components");
+    assertThat(named).containsEntry("applications", 2L);
+    assertThat(named).containsEntry("components", 2L);
+  }
+
+  private static Map<String, float[]> kpiSeverityBands() {
+    return CvssV3Severity.halfOpenScoreBands(
+        Set.of(CvssV3Severity.CRITICAL, CvssV3Severity.HIGH, CvssV3Severity.MEDIUM, CvssV3Severity.LOW));
+  }
+
+  private void indexVulnDocsOptionalSeverity(final String[] vulnIds, final Float[] severities) throws Exception {
+    luceneSearchIndexClient.populateIndex();
+    final List<Document> docs = new ArrayList<>();
+    for (int i = 0; i < vulnIds.length; i++) {
+      DocumentBuilder builder = new DocumentBuilder(ItemType.SECURITY_VULNERABILITY)
+          .setVulnerabilityId(vulnIds[i]);
+      if (severities[i] != null) {
+        builder.setVulnerabilitySeverity(severities[i]);
+      }
+      docs.add(builder.build());
+    }
+    indexWriterOwner
+        .runWithWriter(writer -> new LuceneIndexingContext(ownerDAO, writer, conversionHelper).addDocuments(docs));
+  }
+
+  private void indexLegalDocs(final String[] applicationIds, final String[] componentHashes) throws Exception {
+    luceneSearchIndexClient.populateIndex();
+    final List<Document> docs = new ArrayList<>();
+    for (int i = 0; i < applicationIds.length; i++) {
+      docs.add(new DocumentBuilder(ItemType.LEGAL_VIOLATION)
+          .setApplicationId(applicationIds[i])
+          .setComponentHash(componentHashes[i])
+          .build());
+    }
+    indexWriterOwner
+        .runWithWriter(writer -> new LuceneIndexingContext(ownerDAO, writer, conversionHelper).addDocuments(docs));
   }
 }

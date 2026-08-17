@@ -192,6 +192,11 @@ describe('useApplicationsList', () => {
 
     const { result } = renderHook(() => useApplicationsList());
 
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    await waitFor(() => {
+      expect(JSON.parse(String(axiosMock.history.post.at(-1)?.data)).includeFacets).toBe(true);
+    });
+
     act(() => result.current.setPage(1));
     await waitFor(() => expect(result.current.page).toBe(1));
     const postsBefore = axiosMock.history.post.length;
@@ -229,8 +234,14 @@ describe('useApplicationsList', () => {
         orderBy: 'lastEvaluationTime',
         page: 1,
         stageIds: ['build'],
+        includeFacets: false,
       }),
     );
+
+    await waitFor(() => {
+      const lastRequest = axiosMock.history.post.at(-1);
+      expect(JSON.parse(String(lastRequest?.data)).includeFacets).toBe(true);
+    });
   });
 
   it('syncQueryState hydrates search, sort, page, and filters from route params', async () => {

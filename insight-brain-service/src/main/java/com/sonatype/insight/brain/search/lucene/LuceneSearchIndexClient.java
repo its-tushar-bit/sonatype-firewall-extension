@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.sonatype.insight.brain.audit.AuditData;
@@ -89,10 +90,9 @@ import org.apache.lucene.search.IndexSearcher.TooManyClauses;
 import static org.apache.lucene.search.BooleanClause.Occur.FILTER;
 import static org.apache.lucene.search.BooleanClause.Occur.MUST;
 import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.MatchNoDocsQuery;
+import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreMode;
 import org.apache.lucene.search.SimpleCollector;
-import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
@@ -791,6 +791,84 @@ public class LuceneSearchIndexClient
   }
 
   @Override
+  public MetricAggregationResult countDistinctAndFloatBands(
+      final String metricQuery,
+      final List<String> compositeKeyFields,
+      final String bucketField,
+      final Map<String, float[]> ranges)
+  {
+    return countDistinctAndFloatBands(metricQuery, compositeKeyFields, bucketField, ranges, null);
+  }
+
+  @Override
+  public MetricAggregationResult countDistinctAndFloatBands(
+      final String metricQuery,
+      final List<String> compositeKeyFields,
+      final String bucketField,
+      final Map<String, float[]> ranges,
+      final List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
+    if (!SearchIndexClient.hasSingleDistinctAndFloatBandsKey(compositeKeyFields)) {
+      return new MetricAggregationResult(0L, Map.of());
+    }
+    validateCompositeKeyFields(compositeKeyFields);
+    validateFloatRangeBounds(ranges);
+    Set<String> fieldNames = new HashSet<>(compositeKeyFields);
+    fieldNames.add(bucketField);
+    checkFieldNames(fieldNames);
+    updateMaxQueryClauseCount();
+    Query termSetFilter = IdSetFilterQueries.combineLuceneFilters(termSetRestrictions);
+    String distinctField = compositeKeyFields.get(0);
+    return withSearcher(indexSearcher -> {
+      Query rbac = buildRbacFilterQuery();
+      if (!bandsAreColumnar(indexSearcher, bucketField, distinctField)) {
+        return zeroBandResult(ranges);
+      }
+      Query query = buildRbacFilteredMetricQuery(metricQuery, termSetFilter, rbac);
+      BandedDistinctDocValuesCollector collector =
+          new BandedDistinctDocValuesCollector(bucketField, distinctField, ranges);
+      indexSearcher.search(query, collector);
+      return new MetricAggregationResult(collector.overallDistinctCount(), collector.bandCounts());
+    });
+  }
+
+  @Override
+  public Map<String, Long> countDistinctNamed(
+      final String metricQuery,
+      final Map<String, List<String>> namedCompositeKeyFields)
+  {
+    return countDistinctNamed(metricQuery, namedCompositeKeyFields, null);
+  }
+
+  @Override
+  public Map<String, Long> countDistinctNamed(
+      final String metricQuery,
+      final Map<String, List<String>> namedCompositeKeyFields,
+      final List<? extends IndexFilterRestriction> termSetRestrictions)
+  {
+    if (namedCompositeKeyFields == null || namedCompositeKeyFields.isEmpty()) {
+      return Map.of();
+    }
+    namedCompositeKeyFields.forEach((name, fields) -> validateCompositeKeyFields(fields));
+    Set<String> allFields = new HashSet<>();
+    namedCompositeKeyFields.values().forEach(allFields::addAll);
+    checkFieldNames(allFields);
+    updateMaxQueryClauseCount();
+    Query termSetFilter = IdSetFilterQueries.combineLuceneFilters(termSetRestrictions);
+    return withSearcher(indexSearcher -> {
+      Query rbac = buildRbacFilterQuery();
+      Query query = buildRbacFilteredMetricQuery(metricQuery, termSetFilter, rbac);
+      // Leaf-parallel stored-field loads use ForkJoinPool.commonPool() so slices overlap. The
+      // outer DashboardMetricsService call already runs on a dedicated platform
+      // TenantThreadPoolExecutor (not virtual threads, not the IQ GENERAL pool).
+      IndexSearcher parallelSearcher =
+          new IndexSearcher(indexSearcher.getIndexReader(), ForkJoinPool.commonPool());
+      return parallelSearcher.search(query,
+          NamedDistinctStoredFieldsCollector.manager(namedCompositeKeyFields, allFields));
+    });
+  }
+
+  @Override
   public Map<String, Long> countDistinctGroupedBy(
       final String metricQuery,
       final String groupField,
@@ -1050,17 +1128,6 @@ public class LuceneSearchIndexClient
     return e instanceof SearcherManagerUnavailableException;
   }
 
-  /**
-   * Counts distinct composite keys among the RBAC-filtered documents matching {@code metricQuery} (further
-   * narrowed by {@code extraFilter}, e.g. a per-band float-range clause, when non-null). The matching
-   * documents are visited via a {@link SimpleCollector}; for each, the stored values of {@code compositeKeyFields}
-   * are joined into a single key accumulated in a {@link HashSet}, and the set size is returned. Reuses the same
-   * programmatic RBAC FILTER (and {@link MatchNoDocsQuery} fail-closed behavior) as {@link #countWithSearcher}.
-   * <p>
-   * Note (scale): this materializes one entry per distinct key in memory. At ~1M SECURITY_VULNERABILITY docs this
-   * is bounded by the number of distinct (applicationId, componentHash) pairs and is acceptable for current scale;
-   * F28 scale certification (CLM-40928) will validate this and switch to a streaming/docvalues approach if needed.
-   */
   private long countDistinctWithSearcher(
       final IndexSearcher indexSearcher,
       final String metricQuery,
@@ -1069,6 +1136,33 @@ public class LuceneSearchIndexClient
       final Query rbac) throws Exception
   {
     Query query = buildRbacFilteredMetricQuery(metricQuery, extraFilter, rbac);
+    if (compositeKeyFields.size() == 1) {
+      return countDistinctBySortedDocValues(indexSearcher, query, compositeKeyFields.get(0));
+    }
+    return countDistinctByStoredFields(indexSearcher, query, compositeKeyFields);
+  }
+
+  private static long countDistinctBySortedDocValues(
+      final IndexSearcher indexSearcher,
+      final Query query,
+      final String field) throws IOException
+  {
+    SortedDocValues globalValues = MultiDocValues.getSortedValues(indexSearcher.getIndexReader(), field);
+    if (globalValues == null || globalValues.getValueCount() == 0) {
+      return 0L;
+    }
+    OrdinalMap ordinalMap =
+        globalValues instanceof MultiSortedDocValues multi ? multi.mapping : null;
+    FixedBitSet seenOrds = new FixedBitSet(globalValues.getValueCount());
+    indexSearcher.search(query, new DistinctSortedDocValuesCollector(field, ordinalMap, seenOrds));
+    return seenOrds.cardinality();
+  }
+
+  private static long countDistinctByStoredFields(
+      final IndexSearcher indexSearcher,
+      final Query query,
+      final List<String> compositeKeyFields) throws IOException
+  {
     Set<String> fieldsToLoad = new HashSet<>(compositeKeyFields);
     StoredFields storedFields = indexSearcher.storedFields();
     Set<String> distinctKeys = new HashSet<>();
@@ -1101,6 +1195,12 @@ public class LuceneSearchIndexClient
       }
     });
     return distinctKeys.size();
+  }
+
+  private static MetricAggregationResult zeroBandResult(final Map<String, float[]> ranges) {
+    Map<String, Long> buckets = new LinkedHashMap<>();
+    ranges.keySet().forEach(label -> buckets.put(label, 0L));
+    return new MetricAggregationResult(0L, buckets);
   }
 
   /**

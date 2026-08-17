@@ -8,33 +8,24 @@ import { Flex, Heading, Text } from '@radix-ui/themes';
 import { DomainIcons } from 'MainRoot/nosc/icons';
 import { DashboardTile } from 'MainRoot/nosc/dashboard/DashboardTile';
 import { useTile } from 'MainRoot/nosc/dashboard/useTile';
-import { getApplicationsUrl } from 'MainRoot/util/CLMLocation';
+import { getDashboardMetricsUrl } from 'MainRoot/util/CLMLocation';
 import { dashboardApplicationsHref } from 'MainRoot/nosc/dashboard/dashboardBundleUrls';
+import type { DashboardMetricsResponse } from 'MainRoot/nosc/dashboard/metrics/dashboardMetricsTypes';
 
 /**
  * Apps-Scanned KPI tile (CLM-39641 / P1-F6 §9.4).
  *
- * Phase-1 demo tile: shows the count of applications in scope by reading
- * `GET /rest/application` and taking the length of the returned array.
- * The endpoint returns a top-level JSON array (no `{ applications: [...] }`
- * envelope) — verified against the live dev server. No new backend work;
- * uses the existing endpoint that Classic IQ also reads. At 10 apps (the
- * demo seed) this is trivially fast; the Phase-1.5 follow-up Epic (see
- * F6 §9.3) will replace this with a proper severity-count strip backed
- * by an aggregate endpoint.
+ * Shows the RBAC-scoped application count from
+ * {@code POST /rest/dashboard/metrics} with {@code includeHeavyMetrics: false}
+ * (the summary tier already returns {@code applications.total}).
  */
-interface ApplicationSummary {
-  id: string;
-  publicId: string;
-  name: string;
-  organizationId?: string;
-  organizationName?: string;
-}
-
 export function AppsScannedTile() {
-  const { status, data, retry } = useTile<ApplicationSummary[]>(getApplicationsUrl());
+  const { status, data, retry } = useTile<DashboardMetricsResponse>(getDashboardMetricsUrl(), undefined, {
+    method: 'post',
+    body: { includeHeavyMetrics: false },
+  });
 
-  const count = Array.isArray(data) ? data.length : 0;
+  const count = data?.applications?.total ?? 0;
 
   return (
     <DashboardTile title="Apps Scanned" status={status} onRetry={retry} errorMessage="Failed to load apps">

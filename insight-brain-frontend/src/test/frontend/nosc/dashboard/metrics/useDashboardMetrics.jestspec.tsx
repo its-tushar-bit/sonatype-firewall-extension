@@ -56,7 +56,7 @@ describe('useDashboardMetrics (two-phase fast + heavy)', () => {
     jest.restoreAllMocks();
   });
 
-  it('POSTs fast tier first, becomes ready, then merges heavy tiles', async () => {
+  it('POSTs fast and heavy tiers together, becomes ready, then merges heavy tiles', async () => {
     axiosMock.onPost(getDashboardMetricsUrl()).reply((config) => {
       const body = JSON.parse(String(config.data));
       return [200, body.includeHeavyMetrics === false ? FAST_BODY : HEAVY_ONLY_BODY];
@@ -67,23 +67,21 @@ describe('useDashboardMetrics (two-phase fast + heavy)', () => {
 
     expect(result.current.status).toBe('loading');
 
+    await waitFor(() => expect(axiosMock.history.post).toHaveLength(2));
+    const postBodies = axiosMock.history.post.map(({ data }) => JSON.parse(String(data)));
+    expect(postBodies).toEqual(
+      expect.arrayContaining([
+        { ...scope, includeHeavyMetrics: false },
+        { ...scope, includeHeavyMetrics: true },
+      ])
+    );
+
     await waitFor(() => expect(result.current.status).toBe('ready'));
     expect(result.current.data?.applications?.total).toBe(12);
-    expect(JSON.parse(axiosMock.history.post[0].data).includeHeavyMetrics).toBe(false);
 
     await waitFor(() => expect(result.current.heavyLoading).toBe(false));
     expect(result.current.data?.components?.total).toBe(100);
     expect(result.current.data?.vulnerabilities?.total).toBe(9);
-
-    expect(axiosMock.history.post.length).toBe(2);
-    expect(JSON.parse(axiosMock.history.post[0].data)).toEqual({
-      ...scope,
-      includeHeavyMetrics: false,
-    });
-    expect(JSON.parse(axiosMock.history.post[1].data)).toEqual({
-      ...scope,
-      includeHeavyMetrics: true,
-    });
   });
 
   it('does not re-POST across re-renders when the scope is unchanged', async () => {
@@ -163,13 +161,20 @@ describe('useDashboardMetrics (two-phase fast + heavy)', () => {
   });
 
   it('retry() re-issues the POST and can recover from error → ready', async () => {
-    axiosMock.onPost(getDashboardMetricsUrl()).replyOnce(500, {});
-    axiosMock.onPost(getDashboardMetricsUrl()).reply(200, FAST_BODY);
+    let summaryFails = true;
+    axiosMock.onPost(getDashboardMetricsUrl()).reply((config) => {
+      const body = JSON.parse(String(config.data));
+      if (body.includeHeavyMetrics === false && summaryFails) return [500, {}];
+      return [200, body.includeHeavyMetrics === false ? FAST_BODY : HEAVY_ONLY_BODY];
+    });
 
     const { result } = renderHook(() => useDashboardMetrics({}));
     await waitFor(() => expect(result.current.status).toBe('error'));
 
-    act(() => result.current.retry());
+    act(() => {
+      summaryFails = false;
+      result.current.retry();
+    });
 
     await waitFor(() => expect(result.current.status).toBe('ready'));
     expect(axiosMock.history.post.length).toBeGreaterThanOrEqual(2);
@@ -228,7 +233,7 @@ describe('useDashboardMetrics (two-phase fast + heavy)', () => {
     expect(summaryPosts).toHaveLength(1);
   });
 
-  it('ignores stale scope work and starts heavy metrics only from the matching summary', async () => {
+  it('ignores stale scope work and does not apply a superseded heavy response', async () => {
     const oldSummary = deferredResponse<typeof FAST_BODY>();
     const oldHeavy = deferredResponse<typeof HEAVY_ONLY_BODY>();
     const newSummary = deferredResponse<typeof FAST_BODY>();
@@ -258,7 +263,14 @@ describe('useDashboardMetrics (two-phase fast + heavy)', () => {
       }
     );
 
-    oldSummary.resolve([200, FAST_BODY]);
+    await waitFor(() =>
+      expect(
+        axiosMock.history.post.filter(({ data }) => {
+          const body = JSON.parse(String(data));
+          return body.organizationIds[0] === 'org-old' && body.includeHeavyMetrics === false;
+        })
+      ).toHaveLength(1)
+    );
     await waitFor(() =>
       expect(
         axiosMock.history.post.filter(({ data }) => {
@@ -277,15 +289,6 @@ describe('useDashboardMetrics (two-phase fast + heavy)', () => {
         })
       ).toHaveLength(1)
     );
-
-    expect(
-      axiosMock.history.post.filter(({ data }) => {
-        const body = JSON.parse(String(data));
-        return body.organizationIds[0] === 'org-new' && body.includeHeavyMetrics === true;
-      })
-    ).toHaveLength(0);
-
-    newSummary.resolve([200, newFastBody]);
     await waitFor(() =>
       expect(
         axiosMock.history.post.filter(({ data }) => {
@@ -294,6 +297,7 @@ describe('useDashboardMetrics (two-phase fast + heavy)', () => {
         })
       ).toHaveLength(1)
     );
+    newSummary.resolve([200, newFastBody]);
     newHeavy.resolve([200, newHeavyBody]);
     await waitFor(() => expect(result.current.data?.components?.total).toBe(200));
 
@@ -365,7 +369,7 @@ describe('useDashboardMetrics (two-phase fast + heavy)', () => {
     });
   });
 
-  it('requires a new summary before starting heavy metrics after re-enable', async () => {
+  it('fires both tiers on re-enable without waiting for the new summary', async () => {
     const restartedSummary = deferredResponse<typeof FAST_BODY>();
     let summaryRequests = 0;
 
@@ -388,10 +392,11 @@ describe('useDashboardMetrics (two-phase fast + heavy)', () => {
         axiosMock.history.post.filter(({ data }) => JSON.parse(String(data)).includeHeavyMetrics === false)
       ).toHaveLength(2)
     );
-
-    expect(
-      axiosMock.history.post.filter(({ data }) => JSON.parse(String(data)).includeHeavyMetrics === true)
-    ).toHaveLength(1);
+    await waitFor(() =>
+      expect(
+        axiosMock.history.post.filter(({ data }) => JSON.parse(String(data)).includeHeavyMetrics === true)
+      ).toHaveLength(2)
+    );
 
     restartedSummary.resolve([
       200,
@@ -400,28 +405,20 @@ describe('useDashboardMetrics (two-phase fast + heavy)', () => {
         applications: { ...FAST_BODY.applications, total: 36 },
       },
     ]);
-    await waitFor(() =>
-      expect(
-        axiosMock.history.post.filter(({ data }) => JSON.parse(String(data)).includeHeavyMetrics === true)
-      ).toHaveLength(2)
-    );
-    expect(result.current.data?.applications?.total).toBe(36);
+    await waitFor(() => expect(result.current.data?.applications?.total).toBe(36));
   });
 
   it('ignores a late summary response after unmount', async () => {
     const summary = deferredResponse<typeof FAST_BODY>();
-    let requestSignal: { readonly aborted: boolean } | undefined;
     const consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined);
-    axiosMock.onPost(getDashboardMetricsUrl()).reply((config) => {
-      requestSignal = config.signal;
-      return summary.promise;
-    });
+    axiosMock.onPost(getDashboardMetricsUrl()).reply(() => summary.promise);
 
     const { result, unmount } = renderHook(() => useDashboardMetrics({}));
+    await waitFor(() => expect(axiosMock.history.post).toHaveLength(2));
     const stateBeforeUnmount = result.current;
-    expect(requestSignal).toBeDefined();
+    const requestSignals = axiosMock.history.post.map(({ signal }) => signal);
     unmount();
-    expect(requestSignal?.aborted).toBe(true);
+    expect(requestSignals.every((signal) => signal?.aborted)).toBe(true);
 
     await act(async () => {
       summary.resolve([200, FAST_BODY]);
@@ -431,7 +428,7 @@ describe('useDashboardMetrics (two-phase fast + heavy)', () => {
     });
 
     expect(result.current).toBe(stateBeforeUnmount);
-    expect(axiosMock.history.post).toHaveLength(1);
+    expect(axiosMock.history.post).toHaveLength(2);
     expect(
       consoleError.mock.calls.some((args) => args.some((arg) => /state update.*unmounted/i.test(String(arg))))
     ).toBe(false);

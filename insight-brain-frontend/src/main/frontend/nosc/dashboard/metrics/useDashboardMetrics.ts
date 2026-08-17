@@ -12,11 +12,10 @@ import type { DashboardMetricsResponse, DashboardMetricsScope } from './dashboar
 /**
  * Two-phase dashboard metrics load (estate scale).
  *
- * 1. Fast tier — cheap index counts + SQL waivers ({@code includeHeavyMetrics: false}).
- * 2. Heavy tier — violations / components / vulnerabilities / legal overlays.
- *
- * The grid becomes {@code ready} as soon as the fast tier returns so Applications /
- * Orgs / Policies / Waivers paint without waiting on the detailed aggregations.
+ * Fast ({@code includeHeavyMetrics: false}) and heavy POSTs start together. The grid
+ * becomes {@code ready} when the fast tier returns so Applications / Orgs / Policies /
+ * Waivers paint without waiting on the detailed aggregations; heavy tiles overlay when
+ * that response arrives.
  */
 
 export type DashboardMetricsStatus = TileStatus;
@@ -25,7 +24,7 @@ export interface UseDashboardMetricsResult {
   readonly status: DashboardMetricsStatus;
   readonly data: DashboardMetricsResponse | null;
   readonly error: Error | null;
-  /** True while the heavy (countDistinct) request is still in flight after fast KPIs are ready. */
+  /** True while the heavy (countDistinct) request is still in flight. */
   readonly heavyLoading: boolean;
   readonly heavyError: Error | null;
   readonly retry: () => void;
@@ -35,11 +34,6 @@ export interface UseDashboardMetricsResult {
 interface SummaryRequestIdentity {
   readonly requestKey: string;
   readonly generation: number;
-}
-
-interface SummarySnapshot {
-  readonly identity: SummaryRequestIdentity;
-  readonly data: DashboardMetricsResponse;
 }
 
 function statusCodeOf(err: unknown): number | undefined {
@@ -83,100 +77,127 @@ export function useDashboardMetrics(scope: DashboardMetricsScope = {}, enabled =
   const summaryRequestKey = useMemo(() => JSON.stringify([scopeKey, summaryAttempt]), [scopeKey, summaryAttempt]);
   const summaryGeneration = useRef(0);
   const activeSummaryIdentity = useRef<SummaryRequestIdentity | null>(null);
+  const summaryDataRef = useRef<DashboardMetricsResponse | null>(null);
+  const pendingHeavyRef = useRef<DashboardMetricsResponse | null>(null);
   const [status, setStatus] = useState<DashboardMetricsStatus>('loading');
-  const [summarySnapshot, setSummarySnapshot] = useState<SummarySnapshot | null>(null);
   const [data, setData] = useState<DashboardMetricsResponse | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [heavyLoading, setHeavyLoading] = useState(false);
   const [heavyError, setHeavyError] = useState<Error | null>(null);
 
+  const fetchHeavy = useCallback(
+    (
+      identity: SummaryRequestIdentity,
+      summaryData: DashboardMetricsResponse | null,
+      signal: AbortSignal,
+      isCancelled: () => boolean
+    ) =>
+      axios
+        .post<DashboardMetricsResponse>(
+          getDashboardMetricsUrl(),
+          { ...scopeBody, includeHeavyMetrics: true },
+          { signal }
+        )
+        .then(({ data: heavyData }) => {
+          if (isCancelled() || activeSummaryIdentity.current !== identity) return;
+          const summary = summaryData ?? summaryDataRef.current;
+          if (summary) {
+            setData(mergeMetrics(summary, heavyData));
+            setHeavyLoading(false);
+          } else {
+            pendingHeavyRef.current = heavyData;
+          }
+        })
+        .catch((err) => {
+          if (isCancelled() || axios.isCancel?.(err)) return;
+          setHeavyError(err instanceof Error ? err : new Error(String(err)));
+          setHeavyLoading(false);
+        }),
+    [scopeBody]
+  );
+
   useEffect(() => {
     if (!enabled) {
       activeSummaryIdentity.current = null;
+      summaryDataRef.current = null;
+      pendingHeavyRef.current = null;
       setHeavyLoading(false);
       setHeavyError(null);
       return;
     }
 
     let cancelled = false;
-    const controller = new AbortController();
+    const summaryController = new AbortController();
+    const heavyController = new AbortController();
     const identity = {
       requestKey: summaryRequestKey,
       generation: summaryGeneration.current + 1,
     };
     summaryGeneration.current = identity.generation;
     activeSummaryIdentity.current = identity;
+    summaryDataRef.current = null;
+    pendingHeavyRef.current = null;
     setStatus('loading');
     setError(null);
-    setSummarySnapshot(null);
-    setHeavyLoading(false);
-    setHeavyError(null);
-
-    const url = getDashboardMetricsUrl();
-
-    (async () => {
-      try {
-        const fastResponse = await axios.post<DashboardMetricsResponse>(
-          url,
-          { ...scopeBody, includeHeavyMetrics: false },
-          { signal: controller.signal }
-        );
-        if (cancelled || activeSummaryIdentity.current !== identity) return;
-        // Mark heavy in-flight in the same commit as the summary so the grid never renders a
-        // frame where summary cards are ready but heavyLoading is still false (missing slots).
-        setSummarySnapshot({ identity, data: fastResponse.data });
-        setHeavyLoading(true);
-        setData(fastResponse.data);
-        setStatus('ready');
-      } catch (err) {
-        if (cancelled || axios.isCancel?.(err)) return;
-        const e = err instanceof Error ? err : new Error(String(err));
-        setError(e);
-        setStatus(statusCodeOf(err) === 409 ? 'not-ready' : 'error');
-        setHeavyLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-      if (activeSummaryIdentity.current === identity) activeSummaryIdentity.current = null;
-      controller.abort();
-    };
-  }, [enabled, scopeBody, summaryRequestKey]);
-
-  useEffect(() => {
-    if (!enabled || summarySnapshot?.identity !== activeSummaryIdentity.current) return;
-
-    let cancelled = false;
-    const controller = new AbortController();
-    const identity = summarySnapshot.identity;
-    const summaryData = summarySnapshot.data;
     setHeavyLoading(true);
     setHeavyError(null);
 
     axios
       .post<DashboardMetricsResponse>(
         getDashboardMetricsUrl(),
-        { ...scopeBody, includeHeavyMetrics: true },
-        { signal: controller.signal }
+        { ...scopeBody, includeHeavyMetrics: false },
+        { signal: summaryController.signal }
       )
-      .then(({ data: heavyData }) => {
+      .then(({ data: fastData }) => {
         if (cancelled || activeSummaryIdentity.current !== identity) return;
-        setData(mergeMetrics(summaryData, heavyData));
+        summaryDataRef.current = fastData;
+        const pendingHeavy = pendingHeavyRef.current;
+        if (pendingHeavy) {
+          pendingHeavyRef.current = null;
+          setData(mergeMetrics(fastData, pendingHeavy));
+          setHeavyLoading(false);
+        } else {
+          setData(fastData);
+        }
+        setStatus('ready');
       })
       .catch((err) => {
         if (cancelled || axios.isCancel?.(err)) return;
-        setHeavyError(err instanceof Error ? err : new Error(String(err)));
-      })
-      .finally(() => {
-        if (!cancelled) setHeavyLoading(false);
+        const e = err instanceof Error ? err : new Error(String(err));
+        setError(e);
+        setStatus(statusCodeOf(err) === 409 ? 'not-ready' : 'error');
+        setHeavyLoading(false);
+        heavyController.abort();
       });
+
+    fetchHeavy(identity, null, heavyController.signal, () => cancelled);
+
+    return () => {
+      cancelled = true;
+      if (activeSummaryIdentity.current === identity) activeSummaryIdentity.current = null;
+      summaryController.abort();
+      heavyController.abort();
+    };
+  }, [enabled, scopeBody, summaryRequestKey, fetchHeavy]);
+
+  useEffect(() => {
+    if (!enabled || heavyAttempt === 0) return;
+    const identity = activeSummaryIdentity.current;
+    const summaryData = summaryDataRef.current;
+    if (identity == null || summaryData == null) return;
+
+    let cancelled = false;
+    const controller = new AbortController();
+    setHeavyLoading(true);
+    setHeavyError(null);
+
+    fetchHeavy(identity, summaryData, controller.signal, () => cancelled);
 
     return () => {
       cancelled = true;
       controller.abort();
     };
-  }, [enabled, heavyAttempt, scopeBody, summaryRequestKey, summarySnapshot]);
+  }, [enabled, heavyAttempt, scopeBody, fetchHeavy]);
 
   const retry = useCallback(() => {
     setHeavyAttempt(0);

@@ -106,17 +106,21 @@ export function useApplicationsList(options: UseApplicationsListOptions = {}): U
   const [filters, setFilters] = useState<ApplicationsListFilterState>(
     () => initialState?.filters ?? EMPTY_APPLICATIONS_LIST_FILTERS
   );
+  // Per mount: first request omits facet aggregations so the card list paints, then a follow-up
+  // fills the filter rail. Later filter/search/page changes keep includeFacets true. Navigating
+  // away and back remounts the hook and repeats the two-step paint.
+  const [facetsReady, setFacetsReady] = useState(false);
 
   const requestBody = useMemo(
     () => ({
       page,
       pageSize,
-      includeFacets,
+      includeFacets: includeFacets && facetsReady,
       orderBy,
       ...(search.trim() ? { search: search.trim() } : {}),
       ...applicationsListFiltersToRequest(filters),
     }),
-    [page, pageSize, includeFacets, search, orderBy, filters]
+    [page, pageSize, includeFacets, facetsReady, search, orderBy, filters]
   );
 
   const { status, data, error, retry } = useTile<ApplicationsListApiResponse>(getApplicationsListUrl(), undefined, {
@@ -127,6 +131,12 @@ export function useApplicationsList(options: UseApplicationsListOptions = {}): U
   });
 
   const mapped = useMemo(() => (data ? mapApplicationsListResponse(data) : null), [data]);
+
+  useEffect(() => {
+    if (includeFacets && mapped && !facetsReady) {
+      setFacetsReady(true);
+    }
+  }, [includeFacets, mapped, facetsReady]);
 
   // Stale-while-revalidate: a filter/search/page change refetches server-side, and useTile
   // may clear `data` while the request is in flight. Retaining the last rows during that window

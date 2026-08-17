@@ -91,20 +91,14 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
     isAvailable: (data) => isPresentMetric(data.legal),
     select: (data, context) => {
       const b = data.legal?.breakdown;
-      const dualHero: readonly [DualHeroStat, DualHeroStat] | undefined = b
-        ? [
-            {
-              value: b.applications,
-              label: b.applications === 1 ? 'Application' : 'Applications',
-            },
-            { value: b.components, label: b.components === 1 ? 'Component' : 'Components' },
-          ]
-        : undefined;
       return {
-        // Dual-hero only when the countDistinct breakdown is present; otherwise
-        // fall back to the headline total so the card never renders a bare "0".
-        value: dualHero ? undefined : data.legal?.total ?? 0,
-        dualHero,
+        dualHero: [
+          {
+            value: b?.applications ?? 0,
+            label: b?.applications === 1 ? 'Application' : 'Applications',
+          },
+          { value: b?.components ?? 0, label: b?.components === 1 ? 'Component' : 'Components' },
+        ],
         href: dashboardLegalHref(context.advancedLegalPack),
       };
     },

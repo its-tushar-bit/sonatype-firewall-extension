@@ -10,7 +10,7 @@ import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 import { AppsScannedTile } from 'MainRoot/nosc/dashboard/tiles/AppsScannedTile';
 import { dashboardApplicationsHref } from 'MainRoot/nosc/dashboard/dashboardBundleUrls';
 import { setupNexusOneBundleLocation } from 'TestRoot/nosc/dashboard/dashboardTestHrefs';
-import { getApplicationsUrl } from 'MainRoot/util/CLMLocation';
+import { getDashboardMetricsUrl } from 'MainRoot/util/CLMLocation';
 
 describe('AppsScannedTile', () => {
   let axiosMock: any;
@@ -34,12 +34,14 @@ describe('AppsScannedTile', () => {
       </Theme>,
     );
 
-  it('shows skeleton, then renders the count once /rest/application resolves', async () => {
-    axiosMock.onGet(getApplicationsUrl()).reply(200, [
-      { id: 'a1', publicId: 'apple', name: 'Apple' },
-      { id: 'a2', publicId: 'banana', name: 'Banana' },
-      { id: 'a3', publicId: 'cherry', name: 'Cherry' },
-    ]);
+  const stubSummaryMetrics = (total: number) => {
+    axiosMock.onPost(getDashboardMetricsUrl()).reply(200, {
+      applications: { total, breakdown: { stages: 5 }, source: 'index' },
+    });
+  };
+
+  it('shows skeleton, then renders the count once summary metrics resolve', async () => {
+    stubSummaryMetrics(3);
 
     renderTile();
     expect(screen.getByTestId('dashboard-tile-skeleton')).toBeInTheDocument();
@@ -52,7 +54,7 @@ describe('AppsScannedTile', () => {
   });
 
   it('renders a zero count when there are no applications', async () => {
-    axiosMock.onGet(getApplicationsUrl()).reply(200, []);
+    stubSummaryMetrics(0);
     renderTile();
     await waitFor(() => {
       expect(screen.getByText('0')).toBeInTheDocument();
@@ -60,7 +62,7 @@ describe('AppsScannedTile', () => {
   });
 
   it('renders the error state when the endpoint returns 500', async () => {
-    axiosMock.onGet(getApplicationsUrl()).reply(500, {});
+    axiosMock.onPost(getDashboardMetricsUrl()).reply(500, {});
     renderTile();
     await waitFor(() => {
       expect(screen.getByTestId('dashboard-tile-error')).toBeInTheDocument();
@@ -68,7 +70,7 @@ describe('AppsScannedTile', () => {
   });
 
   it('tile body click-target points to /preview/dashboard/applications (S2-PR-D-5 IA wiring)', async () => {
-    axiosMock.onGet(getApplicationsUrl()).reply(200, []);
+    stubSummaryMetrics(0);
     renderTile();
     await waitFor(() => {
       expect(screen.getByTestId('apps-scanned-tile-body')).toBeInTheDocument();

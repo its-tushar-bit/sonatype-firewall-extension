@@ -555,15 +555,17 @@ describe('MetricCardGrid (CLM-40905 AT-F16: landing grid)', () => {
     expect(screen.queryByTestId('metric-card-components-secondary-value')).not.toBeInTheDocument();
   });
 
-  it('renders legal with headline total when breakdown is null', async () => {
+  it('renders legal dual-hero zeros when breakdown is null', async () => {
     axiosMock.onPost(getDashboardMetricsUrl()).reply(200, {
       ...FULL_BODY,
       legal: { total: 10, breakdown: null, source: 'index' },
     });
     renderGrid();
 
-    await waitFor(() => expect(screen.getByTestId('metric-card-legal-value')).toHaveTextContent('10'));
-    expect(screen.queryByTestId('metric-card-legal-dual-applications-value')).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByTestId('metric-card-legal-dual-applications-value')).toHaveTextContent('0'));
+    expect(screen.getByTestId('metric-card-legal-dual-components-value')).toHaveTextContent('0');
+    expect(screen.queryByTestId('metric-card-legal-value')).not.toBeInTheDocument();
   });
 
   it('omits orgs-and-policies when only one side of the pair is present', async () => {

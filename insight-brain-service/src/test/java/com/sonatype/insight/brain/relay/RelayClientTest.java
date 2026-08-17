@@ -15,19 +15,19 @@ import com.sonatype.insight.brain.relay.dto.RelayRotateWebhookSecretResponse;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightProxy;
+import com.sonatype.insight.brain.testsupport.wiremock.ReusableWireMockExtension;
 import com.sonatype.insight.brain.utils.Retry;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.sonatype.insight.error.exception.NotFoundException;
 import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.NotAuthorizedException;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.delete;
@@ -36,21 +36,20 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class RelayClientTest
 {
-  @Rule
-  public WireMockRule relayServer = new WireMockRule(wireMockConfig().dynamicPort());
+  @RegisterExtension
+  static ReusableWireMockExtension relayServer = new ReusableWireMockExtension();
 
   private RelayClient client;
 
-  @Before
+  @BeforeEach
   public void before() {
     Configuration configuration = mock(Configuration.class);
     when(configuration.getRelayUrl()).thenReturn(relayServer.baseUrl() + "/");

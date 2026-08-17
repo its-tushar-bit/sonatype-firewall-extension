@@ -14,33 +14,32 @@ import com.sonatype.insight.brain.dataaccess.configuration.RepositoryClientConfi
 import com.sonatype.insight.brain.model.configuration.RepositoryClientConfiguration;
 import com.sonatype.insight.brain.repository.RepositoryAllVersionsResponse;
 import com.sonatype.insight.brain.repository.RepositoryClient;
+import com.sonatype.insight.brain.testsupport.wiremock.ReusableWireMockExtension;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.NotAuthenticatedException;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class NexusRepository3ClientTest
 {
-  @Rule
-  public WireMockRule nxrm3MockSever = new WireMockRule(wireMockConfig().dynamicPort());
+  @RegisterExtension
+  static ReusableWireMockExtension nxrm3MockServer = new ReusableWireMockExtension();
 
   public static final String NXRM_VERSION_HEADER_MOCK_VALUE = "Nexus/3.37.3-02 (PRO)";
 
@@ -51,11 +50,11 @@ public class NexusRepository3ClientTest
 
   private String baseUrl;
 
-  @Before
+  @BeforeEach
   public void before() {
     when(clientConfigurationDAO.get()).thenReturn(newRepositoryClientConfiguration());
     factory = new RepositoryClientFactory(clientConfigurationDAO);
-    baseUrl = nxrm3MockSever.baseUrl();
+    baseUrl = nxrm3MockServer.baseUrl();
   }
 
   private RepositoryClientConfiguration newRepositoryClientConfiguration() {
@@ -69,7 +68,7 @@ public class NexusRepository3ClientTest
   public void testGetAllVersions_Maven_NoPaging() throws Exception {
     Map<String, String> params =
         ImmutableMap.of("group", "g1", "name", "n1", "maven.extension", "jar", "maven.classifier", "");
-    nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
+    nxrm3MockServer.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
         .withBasicAuth("user", "pass")
         .withQueryParams(ImmutableMap.of(
             "group", equalTo("g1"),
@@ -91,7 +90,7 @@ public class NexusRepository3ClientTest
 
   @Test
   public void testGetAllVersions_Maven_WithPaging() throws Exception {
-    nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
+    nxrm3MockServer.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
         .withBasicAuth("user", "pass")
         .withQueryParams(ImmutableMap.of(
             "group", equalTo("g1"),
@@ -102,7 +101,7 @@ public class NexusRepository3ClientTest
             .withStatus(200)
             .withBody(getCannedResponse("maven_paging_1.json"))));
 
-    nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
+    nxrm3MockServer.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
         .withBasicAuth("user", "pass")
         .withQueryParams(ImmutableMap.of(
             "group", equalTo("g1"),
@@ -128,14 +127,14 @@ public class NexusRepository3ClientTest
 
   @Test
   public void testGetAllVersions_Npm_WithPaging() throws Exception {
-    nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
+    nxrm3MockServer.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
         .withBasicAuth("user", "pass")
         .withQueryParam("name", equalTo("p1"))
         .willReturn(aResponse()
             .withStatus(200)
             .withBody(getCannedResponse("npm_page_1.json"))));
 
-    nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
+    nxrm3MockServer.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
         .withBasicAuth("user", "pass")
         .withQueryParam("name", equalTo("p1"))
         .withQueryParam("continuationToken", equalTo("page2"))
@@ -155,7 +154,7 @@ public class NexusRepository3ClientTest
 
   @Test
   public void testGetAllVersions_Npm_NoPaging() throws Exception {
-    nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
+    nxrm3MockServer.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
         .withBasicAuth("user", "pass")
         .withQueryParam("name", equalTo("p1"))
         .willReturn(aResponse()
@@ -172,7 +171,7 @@ public class NexusRepository3ClientTest
 
   @Test
   public void testGetAllVersions_HandleInvalidCoordinates() throws Exception {
-    nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
+    nxrm3MockServer.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
         .withBasicAuth("user", "pass")
         .willReturn(aResponse()
             .withStatus(200)
@@ -188,7 +187,7 @@ public class NexusRepository3ClientTest
 
   @Test
   public void testGetAllVersions_InvalidCredentials() {
-    nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
+    nxrm3MockServer.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
         .willReturn(aResponse().withStatus(401)));
 
     RepositoryClient client = factory.create().forNexus3(baseUrl, "BLAH", "BLAH".toCharArray());
@@ -200,7 +199,7 @@ public class NexusRepository3ClientTest
 
   @Test
   public void testGetAllVersions_ServerError() {
-    nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
+    nxrm3MockServer.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
         .withBasicAuth("user", "pass")
         .willReturn(aResponse().withStatus(502)));
 
@@ -213,7 +212,7 @@ public class NexusRepository3ClientTest
 
   @Test
   public void testGetAllVersions_InvalidResponseContent() throws Exception {
-    nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
+    nxrm3MockServer.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
         .withBasicAuth("user", "pass")
         .willReturn(aResponse()
             .withStatus(200)
@@ -228,7 +227,7 @@ public class NexusRepository3ClientTest
 
   @Test
   public void testGetServerStatus_OK() throws Exception {
-    nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/status"))
+    nxrm3MockServer.stubFor(get(urlPathMatching("/service/rest/v1/status"))
         .withBasicAuth("user", "pass")
         .willReturn(aResponse().withHeader(NexusRepository3Client.NXRM_VERSION_HEADER_NAME,
             NexusRepository3ClientTest.NXRM_VERSION_HEADER_MOCK_VALUE).withStatus(200)));
@@ -239,7 +238,7 @@ public class NexusRepository3ClientTest
 
   @Test
   public void testGetServerStatus_Unauthorized() throws Exception {
-    nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/status"))
+    nxrm3MockServer.stubFor(get(urlPathMatching("/service/rest/v1/status"))
         .willReturn(aResponse().withHeader(NexusRepository3Client.NXRM_VERSION_HEADER_NAME,
             NexusRepository3ClientTest.NXRM_VERSION_HEADER_MOCK_VALUE).withStatus(401)));
 
@@ -249,7 +248,7 @@ public class NexusRepository3ClientTest
 
   @Test
   public void testGetAllVersions_Maven_MissingSha1() throws Exception {
-    nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
+    nxrm3MockServer.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
         .withBasicAuth("user", "pass")
         .willReturn(aResponse()
             .withStatus(200)
@@ -266,7 +265,7 @@ public class NexusRepository3ClientTest
 
   @Test
   public void testGetAllVersions_Npm_MissingSha1() throws Exception {
-    nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
+    nxrm3MockServer.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
         .withBasicAuth("user", "pass")
         .willReturn(aResponse()
             .withStatus(200)
@@ -282,7 +281,7 @@ public class NexusRepository3ClientTest
 
   @Test
   public void testGetAllVersions_OrderedByComparableVersion() throws Exception {
-    nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
+    nxrm3MockServer.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
         .withQueryParams(ImmutableMap.of(
             "group", equalTo("g"),
             "name", equalTo("a"),
@@ -307,7 +306,7 @@ public class NexusRepository3ClientTest
 
   @Test
   public void testGetAllVersions_RemovesDuplicates() throws Exception {
-    nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
+    nxrm3MockServer.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
         .withQueryParams(ImmutableMap.of(
             "group", equalTo("g"),
             "name", equalTo("a"),

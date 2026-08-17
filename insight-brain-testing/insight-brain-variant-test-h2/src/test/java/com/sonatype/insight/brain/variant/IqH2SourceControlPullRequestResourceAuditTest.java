@@ -27,33 +27,33 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.service.AuditTestSupport;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlPullRequestResource;
+import com.sonatype.insight.brain.testsupport.wiremock.ReusableWireMockExtension;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.test.LogOutput;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.nexus.scm.github.dto.GithubUser;
 import org.apache.http.HttpHeaders;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.sonatype.insight.brain.hds.VersionScoringService.HDS_BULK_SCORE_VERSIONING_PATH;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Converted from the legacy {@code SourceControlPullRequestResourceAuditTest}. The legacy
- * {@code WireMockRule} (a JUnit4 {@code TestRule}) is replaced with a plain {@code WireMockServer}
- * started/stopped per test via {@code @BeforeEach}/{@code @AfterEach}.
+ * Kept in the original resource package because it exercises {@link SourceControlPullRequestResource}. The mock git
+ * service is a reuse-safe, dynamic-port WireMock extension registered as a {@code static} field: one server per class,
+ * with stubs and request journal reset between tests, so it runs cleanly inside the reused IQ server cohort.
  */
 @IqH2Test
 class IqH2SourceControlPullRequestResourceAuditTest
@@ -67,7 +67,8 @@ class IqH2SourceControlPullRequestResourceAuditTest
   private final TestLogOutput logOutput =
       new TestLogOutput(com.sonatype.insight.brain.audit.AuditRecorder.BASE_LOGGER_NAME);
 
-  private WireMockServer gitService;
+  @RegisterExtension
+  static ReusableWireMockExtension gitService = new ReusableWireMockExtension();
 
   @BeforeEach
   void before() {
@@ -75,17 +76,12 @@ class IqH2SourceControlPullRequestResourceAuditTest
     logOutput.clear();
     unauthorizedUser = ctx.tempEntity().newUser();
 
-    gitService = new WireMockServer(wireMockConfig().dynamicPort());
-    gitService.start();
     stubGithubApi();
   }
 
   @AfterEach
   void after() {
     logOutput.tearDown();
-    if (gitService != null) {
-      gitService.stop();
-    }
   }
 
   @Override

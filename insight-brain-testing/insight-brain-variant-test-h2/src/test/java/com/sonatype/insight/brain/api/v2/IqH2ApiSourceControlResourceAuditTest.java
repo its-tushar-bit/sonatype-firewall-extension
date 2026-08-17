@@ -9,13 +9,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.sonatype.insight.brain.api.PublicApiPaths.SOURCE_CONTROL_PATH_V2;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.model.security.Role.DEVELOPER_ROLE_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.Lists;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -37,6 +35,7 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.AuditTestSupport;
+import com.sonatype.insight.brain.testsupport.wiremock.ReusableWireMockExtension;
 import com.sonatype.insight.brain.variant.IqH2Test;
 import com.sonatype.insight.brain.variant.IqTestContext;
 import com.sonatype.insight.test.LogOutput;
@@ -52,6 +51,7 @@ import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * Converted from the legacy {@code ApiSourceControlResourceAuditTest}. Kept in the original package because
@@ -76,7 +76,8 @@ class IqH2ApiSourceControlResourceAuditTest
   private final TestLogOutput logOutput =
       new TestLogOutput(com.sonatype.insight.brain.audit.AuditRecorder.BASE_LOGGER_NAME);
 
-  public WireMockRule gitService = new WireMockRule(wireMockConfig().dynamicPort());
+  @RegisterExtension
+  static ReusableWireMockExtension gitService = new ReusableWireMockExtension();
 
   @BeforeEach
   void setup() {
@@ -84,7 +85,6 @@ class IqH2ApiSourceControlResourceAuditTest
     logOutput.clear();
     unauthorizedUser = ctx.tempEntity().newUser();
 
-    gitService.start();
     gitService.stubFor(get(urlPathEqualTo("/api/v3/user"))
         .willReturn(aResponse()
             .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
@@ -112,7 +112,6 @@ class IqH2ApiSourceControlResourceAuditTest
   @AfterEach
   void tearDown() {
     logOutput.tearDown();
-    gitService.stop();
   }
 
   @Override

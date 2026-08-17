@@ -28,10 +28,10 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.brain.testsupport.wiremock.ReusableWireMockExtension;
 import com.sonatype.insight.brain.variant.IqH2Test;
 import com.sonatype.insight.brain.variant.IqTestContext;
 
-import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -43,7 +43,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.options;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.sonatype.insight.brain.artifactory.ArtifactoryClient.TEST_SHA256;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -56,9 +55,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class IqH2ApiArtifactoryConnectionResourceTest
 {
   @RegisterExtension
-  static WireMockExtension artifactoryMockServer = WireMockExtension.newInstance()
-      .options(wireMockConfig().dynamicPort())
-      .build();
+  static ReusableWireMockExtension artifactoryMockServer = new ReusableWireMockExtension();
 
   private IqTestContext ctx;
 

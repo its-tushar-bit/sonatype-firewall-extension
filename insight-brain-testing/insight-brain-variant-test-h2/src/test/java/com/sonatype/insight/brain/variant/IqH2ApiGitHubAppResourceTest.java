@@ -14,18 +14,17 @@ import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.model.githubapp.GitHubAppInstallationState;
 import com.sonatype.insight.brain.model.githubapp.GitHubAppRegistrationState;
 import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.brain.testsupport.wiremock.ReusableWireMockExtension;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -81,7 +80,8 @@ class IqH2ApiGitHubAppResourceTest
       "4nB+wefAwEWa2cczC0S3fjbw4VJy1P9mXKYdevus3JRJDoAg/hs=\n" +
       "-----END RSA PRIVATE KEY-----";
 
-  private final WireMockRule githubMockServer = new WireMockRule(wireMockConfig().dynamicPort());
+  @RegisterExtension
+  static ReusableWireMockExtension githubMockServer = new ReusableWireMockExtension();
 
   private PasswordHandler passwordHandler;
 
@@ -91,7 +91,6 @@ class IqH2ApiGitHubAppResourceTest
 
   @BeforeEach
   void setUp() throws Exception {
-    githubMockServer.start();
     passwordHandler = ctx.lookup(PasswordHandler.class);
     setupGitHubMocks();
 
@@ -108,11 +107,6 @@ class IqH2ApiGitHubAppResourceTest
     gitHubApp.setGithubOrganizationName("test-org");
     gitHubApp.setLastUpdatedAt(new Date());
     gitHubApp = ctx.tempEntity().newGitHubApp(gitHubApp);
-  }
-
-  @AfterEach
-  void tearDown() {
-    githubMockServer.stop();
   }
 
   private com.sonatype.insight.brain.HttpRequest restRequest() {

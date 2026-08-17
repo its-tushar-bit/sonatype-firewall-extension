@@ -20,17 +20,15 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.service.AuditTestSupport;
+import com.sonatype.insight.brain.testsupport.wiremock.ReusableWireMockExtension;
 import com.sonatype.insight.brain.variant.IqH2Test;
 import com.sonatype.insight.brain.variant.IqTestContext;
 import com.sonatype.insight.test.LogOutput;
 
-import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 
 /**
  * Package-scoped: touches {@link ApiRepositoryConnectionResource}'s package-private {@code BY_OWNER}/
@@ -42,9 +40,7 @@ class IqH2ApiRepositoryConnectionResourceAuditTest
     implements AuditTestSupport
 {
   @RegisterExtension
-  static WireMockExtension nxrm3MockSever = WireMockExtension.newInstance()
-      .options(wireMockConfig().dynamicPort())
-      .build();
+  static ReusableWireMockExtension nxrm3MockServer = new ReusableWireMockExtension();
 
   private IqTestContext ctx;
 

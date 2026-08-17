@@ -1244,6 +1244,9 @@
                 <include>**/RisksFilterDTOBuilder*</include>
                 <include>**/DashboardMetricsTestSupport*</include>
                 <include>**/HttpHelper*</include>
+                <!-- Reuse-safe WireMock/external-service mock extensions (CLM-45582), consumed by the
+                     variant test modules that depend on this test-jar. -->
+                <include>**/testsupport/wiremock/**</include>
               </includes>
             </configuration>
           </execution>

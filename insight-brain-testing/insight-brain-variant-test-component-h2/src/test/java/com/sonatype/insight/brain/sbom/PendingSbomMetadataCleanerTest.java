@@ -26,7 +26,8 @@ import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecificati
 import com.sonatype.insight.brain.sbom.utils.SbomDetectionResult;
 import com.sonatype.insight.brain.sbom.utils.SbomSummary;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService;
 import com.sonatype.insight.brain.utils.ExistingFilesHelper;
@@ -50,7 +51,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -61,8 +62,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
 
 @ContextConfiguration(classes = PendingSbomMetadataCleanerTest.ExistingFilesHelperTestConfig.class)
+@ComponentH2Test
 public class PendingSbomMetadataCleanerTest
-    extends AbstractComponentTest
+    extends AbstractComponentH2Test
 {
   @TestConfiguration
   static class ExistingFilesHelperTestConfig

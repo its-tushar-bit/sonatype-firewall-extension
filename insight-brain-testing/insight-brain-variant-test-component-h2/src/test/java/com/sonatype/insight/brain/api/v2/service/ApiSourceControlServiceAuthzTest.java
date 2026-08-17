@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -21,7 +22,8 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.security.TestEncryptionKeyStore;
-import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.brain.variant.AbstractComponentH2AuthzTest;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.insight.brain.relay.RelayRegistrationService;
 import com.sonatype.insight.brain.relay.dto.RelayRegisterAdminRequest;
@@ -29,15 +31,16 @@ import com.sonatype.nexus.scm.api.GitApiClient;
 import jakarta.inject.Inject;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 /**
  * @since 1.66
  */
+@ComponentH2Test
 public class ApiSourceControlServiceAuthzTest
-    extends AbstractServiceAuthzTest
+    extends AbstractComponentH2AuthzTest
 {
   private static final String VALID_URL = "https://example.com/organization/project";
 
@@ -45,7 +48,7 @@ public class ApiSourceControlServiceAuthzTest
       new PasswordHandler(new TestEncryptionKeyStore())
           .encryptPassword("token".toCharArray()));
 
-  @Before
+  @BeforeEach
   public void before() {
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
     lenient().when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
@@ -63,15 +66,19 @@ public class ApiSourceControlServiceAuthzTest
   @Mock
   private GitClientFactory mockGitClientFactory;
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testGetAll_Unauthenticated() {
-    sourceControlService.getAll();
+    assertThrows(UnauthenticatedException.class, () -> {
+      sourceControlService.getAll();
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testGetAll_Unauthorized() {
     login();
-    sourceControlService.getAll();
+    assertThrows(UnauthorizedException.class, () -> {
+      sourceControlService.getAll();
+    });
   }
 
   @Test
@@ -91,28 +98,36 @@ public class ApiSourceControlServiceAuthzTest
     assertThat(sourceControlByApplicationId.id).isEqualTo(sourceControl.getId());
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testGetSourceControlByOwner_Unauthenticated() {
-    sourceControlService.getSourceControlByOwner(OwnerType.APPLICATION, app.getId());
+    assertThrows(UnauthenticatedException.class, () -> {
+      sourceControlService.getSourceControlByOwner(OwnerType.APPLICATION, app.getId());
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testGetSourceControlByOwner_Unauthorized() {
     login();
-    sourceControlService.getSourceControlByOwner(OwnerType.APPLICATION, app.getId());
+    assertThrows(UnauthorizedException.class, () -> {
+      sourceControlService.getSourceControlByOwner(OwnerType.APPLICATION, app.getId());
+    });
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testAddSourceControlByOwner_Unauthenticated() {
-    sourceControlService.addSourceControlByOwner(
-        OwnerType.APPLICATION, app.getId(), new ApiSourceControlDTO());
+    assertThrows(UnauthenticatedException.class, () -> {
+      sourceControlService.addSourceControlByOwner(
+          OwnerType.APPLICATION, app.getId(), new ApiSourceControlDTO());
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testAddSourceControlByOwner_Unauthorized() {
     login();
-    sourceControlService.addSourceControlByOwner(
-        OwnerType.APPLICATION, app.getId(), new ApiSourceControlDTO());
+    assertThrows(UnauthorizedException.class, () -> {
+      sourceControlService.addSourceControlByOwner(
+          OwnerType.APPLICATION, app.getId(), new ApiSourceControlDTO());
+    });
   }
 
   @Test
@@ -127,17 +142,21 @@ public class ApiSourceControlServiceAuthzTest
                 .build()));
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testUpdateSourceControlByOwner_Unauthenticated() {
-    sourceControlService.updateSourceControlByOwner(
-        OwnerType.APPLICATION, app.getId(), new ApiSourceControlDTO());
+    assertThrows(UnauthenticatedException.class, () -> {
+      sourceControlService.updateSourceControlByOwner(
+          OwnerType.APPLICATION, app.getId(), new ApiSourceControlDTO());
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testUpdateSourceControlByOwner_Unauthorized() {
     login();
-    sourceControlService.updateSourceControlByOwner(
-        OwnerType.APPLICATION, app.getId(), new ApiSourceControlDTO());
+    assertThrows(UnauthorizedException.class, () -> {
+      sourceControlService.updateSourceControlByOwner(
+          OwnerType.APPLICATION, app.getId(), new ApiSourceControlDTO());
+    });
   }
 
   @Test
@@ -154,17 +173,21 @@ public class ApiSourceControlServiceAuthzTest
         OwnerType.APPLICATION, app.getId(), sourceControl);
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testDeleteSourceControlByOwner_Unauthenticated() {
-    sourceControlService.deleteSourceControlByOwner(
-        OwnerType.APPLICATION, app.getId());
+    assertThrows(UnauthenticatedException.class, () -> {
+      sourceControlService.deleteSourceControlByOwner(
+          OwnerType.APPLICATION, app.getId());
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testDeleteSourceControlByOwner_Unauthorized() {
     login();
-    sourceControlService.deleteSourceControlByOwner(
-        OwnerType.APPLICATION, app.getId());
+    assertThrows(UnauthorizedException.class, () -> {
+      sourceControlService.deleteSourceControlByOwner(
+          OwnerType.APPLICATION, app.getId());
+    });
   }
 
   @Test
@@ -193,30 +216,38 @@ public class ApiSourceControlServiceAuthzTest
     sourceControlService.addOrUpdateSourceControl(app.getPublicId(), VALID_URL, null);
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testAddOrUpdateSourceControl_AutomaticScmEnabled_Unauthorized() {
     login();
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
-    sourceControlService.addOrUpdateSourceControl(app.getPublicId(), VALID_URL, null);
+    assertThrows(UnauthorizedException.class, () -> {
+      sourceControlService.addOrUpdateSourceControl(app.getPublicId(), VALID_URL, null);
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testAddOrUpdateSourceControl_AutomaticScmDisabled_Unauthorized() {
     login();
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(false);
-    sourceControlService.addOrUpdateSourceControl(app.getPublicId(), VALID_URL, null);
+    assertThrows(UnauthorizedException.class, () -> {
+      sourceControlService.addOrUpdateSourceControl(app.getPublicId(), VALID_URL, null);
+    });
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testAddOrUpdateSourceControl_AutomaticScmEnabled_Unauthenticated() {
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
-    sourceControlService.addOrUpdateSourceControl(app.getPublicId(), VALID_URL, null);
+    assertThrows(UnauthenticatedException.class, () -> {
+      sourceControlService.addOrUpdateSourceControl(app.getPublicId(), VALID_URL, null);
+    });
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testAddOrUpdateSourceControl_AutomaticScmDisabled_Unauthenticated() {
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(false);
-    sourceControlService.addOrUpdateSourceControl(app.getPublicId(), VALID_URL, null);
+    assertThrows(UnauthenticatedException.class, () -> {
+      sourceControlService.addOrUpdateSourceControl(app.getPublicId(), VALID_URL, null);
+    });
   }
 
   @Test
@@ -227,26 +258,34 @@ public class ApiSourceControlServiceAuthzTest
     assertThat(results.results).hasSize(0);
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testGetSourceControlMetricsForApplication_Unauthorized() {
     login();
-    sourceControlService.getSourceControlMetricsForApplication(OwnerType.APPLICATION, app.getId());
+    assertThrows(UnauthorizedException.class, () -> {
+      sourceControlService.getSourceControlMetricsForApplication(OwnerType.APPLICATION, app.getId());
+    });
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testGetSourceControlMetricsForApplication_Unauthenticated() {
-    sourceControlService.getSourceControlMetricsForApplication(OwnerType.APPLICATION, "any");
+    assertThrows(UnauthenticatedException.class, () -> {
+      sourceControlService.getSourceControlMetricsForApplication(OwnerType.APPLICATION, "any");
+    });
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testGetRateLimits_Unauthenticated() {
-    sourceControlService.getRateLimits(OwnerType.APPLICATION, app.getId());
+    assertThrows(UnauthenticatedException.class, () -> {
+      sourceControlService.getRateLimits(OwnerType.APPLICATION, app.getId());
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testGetRateLimits_Unauthorized() {
     login();
-    sourceControlService.getRateLimits(OwnerType.APPLICATION, app.getId());
+    assertThrows(UnauthorizedException.class, () -> {
+      sourceControlService.getRateLimits(OwnerType.APPLICATION, app.getId());
+    });
   }
 
   @Test
@@ -256,17 +295,21 @@ public class ApiSourceControlServiceAuthzTest
     assertThat(sourceControlService.getRateLimits(OwnerType.APPLICATION, app.getId())).isNotNull();
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testRegisterWithRelay_Unauthenticated() {
-    sourceControlService.registerWithRelay();
+    assertThrows(UnauthenticatedException.class, () -> {
+      sourceControlService.registerWithRelay();
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testRegisterWithRelay_Unauthorized() {
     login();
     // Manage SCM config is NOT enough; CONFIGURE_SYSTEM is required for the admin re-register hook.
     grantGlobalPermission(Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION);
-    sourceControlService.registerWithRelay();
+    assertThrows(UnauthorizedException.class, () -> {
+      sourceControlService.registerWithRelay();
+    });
   }
 
   @Test
@@ -302,29 +345,37 @@ public class ApiSourceControlServiceAuthzTest
         .isThrownBy(() -> sourceControlService.registerWithRelay(body));
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testRegisterWithRelay_BodyVariant_Unauthenticated() {
-    sourceControlService.registerWithRelay(new RelayRegisterAdminRequest());
+    assertThrows(UnauthenticatedException.class, () -> {
+      sourceControlService.registerWithRelay(new RelayRegisterAdminRequest());
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testRegisterWithRelay_BodyVariant_Unauthorized() {
     login();
     grantGlobalPermission(Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION);
     RelayRegisterAdminRequest body = new RelayRegisterAdminRequest();
     body.setInstallationId("42");
-    sourceControlService.registerWithRelay(body);
+    assertThrows(UnauthorizedException.class, () -> {
+      sourceControlService.registerWithRelay(body);
+    });
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testGetRelayWebhookUrl_Unauthenticated() {
-    sourceControlService.getRelayWebhookUrl();
+    assertThrows(UnauthenticatedException.class, () -> {
+      sourceControlService.getRelayWebhookUrl();
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testGetRelayWebhookUrl_Unauthorized() {
     login();
-    sourceControlService.getRelayWebhookUrl();
+    assertThrows(UnauthorizedException.class, () -> {
+      sourceControlService.getRelayWebhookUrl();
+    });
   }
 
   @Test
@@ -334,15 +385,19 @@ public class ApiSourceControlServiceAuthzTest
         .isThrownBy(() -> sourceControlService.getRelayWebhookUrl());
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testGetRelayWebhookSecret_Unauthenticated() {
-    sourceControlService.getRelayWebhookSecret();
+    assertThrows(UnauthenticatedException.class, () -> {
+      sourceControlService.getRelayWebhookSecret();
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testGetRelayWebhookSecret_Unauthorized() {
     login();
-    sourceControlService.getRelayWebhookSecret();
+    assertThrows(UnauthorizedException.class, () -> {
+      sourceControlService.getRelayWebhookSecret();
+    });
   }
 
   @Test
@@ -352,15 +407,19 @@ public class ApiSourceControlServiceAuthzTest
         .isThrownBy(() -> sourceControlService.getRelayWebhookSecret());
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testGetGitHubAppWebhookUrl_Unauthenticated() {
-    sourceControlService.getGitHubAppWebhookUrl();
+    assertThrows(UnauthenticatedException.class, () -> {
+      sourceControlService.getGitHubAppWebhookUrl();
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testGetGitHubAppWebhookUrl_Unauthorized() {
     login();
-    sourceControlService.getGitHubAppWebhookUrl();
+    assertThrows(UnauthorizedException.class, () -> {
+      sourceControlService.getGitHubAppWebhookUrl();
+    });
   }
 
   @Test
@@ -370,17 +429,21 @@ public class ApiSourceControlServiceAuthzTest
         .isThrownBy(() -> sourceControlService.getGitHubAppWebhookUrl());
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testRotateRelayApiKey_Unauthenticated() {
-    sourceControlService.rotateRelayApiKey();
+    assertThrows(UnauthenticatedException.class, () -> {
+      sourceControlService.rotateRelayApiKey();
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testRotateRelayApiKey_Unauthorized() {
     login();
     // Manage SCM config is NOT enough; CONFIGURE_SYSTEM is required for the admin rotate hook.
     grantGlobalPermission(Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION);
-    sourceControlService.rotateRelayApiKey();
+    assertThrows(UnauthorizedException.class, () -> {
+      sourceControlService.rotateRelayApiKey();
+    });
   }
 
   @Test
@@ -390,16 +453,20 @@ public class ApiSourceControlServiceAuthzTest
         .isThrownBy(() -> sourceControlService.rotateRelayApiKey());
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testRotateRelayWebhookSecret_Unauthenticated() {
-    sourceControlService.rotateRelayWebhookSecret();
+    assertThrows(UnauthenticatedException.class, () -> {
+      sourceControlService.rotateRelayWebhookSecret();
+    });
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testRotateRelayWebhookSecret_Unauthorized() {
     login();
     grantGlobalPermission(Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION);
-    sourceControlService.rotateRelayWebhookSecret();
+    assertThrows(UnauthorizedException.class, () -> {
+      sourceControlService.rotateRelayWebhookSecret();
+    });
   }
 
   @Test

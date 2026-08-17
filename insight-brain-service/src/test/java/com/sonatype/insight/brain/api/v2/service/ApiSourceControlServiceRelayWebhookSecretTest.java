@@ -47,7 +47,8 @@ import static org.mockito.Mockito.when;
 
 /**
  * Pure-unit coverage for {@link ApiSourceControlService#getRelayWebhookSecret()}. Authz is
- * already covered by {@link ApiSourceControlServiceAuthzTest}; this class focuses on the
+ * already covered by {@code ApiSourceControlServiceAuthzTest} (in the component-h2 variant module); this class focuses
+ * on the
  * branch logic (feature gate, registration shape, decryption).
  */
 @ExtendWith(MockitoExtension.class)

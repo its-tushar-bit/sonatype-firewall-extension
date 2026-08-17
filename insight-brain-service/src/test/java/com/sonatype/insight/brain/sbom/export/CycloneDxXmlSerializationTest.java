@@ -41,10 +41,11 @@ import org.cyclonedx.model.vulnerability.Vulnerability.Rating;
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Method;
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Severity;
 import org.cyclonedx.model.vulnerability.Vulnerability.Source;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class CycloneDxXmlSerializationTest
 {
@@ -934,7 +935,7 @@ public class CycloneDxXmlSerializationTest
     assertThat(xml).contains("CVE-TEST");
   }
 
-  @Test(expected = GeneratorException.class)
+  @Test
   public void testEmptyDependenciesListWithVulnerability_xml_failsWithKnownLibraryBug() throws GeneratorException {
     // Known CycloneDX core-java bug: empty DependencyList corrupts XML writer state before vulnerabilities
     Bom bom = new Bom();
@@ -964,7 +965,7 @@ public class CycloneDxXmlSerializationTest
     vuln.setSource(s);
     bom.setVulnerabilities(newArrayList(vuln));
 
-    BomGeneratorFactory.createXml(Version.VERSION_16, bom).toXmlString();
+    assertThrows(GeneratorException.class, () -> BomGeneratorFactory.createXml(Version.VERSION_16, bom).toXmlString());
   }
 
   @Test

@@ -7,9 +7,10 @@ package com.sonatype.insight.brain.audit;
 
 import java.util.function.Function;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -48,9 +49,10 @@ public class ProxyAuditDataTest
     verify(mockChildAuditData).commit();
   }
 
-  @Test(expected = NullPointerException.class)
+  @Test
   public void testForSubEvent_Null() {
-    new ProxyAuditData(mock(AuditData.class)).forSubEvent(null, false, false);
+    assertThrows(NullPointerException.class,
+        () -> new ProxyAuditData(mock(AuditData.class)).forSubEvent(null, false, false));
   }
 
   @Test

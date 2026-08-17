@@ -18,11 +18,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import com.sonatype.insight.brain.componentsearch.dto.ApplicationComponentMatchDTO;
 import com.sonatype.insight.brain.componentsearch.service.CveAffectedComponentSearchService;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -31,7 +31,7 @@ import static org.mockito.Mockito.when;
 /**
  * Test that verifies keep-alive spaces are written to CSV during slow processing.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ApiComponentSearchResourceKeepAliveTest
 {
   private static final long KEEP_ALIVE_INTERVAL_MS = 200; // Trigger keep-alive after 200ms of inactivity
@@ -75,7 +75,7 @@ public class ApiComponentSearchResourceKeepAliveTest
     return dto;
   }
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     resource = new ApiComponentSearchResource(cveAffectedComponentSearchService);
 

@@ -20,13 +20,15 @@ import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitorin
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -44,7 +46,8 @@ import static org.mockito.Mockito.when;
  * interrupt → markRetry without rethrow because the executor is the interrupt observer), and
  * (c) rejects duplicate flow-processor bindings at construction time.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class RepositoryEvaluationQueueConsumerTest
 {
   private static final String QUEUE_ID = "queue-id";
@@ -67,17 +70,17 @@ public class RepositoryEvaluationQueueConsumerTest
 
   private RepositoryEvaluationQueueConsumer underTest;
 
-  @BeforeClass
+  @BeforeAll
   public static void installFeatureFlagShim() {
     HostedRepositoryEvaluationFeatureFlagTestRule.install();
   }
 
-  @AfterClass
+  @AfterAll
   public static void uninstallFeatureFlagShim() {
     HostedRepositoryEvaluationFeatureFlagTestRule.uninstall();
   }
 
-  @Before
+  @BeforeEach
   public void setup() {
     when(hostedRepoProcessor.getFlowType()).thenReturn(ContinuousMonitoringFlowType.HOSTED_REPO);
     when(configuration.getContinuousMonitoringWorkerThreads()).thenReturn(WORKER_THREADS);

@@ -5,8 +5,9 @@
  */
 package com.sonatype.insight.brain.sbom.export;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -16,8 +17,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import jakarta.inject.Provider;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class SbomExporterProviderSpdx3Test
 {
@@ -32,7 +33,7 @@ public class SbomExporterProviderSpdx3Test
   private Provider<Spdx3ToPdfExporter> spdx3ToPdfExporterProvider;
 
   @SuppressWarnings("unchecked")
-  @Before
+  @BeforeEach
   public void setUp() {
     Provider<CycloneDxToCycloneDxExporter> cdxToCdx = mock(Provider.class);
     Provider<SpdxToSpdxExporter> spdxToSpdx = mock(Provider.class);
@@ -97,10 +98,10 @@ public class SbomExporterProviderSpdx3Test
     assertTrue(exporter instanceof CycloneDxToSpdxExporter);
   }
 
-  @Test(expected = BadRequestException.class)
+  @Test
   public void get_spdx30ToSpdx23_throwsDowngradeError() {
     SbomExportParams params = createParams("SPDX", "3.0", ExportSpecification.SPDX_23);
-    exporterProvider.get(params);
+    assertThrows(BadRequestException.class, () -> exporterProvider.get(params));
   }
 
   @Test

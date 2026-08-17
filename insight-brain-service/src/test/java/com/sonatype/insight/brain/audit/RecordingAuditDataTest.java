@@ -10,16 +10,17 @@ import java.util.List;
 
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
 public class RecordingAuditDataTest
 {
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void testContinueAsync_Unsupported() {
-    new RecordingAuditData(null, null).continueAsync(null);
+    assertThrows(UnsupportedOperationException.class, () -> new RecordingAuditData(null, null).continueAsync(null));
   }
 
   private void awaitNextTimestamp() throws Exception {

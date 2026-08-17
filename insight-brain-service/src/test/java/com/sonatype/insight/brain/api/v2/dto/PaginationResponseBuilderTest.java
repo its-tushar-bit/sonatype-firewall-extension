@@ -12,9 +12,10 @@ import java.util.List;
 import java.util.Map;
 import jakarta.ws.rs.core.Response;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class PaginationResponseBuilderTest
 {
@@ -136,21 +137,23 @@ public class PaginationResponseBuilderTest
     assertThat(response.getLinks()).isEmpty();
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testPageNumberLessThanMinPageNumber() {
     // SETUP
     final ApiPageResult<String> apiPageResult = new ApiPageResult<>(10, 0, 3, Arrays.asList("result1", "result2"));
 
     // EXECUTE
-    new PaginationResponseBuilder<>(ABSOLUTE_PATH, 0, 3, apiPageResult).build();
+    assertThrows(IllegalArgumentException.class,
+        () -> new PaginationResponseBuilder<>(ABSOLUTE_PATH, 0, 3, apiPageResult).build());
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testPageSizeLessThanMinPageSize() {
     // SETUP
     final ApiPageResult<String> apiPageResult = new ApiPageResult<>(10, 1, 0, Arrays.asList("result1", "result2"));
 
     // EXECUTE
-    new PaginationResponseBuilder<>(ABSOLUTE_PATH, 1, 0, apiPageResult).build();
+    assertThrows(IllegalArgumentException.class,
+        () -> new PaginationResponseBuilder<>(ABSOLUTE_PATH, 1, 0, apiPageResult).build());
   }
 }

@@ -39,7 +39,6 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
@@ -152,10 +151,6 @@ public class MembershipMappingService
       loadMembersByRoleForNonGlobalContext(ownerType, internalOwnerId, roles, membersByRoleByRoleId);
     }
     loadMemberDetails(membersByRoleByRoleId);
-
-    if (!SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.isEnabled()) {
-      membersByRoleByRoleId.remove(Role.USAGE_VIEWER_ROLE_ID);
-    }
 
     final ApplicableMembershipMappings result = new ApplicableMembershipMappings();
     result.membersByRole.addAll(membersByRoleByRoleId.values());

@@ -416,8 +416,6 @@ public class SystemConfigurationProperty
 
   public static final String GUIDE_UI_ENABLED = "guideUiEnabled";
 
-  public static final String CONSUMPTION_REPORTING_ENABLED = "consumptionReportingEnabled";
-
   public static final String EVALUATION_QUEUE_CONFIG = "evaluationQueueConfig";
 
   public static final String HOSTED_REPOSITORY_EVALUATION = "hostedRepositoryEvaluation";

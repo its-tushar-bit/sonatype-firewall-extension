@@ -62,11 +62,6 @@ public class Role
    */
   public static final String LEGAL_REVIEWER_ROLE_ID = "0df46317c031440795007f4ce9c7f002";
 
-  /**
-   * The id of the "Usage Viewer" role in the role database table.
-   */
-  public static final String USAGE_VIEWER_ROLE_ID = "070e6c31fc8a42159df5298313b8a829";
-
   @Id
   @Column(name = "role_id")
   private String id;

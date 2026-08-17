@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRoleDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleListDTO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 
@@ -47,27 +46,20 @@ class IqH2ApiRoleResourceTest
 
   @Test
   void testGetRoles() throws Exception {
-    SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(true);
-    try {
-      HttpResponse response = restRequest().get();
-      ApiRoleListDTO apiRoleListDTO = response.getBody(ApiRoleListDTO.class);
+    HttpResponse response = restRequest().get();
+    ApiRoleListDTO apiRoleListDTO = response.getBody(ApiRoleListDTO.class);
 
-      ctx.assertResponseStatus(200, response);
-      assertThat(apiRoleListDTO.roles)
-          .extracting(role -> role.id)
-          .containsExactlyInAnyOrder(
-              Role.SYSTEM_ADMIN_ROLE_ID,
-              Role.POLICY_ADMIN_ROLE_ID,
-              Role.APPLICATION_EVALUATOR_ROLE_ID,
-              Role.COMPONENT_EVALUATOR_ROLE_ID,
-              Role.DEVELOPER_ROLE_ID,
-              Role.LEGAL_REVIEWER_ROLE_ID,
-              Role.OWNER_ROLE_ID,
-              Role.USAGE_VIEWER_ROLE_ID);
-    }
-    finally {
-      SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(false);
-    }
+    ctx.assertResponseStatus(200, response);
+    assertThat(apiRoleListDTO.roles)
+        .extracting(role -> role.id)
+        .containsExactlyInAnyOrder(
+            Role.SYSTEM_ADMIN_ROLE_ID,
+            Role.POLICY_ADMIN_ROLE_ID,
+            Role.APPLICATION_EVALUATOR_ROLE_ID,
+            Role.COMPONENT_EVALUATOR_ROLE_ID,
+            Role.DEVELOPER_ROLE_ID,
+            Role.LEGAL_REVIEWER_ROLE_ID,
+            Role.OWNER_ROLE_ID);
   }
 
   @Test

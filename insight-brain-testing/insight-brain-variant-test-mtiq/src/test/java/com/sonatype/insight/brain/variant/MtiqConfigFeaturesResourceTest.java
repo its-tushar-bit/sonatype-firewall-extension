@@ -158,7 +158,6 @@ class MtiqConfigFeaturesResourceTest
         SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_LOGGEDIN_ENABLED.getId(),
         SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_DEFAULT_TO_PREVIEW.getId(),
         SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_DISABLE_SWITCH_FEEDBACK.getId(),
-        SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.getId(),
         SystemConfigurationPropertyFeature.SCM_RELAY_INTEGRATION.getId(),
         SystemConfigurationPropertyFeature.IQ_PROXY_ENABLED.getId(),
         SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.getId(),

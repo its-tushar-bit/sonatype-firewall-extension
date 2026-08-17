@@ -31,8 +31,6 @@ public class DatabaseConstraintTest
    * does not support as a CONSTRAINT.
    *
    * @see <a href="https://sonatype.atlassian.net/browse/INT-2835">INT-2835</a>
-   * @see <a href="https://sonatype.atlassian.net/browse/CLM-40771">CLM-40771</a> — partial unique index on
-   *      consumption_events.idempotency_key
    */
   @Test
   @H2DiskTest(suppressMigrations = true)

@@ -521,8 +521,6 @@ public enum SystemConfigurationPropertyFeature
 
   HOSTED_REPOSITORY_EVALUATION(SystemConfigurationProperty.HOSTED_REPOSITORY_EVALUATION, false),
 
-  CONSUMPTION_REPORTING(SystemConfigurationProperty.CONSUMPTION_REPORTING_ENABLED, false),
-
   IQ_PROXY_ENABLED(SystemConfigurationProperty.IQ_PROXY_ENABLED, false),
 
   /**

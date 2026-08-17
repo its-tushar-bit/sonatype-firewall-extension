@@ -7,8 +7,6 @@ package com.sonatype.insight.brain.model.security;
 
 import java.util.function.Supplier;
 
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
-
 /**
  * The permissions supporting authorization.
  *
@@ -27,10 +25,6 @@ public enum Permission
 
   ACCESS_AUDIT_LOG("Access", PermissionCategory.ADMINISTRATOR, "Audit Log",
       true /* global */, true /* allowedInCustomRoles */),
-
-  VIEW_USAGE("View", PermissionCategory.ADMINISTRATOR, "Usage Dashboard", true /* global */,
-      true /* allowedInCustomRoles */,
-      () -> SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.isEnabled()),
 
   WAIVE_POLICY_VIOLATIONS("Waive", PermissionCategory.REMEDIATION, "Policy Violations", false /* global */,
       true /* allowedInCustomRoles */),

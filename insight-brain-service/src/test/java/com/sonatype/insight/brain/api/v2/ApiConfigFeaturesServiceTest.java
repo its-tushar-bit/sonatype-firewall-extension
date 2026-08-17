@@ -1516,7 +1516,6 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("exitOnFatalError", true);
     expectedFeatureConfigMap.put("maliciousUrlsPartnerAccess", false);
     expectedFeatureConfigMap.put("guideUiEnabled", false);
-    expectedFeatureConfigMap.put("consumptionReportingEnabled", false);
     expectedFeatureConfigMap.put("iqProxyEnabled", false);
     expectedFeatureConfigMap.put("iqFirewallEnterpriseEnabled", false);
     expectedFeatureConfigMap.put("iqFirewallEnterpriseRedirectUiEnabled", false);

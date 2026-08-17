@@ -17,11 +17,9 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRoleListDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiRoleAdapter;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.PermissionCategory;
 import com.sonatype.insight.brain.model.security.Role;
-import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -50,41 +48,20 @@ public class RoleService
    */
   @Authorize(permission = Permission.VIEW_ROLES)
   public List<RoleDTO> getAllRoles() {
-    return convertRolesToDTO(filterByConsumptionReporting(roleDAO.getAll()));
+    return convertRolesToDTO(roleDAO.getAll());
   }
 
   @Authorize(permission = Permission.VIEW_ROLES)
   public ApiRoleListDTO getRolesAsApiRoleListDTO() {
-    return ApiRoleAdapter.convertToDTO(filterByConsumptionReporting(roleDAO.getAll()));
+    return ApiRoleAdapter.convertToDTO(roleDAO.getAll());
   }
 
   @Authorize(permission = Permission.VIEW_ROLES)
   public RoleDTO getRoleById(final String roleId) {
-    if (isConsumptionRoleHidden(roleId)) {
-      throw new NotFoundException("No role found with id " + roleId);
-    }
     Role role = roleDAO.getByIdNotNull(roleId);
     RoleDTO roleDTO = new RoleDTO(role);
     roleDTO.permissionCategories = getPermissionsForRole(roleDTO);
     return roleDTO;
-  }
-
-  private static List<Role> filterByConsumptionReporting(final List<Role> roles) {
-    if (SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.isEnabled()) {
-      return roles;
-    }
-    List<Role> filtered = new ArrayList<>(roles.size());
-    for (Role role : roles) {
-      if (!Role.USAGE_VIEWER_ROLE_ID.equals(role.getId())) {
-        filtered.add(role);
-      }
-    }
-    return filtered;
-  }
-
-  private static boolean isConsumptionRoleHidden(final String roleId) {
-    return Role.USAGE_VIEWER_ROLE_ID.equals(roleId)
-        && !SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.isEnabled();
   }
 
   @Authorize(permission = Permission.EDIT_ROLES)

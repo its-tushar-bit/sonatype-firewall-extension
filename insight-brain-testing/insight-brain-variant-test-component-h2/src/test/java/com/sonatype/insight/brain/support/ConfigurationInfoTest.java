@@ -296,7 +296,6 @@ public class ConfigurationInfoTest
         "idTokenCookieExpirationTime",
         "alpForSbomManager",
         "componentChangeDetectionApi",
-        "consumptionReportingEnabled",
         "containerImagesEvalEnabled",
         "zScaler",
         "thirdPartyKevLookup",

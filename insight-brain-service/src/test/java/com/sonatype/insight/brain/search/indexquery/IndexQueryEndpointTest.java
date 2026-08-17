@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.search.indexquery;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -77,9 +78,9 @@ import org.apache.lucene.store.Directory;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 public class IndexQueryEndpointTest
@@ -113,7 +114,7 @@ public class IndexQueryEndpointTest
 
   private IndexQueryResource resource;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     // The organizations facet resolves bucket names through an @AuthzFilter-woven call, so a Shiro
     // SecurityManager must be reachable from this thread. A null principal makes the filter pass every
@@ -200,7 +201,7 @@ public class IndexQueryEndpointTest
     resource = new IndexQueryResource(service, searchIndexClient);
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     ThreadContext.unbindSubject();
     ThreadContext.unbindSecurityManager();
@@ -926,23 +927,25 @@ public class IndexQueryEndpointTest
     }
   }
 
-  @Test(expected = jakarta.ws.rs.NotFoundException.class)
+  @Test
   public void flagOff_returns404() {
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(false);
-    resource.query(new IndexQueryRequest("APPLICATION", Map.of(), 1, 25, null, null, false));
+    assertThrows(jakarta.ws.rs.NotFoundException.class,
+        () -> resource.query(new IndexQueryRequest("APPLICATION", Map.of(), 1, 25, null, null, false)));
   }
 
-  @Test(expected = jakarta.ws.rs.NotFoundException.class)
+  @Test
   public void flagOffWithNullBody_returns404_notLeakingViaBadRequest() {
     // The flag gate runs before the null-body check, so a disabled endpoint stays hidden (404)
     // rather than revealing its existence with a 400 on a malformed body.
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(false);
-    resource.query(null);
+    assertThrows(jakarta.ws.rs.NotFoundException.class, () -> resource.query(null));
   }
 
-  @Test(expected = jakarta.ws.rs.BadRequestException.class)
+  @Test
   public void unknownEntityType_returns400() {
-    resource.query(new IndexQueryRequest("BOGUS", Map.of(), 1, 25, null, null, false));
+    assertThrows(jakarta.ws.rs.BadRequestException.class,
+        () -> resource.query(new IndexQueryRequest("BOGUS", Map.of(), 1, 25, null, null, false)));
   }
 
   @Test

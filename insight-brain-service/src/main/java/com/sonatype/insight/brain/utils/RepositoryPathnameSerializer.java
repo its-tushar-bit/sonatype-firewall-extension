@@ -68,11 +68,20 @@ public final class RepositoryPathnameSerializer
         return String.join("/", scopeAndPackageId, "-", filename);
       }
       case ComponentIdentifier.FORMAT_PYPI: {
-        // pypi pathnames are ignored so this value can be anything
+        // HDS identifies pypi components by hash rather than by parsing the pathname
         // see https://github.com/sonatype/hosted-data-services/blob/731f4e98105b272588c473e6a6ec18ccb30a8cf4/
         // insight-portal-webapp/src/main/java/com/sonatype/insight/portal/rest/service/component/
         // RepositoryPathnameParser.java#L111-L114
-        return "ignored";
+        // The pathname still has to identify the component within IQ, because (repository_id, pathname) is unique in
+        // the proxy_repository_component table. It also has to end in the real distribution filename, which HDS
+        // compares against its stored filenames to break ties when one hash matches several files.
+        String name = componentIdentifier.get(ComponentIdentifier.PYPI_NAME);
+        String version = componentIdentifier.get(ComponentIdentifier.VERSION);
+        String qualifier = componentIdentifier.get(ComponentIdentifier.PYPI_QUALIFIER);
+        String extension = componentIdentifier.get(ComponentIdentifier.PYPI_EXTENSION);
+        String filename = name + "-" + version + (StringUtils.isBlank(qualifier) ? "" : "-" + qualifier) +
+            (StringUtils.isBlank(extension) ? "" : "." + extension);
+        return String.join("/", "packages", name, version, filename);
       }
       case ComponentIdentifier.FORMAT_RUBYGEMS: {
         String name = componentIdentifier.get(ComponentIdentifier.RUBYGEMS_NAME);

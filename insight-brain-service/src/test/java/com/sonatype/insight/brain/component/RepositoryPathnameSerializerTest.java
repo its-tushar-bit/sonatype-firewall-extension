@@ -49,7 +49,53 @@ public class RepositoryPathnameSerializerTest
   @Test
   public void testToPathname_Pypi() {
     assertThat(toPathname(ComponentIdentifier.createPypiCoordinates("name", "version", "qualifier", "extension")))
-        .isEqualTo("ignored");
+        .isEqualTo("packages/name/version/name-version-qualifier.extension");
+    assertThat(toPathname(ComponentIdentifier.createPypiCoordinates("name", "version", null, "extension")))
+        .isEqualTo("packages/name/version/name-version.extension");
+    assertThat(toPathname(ComponentIdentifier.createPypiCoordinates("name", "version", "", "extension")))
+        .isEqualTo("packages/name/version/name-version.extension");
+  }
+
+  @Test
+  public void testToPathname_Pypi_DistinguishesVersions() {
+    String pathname3101 =
+        toPathname(ComponentIdentifier.createPypiCoordinates("mlflow-skinny", "3.10.1", "py3-none-any", "whl"));
+    String pathname3100 =
+        toPathname(ComponentIdentifier.createPypiCoordinates("mlflow-skinny", "3.10.0", "py3-none-any", "whl"));
+
+    assertThat(pathname3101).isEqualTo("packages/mlflow-skinny/3.10.1/mlflow-skinny-3.10.1-py3-none-any.whl");
+    assertThat(pathname3100).isEqualTo("packages/mlflow-skinny/3.10.0/mlflow-skinny-3.10.0-py3-none-any.whl");
+    assertThat(pathname3101).isNotEqualTo(pathname3100);
+  }
+
+  @Test
+  public void testToPathname_Pypi_DistinguishesPackages() {
+    assertThat(toPathname(ComponentIdentifier.createPypiCoordinates("requests", "2.31.0", "py3-none-any", "whl")))
+        .isNotEqualTo(
+            toPathname(ComponentIdentifier.createPypiCoordinates("urllib3", "2.31.0", "py3-none-any", "whl")));
+  }
+
+  @Test
+  public void testToPathname_Pypi_SourceDistribution() {
+    assertThat(toPathname(ComponentIdentifier.createPypiCoordinates("mlflow-skinny", "3.10.1", null, "tar.gz")))
+        .isEqualTo("packages/mlflow-skinny/3.10.1/mlflow-skinny-3.10.1.tar.gz");
+  }
+
+  @Test
+  public void testToPathname_Pypi_BlankExtensionOmitsSeparator() {
+    // pypi purls may omit the extension qualifier, in which case it arrives blank rather than absent
+    assertThat(toPathname(ComponentIdentifier.createPypiCoordinates("urllib3", "2.2.1", null, null)))
+        .isEqualTo("packages/urllib3/2.2.1/urllib3-2.2.1");
+    assertThat(toPathname(ComponentIdentifier.createPypiCoordinates("urllib3", "2.2.1", "", "")))
+        .isEqualTo("packages/urllib3/2.2.1/urllib3-2.2.1");
+    assertThat(toPathname(ComponentIdentifier.createPypiCoordinates("urllib3", "2.2.1", "py3-none-any", "")))
+        .isEqualTo("packages/urllib3/2.2.1/urllib3-2.2.1-py3-none-any");
+  }
+
+  @Test
+  public void testToPathname_Pypi_BlankExtensionStillDistinguishesVersions() {
+    assertThat(toPathname(ComponentIdentifier.createPypiCoordinates("urllib3", "2.2.1", null, null)))
+        .isNotEqualTo(toPathname(ComponentIdentifier.createPypiCoordinates("urllib3", "2.2.0", null, null)));
   }
 
   @Test

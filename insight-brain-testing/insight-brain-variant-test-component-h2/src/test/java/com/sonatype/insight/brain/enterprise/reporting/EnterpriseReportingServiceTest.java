@@ -36,7 +36,8 @@ import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.security.MembershipMappingService;
 import com.sonatype.insight.brain.security.SsoUserService;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.brain.service.BaseUrlConfiguration;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -66,8 +67,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -79,8 +80,9 @@ import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportin
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH;
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH;
 
+@ComponentH2Test
 public class EnterpriseReportingServiceTest
-    extends AbstractComponentTest
+    extends AbstractComponentH2Test
 {
   private final String embedDomain = "http%3A%2F%2Flocalhost%3A8070";
 
@@ -118,7 +120,7 @@ public class EnterpriseReportingServiceTest
   @Inject
   private InsightWork insightWork;
 
-  @Before
+  @BeforeEach
   public void setUpEnterpriseReportingService() {
     setupMockConfigurationInstance();
     enterpriseReportingService = new EnterpriseReportingService(

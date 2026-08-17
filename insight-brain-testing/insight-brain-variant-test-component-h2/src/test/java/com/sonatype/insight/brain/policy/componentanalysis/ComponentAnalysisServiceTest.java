@@ -40,7 +40,8 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.scan.datastore.FileScanEntity;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ScanHelper;
@@ -54,13 +55,14 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
+@ComponentH2Test
 public class ComponentAnalysisServiceTest
-    extends AbstractComponentTest
+    extends AbstractComponentH2Test
 {
   private static final IntegrationType INTEGRATION_TYPE = IntegrationType.CLI;
 
@@ -94,7 +96,7 @@ public class ComponentAnalysisServiceTest
 
   private Application app;
 
-  @Before
+  @BeforeEach
   public void before() {
     mockReportDownloader = new MockReportDownloader(tempDir);
     mockReportDownloader.setInsightWork(lookup(InsightWork.class));

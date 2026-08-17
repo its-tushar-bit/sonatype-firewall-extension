@@ -103,7 +103,8 @@ import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.scan.datastore.FileScanEntity;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.security.UserDirectory;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.shutdown.ShutdownPriority;
@@ -138,8 +139,8 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -151,8 +152,9 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ContextConfiguration;
 
 @ContextConfiguration(classes = PolicyEvaluateServiceTest.PolicyEvaluateServiceTestConfiguration.class)
+@ComponentH2Test
 public class PolicyEvaluateServiceTest
-    extends AbstractComponentTest
+    extends AbstractComponentH2Test
 {
   @TestConfiguration
   static class PolicyEvaluateServiceTestConfiguration
@@ -237,7 +239,7 @@ public class PolicyEvaluateServiceTest
   @Inject
   private ShutdownHandler mockShutdownHandler;
 
-  @Before
+  @BeforeEach
   public void before() {
     testProductLicense.reset();
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);

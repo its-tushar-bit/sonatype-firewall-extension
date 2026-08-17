@@ -29,7 +29,8 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.sbom.utils.SbomSpdxUtils;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.brain.version.VersionService;
@@ -45,8 +46,8 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.spdx.jacksonstore.MultiFormatStore;
 import org.spdx.jacksonstore.MultiFormatStore.Format;
@@ -76,8 +77,9 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.Mockito.when;
 
+@ComponentH2Test
 public class ApiSpdxServiceTest
-    extends AbstractComponentTest
+    extends AbstractComponentH2Test
 {
   @Inject
   private ApiSpdxService service;
@@ -92,7 +94,7 @@ public class ApiSpdxServiceTest
   @Mock
   private VersionService versionService;
 
-  @Before
+  @BeforeEach
   public void setup() throws IOException {
     scanId = TemporaryEntity.uuid();
     application = tempEntity.newApplication(tempEntity.newOrganization().getId());
@@ -783,17 +785,19 @@ public class ApiSpdxServiceTest
   // can't accidentally return an empty response or a different exception for a missing HRC
   // report.
 
-  @Test(expected = NotFoundException.class)
+  @Test
   public void testGetByScanId_Hrc_NotFound() {
     Repository repository = tempEntity.newRepository();
     HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
-    service.getByScanId(hrc, "no-such-scan", "json", false, "2.3");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> service.getByScanId(hrc, "no-such-scan", "json", false, "2.3"));
   }
 
-  @Test(expected = NotFoundException.class)
+  @Test
   public void testGetLatestForStage_Hrc_NotFound() {
     Repository repository = tempEntity.newRepository();
     HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
-    service.getLatestForStage(hrc, BuildStageType.ID, "json", false, "2.3");
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(
+        () -> service.getLatestForStage(hrc, BuildStageType.ID, "json", false, "2.3"));
   }
 }

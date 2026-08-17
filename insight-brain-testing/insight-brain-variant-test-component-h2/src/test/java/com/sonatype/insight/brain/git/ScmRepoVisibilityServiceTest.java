@@ -14,7 +14,8 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.cache.LoadingCache;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -23,8 +24,8 @@ import com.sonatype.nexus.scm.api.GitApiClient;
 import jakarta.inject.Inject;
 import java.io.IOException;
 import java.util.Arrays;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -33,8 +34,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ContextConfiguration(classes = ScmRepoVisibilityServiceTest.ScmRepoVisibilityServiceTestConfig.class)
+@ComponentH2Test
 public class ScmRepoVisibilityServiceTest
-    extends AbstractComponentTest
+    extends AbstractComponentH2Test
 {
   @TestConfiguration
   static class ScmRepoVisibilityServiceTestConfig
@@ -65,7 +67,7 @@ public class ScmRepoVisibilityServiceTest
   @Inject
   private ScmRepoVisibilityService scmRepoVisibilityService;
 
-  @Before
+  @BeforeEach
   public void before() {
     Mockito.reset(mockGitClientFactory, mockGitApiClient);
     testProductLicense.reset();

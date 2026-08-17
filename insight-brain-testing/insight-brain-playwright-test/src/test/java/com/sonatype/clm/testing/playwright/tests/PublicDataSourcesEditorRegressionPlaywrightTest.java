@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.PublicDataSourcesEditorPage;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
@@ -16,9 +15,9 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
@@ -47,7 +46,7 @@ public class PublicDataSourcesEditorRegressionPlaywrightTest
 
   private static final String SBOM_INFO_TEXT = "Public Data Sources are configured within Lifecycle";
 
-  @Before
+  @BeforeEach
   public void enableCpeMatchingAndLogin() {
     setFeatures(LicensedFeature.CPE_MATCHING);
     playwrightRefreshOrOpen(DashboardPage.url());
@@ -55,7 +54,7 @@ public class PublicDataSourcesEditorRegressionPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEditorRendersWithAllRadiosWhenCpeMatchingEnabled() {
     Organization childOrg = tempEntity.newOrganization(CHILD_ORG_PREFIX + "-" + TemporaryEntity.uuid());
     PublicDataSourcesEditorPage editor = new PublicDataSourcesEditorPage();
@@ -71,7 +70,7 @@ public class PublicDataSourcesEditorRegressionPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testInheritRadioAbsentOnRootOrg() {
     PublicDataSourcesEditorPage editor = new PublicDataSourcesEditorPage();
 
@@ -86,7 +85,7 @@ public class PublicDataSourcesEditorRegressionPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAllowOverrideCheckboxAbsentForApplication() {
     String suffix = TemporaryEntity.uuid();
     Organization org = tempEntity.newOrganization(APP_PREFIX + "-org-" + suffix);
@@ -104,7 +103,7 @@ public class PublicDataSourcesEditorRegressionPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRadiosDisabledWhenParentOverrideNotAllowed() {
     Organization parentOrg = tempEntity.newOrganization(PARENT_ORG_PREFIX + "-" + TemporaryEntity.uuid());
     Organization childOrg = tempEntity.newOrganization(
@@ -124,7 +123,7 @@ public class PublicDataSourcesEditorRegressionPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSettingsTileHiddenForSbomManagerOnlyLicense() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
     setFeatures(LicensedFeature.SBOM_MANAGER, LicensedFeature.CPE_MATCHING);
@@ -141,7 +140,7 @@ public class PublicDataSourcesEditorRegressionPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSbomManagerInfoAlertVisibleWhenCpeMatchingEnabled() {
     setLicensedProducts(
         ProductLicenseDetails.PRODUCT_SBOM_MANAGER,
@@ -160,7 +159,7 @@ public class PublicDataSourcesEditorRegressionPlaywrightTest
 
   /** Submit button hidden via CSS {@code hidden} class when accessed via the {@code sbomManager.*} route. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSubmitButtonHiddenWhenNavigatedViaSbomManagerRoute() {
     setLicensedProducts(
         ProductLicenseDetails.PRODUCT_SBOM_MANAGER,

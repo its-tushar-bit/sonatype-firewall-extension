@@ -8,7 +8,6 @@ package com.sonatype.clm.testing.playwright.tests;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.options.AriaRole;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.playwright.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.playwright.pages.PolicyEditorPageAssertions;
@@ -19,9 +18,9 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -42,7 +41,7 @@ public class OrganizationPolicyEditorRegressionPlaywrightTest
 
   private Organization organization;
 
-  @Before
+  @BeforeEach
   public void seedOrgAndOpenAsAdmin() {
     String orgName = ORG_NAME_PREFIX + "-" + TemporaryEntity.uuid();
     organization = tempEntity.newOrganization(orgName);
@@ -52,7 +51,7 @@ public class OrganizationPolicyEditorRegressionPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeletePolicy_policyGoneFromPoliciesTile() {
     PolicyEditorPage editorPage = new PolicyEditorPage();
     String deletePolicyName = "Delete Me Policy " + TemporaryEntity.uuid();
@@ -77,7 +76,7 @@ public class OrganizationPolicyEditorRegressionPlaywrightTest
    * delete button is disabled via {@code cannotBeRemoved} in {@code EditableConstraint.jsx}.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testNewPolicy_singleConstraintDeleteButtonDisabled() {
     PolicyEditorPage editorPage = new PolicyEditorPage();
 
@@ -89,7 +88,7 @@ public class OrganizationPolicyEditorRegressionPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testNewPolicy_multipleConditionsInOneConstraint() {
     String multiConditionPolicyName = "Multi-Condition " + TemporaryEntity.uuid();
     Policy p = new Policy(null, multiConditionPolicyName);
@@ -119,7 +118,7 @@ public class OrganizationPolicyEditorRegressionPlaywrightTest
    * is deferred — populating recipients deterministically is non-trivial.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testPolicy_notificationsSectionRenders() {
     Policy policy = tempEntity.newPolicy(organization.getId(), POLICY_NAME, POLICY_THREAT_LEVEL);
     navigateAndWaitForUrl(PolicyEditorPage.url(organization, policy),

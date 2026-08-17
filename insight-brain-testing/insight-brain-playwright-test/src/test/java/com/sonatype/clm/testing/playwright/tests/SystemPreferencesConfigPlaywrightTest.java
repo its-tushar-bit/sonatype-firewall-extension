@@ -11,13 +11,12 @@ import java.util.function.Supplier;
 
 import com.microsoft.playwright.Locator;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.SystemPreferencesRoutes;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -28,7 +27,7 @@ public class SystemPreferencesConfigPlaywrightTest
 
   private List<Map.Entry<String, Supplier<Locator>>> routes;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     // Land on Mail Config to log in; Mail is intentionally absent from `routes` below — its render
     // assertion lives in MailConfigurationPlaywrightTest, so duplicating it here would be churn.
@@ -53,7 +52,7 @@ public class SystemPreferencesConfigPlaywrightTest
 
   /** Wiring check — asserts each system-preferences route's container renders. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSystemPreferencePagesRender() {
     for (Map.Entry<String, Supplier<Locator>> route : routes) {
       playwrightRefreshOrOpen(route.getKey());
@@ -68,7 +67,7 @@ public class SystemPreferencesConfigPlaywrightTest
    * at all, and the {@code firewall/} prefix wouldn't apply.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testZscalerConfigurationPageRenders() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
     playwrightRefreshOrOpen(SystemPreferencesRoutes.zscalerConfigUrl());

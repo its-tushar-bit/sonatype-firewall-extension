@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.playwright.utils;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -22,8 +23,6 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 
-import org.junit.rules.TemporaryFolder;
-
 /**
  * Shared seed-and-evaluate helper for {@code PolicyEvaluation*PlaywrightTest} classes. Composes
  * UUID-suffixed org + app + policy + canned-report-zip + evaluate. The {@link TemporaryEntity}
@@ -33,7 +32,7 @@ public class PolicyEvaluationSeeder
 {
   private final TemporaryEntity tempEntity;
 
-  private final TemporaryFolder tempDir;
+  private final Path tempDir;
 
   private final InsightConfig insightConfig;
 
@@ -63,7 +62,7 @@ public class PolicyEvaluationSeeder
 
   public PolicyEvaluationSeeder(
       TemporaryEntity tempEntity,
-      TemporaryFolder tempDir,
+      Path tempDir,
       InsightConfig insightConfig,
       String baseUrlFromTest,
       String cannedReportClasspathDir)

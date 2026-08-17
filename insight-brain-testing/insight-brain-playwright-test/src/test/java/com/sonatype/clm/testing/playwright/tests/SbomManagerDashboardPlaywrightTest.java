@@ -11,7 +11,6 @@ import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.SbomManagerDashboardPage;
 import com.sonatype.clm.testing.playwright.pages.SbomManagerDashboardRegressionPage;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
@@ -31,10 +30,10 @@ import com.sonatype.insight.scan.file.SbomFormat;
 
 import com.microsoft.playwright.assertions.LocatorAssertions;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
@@ -63,12 +62,12 @@ public class SbomManagerDashboardPlaywrightTest
 
   private static final String SBOM_SPEC_VERSION = "0.0";
 
-  @After
+  @AfterEach
   public void restoreSbomManagerFeature() {
     setFeatures(LicensedFeature.SBOM_MANAGER);
   }
 
-  @Before
+  @BeforeEach
   public void setupLicenseAndNavigate() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
     setFeatures(LicensedFeature.SBOM_MANAGER);
@@ -77,7 +76,7 @@ public class SbomManagerDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSbomManagerDashboard_pageRendersWithAllTiles() {
     seedSingleSbomWithCriticalVuln();
     playwrightRefreshOrOpen(SbomManagerDashboardRegressionPage.url());
@@ -110,7 +109,7 @@ public class SbomManagerDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSbomManagerDashboard_cppSupportAlertShownWhenCpeMatchingEnabled() {
     setLicensedProducts(
         ProductLicenseDetails.PRODUCT_SBOM_MANAGER,
@@ -129,7 +128,7 @@ public class SbomManagerDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSbomManagerDashboard_cppAlertHiddenForSbomManagerOnlyLicense() {
     // @Before sets only PRODUCT_SBOM_MANAGER; CPE_MATCHING is added to prove
     // isSbomManagerOnlyLicense suppresses the alert regardless of CPE support.
@@ -144,7 +143,7 @@ public class SbomManagerDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSbomManagerDashboard_cppAlertHiddenWhenCpeMatchingNotSupported() {
     setLicensedProducts(
         ProductLicenseDetails.PRODUCT_SBOM_MANAGER,
@@ -160,7 +159,7 @@ public class SbomManagerDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSbomManagerDashboard_cppAlertDismissedPersistsViaLocalStorage() {
     setLicensedProducts(
         ProductLicenseDetails.PRODUCT_SBOM_MANAGER,
@@ -184,7 +183,7 @@ public class SbomManagerDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSbomManagerDashboard_errorShownWhenSbomManagerFeatureNotEnabled() {
     // Override @Before: omit SBOM_MANAGER so the feature-disabled error state is shown.
     setFeatures();
@@ -200,7 +199,7 @@ public class SbomManagerDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSbomManagerDashboard_tilesPopulatedWithSbomData() {
     // Seed data after @Before's navigation; reload is needed for tiles to reflect it.
     seedSingleSbomWithCriticalVuln();

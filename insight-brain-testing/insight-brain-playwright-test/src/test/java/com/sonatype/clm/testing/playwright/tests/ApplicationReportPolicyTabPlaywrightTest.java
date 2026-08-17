@@ -13,7 +13,6 @@ import com.microsoft.playwright.Locator;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPolicyTabPage;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPolicyTabPageAssertions;
@@ -30,9 +29,9 @@ import com.sonatype.insight.brain.policy.PolicyImportExport;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -68,7 +67,7 @@ public class ApplicationReportPolicyTabPlaywrightTest
 
   private String scanId;
 
-  @Before
+  @BeforeEach
   public void seedAndOpen() throws IOException {
     String suffix = TemporaryEntity.uuid();
     scanId = SCAN_ID_PREFIX + "-" + suffix;
@@ -93,7 +92,7 @@ public class ApplicationReportPolicyTabPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFilterPopover_showsWaivedAndLegacyOptions() {
     ApplicationReportPolicyTabPage policyTab = new ApplicationReportPolicyTabPage();
     ApplicationReportPolicyTabPageAssertions assertions =
@@ -115,7 +114,7 @@ public class ApplicationReportPolicyTabPlaywrightTest
    * Legacy filter option visibility, not a row-level legacy-tag.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLegacyFilterOption_visibleWhenLegacyViolationExists() {
     Policy legacyPolicy = tempEntity.newPolicy(
         app.getOrganizationId(), LEGACY_TEST_POLICY_NAME, LEGACY_TEST_POLICY_THREAT_LEVEL);
@@ -146,7 +145,7 @@ public class ApplicationReportPolicyTabPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAggregateByComponent_aggregatedRowExposesThreatNumber() {
     ApplicationReportPage report = new ApplicationReportPage();
     ApplicationReportPolicyTabPage policyTab = new ApplicationReportPolicyTabPage();

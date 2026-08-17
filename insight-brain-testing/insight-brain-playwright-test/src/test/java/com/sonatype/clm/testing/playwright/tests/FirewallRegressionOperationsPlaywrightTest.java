@@ -15,7 +15,6 @@ import java.util.regex.Pattern;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.EnterpriseReportingDashboardPage;
 import com.sonatype.clm.testing.playwright.pages.EnterpriseReportingPage;
 import com.sonatype.clm.testing.playwright.pages.FirewallAutoUnquarantinePage;
@@ -48,10 +47,10 @@ import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Route;
 import com.microsoft.playwright.assertions.LocatorAssertions;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -100,7 +99,7 @@ public class FirewallRegressionOperationsPlaywrightTest
 
   private Set<LicensedFeature> savedLicenseFeatures;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
     savedLicenseFeatures = productLicenseManager.getFeatures();
@@ -111,7 +110,7 @@ public class FirewallRegressionOperationsPlaywrightTest
     playwrightLogin();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
     if (savedLicenseFeatures != null) {
@@ -125,7 +124,7 @@ public class FirewallRegressionOperationsPlaywrightTest
    * network unavailable in test).
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFirewallEnterpriseReporting_clickDashboardCard_embedPageRenders() {
     playwrightRefreshOrOpen(EnterpriseReportingPage.url());
 
@@ -149,7 +148,7 @@ public class FirewallRegressionOperationsPlaywrightTest
    * results page.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFirewallBulkWaive_threeStepFlow() {
     String suffix = "-" + TemporaryEntity.uuid();
     Repository repo = seedDbForBulkWaiveTest(suffix);
@@ -223,7 +222,7 @@ public class FirewallRegressionOperationsPlaywrightTest
    * Asserts waiver configuration fields render.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFirewallAddContainerImageWaiver_pageRenders() {
     String suffix = "-" + TemporaryEntity.uuid();
     seedDbForContainerNavigationTest(suffix);
@@ -328,7 +327,7 @@ public class FirewallRegressionOperationsPlaywrightTest
    * the modal.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFirewallAutoUnquarantineConfigModal_contentTogglesAndSave() {
     navigateAndWaitForUrl(FirewallAutoUnquarantinePage.url(), "autoReleaseQuarantine");
 
@@ -358,7 +357,7 @@ public class FirewallRegressionOperationsPlaywrightTest
 
   /** Auto-Unquarantine page renders back navigation, month-to-date/year-to-date metric cards, and status card. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFirewallAutoUnquarantine_layoutCardsAndBackNavigation() {
     navigateAndWaitForUrl(FirewallAutoUnquarantinePage.url(), "autoReleaseQuarantine");
 
@@ -430,7 +429,7 @@ public class FirewallRegressionOperationsPlaywrightTest
    * empty API).
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFirewallAutoUnquarantine_historyTableColumnsAndSorting() {
     FirewallAutoUnquarantinePage autoPage = new FirewallAutoUnquarantinePage();
     FirewallRegressionPage regressionPage = new FirewallRegressionPage();
@@ -557,7 +556,7 @@ public class FirewallRegressionOperationsPlaywrightTest
    * the custom component is never rendered via that path.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFirewallOnboarding_pageRendersAndNavigationAwayTriggersModal() {
     // Mock solutions/licensed so the Solution Switcher shows a "Repository Firewall" link
     // pointing at the onboarding page, simulating a fresh installation where the user arrives
@@ -593,7 +592,7 @@ public class FirewallRegressionOperationsPlaywrightTest
 
   /** Repository Results Summary page renders the stats bar with violation, coverage, and quarantine indicators. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFirewallRepositoryResultsSummary_pageRendersWithStatsBar() {
     String suffix = "-" + TemporaryEntity.uuid();
     seedDbForRepoResultsSummaryTest(suffix);
@@ -634,7 +633,7 @@ public class FirewallRegressionOperationsPlaywrightTest
 
   /** Quarantined Component Report renders the page heading and component overview tile for a valid token URL. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFirewallQuarantinedComponentReport_pageRendersWithComponentDetailsAndQuarantineReason() {
     String suffix = "-" + TemporaryEntity.uuid();
     QuarantinedComponentAccess access = seedDbForQuarantinedComponentReportTest(suffix);
@@ -697,7 +696,7 @@ public class FirewallRegressionOperationsPlaywrightTest
    * details tabs (Overview, Violations, Security, Legal, Labels) render correctly.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFirewallComponentDetails_allTabsVisible() {
     String suffix = "-" + TemporaryEntity.uuid();
     seedDbForNavigationTest(suffix);

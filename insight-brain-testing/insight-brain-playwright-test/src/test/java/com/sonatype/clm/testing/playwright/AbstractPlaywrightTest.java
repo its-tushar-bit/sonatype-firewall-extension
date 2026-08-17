@@ -8,9 +8,7 @@ package com.sonatype.clm.testing.playwright;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
+import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,12 +33,12 @@ import com.sonatype.clm.testing.playwright.pages.BasePage;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightWaitUtils;
 
-import org.junit.Before;
-import org.junit.Rule;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.rules.TestName;
-import org.junit.rules.TestRule;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +56,7 @@ import org.slf4j.LoggerFactory;
  * licensing, DB setup) on top.
  *
  * <p>
- * Subclasses MUST initialise {@link #baseUrlFromTest} before any {@code @Before} runs &mdash;
+ * Subclasses MUST initialise {@link #baseUrlFromTest} before any {@code @BeforeEach} runs &mdash;
  * typically in a static initialiser that boots the test server &mdash; because
  * {@link #setupPlaywrightTest()} reads it when constructing the {@link BrowserContext}.
  *
@@ -66,6 +64,7 @@ import org.slf4j.LoggerFactory;
  * Timeouts and flake policy are documented in this module's {@code README.md}
  * (Troubleshooting section) and enforced by {@code PlaywrightStabilityRulesCheck}.
  */
+@ExtendWith(AbstractPlaywrightTest.PlaywrightLifecycleExtension.class)
 public abstract class AbstractPlaywrightTest
 {
   private static final Logger log = LoggerFactory.getLogger(AbstractPlaywrightTest.class);
@@ -140,7 +139,7 @@ public abstract class AbstractPlaywrightTest
    *
    * <p>
    * Written from Playwright's internal dispatcher thread (via {@link Page#onConsoleMessage}) and
-   * read from the JUnit test thread inside {@link PlaywrightLifecycleRule}. Must be a synchronized
+   * read during {@link PlaywrightLifecycleExtension}'s capture. Must be a synchronized
    * list; the cap-check + add in {@link #appendDiagnosticLine} is guarded by a
    * {@code synchronized} block to keep the two operations atomic.
    */
@@ -157,19 +156,18 @@ public abstract class AbstractPlaywrightTest
   private final List<String> browserPageErrors =
       Collections.synchronizedList(new ArrayList<>());
 
-  @Rule
-  public TestName testName = new TestName();
+  protected TestName testName;
 
   /**
    * Per-test lifecycle hook: captures Playwright failure artifacts <em>while the browser
    * context is still alive</em>, then closes it.
    *
    * <p>
-   * Implemented as a {@link TestRule} (rather than {@code @Rule TestWatcher} + {@code @After})
-   * so the {@code try/catch} can observe the throwable directly and run capture against the
-   * still-open {@link Page}/{@link BrowserContext} before the {@code finally} closes them. The
-   * earlier {@code TestWatcher}+{@code @After} arrangement always closed the context before
-   * {@code TestWatcher.failed} fired, so screenshots/traces were lost on failure.
+   * Implemented as an {@link AfterEachCallback} so it runs after the test body and any
+   * {@code @AfterEach} methods while the {@link Page}/{@link BrowserContext} created in
+   * {@link #setupPlaywrightTest} is still open. It reads the outcome from
+   * {@link ExtensionContext#getExecutionException()} and captures against the still-open page
+   * before closing it.
    *
    * <p>
    * Capture/cleanup matrix:
@@ -180,40 +178,32 @@ public abstract class AbstractPlaywrightTest
    * {@code always}) + failure-diagnostics attachment, then close.</li>
    * </ul>
    */
-  @Rule
-  public TestRule playwrightLifecycle = new PlaywrightLifecycleRule();
-
-  /**
-   * Per-test JUnit rule that wraps the test body in capture+cleanup. Extracted from the original
-   * 60-line anonymous {@code TestRule}/{@code Statement} lambda so failure diagnostics show a
-   * named frame and the {@code evaluate} body can be navigated like any other method.
-   */
-  private final class PlaywrightLifecycleRule
-      implements TestRule
+  public static final class PlaywrightLifecycleExtension
+      implements AfterEachCallback
   {
     @Override
-    public Statement apply(Statement base, Description description) {
-      return new Statement()
-      {
-        @Override
-        public void evaluate() throws Throwable {
-          runWithPlaywrightCapture(base, description);
-        }
-      };
+    public void afterEach(final ExtensionContext context) {
+      AbstractPlaywrightTest test = (AbstractPlaywrightTest) context.getRequiredTestInstance();
+      String fqMethod =
+          context.getRequiredTestClass().getName() + "." + context.getRequiredTestMethod().getName();
+      test.captureAndCloseAfterTest(fqMethod, context.getDisplayName(),
+          context.getExecutionException().orElse(null));
     }
   }
 
-  private void runWithPlaywrightCapture(Statement base, Description description) throws Throwable {
-    Throwable failure = null;
-    try {
-      base.evaluate();
-    }
-    catch (Throwable t) {
-      failure = t;
-    }
+  /**
+   * Captures Playwright failure artifacts (screenshot/trace/diagnostics) for a just-run test while
+   * the {@link Page}/{@link BrowserContext} is still open, then closes them. Invoked by
+   * {@link PlaywrightLifecycleExtension} after the test body and {@code @AfterEach} methods.
+   *
+   * @param fqMethod fully-qualified {@code <class>.<method>} of the test that ran
+   * @param displayName Jupiter display name (for the END log line)
+   * @param failure the test failure, or {@code null} if the test passed
+   */
+  private void captureAndCloseAfterTest(String fqMethod, String displayName, Throwable failure) {
     // Key artifacts on the filesystem-safe FQN slug (e.g. com.foo.BarTest.testFoo) so two test
     // classes with the same method name never clobber each other's screenshots/traces.
-    String testKey = safeFileName(description.getClassName() + "." + description.getMethodName());
+    String testKey = safeFileName(fqMethod);
     Video recordedVideo = null;
     try {
       if (failure != null) {
@@ -221,7 +211,7 @@ public abstract class AbstractPlaywrightTest
         if (TRACE_ALWAYS || TRACE_ON_FAILURE) {
           saveTrace(testKey);
         }
-        logPlaywrightFailureDiagnostics(description, failure);
+        logPlaywrightFailureDiagnostics(fqMethod, failure);
       }
       else if (TRACE_ALWAYS) {
         saveTrace(testKey);
@@ -257,10 +247,7 @@ public abstract class AbstractPlaywrightTest
     if (RECORD_VIDEO && recordedVideo != null) {
       saveVideo(testKey, recordedVideo);
     }
-    log.info("=== PLAYWRIGHT END {} | passed={}", description.getDisplayName(), failure == null);
-    if (failure != null) {
-      throw failure;
-    }
+    log.info("=== PLAYWRIGHT END {} | passed={}", displayName, failure == null);
   }
 
   /**
@@ -352,9 +339,17 @@ public abstract class AbstractPlaywrightTest
     }
   }
 
-  @Before
-  public void setupPlaywrightTest() {
-    String currentTest = testName.getMethodName();
+  @BeforeEach
+  public void setupPlaywrightTest(TestInfo testInfo) {
+    String currentTest =
+        testInfo.getTestMethod().map(Method::getName).orElse(testInfo.getDisplayName());
+    testName = new TestName()
+    {
+      @Override
+      public String getMethodName() {
+        return currentTest;
+      }
+    };
     log.info("=== PLAYWRIGHT START {}.{} | server={}", getClass().getName(), currentTest, baseUrlFromTest);
 
     initializePlaywright();
@@ -460,8 +455,7 @@ public abstract class AbstractPlaywrightTest
    * Writes a plain-text diagnostics file to {@code target/playwright-diagnostics/<class>.<method>.diag.txt},
    * archived as a Jenkins job artifact for triage.
    */
-  private void logPlaywrightFailureDiagnostics(Description description, Throwable failure) {
-    String fqMethod = description.getClassName() + "." + description.getMethodName();
+  private void logPlaywrightFailureDiagnostics(String fqMethod, Throwable failure) {
     log.error("Playwright test failed: {}", fqMethod, failure);
 
     StringBuilder summary = new StringBuilder(2048);

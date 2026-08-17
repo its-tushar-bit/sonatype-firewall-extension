@@ -7,15 +7,14 @@ package com.sonatype.clm.testing.playwright.tests;
 
 import com.microsoft.playwright.Route;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.SonatypeDeveloperPage;
 import com.sonatype.clm.testing.playwright.pages.SonatypeDeveloperPageAssertions;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
-import org.junit.rules.ExternalResource;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Lock-screen vs Overview is gated on {@code DEVELOPER_DASHBOARD}; summary section on {@code DEVELOPER_SUMMARY_TABLE}.
@@ -23,26 +22,24 @@ import org.junit.rules.ExternalResource;
 public class SonatypeDeveloperPlaywrightTest
     extends AbstractIqUiTest
 {
+  private boolean originalSummaryTableEnabled;
+
+  /** Capture the flag's original value before each test. */
+  @BeforeEach
+  public void captureFeatureFlags() {
+    originalSummaryTableEnabled = SystemConfigurationPropertyFeature.DEVELOPER_SUMMARY_TABLE.isEnabled();
+  }
+
   /**
-   * Capture-and-restore the flag's original value; {@code @Rule} ordering is deterministic vs the parent
-   * {@code @After}.
+   * Restore the flag and clear Playwright routes after each test, while the page is still open (the
+   * browser context is closed by {@code AbstractPlaywrightTest}'s lifecycle extension after all
+   * {@code @AfterEach} methods).
    */
-  @Rule
-  public final ExternalResource resetFeatureFlags = new ExternalResource()
-  {
-    private boolean originalSummaryTableEnabled;
-
-    @Override
-    protected void before() {
-      originalSummaryTableEnabled = SystemConfigurationPropertyFeature.DEVELOPER_SUMMARY_TABLE.isEnabled();
-    }
-
-    @Override
-    protected void after() {
-      SystemConfigurationPropertyFeature.DEVELOPER_SUMMARY_TABLE.setEnabled(originalSummaryTableEnabled);
-      page.unrouteAll();
-    }
-  };
+  @AfterEach
+  public void resetFeatureFlags() {
+    SystemConfigurationPropertyFeature.DEVELOPER_SUMMARY_TABLE.setEnabled(originalSummaryTableEnabled);
+    page.unrouteAll();
+  }
 
   /**
    * Documented exception to the no-IQ-backend-mocking rule (guardrails §13.6): the framework
@@ -51,7 +48,7 @@ public class SonatypeDeveloperPlaywrightTest
    * stub when the framework gains that path.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeveloperDashboard_licenseLockScreen() {
     page.route("**/rest/product/features*", route -> route.fulfill(new Route.FulfillOptions()
         .setStatus(200)
@@ -71,7 +68,7 @@ public class SonatypeDeveloperPlaywrightTest
 
   /** Cards row is outside the summary ternary (Overview.jsx:55-59), so both layout tests assert it. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeveloperDashboard_summaryEnabledLayout() {
     SystemConfigurationPropertyFeature.DEVELOPER_SUMMARY_TABLE.setEnabled(true);
 
@@ -88,7 +85,7 @@ public class SonatypeDeveloperPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeveloperDashboard_summaryDisabledLayout() {
     SystemConfigurationPropertyFeature.DEVELOPER_SUMMARY_TABLE.setEnabled(false);
 

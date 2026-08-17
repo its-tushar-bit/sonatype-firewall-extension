@@ -12,16 +12,15 @@ import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.assertions.LocatorAssertions;
 import com.microsoft.playwright.options.SelectOption;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.playwright.pages.ProprietaryComponentsRegressionPage;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 import com.sonatype.insight.brain.model.Organization;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -69,7 +68,7 @@ public class ProprietaryComponentsRegressionPlaywrightTest
 
   private static final Pattern INHERITED_HEADING_PATTERN = Pattern.compile("Inherited from .+");
 
-  @Before
+  @BeforeEach
   public void openDashboardAndLoginAsAdmin() {
     playwrightRefreshOrOpen(DashboardPage.url());
     playwrightLogin();
@@ -82,7 +81,7 @@ public class ProprietaryComponentsRegressionPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testPageRenders_localMatchersListAndEmptyState() {
     Organization org = tempEntity.newOrganization();
     tempEntity.newProprietaryConfig(org.getId(),
@@ -106,7 +105,7 @@ public class ProprietaryComponentsRegressionPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAddAndDeleteMatchers() {
     Organization org = tempEntity.newOrganization();
     tempEntity.newProprietaryConfig(org.getId(), List.of(PACKAGE_MATCHER), List.of());
@@ -133,7 +132,7 @@ public class ProprietaryComponentsRegressionPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testInheritedMatchersSection_shownForChildOrg_hiddenAtRootOrg() {
     tempEntity.newProprietaryConfig(Organization.ROOT_ORGANIZATION_ID,
         List.of(INHERITED_PACKAGE),
@@ -155,7 +154,7 @@ public class ProprietaryComponentsRegressionPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSaveConfig_persistsOnReload_andNoChangesGuard() {
     Organization org = tempEntity.newOrganization();
     tempEntity.newProprietaryConfig(org.getId(), List.of(), List.of());

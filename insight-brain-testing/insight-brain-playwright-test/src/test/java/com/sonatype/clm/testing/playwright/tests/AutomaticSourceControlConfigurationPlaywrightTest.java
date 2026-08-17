@@ -6,15 +6,14 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.AutomaticSourceControlConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.AutomaticSourceControlConfigurationPageAssertions;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -32,7 +31,7 @@ public class AutomaticSourceControlConfigurationPlaywrightTest
 
   private AutomaticSourceControlConfigurationPageAssertions scmAssertions;
 
-  @Before
+  @BeforeEach
   public void openAsAdmin() {
     // Seed the toggle to a known-off state so every test starts identical — avoids branching
     // assertions on the toggle's live value. DAO write is fork-wide state; @After resets it.
@@ -43,21 +42,21 @@ public class AutomaticSourceControlConfigurationPlaywrightTest
     scmAssertions = new AutomaticSourceControlConfigurationPageAssertions(scmPage);
   }
 
-  @After
+  @AfterEach
   public void resetSourceControlConfiguration() {
     // Reset any mutation the test made — the DAO write is fork-wide state shared across tests.
     lookup(AutomaticSourceControlConfigurationDAO.class).setSourceControlConfigurationEnabled(false);
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAutomaticScm_pageRendersWithFormControls() {
     scmAssertions.shouldRenderFormLayout();
     scmAssertions.shouldHaveToggleUnchecked();
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAutomaticScm_cancelTracksDirtyAndResetsToggle() {
     scmAssertions.shouldRenderFormLayout();
     scmAssertions.shouldHaveToggleUnchecked();
@@ -73,7 +72,7 @@ public class AutomaticSourceControlConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAutomaticScm_toggleAndUpdatePersistsAcrossReload() {
     scmAssertions.shouldHaveToggleUnchecked();
 

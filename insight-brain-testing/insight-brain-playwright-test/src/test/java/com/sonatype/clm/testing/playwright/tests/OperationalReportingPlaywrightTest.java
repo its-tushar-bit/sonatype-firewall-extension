@@ -6,8 +6,6 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.OperationalReportingPage;
 import com.sonatype.clm.testing.playwright.pages.OperationalReportingPageAssertions;
@@ -15,9 +13,9 @@ import com.sonatype.clm.testing.playwright.pages.SidebarComponent;
 import com.sonatype.clm.testing.playwright.pages.SidebarComponentAssertions;
 
 import org.assertj.core.api.Assertions;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -40,14 +38,14 @@ public class OperationalReportingPlaywrightTest
 
   private static final String EXPECTED_PAGE_TAB_TITLE = "Operational Reporting - Lifecycle";
 
-  @Before
+  @BeforeEach
   public void openDashboardAsAdmin() {
     playwrightRefreshOrOpen(DashboardPage.url());
     playwrightLogin();
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testOperationalReporting_NavigateFromSidebarShowsLandingPage() {
     SidebarComponent sidebar = new SidebarComponent();
     SidebarComponentAssertions sidebarAssertions = new SidebarComponentAssertions(sidebar);
@@ -70,7 +68,7 @@ public class OperationalReportingPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOperationalReporting_react2ShellCardIsVisible() {
     SidebarComponent sidebar = new SidebarComponent();
     sidebar.clickOperationalReportingNavigation();
@@ -84,7 +82,7 @@ public class OperationalReportingPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOperationalReporting_landingPageContentSections() {
     SidebarComponent sidebar = new SidebarComponent();
     sidebar.clickOperationalReportingNavigation();

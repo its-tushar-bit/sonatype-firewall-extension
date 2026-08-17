@@ -7,7 +7,6 @@ package com.sonatype.clm.testing.playwright.tests;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.assertions.LocatorAssertions;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 import com.sonatype.clm.testing.playwright.pages.ApplicationCategoryEditorPage;
@@ -28,10 +27,10 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -75,7 +74,7 @@ public class OrgsAndPoliciesAutoWaiversPlaywrightTest
 
   private AutoWaiversPageAssertions assertions;
 
-  @Before
+  @BeforeEach
   public void enableAutoWaiversFeature() {
     autoWaiversPage = new AutoWaiversPage();
     assertions = new AutoWaiversPageAssertions(autoWaiversPage);
@@ -88,13 +87,13 @@ public class OrgsAndPoliciesAutoWaiversPlaywrightTest
         LicensedFeature.DEVELOPER_DASHBOARD);
   }
 
-  @After
+  @AfterEach
   public void resetAutoWaiversFeature() {
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(false);
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAutoWaiversPage_rendersPageWithTableAndNewButton() {
     Organization org = seedOrgWithOneWaiver();
     playwrightRefreshOrOpen(AutoWaiversPage.url(org.getPublicId()));
@@ -109,7 +108,7 @@ public class OrgsAndPoliciesAutoWaiversPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAutoWaiversPage_licenseGateShowsLockScreen() {
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(false);
 
@@ -121,7 +120,7 @@ public class OrgsAndPoliciesAutoWaiversPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAutoWaiversPage_enterprisePreviewMode() {
     setFeatures(
         LicensedFeature.POLICY_MANAGEMENT,
@@ -135,7 +134,7 @@ public class OrgsAndPoliciesAutoWaiversPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAutoWaiversPage_createModalValidationAndHappyPath() {
     Organization org = seedOrgWithNoWaivers();
     playwrightRefreshOrOpen(AutoWaiversPage.url(org.getPublicId()));
@@ -170,7 +169,7 @@ public class OrgsAndPoliciesAutoWaiversPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAutoWaiversPage_maxThreeWaiversDisablesNewButton() {
     Organization org = seedOrgWithNoWaivers();
     seedMaxLocalWaivers(org.getId());
@@ -184,7 +183,7 @@ public class OrgsAndPoliciesAutoWaiversPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAutoWaiversPage_inheritedWaiversGroupedAndDeleteRestricted() {
     Organization parentOrg = seedOrgWithOneWaiver();
     Organization childOrg = tempEntity.newOrganization("child-org-aw-" + System.nanoTime(), parentOrg);
@@ -203,7 +202,7 @@ public class OrgsAndPoliciesAutoWaiversPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAutoWaiversPage_deleteLocalWaiverWithConfirmationModal() {
     Organization org = seedOrgWithOneWaiver();
 
@@ -219,7 +218,7 @@ public class OrgsAndPoliciesAutoWaiversPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAutoWaiversPage_viewEditNavigatesToDetailsRoute() {
     Organization parentOrg = seedOrgWithOneWaiver();
     Organization childOrg = tempEntity.newOrganization("child-org-ve-" + System.nanoTime(), parentOrg);
@@ -255,7 +254,7 @@ public class OrgsAndPoliciesAutoWaiversPlaywrightTest
   // POLICY_READ_ONLY; this one enables ALL features except AUTO_WAIVER_MANAGEMENT, exercising the
   // enterprise-gating path when the full feature set is otherwise licensed.
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEnterpriseGating_autoWaiversPage_showsPreviewBanner() {
     setMissingFeatures(LicensedFeature.AUTO_WAIVER_MANAGEMENT);
     Organization org = tempEntity.newOrganization("tier-gate-aw-" + System.nanoTime());
@@ -265,7 +264,7 @@ public class OrgsAndPoliciesAutoWaiversPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEnterpriseGating_policyEditor_showsLockIcon() {
     setMissingFeatures(LicensedFeature.CUSTOM_POLICIES);
     Organization org = tempEntity.newOrganization("tier-gate-pe-" + System.nanoTime());
@@ -277,7 +276,7 @@ public class OrgsAndPoliciesAutoWaiversPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEnterpriseGating_componentLabels_showsAddButtonInPreviewMode() {
     setMissingFeatures(LicensedFeature.CUSTOM_COMPONENT_LABELS);
     Organization org = tempEntity.newOrganization("tier-gate-cl-" + System.nanoTime());
@@ -290,7 +289,7 @@ public class OrgsAndPoliciesAutoWaiversPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEnterpriseGating_licenseThreatGroups_showsAddButtonInPreviewMode() {
     setMissingFeatures(LicensedFeature.CUSTOM_LICENSE_THREAT_GROUPS);
     Organization org = tempEntity.newOrganization("tier-gate-ltg-" + System.nanoTime());
@@ -304,7 +303,7 @@ public class OrgsAndPoliciesAutoWaiversPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEnterpriseGating_applicationCategories_showsAddButtonInPreviewMode() {
     setMissingFeatures(LicensedFeature.CUSTOM_APPLICATION_CATEGORIES);
     Organization org = tempEntity.newOrganization("tier-gate-ac-" + System.nanoTime());

@@ -7,7 +7,6 @@ package com.sonatype.clm.testing.playwright.tests;
 
 import com.microsoft.playwright.Locator;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.DeveloperRiskTablePage;
 import com.sonatype.clm.testing.playwright.pages.DeveloperRiskTablePageAssertions;
 import com.sonatype.clm.testing.playwright.pages.SonatypeDeveloperPage;
@@ -16,10 +15,10 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Regression tests for the Developer Dashboard's "Build Stage Risk Monitoring Summary" risk
@@ -38,7 +37,7 @@ public class DeveloperRiskTablePlaywrightTest
 
   private String appName;
 
-  @Before
+  @BeforeEach
   public void seedAppAndOpenDashboard() {
     originalSummaryTableEnabled = SystemConfigurationPropertyFeature.DEVELOPER_SUMMARY_TABLE.isEnabled();
     SystemConfigurationPropertyFeature.DEVELOPER_SUMMARY_TABLE.setEnabled(true);
@@ -50,13 +49,13 @@ public class DeveloperRiskTablePlaywrightTest
     new DeveloperRiskTablePageAssertions(new DeveloperRiskTablePage()).shouldBeVisible();
   }
 
-  @After
+  @AfterEach
   public void restoreFeatureFlag() {
     SystemConfigurationPropertyFeature.DEVELOPER_SUMMARY_TABLE.setEnabled(originalSummaryTableEnabled);
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRiskTable_applicationNameLinkOpensApplicationManagement() {
     DeveloperRiskTablePage table = new DeveloperRiskTablePage();
     DeveloperRiskTablePageAssertions assertions = new DeveloperRiskTablePageAssertions(table);
@@ -67,7 +66,7 @@ public class DeveloperRiskTablePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRiskTable_cicdConfigureButtonShownWhenIntegrationDisabled() {
     DeveloperRiskTablePage table = new DeveloperRiskTablePage();
     DeveloperRiskTablePageAssertions assertions = new DeveloperRiskTablePageAssertions(table);
@@ -77,7 +76,7 @@ public class DeveloperRiskTablePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRiskTable_scmConfigureButtonShownWhenSourceControlDisabled() {
     DeveloperRiskTablePage table = new DeveloperRiskTablePage();
     DeveloperRiskTablePageAssertions assertions = new DeveloperRiskTablePageAssertions(table);
@@ -87,7 +86,7 @@ public class DeveloperRiskTablePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRiskTable_dateColumnsShowNoneWhenNoCommitOrEvaluation() {
     DeveloperRiskTablePage table = new DeveloperRiskTablePage();
     DeveloperRiskTablePageAssertions assertions = new DeveloperRiskTablePageAssertions(table);
@@ -97,7 +96,7 @@ public class DeveloperRiskTablePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRiskTable_prioritiesColumnShowsNAWhenNoReportAvailable() {
     DeveloperRiskTablePage table = new DeveloperRiskTablePage();
     DeveloperRiskTablePageAssertions assertions = new DeveloperRiskTablePageAssertions(table);
@@ -107,7 +106,7 @@ public class DeveloperRiskTablePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRiskTable_searchByUnknownNameShowsEmptyState() {
     DeveloperRiskTablePage table = new DeveloperRiskTablePage();
     DeveloperRiskTablePageAssertions assertions = new DeveloperRiskTablePageAssertions(table);
@@ -118,7 +117,7 @@ public class DeveloperRiskTablePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRiskTable_filterToggleOpensAndApplyClosesPopover() {
     DeveloperRiskTablePage table = new DeveloperRiskTablePage();
     DeveloperRiskTablePageAssertions assertions = new DeveloperRiskTablePageAssertions(table);

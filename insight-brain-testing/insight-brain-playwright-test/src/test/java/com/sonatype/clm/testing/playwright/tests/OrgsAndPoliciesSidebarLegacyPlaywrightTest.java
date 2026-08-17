@@ -13,11 +13,10 @@ import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.SidebarComponent;
 import com.sonatype.clm.testing.playwright.pages.SidebarComponentAssertions;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
-import org.junit.experimental.categories.Category;
 
 /**
  * Playwright test for the global "Orgs and Policies" navigation flow on the Root Organization:
@@ -47,7 +46,7 @@ public class OrgsAndPoliciesSidebarLegacyPlaywrightTest
 
   // --------------- @Before ---------------
 
-  @Before
+  @BeforeEach
   public void openRootOrgAsAdmin() {
     playwrightRefreshOrOpen(OwnerSummaryPage.urlToRootOrg());
     playwrightLogin();
@@ -60,7 +59,7 @@ public class OrgsAndPoliciesSidebarLegacyPlaywrightTest
    * full set of owner-detail-sidebar labels for the Root Organization.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testOrgsAndPoliciesNavigation_RevealsOwnerDetailSidebarLabels() {
     SidebarComponent sidebar = new SidebarComponent();
     OwnerSummaryPage ownerSummary = new OwnerSummaryPage();

@@ -14,7 +14,6 @@ import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.BasePage;
 import com.sonatype.clm.testing.playwright.pages.UserActivityDetailsRegressionPage;
 import com.sonatype.clm.testing.playwright.pages.UserActivityOverviewPage;
@@ -25,10 +24,10 @@ import com.sonatype.insight.brain.service.InsightConfig;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Playwright regression tests for the User Activity Overview screen
@@ -60,7 +59,7 @@ public class UserActivityOverviewPlaywrightTest
 
   private boolean originalTracking;
 
-  @Before
+  @BeforeEach
   public void setUp() throws IOException {
     originalTracking = SystemConfigurationPropertyFeature.USER_ACTIVITY_TRACKING.isEnabled();
     SystemConfigurationPropertyFeature.USER_ACTIVITY_TRACKING.setEnabled(true);
@@ -74,7 +73,7 @@ public class UserActivityOverviewPlaywrightTest
     overviewPage.overviewTable().waitFor();
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws IOException {
     SystemConfigurationPropertyFeature.USER_ACTIVITY_TRACKING.setEnabled(originalTracking);
     if (auditLogFile != null) {
@@ -135,7 +134,7 @@ public class UserActivityOverviewPlaywrightTest
    * action buttons, and the "Showing N of M users" summary is present.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOverview_tableColumnsAndActionButtons() {
     overviewAssertions.shouldShowTable();
     overviewAssertions.shouldShowUsernameColumnHeader();
@@ -152,7 +151,7 @@ public class UserActivityOverviewPlaywrightTest
    * a non-matching term shows the empty-state message.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOverview_searchFiltersTable() {
     overviewPage.searchInput().fill(TestCredentials.ADMIN_USERNAME);
     overviewAssertions.shouldShowUser(TestCredentials.ADMIN_USERNAME);
@@ -166,7 +165,7 @@ public class UserActivityOverviewPlaywrightTest
    * direction applied by the component on first render.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOverview_defaultSortIsLoginCountDescending() {
     overviewAssertions.shouldShowTable();
     overviewAssertions.shouldHaveLoginCountSortDirection("descending");
@@ -178,7 +177,7 @@ public class UserActivityOverviewPlaywrightTest
    * seeded user (1 login) is first when ascending.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOverview_clickLoginCountHeaderTogglesSortToAscending() {
     overviewAssertions.shouldShowTable();
     overviewAssertions.shouldHaveLoginCountSortDirection("descending");
@@ -201,7 +200,7 @@ public class UserActivityOverviewPlaywrightTest
    * via the parent UserManagement component's stateGo handler.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOverview_rowClickNavigatesToUserDetails() {
     overviewPage.userRow(TestCredentials.ADMIN_USERNAME).click();
     assertThat(page).hasURL(
@@ -215,7 +214,7 @@ public class UserActivityOverviewPlaywrightTest
    * behind the open drawer ({@code filtersAreDirty=true}).
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOverview_filterDrawerOpensWithButtonsDisabled() {
     overviewPage.filterButton().click();
     overviewAssertions.shouldShowFilterDrawer();
@@ -235,7 +234,7 @@ public class UserActivityOverviewPlaywrightTest
    * column header to reflect the selected time period.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOverview_filterApplyUpdatesLoginCountHeader() {
     overviewPage.filterButton().click();
     overviewPage.timeFrameTreeViewToggle().click();
@@ -251,7 +250,7 @@ public class UserActivityOverviewPlaywrightTest
    * without applying the pending change — the Login Count header retains the default period.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOverview_filterResetRevertsSelection() {
     overviewPage.filterButton().click();
     overviewPage.timeFrameTreeViewToggle().click();
@@ -268,7 +267,7 @@ public class UserActivityOverviewPlaywrightTest
    * disabled because {@code users.length === 0}.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOverview_exportDisabledWhenTableIsEmpty() {
     overviewPage.searchInput().fill(NO_MATCH_SEARCH_TERM);
     overviewAssertions.shouldShowEmptyState();

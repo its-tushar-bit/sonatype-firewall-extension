@@ -31,8 +31,8 @@
     <!-- When true, tests that call playwrightManualPauseIfEnabled() block for Playwright Inspector. -->
     <playwright.manualPause>false</playwright.manualPause>
     <!--
-      JUnit 4 @Category filtering, surfaced through Maven so CI can target specific suites
-      (see com.sonatype.clm.testing.playwright.categories.SanityTest). Empty = no filtering (run everything).
+      JUnit 5 @Tag filtering, surfaced through Maven so CI can target specific suites
+      (the "sanity"/"regression" tags on the Playwright tests). Empty = no filtering (run everything).
     -->
     <failsafe.groups></failsafe.groups>
     <failsafe.excludedGroups></failsafe.excludedGroups>
@@ -322,6 +322,17 @@
       <version>${playwright.version}</version>
       <scope>test</scope>
     </dependency>
+    <!-- JUnit 5 (Jupiter) engine + JUnit Platform launcher so Surefire/Failsafe run under JUnitPlatformProvider. -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-launcher</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <profiles>
@@ -369,13 +380,13 @@
       </build>
     </profile>
     <!--
-      CI sanity profile - runs only tests annotated @Category(SanityTest.class).
+      CI sanity profile - runs only tests annotated @Tag("sanity").
       Activate with:  mvn verify -pl insight-brain-playwright-test -Psanity
     -->
     <profile>
       <id>sanity</id>
       <properties>
-        <failsafe.groups>com.sonatype.clm.testing.playwright.categories.SanityTest</failsafe.groups>
+        <failsafe.groups>sanity</failsafe.groups>
       </properties>
     </profile>
     <!--
@@ -397,7 +408,7 @@
     <profile>
       <id>regression</id>
       <properties>
-        <failsafe.groups>com.sonatype.clm.testing.playwright.categories.RegressionTest</failsafe.groups>
+        <failsafe.groups>regression</failsafe.groups>
       </properties>
     </profile>
   </profiles>

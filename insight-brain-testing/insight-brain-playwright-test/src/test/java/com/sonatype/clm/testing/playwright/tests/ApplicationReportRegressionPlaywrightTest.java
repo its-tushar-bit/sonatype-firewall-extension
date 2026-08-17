@@ -11,7 +11,6 @@ import java.util.regex.Pattern;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPageAssertions;
 import com.sonatype.clm.testing.playwright.utils.TestReportEvaluator;
@@ -26,9 +25,9 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /** Regression tests for Application Report back-button origin-param behavior. */
 public class ApplicationReportRegressionPlaywrightTest
@@ -56,7 +55,7 @@ public class ApplicationReportRegressionPlaywrightTest
 
   private Application app;
 
-  @Before
+  @BeforeEach
   public void seedAndOpen() throws IOException {
     URL referencePolicyUrl = getClass().getResource("/reference-policies-v3.json");
     PolicyExportResult referencePolicies =
@@ -84,7 +83,7 @@ public class ApplicationReportRegressionPlaywrightTest
 
   /** Back button shows "Back to Firewall Dashboard" when origin=firewall.firewallPage.containers. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testApplicationReport_backButton_firewallDashboardContext_showsCorrectLabel() {
     ApplicationReportPage reportPage = new ApplicationReportPage();
     ApplicationReportPageAssertions reportAssertions = new ApplicationReportPageAssertions(reportPage);
@@ -101,7 +100,7 @@ public class ApplicationReportRegressionPlaywrightTest
 
   /** Back button shows "Back to Repository Results" when origin=firewall.containerRepositoryResults. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testApplicationReport_backButton_repositoryResultsContext_showsCorrectLabel() {
     ApplicationReportPage reportPage = new ApplicationReportPage();
     ApplicationReportPageAssertions reportAssertions = new ApplicationReportPageAssertions(reportPage);

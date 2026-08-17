@@ -40,14 +40,12 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.assertions.LocatorAssertions.IsVisibleOptions;
 import com.microsoft.playwright.options.WaitForSelectorState;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.ListWaiversTablePage;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -59,7 +57,7 @@ public class ViolationDetailsPlaywrightTest
 
   private PolicyViolation policyViolation;
 
-  @Before
+  @BeforeEach
   public void seedViolationAndOpenAsAdmin() {
     seedOrgAppAndViolation(DATA);
     stubHdsVulnerabilityDetails();
@@ -69,7 +67,7 @@ public class ViolationDetailsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testDetails() {
     ViolationDetailsPage detailsPage = openViolationDetails();
 
@@ -78,7 +76,7 @@ public class ViolationDetailsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testPolicyViolationInfo() {
     ViolationDetailsPage detailsPage = openViolationDetails();
 
@@ -87,7 +85,7 @@ public class ViolationDetailsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testGoDirectlyToAddWaiver() {
     ViolationDetailsPage detailsPage = openViolationDetails();
     assertThat(detailsPage.addWaiverButton()).isVisible();
@@ -99,7 +97,7 @@ public class ViolationDetailsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testInvalidViolationGuard_warningWhenViolationIdMissing() {
     playwrightRefreshOrOpen(DATA.violationPageUrlPrefix());
     playwrightRefresh();
@@ -111,7 +109,7 @@ public class ViolationDetailsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testVulnerabilityDetailsTab_hiddenWhenNoVulnerabilityDetails() {
     String licenseViolationId = seedLicenseViolation();
     playwrightRefreshOrOpen(ViolationDetailsPage.url(licenseViolationId));
@@ -125,7 +123,7 @@ public class ViolationDetailsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testVulnerabilityDetailsTab_presentWhenDetailsLoaded() {
     ViolationDetailsPage detailsPage = openViolationDetails();
     assertThat(detailsPage.applicableWaiversTab()).isVisible();
@@ -135,7 +133,7 @@ public class ViolationDetailsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testWaiverCounterBadge_onApplicableWaiversTab() {
     String waiverViolationId = seedViolationWithWaivers();
     playwrightRefreshOrOpen(ViolationDetailsPage.url(waiverViolationId));
@@ -151,7 +149,7 @@ public class ViolationDetailsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSimilarWaiversFilterDropdown_threeOptions() {
     ViolationDetailsPage detailsPage = openViolationDetails();
     detailsPage.openSimilarWaiversTab();
@@ -166,7 +164,7 @@ public class ViolationDetailsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSimilarWaiversSubtitle_variesByVulnerability() {
     String licenseViolationId = seedLicenseViolation();
     playwrightRefreshOrOpen(ViolationDetailsPage.url(licenseViolationId));
@@ -193,7 +191,7 @@ public class ViolationDetailsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFirewallContext_constraintViolationsRender() {
     setFeatures(
         LicensedFeature.POLICY_MANAGEMENT,
@@ -216,7 +214,7 @@ public class ViolationDetailsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testStandaloneMode_backButtonPresent() {
     ViolationDetailsPage detailsPage = openViolationDetails();
     assertThat(detailsPage.backButton()).isVisible();
@@ -224,7 +222,7 @@ public class ViolationDetailsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testApplicableWaiversBadge_clickOpensListWaiversTable() {
     String violationId = seedViolationWithWaivers();
     playwrightRefreshOrOpen(ViolationDetailsPage.url(violationId));

@@ -10,13 +10,12 @@ import com.sonatype.clm.testing.playwright.pages.FirewallAutoUnquarantinePage;
 import com.sonatype.clm.testing.playwright.pages.FirewallPage;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
-import org.junit.experimental.categories.Category;
 
 /**
  * <p>
@@ -44,7 +43,7 @@ public class FirewallConfigurationModalPlaywrightTest
 
   private static final String STATUS_ACTIVE = "Active";
 
-  @Before
+  @BeforeEach
   public void openAutoUnquarantineAsAdmin() {
     setFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE, LicensedFeature.RELEASE_INTEGRITY);
 
@@ -58,7 +57,7 @@ public class FirewallConfigurationModalPlaywrightTest
    * {@code auto_unquarantine_policy_condition_type} table here. The hardreset matches the
    * legacy Selenide test's behaviour (skill §3b: {@code @After} is for global side-effects).
    */
-  @After
+  @AfterEach
   public void hardresetAfterTest() {
     playwrightHardreset();
   }
@@ -69,7 +68,7 @@ public class FirewallConfigurationModalPlaywrightTest
    * {@code testFirewallConfigurationModal_InfoAlertAndReadMoreLink}.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testInfoAlertAndReadMoreLink() {
     FirewallAutoUnquarantinePage autoPage = new FirewallAutoUnquarantinePage();
 
@@ -92,7 +91,7 @@ public class FirewallConfigurationModalPlaywrightTest
    * {@code testFirewallConfigurationModal_DefaultValues}.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testDefaultValues() {
     FirewallAutoUnquarantinePage autoPage = new FirewallAutoUnquarantinePage();
 
@@ -110,7 +109,7 @@ public class FirewallConfigurationModalPlaywrightTest
    * {@code testFirewallConfigurationModal_ToggleIntegrityRating}.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testToggleIntegrityRating() {
     FirewallAutoUnquarantinePage autoPage = new FirewallAutoUnquarantinePage();
 

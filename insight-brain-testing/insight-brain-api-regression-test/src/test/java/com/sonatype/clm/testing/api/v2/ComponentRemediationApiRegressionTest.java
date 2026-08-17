@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.api.v2;
 
 import com.sonatype.clm.testing.api.AbstractIqApiTest;
-import com.sonatype.clm.testing.api.categories.ApiRegressionTest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.ApiComponentRemediationResource;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
@@ -20,9 +19,8 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -80,13 +78,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  * refactor moves the owner-existence check ahead of the auth check, this test would surface
  * a 404 instead — a legitimate signal to update the test alongside the refactor.
  */
-@Category(ApiRegressionTest.class)
 public class ComponentRemediationApiRegressionTest
     extends AbstractIqApiTest
 {
   private static final String REMEDIATION_BASE = "api/v2/components/remediation";
 
-  @Before
+  @BeforeEach
   public void enableComponentEvaluation() throws Exception {
     setFeatures(LicensedFeature.COMPONENT_EVALUATION);
   }

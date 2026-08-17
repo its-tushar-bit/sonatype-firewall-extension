@@ -18,12 +18,11 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
-import org.junit.experimental.categories.Category;
 
 /**
  * <p>
@@ -49,7 +48,7 @@ public class FirewallAutoUnquarantinePlaywrightTest
 
   private static final String EXPECTED_COMPONENT_DETAILS_URL_FRAGMENT = "/firewall/repository/";
 
-  @Before
+  @BeforeEach
   public void openAutoUnquarantineAsAdmin() {
     // FIREWALL is required by testRowClickNavigatesToComponentDetails for the route to
     // resolve; AUTO_UNQUARANTINE + RELEASE_INTEGRITY enable the page itself. Including all
@@ -65,7 +64,7 @@ public class FirewallAutoUnquarantinePlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testAutoUnquarantinePageLoads() {
     FirewallAutoUnquarantinePage autoPage = new FirewallAutoUnquarantinePage();
 
@@ -75,7 +74,7 @@ public class FirewallAutoUnquarantinePlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testOpenCloseModal() {
     FirewallAutoUnquarantinePage autoPage = new FirewallAutoUnquarantinePage();
 
@@ -92,7 +91,7 @@ public class FirewallAutoUnquarantinePlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testAutoUnquarantineTableBodyCount() {
     FirewallAutoUnquarantinePage autoPage = new FirewallAutoUnquarantinePage();
 
@@ -101,7 +100,7 @@ public class FirewallAutoUnquarantinePlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testRowClickNavigatesToComponentDetails() {
     FirewallAutoUnquarantinePage autoPage = new FirewallAutoUnquarantinePage();
 

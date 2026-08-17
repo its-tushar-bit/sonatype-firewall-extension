@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.api.v2;
 
 import com.sonatype.clm.testing.api.AbstractIqApiTest;
-import com.sonatype.clm.testing.api.categories.ApiRegressionTest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.ApiLegalAttributionReportTemplateResourceV2;
@@ -14,8 +13,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.AttributionReportTemplateDTO;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 import com.jayway.jsonpath.JsonPath;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,7 +29,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * {@code stage} — an earlier draft of the plan showed plural forms which do not match the
  * actual resource annotations.
  */
-@Category(ApiRegressionTest.class)
 public class LicenseLegalMetadataApiRegressionTest
     extends AbstractIqApiTest
 {

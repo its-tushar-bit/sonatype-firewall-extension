@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.api.v2;
 
 import com.sonatype.clm.testing.api.AbstractIqApiTest;
-import com.sonatype.clm.testing.api.categories.ApiRegressionTest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.ApiComponentReleaseQuarantineResource;
@@ -20,9 +19,8 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import java.util.Date;
 
 import jakarta.ws.rs.core.MediaType;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -60,11 +58,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  * of the auth check, this test would surface a 404 instead — a legitimate signal to update
  * alongside the refactor, not a bug in the test.
  */
-@Category(ApiRegressionTest.class)
 public class QuarantineReleaseApiRegressionTest
     extends AbstractIqApiTest
 {
-  @Before
+  @BeforeEach
   public void enableFirewall() throws Exception {
     setFeatures(LicensedFeature.FIREWALL);
   }

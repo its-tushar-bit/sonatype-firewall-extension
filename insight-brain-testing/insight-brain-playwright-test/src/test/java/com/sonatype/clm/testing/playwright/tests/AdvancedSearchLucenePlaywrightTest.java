@@ -11,7 +11,6 @@ import java.time.Duration;
 import java.util.Collections;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.AdvancedSearchPage;
 import com.sonatype.clm.testing.playwright.pages.AdvancedSearchPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.ComponentDetailsPage;
@@ -29,10 +28,10 @@ import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 
 import com.microsoft.playwright.Download;
 import org.awaitility.Awaitility;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 
@@ -99,7 +98,7 @@ public class AdvancedSearchLucenePlaywrightTest
 
   private AdvancedSearchPageAssertions assertions;
 
-  @Before
+  @BeforeEach
   public void setup() throws IOException {
     app = tempEntity.newApplicationWithParent(APP_PUBLIC_ID, APP_NAME, ORG_NAME);
     seedCannedReport(); // must precede createSearchIndex() so the PolicyEvaluation record exists for component docs
@@ -115,7 +114,7 @@ public class AdvancedSearchLucenePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLuceneSearch_ApplicationNameQuery_ReturnsRealResultCard() {
     searchByExactAppName();
     assertions.shouldHaveResultGroup(APP_NAME);
@@ -123,7 +122,7 @@ public class AdvancedSearchLucenePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLuceneSearch_MultipleTermsWithAndOperator_ReturnsResults() {
     advancedSearch.openQueryBuilder();
     assertions.shouldHaveQueryRowCount(ONE_ROW);
@@ -153,7 +152,7 @@ public class AdvancedSearchLucenePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLuceneSearch_ExportResults_TriggersCsvDownload() {
     searchByExactAppName();
     assertions.shouldHaveExportButtonEnabled();
@@ -163,7 +162,7 @@ public class AdvancedSearchLucenePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLuceneSearch_ComponentNameSearch_NavigatesToComponentDetailsPage() {
     // MATCH_PARTIAL required: componentName is indexed as a single token by LowerCaseKeywordAnalyzer
     advancedSearch.buildSingleTermQuery(FIELD_COMPONENT_NAME, MATCH_PARTIAL, COMPONENT_VALUE);
@@ -181,7 +180,7 @@ public class AdvancedSearchLucenePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLuceneSearch_RemoveSearchTermRow_ClearsTermFromQuery() {
     advancedSearch.buildSingleTermQuery(FIELD_APPLICATION_NAME, MATCH_EXACT, APP_NAME);
 
@@ -202,7 +201,7 @@ public class AdvancedSearchLucenePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLuceneSearch_ExactMatchGeneratesQuotedQuery() {
     advancedSearch.buildSingleTermQuery(FIELD_APPLICATION_NAME, MATCH_EXACT, APP_NAME);
 
@@ -214,7 +213,7 @@ public class AdvancedSearchLucenePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLuceneSearch_ClearAllTermsResetsQueryAndDisablesSearch() {
     advancedSearch.buildSingleTermQuery(FIELD_APPLICATION_NAME, MATCH_PARTIAL, APP_NAME);
 
@@ -236,7 +235,7 @@ public class AdvancedSearchLucenePlaywrightTest
 
   /** Field-validity check; seeded fixture has no violations so count is legitimately zero. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLuceneSearch_PolicyNameQuery_FieldIsSearchable() {
     advancedSearch.runKeywordSearch("policyName:*");
 
@@ -244,7 +243,7 @@ public class AdvancedSearchLucenePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLuceneSearch_VulnerabilitySeverityRange_ReturnsResults() {
     // Expects the canned report to contain at least one component whose vulnerabilitySeverity
     // is in [7, 10] — verified against fixtures in src/test/resources/reportWithComponentRef
@@ -257,7 +256,7 @@ public class AdvancedSearchLucenePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLuceneSearch_NonsenseQuery_ShowsNoResults() {
     advancedSearch.runKeywordSearch(
         "applicationName:nonexistent-app-name-" + TemporaryEntity.uuid());
@@ -306,7 +305,7 @@ public class AdvancedSearchLucenePlaywrightTest
     assertions.shouldShowSearchResultCount();
   }
 
-  @After
+  @AfterEach
   public void disableAdvancedSearch() {
     // Always runs — safe to call even if enableAdvancedSearch() was never reached in @Before.
     lookup(SystemConfigurationPropertyDAO.class)

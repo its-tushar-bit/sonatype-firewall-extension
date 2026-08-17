@@ -5,17 +5,16 @@
  */
 package com.sonatype.clm.testing.playwright.tests;
 
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.EditRoiConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.EditRoiConfigurationPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.RoiConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.RoiConfigurationPageAssertions;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 public class RoiConfigurationFirewallPlaywrightTest
     extends AbstractRoiConfigurationPlaywrightTest
@@ -28,7 +27,7 @@ public class RoiConfigurationFirewallPlaywrightTest
 
   private EditRoiConfigurationPageAssertions editRoiAssertions;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     // Backend /rest/roiConfiguration requires Lifecycle entitlement; frontend gates the Firewall
     // Metrics section on `selectHasFirewallLicense`. Both licenses needed for endpoint + section.
@@ -47,20 +46,20 @@ public class RoiConfigurationFirewallPlaywrightTest
     editRoiAssertions = new EditRoiConfigurationPageAssertions(editRoiPage);
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     playwrightLogout();
     deleteRoiConfiguration();
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRoiConfiguration_firewallMetricsSectionRendersWithFirewallLicense() {
     roiAssertions.shouldShowFirewallMetricsSection();
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEditRoiConfiguration_firewallInputsRenderWithFirewallLicense() {
     roiPage.editLink().click();
     editRoiAssertions.shouldShowFirewallInputs();

@@ -10,13 +10,12 @@ import com.sonatype.clm.testing.playwright.pages.BaseUrlConfigurationPage;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
-import org.junit.experimental.categories.Category;
 
 /**
  * Playwright migration of the Selenide {@code BaseUrlConfigurationPageTest}.
@@ -32,7 +31,7 @@ public class BaseUrlConfigurationPlaywrightTest
 
   private String baseUrl = "";
 
-  @Before
+  @BeforeEach
   public void openBaseUrlConfigAsAdmin() {
     baseUrl = readCurrentBaseUrl();
 
@@ -41,7 +40,7 @@ public class BaseUrlConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testDefaultState() {
     assertDefaultFormState();
   }
@@ -52,7 +51,7 @@ public class BaseUrlConfigurationPlaywrightTest
    * its primary action is enabled and Cancel dismisses the modal.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testCRUD() {
     BaseUrlConfigurationPage configPage = new BaseUrlConfigurationPage();
 
@@ -82,7 +81,7 @@ public class BaseUrlConfigurationPlaywrightTest
    * default state — i.e. Cancel is a no-op against the persisted base URL.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testCancel() {
     BaseUrlConfigurationPage configPage = new BaseUrlConfigurationPage();
 
@@ -96,7 +95,7 @@ public class BaseUrlConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testBaseUrlNotSetNotice_routeShowsNotice() {
     lookup(SystemConfigurationPropertyDAO.class).set(SystemConfigurationProperty.BASE_URL, "");
 
@@ -107,7 +106,7 @@ public class BaseUrlConfigurationPlaywrightTest
     assertThat(configPage.notSetNoticeBanner()).containsText("The Base URL is not configured");
   }
 
-  @After
+  @AfterEach
   public void restoreBaseUrl() {
     lookup(SystemConfigurationPropertyDAO.class).set(SystemConfigurationProperty.BASE_URL, baseUrl);
   }

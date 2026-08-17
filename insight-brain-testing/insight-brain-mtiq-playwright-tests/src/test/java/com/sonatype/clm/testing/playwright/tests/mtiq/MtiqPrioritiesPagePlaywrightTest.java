@@ -28,7 +28,6 @@ import java.util.stream.Stream;
 import com.microsoft.playwright.assertions.LocatorAssertions;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.clm.testing.playwright.categories.MtiqTest;
 import com.sonatype.clm.testing.playwright.mtiq.AbstractMtiqUiTest;
 import com.sonatype.clm.testing.playwright.pages.PrioritiesPage;
 import com.sonatype.clm.testing.playwright.pages.PrioritiesPageAssertions;
@@ -49,14 +48,13 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -70,12 +68,12 @@ import static org.mockito.Mockito.when;
  * {@code evaluator.evaluatePolicy()} itself — lifting this to {@code @Before} triggers an
  * AutoPolicyWaiver-induced 404 race (documented in on-prem Javadoc).
  */
-@Category(MtiqTest.class)
+@Tag("mtiq")
 public class MtiqPrioritiesPagePlaywrightTest
     extends AbstractMtiqUiTest
 {
-  @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
+  @TempDir
+  protected Path tempDir;
 
   private static final String SCAN_ID = "e16caf35769f4b3186a7e416d34c2797";
 
@@ -103,7 +101,7 @@ public class MtiqPrioritiesPagePlaywrightTest
 
   private PrioritiesPageAssertions assertions;
 
-  @Before
+  @BeforeEach
   public void setUp() throws IOException {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
     seedDb();
@@ -111,7 +109,7 @@ public class MtiqPrioritiesPagePlaywrightTest
     assertions = new PrioritiesPageAssertions(prioritiesPage);
   }
 
-  @After
+  @AfterEach
   public void resetTestState() {
     // Clear clipboard grants so they don't leak into sibling tests in the same BrowserContext fork.
     context.clearPermissions();
@@ -155,8 +153,8 @@ public class MtiqPrioritiesPagePlaywrightTest
       prioritiesPage.commitCopyButton().hover();
       prioritiesPage.commitCopyButton().click();
       // Clipboard content is the durable signal — independent of the 1500 ms tooltip window.
-      assertFalse("clipboard should contain a non-empty commit hash after copy",
-          readClipboardOnceSettled().isEmpty());
+      assertFalse(readClipboardOnceSettled().isEmpty(),
+          "clipboard should contain a non-empty commit hash after copy");
       // After 1500 ms COPY_STATUS_TOOLTIP_TIMEOUT the "Copied" text reverts — assert it disappears.
       assertThat(prioritiesPage.commitCopyTooltipCopiedText()).isHidden(
           new LocatorAssertions.IsHiddenOptions().setTimeout(PlaywrightTiming.BRIEF_UI_TRANSITION_MS));
@@ -294,7 +292,7 @@ public class MtiqPrioritiesPagePlaywrightTest
       if ("file".equals(uri.getScheme())) {
         return ReportHelper.zipReport(REPORT_DIR, tempDir);
       }
-      Path extractedDir = tempDir.newFolder(Path.of(REPORT_DIR).getFileName().toString()).toPath();
+      Path extractedDir = Files.createDirectory(tempDir.resolve(Path.of(REPORT_DIR).getFileName().toString()));
       String uriStr = uri.toString();
       URI jarFileUri = URI.create(uriStr.substring(0, uriStr.indexOf("!/")));
       String internalPath = uriStr.substring(uriStr.indexOf("!/") + 1);
@@ -321,7 +319,7 @@ public class MtiqPrioritiesPagePlaywrightTest
       }
       // Do NOT use tempDir.newFile() — it creates an empty file and Zipper.zip (JAR file system
       // with "create:true") throws "zip END header not found" on a pre-existing empty file.
-      File reportZipFile = new File(tempDir.getRoot(), "MockReport-" + UUID.randomUUID() + ".zip");
+      File reportZipFile = new File(tempDir.toFile(), "MockReport-" + UUID.randomUUID() + ".zip");
       Zipper.zip(extractedDir.toFile(), reportZipFile);
       return reportZipFile.toURI().toURL();
     }

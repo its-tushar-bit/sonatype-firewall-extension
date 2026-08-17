@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.playwright;
 
 import java.io.ByteArrayInputStream;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -101,12 +102,12 @@ import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.subject.SubjectContext;
 import org.apache.shiro.util.ThreadContext;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mockito;
 import org.quartz.spi.JobFactory;
 import org.slf4j.Logger;
@@ -144,6 +145,7 @@ import static org.mockito.Mockito.when;
  * the shared parts into a composable rule or helper rather than introducing another inheritance
  * layer.
  */
+@ExtendWith(PlaywrightTemporaryEntityExtension.class)
 public abstract class AbstractIqUiTest
     extends AbstractPlaywrightTest
 {
@@ -179,8 +181,8 @@ public abstract class AbstractIqUiTest
    */
   protected static final Map<Class<?>, Object> mocks = new HashMap<>();
 
-  @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
+  @TempDir
+  protected Path tempDir;
 
   private PersistedUserSessionDAO persistedUserSessionDAO;
 
@@ -271,7 +273,6 @@ public abstract class AbstractIqUiTest
     databaseProvisioner.initializeDatabaseWithMigration();
   }
 
-  @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity(databaseContainer)
   {
     @Override
@@ -330,12 +331,12 @@ public abstract class AbstractIqUiTest
     }
   }
 
-  @BeforeClass
+  @BeforeAll
   public static void disableWaitToCloseOldClients() {
     HdsClient.waitToCloseOldClients = false;
   }
 
-  @BeforeClass
+  @BeforeAll
   public static void setUpClass() {
     Subject subject = mock(Subject.class);
     lenient().when(subject.getPrincipal()).thenReturn(new UserPrincipal("admin", "Admin", InternalRealm.ID));
@@ -350,13 +351,13 @@ public abstract class AbstractIqUiTest
     testCLMServer.getCLMServer().setHdsUrl();
   }
 
-  @AfterClass
+  @AfterAll
   public static void tearDownClass() {
     ThreadContext.unbindSecurityManager();
     ThreadContext.unbindSubject();
   }
 
-  @Before
+  @BeforeEach
   public final void beforeTest() {
     log.info("Before: {}", testName.getMethodName());
     setEnableDefaultPasswordWarning(false);
@@ -371,7 +372,7 @@ public abstract class AbstractIqUiTest
     mockHdsVersionScoringResponse();
   }
 
-  @After
+  @AfterEach
   public void afterTest() throws Exception {
     log.info("After: {}", testName.getMethodName());
     mocks.clear();
@@ -539,7 +540,7 @@ public abstract class AbstractIqUiTest
    * Stubs the HDS endpoints exercised by an SBOM import + eval: {@code HdsMockServer} always
    * returns the fixed scan ID {@link HdsMockServer.RestServlet#SCAN_ID} on upload, so the
    * post-upload report-download is the call that needs a stub. Version-scoring is already
-   * stubbed by {@code @Before}. Other HDS lookups (component-details, vulnerabilities) fall
+   * stubbed by {@code @BeforeEach}. Other HDS lookups (component-details, vulnerabilities) fall
    * through to the mock server's default 404, which the eval pipeline tolerates.
    */
   protected void mockHdsForSbomImport() {

@@ -6,17 +6,16 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.UserManagementPage;
 import com.sonatype.clm.testing.playwright.pages.UserManagementPageAssertions;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.security.User;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Playwright regression tests for the User Management page (Administration → Users),
@@ -41,7 +40,7 @@ public class UserManagementPlaywrightTest
 
   private UserManagementPageAssertions assertions;
 
-  @Before
+  @BeforeEach
   public void openUserManagement() {
     playwrightRefreshOrOpen(UserManagementPage.url());
     playwrightLogin();
@@ -50,13 +49,13 @@ public class UserManagementPlaywrightTest
     assertions = new UserManagementPageAssertions(usersPage);
   }
 
-  @After
+  @AfterEach
   public void resetUserActivityTracking() {
     SystemConfigurationPropertyFeature.USER_ACTIVITY_TRACKING.setEnabled(false);
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testUserManagementPage_renders() {
     assertions.shouldShowList();
     assertions.shouldShowCreateUserButton();
@@ -64,7 +63,7 @@ public class UserManagementPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testUserManagementPage_tabsVisible() {
     SystemConfigurationPropertyFeature.USER_ACTIVITY_TRACKING.setEnabled(true);
     playwrightRefreshOrOpen(UserManagementPage.url());
@@ -73,14 +72,14 @@ public class UserManagementPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testUserManagementPage_noTabsWhenActivityDisabled() {
     assertions.shouldHideTabs();
     assertions.shouldShowList();
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testUserManagementPage_activityTabNavigation() {
     SystemConfigurationPropertyFeature.USER_ACTIVITY_TRACKING.setEnabled(true);
     playwrightRefreshOrOpen(UserManagementPage.url());
@@ -93,7 +92,7 @@ public class UserManagementPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testUserManagementPage_deleteUser() {
     User testUser = tempEntity.newUser(NEW_USERNAME_PREFIX + TemporaryEntity.uuid());
     String username = testUser.getUsername();
@@ -115,7 +114,7 @@ public class UserManagementPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testUserManagementPage_cannotDeleteCurrentUser() {
 
     assertions.shouldShowList();
@@ -131,7 +130,7 @@ public class UserManagementPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAddUserPage_rendersEmptyForm() {
 
     assertions.shouldShowList();
@@ -143,7 +142,7 @@ public class UserManagementPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAddUserPage_emptyFormValidation() {
     playwrightRefreshOrOpen(UserManagementPage.urlToCreateUser());
 
@@ -155,7 +154,7 @@ public class UserManagementPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAddUserPage_passwordMismatchValidation() {
     // Navigate via the Create User button rather than a direct hash URL — a same-document hash
     // change immediately after login can race the SPA's auth hydration and leave the page on
@@ -176,7 +175,7 @@ public class UserManagementPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAddUserPage_successfulSave() {
     String uniqueUsername = NEW_USERNAME_PREFIX + TemporaryEntity.uuid();
 
@@ -195,7 +194,7 @@ public class UserManagementPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAddUserPage_cancelNavigatesBack() {
 
     assertions.shouldShowList();
@@ -209,7 +208,7 @@ public class UserManagementPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEditUser_prePopulatedAndSaveDisabledWhenUnchanged() {
     User testUser = tempEntity.newUser();
     String username = testUser.getUsername();

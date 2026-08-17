@@ -7,7 +7,6 @@ package com.sonatype.clm.testing.playwright.tests.mtiq;
 
 import java.util.List;
 
-import com.sonatype.clm.testing.playwright.categories.MtiqTest;
 import com.sonatype.clm.testing.playwright.mtiq.AbstractMtiqUiTest;
 import com.sonatype.clm.testing.playwright.pages.AccessEditorPage;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
@@ -19,9 +18,9 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.SamlUser;
 
 import org.assertj.core.api.Assertions;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -31,7 +30,7 @@ import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertTha
  * {@link #init(Owner)} and supply the deep-link URL to the "New Role" editor by implementing
  * {@link #newRoleEditorUrl()}.
  */
-@Category(MtiqTest.class)
+@Tag("mtiq")
 public abstract class AbstractMtiqAccessEditorPlaywrightTest
     extends AbstractMtiqUiTest
 {
@@ -41,7 +40,7 @@ public abstract class AbstractMtiqAccessEditorPlaywrightTest
 
   protected Owner currentOwner;
 
-  @Before
+  @BeforeEach
   public void setUpDaosAndLogin() {
     playwrightRefreshOrOpen("/");
     playwrightLogin();
@@ -84,7 +83,7 @@ public abstract class AbstractMtiqAccessEditorPlaywrightTest
    * of the add-group form controls, and visual regression is not part of the Playwright suite.
    */
   @Test
-  @Category(MtiqTest.class)
+  @Tag("mtiq")
   public void testDisabledGroupSearchWarning_addExternalGroupPersistsMembership() {
     playwrightRefreshOrOpen(newRoleEditorUrl());
 

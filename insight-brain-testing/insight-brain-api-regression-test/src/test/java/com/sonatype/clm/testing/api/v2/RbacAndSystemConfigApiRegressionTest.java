@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.api.v2;
 
 import com.sonatype.clm.testing.api.AbstractIqApiTest;
-import com.sonatype.clm.testing.api.categories.ApiRegressionTest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.ApiConfigurationResource;
@@ -21,9 +20,8 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -58,7 +56,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * of the system property, which is out of scope).</li>
  * </ul>
  */
-@Category(ApiRegressionTest.class)
 public class RbacAndSystemConfigApiRegressionTest
     extends AbstractIqApiTest
 {
@@ -74,7 +71,7 @@ public class RbacAndSystemConfigApiRegressionTest
 
   private static final String DATA_RETENTION_BASE = PublicApiPaths.DATA_RETENTION_POLICY_RESOURCE_PATH;
 
-  @Before
+  @BeforeEach
   public void enableLicenseFeatures() throws Exception {
     setFeatures(LicensedFeature.DATA_RETENTION);
   }

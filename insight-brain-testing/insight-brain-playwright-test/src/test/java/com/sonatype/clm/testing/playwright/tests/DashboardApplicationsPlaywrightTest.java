@@ -7,7 +7,6 @@ package com.sonatype.clm.testing.playwright.tests;
 
 import java.util.List;
 
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardApplicationsComponent;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
@@ -23,10 +22,10 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.InternalRealm;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,7 +65,7 @@ public class DashboardApplicationsPlaywrightTest
 
   private int componentCounter;
 
-  @Before
+  @BeforeEach
   public void openDashboardApplicationsAsAdmin() {
     dashboardFilterDAO = lookup(DashboardFilterDAO.class);
     org = tempEntity.newOrganization(DATA.organizationName());
@@ -77,14 +76,14 @@ public class DashboardApplicationsPlaywrightTest
     playwrightLogin();
   }
 
-  @After
+  @AfterEach
   public void clearFiltersAndResetProxy() {
     dashboardFilterDAO.deleteByUsernameAndRealmId(User.ADMIN_USERNAME, InternalRealm.ID);
     reverseProxyServer.reset();
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testResultsMessageNoData() {
     playwrightRefresh();
     loadDashboard();
@@ -96,7 +95,7 @@ public class DashboardApplicationsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testApplicationsTable() {
     seedTableTestApps(DATA.tableTestApps());
 
@@ -127,7 +126,7 @@ public class DashboardApplicationsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testApplicationsTableMultiplePages() {
     int totalApps = seedPaginationGroups(DATA.paginationGroups());
 

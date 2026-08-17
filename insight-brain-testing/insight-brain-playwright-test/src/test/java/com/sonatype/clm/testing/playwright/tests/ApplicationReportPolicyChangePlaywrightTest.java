@@ -8,7 +8,6 @@ package com.sonatype.clm.testing.playwright.tests;
 import java.io.IOException;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
@@ -20,9 +19,9 @@ import com.sonatype.clm.testing.playwright.utils.PolicyEvaluationSeeder.SeededEv
 import com.sonatype.clm.testing.playwright.utils.SmallReportFixture;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -67,7 +66,7 @@ public class ApplicationReportPolicyChangePlaywrightTest
 
   private PolicyEvaluationSeeder seeder;
 
-  @Before
+  @BeforeEach
   public void setupSeederAndLogin() {
     seeder = new PolicyEvaluationSeeder(
         tempEntity, tempDir, testCLMServer.getCLMServer().getConfiguration(),
@@ -77,7 +76,7 @@ public class ApplicationReportPolicyChangePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testPolicyThreatLevelChange_reflectedInSubsequentEvaluationReport() throws IOException {
     SeededEvaluation seeded = seeder.seedSingleConditionAndEvaluate(
         ORG_PREFIX, APP_PREFIX, APP_ID_PREFIX, SCAN_ID_PREFIX + "1", POLICY_PREFIX, CONSTRAINT_SUFFIX,

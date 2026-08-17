@@ -9,7 +9,6 @@ import java.io.IOException;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.AttributionReportFormPage;
 import com.sonatype.clm.testing.playwright.pages.AttributionReportFormPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.ComponentLegalOverviewPage;
@@ -22,9 +21,9 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 public class ComponentLegalAttributionAndLicenseFilesPlaywrightTest
     extends AbstractIqUiTest
@@ -55,7 +54,7 @@ public class ComponentLegalAttributionAndLicenseFilesPlaywrightTest
 
   private LicenseFilesAccordionPageAssertions licenseFilesAssertions;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     seedTestData();
     playwrightRefreshOrOpen(ComponentLegalOverviewPage.url(appPublicId, COMPONENT_HASH));
@@ -86,7 +85,7 @@ public class ComponentLegalAttributionAndLicenseFilesPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAttributionReportForm_rendersWithOptions() {
     playwrightRefreshOrOpen(AttributionReportFormPage.url(appPublicId, BuildStageType.ID));
 
@@ -103,7 +102,7 @@ public class ComponentLegalAttributionAndLicenseFilesPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAttributionReportForm_generateButtonEnabledWithValidTitle() {
     playwrightRefreshOrOpen(AttributionReportFormPage.url(appPublicId, BuildStageType.ID));
 
@@ -114,7 +113,7 @@ public class ComponentLegalAttributionAndLicenseFilesPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLicenseFilesAccordion_addIconWhenEmpty() {
     playwrightRefreshOrOpen(ComponentLegalOverviewPage.url(appPublicId, COMPONENT_HASH));
 
@@ -132,7 +131,7 @@ public class ComponentLegalAttributionAndLicenseFilesPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLicenseFilesAccordion_editIconWhenFilesExist() throws IOException {
     testCLMServer.getHdsServer()
         .respondWith(readClasspathUtf8(getClass(), "/legal/legalFileHdsResponse.json"))

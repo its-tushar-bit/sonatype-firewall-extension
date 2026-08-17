@@ -7,8 +7,6 @@ package com.sonatype.clm.testing.playwright.tests;
 
 import com.microsoft.playwright.Locator;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.playwright.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.playwright.pages.PolicyEditorPageAssertions;
@@ -18,9 +16,9 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
@@ -49,7 +47,7 @@ public class RootOrganizationPolicyEditorPlaywrightTest
 
   private Organization rootOrganization;
 
-  @Before
+  @BeforeEach
   public void seedRootOrgAndOpenAsAdmin() {
     rootOrganization = lookup(OrganizationDAO.class).getById(ROOT_ORGANIZATION_ID);
     // The default test license already enables Policy Management + Lifecycle. The legacy
@@ -71,7 +69,7 @@ public class RootOrganizationPolicyEditorPlaywrightTest
 
   /** Root org has no inherited policies section; a new policy created here appears in the local tile. */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testRootOrgHasNoInheritedPolicies_andCreatePolicyAppearsInList() {
     OwnerSummaryPage ownerSummary = new OwnerSummaryPage();
     PolicyEditorPage editorPage = new PolicyEditorPage();
@@ -104,7 +102,7 @@ public class RootOrganizationPolicyEditorPlaywrightTest
 
   /** Policy at root appears as inherited and read-only in a child org's policies tile. */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testPolicyAtRootIsInheritedByChildOrg_andIsReadOnlyThere() {
     OwnerSummaryPage ownerSummary = new OwnerSummaryPage();
     PolicyEditorPage editorPage = new PolicyEditorPage();
@@ -141,7 +139,7 @@ public class RootOrganizationPolicyEditorPlaywrightTest
 
   /** Child org actions override on an inherited policy persists after page refresh. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testInheritedPolicyWithActionsOverride_updatePersistsOverride() {
     PolicyEditorPage editorPage = new PolicyEditorPage();
 

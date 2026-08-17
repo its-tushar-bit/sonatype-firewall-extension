@@ -6,16 +6,15 @@
 package com.sonatype.clm.testing.playwright.tests.mtiq;
 
 import com.sonatype.clm.testing.functional.utils.NameSupplierDictionary;
-import com.sonatype.clm.testing.playwright.categories.MtiqTest;
 import com.sonatype.clm.testing.playwright.mtiq.AbstractMtiqUiTest;
 import com.sonatype.clm.testing.playwright.pages.OrgsAndPoliciesSidebarComponent;
 import com.sonatype.clm.testing.playwright.pages.OrgsAndPoliciesSidebarComponentAssertions;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
 
 import com.microsoft.playwright.Locator;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -23,7 +22,7 @@ import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertTha
  * "Import Applications" is gated on {@code saas-lifecycle-scm-enabled}, which is
  * {@code enabledWhenAbsent=true} for MTIQ — the default suffices without mocking features.
  */
-@Category(MtiqTest.class)
+@Tag("mtiq")
 public class MtiqOrgsAndPoliciesSidebarPlaywrightTest
     extends AbstractMtiqUiTest
 {
@@ -34,7 +33,7 @@ public class MtiqOrgsAndPoliciesSidebarPlaywrightTest
 
   private static final int LEAF_CHILD_ORG_COUNT = 1;
 
-  @Before
+  @BeforeEach
   public void seedTreeAndOpenRootOrgAsAdmin() {
     tempEntity.newRelatedOrganizationsAsMap(
         null,

@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.api.v2;
 
 import com.sonatype.clm.testing.api.AbstractIqApiTest;
-import com.sonatype.clm.testing.api.categories.ApiRegressionTest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.ApiSecurityVulnerabilityOverrideResourceV2;
@@ -14,8 +13,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 
@@ -59,7 +57,6 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
  *
  * @see PublicApiPaths#SECURITY_VIOLATION_OVERRIDE_PATH_V2
  */
-@Category(ApiRegressionTest.class)
 public class SecurityOverridesApiRegressionTest
     extends AbstractIqApiTest
 {

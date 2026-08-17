@@ -30,12 +30,11 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
-import org.junit.experimental.categories.Category;
 
 /**
  * Playwright test for the Waiver Details page.
@@ -108,7 +107,7 @@ public class WaiverDetailsPlaywrightTest
 
   private List<PolicyWaiver> policyWaivers;
 
-  @Before
+  @BeforeEach
   public void seedWaiversAndLogin() {
     Instant now = Instant.now();
 
@@ -205,7 +204,7 @@ public class WaiverDetailsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testSidebarNav_DeepLink() {
     String ownerType = application.getType().toString().toLowerCase(Locale.ROOT);
     playwrightRefreshOrOpen(WaiverDetailsPage.url(ownerType, application.getId(), policyWaivers.get(0).getId()));
@@ -219,7 +218,7 @@ public class WaiverDetailsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testPageLayout() {
     Instant now = Instant.now();
     String createdDate = DATE_FMT.format(now.minus(2, ChronoUnit.DAYS));
@@ -249,7 +248,7 @@ public class WaiverDetailsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testVulnerabilityDetailsModal() {
     String ownerType = application.getType().toString().toLowerCase(Locale.ROOT);
     playwrightRefreshOrOpen(WaiverDetailsPage.urlWithQueryParams(
@@ -264,7 +263,7 @@ public class WaiverDetailsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testDeleteWaiversModal() {
     String ownerType = application.getType().toString().toLowerCase(Locale.ROOT);
     playwrightRefreshOrOpen(WaiverDetailsPage.urlWithQueryParams(

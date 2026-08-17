@@ -10,7 +10,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.testing.playwright.categories.MtiqTest;
 import com.sonatype.clm.testing.playwright.mtiq.AbstractMtiqUiTest;
 import com.sonatype.clm.testing.playwright.pages.FirewallDashboardRegressionAssertions;
 import com.sonatype.clm.testing.playwright.pages.FirewallPage;
@@ -35,14 +34,14 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.assertions.LocatorAssertions;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-@Category(MtiqTest.class)
+@Tag("mtiq")
 public class MtiqFirewallDashboardPlaywrightTest
     extends AbstractMtiqUiTest
 {
@@ -66,7 +65,7 @@ public class MtiqFirewallDashboardPlaywrightTest
 
   private String filterAlphaActualRepoId;
 
-  @Before
+  @BeforeEach
   public void enableFirewallFeaturesAndLoginAsAdmin() {
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
     setFeatures(
@@ -84,7 +83,7 @@ public class MtiqFirewallDashboardPlaywrightTest
     playwrightLoginAdminAt(FirewallPage.url());
   }
 
-  @After
+  @AfterEach
   public void resetContainerImagesEvalFlag() {
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
   }

@@ -12,7 +12,6 @@ import java.nio.file.Path;
 import java.util.regex.Pattern;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.GettingStartedPage;
 import com.sonatype.clm.testing.playwright.pages.GettingStartedPageAssertions;
@@ -27,12 +26,10 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.microsoft.playwright.assertions.PlaywrightAssertions;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Coverage for System Preferences: Product License, EULA, and LDAP screens.
@@ -40,9 +37,6 @@ import org.junit.rules.TemporaryFolder;
 public class ProductLicenseAndLdapPlaywrightTest
     extends AbstractIqUiTest
 {
-  @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
-
   private static final String LDAP_SERVER_NAME_PREFIX = "pw-ldap-server";
 
   private ProductLicensePage licensePage;
@@ -59,7 +53,7 @@ public class ProductLicenseAndLdapPlaywrightTest
 
   private String ldapServerId;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     LdapServer server = tempEntity.newLdapServer(LDAP_SERVER_NAME_PREFIX + TemporaryEntity.uuid());
     tempEntity.newLdapConnection(server.getId());
@@ -77,23 +71,23 @@ public class ProductLicenseAndLdapPlaywrightTest
     ldapAssertions = new LdapPageAssertions(ldapPage);
   }
 
-  // Split into two independent @After methods so a failure in one does not suppress the other —
-  // JUnit 4 runs each @After regardless of the other's outcome.
+  // Split into two independent @AfterEach methods so a failure in one does not suppress the other —
+  // Jupiter runs each @AfterEach regardless of the other's outcome.
 
-  @After
+  @AfterEach
   public void restoreLicenseState() {
     // uninstallLicense() in any test leaks "no license" state into the shared JVM session,
     // breaking subsequent license-gated assertions. installLicense() is idempotent.
     installLicense();
   }
 
-  @After
+  @AfterEach
   public void clearLifecycleTier() {
     lookup(SystemConfigurationPropertyDAO.class).set(SystemConfigurationProperty.LIFECYCLE_TIER, null);
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testProductLicensePage_renders() {
     licenseAssertions.shouldShowPageHeading();
     licenseAssertions.shouldShowLicenseDetails();
@@ -103,7 +97,7 @@ public class ProductLicenseAndLdapPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testProductLicense_eulaModalOnInstall() {
     licenseAssertions.shouldShowInstallButton();
     licensePage.licenseFileInput().setInputFiles(createTempLicenseFile());
@@ -115,7 +109,7 @@ public class ProductLicenseAndLdapPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testProductLicensePage_showsProTierForProLifecycleLicense() {
     seedLifecycleTier("Pro");
     setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
@@ -125,7 +119,7 @@ public class ProductLicenseAndLdapPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testProductLicensePage_showsEnterpriseTierForEnterpriseLifecycleLicense() {
     seedLifecycleTier("Enterprise");
     setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
@@ -135,7 +129,7 @@ public class ProductLicenseAndLdapPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testProductLicensePage_omitsTierRowForLegacyLifecycleLicense() {
     // No LIFECYCLE_TIER set → productEdition is "Lifecycle" (legacy); the Tier row only
     // renders for "Lifecycle Pro" / "Lifecycle Enterprise".
@@ -147,7 +141,7 @@ public class ProductLicenseAndLdapPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFreshInstall_unlicensedDashboardShowsLicenseRequiredError() {
     uninstallLicense();
     playwrightRefreshOrOpen(DashboardPage.url());
@@ -157,7 +151,7 @@ public class ProductLicenseAndLdapPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFreshInstall_dismissingEulaModalKeepsServerUnlicensed() {
     uninstallLicense();
     playwrightRefreshOrOpen(ProductLicensePage.url());
@@ -176,7 +170,7 @@ public class ProductLicenseAndLdapPlaywrightTest
    * regardless of file content; validation is server-side after Accept.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFreshInstall_invalidLicenseFileShowsErrorAfterEulaAccept() {
     uninstallLicense();
     playwrightRefreshOrOpen(ProductLicensePage.url());
@@ -191,7 +185,7 @@ public class ProductLicenseAndLdapPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testGettingStartedPage_rendersAllAlwaysPresentSections() {
     navigateAndWaitForUrl(GettingStartedPage.url(), "/gettingStarted");
     gettingStartedPage.container().waitFor();
@@ -199,7 +193,7 @@ public class ProductLicenseAndLdapPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testGettingStartedPage_productLicenseSummaryTileShowsLicenseDetails() {
     navigateAndWaitForUrl(GettingStartedPage.url(), "/gettingStarted");
     gettingStartedPage.container().waitFor();
@@ -208,7 +202,7 @@ public class ProductLicenseAndLdapPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testProductLicensePage_uninstallReturnsToUnlicensedState() {
     playwrightRefreshOrOpen(ProductLicensePage.url());
     licensePage.uninstallLicenseButton().click();
@@ -227,7 +221,7 @@ public class ProductLicenseAndLdapPlaywrightTest
 
   private Path createTempLicenseFile() {
     try {
-      Path tempFile = tempDir.newFile("test-license.lic").toPath();
+      Path tempFile = tempDir.resolve("test-license.lic");
       Files.writeString(tempFile, "dummy-license-content");
       return tempFile;
     }
@@ -237,7 +231,7 @@ public class ProductLicenseAndLdapPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLdapServersList_renders() {
     playwrightRefreshOrOpen(LdapPage.listUrl());
 
@@ -249,7 +243,7 @@ public class ProductLicenseAndLdapPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLdapCreateServer_formRenders() {
     playwrightRefreshOrOpen(LdapPage.createUrl());
 
@@ -260,7 +254,7 @@ public class ProductLicenseAndLdapPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLdapEditConnection_fieldsRender() {
     playwrightRefreshOrOpen(LdapPage.editConnectionUrl(ldapServerId));
 
@@ -277,7 +271,7 @@ public class ProductLicenseAndLdapPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLdapEditUserMapping_fieldsRender() {
     playwrightRefreshOrOpen(LdapPage.editUserMappingUrl(ldapServerId));
 
@@ -291,7 +285,7 @@ public class ProductLicenseAndLdapPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLdapRemoveServer_modalRenders() {
     playwrightRefreshOrOpen(LdapPage.editConnectionUrl(ldapServerId));
 

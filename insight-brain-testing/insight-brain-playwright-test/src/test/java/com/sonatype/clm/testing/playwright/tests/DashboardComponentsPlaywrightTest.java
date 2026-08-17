@@ -18,12 +18,10 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 public class DashboardComponentsPlaywrightTest
     extends AbstractIqUiTest
@@ -35,7 +33,7 @@ public class DashboardComponentsPlaywrightTest
 
   private Policy securityPolicy;
 
-  @Before
+  @BeforeEach
   public void openComponentsTabAsAdmin() {
     seedBaseEntities();
 
@@ -44,20 +42,20 @@ public class DashboardComponentsPlaywrightTest
     new DashboardPage().waitUntilSpinnersGone();
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     reverseProxyServer.reset();
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testComponentsTable_noDataMessage() {
     new DashboardComponentsComponentAssertions(new DashboardComponentsComponent())
         .shouldShowNoDataMessage(DATA.noDataMessageComponents());
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testComponentsTable_loadsAndNavigatesOnRowClick() {
     seedViolation();
     playwrightRefreshOrOpen(DashboardPage.urlToComponents());
@@ -73,7 +71,7 @@ public class DashboardComponentsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testComponentRisk_detailViewRendersWithoutDashboardContainer() {
     seedViolationWithComponent();
     playwrightRefreshOrOpen(DashboardPage.urlToComponents());

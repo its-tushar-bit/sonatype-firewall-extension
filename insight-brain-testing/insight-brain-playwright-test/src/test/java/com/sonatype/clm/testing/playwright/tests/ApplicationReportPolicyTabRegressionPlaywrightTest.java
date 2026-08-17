@@ -10,7 +10,6 @@ import java.net.URL;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPolicyTabPage;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPolicyTabPageAssertions;
@@ -23,9 +22,9 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -51,7 +50,7 @@ public class ApplicationReportPolicyTabRegressionPlaywrightTest
 
   private Organization organization;
 
-  @Before
+  @BeforeEach
   public void seedAppAndLogin() {
     String suffix = TemporaryEntity.uuid();
     organization = tempEntity.newOrganization(ORG_NAME_PREFIX + "-" + suffix);
@@ -60,7 +59,7 @@ public class ApplicationReportPolicyTabRegressionPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testPolicyTab_largeReportLoadsManyViolationRows() throws IOException {
     tempEntity.newPolicy(organization, 5, LogicalOperator.AND,
         new Condition("MatchState", "is", "exact"));
@@ -85,7 +84,7 @@ public class ApplicationReportPolicyTabRegressionPlaywrightTest
    * "report renders, no errors", which the no-error-alert check captures.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testNoPoliciesConfigured_reportRendersWithoutError() throws IOException {
     String scanId = SCAN_ID_PREFIX + "-128-" + TemporaryEntity.uuid();
     evaluate(app, scanId, LARGE_REPORT_DIR);

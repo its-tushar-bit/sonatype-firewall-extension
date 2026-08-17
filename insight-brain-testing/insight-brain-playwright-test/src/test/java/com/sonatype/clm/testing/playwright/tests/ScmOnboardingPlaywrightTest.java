@@ -6,13 +6,12 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.ScmOnboardingPage;
 import com.sonatype.clm.testing.playwright.pages.ScmOnboardingPageAssertions;
 import com.sonatype.insight.brain.model.Organization;
 
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Regression coverage for the SCM Onboarding page ({@code /assets/index.html#/onboarding}).
@@ -27,7 +26,7 @@ public class ScmOnboardingPlaywrightTest
   private ScmOnboardingPageAssertions assertions;
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testScmOnboardingOrg_renders() {
     Organization org = tempEntity.newOrganization();
 
@@ -40,7 +39,7 @@ public class ScmOnboardingPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testScmOnboarding_targetOrgDropdownAndNewOrganizationButton() {
     Organization org = tempEntity.newOrganization();
     playwrightRefreshOrOpen(ScmOnboardingPage.urlForOrg(org.getId()));
@@ -55,7 +54,7 @@ public class ScmOnboardingPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testScmOnboarding_missingScmTokenError() {
     Organization org = tempEntity.newOrganization();
     playwrightRefreshOrOpen(ScmOnboardingPage.urlForOrg(org.getId()));

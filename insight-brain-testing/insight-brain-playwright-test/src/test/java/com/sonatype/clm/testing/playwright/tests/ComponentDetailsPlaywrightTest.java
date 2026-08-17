@@ -33,11 +33,9 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.json.store.JsonUtils;
-import org.junit.Before;
-import org.junit.Test;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -79,7 +77,7 @@ public class ComponentDetailsPlaywrightTest
 
   private Application app;
 
-  @Before
+  @BeforeEach
   public void seedReportAndOpenDashboardAsAdmin() throws IOException {
     stubComponentDetailsEndpoints();
     stubLegalHdsEndpoints();
@@ -140,7 +138,7 @@ public class ComponentDetailsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testComponentDetailsEnabled() {
     ApplicationReportPage reportPage = new ApplicationReportPage();
     ComponentDetailsPage detailsPage = new ComponentDetailsPage();
@@ -156,7 +154,7 @@ public class ComponentDetailsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testComponentDetailsTabNavigation() {
     ApplicationReportPage reportPage = new ApplicationReportPage();
     ComponentDetailsPage detailsPage = new ComponentDetailsPage();
@@ -195,7 +193,7 @@ public class ComponentDetailsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testSecurityTab_vulnerabilityTableEntries() {
     ComponentDetailsPage detailsPage = new ComponentDetailsPage();
     ComponentDetailsPageAssertions detailsAssertions = new ComponentDetailsPageAssertions(detailsPage);
@@ -207,7 +205,7 @@ public class ComponentDetailsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testLegalTab_licenseDetectionTile() {
     ComponentDetailsPage detailsPage = new ComponentDetailsPage();
 
@@ -217,7 +215,7 @@ public class ComponentDetailsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testPolicyViolationPopover_embeddedMode() {
     ComponentDetailsPage detailsPage = new ComponentDetailsPage();
     ComponentDetailsPageAssertions detailsAssertions = new ComponentDetailsPageAssertions(detailsPage);
@@ -232,7 +230,7 @@ public class ComponentDetailsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOverviewTab_componentInformationTile() {
     ComponentDetailsPage detailsPage = new ComponentDetailsPage();
     ComponentDetailsPageAssertions detailsAssertions = new ComponentDetailsPageAssertions(detailsPage);
@@ -245,7 +243,7 @@ public class ComponentDetailsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testViolationsTab_policyViolationsTile() {
     ComponentDetailsPage detailsPage = new ComponentDetailsPage();
     ComponentDetailsPageAssertions detailsAssertions = new ComponentDetailsPageAssertions(detailsPage);
@@ -257,7 +255,7 @@ public class ComponentDetailsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAuditLogTab_tableHeaders() {
     ComponentDetailsPage detailsPage = new ComponentDetailsPage();
     ComponentDetailsPageAssertions detailsAssertions = new ComponentDetailsPageAssertions(detailsPage);
@@ -269,7 +267,7 @@ public class ComponentDetailsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testPagination_nextAndPreviousComponent() {
     ApplicationReportPage reportPage = new ApplicationReportPage();
     ComponentDetailsPage detailsPage = new ComponentDetailsPage();
@@ -289,7 +287,7 @@ public class ComponentDetailsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testBackNavigation_returnsToApplicationReport() {
     ApplicationReportPage reportPage = new ApplicationReportPage();
     ComponentDetailsPage detailsPage = new ComponentDetailsPage();
@@ -305,7 +303,7 @@ public class ComponentDetailsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testPolicyViolationPopover_addWaiverButtonNavigatesToAddWaiver() {
     ComponentDetailsPage detailsPage = new ComponentDetailsPage();
     ComponentDetailsPageAssertions detailsAssertions = new ComponentDetailsPageAssertions(detailsPage);
@@ -323,7 +321,7 @@ public class ComponentDetailsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testPolicyViolationPopover_requestWaiverMenuItemNavigatesToRequestWaiver() {
     ApplicationReportPage reportPage = new ApplicationReportPage();
     ComponentDetailsPage detailsPage = new ComponentDetailsPage();
@@ -350,7 +348,7 @@ public class ComponentDetailsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSecurityTab_vulnerabilityOverrideFormInPopover() {
     ComponentDetailsPage detailsPage = new ComponentDetailsPage();
     ComponentDetailsPageAssertions detailsAssertions = new ComponentDetailsPageAssertions(detailsPage);
@@ -382,7 +380,7 @@ public class ComponentDetailsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLabelsTab_applyLabelModalOpensForOrgScopedLabel() {
     ComponentDetailsPage detailsPage = new ComponentDetailsPage();
     ComponentDetailsPageAssertions detailsAssertions = new ComponentDetailsPageAssertions(detailsPage);
@@ -400,7 +398,7 @@ public class ComponentDetailsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLabelsTab_removeLabelModalOpensForAppliedLabel() {
     String labelText = "AutoLabel-" + TemporaryEntity.uuid();
     Label seededLabel = tempEntity.newLabel(app.getId(), labelText);
@@ -422,7 +420,7 @@ public class ComponentDetailsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testClaimTab_formStateValidationAndCancel() {
     ComponentDetailsPage detailsPage = new ComponentDetailsPage();
     ComponentDetailsPageAssertions detailsAssertions = new ComponentDetailsPageAssertions(detailsPage);
@@ -448,7 +446,7 @@ public class ComponentDetailsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testClaimTab_revokeClaimModal() {
     ComponentIdentifier claimCoords = ComponentIdentifier.createMavenCoordinates(
         "com.example.claimed", "test-artifact", "1.0.0");

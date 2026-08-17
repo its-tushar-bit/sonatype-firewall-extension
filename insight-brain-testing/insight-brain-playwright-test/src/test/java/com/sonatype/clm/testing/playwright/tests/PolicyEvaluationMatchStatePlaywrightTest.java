@@ -11,7 +11,6 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPageAssertions;
 import com.sonatype.clm.testing.playwright.testdatamanager.TestDataManager;
@@ -26,9 +25,9 @@ import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionTy
 
 import org.assertj.core.api.Assertions;
 import org.awaitility.Awaitility;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -100,7 +99,7 @@ public class PolicyEvaluationMatchStatePlaywrightTest
 
   private ApplicationReportPageAssertions reportAssertions;
 
-  @Before
+  @BeforeEach
   public void initSeederAndAssertions() {
     seeder = new PolicyEvaluationSeeder(
         tempEntity, tempDir, testCLMServer.getCLMServer().getConfiguration(),
@@ -110,7 +109,7 @@ public class PolicyEvaluationMatchStatePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testIsExact_flagsAllExactComponents() throws IOException {
     SeededEvaluation seeded = seedAndOpenReport(
         DATA.isExactThreatLevel(), DATA.isExactOperator(), DATA.isExactValue());
@@ -123,7 +122,7 @@ public class PolicyEvaluationMatchStatePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testIsSimilar_producesNoViolations() throws IOException {
     SeededEvaluation seeded = seedAndOpenReport(
         DATA.isSimilarThreatLevel(), DATA.isSimilarOperator(), DATA.isSimilarValue());
@@ -134,7 +133,7 @@ public class PolicyEvaluationMatchStatePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testIsUnknown_flagsOnlyUnknownComponent() throws IOException {
     SeededEvaluation seeded = seedAndOpenReport(
         DATA.isUnknownThreatLevel(), DATA.isUnknownOperator(), DATA.isUnknownValue());
@@ -145,7 +144,7 @@ public class PolicyEvaluationMatchStatePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testIsNotExact_flagsNonExactComponentOnly() throws IOException {
     SeededEvaluation seeded = seedAndOpenReport(
         DATA.isNotExactThreatLevel(), DATA.isNotExactOperator(), DATA.isNotExactValue());
@@ -156,7 +155,7 @@ public class PolicyEvaluationMatchStatePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testIsNotUnknown_flagsAllNonUnknownComponents() throws IOException {
     SeededEvaluation seeded = seedAndOpenReport(
         DATA.isNotUnknownThreatLevel(), DATA.isNotUnknownOperator(), DATA.isNotUnknownValue());
@@ -169,7 +168,7 @@ public class PolicyEvaluationMatchStatePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testTwoSeparatePolicies_independentViolations() throws IOException {
     AppAndScan provisioned = seeder.provisionAppAndScan(
         DATA.orgNamePrefix(), DATA.appNamePrefix(), DATA.appIdPrefix(), DATA.scanIdPrefix());
@@ -192,7 +191,7 @@ public class PolicyEvaluationMatchStatePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAndConstraint_narrowsToBothMatching() throws IOException {
     // Coordinates format <fmt>:<groupId>:<artifactId>:<version>; empty parts wildcard.
     String mavenJettyAnyVersion = "maven::" + DATA.componentJetty() + ":";
@@ -213,7 +212,7 @@ public class PolicyEvaluationMatchStatePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testMultiConstraint_independentViolationsUnderOnePolicy() throws IOException {
     AppAndScan provisioned = seeder.provisionAppAndScan(
         DATA.orgNamePrefix(), DATA.appNamePrefix(), DATA.appIdPrefix(), DATA.scanIdPrefix());
@@ -238,7 +237,7 @@ public class PolicyEvaluationMatchStatePlaywrightTest
    * the canned report, so we exercise the same operator-algebra surface via {@code ComponentFormat}.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFormatIsMaven_flagsAllMavenComponents() throws IOException {
     SeededEvaluation seeded = seeder.seedSingleConditionAndEvaluate(
         DATA.orgNamePrefix(), DATA.appNamePrefix(), DATA.appIdPrefix(), DATA.scanIdPrefix(),
@@ -270,7 +269,7 @@ public class PolicyEvaluationMatchStatePlaywrightTest
    * {@code ageInDaysOlderThanOneYearComponentsCount} JSON entry must be adjusted to match.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAgeInDays_olderThanOneYear_flagsDatedComponents() throws IOException {
     SeededEvaluation seeded = seeder.seedSingleConditionAndEvaluate(
         DATA.orgNamePrefix(), DATA.appNamePrefix(), DATA.appIdPrefix(), DATA.scanIdPrefix(),
@@ -289,7 +288,7 @@ public class PolicyEvaluationMatchStatePlaywrightTest
 
   /** Clicking the Threat column header toggles {@code aria-sort} desc → asc; rows reorder. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSortByThreatColumn_togglesDescendingToAscending() throws IOException {
     // Two policies at different threat levels so the column has multiple distinct values.
     AppAndScan provisioned = seeder.provisionAppAndScan(
@@ -327,7 +326,7 @@ public class PolicyEvaluationMatchStatePlaywrightTest
 
   /** Policy-name filter narrows rendered rows to policies whose name contains the typed substring. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFilterByPolicyName_narrowsToMatchingPolicyOnly() throws IOException {
     AppAndScan provisioned = seeder.provisionAppAndScan(
         DATA.orgNamePrefix(), DATA.appNamePrefix(), DATA.appIdPrefix(), DATA.scanIdPrefix());

@@ -10,8 +10,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.RequestWaiverUpdatePage;
@@ -33,12 +31,12 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
-import org.junit.experimental.categories.Category;
 
 public class RequestWaiverUpdatePlaywrightTest
     extends AbstractIqUiTest
@@ -79,7 +77,7 @@ public class RequestWaiverUpdatePlaywrightTest
 
   private PolicyWaiverRequest policyWaiverRequest;
 
-  @Before
+  @BeforeEach
   public void seedWaiverRequestAndLoginAsDeveloper() {
     Instant now = Instant.now();
     Date twoDaysAgo = Date.from(now.minus(2, ChronoUnit.DAYS));
@@ -128,13 +126,13 @@ public class RequestWaiverUpdatePlaywrightTest
     playwrightLoginAt(DashboardPage.url(), developerUser.getUsername(), TemporaryEntity.USER_PASSWORD_CLEAR);
   }
 
-  @After
+  @AfterEach
   public void logoutDeveloper() {
     playwrightLogout();
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testRouteToUpdateFromDashboard() {
     RequestWaiverUpdatePage updatePage = new RequestWaiverUpdatePage();
     RequestWaiverUpdatePageAssertions updateAssertions = new RequestWaiverUpdatePageAssertions(updatePage);
@@ -151,7 +149,7 @@ public class RequestWaiverUpdatePlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testSubmitUpdatedValues() {
     RequestWaiverUpdatePage updatePage = new RequestWaiverUpdatePage();
     RequestWaiverUpdatePageAssertions updateAssertions = new RequestWaiverUpdatePageAssertions(updatePage);
@@ -177,7 +175,7 @@ public class RequestWaiverUpdatePlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testErrorAlertWhenWaiverRequestIsRejected() {
     policyWaiverRequest.setStatus(PolicyWaiverRequestStatus.REJECTED);
     policyWaiverRequest.setRejectionReason(DATA.rejectionReason());
@@ -199,7 +197,7 @@ public class RequestWaiverUpdatePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testApprovedStatusMakesFormReadOnly() {
     policyWaiverRequest.setStatus(PolicyWaiverRequestStatus.APPROVED);
     policyWaiverRequest.setReviewerId(DATA.reviewerId());

@@ -8,8 +8,6 @@ package com.sonatype.clm.testing.playwright.tests;
 import java.io.IOException;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.pages.ComponentLegalOverviewPage;
 import com.sonatype.clm.testing.playwright.pages.ComponentLegalOverviewPageAssertions;
@@ -23,9 +21,9 @@ import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 public class AllObligationsPlaywrightTest
     extends AbstractIqUiTest
@@ -68,7 +66,7 @@ public class AllObligationsPlaywrightTest
 
   private ComponentLegalOverviewPageAssertions overviewAssertions;
 
-  @Before
+  @BeforeEach
   public void openComponentLegalOverviewAsAdmin() throws Exception {
     seedTestData();
 
@@ -108,7 +106,7 @@ public class AllObligationsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testComponentLegalOverviewPage() {
     verifyObligationsInitialState();
     verifyFulfillAllObligations();
@@ -116,7 +114,7 @@ public class AllObligationsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testNoObligationsHidesResolveButton() {
     testCLMServer.getHdsServer().respondWith("[]").atUri("/rest/license/metadata");
     playwrightRefreshOrOpen(ComponentLegalOverviewPage.url(APP_PUBLIC_ID, COMPONENT_HASH));
@@ -156,7 +154,7 @@ public class AllObligationsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testObligationSegmentedButton_modalVsDirectStatus() {
     overviewAssertions.shouldHaveObligationCount(TOTAL_OBLIGATION_COUNT);
 
@@ -171,7 +169,7 @@ public class AllObligationsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testObligationAccordions_collapsedByDefaultWithHeaderAndStatusIcons() {
     overviewAssertions.shouldHaveObligationCount(TOTAL_OBLIGATION_COUNT);
 
@@ -187,7 +185,7 @@ public class AllObligationsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAdditionalAttributionsSectionRenders() {
     overviewAssertions.shouldBeLoaded();
     overviewAssertions.shouldShowAdditionalAttributionTile();

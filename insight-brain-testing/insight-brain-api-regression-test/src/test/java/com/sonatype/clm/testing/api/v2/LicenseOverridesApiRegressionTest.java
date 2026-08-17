@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.api.v2;
 
 import com.sonatype.clm.testing.api.AbstractIqApiTest;
-import com.sonatype.clm.testing.api.categories.ApiRegressionTest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.ApiLicenseOverrideResource;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
@@ -20,9 +19,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -93,13 +91,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  * to override rows. Tests that create overrides via POST clean up in {@code try/finally}
  * via {@link #cleanupOverrideOrIgnore} so successive suite runs do not accumulate orphans.
  */
-@Category(ApiRegressionTest.class)
 public class LicenseOverridesApiRegressionTest
     extends AbstractIqApiTest
 {
   private static final String LICENSE_OVERRIDE_BASE = "api/v2/licenseOverrides";
 
-  @Before
+  @BeforeEach
   public void enablePolicyManagement() throws Exception {
     setFeatures(LicensedFeature.POLICY_MANAGEMENT);
   }

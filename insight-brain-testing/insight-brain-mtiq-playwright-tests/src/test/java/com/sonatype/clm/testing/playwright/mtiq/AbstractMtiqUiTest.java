@@ -15,6 +15,7 @@ import com.sonatype.clm.dto.model.remediation.VersionScoringDTO;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.clm.testing.functional.utils.proxy.ReverseProxyServer;
 import com.sonatype.clm.testing.playwright.AbstractPlaywrightTest;
+import com.sonatype.clm.testing.playwright.PlaywrightTemporaryEntityExtension;
 import com.sonatype.clm.testing.playwright.pages.HeaderComponent;
 import com.sonatype.clm.testing.playwright.pages.LoginPage;
 import com.sonatype.clm.testing.playwright.pages.LoginPageAssertions;
@@ -66,11 +67,11 @@ import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.subject.SubjectContext;
 import org.apache.shiro.util.ThreadContext;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,6 +88,7 @@ import static org.mockito.Mockito.when;
  * and bootstraps an embedded multi-tenant IQ server in a static initializer, provisioning a fresh
  * tenant per test via {@link TenantProvisioningService}. Requires PostgreSQL — MTIQ cannot run on H2.
  */
+@ExtendWith(PlaywrightTemporaryEntityExtension.class)
 public abstract class AbstractMtiqUiTest
     extends AbstractPlaywrightTest
 {
@@ -259,12 +261,12 @@ public abstract class AbstractMtiqUiTest
         tenant -> new TestProductLicenseRule(multiTenantDatabaseContainerRule).insertLicenseIfNeeded());
   }
 
-  @BeforeClass
+  @BeforeAll
   public static void disableWaitToCloseOldClients() {
     HdsClient.waitToCloseOldClients = false;
   }
 
-  @BeforeClass
+  @BeforeAll
   public static void setUpClass() {
     Subject subject = mock(Subject.class);
     lenient().when(subject.getPrincipal()).thenReturn(new UserPrincipal("admin", "Admin", InternalRealm.ID));
@@ -278,14 +280,13 @@ public abstract class AbstractMtiqUiTest
     testCLMServer.getCLMServer().setHdsUrl();
   }
 
-  @AfterClass
+  @AfterAll
   public static void tearDownClass() {
     ThreadContext.unbindSecurityManager();
     ThreadContext.unbindSubject();
   }
 
   /** Per-test {@link TemporaryEntity}; reset runs under the global tenant. */
-  @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity(multiTenantDatabaseContainerRule)
   {
     @Override
@@ -312,7 +313,7 @@ public abstract class AbstractMtiqUiTest
     // hook for subclasses
   }
 
-  @Before
+  @BeforeEach
   public final void beforeTest() {
     log.info("Before: {}", testName.getMethodName());
 
@@ -334,7 +335,7 @@ public abstract class AbstractMtiqUiTest
     mockHdsVersionScoringResponse();
   }
 
-  @After
+  @AfterEach
   public void afterTest() throws Exception {
     log.info("After: {}", testName.getMethodName());
     InsightConfig insightConfig = testCLMServer.getCLMServer().getConfiguration();

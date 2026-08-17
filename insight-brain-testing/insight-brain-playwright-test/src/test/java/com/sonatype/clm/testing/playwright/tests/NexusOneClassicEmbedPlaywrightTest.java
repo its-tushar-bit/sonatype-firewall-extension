@@ -16,8 +16,6 @@ import com.microsoft.playwright.options.WaitForSelectorState;
 import com.microsoft.playwright.TimeoutError;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.AdministratorsEditPage;
 import com.sonatype.clm.testing.playwright.pages.AdministratorsPage;
 import com.sonatype.clm.testing.playwright.pages.AdvancedSearchConfigurationPage;
@@ -79,13 +77,13 @@ import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsService;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
 /**
@@ -113,7 +111,7 @@ public class NexusOneClassicEmbedPlaywrightTest
 
   private String originalSuccessMetricsEnabled;
 
-  @Before
+  @BeforeEach
   public void enablePreviewUiAndLogin() {
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
     originalSuccessMetricsEnabled =
@@ -123,7 +121,7 @@ public class NexusOneClassicEmbedPlaywrightTest
     playwrightLogin();
   }
 
-  @After
+  @AfterEach
   public void resetPreviewUiAndSuccessMetricsConfig() {
     // Dismiss any dirty-guard modal a failed test may have left open, so the
     // next test doesn't hit a blocked transition on refresh.
@@ -171,7 +169,7 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedApiPage_rendersSwaggerInsideNexusOneShell() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/api"));
 
@@ -187,7 +185,7 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLegacyComingSoonApiUrl_redirectsToCleanEmbedPath() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/api"));
 
@@ -203,7 +201,7 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedSuccessMetrics_rendersClassicLandingInsideNexusOneShell() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/success-metrics"));
 
@@ -223,7 +221,7 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLegacyComingSoonSuccessMetricsUrl_redirectsToCleanEmbedPath() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/success-metrics"));
 
@@ -241,7 +239,7 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLegacyComingSoonSuccessMetricsReportUrl_redirectsToCleanEmbedPath() {
     String reportName = "pw-sm-embed-report-" + TemporaryEntity.uuid();
     SuccessMetricsReport report = tempEntity.newSuccessMetricsReport("admin", reportName, "{}");
@@ -265,7 +263,7 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedLegal_rendersClassicAlpDashboardInShell() {
     setFeatures(LicensedFeature.values());
 
@@ -305,7 +303,7 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLegacyComingSoonLegalUrl_redirectsToClassicAlpDashboard() {
     setFeatures(LicensedFeature.values());
 
@@ -324,7 +322,7 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedLegalApplicationDetails_filterOpensAsOverlayNotInline() throws Exception {
     setFeatures(LicensedFeature.values());
 
@@ -361,7 +359,7 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedComponentLegalOverview_copyrightModalBlocksLeftNav() throws Exception {
     setFeatures(LicensedFeature.values());
 
@@ -395,7 +393,7 @@ public class NexusOneClassicEmbedPlaywrightTest
     catch (TimeoutError expected) {
       navigatedWhileBlocked = false;
     }
-    assertFalse("LeftNav must not be clickable while the copyright modal is open", navigatedWhileBlocked);
+    assertFalse(navigatedWhileBlocked, "LeftNav must not be clickable while the copyright modal is open");
     assertThat(copyrightPage.modal()).isVisible();
 
     copyrightPage.clickCancel();
@@ -405,7 +403,7 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedLegal_advancedLegalPackUnlicensed_hidesNavEntry() {
     // CLM-44467 restores the Classic ALP gate on LeftNav Legal — stripping ADVANCED_LEGAL_PACK
     // must hide the rail entry (native LEGAL_VIOLATION triage remains at /legal-risk).
@@ -419,7 +417,7 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedReporting_enterpriseReportingLicensed_rendersEnterpriseInShell() {
     setFeatures(LicensedFeature.values());
     stubEnterpriseReportingHds();
@@ -440,7 +438,7 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedReporting_enterpriseReportingUnlicensed_rendersOperationalInShell() {
     setMissingFeature(LicensedFeature.INTEGRATED_ENTERPRISE_REPORTING);
 
@@ -460,7 +458,7 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLegacyComingSoonReportsUrl_redirectsToCleanEmbedPath() {
     setFeatures(LicensedFeature.values());
     stubEnterpriseReportingHds();
@@ -480,7 +478,7 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedOrgsAndPolicies_rendersRootOrgSummaryInsideNexusOneShell() {
     setFeatures(LicensedFeature.values());
 
@@ -505,7 +503,7 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLegacyComingSoonOrgsAndPoliciesUrl_redirectsToRootOrgSummary() {
     setFeatures(LicensedFeature.values());
 
@@ -524,7 +522,7 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedOrgsAndPolicies_policyEditorNavigationStaysInShell() {
     setFeatures(LicensedFeature.values());
 
@@ -549,7 +547,7 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedOrgsAndPolicies_innerSourceEditButtonNavigatesInShell() {
     setFeatures(LicensedFeature.values());
 
@@ -582,7 +580,7 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testNonEmbeddedComingSoonRoute_stillRendersStub() {
     playwrightRefreshOrOpen(NexusOnePage.url("/coming-soon/system-config"));
 
@@ -597,7 +595,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * the Classic form as-is inside the Nexus One shell.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testEmbeddedSuccessMetricsConfiguration_rendersClassicFormInsideNexusOneShell() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/successMetricsConfiguration"));
 
@@ -621,7 +619,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * the config page with the dirty state intact.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedSuccessMetricsConfiguration_dirtyGuardBlocksNavigationOnCancel() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/successMetricsConfiguration"));
 
@@ -646,7 +644,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * the target route.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedSuccessMetricsConfiguration_dirtyGuardAllowsNavigationOnContinue() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/successMetricsConfiguration"));
 
@@ -672,7 +670,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * Nexus One shell. This is a list page with no dirty guard.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testEmbeddedUsers_rendersClassicListInsideNexusOneShell() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/users"));
 
@@ -698,7 +696,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * the same pattern and rationale).
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedUsers_unauthorizedUserRedirectsToViolations() {
     User nonAdminUser = tempEntity.newUser(TemporaryEntity.uuid());
 
@@ -719,7 +717,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * the shell dirty-guard modal. Cancel keeps the user on the form.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedCreateUser_dirtyGuardBlocksNavigationOnCancel() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/users/_new_"));
 
@@ -742,7 +740,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * proceed; the create-user form unmounts and the target page mounts.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedCreateUser_dirtyGuardAllowsNavigationOnContinue() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/users/_new_"));
 
@@ -768,7 +766,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * the Classic list as-is inside the Nexus One shell.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testEmbeddedAdministrators_rendersClassicListInsideNexusOneShell() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/administrators"));
 
@@ -791,7 +789,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * the Classic edit form inside the Nexus One shell.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testEmbeddedAdministratorsEdit_rendersClassicFormInsideNexusOneShell() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/administrators/" + Role.POLICY_ADMIN_ROLE_ID));
 
@@ -823,7 +821,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * state intact.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedAdministratorsEdit_dirtyGuardBlocksNavigationOnCancel() {
     String searchableUserItem = seedSearchableAdministratorCandidate();
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/administrators/" + Role.POLICY_ADMIN_ROLE_ID));
@@ -849,7 +847,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * the target route.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedAdministratorsEdit_dirtyGuardAllowsNavigationOnContinue() {
     String searchableUserItem = seedSearchableAdministratorCandidate();
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/administrators/" + Role.POLICY_ADMIN_ROLE_ID));
@@ -883,7 +881,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * route's own {@code redirectTo} would never fire.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedAdministrators_unauthorizedUserRedirectsToViolations() {
     User nonAdminUser = tempEntity.newUser(TemporaryEntity.uuid());
 
@@ -904,7 +902,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * shell.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testEmbeddedBaseUrlConfiguration_rendersClassicFormInsideNexusOneShell() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/baseUrl"));
 
@@ -927,7 +925,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * the config page with the dirty state intact.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedBaseUrlConfiguration_dirtyGuardBlocksNavigationOnCancel() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/baseUrl"));
 
@@ -955,7 +953,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * mount assertion never fires there.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedBaseUrlConfiguration_dirtyGuardAllowsNavigationOnContinue() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/baseUrl"));
 
@@ -981,7 +979,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * Classic form as-is inside the Nexus One shell.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testEmbeddedSystemNoticeConfiguration_rendersClassicFormInsideNexusOneShell() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
 
@@ -1002,7 +1000,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * the user on the config page.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedSystemNoticeConfiguration_dirtyGuardBlocksNavigationOnCancel() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
 
@@ -1026,7 +1024,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * the target route.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedSystemNoticeConfiguration_dirtyGuardAllowsNavigationOnContinue() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
 
@@ -1060,7 +1058,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * route's own {@code redirectTo} would never fire.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedSystemNoticeConfiguration_unauthorizedUserRedirectsToViolations() {
     User nonAdminUser = tempEntity.newUser(TemporaryEntity.uuid());
 
@@ -1084,7 +1082,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * with the NOUX left nav visible and the Classic global sidebar hidden.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testEmbeddedMailConfiguration_rendersClassicFormInsideNexusOneShell() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/mailConfig"));
 
@@ -1107,7 +1105,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * return to the mail config page with the unsaved data still visible.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedMailConfiguration_dirtyGuardBlocksNavigationOnCancel() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/mailConfig"));
 
@@ -1135,7 +1133,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * changes.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedMailConfiguration_dirtyGuardAllowsNavigationOnContinue() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/mailConfig"));
 
@@ -1165,7 +1163,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * {@code redirectTo} guard (which checks {@code CONFIGURE_SYSTEM} permission).
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedMailConfiguration_unauthorizedUserRedirectsToViolations() {
     User nonAdminUser = tempEntity.newUser(TemporaryEntity.uuid());
 
@@ -1186,7 +1184,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * Classic form as-is inside the Nexus One shell.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testEmbeddedSamlConfiguration_rendersClassicFormInsideNexusOneShell() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/saml"));
 
@@ -1207,7 +1205,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * Cancel keeps the user on the config page with the dirty state intact.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedSamlConfiguration_dirtyGuardBlocksNavigationOnCancel() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/saml"));
 
@@ -1232,7 +1230,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * the target route.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedSamlConfiguration_dirtyGuardAllowsNavigationOnContinue() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/saml"));
 
@@ -1265,7 +1263,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * route's own {@code redirectTo} would never fire.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedSamlConfiguration_unauthorizedUserRedirectsToViolations() {
     User nonAdminUser = tempEntity.newUser(TemporaryEntity.uuid());
 
@@ -1286,7 +1284,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * Classic form as-is inside the Nexus One shell.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testEmbeddedUserTokensConfiguration_rendersClassicFormInsideNexusOneShell() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/userTokensConfiguration"));
 
@@ -1307,7 +1305,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * on the config page with the toggle state preserved.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedUserTokensConfiguration_dirtyGuardBlocksNavigationOnCancel() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/userTokensConfiguration"));
 
@@ -1342,7 +1340,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * the target route.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedUserTokensConfiguration_dirtyGuardAllowsNavigationOnContinue() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/userTokensConfiguration"));
 
@@ -1370,7 +1368,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * function on the route.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedUserTokensConfiguration_unauthorizedUserRedirectsToViolations() {
     User nonAdminUser = tempEntity.newUser(TemporaryEntity.uuid());
 
@@ -1390,7 +1388,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * the configuration; reloading the page shows the saved state.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedUserTokensConfiguration_savePersistsThroughShell() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/userTokensConfiguration"));
 
@@ -1448,7 +1446,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * rendering the Classic list inside the Nexus One shell.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testEmbeddedRolesList_rendersClassicPageInsideNexusOneShell() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/roles"));
 
@@ -1470,7 +1468,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * the user on the editor page with the dirty value intact.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedRoleEditor_dirtyGuardBlocksNavigationOnCancel() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/roles/_new_"));
 
@@ -1496,7 +1494,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * the roles list (another Classic-embedded page).
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedRoleEditor_dirtyGuardAllowsNavigationOnContinue() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/roles/_new_"));
 
@@ -1523,7 +1521,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * ever mounts.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedRoles_unauthorizedUserRedirectsToViolations() {
     User nonAdminUser = tempEntity.newUser(TemporaryEntity.uuid());
 
@@ -1543,7 +1541,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * verify the persisted values re-populate. Clean up by deleting the test role.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedRoleEditor_saveThroughShellPersistsData() {
     String roleName = "pw-embed-role-" + TemporaryEntity.uuid();
 
@@ -1588,7 +1586,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * as-is inside the Nexus One shell.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testEmbeddedAdvancedSearchConfiguration_rendersClassicFormInsideNexusOneShell() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/advancedSearchConfig"));
 
@@ -1608,7 +1606,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * the config page with the dirty value preserved.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedAdvancedSearchConfiguration_dirtyGuardBlocksNavigationOnCancel() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/advancedSearchConfig"));
 
@@ -1647,7 +1645,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * the target route.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedAdvancedSearchConfiguration_dirtyGuardAllowsNavigationOnContinue() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/advancedSearchConfig"));
 
@@ -1675,7 +1673,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * before the admin form ever mounts.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedAdvancedSearchConfiguration_unauthorizedUserRedirectsToViolations() {
     User nonAdminUser = tempEntity.newUser(TemporaryEntity.uuid());
 
@@ -1696,7 +1694,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * assert the persisted value re-populates.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedAdvancedSearchConfiguration_saveThroughShellPersists() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/advancedSearchConfig"));
 
@@ -1761,7 +1759,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * Classic-only tests.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testEmbeddedAutomaticApplicationsConfiguration_rendersClassicFormInsideNexusOneShell() {
     stubAutomaticApplicationsRoutes(AUTO_APP_CONFIG_DISABLED_NO_PARENT_JSON, AUTO_APP_ORGANIZATIONS_JSON);
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/automaticApplicationsConfiguration"));
@@ -1783,7 +1781,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * and then attempts to navigate away, clicking Cancel should keep them on the page.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedAutomaticApplicationsConfiguration_dirtyGuardBlocksNavigationOnCancel() {
     // Stub the same routes as the render test above: NxStatefulForm's loading
     // spinner hides the enabled-toggle label until both /rest/organization*
@@ -1811,7 +1809,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * and then clicks Continue on the unsaved changes modal, navigating away from the page.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedAutomaticApplicationsConfiguration_dirtyGuardAllowsNavigationOnContinue() {
     // See dirtyGuardBlocksNavigationOnCancel above for why these stubs are needed.
     stubAutomaticApplicationsRoutes(AUTO_APP_CONFIG_DISABLED_NO_PARENT_JSON, AUTO_APP_ORGANIZATIONS_JSON);
@@ -1839,7 +1837,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * This test verifies the permission gate works correctly by using a user with no specific permissions.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedAutomaticApplicationsConfiguration_unauthorizedUserRedirectsToViolations() {
     User nonAdminUser = tempEntity.newUser(TemporaryEntity.uuid());
 
@@ -1860,7 +1858,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * the Classic form as-is inside the Nexus One shell.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testEmbeddedAutomaticSourceControlConfiguration_rendersClassicFormInsideNexusOneShell() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/automaticSourceControlConfiguration"));
 
@@ -1882,7 +1880,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * the user on the config page with the dirty state intact.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedAutomaticSourceControlConfiguration_dirtyGuardBlocksNavigationOnCancel() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/automaticSourceControlConfiguration"));
 
@@ -1917,7 +1915,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * another Classic-embedded page.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedAutomaticSourceControlConfiguration_dirtyGuardAllowsNavigationOnContinue() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/automaticSourceControlConfiguration"));
 
@@ -1952,7 +1950,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * route's own {@code redirectTo} would never fire.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedAutomaticSourceControlConfiguration_unauthorizedUserRedirectsToViolations() {
     User nonAdminUser = tempEntity.newUser(TemporaryEntity.uuid());
 
@@ -1972,7 +1970,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * and verify the persisted state.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedAutomaticSourceControlConfiguration_saveThroughShellPersists() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/automaticSourceControlConfiguration"));
 
@@ -2024,7 +2022,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * Nexus One shell.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testEmbeddedProxyConfiguration_rendersClassicFormInsideNexusOneShell() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/proxyConfig"));
 
@@ -2045,7 +2043,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * the Proxy page with the dirty state intact.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedProxyConfiguration_dirtyGuardBlocksNavigationOnCancel() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/proxyConfig"));
 
@@ -2073,7 +2071,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * the destination page.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedProxyConfiguration_dirtyGuardAllowsNavigationOnContinue() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/proxyConfig"));
 
@@ -2102,7 +2100,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * assert the persisted value re-populates.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedProxyConfiguration_savePersistsThroughShellBridge() {
     // Standalone Classic save round-trip is covered by ProxyConfigurationPlaywrightTest.
     // This test exercises the shell-specific concern: that the Redux write path
@@ -2142,7 +2140,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * the admin form ever mounts.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedProxyConfiguration_unauthorizedUserRedirectsToViolations() {
     User nonAdminUser = tempEntity.newUser(TemporaryEntity.uuid());
 
@@ -2166,7 +2164,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * as-is inside the Nexus One shell.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testEmbeddedCrowdConfiguration_rendersClassicFormInsideNexusOneShell() {
     setFeatures(LicensedFeature.values());
 
@@ -2192,7 +2190,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * the user on the config page with the dirty state intact.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedCrowdConfiguration_dirtyGuardBlocksNavigationOnCancel() {
     setFeatures(LicensedFeature.values());
 
@@ -2222,7 +2220,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * whose classic-component mount asserts the transition actually completed.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedCrowdConfiguration_dirtyGuardAllowsNavigationOnContinue() {
     setFeatures(LicensedFeature.values());
 
@@ -2257,7 +2255,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * route's own {@code redirectTo} would never fire.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedCrowdConfiguration_unauthorizedUserRedirectsToViolations() {
     User nonAdminUser = tempEntity.newUser(TemporaryEntity.uuid());
 
@@ -2281,7 +2279,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * redux/router bridge."
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedCrowdConfiguration_saveThroughShellPersists() {
     setFeatures(LicensedFeature.values());
 
@@ -2333,7 +2331,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * Nexus One shell.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testEmbeddedWebhooksList_rendersClassicListInsideNexusOneShell() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/webhooks/list"));
 
@@ -2355,7 +2353,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * the edit page with the dirty state intact.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedWebhookEditor_dirtyGuardBlocksNavigationOnCancel() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/webhooks/create"));
 
@@ -2381,7 +2379,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * another Classic-embedded page.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedWebhookEditor_dirtyGuardAllowsNavigationOnContinue() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/webhooks/create"));
 
@@ -2407,7 +2405,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * the webhooks list ever mounts. Covers the redirectTo function on the route.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedWebhooksList_unauthorizedUserRedirectsToViolations() {
     User nonAdminUser = tempEntity.newUser(TemporaryEntity.uuid());
 
@@ -2427,7 +2425,7 @@ public class NexusOneClassicEmbedPlaywrightTest
    * persists to the database; reloading the list shows the persisted webhook.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmbeddedWebhookEditor_saveThroughShellPersists() {
     setFeatures(LicensedFeature.values());
 

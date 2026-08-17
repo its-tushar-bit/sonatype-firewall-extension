@@ -7,7 +7,6 @@ package com.sonatype.clm.testing.playwright.tests.mtiq;
 
 import java.util.regex.Pattern;
 
-import com.sonatype.clm.testing.playwright.categories.MtiqTest;
 import com.sonatype.clm.testing.playwright.mtiq.AbstractMtiqUiTest;
 import com.sonatype.clm.testing.playwright.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.playwright.pages.PolicyEditorPageAssertions;
@@ -19,13 +18,13 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.microsoft.playwright.Locator;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-@Category(MtiqTest.class)
+@Tag("mtiq")
 public class MtiqSbomPolicyEditorPlaywrightTest
     extends AbstractMtiqUiTest
 {
@@ -41,7 +40,7 @@ public class MtiqSbomPolicyEditorPlaywrightTest
 
   private PolicyEditorPageAssertions assertions;
 
-  @Before
+  @BeforeEach
   public void seedOrgTreeAndLogin() {
     rootOrg = tempEntity.newOrganization("MTIQ Policy Root " + tempEntity.uuid());
     childOrg = tempEntity.newOrganization("MTIQ Policy Child " + tempEntity.uuid(), rootOrg);

@@ -12,7 +12,6 @@ import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.FirewallComponentDetailsRegressionPage;
 import com.sonatype.clm.testing.playwright.pages.FirewallDashboardRegressionAssertions;
 import com.sonatype.clm.testing.playwright.pages.FirewallPage;
@@ -46,10 +45,10 @@ import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.assertions.LocatorAssertions;
 
 import org.assertj.core.api.Assertions;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -99,12 +98,12 @@ public class FirewallDashboardPlaywrightTest
 
   private String containerQuarantineRepoId;
 
-  @After
+  @AfterEach
   public void resetContainerImagesEvalFlag() {
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
   }
 
-  @Before
+  @BeforeEach
   public void openFirewallDashboardAsAdmin() {
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
     setFeatures(
@@ -125,7 +124,7 @@ public class FirewallDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFirewallDashboard_tabsFeatureGating_hiddenByDefaultVisibleWhenContainerEnabled() {
     seedTabsTestQuarantineComponent();
     seedTabsTestContainerQuarantineComponent();
@@ -160,7 +159,7 @@ public class FirewallDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFirewallDashboard_welcomeModal_showsFromLocalStorageFlagHidesOnClose() {
     FirewallRegressionPage firewallPage = new FirewallRegressionPage();
     FirewallDashboardRegressionAssertions assertions = new FirewallDashboardRegressionAssertions(firewallPage);
@@ -179,7 +178,7 @@ public class FirewallDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFirewallDashboard_statusIndicator_greenWhenAllProtectedAmberWhenNot() {
     FirewallRegressionPage firewallPage = new FirewallRegressionPage();
     FirewallDashboardRegressionAssertions assertions = new FirewallDashboardRegressionAssertions(firewallPage);
@@ -196,7 +195,7 @@ public class FirewallDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFirewallDashboard_limitedAccessUser_alertShownDashboardHidden() {
     FirewallRegressionPage firewallPage = new FirewallRegressionPage();
     FirewallDashboardRegressionAssertions assertions = new FirewallDashboardRegressionAssertions(firewallPage);
@@ -215,7 +214,7 @@ public class FirewallDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFirewallDashboard_quarantineTableFilters_eachFilterReducesVisibleRows() {
     seedQuarantineFilterComponents();
     // Full reload — FirewallPage's loadPolicies() runs in a mount-only useEffect, and hash-only
@@ -294,7 +293,7 @@ public class FirewallDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFirewallDashboard_quarantineTableNavLinks_navigateToComponentAndRepoPages() {
     seedNavLinkComponent();
     playwrightRefreshOrOpen(FirewallPage.quarantineTabUrl());
@@ -321,7 +320,7 @@ public class FirewallDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFirewallDashboard_quarantineTableSorting_policyNameAndQuarantineTime() {
     seedQuarantineSortComponents();
     playwrightRefreshOrOpen(FirewallPage.quarantineTabUrl());
@@ -355,7 +354,7 @@ public class FirewallDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFirewallDashboard_quarantineTable_refreshTimestampAndZeroThreatLevel() {
     seedZeroThreatLevelComponent();
     playwrightRefreshOrOpen(FirewallPage.quarantineTabUrl());
@@ -379,7 +378,7 @@ public class FirewallDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFirewallDashboard_roiTab_hiddenWhenRoiParamAbsent() {
     FirewallRegressionPage firewallPage = new FirewallRegressionPage();
     assertThat(firewallPage.tab(DATA.roiTabId())).isHidden();
@@ -388,7 +387,7 @@ public class FirewallDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFirewallDashboard_firewallMetrics_filterShortcutLinksApplyPolicyFilter() {
     seedMetricsFilterComponents();
     playwrightRefreshOrOpen(FirewallPage.url());
@@ -425,7 +424,7 @@ public class FirewallDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFirewallDashboard_containerQuarantineTable_refreshAndMultiPolicyDisplay() {
     seedContainerQuarantineComponents();
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
@@ -448,7 +447,7 @@ public class FirewallDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFirewallDashboard_containerWaiverTable_nullExpiryDisplaysNever() {
     seedContainerWaivers();
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);

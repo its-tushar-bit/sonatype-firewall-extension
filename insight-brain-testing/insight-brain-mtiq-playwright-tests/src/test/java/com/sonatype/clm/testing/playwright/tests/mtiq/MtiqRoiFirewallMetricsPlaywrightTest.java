@@ -8,17 +8,16 @@ package com.sonatype.clm.testing.playwright.tests.mtiq;
 import java.util.regex.Pattern;
 
 import com.microsoft.playwright.Route;
-import com.sonatype.clm.testing.playwright.categories.MtiqTest;
 import com.sonatype.clm.testing.playwright.mtiq.AbstractMtiqUiTest;
 import com.sonatype.clm.testing.playwright.pages.RoiFirewallMetricsPage;
 import com.sonatype.clm.testing.playwright.pages.RoiFirewallMetricsPageAssertions;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -35,7 +34,7 @@ import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertTha
  * MTIQ divergence: three Firewall dashboard endpoints fail in the embedded server, setting
  * {@code viewState.loadError} and hiding the tile. They are stubbed via {@code page.route()}.
  */
-@Category(MtiqTest.class)
+@Tag("mtiq")
 public class MtiqRoiFirewallMetricsPlaywrightTest
     extends AbstractMtiqUiTest
 {
@@ -61,7 +60,7 @@ public class MtiqRoiFirewallMetricsPlaywrightTest
 
   private RoiFirewallMetricsPageAssertions roiFirewallMetricsAssertions;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL, ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
     roiFirewallMetricsPage = new RoiFirewallMetricsPage();
@@ -69,7 +68,7 @@ public class MtiqRoiFirewallMetricsPlaywrightTest
     stubFirewallDashboardEndpoints();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     page.unrouteAll();
   }

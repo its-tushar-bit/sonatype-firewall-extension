@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.api;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -18,9 +19,11 @@ import java.util.concurrent.TimeUnit;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.core.MediaType;
-import org.junit.Rule;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.TestWatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,9 +62,11 @@ import org.slf4j.LoggerFactory;
  * {@code FAIL} markers (with elapsed ms) in the per-class output file.
  * </ul>
  *
- * @see com.sonatype.clm.testing.api.categories.ApiRegressionTest
  * @see AbstractResourceTest
  */
+@LegacyServerTest
+@Tag("apiRegression")
+@ExtendWith(AbstractIqApiTest.ApiTestLoggingExtension.class)
 public abstract class AbstractIqApiTest
     extends AbstractResourceTest
 {
@@ -83,33 +88,46 @@ public abstract class AbstractIqApiTest
    */
   private static final ObjectMapper JSON = new ObjectMapper();
 
-  @Rule
-  public final TestWatcher apiTestLogger = new TestWatcher()
+  /**
+   * Brackets each test method with {@code START} / {@code PASS} / {@code FAIL} markers (with
+   * elapsed ms) in the per-class Failsafe output file. JUnit 5 replacement for the former
+   * {@code @Rule TestWatcher}: {@link BeforeEachCallback} seeds the start time and logs
+   * {@code START}; the {@link TestWatcher} callbacks log the outcome.
+   */
+  public static class ApiTestLoggingExtension
+      implements BeforeEachCallback, TestWatcher
   {
-    private long startedNanos;
+    private static final ExtensionContext.Namespace NAMESPACE =
+        ExtensionContext.Namespace.create(ApiTestLoggingExtension.class);
+
+    private static final String START_NANOS = "startedNanos";
 
     @Override
-    protected void starting(final Description description) {
-      startedNanos = System.nanoTime();
-      log.info("===== START {}.{} =====", description.getTestClass().getSimpleName(),
-          description.getMethodName());
-    }
-
-    @Override
-    protected void succeeded(final Description description) {
-      log.info("===== PASS  {} ({} ms) =====", description.getMethodName(), elapsedMs());
+    public void beforeEach(final ExtensionContext context) {
+      context.getStore(NAMESPACE).put(START_NANOS, System.nanoTime());
+      log.info("===== START {}.{} =====", context.getRequiredTestClass().getSimpleName(),
+          context.getRequiredTestMethod().getName());
     }
 
     @Override
-    protected void failed(final Throwable e, final Description description) {
-      log.warn("===== FAIL  {} ({} ms): {}: {} =====", description.getMethodName(), elapsedMs(),
-          e.getClass().getSimpleName(), e.getMessage(), e);
+    public void testSuccessful(final ExtensionContext context) {
+      log.info("===== PASS  {} ({} ms) =====", context.getRequiredTestMethod().getName(),
+          elapsedMs(context));
     }
 
-    private long elapsedMs() {
-      return TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedNanos);
+    @Override
+    public void testFailed(final ExtensionContext context, final Throwable cause) {
+      log.warn("===== FAIL  {} ({} ms): {}: {} =====", context.getRequiredTestMethod().getName(),
+          elapsedMs(context), cause.getClass().getSimpleName(), cause.getMessage(), cause);
     }
-  };
+
+    private static long elapsedMs(final ExtensionContext context) {
+      Long startedNanos = context.getStore(NAMESPACE).get(START_NANOS, Long.class);
+      return startedNanos == null
+          ? -1L
+          : TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedNanos);
+    }
+  }
 
   /** Authenticated request against the embedded IQ REST base URL. */
   protected HttpRequest apiRequest() {

@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.api.v2;
 
 import com.sonatype.clm.testing.api.AbstractIqApiTest;
-import com.sonatype.clm.testing.api.categories.ApiRegressionTest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.model.Application;
@@ -15,9 +14,8 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,7 +44,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * before the entity lookup — the direct-unauthenticated test uses a seeded app to force
  * this branch rather than the DAO 404.
  */
-@Category(ApiRegressionTest.class)
 public class PolicyManagementApiRegressionTest
     extends AbstractIqApiTest
 {
@@ -62,7 +59,7 @@ public class PolicyManagementApiRegressionTest
   private static final String POLICY_EXPORT_BASE = PublicApiPaths.POLICY_EXPORT_RESOURCE_PATH
       .substring(0, PublicApiPaths.POLICY_EXPORT_RESOURCE_PATH.indexOf("/{"));
 
-  @Before
+  @BeforeEach
   public void enablePolicyManagement() throws Exception {
     setFeatures(LicensedFeature.POLICY_MANAGEMENT);
   }

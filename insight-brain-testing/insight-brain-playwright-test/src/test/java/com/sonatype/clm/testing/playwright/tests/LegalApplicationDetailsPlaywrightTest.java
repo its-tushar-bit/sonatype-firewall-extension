@@ -19,13 +19,11 @@ import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
-import org.junit.experimental.categories.Category;
 
 public class LegalApplicationDetailsPlaywrightTest
     extends AbstractIqUiTest
@@ -49,7 +47,7 @@ public class LegalApplicationDetailsPlaywrightTest
 
   private Application app;
 
-  @Before
+  @BeforeEach
   public void openLegalApplicationDetailsAsAdmin() throws Exception {
     app = seed();
     stubHdsEndpoints();
@@ -58,7 +56,7 @@ public class LegalApplicationDetailsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testLegalApplicationDetailsDisplay() {
     LegalApplicationDetailsPage legalPage = new LegalApplicationDetailsPage();
     LegalApplicationDetailsPageAssertions legalAssertions = new LegalApplicationDetailsPageAssertions(legalPage);
@@ -72,7 +70,7 @@ public class LegalApplicationDetailsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testFilterButtonAndFilterSidebar() {
     LegalApplicationDetailsPage legalPage = new LegalApplicationDetailsPage();
     LegalApplicationDetailsPageAssertions legalAssertions = new LegalApplicationDetailsPageAssertions(legalPage);
@@ -95,7 +93,7 @@ public class LegalApplicationDetailsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLegalApplicationDetailsPageRenders() {
     LegalApplicationDetailsPage legalPage = new LegalApplicationDetailsPage();
     LegalApplicationDetailsPageAssertions assertions = new LegalApplicationDetailsPageAssertions(legalPage);
@@ -107,7 +105,7 @@ public class LegalApplicationDetailsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFilterByComponentAndLicenseName() {
     LegalApplicationDetailsPage legalPage = new LegalApplicationDetailsPage();
     LegalApplicationDetailsPageAssertions assertions = new LegalApplicationDetailsPageAssertions(legalPage);
@@ -125,7 +123,7 @@ public class LegalApplicationDetailsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSortByColumnHeaders() {
     LegalApplicationDetailsPage legalPage = new LegalApplicationDetailsPage();
     LegalApplicationDetailsPageAssertions assertions = new LegalApplicationDetailsPageAssertions(legalPage);
@@ -144,7 +142,7 @@ public class LegalApplicationDetailsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testCreateAttributionReportNavigation() {
     LegalApplicationDetailsPage legalPage = new LegalApplicationDetailsPage();
 

@@ -6,34 +6,33 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.IdeIntegrationsCardPage;
 import com.sonatype.clm.testing.playwright.pages.IdeIntegrationsCardPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.SonatypeDeveloperPage;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /** Tests for the IDE Integrations card on the Developer Dashboard. */
 public class IdeIntegrationsCardPlaywrightTest
     extends AbstractIqUiTest
 {
-  @Before
+  @BeforeEach
   public void openDeveloperPage() {
     playwrightRefreshOrOpen(SonatypeDeveloperPage.url());
     playwrightLogin();
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testIdeCard_rendersWithHeadingAndFooterLink() {
     IdeIntegrationsCardPage cardPage = new IdeIntegrationsCardPage();
     new IdeIntegrationsCardPageAssertions(cardPage).shouldShowCardWithHeadingAndFooterLink();
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testIdeCard_footerLinkTargetsIdeRoute() {
     IdeIntegrationsCardPage cardPage = new IdeIntegrationsCardPage();
     new IdeIntegrationsCardPageAssertions(cardPage).shouldHaveFooterLinkPointingToIdeRoute();

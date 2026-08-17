@@ -8,7 +8,6 @@ package com.sonatype.clm.testing.playwright.tests;
 import java.util.List;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.CrowdConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.CrowdConfigurationPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.OidcConfigurationPage;
@@ -18,10 +17,10 @@ import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurat
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.microsoft.playwright.Locator;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -62,7 +61,7 @@ public class OidcAndCrowdConfigurationPlaywrightTest
 
   private CrowdConfigurationPageAssertions crowdAssertions;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     playwrightRefreshOrOpen(OidcConfigurationPage.url());
     playwrightLogin();
@@ -72,7 +71,7 @@ public class OidcAndCrowdConfigurationPlaywrightTest
     crowdAssertions = new CrowdConfigurationPageAssertions(crowdPage);
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     playwrightLogout();
     try {
@@ -84,7 +83,7 @@ public class OidcAndCrowdConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOidcConfigurationPageRenders() {
     navigateToOidcPage();
 
@@ -92,7 +91,7 @@ public class OidcAndCrowdConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOidcSaveConfiguration() {
     navigateToOidcPage();
 
@@ -109,7 +108,7 @@ public class OidcAndCrowdConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOidcDeleteConfiguration() {
     navigateToOidcPage();
 
@@ -135,7 +134,7 @@ public class OidcAndCrowdConfigurationPlaywrightTest
    * {@code OidcConfigurationForm}'s feature-flag branching.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOidcForm_requiredFieldsHaveAriaRequiredTrue() {
     navigateToOidcPage();
 
@@ -150,7 +149,7 @@ public class OidcAndCrowdConfigurationPlaywrightTest
    * {@code aria-required="false"}.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOidcForm_optionalFieldsHaveAriaRequiredFalse() {
     navigateToOidcPage();
 
@@ -167,7 +166,7 @@ public class OidcAndCrowdConfigurationPlaywrightTest
    * Delete button remains disabled — a deterministic UI signal that the invalid save was blocked.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOidcRequiredField_emptyBlocksSubmit() {
     navigateToOidcPage();
     fillOidcRequiredFields();
@@ -183,7 +182,7 @@ public class OidcAndCrowdConfigurationPlaywrightTest
    * value. Uses the real save path (not {@code page.route}) so the saved state is DB-persisted.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOidcCancel_restoresSavedValues() {
     navigateToOidcPage();
     fillOidcRequiredFields();
@@ -200,7 +199,7 @@ public class OidcAndCrowdConfigurationPlaywrightTest
 
   /** Delete button is disabled on a fresh (unsaved) OIDC form and enabled after saving a config. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOidcDelete_disabledBeforeSave_enabledAfterSave() {
     navigateToOidcPage();
     oidcAssertions.shouldShowDeleteButtonDisabled();
@@ -217,7 +216,7 @@ public class OidcAndCrowdConfigurationPlaywrightTest
    * the required fields.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOidcUserAttributeClaims_persistAcrossReload() {
     navigateToOidcPage();
     fillOidcRequiredFields();
@@ -234,7 +233,7 @@ public class OidcAndCrowdConfigurationPlaywrightTest
    * JWKS URL and JWKS JSON are mutually optional: config is valid with URL only OR JSON only.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOidc_jwksUrlAndJwksJson_mutuallyOptional() {
     navigateToOidcPage();
     fillOidcRequiredFields();
@@ -277,7 +276,7 @@ public class OidcAndCrowdConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testCrowdConfigurationPageRenders() {
     navigateToCrowdPage();
 
@@ -285,7 +284,7 @@ public class OidcAndCrowdConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testCrowdSaveConfiguration() {
     navigateToCrowdPage();
 
@@ -304,7 +303,7 @@ public class OidcAndCrowdConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testCrowdDeleteConfiguration() {
     navigateToCrowdPage();
 

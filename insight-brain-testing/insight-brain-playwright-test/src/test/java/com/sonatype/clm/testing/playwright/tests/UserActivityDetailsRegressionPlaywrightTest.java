@@ -20,7 +20,6 @@ import com.microsoft.playwright.Download;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.LoadState;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.UserActivityDetailsRegressionPage;
 import com.sonatype.clm.testing.playwright.pages.UserActivityDetailsRegressionPageAssertions;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
@@ -29,12 +28,12 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.service.InsightConfig;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Regression tests for the User Activity Details screen
@@ -76,7 +75,7 @@ public class UserActivityDetailsRegressionPlaywrightTest
 
   private boolean originalTracking;
 
-  @Before
+  @BeforeEach
   public void setUp() throws IOException {
     today = LocalDate.now();
     originalTracking = SystemConfigurationPropertyFeature.USER_ACTIVITY_TRACKING.isEnabled();
@@ -91,7 +90,7 @@ public class UserActivityDetailsRegressionPlaywrightTest
     detailsAssertions = new UserActivityDetailsRegressionPageAssertions(detailsPage);
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws IOException {
     SystemConfigurationPropertyFeature.USER_ACTIVITY_TRACKING.setEnabled(originalTracking);
     if (auditLogFiles != null) {
@@ -146,7 +145,7 @@ public class UserActivityDetailsRegressionPlaywrightTest
    * All eight column headers required by the data model are visible in the Activity Details table.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDetails_allEightColumnHeadersVisible() {
     detailsAssertions.shouldShowTimestampColumnHeader();
     detailsAssertions.shouldShowDomainColumnHeader();
@@ -162,7 +161,7 @@ public class UserActivityDetailsRegressionPlaywrightTest
    * The "Showing N activities" summary paragraph is visible after the page loads.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDetails_showingActivitiesSummaryVisible() {
     detailsAssertions.shouldShowActivitiesSummary();
   }
@@ -177,7 +176,7 @@ public class UserActivityDetailsRegressionPlaywrightTest
    * buffers events and the test completes before any flush to disk.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDetails_defaultSortIsTimestampDescending() {
     detailsAssertions.shouldHaveTimestampSortDirection(SORT_DESCENDING);
     detailsAssertions.shouldHaveFirstTimestampContaining(
@@ -189,7 +188,7 @@ public class UserActivityDetailsRegressionPlaywrightTest
    * the oldest entry (3 days ago) to the first data row.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDetails_clickTimestampHeaderTogglesSortToAscending() {
     detailsAssertions.shouldHaveTimestampSortDirection(SORT_DESCENDING);
 
@@ -204,7 +203,7 @@ public class UserActivityDetailsRegressionPlaywrightTest
    * Clicking the "Back" button navigates from the Details screen to the User Activity Overview.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDetails_backButtonNavigatesToOverview() {
     detailsAssertions.shouldShowBackButton();
 
@@ -221,7 +220,7 @@ public class UserActivityDetailsRegressionPlaywrightTest
    * and shows the stale-filter mask behind the open drawer ({@code filtersAreDirty=true}).
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDetails_filterDrawerOpensWithThreeSectionsAndButtonsDisabled() {
     detailsPage.filterButton().click();
 
@@ -244,7 +243,7 @@ public class UserActivityDetailsRegressionPlaywrightTest
    * {@code onApply()} then {@code onClose()} when Apply is clicked.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDetails_filterApplyClosesDrawer() {
     detailsPage.filterButton().click();
     detailsPage.activityTypeSectionToggle().click();
@@ -259,7 +258,7 @@ public class UserActivityDetailsRegressionPlaywrightTest
    * {@code onReset()} then {@code onClose()} when Reset is clicked.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDetails_filterResetClosesDrawer() {
     detailsPage.filterButton().click();
     detailsPage.activityTypeSectionToggle().click();
@@ -276,7 +275,7 @@ public class UserActivityDetailsRegressionPlaywrightTest
    * Filename pattern: {@code user_activity_detail_{username}_{timestamp}.csv}.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDetails_exportActivityEnabledForAdminWithActivity() {
     detailsAssertions.shouldShowActivitiesSummary();
     detailsAssertions.shouldShowExportActivityEnabled();
@@ -285,9 +284,10 @@ public class UserActivityDetailsRegressionPlaywrightTest
         new Page.WaitForDownloadOptions().setTimeout(PlaywrightTiming.LONG_OPERATION_TIMEOUT_MS),
         () -> detailsPage.exportActivityButton().click());
 
-    assertTrue("export filename should identify the admin user",
-        download.suggestedFilename().startsWith("user_activity_detail_" + TestCredentials.ADMIN_USERNAME + "_"));
-    assertTrue("export file should be CSV", download.suggestedFilename().endsWith(".csv"));
+    assertTrue(
+        download.suggestedFilename().startsWith("user_activity_detail_" + TestCredentials.ADMIN_USERNAME + "_"),
+        "export filename should identify the admin user");
+    assertTrue(download.suggestedFilename().endsWith(".csv"), "export file should be CSV");
 
     detailsAssertions.shouldShowExportActivityReady();
     detailsAssertions.shouldNotShowExportError();
@@ -301,7 +301,7 @@ public class UserActivityDetailsRegressionPlaywrightTest
    * Only admin's entries are seeded in {@link #setUp()}, so any other username yields zero rows.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDetails_exportDisabledWhenNoActivities() {
     playwrightRefreshOrOpen(UserActivityDetailsRegressionPage.url("no-activity-user"));
     detailsPage = new UserActivityDetailsRegressionPage();

@@ -5,20 +5,18 @@
  */
 package com.sonatype.clm.testing.playwright.tests.mtiq;
 
-import com.sonatype.clm.testing.playwright.categories.MtiqTest;
-
 import com.sonatype.insight.brain.model.Application;
 
-import org.junit.Before;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 
-@Category(MtiqTest.class)
+@Tag("mtiq")
 public class ApplicationMtiqSummaryViewPlaywrightTest
     extends AbstractMtiqSummaryViewPlaywrightTest
 {
   private static final String YE_OLE_APPLICATION = "Ye Ole Application";
 
-  @Before
+  @BeforeEach
   public void init() {
     // The "ȧpp" suffix intentionally forces a non-ASCII character into the public id.
     Application application = tempEntity.newApplicationWithParent(getClass().getSimpleName() + "ȧpp",

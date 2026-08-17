@@ -5,17 +5,16 @@
  */
 package com.sonatype.clm.testing.playwright.tests;
 
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.EditRoiConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.EditRoiConfigurationPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.RoiConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.RoiConfigurationPageAssertions;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -36,7 +35,7 @@ public class RoiConfigurationPlaywrightTest
 
   private EditRoiConfigurationPageAssertions editRoiAssertions;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     // Pin to PRODUCT_RISK_AND_REMEDIATION — without it the Update button intermittently fails to
     // re-appear after save (license-dependent re-render path).
@@ -53,14 +52,14 @@ public class RoiConfigurationPlaywrightTest
     editRoiAssertions = new EditRoiConfigurationPageAssertions(editRoiPage);
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     playwrightLogout();
     deleteRoiConfiguration();
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRoiConfiguration_lifecycleMetricsSectionRendersWithLifecycleLicense() {
     assertThat(roiPage.lifecycleMetricsHeading()).isVisible();
     assertThat(roiPage.baselineDaysValue()).isVisible();
@@ -69,7 +68,7 @@ public class RoiConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRoiConfiguration_editLinkNavigatesToEditPage() {
     roiPage.editLink().click();
 
@@ -79,7 +78,7 @@ public class RoiConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEditRoiConfiguration_pageRendersWithLifecycleFieldsAndInfoAlert() {
     roiPage.editLink().click();
 
@@ -94,7 +93,7 @@ public class RoiConfigurationPlaywrightTest
 
   /** Update button is unmounted (not disabled) when {@code hasValidationError} is true — hence {@code isHidden()}. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEditRoiConfiguration_validationErrorHidesUpdateButtonAndCancelReturnsToView() {
     roiPage.editLink().click();
 
@@ -109,7 +108,7 @@ public class RoiConfigurationPlaywrightTest
 
   /** Cancel path — Confirm path is covered by {@link #testRoiConfiguration_restoreDefaultsResetsValues()}. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEditRoiConfiguration_restoreDefaultsModalCancelPreservesValues() {
     roiPage.editLink().click();
 
@@ -129,7 +128,7 @@ public class RoiConfigurationPlaywrightTest
    * {@link #testRoiConfiguration_editPersistsAcrossReload}.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEditRoiConfiguration_updateSavesAndFormRemainsOnEditPage() {
     roiPage.editLink().click();
 
@@ -143,7 +142,7 @@ public class RoiConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRoiConfiguration_restoreDefaultsResetsValues() {
     roiPage.editLink().click();
 
@@ -163,7 +162,7 @@ public class RoiConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRoiConfiguration_editPersistsAcrossReload() {
     roiPage.editLink().click();
 

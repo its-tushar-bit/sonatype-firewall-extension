@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.GitHubAppAuthPage;
 import com.sonatype.clm.testing.playwright.pages.ManageGitHubAppsPage;
 import com.sonatype.clm.testing.playwright.pages.ManageGitHubAppsPageAssertions;
@@ -16,9 +15,9 @@ import com.sonatype.clm.testing.playwright.pages.SourceControlRegressionPage;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -34,7 +33,7 @@ public class ManageGitHubAppsPlaywrightTest
 
   private ManageGitHubAppsPageAssertions manageAppsAssertions;
 
-  @Before
+  @BeforeEach
   public void seedAndOpen() {
     org = tempEntity.newOrganization();
     seededApp = tempEntity.newGitHubApp(org.getId());
@@ -47,7 +46,7 @@ public class ManageGitHubAppsPlaywrightTest
 
   /** The seeded GitHub App appears in the list with its slug rendered in the row. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testListRendering_showsSeededApp() {
     manageAppsAssertions.shouldBeLoaded();
     manageAppsAssertions.shouldHaveAppCount(1);
@@ -56,7 +55,7 @@ public class ManageGitHubAppsPlaywrightTest
 
   /** Add GitHub App button opens the registration modal (same modal used elsewhere). */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAddApp_opensRegistrationForm() {
     manageAppsAssertions.shouldBeLoaded();
     manageAppsPage.addGitHubAppButton().click();
@@ -66,7 +65,7 @@ public class ManageGitHubAppsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeleteApp_clickDeleteOpensConfirmationModal() {
     manageAppsAssertions.shouldBeLoaded();
     manageAppsAssertions.shouldHaveAppCount(1);
@@ -75,7 +74,7 @@ public class ManageGitHubAppsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeleteApp_cancelLeavesAppInList() {
     manageAppsAssertions.shouldBeLoaded();
     manageAppsPage.deleteButtonForApp(seededApp.getSlug()).click();
@@ -87,7 +86,7 @@ public class ManageGitHubAppsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeleteApp_confirmRemovesApp() {
     manageAppsAssertions.shouldBeLoaded();
     manageAppsPage.deleteButtonForApp(seededApp.getSlug()).click();
@@ -106,7 +105,7 @@ public class ManageGitHubAppsPlaywrightTest
    * config does not require dynamic sidebar resolution.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeleteApp_afterConfirm_patAuthAccessibleInScConfig() {
     manageAppsAssertions.shouldBeLoaded();
     manageAppsPage.deleteButtonForApp(seededApp.getSlug()).click();

@@ -15,11 +15,10 @@ import com.sonatype.clm.testing.playwright.pages.ProductLicensePageAssertions;
 import com.sonatype.clm.testing.playwright.pages.VulnerabilitySearchPage;
 import com.sonatype.clm.testing.playwright.pages.VulnerabilitySearchPageAssertions;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
-import org.junit.experimental.categories.Category;
 
 /**
  * Playwright test for page loading, login, and license scenarios.
@@ -29,7 +28,7 @@ public class PageLoadPlaywrightTest
 {
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testIndexHtml() {
     playwrightOpenAndWaitForVisible(LoginPage.rootUrl(), new LoginPage().modal());
     playwrightLogin();
@@ -41,7 +40,7 @@ public class PageLoadPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testLoadUnauthenticatedPage() {
     playwrightOpenAndWaitForVisible(VulnerabilitySearchPage.url(), new VulnerabilitySearchPage().container());
 
@@ -68,7 +67,7 @@ public class PageLoadPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testLoadIndexHtml_NoLicense() {
     uninstallLicense();
 

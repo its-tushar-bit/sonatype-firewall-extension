@@ -6,14 +6,13 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.WaivedComponentUpgradesPage;
 import com.sonatype.clm.testing.playwright.pages.WaivedComponentUpgradesPageAssertions;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 public class WaivedComponentUpgradesPlaywrightTest
     extends AbstractIqUiTest
@@ -22,7 +21,7 @@ public class WaivedComponentUpgradesPlaywrightTest
 
   private WaivedComponentUpgradesPageAssertions configAssertions;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     playwrightRefreshOrOpen(WaivedComponentUpgradesPage.url());
     playwrightLogin();
@@ -30,20 +29,20 @@ public class WaivedComponentUpgradesPlaywrightTest
     configAssertions = new WaivedComponentUpgradesPageAssertions(configPage);
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     playwrightLogout();
     tempEntity.deleteSystemConfigurationProperty("waivedComponentUpgradeMonitoringEnabled");
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testWaivedComponentUpgradesPage_renders() {
     configAssertions.shouldRenderPageLayout();
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testWaivedComponentUpgradesToggle_persistsAcrossReload() {
     boolean initiallyEnabled = configPage.monitoringToggleInput().isChecked();
     configPage.monitoringToggle().click();

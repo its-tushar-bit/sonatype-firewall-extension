@@ -11,7 +11,6 @@ import java.time.ZoneId;
 import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.pages.SbomApplicationsPage;
 import com.sonatype.clm.testing.playwright.pages.SbomApplicationsPageAssertions;
@@ -29,9 +28,9 @@ import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.SbomFormat;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.mockOriginalSbom;
@@ -52,7 +51,7 @@ public class SbomApplicationsPlaywrightTest
 
   private static final String FILTER_QUERY_SECOND_SINGLE_MATCH = "Test App 21";
 
-  @Before
+  @BeforeEach
   public void seedAndOpenSbomApplicationsAsAdmin() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
     setFeatures(LicensedFeature.SBOM_MANAGER);
@@ -63,7 +62,7 @@ public class SbomApplicationsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testTableStructure() {
     SbomApplicationsPage sbomApps = new SbomApplicationsPage();
     SbomApplicationsPageAssertions assertions = new SbomApplicationsPageAssertions(sbomApps);
@@ -74,7 +73,7 @@ public class SbomApplicationsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testTableFilter() {
     SbomApplicationsPage sbomApps = new SbomApplicationsPage();
     SbomApplicationsPageAssertions assertions = new SbomApplicationsPageAssertions(sbomApps);
@@ -95,7 +94,7 @@ public class SbomApplicationsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testTablePagination() {
     SbomApplicationsPage sbomApps = new SbomApplicationsPage();
     SbomApplicationsPageAssertions assertions = new SbomApplicationsPageAssertions(sbomApps);
@@ -110,7 +109,7 @@ public class SbomApplicationsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testTableSorting() {
     SbomApplicationsPage sbomApps = new SbomApplicationsPage();
     SbomApplicationsPageAssertions assertions = new SbomApplicationsPageAssertions(sbomApps);

@@ -16,7 +16,6 @@ import java.util.Collections;
 import java.util.Date;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.SbomApplicationsPage;
 import com.sonatype.clm.testing.playwright.pages.SbomApplicationsPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.SbomComponentDetailsPage;
@@ -40,10 +39,10 @@ import com.microsoft.playwright.Route;
 import com.microsoft.playwright.assertions.LocatorAssertions;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
@@ -107,7 +106,7 @@ public class SbomComponentDetailsRegressionPlaywrightTest
 
   private ThirdPartyCoordinateSecurity abcCoordinateSecurity;
 
-  @Before
+  @BeforeEach
   public void seedAndOpenComponentDetailsAsAdmin() throws IOException {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
     setFeatures(LicensedFeature.SBOM_MANAGER, LicensedFeature.APPLICATION_EVALUATION,
@@ -128,14 +127,14 @@ public class SbomComponentDetailsRegressionPlaywrightTest
     new SbomComponentDetailsPageAssertions(new SbomComponentDetailsPage()).shouldBeLoaded();
   }
 
-  @After
+  @AfterEach
   public void disableSbomPoliciesFeature() {
     SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(false);
   }
 
   /** Precondition: a prior SBOM version must have a VEX annotation so {@code latestPreviousAnnotation} is non-null. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testCopyAnnotationModal_openOnCopyAnnotationClick() {
     ThirdPartyFile prevFile = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan(prevFile);
@@ -173,7 +172,7 @@ public class SbomComponentDetailsRegressionPlaywrightTest
    * stubs installed before load as NxTabPanel mounts tabs eagerly.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSbomComponentDetails_legalTabShowsConsistent3ColumnLayout() {
     setFeatures(LicensedFeature.SBOM_MANAGER, LicensedFeature.APPLICATION_EVALUATION,
         LicensedFeature.SUCCESS_METRICS, LicensedFeature.COMPONENT_EVALUATION);
@@ -205,7 +204,7 @@ public class SbomComponentDetailsRegressionPlaywrightTest
 
   /** Precondition: {@code abcCoordinateSecurity} must have a VEX annotation so the delete button is rendered. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeleteAnnotationModal_openOnDeleteAnnotationClick() {
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(
         abcCoordinateSecurity, VULNERABILITY_ISSUE, VEX_STATUS, VEX_JUSTIFICATION, null, TEST_ANNOTATION_DETAIL);

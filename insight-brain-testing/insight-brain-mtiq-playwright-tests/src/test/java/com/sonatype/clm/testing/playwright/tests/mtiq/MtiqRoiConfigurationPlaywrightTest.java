@@ -7,7 +7,6 @@ package com.sonatype.clm.testing.playwright.tests.mtiq;
 
 import java.math.BigDecimal;
 
-import com.sonatype.clm.testing.playwright.categories.MtiqTest;
 import com.sonatype.clm.testing.playwright.mtiq.AbstractMtiqUiTest;
 import com.sonatype.clm.testing.playwright.pages.EditRoiConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.EditRoiConfigurationPageAssertions;
@@ -21,9 +20,9 @@ import com.sonatype.insight.brain.model.roi.RoiConfigurationDefaultValues;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -31,7 +30,7 @@ import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertTha
  * MTIQ — ROI Configuration view and edit pages: license-gated section visibility, edit-page
  * field rendering, validation, restore-defaults flow, and save persistence.
  */
-@Category(MtiqTest.class)
+@Tag("mtiq")
 public class MtiqRoiConfigurationPlaywrightTest
     extends AbstractMtiqUiTest
 {
@@ -53,7 +52,7 @@ public class MtiqRoiConfigurationPlaywrightTest
 
   private EditRoiConfigurationPageAssertions editRoiAssertions;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     seedRoiConfigurationDefaults();
     seedRoiConfiguration();

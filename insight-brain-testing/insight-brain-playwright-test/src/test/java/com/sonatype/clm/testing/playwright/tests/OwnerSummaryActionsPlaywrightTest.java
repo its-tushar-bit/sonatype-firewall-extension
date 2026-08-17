@@ -11,7 +11,6 @@ import java.util.EnumSet;
 import java.util.List;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPageAssertions;
@@ -27,12 +26,12 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Regression tests for the Owner Summary page – Actions dropdown modal flows.
@@ -163,7 +162,7 @@ public class OwnerSummaryActionsPlaywrightTest
 
   private OwnersTreePageAssertions ownersTreeAssertions;
 
-  @Before
+  @BeforeEach
   public void openDashboardAndLoginAsAdmin() {
     playwrightRefreshOrOpen(DashboardPage.url());
     playwrightLogin();
@@ -175,7 +174,7 @@ public class OwnerSummaryActionsPlaywrightTest
 
   // Guards against testSbomManagerMode_limitsTiles leaving the flag enabled for sibling tests
   // running in the same JVM session.
-  @After
+  @AfterEach
   public void resetSbomContinuousMonitoringFlag() {
     SystemConfigurationPropertyFeature.SBOM_CONTINUOUS_MONITORING_UI.setEnabled(false);
   }
@@ -186,7 +185,7 @@ public class OwnerSummaryActionsPlaywrightTest
    */
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeleteOrganization_cancelThenConfirm() {
     Organization org = tempEntity.newOrganization(CANCEL_DELETE_ORG_NAME);
 
@@ -217,7 +216,7 @@ public class OwnerSummaryActionsPlaywrightTest
    * confirm deletes the app and it no longer appears in the owners tree.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeleteApplication_cancelThenConfirm() {
     Organization parent = tempEntity.newOrganization(CANCEL_DELETE_APP_ORG_NAME);
     tempEntity.newApplication(CANCEL_DELETE_APP_NAME, CANCEL_DELETE_APP_PUBLIC_ID, parent.getId());
@@ -250,7 +249,7 @@ public class OwnerSummaryActionsPlaywrightTest
    * confirm moves the org and the summary remains accessible at its original URL.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testMoveOrganization_cancelThenConfirm() {
     Organization sourceOrg = tempEntity.newOrganization(CONFIRM_MOVE_SOURCE_ORG_NAME);
     tempEntity.newOrganization(CONFIRM_MOVE_TARGET_ORG_NAME);
@@ -280,7 +279,7 @@ public class OwnerSummaryActionsPlaywrightTest
    * confirm moves the app to the target org and the application summary remains accessible.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testMoveApplication_cancelThenConfirm() {
     Organization parent = tempEntity.newOrganization(MOVE_APP_ORG_NAME);
     tempEntity.newOrganization(MOVE_APP_TARGET_ORG_NAME);
@@ -314,7 +313,7 @@ public class OwnerSummaryActionsPlaywrightTest
    * Single seed, single login.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testChangeApplicationId_validationAndSuccess() {
     Organization parent = tempEntity.newOrganization(CHANGE_APP_ID_ORG_NAME);
     tempEntity.newApplication(CHANGE_APP_ID_ORIGINAL_NAME, CHANGE_APP_ID_ORIGINAL, parent.getId());
@@ -354,7 +353,7 @@ public class OwnerSummaryActionsPlaywrightTest
    * with a progress bar.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEvaluateFile_opensModal() throws Exception {
     Organization parent = tempEntity.newOrganization(EVALUATE_FILE_ORG_NAME);
     tempEntity.newApplication(EVALUATE_FILE_APP_NAME, EVALUATE_FILE_APP_PUBLIC_ID, parent.getId());
@@ -369,7 +368,7 @@ public class OwnerSummaryActionsPlaywrightTest
 
     ownerSummary.selectEvaluateFileStage(StageTypes.BUILD.getId());
     URL evaluateFileResource = getClass().getClassLoader().getResource(EVALUATE_FILE_RESOURCE);
-    assertNotNull("Test resource not found on classpath: " + EVALUATE_FILE_RESOURCE, evaluateFileResource);
+    assertNotNull(evaluateFileResource, "Test resource not found on classpath: " + EVALUATE_FILE_RESOURCE);
     ownerSummary.uploadEvaluateFile(Paths.get(evaluateFileResource.toURI()));
     ownerSummary.submitEvaluateFileModal();
 
@@ -382,7 +381,7 @@ public class OwnerSummaryActionsPlaywrightTest
    * visible; cancelling closes the modal without importing.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testImportPolicies_opensModal() {
     Organization org = tempEntity.newOrganization(IMPORT_POLICIES_ORG_NAME);
 
@@ -401,7 +400,7 @@ public class OwnerSummaryActionsPlaywrightTest
    * Save button visible; cancelling closes the modal without saving.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSelectContact_opensModal() {
     Organization parent = tempEntity.newOrganization(SELECT_CONTACT_ORG_NAME);
     tempEntity.newApplication(SELECT_CONTACT_APP_NAME, SELECT_CONTACT_APP_PUBLIC_ID, parent.getId());
@@ -425,7 +424,7 @@ public class OwnerSummaryActionsPlaywrightTest
    * {@code AbstractIqUiTest}'s {@code @After} reset.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSbomManagerMode_limitsTiles() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
     setFeatures(LicensedFeature.SBOM_MANAGER, LicensedFeature.POLICY_MONITORING);
@@ -454,7 +453,7 @@ public class OwnerSummaryActionsPlaywrightTest
    * back to the parent org summary.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeleteApplication_confirmationAndNavigation() {
     Organization org = tempEntity.newOrganization(DELETE_APP_ORG_NAME);
     tempEntity.newApplication(DELETE_APP_NAME, DELETE_APP_PUBLIC_ID, org.getId());
@@ -477,7 +476,7 @@ public class OwnerSummaryActionsPlaywrightTest
    * before the SPA loads.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testImportPolicies_previewModeOnNonEnterprise() {
     Organization org = tempEntity.newOrganization(IMPORT_PREVIEW_ORG_NAME);
 
@@ -510,7 +509,7 @@ public class OwnerSummaryActionsPlaywrightTest
    * {@code @After} resets the license automatically.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testImportPolicies_uploadAndConfirm() throws Exception {
     Organization org = tempEntity.newOrganization(IMPORT_CONFIRM_ORG_NAME);
 
@@ -528,7 +527,7 @@ public class OwnerSummaryActionsPlaywrightTest
     assertions.shouldShowImportPolicyModal();
 
     URL importPoliciesResource = getClass().getClassLoader().getResource(IMPORT_POLICIES_RESOURCE);
-    assertNotNull("Test resource not found on classpath: " + IMPORT_POLICIES_RESOURCE, importPoliciesResource);
+    assertNotNull(importPoliciesResource, "Test resource not found on classpath: " + IMPORT_POLICIES_RESOURCE);
     ownerSummary.uploadImportPoliciesFile(Paths.get(importPoliciesResource.toURI()));
     assertions.shouldShowImportPoliciesFileSelected(IMPORT_POLICIES_RESOURCE);
 
@@ -541,7 +540,7 @@ public class OwnerSummaryActionsPlaywrightTest
    * saving; after save the contact display name appears in the application owner summary header.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSelectContact_searchAndSave() {
     Organization parent = tempEntity.newOrganization(SELECT_CONTACT_SAVE_ORG_NAME);
     tempEntity.newApplication(SELECT_CONTACT_SAVE_APP_NAME, SELECT_CONTACT_SAVE_APP_PUBLIC_ID, parent.getId());
@@ -570,7 +569,7 @@ public class OwnerSummaryActionsPlaywrightTest
    * so the test can read back and assert the copied value.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testCopyOrgIdToClipboard_verifiesOrgIdCopied() {
     Organization org = tempEntity.newOrganization(COPY_ORG_ID_ORG_NAME);
 
@@ -592,7 +591,7 @@ public class OwnerSummaryActionsPlaywrightTest
    * {@code ownerModalSlice.js} against the loaded sibling-apps list; no API call is made.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testCreateApplication_duplicateIdBlocksSubmit() {
     Organization org = tempEntity.newOrganization(DUPLICATE_APP_ID_ORG_NAME);
     tempEntity.newApplication(DUPLICATE_APP_ID_EXISTING_APP_NAME, DUPLICATE_APP_ID_EXISTING_PUBLIC_ID, org.getId());
@@ -615,7 +614,7 @@ public class OwnerSummaryActionsPlaywrightTest
    * be rendered.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSyntheticOrg_showsInsufficientPermissionTree() {
     Organization org = tempEntity.newOrganization(SYNTHETIC_ORG_NAME);
     Application app = tempEntity.newApplication(

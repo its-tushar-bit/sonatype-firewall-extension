@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.InnerSourceRepositoryEditorPage;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
@@ -19,9 +18,9 @@ import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.microsoft.playwright.assertions.LocatorAssertions.HasAttributeOptions;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
@@ -50,7 +49,7 @@ public class InnerSourceRepositoryEditorPlaywrightTest
 
   private static final char[] REPO_PASSWORD = "test-pass".toCharArray();
 
-  @Before
+  @BeforeEach
   public void enableInnerSourceAndLogin() {
     setFeatures(LicensedFeature.INNER_SOURCE_REPOSITORIES);
     playwrightRefreshOrOpen(DashboardPage.url());
@@ -58,7 +57,7 @@ public class InnerSourceRepositoryEditorPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEditorRendersRadios_inheritHiddenAtRootOrg() {
     Organization childOrg = tempEntity.newOrganization(ORG_PREFIX + "-" + TemporaryEntity.uuid());
     InnerSourceRepositoryEditorPage editor = new InnerSourceRepositoryEditorPage();
@@ -83,7 +82,7 @@ public class InnerSourceRepositoryEditorPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAllowOverride_visibleForOrg_hiddenForApp_andLockedByParent() {
     String suffix = TemporaryEntity.uuid();
     Organization lockedParent = tempEntity.newOrganization(ORG_PREFIX + "-lp-" + suffix);
@@ -120,7 +119,7 @@ public class InnerSourceRepositoryEditorPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAddButton_hiddenWhenDisable_andEmptyStateWhenEnable() {
     Organization org = tempEntity.newOrganization(ORG_PREFIX + "-ab-" + TemporaryEntity.uuid());
     InnerSourceRepositoryEditorPage editor = new InnerSourceRepositoryEditorPage();
@@ -144,7 +143,7 @@ public class InnerSourceRepositoryEditorPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAddButton_ariaDisabledWithLockedTooltip_whenAllowChangeFalse() {
     String suffix = TemporaryEntity.uuid();
     Organization lockedParent = tempEntity.newOrganization(ORG_PREFIX + "-lp-lock-" + suffix);
@@ -171,7 +170,7 @@ public class InnerSourceRepositoryEditorPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEditRepositoryModal_opensWithExistingValues() {
     Organization org = tempEntity.newOrganization(ORG_PREFIX + "-edit-" + TemporaryEntity.uuid());
     tempEntity.newRepositoryConnection(
@@ -200,7 +199,7 @@ public class InnerSourceRepositoryEditorPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeleteRepositoryModal_warningShownAndConfirmRemovesEntry() {
     Organization org = tempEntity.newOrganization(ORG_PREFIX + "-del-" + TemporaryEntity.uuid());
     tempEntity.newRepositoryConnection(
@@ -235,7 +234,7 @@ public class InnerSourceRepositoryEditorPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAddRepositoryModal_fieldsAndAuthToggle_testButtonDisabledWhenUrlEmpty() {
     Organization org = tempEntity.newOrganization(ORG_PREFIX + "-add-" + TemporaryEntity.uuid());
     InnerSourceRepositoryEditorPage editor = new InnerSourceRepositoryEditorPage();
@@ -276,7 +275,7 @@ public class InnerSourceRepositoryEditorPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSaveConfiguration_submitMaskShown() {
     Organization org = tempEntity.newOrganization(ORG_PREFIX + "-save-" + TemporaryEntity.uuid());
     tempEntity.newRepositoryConnection(

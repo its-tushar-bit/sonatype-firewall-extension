@@ -11,15 +11,14 @@ import java.util.regex.Pattern;
 
 import com.microsoft.playwright.Route;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.DataInsightsPage;
 import com.sonatype.clm.testing.playwright.pages.DataInsightsPageAssertions;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Loading-error retry is deliberately not covered here — driving that branch requires
@@ -29,14 +28,14 @@ import org.junit.experimental.categories.Category;
 public class DataInsightsPlaywrightTest
     extends AbstractIqUiTest
 {
-  @Before
+  @BeforeEach
   public void enableFeatureAndOpenLoggedIn() {
     enableIntegratedEnterpriseReportingOnLicense();
     playwrightRefreshOrOpen(DataInsightsPage.url());
     playwrightLogin();
   }
 
-  @After
+  @AfterEach
   public void unrouteAll() {
     // The license-gate test registers a page.route intercept on the shared BrowserContext; clear
     // it so subsequent tests in the same fork don't inherit the stub. The setFeatures() mutation
@@ -60,7 +59,7 @@ public class DataInsightsPlaywrightTest
    * outer container only.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDataInsights_pageRendersWithOuterContainerWhenFeatureEnabled() {
     new DataInsightsPageAssertions(new DataInsightsPage()).shouldShowContainer();
   }
@@ -71,7 +70,7 @@ public class DataInsightsPlaywrightTest
    * to return an empty features array.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDataInsights_licenseGateShowsErrorMessageWhenReportingUnsupported() {
     page.route(Pattern.compile(".*/rest/product/features([?#][^/]*)?$"),
         route -> route.fulfill(new Route.FulfillOptions()

@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.ApplicationLatestEvaluationsPage;
 import com.sonatype.clm.testing.playwright.pages.ApplicationLatestEvaluationsPageAssertions;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
@@ -14,8 +13,8 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Regression coverage for the Application Latest Evaluations page — a direct-URL landing test
@@ -32,7 +31,7 @@ public class ApplicationLatestEvaluationsPlaywrightTest
   private static final String ORG_NAME_PREFIX = "pw-le-org";
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testApplicationLatestEvaluationsPage_renders() {
     String suffix = TemporaryEntity.uuid();
     Organization org = tempEntity.newOrganization(ORG_NAME_PREFIX + "-" + suffix);

@@ -47,6 +47,17 @@ public class ReportHelper
    * @return URL to zipped report
    */
   public static URL zipReport(String reportResourceName, TemporaryFolder tempDir) {
+    return zipReport(reportResourceName, tempDir.getRoot().toPath());
+  }
+
+  /**
+   * Create zipped report given report dir, writing the zip under the supplied temp directory.
+   *
+   * @param reportResourceName resource directory with unzipped report
+   * @param tempDir directory to put the zipped report (e.g. a JUnit 5 {@code @TempDir})
+   * @return URL to zipped report
+   */
+  public static URL zipReport(String reportResourceName, Path tempDir) {
     URI reportResourceUrl = getClasspathURI(reportResourceName);
     URI zipURI = zipReport(reportResourceUrl, tempDir);
 
@@ -148,7 +159,7 @@ public class ReportHelper
     }
   }
 
-  private static URI zipReport(URI reportResource, TemporaryFolder tempDir) {
+  private static URI zipReport(URI reportResource, Path tempDir) {
     if (reportResource.toString().endsWith(".zip")) {
       return copyZip(reportResource, tempDir);
     }
@@ -157,13 +168,13 @@ public class ReportHelper
     }
   }
 
-  private static URI zipResourceDir(URI resourceDirURI, TemporaryFolder tempDir) {
+  private static URI zipResourceDir(URI resourceDirURI, Path tempDir) {
     try {
       File resourceDir = new File(resourceDirURI);
       if (!resourceDir.isDirectory()) {
         throw new RuntimeException("'" + resourceDir.getAbsolutePath() + "' is not a directory.");
       }
-      File reportZipFile = new File(tempDir.getRoot(), "MockReport-" + UUID.randomUUID() + ".zip");
+      File reportZipFile = new File(tempDir.toFile(), "MockReport-" + UUID.randomUUID() + ".zip");
       Zipper.zip(resourceDir, reportZipFile);
       return reportZipFile.toURI();
     }
@@ -172,9 +183,9 @@ public class ReportHelper
     }
   }
 
-  private static URI copyZip(URI zipResourceURI, TemporaryFolder tempDir) {
+  private static URI copyZip(URI zipResourceURI, Path tempDir) {
     try {
-      Path reportZipFile = Files.createTempFile(tempDir.getRoot().toPath(), "MockReport-", ".zip");
+      Path reportZipFile = Files.createTempFile(tempDir, "MockReport-", ".zip");
       Files.copy(Path.of(zipResourceURI), reportZipFile, StandardCopyOption.REPLACE_EXISTING);
       return reportZipFile.toUri();
     }
@@ -194,7 +205,7 @@ public class ReportHelper
     Path reportZipPath = reportDir.resolve("report.zip");
     Files.createDirectories(reportDir);
 
-    Path tempZipPath = Path.of(zipReport(reportResourceURI, tempFolder));
+    Path tempZipPath = Path.of(zipReport(reportResourceURI, tempFolder.getRoot().toPath()));
     Files.move(tempZipPath, reportZipPath);
 
     ensureIndexHtmlInZip(reportZipPath, false);

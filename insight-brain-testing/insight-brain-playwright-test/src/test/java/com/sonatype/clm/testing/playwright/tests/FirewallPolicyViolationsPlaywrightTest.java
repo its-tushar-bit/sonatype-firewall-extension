@@ -32,17 +32,16 @@ import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import com.microsoft.playwright.assertions.LocatorAssertions;
 import com.sonatype.clm.testing.playwright.utils.FirewallComponentDetailsHdsStub;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
-import org.junit.experimental.categories.Category;
 
 /**
  * Playwright test for TC-31: verify the Policy Violations tab on the Firewall Component Details page.
@@ -75,7 +74,7 @@ public class FirewallPolicyViolationsPlaywrightTest
 
   private static final int EXPECTED_VIOLATION_ROW_COUNT = 2;
 
-  @Before
+  @BeforeEach
   public void openFirewallAsAdmin() {
     setFeatures(
         LicensedFeature.POLICY_MANAGEMENT,
@@ -92,8 +91,8 @@ public class FirewallPolicyViolationsPlaywrightTest
     playwrightLogin();
   }
 
-  @Before
-  @After
+  @BeforeEach
+  @AfterEach
   public void resetContainerImagesEvalFlag() {
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
   }
@@ -103,7 +102,7 @@ public class FirewallPolicyViolationsPlaywrightTest
    * after navigating directly to the violations tab URL for a seeded quarantined component.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testPolicyViolationsTabLoads() {
     ProxyRepositoryComponent component = seedComponentWithTwoViolations();
     playwrightRefreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
@@ -118,7 +117,7 @@ public class FirewallPolicyViolationsPlaywrightTest
    * Verify that the Policy Violations table shows exactly the expected number of seeded rows.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testPolicyViolationsTableRowCount() {
     ProxyRepositoryComponent component = seedComponentWithTwoViolations();
     playwrightRefreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));

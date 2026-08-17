@@ -5,7 +5,6 @@
  */
 package com.sonatype.clm.testing.playwright.tests;
 
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.pages.AccessEditorPage;
 import com.sonatype.clm.testing.playwright.pages.AccessEditorPageAssertions;
@@ -21,10 +20,10 @@ import com.sonatype.clm.testing.playwright.pages.UserManagementPage;
 import com.sonatype.clm.testing.playwright.pages.UserManagementPageAssertions;
 import com.sonatype.insight.brain.model.Organization;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,7 +66,7 @@ public class UserCreationPlaywrightTest
 
   private String accessOrgEditUrl;
 
-  @Before
+  @BeforeEach
   public void openUserManagementAsAdmin() {
     playwrightRefreshOrOpen(UserManagementPage.url());
     playwrightLogin();
@@ -77,7 +76,7 @@ public class UserCreationPlaywrightTest
    * The test body finishes logged in as the new {@code developer1} user, who can't delete users.
    * Re-establish an admin session via cookie clear + admin login, then delete the UI-created user.
    */
-  @After
+  @AfterEach
   public void deleteCreatedUser() {
     try {
       playwrightHardreset();
@@ -91,14 +90,14 @@ public class UserCreationPlaywrightTest
 
   /* this is the test that creates the user and assigns the developer role to the user */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void createDeveloperUser_editDetails_andAssignAccess() {
     createEditAndGrantAccess();
   }
 
   /* this is the test that creates the user and assigns the developer role to the user */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void loginAsEditedDeveloperUser() {
     createEditAndGrantAccess();
     verifyNewUserCanLoginAndSeeDashboard();

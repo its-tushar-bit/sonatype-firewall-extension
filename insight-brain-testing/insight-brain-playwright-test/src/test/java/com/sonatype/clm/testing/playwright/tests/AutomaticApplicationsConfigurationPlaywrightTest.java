@@ -8,14 +8,13 @@ package com.sonatype.clm.testing.playwright.tests;
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.AutomaticApplicationsConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.AutomaticApplicationsConfigurationPageAssertions;
 
 import com.microsoft.playwright.Route;
-import org.junit.After;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Automatic Application Creation configuration page
@@ -58,7 +57,7 @@ public class AutomaticApplicationsConfigurationPlaywrightTest
 
   private AutomaticApplicationsConfigurationPageAssertions configAssertions;
 
-  @After
+  @AfterEach
   public void unrouteAll() {
     page.unroute(AUTO_APP_CONFIG_ROUTE);
     page.unroute(ORGANIZATIONS_ROUTE);
@@ -66,7 +65,7 @@ public class AutomaticApplicationsConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testPageRenders_toggleEnablesParentOrgDropdown() {
     stubLoadEndpoints(CONFIG_JSON_DISABLED_NO_PARENT);
     openConfigPage();
@@ -90,7 +89,7 @@ public class AutomaticApplicationsConfigurationPlaywrightTest
    * validationErrors prop.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testParentOrgDropdown_requiredValidationBlocksSubmit() {
     stubLoadEndpoints(CONFIG_JSON_DISABLED_NO_PARENT);
     openConfigPage();
@@ -109,7 +108,7 @@ public class AutomaticApplicationsConfigurationPlaywrightTest
    * parent org is set.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testParentOrgDropdown_defaultOptionText() {
     stubLoadEndpoints(CONFIG_JSON_DISABLED_NO_PARENT);
     openConfigPage();
@@ -123,7 +122,7 @@ public class AutomaticApplicationsConfigurationPlaywrightTest
    * list contains no non-root orgs.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testParentOrgDropdown_emptyStateShowsNoOrgsAlert() {
     stubLoadEndpoints(CONFIG_JSON_DISABLED_NO_PARENT, ORGANIZATIONS_JSON_EMPTY);
     openConfigPage();
@@ -140,7 +139,7 @@ public class AutomaticApplicationsConfigurationPlaywrightTest
    * contract is tighter than NxStatefulForm's submit-button state which only settles after submit.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testUpdateDisabledWhenClean_cancelRevertsDirty() {
     stubLoadEndpoints(CONFIG_JSON_ENABLED_WITH_PARENT);
     openConfigPage();
@@ -163,7 +162,7 @@ public class AutomaticApplicationsConfigurationPlaywrightTest
    * explanatory paragraphs, each containing a link to a related admin route.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testExplanatoryLinks_toAutoScmConfigAndScmOnboarding() {
     stubLoadEndpoints(CONFIG_JSON_ENABLED_WITH_PARENT);
     openConfigPage();

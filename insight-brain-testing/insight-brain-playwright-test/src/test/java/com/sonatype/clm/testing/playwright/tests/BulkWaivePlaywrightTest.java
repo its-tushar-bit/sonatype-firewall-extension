@@ -12,7 +12,6 @@ import java.util.List;
 
 import com.microsoft.playwright.Locator;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.BulkWaivePage;
 import com.sonatype.clm.testing.playwright.pages.BulkWaivePageAssertions;
 import com.sonatype.clm.testing.playwright.pages.WaiverConfigurationPage;
@@ -34,10 +33,10 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.assertj.core.api.Assertions;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -82,7 +81,7 @@ public class BulkWaivePlaywrightTest
 
   private String resolvedPolicyName;
 
-  @Before
+  @BeforeEach
   public void seedEntitiesAndLogin() throws IOException {
     bulkWaivePage = new BulkWaivePage();
     assertions = new BulkWaivePageAssertions(bulkWaivePage);
@@ -94,13 +93,13 @@ public class BulkWaivePlaywrightTest
   }
 
   /** Restore feature set so {@code setMissingFeature} calls don't leak across the JVM session. */
-  @After
+  @AfterEach
   public void restoreFeatures() {
     setFeatures(LicensedFeature.values());
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testBulkWaive_pageRendersSelectAllAndProceed() {
     assertions.shouldBeVisible();
 
@@ -120,7 +119,7 @@ public class BulkWaivePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testBulkWaive_cdpMode_constraintColumnAndHashFilter() {
     assertions.shouldBeVisible();
     int allRowsCount = bulkWaivePage.violationRows().count();
@@ -145,7 +144,7 @@ public class BulkWaivePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testBulkWaive_enterpriseBanner_shownWhenBulkWaiversNotLicensed() {
     setMissingFeature(LicensedFeature.BULK_WAIVERS);
 
@@ -158,7 +157,7 @@ public class BulkWaivePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testBulkWaive_selectAllDeselectAll_countFooterAndNextDisabled() {
     assertions.shouldBeVisible();
 
@@ -187,7 +186,7 @@ public class BulkWaivePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testBulkWaive_rowClickOpensPopover_checkboxClickTogglesOnly() {
     assertions.shouldBeVisible();
 
@@ -206,7 +205,7 @@ public class BulkWaivePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testBulkWaive_filters_popoverAndInlinePolicyNameFilter() {
     assertions.shouldBeVisible();
 
@@ -224,7 +223,7 @@ public class BulkWaivePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testBulkWaive_noResultsEmptyState() {
     assertions.shouldBeVisible();
 
@@ -234,7 +233,7 @@ public class BulkWaivePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testBulkWaive_sortColumns_threatColumnTogglesSortDirection() {
     assertions.shouldBeVisible();
 
@@ -253,7 +252,7 @@ public class BulkWaivePlaywrightTest
    * signal of success is the redirect away from {@code /waiverConfirmation}.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testBulkWaive_completeWaiverFormAndSubmit() {
     assertions.shouldBeVisible();
     assertThat(bulkWaivePage.violationRows()).not().hasCount(0);

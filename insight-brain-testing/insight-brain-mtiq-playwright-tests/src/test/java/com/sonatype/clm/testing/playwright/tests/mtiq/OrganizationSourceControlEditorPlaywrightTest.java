@@ -5,15 +5,13 @@
  */
 package com.sonatype.clm.testing.playwright.tests.mtiq;
 
-import com.sonatype.clm.testing.playwright.categories.MtiqTest;
-
 import com.sonatype.clm.testing.playwright.pages.SourceControlConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.SourceControlInheritedOptionComponent;
 import com.sonatype.clm.testing.playwright.pages.SourceControlRegressionPage;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 import static com.sonatype.clm.testing.playwright.pages.SourceControlInheritedOptionComponent.AUTOMATED_COMMIT_FEEDBACK;
@@ -29,7 +27,7 @@ import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
  * state asserts that fieldset is absent (not present-but-disabled). Product features are mocked to
  * the deterministic MTIQ set (automation on, PRs off) so Remediation/SSH/Manual toggles are omitted.
  */
-@Category(MtiqTest.class)
+@Tag("mtiq")
 public class OrganizationSourceControlEditorPlaywrightTest
     extends AbstractMtiqSourceControlEditorPlaywrightTest
 {
@@ -39,7 +37,7 @@ public class OrganizationSourceControlEditorPlaywrightTest
 
   private SourceControlInheritedOptionComponent options;
 
-  @Before
+  @BeforeEach
   public void init() {
     super.init(tempEntity.newOrganization(YE_OLE_ORGANIZATION));
     editor = new SourceControlConfigurationPage();

@@ -9,10 +9,9 @@ import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.pages.NotificationMenuComponent;
 import com.sonatype.clm.testing.playwright.pages.NotificationMenuComponentAssertions;
 import com.sonatype.clm.testing.playwright.pages.ReportListPage;
-import org.junit.Before;
-import org.junit.Test;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Playwright test for the Notification Menu.
@@ -63,7 +62,7 @@ public class NotificationPlaywrightTest
         "}]}";
   }
 
-  @Before
+  @BeforeEach
   public void stubNotificationsAndLogin() {
     testCLMServer.getHdsServer()
         .respondWith(hdsResponseJson())
@@ -73,7 +72,7 @@ public class NotificationPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testNotificationMenu() {
     NotificationMenuComponent notifications = new NotificationMenuComponent();
     NotificationMenuComponentAssertions notificationAssertions =

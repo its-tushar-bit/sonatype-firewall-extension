@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.api.v2;
 
 import com.sonatype.clm.testing.api.AbstractIqApiTest;
-import com.sonatype.clm.testing.api.categories.ApiRegressionTest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.ApiMetricsReportingResourceV2;
@@ -20,8 +19,7 @@ import java.util.Collections;
 import java.util.Set;
 
 import jakarta.ws.rs.core.MediaType;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,7 +32,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * pipeline regression (CLM-38675: invalid {@code Content-Encoding: utf-8} header). Streaming
  * shape is not asserted here — this suite guards contract, not throughput.
  */
-@Category(ApiRegressionTest.class)
 public class MetricsReportApiRegressionTest
     extends AbstractIqApiTest
 {

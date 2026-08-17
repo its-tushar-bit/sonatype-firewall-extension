@@ -12,7 +12,6 @@ import java.util.Date;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.testing.playwright.categories.MtiqTest;
 import com.sonatype.clm.testing.playwright.mtiq.AbstractMtiqUiTest;
 import com.sonatype.clm.testing.playwright.pages.MtiqSbomManagerApplicationSummaryPage;
 import com.sonatype.clm.testing.playwright.pages.MtiqSbomManagerApplicationSummaryPageAssertions;
@@ -33,14 +32,14 @@ import com.sonatype.insight.scan.file.SbomFormat;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.options.AriaRole;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.mockOriginalSbom;
 
-@Category(MtiqTest.class)
+@Tag("mtiq")
 public class MtiqSbomManagerApplicationSummaryPlaywrightTest
     extends AbstractMtiqUiTest
 {
@@ -61,7 +60,7 @@ public class MtiqSbomManagerApplicationSummaryPlaywrightTest
 
   private MtiqSbomManagerApplicationSummaryPageAssertions assertions;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
     playwrightRefreshOrOpen("/");

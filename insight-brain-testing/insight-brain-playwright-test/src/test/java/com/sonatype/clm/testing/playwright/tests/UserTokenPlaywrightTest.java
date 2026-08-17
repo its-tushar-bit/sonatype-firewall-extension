@@ -11,8 +11,6 @@ import com.microsoft.playwright.Page;
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.HeaderComponent;
 import com.sonatype.clm.testing.playwright.pages.HeaderComponentAssertions;
@@ -26,17 +24,17 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.User;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 public class UserTokenPlaywrightTest
     extends AbstractIqUiTest
 {
   private String originalExpirationDays;
 
-  @Before
+  @BeforeEach
   public void setUpFreshBrowserAndCaptureExpirationDays() {
     playwrightHardreset();
     originalExpirationDays = lookup(SystemConfigurationPropertyDAO.class)
@@ -44,7 +42,7 @@ public class UserTokenPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testGenerateUserToken() {
     User user = seedUser();
     loginAndOpenUserTokenModal(user);
@@ -62,7 +60,7 @@ public class UserTokenPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testDeleteUserToken() {
     User user = seedUser();
     loginAndOpenUserTokenModal(user);
@@ -104,7 +102,7 @@ public class UserTokenPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testUserTokenConfigurationPageRenders() {
     playwrightRefreshOrOpen(UserTokenConfigurationPage.url());
     playwrightLogin();
@@ -115,14 +113,14 @@ public class UserTokenPlaywrightTest
     assertThat(configPage.tile()).isVisible();
   }
 
-  @After
+  @AfterEach
   public void restoreExpirationDays() {
     lookup(SystemConfigurationPropertyDAO.class)
         .set(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, originalExpirationDays);
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testUserToken_enablingExpirationPersistsAcrossReload() {
     lookup(SystemConfigurationPropertyDAO.class)
         .set(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, null);
@@ -144,7 +142,7 @@ public class UserTokenPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testUserToken_disablingExpirationPersistsAcrossReload() {
     lookup(SystemConfigurationPropertyDAO.class)
         .set(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, "30");

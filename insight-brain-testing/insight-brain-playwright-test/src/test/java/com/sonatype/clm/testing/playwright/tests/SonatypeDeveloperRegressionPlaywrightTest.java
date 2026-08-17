@@ -11,7 +11,6 @@ import java.util.regex.Pattern;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.ReportListPage;
 import com.sonatype.clm.testing.playwright.pages.SonatypeDeveloperPage;
 import com.sonatype.clm.testing.playwright.pages.SonatypeDeveloperPageAssertions;
@@ -26,9 +25,9 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Route;
-import org.junit.After;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -55,7 +54,7 @@ public class SonatypeDeveloperRegressionPlaywrightTest
   private static final Pattern IDE_URL_PATTERN =
       Pattern.compile(".*" + SonatypeDeveloperRegressionPage.IDE_URL_SEGMENT + ".*");
 
-  @After
+  @AfterEach
   public void unrouteAll() {
     page.unrouteAll();
   }
@@ -65,7 +64,7 @@ public class SonatypeDeveloperRegressionPlaywrightTest
    * More links (divergence: tabs replaced by cards).
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeveloperDashboard_allIntegrationCardsWithLinks() {
     playwrightRefreshOrOpen(SonatypeDeveloperPage.url());
     playwrightLogin();
@@ -85,7 +84,7 @@ public class SonatypeDeveloperRegressionPlaywrightTest
 
   /** CI-CD card Learn More link navigates to /ci-cd (divergence: tab replaced by card). */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeveloperDashboard_ciCdCardLearnMoreLink_navigates() {
     SonatypeDeveloperRegressionPage regressionPage = navigateToDeveloperDashboard();
     regressionPage.ciCdCardLearnMoreLink().click();
@@ -94,7 +93,7 @@ public class SonatypeDeveloperRegressionPlaywrightTest
 
   /** SCM card Learn More link navigates to /scm (divergence: tab replaced by card). */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeveloperDashboard_scmCardLearnMoreLink_navigates() {
     SonatypeDeveloperRegressionPage regressionPage = navigateToDeveloperDashboard();
     regressionPage.scmCardLearnMoreLink().click();
@@ -103,7 +102,7 @@ public class SonatypeDeveloperRegressionPlaywrightTest
 
   /** IDE card Learn More link navigates to /ide (divergence: tab replaced by card). */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeveloperDashboard_ideCardLearnMoreLink_navigates() {
     SonatypeDeveloperRegressionPage regressionPage = navigateToDeveloperDashboard();
     regressionPage.ideCardLearnMoreLink().click();
@@ -118,7 +117,7 @@ public class SonatypeDeveloperRegressionPlaywrightTest
 
   /** "View Priorities" link on Developer Priorities list navigates to the per-app priorities detail page. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeveloperPriorities_viewPrioritiesLink_navigatesToPerAppPrioritiesPage() throws IOException {
     seedBuildEvaluation();
 
@@ -149,7 +148,7 @@ public class SonatypeDeveloperRegressionPlaywrightTest
    * endpoint first; a subsequent reload drives a single clean fetch cycle through the stub.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeveloperDashboard_loadError_alertShownWithRetryButton() {
     playwrightRefreshOrOpen(SonatypeDeveloperPage.url());
     playwrightLogin();

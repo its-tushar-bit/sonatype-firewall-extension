@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.LoginPage;
 import com.sonatype.clm.testing.playwright.pages.SystemNoticePage;
 import com.sonatype.clm.testing.playwright.pages.SystemNoticePageAssertions;
@@ -15,10 +14,10 @@ import com.sonatype.insight.brain.model.configuration.SystemNotice;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 public class SystemNoticePlaywrightTest
     extends AbstractIqUiTest
@@ -29,7 +28,7 @@ public class SystemNoticePlaywrightTest
 
   private SystemNoticePageAssertions noticeAssertions;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     playwrightRefreshOrOpen(SystemNoticePage.url());
     playwrightLogin();
@@ -37,7 +36,7 @@ public class SystemNoticePlaywrightTest
     noticeAssertions = new SystemNoticePageAssertions(noticePage);
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     playwrightLogout();
     SystemNotice empty = new SystemNotice();
@@ -47,13 +46,13 @@ public class SystemNoticePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSystemNoticeConfigurationPageRenders() {
     noticeAssertions.shouldRenderPageLayout();
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSystemNotice_savePersistsAcrossReload() {
     noticePage.noticeText().fill(NOTICE_TEXT);
     noticePage.enabledToggle().click();
@@ -66,7 +65,7 @@ public class SystemNoticePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSystemNotice_appearsOnLoginScreen() {
     noticePage.noticeText().fill(NOTICE_TEXT);
     noticePage.enabledToggle().click();

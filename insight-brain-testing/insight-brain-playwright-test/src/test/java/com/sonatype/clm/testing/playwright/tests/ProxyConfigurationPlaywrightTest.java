@@ -9,13 +9,10 @@ import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.pages.ProxyConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.ProxyConfigurationPageAssertions;
 import com.sonatype.insight.brain.api.v2.service.ApiProxyServerConfigurationService;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Playwright test for the Proxy Configuration page.
@@ -40,13 +37,13 @@ public class ProxyConfigurationPlaywrightTest
 
   private static final String SINGLE_EXCLUDE_HOST = "host.to.exclude";
 
-  @Before
+  @BeforeEach
   public void openProxyConfigPageAsAdmin() {
     playwrightRefreshOrOpen(ProxyConfigurationPage.url());
     playwrightLogin();
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     reverseProxyServer.reset();
   }
@@ -59,7 +56,7 @@ public class ProxyConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testSave_MinimalData() {
     playwrightRefreshOrOpen(ProxyConfigurationPage.url());
 
@@ -80,7 +77,7 @@ public class ProxyConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testSave_CompleteData() {
     playwrightRefreshOrOpen(ProxyConfigurationPage.url());
 
@@ -98,7 +95,7 @@ public class ProxyConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testReadAndDelete() {
     tempEntity.setProxyServerConfiguration(HOSTNAME, PORT_AS_INT, PROXY_USERNAME,
         PROXY_PASSWORD.toCharArray(), SINGLE_EXCLUDE_HOST);
@@ -129,7 +126,7 @@ public class ProxyConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testProxyConfigurationPageRenders() {
     ProxyConfigurationPage proxyPage = new ProxyConfigurationPage();
     ProxyConfigurationPageAssertions proxyAssertions = new ProxyConfigurationPageAssertions(proxyPage);
@@ -139,7 +136,7 @@ public class ProxyConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testProxySaveConfiguration() {
     ProxyConfigurationPage proxyPage = new ProxyConfigurationPage();
     ProxyConfigurationPageAssertions proxyAssertions = new ProxyConfigurationPageAssertions(proxyPage);

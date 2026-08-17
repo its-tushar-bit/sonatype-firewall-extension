@@ -10,8 +10,6 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import com.microsoft.playwright.Route;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.utils.TestCredentials;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
@@ -26,10 +24,10 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-import org.junit.experimental.categories.Category;
 
 public class OrgsAndPoliciesTreeViewPlaywrightTest
     extends AbstractIqUiTest
@@ -56,7 +54,7 @@ public class OrgsAndPoliciesTreeViewPlaywrightTest
 
   private final List<Application> applicationsWithPermission = new ArrayList<>();
 
-  @Before
+  @BeforeEach
   public void seedHierarchyAndLoginAsDeveloper() {
     treePage = new OwnersTreePage();
     treeAssertions = new OwnersTreePageAssertions(treePage);
@@ -72,7 +70,7 @@ public class OrgsAndPoliciesTreeViewPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testOwnerTree_limitedPermission() {
     playwrightRefreshOrOpen(OwnersTreePage.url());
 
@@ -85,7 +83,7 @@ public class OrgsAndPoliciesTreeViewPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testTreeView_expandCollapseAndNavigateAsAdmin() {
     seedAdminTree();
 
@@ -113,7 +111,7 @@ public class OrgsAndPoliciesTreeViewPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testTreeView_backButtonText_dynamicFromOrgAndFallback() {
     Organization adminOrg = seedAdminTree();
 
@@ -131,7 +129,7 @@ public class OrgsAndPoliciesTreeViewPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testTreeView_backButtonDestination_fromApplicationPage() {
     seedAdminTree();
 
@@ -149,7 +147,7 @@ public class OrgsAndPoliciesTreeViewPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testTreeView_backButtonDestination_sbomAndFirewallContexts() {
     Organization adminOrg = seedAdminTree();
 
@@ -174,7 +172,7 @@ public class OrgsAndPoliciesTreeViewPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testTreeView_loadError_retryReloadsTree() {
     playwrightLogout();
     page.route(Pattern.compile(".*" + SIDEBAR_REST_PATH + ".*"),

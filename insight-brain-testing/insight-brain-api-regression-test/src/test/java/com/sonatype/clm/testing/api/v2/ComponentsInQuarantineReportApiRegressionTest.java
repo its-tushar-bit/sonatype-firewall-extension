@@ -7,7 +7,6 @@ package com.sonatype.clm.testing.api.v2;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.api.AbstractIqApiTest;
-import com.sonatype.clm.testing.api.categories.ApiRegressionTest;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
@@ -18,8 +17,7 @@ import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 
 import java.util.Date;
 
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 
@@ -38,7 +36,6 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
  * {@code quarantineTime} — but NOT {@code pathname}. Positive-path assertions are made
  * against the {@code hash} field, which the fixture derives uniquely per test.
  */
-@Category(ApiRegressionTest.class)
 public class ComponentsInQuarantineReportApiRegressionTest
     extends AbstractIqApiTest
 {

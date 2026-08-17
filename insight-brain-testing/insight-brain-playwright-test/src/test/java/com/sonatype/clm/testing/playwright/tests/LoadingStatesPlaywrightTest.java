@@ -9,13 +9,12 @@ import java.util.regex.Pattern;
 
 import com.microsoft.playwright.options.AriaRole;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.AdministratorsPage;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -34,20 +33,20 @@ public class LoadingStatesPlaywrightTest
   private static final Pattern ROLE_MEMBERSHIPS_URL =
       Pattern.compile(".*/api/v2/roleMemberships/global/roles.*");
 
-  @Before
+  @BeforeEach
   public void navigateAndLogin() {
     playwrightRefreshOrOpen(AdministratorsPage.url());
     playwrightLogin();
   }
 
-  @After
+  @AfterEach
   public void unrouteAll() {
     page.unrouteAll();
   }
 
   /** NxTable loading spinner visible while request is held in-flight. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testInitialDataFetch_loadingSpinnerVisibleWhileRequestPending() {
     page.route(ROLE_MEMBERSHIPS_URL, route -> {
       // Never fulfilled — keeps NxTable isLoading=true for the assertion.

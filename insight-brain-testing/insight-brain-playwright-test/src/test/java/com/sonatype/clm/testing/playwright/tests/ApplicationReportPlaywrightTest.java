@@ -14,8 +14,6 @@ import java.util.regex.Pattern;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.ComponentDetailsPage;
@@ -48,10 +46,10 @@ import com.sonatype.insight.mock.hds.HdsMockServer;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Route;
 import com.microsoft.playwright.options.WaitForSelectorState;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
@@ -68,7 +66,7 @@ public class ApplicationReportPlaywrightTest
 
   private TestReportEvaluator evaluator;
 
-  @Before
+  @BeforeEach
   public void seedReportAndOpen() throws IOException {
     seedDb();
 
@@ -83,13 +81,13 @@ public class ApplicationReportPlaywrightTest
    * bleed into siblings running in the same BrowserContext fork ({@code AbstractIqUiTest.afterTest()}
    * doesn't call this).
    */
-  @After
+  @AfterEach
   public void unrouteAll() {
     page.unrouteAll();
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testSummaryIndicators() {
     ApplicationReportPage report = new ApplicationReportPage();
     ApplicationReportPageAssertions reportAssert = new ApplicationReportPageAssertions(report);
@@ -107,7 +105,7 @@ public class ApplicationReportPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testAggregateByComponentToggle() {
     ApplicationReportPage report = new ApplicationReportPage();
     new ApplicationReportPageAssertions(report).shouldBeVisible();
@@ -125,7 +123,7 @@ public class ApplicationReportPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testReevaluate() throws IOException {
     Policy licenseBanned = lookup(PolicyDAO.class).getByName("License-Banned").get(0);
     tempEntity.newWaiver(licenseBanned.getId(), app.getId());
@@ -148,7 +146,7 @@ public class ApplicationReportPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testBackNavigation() {
     ApplicationReportPage report = new ApplicationReportPage();
     new ApplicationReportPageAssertions(report).shouldBeVisible();
@@ -159,7 +157,7 @@ public class ApplicationReportPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testApplicationReport_rendersTabsAndPolicyViolationTable() {
     ApplicationReportPage reportPage = new ApplicationReportPage();
     ApplicationReportPageAssertions reportAssertions = new ApplicationReportPageAssertions(reportPage);
@@ -182,7 +180,7 @@ public class ApplicationReportPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testApplicationReport_otherTabsRenderContent() {
     ApplicationReportPage reportPage = new ApplicationReportPage();
     ApplicationReportPageAssertions reportAssertions = new ApplicationReportPageAssertions(reportPage);
@@ -209,7 +207,7 @@ public class ApplicationReportPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testApplicationReport_viewExistingWaiversForViolation() throws IOException {
     ApplicationReportPage reportPage = new ApplicationReportPage();
     ApplicationReportPageAssertions reportAssertions = new ApplicationReportPageAssertions(reportPage);
@@ -226,7 +224,7 @@ public class ApplicationReportPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testApplicationReport_vulnerabilityCustomizeNavigation() {
     ApplicationReportPage reportPage = new ApplicationReportPage();
     ApplicationReportPageAssertions reportAssertions = new ApplicationReportPageAssertions(reportPage);
@@ -246,7 +244,7 @@ public class ApplicationReportPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testApplicationReport_unscannableComponentsAlertAndModal() throws IOException {
     seedReportWithUnscannableComponent();
 
@@ -274,7 +272,7 @@ public class ApplicationReportPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testApplicationReport_compatibilityWarnings() {
     ApplicationReportPage reportPage = new ApplicationReportPage();
 
@@ -313,7 +311,7 @@ public class ApplicationReportPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testApplicationReport_reevaluationErrors() {
     ApplicationReportPage reportPage = new ApplicationReportPage();
     ApplicationReportPageAssertions reportAssertions = new ApplicationReportPageAssertions(reportPage);
@@ -337,7 +335,7 @@ public class ApplicationReportPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testApplicationReport_backButtonContextDependentLabel() {
     ApplicationReportPage reportPage = new ApplicationReportPage();
     ApplicationReportPageAssertions reportAssertions = new ApplicationReportPageAssertions(reportPage);
@@ -353,7 +351,7 @@ public class ApplicationReportPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testApplicationReport_orgLevelWaiverAppliesToAllAppsInOrg() throws IOException {
     String suffix = TemporaryEntity.uuid();
     String app2Name = DATA.applicationNamePrefix() + "-2-" + suffix;
@@ -398,7 +396,7 @@ public class ApplicationReportPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testApplicationReport_deleteWaiverRestoresViolation() throws IOException {
     seedWaiverForFirstViolationAndReevaluate();
 
@@ -430,7 +428,7 @@ public class ApplicationReportPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testComponentDetails_fromApplicationReport_withViolationPopover() throws IOException {
     PolicyEvaluationSeeder seeder = new PolicyEvaluationSeeder(
         tempEntity, tempDir, testCLMServer.getCLMServer().getConfiguration(),
@@ -486,7 +484,7 @@ public class ApplicationReportPlaywrightTest
    * </ul>
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testComponentDetails_violationPopoverHasNoBackButtonAndAllThreeTabsPresent() throws IOException {
     PolicyEvaluationSeeder seeder = new PolicyEvaluationSeeder(
         tempEntity, tempDir, testCLMServer.getCLMServer().getConfiguration(),

@@ -21,13 +21,12 @@ import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
-import org.junit.experimental.categories.Category;
 
 /**
  * Playwright test for TC-26: verify the quarantine sub-tab of the Firewall dashboard.
@@ -58,7 +57,7 @@ public class FirewallAutoQuarantinePlaywrightTest
 
   private static final String EXPECTED_FIRST_ROW_TEXT = "maven-central";
 
-  @Before
+  @BeforeEach
   public void openQuarantineTabAsAdmin() {
     setFeatures(
         LicensedFeature.FIREWALL,
@@ -82,14 +81,14 @@ public class FirewallAutoQuarantinePlaywrightTest
    * Reset the system-config flag mutated in {@link #openQuarantineTabAsAdmin()}.
    * Skill §7b: system-config toggles must be paired with an {@code @After} reset.
    */
-  @Before
-  @After
+  @BeforeEach
+  @AfterEach
   public void resetContainerImagesEvalFlag() {
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testQuarantineTabLoads() {
     FirewallPage firewallPage = new FirewallPage();
 
@@ -98,7 +97,7 @@ public class FirewallAutoQuarantinePlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testQuarantineTableRowCount() {
     FirewallPage firewallPage = new FirewallPage();
 
@@ -106,7 +105,7 @@ public class FirewallAutoQuarantinePlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testQuarantineTableRowContent() {
     FirewallPage firewallPage = new FirewallPage();
 

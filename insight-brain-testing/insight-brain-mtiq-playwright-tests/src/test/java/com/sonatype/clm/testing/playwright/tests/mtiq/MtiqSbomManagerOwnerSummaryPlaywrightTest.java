@@ -5,7 +5,6 @@
  */
 package com.sonatype.clm.testing.playwright.tests.mtiq;
 
-import com.sonatype.clm.testing.playwright.categories.MtiqTest;
 import com.sonatype.clm.testing.playwright.mtiq.AbstractMtiqUiTest;
 import com.sonatype.clm.testing.playwright.pages.OrgsAndPoliciesSidebarComponent;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
@@ -16,13 +15,13 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.microsoft.playwright.Locator;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-@Category(MtiqTest.class)
+@Tag("mtiq")
 public class MtiqSbomManagerOwnerSummaryPlaywrightTest
     extends AbstractMtiqUiTest
 {
@@ -32,7 +31,7 @@ public class MtiqSbomManagerOwnerSummaryPlaywrightTest
 
   private Organization childOrganization2;
 
-  @Before
+  @BeforeEach
   public void seedOrgTreeAndLogin() {
     String suffix = tempEntity.uuid();
     parentOrganization = tempEntity.newOrganization("Ye Ole Organization " + suffix);

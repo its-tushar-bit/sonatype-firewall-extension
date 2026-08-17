@@ -9,7 +9,6 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import com.sonatype.clm.testing.playwright.categories.MtiqTest;
 import com.sonatype.clm.testing.playwright.mtiq.AbstractMtiqUiTest;
 import com.sonatype.clm.testing.playwright.pages.MtiqSbomManagerDashboardPage;
 import com.sonatype.clm.testing.playwright.pages.MtiqSbomManagerDashboardPageAssertions;
@@ -26,13 +25,13 @@ import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.scan.file.SbomFormat;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-@Category(MtiqTest.class)
+@Tag("mtiq")
 public class MtiqSbomManagerDashboardPlaywrightTest
     extends AbstractMtiqUiTest
 {
@@ -44,7 +43,7 @@ public class MtiqSbomManagerDashboardPlaywrightTest
 
   private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
     playwrightRefreshOrOpen(SbomManagerDashboardPage.url());

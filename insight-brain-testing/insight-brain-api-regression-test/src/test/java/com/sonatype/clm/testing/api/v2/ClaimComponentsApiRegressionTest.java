@@ -8,14 +8,12 @@ package com.sonatype.clm.testing.api.v2;
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.api.AbstractIqApiTest;
-import com.sonatype.clm.testing.api.categories.ApiRegressionTest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiHashComponentIdentifierDTO;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,7 +35,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * component is unknown before allowing it to be claimed. The {@code @Before} method stubs
  * this for the fixed packageUrl used in {@link #buildDto}.
  */
-@Category(ApiRegressionTest.class)
 public class ClaimComponentsApiRegressionTest
     extends AbstractIqApiTest
 {
@@ -47,7 +44,7 @@ public class ClaimComponentsApiRegressionTest
   private static final ComponentIdentifier CLAIM_COMPONENT_ID =
       ComponentIdentifier.createMavenCoordinates("test", "test", "1.0.0", "", "jar");
 
-  @Before
+  @BeforeEach
   public void stubHds() throws Exception {
     // Claim endpoint calls rest/component/summary to confirm the component is unknown;
     // ComponentSummary.create(false) means isKnown() == false — required to allow claiming.

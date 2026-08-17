@@ -46,9 +46,9 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
@@ -56,9 +56,7 @@ import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatc
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
 import com.sonatype.clm.testing.playwright.pages.WaiverDetailsPage;
 import com.sonatype.clm.testing.playwright.pages.WaiverDetailsPageAssertions;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Tag;
 
 public class DashboardWaiversPlaywrightTest
     extends AbstractIqUiTest
@@ -87,7 +85,7 @@ public class DashboardWaiversPlaywrightTest
 
   private String componentPurl;
 
-  @Before
+  @BeforeEach
   public void openDashboardWaiversAsAdmin() {
     rootOrg = lookup(OrganizationDAO.class).getById(Organization.ROOT_ORGANIZATION_ID);
     playwrightRefreshOrOpen(DashboardPage.urlToWaivers());
@@ -95,20 +93,20 @@ public class DashboardWaiversPlaywrightTest
     new DashboardPage().waitUntilSpinnersGone();
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     reverseProxyServer.reset();
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testWaiversTable_noDataMessage() {
     DashboardWaiversComponent table = new DashboardWaiversComponent();
     new DashboardWaiversComponentAssertions(table).shouldShowNoDataMessage(DATA.noDataMessage());
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testWaiversTable_loadsAllWaiversWithoutFilters() {
     seed();
 
@@ -122,7 +120,7 @@ public class DashboardWaiversPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testWaiversTableRowClick() {
     seed();
 
@@ -131,7 +129,7 @@ public class DashboardWaiversPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testWaiversTab_showsSubTabsAndNavigatesToWaiverRequests() {
     DashboardWaiversComponent table = new DashboardWaiversComponent();
     DashboardWaiversComponentAssertions assertions = new DashboardWaiversComponentAssertions(table);
@@ -144,7 +142,7 @@ public class DashboardWaiversPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAutoWaiver_expiryColumnShowsAutoLabel() {
     seed();
     seedAutoWaiver();
@@ -161,7 +159,7 @@ public class DashboardWaiversPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeleteWaiver_fromDashboardWaiverList() {
     seed();
 
@@ -191,7 +189,7 @@ public class DashboardWaiversPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testWaiverCreatedViaUi_appearsInDashboardWaiversTab() throws IOException {
     URL referencePolicyUrl = getClass().getResource("/reference-policies-v3.json");
     PolicyExportResult referencePolicies =

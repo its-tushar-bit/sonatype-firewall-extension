@@ -6,17 +6,16 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.playwright.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.playwright.pages.UnsavedChangesModalComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -38,20 +37,20 @@ public class UnsavedChangesGuardPlaywrightTest
 
   private UnsavedChangesModalComponent unsavedChangesModal;
 
-  @Before
+  @BeforeEach
   public void setUpPageObjects() {
     editorPage = new PolicyEditorPage();
     unsavedChangesModal = new UnsavedChangesModalComponent();
   }
 
-  @After
+  @AfterEach
   public void dismissModalIfOpen() {
     unsavedChangesModal.continueIfOpen();
   }
 
   /** Cancel path: UnsavedChangesModal blocks SPA transition; policy editor stays open. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testUnsavedChangesGuard_cancelBlocksNavigationAndKeepsForm() {
     Organization org = tempEntity.newOrganization();
     Policy policy = tempEntity.newPolicy(org.getId(), GUARD_POLICY_NAME, GUARD_POLICY_THREAT_LEVEL);
@@ -75,7 +74,7 @@ public class UnsavedChangesGuardPlaywrightTest
 
   /** Continue path: UnsavedChangesModal allows SPA transition; dirty name NOT persisted. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testUnsavedChangesGuard_continueDiscardsChangesAndNavigates() {
     Organization org = tempEntity.newOrganization();
     Policy policy = tempEntity.newPolicy(org.getId(), GUARD_POLICY_NAME, GUARD_POLICY_THREAT_LEVEL);

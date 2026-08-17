@@ -8,17 +8,16 @@ package com.sonatype.clm.testing.playwright.tests;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.options.AriaRole;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.ArtifactoryRepoConfigPage;
 import com.sonatype.clm.testing.playwright.pages.ArtifactoryRepoConfigPageAssertions;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -47,7 +46,7 @@ public class ArtifactoryRepoConfigPlaywrightTest
 
   private Organization testOrg;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     originalBuiltFromSource = SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.isEnabled();
     SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.setEnabled(true);
@@ -56,7 +55,7 @@ public class ArtifactoryRepoConfigPlaywrightTest
     playwrightLogin();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.setEnabled(originalBuiltFromSource);
   }
@@ -66,7 +65,7 @@ public class ArtifactoryRepoConfigPlaywrightTest
    * Child org (testOrg) shows "Inherit" in addition to the other options.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRootOrgPage_showsEnableAndDisableRadiosWithNoInherit() {
     navigateToConfig(Organization.ROOT_ORGANIZATION_ID);
     ArtifactoryRepoConfigPage page = new ArtifactoryRepoConfigPage();
@@ -79,7 +78,7 @@ public class ArtifactoryRepoConfigPlaywrightTest
 
   /** Child org shows the "Inherit" radio. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testChildOrgPage_showsInheritRadio() {
     ArtifactoryRepoConfigPageAssertions assertions =
         new ArtifactoryRepoConfigPageAssertions(new ArtifactoryRepoConfigPage());
@@ -91,7 +90,7 @@ public class ArtifactoryRepoConfigPlaywrightTest
 
   /** "Allow Override" checkbox is visible at org-level nodes. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOrgPage_showsAllowOverrideCheckbox() {
     ArtifactoryRepoConfigPageAssertions assertions =
         new ArtifactoryRepoConfigPageAssertions(new ArtifactoryRepoConfigPage());
@@ -117,7 +116,7 @@ public class ArtifactoryRepoConfigPlaywrightTest
    * descends to the actual {@code <input type="radio">}.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLockedPage_showsLockAlertAndDisabledControls() {
     OrganizationDAO organizationDAO = testCLMServer.getCLMServer().getInstance(OrganizationDAO.class);
     Organization parentOrg = tempEntity.newOrganization();
@@ -140,7 +139,7 @@ public class ArtifactoryRepoConfigPlaywrightTest
 
   /** Selecting "Disable" hides the LOCAL header and the Add button. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDisableMode_hidesConnectionListAndDisablesAddButton() {
     ArtifactoryRepoConfigPage page = new ArtifactoryRepoConfigPage();
     ArtifactoryRepoConfigPageAssertions assertions = new ArtifactoryRepoConfigPageAssertions(page);
@@ -163,7 +162,7 @@ public class ArtifactoryRepoConfigPlaywrightTest
    * persists the change.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEnableMode_showsLocalHeaderAndActivatesAddButton() {
     ArtifactoryRepoConfigPage page = new ArtifactoryRepoConfigPage();
     ArtifactoryRepoConfigPageAssertions assertions = new ArtifactoryRepoConfigPageAssertions(page);
@@ -180,7 +179,7 @@ public class ArtifactoryRepoConfigPlaywrightTest
    * Enable mode with no seeded connections shows the empty-list placeholder.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEnableMode_emptyListMessageShownWhenNoConnectionsExist() {
     ArtifactoryRepoConfigPage page = new ArtifactoryRepoConfigPage();
     ArtifactoryRepoConfigPageAssertions assertions = new ArtifactoryRepoConfigPageAssertions(page);
@@ -210,7 +209,7 @@ public class ArtifactoryRepoConfigPlaywrightTest
    * hash-routing issue described in {@link #testLockedPage_showsLockAlertAndDisabledControls}.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLockedMode_addButtonIsDisabled() {
     OrganizationDAO organizationDAO = testCLMServer.getCLMServer().getInstance(OrganizationDAO.class);
     Organization parentOrg = tempEntity.newOrganization();
@@ -239,7 +238,7 @@ public class ArtifactoryRepoConfigPlaywrightTest
    * embedded test environment.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAddModal_opensWithCorrectTitleAndAuthRadiogroup() {
     ArtifactoryRepoConfigPage page = new ArtifactoryRepoConfigPage();
     new ArtifactoryRepoConfigPageAssertions(page).shouldBeLoaded();
@@ -256,7 +255,7 @@ public class ArtifactoryRepoConfigPlaywrightTest
 
   /** Selecting "Allow Anonymous Access" hides the credential fields. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAddModal_anonymousAuth_hidesCredentialFields() {
     ArtifactoryRepoConfigPage page = new ArtifactoryRepoConfigPage();
     page.enableAndOverrideRadio().label().click();
@@ -270,7 +269,7 @@ public class ArtifactoryRepoConfigPlaywrightTest
 
   /** Selecting "Enter Username and Password" reveals the credential fields. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAddModal_credentialsAuth_showsUsernameAndPasswordFields() {
     ArtifactoryRepoConfigPage page = new ArtifactoryRepoConfigPage();
     page.enableAndOverrideRadio().label().click();
@@ -284,7 +283,7 @@ public class ArtifactoryRepoConfigPlaywrightTest
 
   /** "Test Configuration" is {@code aria-disabled} when Base URL is empty. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAddModal_testButtonDisabledWithoutBaseUrl() {
     ArtifactoryRepoConfigPage page = new ArtifactoryRepoConfigPage();
     page.enableAndOverrideRadio().label().click();
@@ -300,7 +299,7 @@ public class ArtifactoryRepoConfigPlaywrightTest
    * The existing Base URL is pre-populated in the form.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEditModal_opensPrePopulatedWithExistingValues() {
     enableOrgAndSeedConnection();
 
@@ -321,7 +320,7 @@ public class ArtifactoryRepoConfigPlaywrightTest
 
   /** Clicking "Cancel" in the delete modal keeps the row. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeleteModal_cancelPreservesRow() {
     enableOrgAndSeedConnection();
 
@@ -341,7 +340,7 @@ public class ArtifactoryRepoConfigPlaywrightTest
    * Clicking "OK" in the delete modal removes the connection row and issues the DELETE request.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeleteModal_confirmRemovesRow() {
     enableOrgAndSeedConnection();
 
@@ -361,7 +360,7 @@ public class ArtifactoryRepoConfigPlaywrightTest
    * via a PUT to the status endpoint.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testUpdateForm_savesEnableConfiguration() {
     ArtifactoryRepoConfigPage page = new ArtifactoryRepoConfigPage();
     new ArtifactoryRepoConfigPageAssertions(page).shouldBeLoaded();

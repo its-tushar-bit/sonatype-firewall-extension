@@ -5,18 +5,16 @@
  */
 package com.sonatype.clm.testing.playwright.tests;
 
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.pages.HeaderComponent;
 import com.sonatype.clm.testing.playwright.pages.SamlConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.SamlConfigurationPageAssertions;
 import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -59,7 +57,7 @@ public class SamlConfigurationPlaywrightTest
 
   private SamlConfigurationPageAssertions samlAssertions;
 
-  @Before
+  @BeforeEach
   public void openSamlConfigPageAsAdmin() {
     playwrightRefreshOrOpen(SamlConfigurationPage.url());
     playwrightLogin();
@@ -67,14 +65,14 @@ public class SamlConfigurationPlaywrightTest
     samlAssertions = new SamlConfigurationPageAssertions(samlPage);
   }
 
-  @After
+  @AfterEach
   public void cleanupSamlConfiguration() {
     playwrightLogout();
     lookup(SamlConfigurationService.class).delete();
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testDefaultState() {
     navigateToSamlPage();
 
@@ -90,7 +88,7 @@ public class SamlConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testCancelRevertsAllFields() {
     navigateToSamlPage();
 
@@ -112,7 +110,7 @@ public class SamlConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testDocumentationLinks() {
     navigateToSamlPage();
 
@@ -121,7 +119,7 @@ public class SamlConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSamlConfigurationPageRenders() {
     new HeaderComponent().navigateToSystemPreference("SAML");
     assertThat(samlPage.saveButton()).isVisible();
@@ -130,7 +128,7 @@ public class SamlConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSaveConfiguration() {
     navigateToSamlPage();
 
@@ -148,7 +146,7 @@ public class SamlConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeleteConfiguration() {
     navigateToSamlPage();
 

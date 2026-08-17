@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.api.v2;
 
 import com.sonatype.clm.testing.api.AbstractIqApiTest;
-import com.sonatype.clm.testing.api.categories.ApiRegressionTest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiBulkWaiversDTO;
@@ -26,8 +25,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverService.MAX_BULK_WAIVER_VIOLATIONS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
@@ -38,7 +36,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * API regression suite for {@code api/v2/policyWaivers} — covers create, bulk-create, list,
  * get, update, and delete for both {@code application} and {@code organization} owners.
  */
-@Category(ApiRegressionTest.class)
 public class PolicyWaiversApiRegressionTest
     extends AbstractIqApiTest
 {

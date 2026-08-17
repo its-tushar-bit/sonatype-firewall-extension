@@ -9,7 +9,6 @@ import java.util.EnumSet;
 import java.util.regex.Pattern;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.ApplicationCategoryEditorPage;
 import com.sonatype.clm.testing.playwright.pages.ApplicationCategoryEditorPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.AssignAppCategoryPage;
@@ -39,10 +38,10 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.microsoft.playwright.Route;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Organization and application regression tests (edge cases, error paths, UI creation flows).
@@ -192,7 +191,7 @@ public class OrganizationRegressionPlaywrightTest
 
   private HeaderComponentAssertions headerAssertions;
 
-  @Before
+  @BeforeEach
   public void openDashboardAndLoginAsAdmin() {
     playwrightRefreshOrOpen(DashboardPage.url());
     playwrightLogin();
@@ -226,7 +225,7 @@ public class OrganizationRegressionPlaywrightTest
    * {@code ActionDropdown.jsx} gates Move and Delete on {@code !isRootOrg}.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testChildOrgActionsDropdownOptions() {
     Organization childOrg = tempEntity.newOrganization(CHILD_ORG_ACTIONS_ORG_NAME);
 
@@ -242,7 +241,7 @@ public class OrganizationRegressionPlaywrightTest
    * Copy App ID, Select Contact, Edit App Name/Icon, Change App ID, Move, Delete, and Evaluate a File.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testApplicationActionsDropdownOptions() {
     Organization org = tempEntity.newOrganization(APP_ACTIONS_ORG_NAME);
     tempEntity.newApplication(APP_ACTIONS_APP_NAME, APP_ACTIONS_APP_PUBLIC_ID, org.getId());
@@ -261,7 +260,7 @@ public class OrganizationRegressionPlaywrightTest
    * the change and the owner summary heading reflects the new name.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEditOrgName_updatesHeading() {
     Organization org = tempEntity.newOrganization(EDIT_ORG_NAME_ORG_NAME);
 
@@ -285,7 +284,7 @@ public class OrganizationRegressionPlaywrightTest
    * Source Control, Auto-Waivers, InnerSource Repository) are verified only when licensed.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testChildOrgSummaryTiles() {
     Organization org = tempEntity.newOrganization(CHILD_ORG_TILES_ORG_NAME);
 
@@ -338,7 +337,7 @@ public class OrganizationRegressionPlaywrightTest
    * org — the SPA stays on the root org summary after creation.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testCreateOrganization_viaUiForm() {
     navigateAndWaitForUrl(OwnerSummaryPage.urlToRootOrg(), OwnerSummaryPage.ORG_URL_FRAGMENT);
     assertRootOrgOwnerSummaryVisible();
@@ -362,7 +361,7 @@ public class OrganizationRegressionPlaywrightTest
    * entering a name shows the NxStatefulForm validation errors banner (name is required).
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testCreateOrganization_emptyNameShowsValidation() {
     navigateAndWaitForUrl(OwnerSummaryPage.urlToRootOrg(), OwnerSummaryPage.ORG_URL_FRAGMENT);
     assertRootOrgOwnerSummaryVisible();
@@ -381,7 +380,7 @@ public class OrganizationRegressionPlaywrightTest
    * creation). The app also appears in the owners tree.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testCreateApplication_viaUiForm() {
     Organization org = tempEntity.newOrganization(CREATE_APP_VIA_UI_ORG_NAME);
 
@@ -411,7 +410,7 @@ public class OrganizationRegressionPlaywrightTest
    * its owner summary, and asserts the URL is displayed with a provider icon.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAppRepositoryUrlVisibleWithProviderIcon() {
     Organization org = tempEntity.newOrganization(APP_REPO_URL_ORG_NAME);
     Application app = tempEntity.newApplication(APP_REPO_URL_APP_NAME, APP_REPO_URL_APP_PUBLIC_ID, org.getId());
@@ -425,7 +424,7 @@ public class OrganizationRegressionPlaywrightTest
 
   /** Tier gate: under Enterprise license, Add-Label renders in normal (non-preview) mode. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testComponentLabelsTile_addLabelButtonInEnterpriseMode() {
     Organization org =
         tempEntity.newOrganization(COMPONENT_LABEL_TIER_GATE_ORG_NAME + "-enterprise-" + TemporaryEntity.uuid());
@@ -441,7 +440,7 @@ public class OrganizationRegressionPlaywrightTest
 
   /** Tier gate: under Pro license, Add-Label renders in preview mode (locked). */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testComponentLabelsTile_addLabelButtonInPreviewModeUnderProLicense() {
     Organization org = tempEntity.newOrganization(COMPONENT_LABEL_TIER_GATE_ORG_NAME + "-" + TemporaryEntity.uuid());
 
@@ -455,7 +454,7 @@ public class OrganizationRegressionPlaywrightTest
 
   /** Tier gate: under Pro license, the edit URL renders the read-only view (no form, no buttons). */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testComponentLabelEditor_readOnlyViewUnderProLicense() {
     Organization org =
         tempEntity.newOrganization(COMPONENT_LABEL_TIER_GATE_ORG_NAME + " Edit-" + TemporaryEntity.uuid());
@@ -485,7 +484,7 @@ public class OrganizationRegressionPlaywrightTest
    * navigating; {@code AbstractIqUiTest}'s {@code @After} resets the license automatically.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testCreateComponentLabel_appearsInLabelsTile() {
     Organization org = tempEntity.newOrganization(CREATE_COMPONENT_LABEL_ORG_NAME);
 
@@ -533,7 +532,7 @@ public class OrganizationRegressionPlaywrightTest
    * navigating; {@code AbstractIqUiTest}'s {@code @After} resets the license automatically.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEditComponentLabel_updatedValuesPersistInLabelsTile() {
     Organization org = tempEntity.newOrganization(EDIT_COMPONENT_LABEL_ORG_NAME);
     tempEntity.newLabel(org.getId(), EDIT_COMPONENT_LABEL_ORIGINAL_NAME, null, Color.orange);
@@ -585,7 +584,7 @@ public class OrganizationRegressionPlaywrightTest
    * navigating; {@code AbstractIqUiTest}'s {@code @After} resets the license automatically.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeleteComponentLabel_removedFromLabelsTile() {
     Organization org = tempEntity.newOrganization(DELETE_COMPONENT_LABEL_ORG_NAME);
     tempEntity.newLabel(org.getId(), DELETE_COMPONENT_LABEL_NAME, null, Color.orange);
@@ -626,7 +625,7 @@ public class OrganizationRegressionPlaywrightTest
 
   /** Tier gate: under Enterprise license, Add-Threat-Group renders in normal (non-preview) mode. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLicenseThreatGroupsTile_addButtonInEnterpriseMode() {
     Organization org = tempEntity.newOrganization(LTG_TIER_GATE_ORG_NAME + "-enterprise-" + TemporaryEntity.uuid());
 
@@ -641,7 +640,7 @@ public class OrganizationRegressionPlaywrightTest
 
   /** Tier gate: under Pro license, Add-Threat-Group renders in preview mode (locked). */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLicenseThreatGroupsTile_addButtonInPreviewModeUnderProLicense() {
     Organization org = tempEntity.newOrganization(LTG_TIER_GATE_ORG_NAME + "-" + TemporaryEntity.uuid());
 
@@ -655,7 +654,7 @@ public class OrganizationRegressionPlaywrightTest
 
   /** Tier gate: under Pro license, the edit URL renders the read-only view (no form, no buttons). */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLicenseThreatGroupEditor_readOnlyViewUnderProLicense() {
     Organization org = tempEntity.newOrganization(LTG_TIER_GATE_ORG_NAME + " Edit-" + TemporaryEntity.uuid());
     tempEntity.newLicenseThreatGroup(org.getId(), LTG_TIER_GATE_GROUP_NAME, 5);
@@ -681,7 +680,7 @@ public class OrganizationRegressionPlaywrightTest
    * summary and confirms the updated name persists in the tile.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEditLicenseThreatGroup_updatedValuesPersistInTile() {
     Organization org = tempEntity.newOrganization(EDIT_LTG_ORG_NAME);
     tempEntity.newLicenseThreatGroup(org.getId(), EDIT_LTG_ORIGINAL_NAME, 5);
@@ -732,7 +731,7 @@ public class OrganizationRegressionPlaywrightTest
    * the SPA has settled.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeleteLicenseThreatGroup_removedFromTile() {
     Organization org = tempEntity.newOrganization(DELETE_LTG_ORG_NAME);
     tempEntity.newLicenseThreatGroup(org.getId(), DELETE_LTG_GROUP_NAME, 5);
@@ -769,7 +768,7 @@ public class OrganizationRegressionPlaywrightTest
 
   /** Tier gate: under Enterprise license, Add-Category renders in normal (non-preview) mode. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testApplicationCategoriesTile_addCategoryButtonInEnterpriseMode() {
     Organization org =
         tempEntity.newOrganization(APP_CATEGORY_TIER_GATE_ORG_NAME + "-enterprise-" + TemporaryEntity.uuid());
@@ -785,7 +784,7 @@ public class OrganizationRegressionPlaywrightTest
 
   /** Tier gate: under Pro license, Add-Category renders in preview mode (locked). */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testApplicationCategoriesTile_addCategoryButtonInPreviewModeUnderProLicense() {
     Organization org = tempEntity.newOrganization(APP_CATEGORY_TIER_GATE_ORG_NAME + "-" + TemporaryEntity.uuid());
 
@@ -799,7 +798,7 @@ public class OrganizationRegressionPlaywrightTest
 
   /** Tier gate: under Pro license, the edit URL renders the read-only view (no form, no buttons). */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testApplicationCategoryEditor_readOnlyViewUnderProLicense() {
     Organization org = tempEntity.newOrganization(APP_CATEGORY_TIER_GATE_ORG_NAME + " Edit-" + TemporaryEntity.uuid());
     tempEntity.newTag(org.getId(), CREATE_CATEGORY_NAME, "Test description", Color.orange);
@@ -828,7 +827,7 @@ public class OrganizationRegressionPlaywrightTest
    * no {@code setFeatures} call is needed.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testCreateApplicationCategory_appearsInCategoriesTile() {
     Organization org = tempEntity.newOrganization(CREATE_CATEGORY_ORG_NAME);
 
@@ -876,7 +875,7 @@ public class OrganizationRegressionPlaywrightTest
    * no {@code setFeatures} call is needed.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEditApplicationCategory_updatedNamePersistsInTile() {
     Organization org = tempEntity.newOrganization(EDIT_CATEGORY_ORG_NAME);
     tempEntity.newTag(org.getId(), EDIT_CATEGORY_ORIGINAL_NAME, "Test description", Color.orange);
@@ -925,7 +924,7 @@ public class OrganizationRegressionPlaywrightTest
    * no {@code setFeatures} call is needed.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeleteApplicationCategory_removedFromTile() {
     Organization org = tempEntity.newOrganization(DELETE_CATEGORY_ORG_NAME);
     tempEntity.newTag(org.getId(), DELETE_CATEGORY_NAME, "Test description", Color.orange);
@@ -976,7 +975,7 @@ public class OrganizationRegressionPlaywrightTest
    * no {@code setFeatures} call is needed.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAssignCategoryToApplication_categoryAppearsOnAppSummary() {
     Organization org = tempEntity.newOrganization(ASSIGN_CATEGORY_ORG_NAME);
     tempEntity.newTag(org.getId(), ASSIGN_CATEGORY_ITEM_NAME, "Test description", Color.light_purple);
@@ -1023,7 +1022,7 @@ public class OrganizationRegressionPlaywrightTest
    * ({@code !isApp} gate in {@code LegacyViolationsEditor.jsx}).
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLegacyViolationsForm_radiosAndCheckboxConditionallyRendered() {
     Organization childOrg = tempEntity.newOrganization(LEGACY_VIOLATIONS_ORG_NAME);
     tempEntity.newApplication(LEGACY_VIOLATIONS_APP_NAME, LEGACY_VIOLATIONS_APP_PUBLIC_ID, childOrg.getId());
@@ -1037,7 +1036,7 @@ public class OrganizationRegressionPlaywrightTest
             LegacyViolationsEditorPage.LEGACY_VIOLATIONS_URL_FRAGMENT),
         LegacyViolationsEditorPage.LEGACY_VIOLATIONS_URL_FRAGMENT);
     editorAssertions.shouldBeVisible();
-    Assume.assumeTrue("Legacy Violations feature not available in this environment", editor.isFormRendered());
+    Assumptions.assumeTrue(editor.isFormRendered(), "Legacy Violations feature not available in this environment");
     editorAssertions.shouldShowAllThreeRadios();
     editorAssertions.shouldShowAllowOverrideCheckbox();
 
@@ -1071,7 +1070,7 @@ public class OrganizationRegressionPlaywrightTest
    * section of the License Threat Groups tile.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testCreateLicenseThreatGroup_appearsInTile() {
     Organization org = tempEntity.newOrganization(CREATE_LTG_ORG_NAME);
 
@@ -1113,7 +1112,7 @@ public class OrganizationRegressionPlaywrightTest
    * skips the actual save handler entirely.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLegacySaveStatus_updateDisabledWhenNoChanges() {
     Organization org = tempEntity.newOrganization(LV_SAVE_ORG_NAME);
 
@@ -1124,7 +1123,7 @@ public class OrganizationRegressionPlaywrightTest
         OwnerSummaryPage.editOrganizationUrl(org.getId(), LegacyViolationsEditorPage.LEGACY_VIOLATIONS_URL_FRAGMENT),
         LegacyViolationsEditorPage.LEGACY_VIOLATIONS_URL_FRAGMENT);
     editorAssertions.shouldBeVisible();
-    Assume.assumeTrue("Legacy Violations feature not available in this environment", editor.isFormRendered());
+    Assumptions.assumeTrue(editor.isFormRendered(), "Legacy Violations feature not available in this environment");
 
     // Click Update without any changes — validation error must appear; no save occurs.
     editor.submit();
@@ -1143,7 +1142,7 @@ public class OrganizationRegressionPlaywrightTest
    * dashboard navigation, in which case a simple SPA navigate would reuse the cached value).
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLegacyViolationsLicenseGate_errorAlertShownWhenNotSupported() {
     // Intercept GET /rest/product/features (with optional ?timestamp=... query param added by the SPA).
     // Return an empty features array so "policy-grandfathering" is absent, forcing
@@ -1180,7 +1179,7 @@ public class OrganizationRegressionPlaywrightTest
    * "parent cannot override" alert is shown and the Inherit from parent radio is available.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLegacyAllowOverride_childCanInheritOrOverride() {
     Organization parentOrg = tempEntity.newOrganization(LV_OVERRIDE_PARENT_ORG_NAME);
     Organization childOrg = tempEntity.newOrganization(LV_OVERRIDE_CHILD_ORG_NAME, parentOrg);
@@ -1196,7 +1195,7 @@ public class OrganizationRegressionPlaywrightTest
             LegacyViolationsEditorPage.LEGACY_VIOLATIONS_URL_FRAGMENT),
         LegacyViolationsEditorPage.LEGACY_VIOLATIONS_URL_FRAGMENT);
     editorAssertions.shouldBeVisible();
-    Assume.assumeTrue("Legacy Violations feature not available in this environment", editor.isFormRendered());
+    Assumptions.assumeTrue(editor.isFormRendered(), "Legacy Violations feature not available in this environment");
     editor.clickEnabledRadio();
     // DB default for allow_legacy_violation_override is TRUE, so uncheckAllowOverride() first
     // guarantees a real state transition (true→false→true) regardless of the server default.
@@ -1231,7 +1230,7 @@ public class OrganizationRegressionPlaywrightTest
    * revokes legacy status (PUT request sent).
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testGrantAndRevokeLegacyStatus_viaActionsDropdown() {
     Organization org = tempEntity.newOrganization(LV_GRANT_REVOKE_ORG_NAME);
     tempEntity.newApplication(LV_GRANT_REVOKE_APP_NAME, LV_GRANT_REVOKE_APP_PUBLIC_ID, org.getId());
@@ -1244,7 +1243,7 @@ public class OrganizationRegressionPlaywrightTest
         OwnerSummaryPage.editOrganizationUrl(org.getId(), LegacyViolationsEditorPage.LEGACY_VIOLATIONS_URL_FRAGMENT),
         LegacyViolationsEditorPage.LEGACY_VIOLATIONS_URL_FRAGMENT);
     orgEditorAssertions.shouldBeVisible();
-    Assume.assumeTrue("Legacy Violations feature not available in this environment", orgEditor.isFormRendered());
+    Assumptions.assumeTrue(orgEditor.isFormRendered(), "Legacy Violations feature not available in this environment");
     orgEditor.clickEnabledRadio();
     orgEditor.submit();
     orgEditor.waitForSaveSuccess();

@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.ZscalerConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.ZscalerConfigurationPageAssertions;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
@@ -18,10 +17,10 @@ import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Route;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -51,7 +50,7 @@ public class ZscalerConfigurationPlaywrightTest
 
   private boolean switchedToRestrictedUser;
 
-  @Before
+  @BeforeEach
   public void openZscalerPage() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
     playwrightRefreshOrOpen(ZscalerConfigurationPage.url());
@@ -61,7 +60,7 @@ public class ZscalerConfigurationPlaywrightTest
     assertions = new ZscalerConfigurationPageAssertions(zscalerPage);
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     if (switchedToRestrictedUser) {
       playwrightHardreset();
@@ -74,7 +73,7 @@ public class ZscalerConfigurationPlaywrightTest
    * lists Maven/Npm/Nuget/Pypi; EULA link points to the Zscaler EULA URL.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testZscalerConfiguration_requiredFieldsAndFormatsDropdown() {
     assertions.shouldRenderPageLayout();
 
@@ -97,7 +96,7 @@ public class ZscalerConfigurationPlaywrightTest
    * with a "Retry" affordance.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testZscalerConfiguration_testConfigButtonStates() {
     fillRequiredFields();
 
@@ -118,7 +117,7 @@ public class ZscalerConfigurationPlaywrightTest
    * (hidden) form-level validation-error alert.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testZscalerConfiguration_passwordReenterSublabelOnEdit() {
     fillRequiredFields();
     selectMavenFormat();
@@ -142,7 +141,7 @@ public class ZscalerConfigurationPlaywrightTest
    * disabled when the form is clean.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testZscalerConfiguration_saveAndCancelDisabledWhenClean() {
     assertions.shouldShowCancelButtonDisabled();
 
@@ -164,7 +163,7 @@ public class ZscalerConfigurationPlaywrightTest
    * disabled pre-config.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testZscalerConfiguration_deleteModalCancelAndConfirm() {
     assertions.shouldShowDeleteButtonDisabled();
 
@@ -194,7 +193,7 @@ public class ZscalerConfigurationPlaywrightTest
 
   /** Non-admin users see the auth-error message (isAuthorized=false), not the form. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testZscalerConfiguration_authGuardForNonAdminUser() {
     String restrictedUser = RESTRICTED_USER_PREFIX + "-" + TemporaryEntity.uuid();
     Role viewOnlyRole = tempEntity.newRole(true, Permission.VIEW_ROLES);

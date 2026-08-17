@@ -19,8 +19,6 @@ import com.microsoft.playwright.assertions.LocatorAssertions;
 import com.microsoft.playwright.options.AriaRole;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.playwright.pages.ReportListPage;
 import com.sonatype.clm.testing.playwright.pages.ReportListPageAssertions;
@@ -40,9 +38,9 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.assertj.core.api.Assertions;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -84,7 +82,7 @@ public class ReportListPlaywrightTest
 
   private Application app;
 
-  @Before
+  @BeforeEach
   public void seedReportsAndOpenAsAdmin() throws IOException {
     seedOrgAppUserAndReports();
 
@@ -93,7 +91,7 @@ public class ReportListPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testReportLinks() {
     ReportListPage reportList = new ReportListPage();
     ApplicationReportPage appReport = new ApplicationReportPage();
@@ -109,7 +107,7 @@ public class ReportListPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testChiclets() {
     ReportListPage reportList = new ReportListPage();
 
@@ -124,7 +122,7 @@ public class ReportListPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testHeadersOrder() {
     ReportListPage reportList = new ReportListPage();
 
@@ -134,7 +132,7 @@ public class ReportListPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testReportsPage_titleAndContainerVisible() {
     ReportListPage reportList = new ReportListPage();
     ReportListPageAssertions assertions = new ReportListPageAssertions(reportList);
@@ -153,7 +151,7 @@ public class ReportListPlaywrightTest
    * partial render (or 402s on feature-gated API calls) does not affect the assertion.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeveloperPriorities_pageTitleIsPriorities() {
     setFeatures(LicensedFeature.DEVELOPER_DASHBOARD);
     playwrightRefreshOrOpen(ReportListPage.developerPrioritiesUrl());
@@ -166,7 +164,7 @@ public class ReportListPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFilter_realTimeFiltersTable_clearRestoresAll() {
     ReportListPage reportList = new ReportListPage();
     ReportListPageAssertions assertions = new ReportListPageAssertions(reportList);
@@ -182,7 +180,7 @@ public class ReportListPlaywrightTest
 
   /** Only App and Org headers are sortable; Source-stage is checked as a non-sortable guard. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSort_applicationAndOrganizationHeaders_toggleAriaSort() {
     ReportListPage reportList = new ReportListPage();
     ReportListPageAssertions assertions = new ReportListPageAssertions(reportList);
@@ -207,7 +205,7 @@ public class ReportListPlaywrightTest
 
   /** Stage columns aren't sortable; click must be a no-op for aria-sort on every header. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSort_stageColumnHeader_isNotSortable() {
     ReportListPage reportList = new ReportListPage();
     ReportListPageAssertions assertions = new ReportListPageAssertions(reportList);
@@ -226,7 +224,7 @@ public class ReportListPlaywrightTest
 
   /** Asserts the AT-facing accessible name; the sibling test covers aria-sort on the th cell. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSort_indicatorReflectsAscendingDescending() {
     ReportListPage reportList = new ReportListPage();
     reportList.waitForFullHeaderRow(EXPECTED_HEADERS.size());
@@ -245,7 +243,7 @@ public class ReportListPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testStageCell_threatCountsRendered() {
     ReportListPage reportList = new ReportListPage();
 
@@ -256,7 +254,7 @@ public class ReportListPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testStageCell_sourcePendingState() {
     tempEntity.newSourceControlEvaluationEvent(app);
 
@@ -269,7 +267,7 @@ public class ReportListPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testStageCellLinks_dualMode_showsReportAndPriorities() {
     ReportListPage reportList = new ReportListPage();
     ReportListPageAssertions assertions = new ReportListPageAssertions(reportList);
@@ -281,7 +279,7 @@ public class ReportListPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testStageCellLinks_developerMode_onlyDeveloperPrioritiesLink() {
     playwrightRefreshOrOpen(ReportListPage.developerPrioritiesUrl());
 
@@ -296,7 +294,7 @@ public class ReportListPlaywrightTest
 
   /** N+1 apps so page-1 fills to {@link #LOAD_MORE_PAGE_SIZE}; page-2's single row hides the button. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLoadMoreResults_buttonAppendsNextPage() {
     int totalApps = LOAD_MORE_PAGE_SIZE + 1;
     tempEntity.newApplications(app.getOrganizationId(), totalApps - 1);
@@ -317,7 +315,7 @@ public class ReportListPlaywrightTest
 
   /** Show Contact lazy-loads the contact-info via the application services-summary endpoint. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testContactColumn_loadedState_displaysName() {
     ReportListPage reportList = new ReportListPage();
     ReportListPageAssertions assertions = new ReportListPageAssertions(reportList);
@@ -331,7 +329,7 @@ public class ReportListPlaywrightTest
 
   /** Latch holds the response so the spinner is observable; avoids the banned {@code page.waitForTimeout}. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testContactColumn_loadingState_showsSpinner() {
     CountDownLatch release = new CountDownLatch(1);
     page.route(CONTACT_ENDPOINT_GLOB, route -> {
@@ -359,7 +357,7 @@ public class ReportListPlaywrightTest
 
   /** 500 → {@code reportsSlice.loadContactNameRejected} → renders the error-icon block. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testContactColumn_errorState_showsErrorIconAndText() {
     page.route(CONTACT_ENDPOINT_GLOB,
         route -> route.fulfill(new Route.FulfillOptions().setStatus(500)));
@@ -378,7 +376,7 @@ public class ReportListPlaywrightTest
 
   /** {@code doSort} short-circuits on an empty result set so {@code aria-sort} stays "none". */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSort_disabledWhenNoData() {
     ReportListPage reportList = new ReportListPage();
     ReportListPageAssertions assertions = new ReportListPageAssertions(reportList);
@@ -404,7 +402,7 @@ public class ReportListPlaywrightTest
    * {@code page.unrouteAll()} in finally cleans up state for sibling tests.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testReportsPage_networkErrorOnDataLoad_showsRetryButton() {
     try {
       assertThat(new ReportListPage().container()).isVisible(
@@ -429,7 +427,7 @@ public class ReportListPlaywrightTest
    * action's persistence on the policy is the only verifiable claim here.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFailActionPolicy_persistsOnBuildStage() {
     Policy policy = tempEntity.newPolicy(
         app.getOrganizationId(), "Fail Action Policy-" + TemporaryEntity.uuid(),
@@ -443,7 +441,7 @@ public class ReportListPlaywrightTest
 
   /** Same UI-rendering caveat as {@link #testFailActionPolicy_persistsOnBuildStage}. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testWarnActionPolicy_persistsOnBuildStage() {
     Policy policy = tempEntity.newPolicy(
         app.getOrganizationId(), "Warn Action Policy-" + TemporaryEntity.uuid(),
@@ -456,7 +454,7 @@ public class ReportListPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testNotifyOnlyPolicy_carriesNoActionEntries() {
     Policy policy = tempEntity.newPolicy(
         app.getOrganizationId(), "Notify Only Policy-" + TemporaryEntity.uuid(), 4);
@@ -472,7 +470,7 @@ public class ReportListPlaywrightTest
    * legitimate (the @Before seeds STAGE_RELEASE on its own app).
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testStageCells_buildOnlyShowsOtherStagesEmpty() throws IOException {
     String suffix = TemporaryEntity.uuid();
     Organization org = tempEntity.newOrganization(ORGANIZATION_NAME_PREFIX + "-buildOnly-" + suffix);
@@ -497,7 +495,7 @@ public class ReportListPlaywrightTest
 
   /** Fresh app with BUILD + RELEASE evaluations — the class-level seed covers BUILD + STAGE_RELEASE. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testStageCells_buildAndReleaseBothPopulated() throws IOException {
     String suffix = TemporaryEntity.uuid();
     Organization org = tempEntity.newOrganization(ORGANIZATION_NAME_PREFIX + "-buildRelease-" + suffix);
@@ -526,7 +524,7 @@ public class ReportListPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testStageCells_samePolicyDifferentApps() throws IOException {
     String suffix = TemporaryEntity.uuid();
     Organization org = tempEntity.newOrganization(ORGANIZATION_NAME_PREFIX + "-crossApp-" + suffix);

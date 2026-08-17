@@ -5,16 +5,14 @@
  */
 package com.sonatype.clm.testing.playwright.tests.mtiq;
 
-import com.sonatype.clm.testing.playwright.categories.MtiqTest;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 
-import org.junit.Before;
-import org.junit.experimental.categories.Category;
-
-@Category(MtiqTest.class)
+@Tag("mtiq")
 public class OrganizationMtiqSummaryViewPlaywrightTest
     extends AbstractMtiqSummaryViewPlaywrightTest
 {
-  @Before
+  @BeforeEach
   public void init() {
     super.init(tempEntity.newOrganization(YE_OLE_ORGANIZATION));
   }

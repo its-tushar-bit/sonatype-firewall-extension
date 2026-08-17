@@ -15,12 +15,12 @@ import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPageAssertions;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
-import org.junit.experimental.categories.Category;
 
 /**
  * Organization and application smoke tests using Playwright and TemporaryEntity.
@@ -54,7 +54,7 @@ public class OrganizationPlaywrightTest
 
   private static final String TEMPORARY_APP_PUBLIC_ID = "temp-app";
 
-  @Before
+  @BeforeEach
   public void openDashboardAndLoginAsAdmin() {
     playwrightRefreshOrOpen(DashboardPage.url());
     playwrightLogin();
@@ -106,12 +106,12 @@ public class OrganizationPlaywrightTest
       page.getByTestId(pillTargetId + "-button").waitFor();
     }
     catch (PlaywrightException e) {
-      Assume.assumeTrue(featureLabel + " is not available for this license or configuration", false);
+      Assumptions.assumeTrue(false, featureLabel + " is not available for this license or configuration");
     }
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testCreateOrganizationWithTemporaryEntity() {
     Organization org = tempEntity.newOrganization(AUTOMATION_TEST_ORG_NAME);
     assertOrganizationNameMatchesFixture(org, AUTOMATION_TEST_ORG_NAME);
@@ -122,7 +122,7 @@ public class OrganizationPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testCreateApplicationWithTemporaryEntity() {
     Organization org = tempEntity.newOrganization(PW_APP_ORG_NAME);
     Application app = tempEntity.newApplication(PW_TEST_APP_NAME, PW_TEST_APP_PUBLIC_ID, org.getId());
@@ -131,7 +131,7 @@ public class OrganizationPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testCreateMultipleOrganizations() {
     Organization org1 = tempEntity.newOrganization(PW_ORG_ALPHA_NAME);
     Organization org2 = tempEntity.newOrganization(PW_ORG_BETA_NAME);
@@ -150,7 +150,7 @@ public class OrganizationPlaywrightTest
    * UI checks live on {@link OwnerSummaryPage} per {@code PLAYWRIGHT_TEST_AUTHORING_GUIDE.md} §4–§5.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testOrgPolicies() {
     navigateToRootOrganizationSummary();
     playwrightWaitUntilUrlContains("/management/view/organization/");
@@ -162,7 +162,7 @@ public class OrganizationPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testOrgLegacyViolations() {
     navigateToRootOrganizationSummary();
     playwrightWaitUntilUrlContains("/management/view/organization/");
@@ -175,7 +175,7 @@ public class OrganizationPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testOrgContinuousMonitoring() {
     navigateToRootOrganizationSummary();
     playwrightWaitUntilUrlContains("/management/view/organization/");
@@ -188,7 +188,7 @@ public class OrganizationPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testOrgProprietaryComponents() {
     navigateToRootOrganizationSummary();
     playwrightWaitUntilUrlContains("/management/view/organization/");
@@ -201,7 +201,7 @@ public class OrganizationPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testOrgComponentLabels() {
     navigateToRootOrganizationSummary();
     playwrightWaitUntilUrlContains("/management/view/organization/");
@@ -213,7 +213,7 @@ public class OrganizationPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testOrgLicenseThreatGroups() {
     navigateToRootOrganizationSummary();
     playwrightWaitUntilUrlContains("/management/view/organization/");
@@ -225,7 +225,7 @@ public class OrganizationPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testOrgInnerSourceRepository() {
     navigateToRootOrganizationSummary();
     playwrightWaitUntilUrlContains("/management/view/organization/");
@@ -239,7 +239,7 @@ public class OrganizationPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testOrgAccess() {
     navigateToRootOrganizationSummary();
     playwrightWaitUntilUrlContains("/management/view/organization/");
@@ -251,7 +251,7 @@ public class OrganizationPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testOrgAutoWaivers() {
     navigateToRootOrganizationSummary();
     playwrightWaitUntilUrlContains("/management/view/organization/");
@@ -270,7 +270,7 @@ public class OrganizationPlaywrightTest
    * {@code PLAYWRIGHT_TEST_AUTHORING_GUIDE.md} §4–§5.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testOrgActionsDropdown() {
     navigateToRootOrganizationSummary();
     playwrightWaitUntilUrlContains("/management/view/organization/");
@@ -282,7 +282,7 @@ public class OrganizationPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testOrganizationAutoCleanup() {
     Organization org = tempEntity.newOrganization(TEMPORARY_ORG_NAME);
     Application app = tempEntity.newApplication(

@@ -8,7 +8,6 @@ package com.sonatype.clm.testing.playwright.tests;
 import java.util.List;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.CiCdConfigurationModalPage;
 import com.sonatype.clm.testing.playwright.pages.CiCdConfigurationModalPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.DeveloperRiskTablePage;
@@ -17,9 +16,9 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,7 +36,7 @@ public class CiCdWizardJenkinsPlaywrightTest
 
   private String appName;
 
-  @Before
+  @BeforeEach
   public void seedAppWithoutCiConfiguration() {
     org = tempEntity.newOrganization("cicd-" + TemporaryEntity.uuid());
     appName = "cicd-app-" + TemporaryEntity.uuid();
@@ -56,7 +55,7 @@ public class CiCdWizardJenkinsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testCiCdWizardJenkins_modalRendersWithStepCardsAndDocLinks() {
     CiCdConfigurationModalPageAssertions assertions = openCiCdModalForSeededApp();
 
@@ -66,7 +65,7 @@ public class CiCdWizardJenkinsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testCiCdWizardJenkins_pipelineSnippetAndParameterDescriptionRender() {
     CiCdConfigurationModalPageAssertions assertions = openCiCdModalForSeededApp();
 
@@ -75,7 +74,7 @@ public class CiCdWizardJenkinsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testCiCdWizardJenkins_copyToClipboardWritesSnippetWithRowApplicationAndOrganization() {
     // Permissions are scoped to the per-test BrowserContext (AbstractPlaywrightTest:370), no cleanup needed.
     context.grantPermissions(List.of("clipboard-read", "clipboard-write"));

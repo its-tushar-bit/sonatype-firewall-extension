@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.GitHubAppAuthPage;
 import com.sonatype.clm.testing.playwright.pages.GitHubAppAuthPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
@@ -15,9 +14,9 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -34,7 +33,7 @@ public class GitHubAppAuthPlaywrightTest
 
   private GitHubAppAuthPageAssertions authAssertions;
 
-  @Before
+  @BeforeEach
   public void initPageObjects() {
     authPage = new GitHubAppAuthPage();
     authAssertions = new GitHubAppAuthPageAssertions(authPage);
@@ -42,7 +41,7 @@ public class GitHubAppAuthPlaywrightTest
 
   /** Modal blocks at validation when Organization Account submits with empty org name. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRegistrationModal_orgNameRequiredForOrganizationAccount() {
     openRegistrationModalAtRoot();
     authPage.registrationModalOrgAccountRadio().label().click();
@@ -56,7 +55,7 @@ public class GitHubAppAuthPlaywrightTest
 
   /** Selecting Personal Account hides the Organization Name input. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRegistrationModal_orgNameHiddenForPersonalAccount() {
     openRegistrationModalAtRoot();
     authPage.registrationModalPersonalAccountRadio().label().click();
@@ -65,7 +64,7 @@ public class GitHubAppAuthPlaywrightTest
 
   /** Cancel on the registration modal dismisses it. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRegistrationModal_cancelDismissesModal() {
     openRegistrationModalAtRoot();
     authPage.registrationModalCancelButton().click();
@@ -80,7 +79,7 @@ public class GitHubAppAuthPlaywrightTest
    * root-org navigation does not require dynamic sidebar resolution.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAddGitHubAppButton_visibleWhenNoAppsConfigured() {
     openSourceControlAtRoot();
     authPage.authTypeGitHubAppRadio().label().click();
@@ -96,7 +95,7 @@ public class GitHubAppAuthPlaywrightTest
    * Organisation Name required-field error clears once a value is entered.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRegistrationModal_orgNameFilledClearsValidationError() {
     openRegistrationModalAtRoot();
     authPage.registrationModalOrgAccountRadio().label().click();
@@ -112,7 +111,7 @@ public class GitHubAppAuthPlaywrightTest
    * inherits the provider ({@code GitHubAppAuthenticationMethod} only renders then).
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testChildOrg_inheritanceRadiosShown_inheritSelectedByDefault() {
     Organization childOrg = createChildOrgInheritingGitHub();
 
@@ -126,7 +125,7 @@ public class GitHubAppAuthPlaywrightTest
 
   /** Switching to Override + GitHub App reveals the GitHub App status section. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testChildOrg_switchToOverride_showsGitHubAppSection() {
     Organization childOrg = createChildOrgInheritingGitHub();
 
@@ -154,7 +153,7 @@ public class GitHubAppAuthPlaywrightTest
 
   /** GitHub App → PAT reveals the token input. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAuthMethodSwitch_gitHubAppToPat_showsTokenInput() {
     openSourceControlAtRoot();
 
@@ -167,7 +166,7 @@ public class GitHubAppAuthPlaywrightTest
 
   /** PAT → GitHub App hides the token input and shows the status section. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAuthMethodSwitch_patToGitHubApp_hidesTokenInput() {
     openSourceControlAtRoot();
 
@@ -186,7 +185,7 @@ public class GitHubAppAuthPlaywrightTest
    * in "Update" mode with PAT as the initial active method.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAuthMethodSwitch_patToGitHubApp_savesPersistsAfterReload() {
     // Seed a source control record with authenticationType=PAT explicitly so the form loads
     // with PAT as its initial auth method. Without this, the UI infers GitHub App from the

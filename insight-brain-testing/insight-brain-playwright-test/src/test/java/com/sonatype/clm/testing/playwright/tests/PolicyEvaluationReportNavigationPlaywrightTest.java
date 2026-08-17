@@ -9,7 +9,6 @@ import java.io.IOException;
 
 import com.microsoft.playwright.Locator;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.ReportListPage;
@@ -17,9 +16,9 @@ import com.sonatype.clm.testing.playwright.utils.PolicyEvaluationSeeder;
 import com.sonatype.clm.testing.playwright.utils.PolicyEvaluationSeeder.SeededEvaluation;
 import com.sonatype.clm.testing.playwright.utils.SmallReportFixture;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -61,7 +60,7 @@ public class PolicyEvaluationReportNavigationPlaywrightTest
 
   private ApplicationReportPageAssertions reportAssertions;
 
-  @Before
+  @BeforeEach
   public void initSeederAndAssertions() {
     seeder = new PolicyEvaluationSeeder(
         tempEntity, tempDir, testCLMServer.getCLMServer().getConfiguration(),
@@ -72,7 +71,7 @@ public class PolicyEvaluationReportNavigationPlaywrightTest
 
   /** Reports list shows the evaluated app; clicking its build-stage link lands on the Application Report. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEvaluatedApplication_appearsInReportsListAndLinksBackToReport() throws IOException {
     SeededEvaluation seeded = seedAndEvaluate();
 
@@ -100,7 +99,7 @@ public class PolicyEvaluationReportNavigationPlaywrightTest
    * class's distinct value is the cross-screen navigation around the evaluated app.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testStatusBar_showsViolationCountsBucketedByCategory() throws IOException {
     SeededEvaluation seeded = seedAndEvaluate();
 

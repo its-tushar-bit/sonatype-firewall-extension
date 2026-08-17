@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
 
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.utils.TestReportEvaluator;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.pages.BulkWaivePage;
@@ -27,10 +26,10 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -69,7 +68,7 @@ public class WaiverConfigurationPlaywrightTest
 
   private Application application;
 
-  @Before
+  @BeforeEach
   public void seedEntitiesAndLogin() throws IOException {
     configPage = new WaiverConfigurationPage();
     configAssertions = new WaiverConfigurationPageAssertions(configPage);
@@ -81,13 +80,13 @@ public class WaiverConfigurationPlaywrightTest
     playwrightLogin();
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     reverseProxyServer.reset();
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testWaiverConfiguration_redirectGuard_noSelectionsRedirectsToBulkWaive() {
     String directUrl = WaiverConfigurationPage.url(application.getPublicId(), SCAN_ID);
     playwrightRefreshOrOpen(directUrl);
@@ -96,7 +95,7 @@ public class WaiverConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testWaiverConfiguration_expiryValidation_nextDisabledUntilExpirySelected() {
     navigateThroughBulkWaivePage();
     configAssertions.shouldBeVisible();
@@ -131,7 +130,7 @@ public class WaiverConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testWaiverConfiguration_backButton_returnsToViolationSelection() {
     navigateThroughBulkWaivePage();
     configAssertions.shouldBeVisible();
@@ -145,7 +144,7 @@ public class WaiverConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testWaiverConfiguration_cancel_exitsFlowAndClearsState() {
     navigateThroughBulkWaivePage();
     configAssertions.shouldBeVisible();
@@ -168,7 +167,7 @@ public class WaiverConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testWaiverConfiguration_enterpriseBanner_shownWhenBulkWaiversNotLicensed() {
     setMissingFeature(LicensedFeature.BULK_WAIVERS);
 

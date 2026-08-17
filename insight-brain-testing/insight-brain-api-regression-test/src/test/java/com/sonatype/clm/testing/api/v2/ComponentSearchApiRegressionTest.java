@@ -11,7 +11,6 @@ import java.util.List;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.ComponentNearestFixedVersions;
 import com.sonatype.clm.testing.api.AbstractIqApiTest;
-import com.sonatype.clm.testing.api.categories.ApiRegressionTest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.hds.AffectedComponentDTO;
@@ -20,8 +19,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,7 +36,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * {@code ApiComponentSearchResourceTest.setupHdsMocksForStandardSearch()} in the service
  * module's integration test suite.
  */
-@Category(ApiRegressionTest.class)
 public class ComponentSearchApiRegressionTest
     extends AbstractIqApiTest
 {

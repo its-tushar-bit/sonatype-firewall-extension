@@ -20,11 +20,10 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.license.model.LicensedFeature;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Playwright test for the Firewall Container Repository Results page.
@@ -44,7 +43,7 @@ public class FirewallContainerRepositoryResultsPlaywrightTest
 
   private String repositoryId;
 
-  @Before
+  @BeforeEach
   public void openContainerRepositoryResultsAsAdmin() {
     setFeatures(
         LicensedFeature.POLICY_MANAGEMENT,
@@ -73,14 +72,14 @@ public class FirewallContainerRepositoryResultsPlaywrightTest
     playwrightLogin();
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
     reverseProxyServer.reset();
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testContent() {
     FirewallContainerRepositoryResultsPage resultsPage =
         new FirewallContainerRepositoryResultsPage();

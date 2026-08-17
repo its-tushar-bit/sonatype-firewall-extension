@@ -32,12 +32,12 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
-import org.junit.experimental.categories.Category;
 
 /**
  * Playwright migration of the Selenide {@code DashboardWaiverRequestsTest}.
@@ -76,7 +76,7 @@ public class DashboardWaiverRequestsPlaywrightTest
 
   // --------------- @Before / @After ---------------
 
-  @Before
+  @BeforeEach
   public void openWaiverRequestsTabAsAdmin() {
     playwrightRefreshOrOpen(DashboardPage.urlToWaiverRequests());
     playwrightLogin();
@@ -85,7 +85,7 @@ public class DashboardWaiverRequestsPlaywrightTest
     waiverRequestsTable.waitUntilLoaded();
   }
 
-  @After
+  @AfterEach
   public void resetReverseProxy() {
     reverseProxyServer.reset();
   }
@@ -97,7 +97,7 @@ public class DashboardWaiverRequestsPlaywrightTest
    * placeholder message.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testWaiverRequestsTable_NoDataMessage() {
     // Then: placeholder row renders with the canonical empty-state copy.
     new DashboardWaiverRequestsComponentAssertions(waiverRequestsTable).shouldShowNoDataMessage(DATA.noDataMessage());
@@ -109,7 +109,7 @@ public class DashboardWaiverRequestsPlaywrightTest
    * component / status text matching the rendered cells.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testWaiverRequestsTable_LoadsAllWaiverRequestsWithoutFilters() {
     // Given: nine waiver requests of varying scope and component-match strategy.
     seedAllWaiverRequests();
@@ -134,7 +134,7 @@ public class DashboardWaiverRequestsPlaywrightTest
    * The dashboard filter drawer renders the canonical set of waiver-reason options, in order.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testShowsReasonsFilter() {
     // Given: the dashboard is on the waiver-requests tab (see @Before).
     DashboardPage dashboard = new DashboardPage();

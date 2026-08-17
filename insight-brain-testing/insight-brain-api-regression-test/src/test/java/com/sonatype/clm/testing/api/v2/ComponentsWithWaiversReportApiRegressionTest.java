@@ -7,7 +7,6 @@ package com.sonatype.clm.testing.api.v2;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.api.AbstractIqApiTest;
-import com.sonatype.clm.testing.api.categories.ApiRegressionTest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.ApiComponentsWithWaiversReportingResource;
@@ -18,8 +17,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 
@@ -37,7 +35,6 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
  * The one query parameter, {@code format}, filters by component ecosystem (e.g. {@code maven},
  * {@code npm}) — not by ownerId as older docs implied.
  */
-@Category(ApiRegressionTest.class)
 public class ComponentsWithWaiversReportApiRegressionTest
     extends AbstractIqApiTest
 {

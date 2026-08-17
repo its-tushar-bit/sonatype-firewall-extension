@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.net.URL;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.playwright.pages.DependencyTreePage;
 import com.sonatype.clm.testing.playwright.pages.SastScanPage;
@@ -27,9 +26,9 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -63,10 +62,10 @@ public class DependencyTreePlaywrightTest
 
   private Application app;
 
-  // @BeforeClass not used: seeding — including evaluatePolicy(), an expensive full-scan cycle —
-  // depends on the instance-level @Rule TemporaryEntity, which is inaccessible from a static
-  // @BeforeClass context in JUnit 4. evaluatePolicy() therefore runs once before each test.
-  @Before
+  // @BeforeAll not used: seeding — including evaluatePolicy(), an expensive full-scan cycle —
+  // depends on the instance-level TemporaryEntity, which is inaccessible from a static
+  // @BeforeAll context. evaluatePolicy() therefore runs once before each test.
+  @BeforeEach
   public void seedAndLogin() throws IOException {
     String suffix = TemporaryEntity.uuid();
     Organization org = tempEntity.newOrganization("DependencyTreeTestOrg-" + suffix);
@@ -87,7 +86,7 @@ public class DependencyTreePlaywrightTest
 
   /** Opens the application report, clicks the Dependency Tree tab, and verifies full page render. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDependencyTree_pageRendersWithTreeAndControls() {
     playwrightRefreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     ApplicationReportPage reportPage = new ApplicationReportPage();
@@ -110,7 +109,7 @@ public class DependencyTreePlaywrightTest
    * a child node.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDependencyTree_expandCollapseNodes() {
     DependencyTreePage depTreePage = new DependencyTreePage();
 
@@ -128,7 +127,7 @@ public class DependencyTreePlaywrightTest
 
   /** Verifies tree nodes with violations render NxThreatIndicators at the correct severity. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDependencyTree_violationIndicators() {
     DependencyTreePage depTreePage = new DependencyTreePage();
 
@@ -141,7 +140,7 @@ public class DependencyTreePlaywrightTest
 
   /** SAST Scan page renders the heading, findings section, and at least one finding row. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSastScan_pageRendersWithFindings() {
     SastScan sastScan = tempEntity.newSastScan(app.getId());
     SastFinding sastFinding = new SastFinding();

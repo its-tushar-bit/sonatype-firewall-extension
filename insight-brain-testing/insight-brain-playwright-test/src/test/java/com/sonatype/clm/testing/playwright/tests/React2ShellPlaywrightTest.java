@@ -8,14 +8,13 @@ package com.sonatype.clm.testing.playwright.tests;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.microsoft.playwright.Route;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.React2ShellPage;
 import com.sonatype.clm.testing.playwright.pages.React2ShellPageAssertions;
 import com.sonatype.clm.testing.playwright.testdatamanager.TestDataManager;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /** {@code /api/v2/componentSearch/cveAffectedComponents} is mocked — embedded server has no React2Shell scan data. */
 public class React2ShellPlaywrightTest
@@ -31,14 +30,14 @@ public class React2ShellPlaywrightTest
   private static final ImpactData IMPACT_DATA =
       TestDataManager.load("react2shell-impact-data", ImpactData.class);
 
-  @Before
+  @BeforeEach
   public void openReact2ShellPageAsAdmin() {
     playwrightRefreshOrOpen(React2ShellPage.url());
     playwrightLogin();
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testReact2Shell_impactSummaryTableRendersWithData() {
     stubImpactDataEndpoint();
     try {
@@ -58,7 +57,7 @@ public class React2ShellPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testReact2Shell_emptyTableWhenNoScannedComponents() {
     stubEmptyImpactDataEndpoint();
     try {

@@ -5,7 +5,6 @@
  */
 package com.sonatype.clm.testing.playwright.tests.mtiq;
 
-import com.sonatype.clm.testing.playwright.categories.MtiqTest;
 import com.sonatype.clm.testing.playwright.mtiq.AbstractMtiqFipsUiTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.MtiqAdministratorsEditPage;
@@ -13,9 +12,9 @@ import com.sonatype.clm.testing.playwright.pages.MtiqAdministratorsEditPageAsser
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 import com.sonatype.insight.brain.model.security.Role;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -25,7 +24,7 @@ import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertTha
  * {@code FIPS_MODE_ENABLED=true} before tenant provisioning. No UI assertions differ
  * from the non-FIPS path — the test validates FIPS mode does not break the page.
  */
-@Category(MtiqTest.class)
+@Tag("mtiq")
 public class MtiqAdministratorsFIPSPlaywrightTest
     extends AbstractMtiqFipsUiTest
 {
@@ -33,7 +32,7 @@ public class MtiqAdministratorsFIPSPlaywrightTest
 
   private MtiqAdministratorsEditPageAssertions adminEditAssertions;
 
-  @Before
+  @BeforeEach
   public void loginAndCreatePageObjects() {
     playwrightLoginAdminAt(DashboardPage.url());
     adminEditPage = new MtiqAdministratorsEditPage();

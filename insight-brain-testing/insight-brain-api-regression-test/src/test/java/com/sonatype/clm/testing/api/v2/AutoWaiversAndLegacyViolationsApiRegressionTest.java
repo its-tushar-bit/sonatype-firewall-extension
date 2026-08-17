@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.api.v2;
 
 import com.sonatype.clm.testing.api.AbstractIqApiTest;
-import com.sonatype.clm.testing.api.categories.ApiRegressionTest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiLegacyViolationStatusDTO;
@@ -19,10 +18,9 @@ import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -53,7 +51,6 @@ import static org.mockito.Mockito.when;
  * {@code UnauthorizedException} → HTTP 403 (not 401). The toggle test pins 403
  * accordingly; the env-var override caveat lives in-line on that test.
  */
-@Category(ApiRegressionTest.class)
 public class AutoWaiversAndLegacyViolationsApiRegressionTest
     extends AbstractIqApiTest
 {
@@ -65,7 +62,7 @@ public class AutoWaiversAndLegacyViolationsApiRegressionTest
 
   private static final String LEGACY_VIOLATION_CONFIG_BASE = PublicApiPaths.LEGACY_VIOLATIONS_CONFIG_PATH_V2;
 
-  @Before
+  @BeforeEach
   public void enableLicenseFeatures() throws Exception {
     // DefaultProductLicense#hasFeature(DEVELOPER_DASHBOARD) delegates to
     // developerEnablementService.shouldEnableDeveloperProduct() rather than checking the
@@ -87,7 +84,7 @@ public class AutoWaiversAndLegacyViolationsApiRegressionTest
    * fork, and this module has a documented history of cross-fork stub leaks. Explicit
    * teardown here removes the latent fragility if the base {@code @Before} order changes.
    */
-  @After
+  @AfterEach
   public void resetDeveloperEnablementStub() {
     reset(mockDeveloperEnablementService);
   }

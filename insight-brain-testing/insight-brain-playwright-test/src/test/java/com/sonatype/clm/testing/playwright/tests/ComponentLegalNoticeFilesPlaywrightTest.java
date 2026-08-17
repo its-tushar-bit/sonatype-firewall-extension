@@ -9,7 +9,6 @@ import java.io.IOException;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.ComponentLegalOverviewPage;
 import com.sonatype.clm.testing.playwright.pages.NoticeFilesAccordionPage;
 import com.sonatype.clm.testing.playwright.pages.NoticeFilesAccordionPageAssertions;
@@ -20,9 +19,9 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 public class ComponentLegalNoticeFilesPlaywrightTest
     extends AbstractIqUiTest
@@ -49,7 +48,7 @@ public class ComponentLegalNoticeFilesPlaywrightTest
 
   private NoticeFilesAccordionPageAssertions assertions;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     seedTestData();
     playwrightRefreshOrOpen(ComponentLegalOverviewPage.url(appPublicId, COMPONENT_HASH));
@@ -77,7 +76,7 @@ public class ComponentLegalNoticeFilesPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testNoticeFilesAccordion_rendersAndModalOpensCloses() {
 
     assertions.shouldShowTile();
@@ -93,7 +92,7 @@ public class ComponentLegalNoticeFilesPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testNoticeFiles_addIconWhenEmpty() {
 
     assertions.shouldShowTile();
@@ -109,7 +108,7 @@ public class ComponentLegalNoticeFilesPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testNoticeFiles_editIconWhenNoticesExist() throws IOException {
     HdsStubs.legalOverview(testCLMServer.getHdsServer(), true);
     playwrightRefreshOrOpen(ComponentLegalOverviewPage.url(appPublicId, COMPONENT_HASH));

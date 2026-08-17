@@ -5,18 +5,17 @@
  */
 package com.sonatype.clm.testing.playwright.tests.mtiq;
 
-import com.sonatype.clm.testing.playwright.categories.MtiqTest;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.playwright.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.playwright.pages.PolicyEditorPageAssertions;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-@Category(MtiqTest.class)
+@Tag("mtiq")
 public class MtiqSbomChildOrgInheritedPolicyPlaywrightTest
     extends AbstractMtiqSbomChildOrgPolicyPlaywrightTest
 {

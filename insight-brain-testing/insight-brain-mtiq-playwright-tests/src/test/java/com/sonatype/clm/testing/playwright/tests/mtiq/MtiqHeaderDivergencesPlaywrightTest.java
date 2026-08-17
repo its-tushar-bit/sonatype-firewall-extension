@@ -5,7 +5,6 @@
  */
 package com.sonatype.clm.testing.playwright.tests.mtiq;
 
-import com.sonatype.clm.testing.playwright.categories.MtiqTest;
 import com.sonatype.clm.testing.playwright.mtiq.AbstractMtiqUiTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.MtiqHeaderDivergencesPage;
@@ -14,10 +13,10 @@ import com.sonatype.clm.testing.playwright.testdatamanager.TestDataManager;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Verifies MTIQ-mode header/footer divergences: version text hidden
@@ -25,7 +24,7 @@ import org.junit.experimental.categories.Category;
  * ({@code selectIsShowNotificationMenuEnabled=false}), and mail-config delete shows
  * Sonatype-fallback warning ({@code selectIsShowEmailStoppedEnabled=false}).
  */
-@Category(MtiqTest.class)
+@Tag("mtiq")
 public class MtiqHeaderDivergencesPlaywrightTest
     extends AbstractMtiqUiTest
 {
@@ -35,7 +34,7 @@ public class MtiqHeaderDivergencesPlaywrightTest
 
   private MtiqHeaderDivergencesPageAssertions assertions;
 
-  @Before
+  @BeforeEach
   public void loginAndCreatePageObjects() {
     playwrightLoginAdminAt(DashboardPage.url());
     divergencesPage = new MtiqHeaderDivergencesPage();
@@ -44,7 +43,7 @@ public class MtiqHeaderDivergencesPlaywrightTest
 
   // Runs before afterTest() switches to GLOBAL_TENANT, so the singleton row is removed
   // from the correct tenant schema.
-  @After
+  @AfterEach
   public void cleanupMailConfig() {
     if (lookup(MailConfigurationDAO.class).getWithoutFallback() != null) {
       lookup(MailConfigurationDAO.class).delete();

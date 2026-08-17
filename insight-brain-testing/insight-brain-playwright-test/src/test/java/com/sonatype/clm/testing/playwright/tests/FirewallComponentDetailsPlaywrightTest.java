@@ -17,8 +17,6 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.playwright.pages.FirewallPage;
 import com.sonatype.clm.testing.playwright.utils.FirewallComponentDetailsHdsStub;
@@ -39,10 +37,10 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.microsoft.playwright.assertions.LocatorAssertions;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -122,7 +120,7 @@ public class FirewallComponentDetailsPlaywrightTest
   private static final String LOW_SEVERITY_POLICY_CONSTRAINT_REASON =
       "security vulnerability severity >= 4.3";
 
-  @Before
+  @BeforeEach
   public void openFirewallAsAdmin() {
     setFeatures(
         LicensedFeature.POLICY_MANAGEMENT,
@@ -139,8 +137,8 @@ public class FirewallComponentDetailsPlaywrightTest
     playwrightLogin();
   }
 
-  @Before
-  @After
+  @BeforeEach
+  @AfterEach
   public void resetContainerImagesEvalFlag() {
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
   }
@@ -178,7 +176,7 @@ public class FirewallComponentDetailsPlaywrightTest
    * {@code /rest/ci/componentDetails/repository/{ownerId}} to HDS.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testComponentInformationTile_fromDashboard() {
     seedComponentWithComponentInformationStubs();
     playwrightRefreshOrOpen(FirewallPage.url());
@@ -223,7 +221,7 @@ public class FirewallComponentDetailsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testSecurityTab_policyViolationsTable_renders() {
     ProxyRepositoryComponent component = seedComponentWithSecurityViolations();
     playwrightRefreshOrOpen(FirewallComponentDetailsPage.urlSecurityTab(component));
@@ -248,7 +246,7 @@ public class FirewallComponentDetailsPlaywrightTest
    * Security tab's secondary table; this targets the primary Policy Violations tab.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testPolicyViolationsTab_rendersPoliciesViolatedByComponent() {
     ProxyRepositoryComponent component = seedComponentWithSecurityViolations();
     playwrightRefreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
@@ -261,7 +259,7 @@ public class FirewallComponentDetailsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testSecurityTab_vulnerabilityDetailsPopover_opens() {
     ProxyRepositoryComponent component = seedComponentWithSecurityViolationsAndVulnerabilityStubs();
     playwrightRefreshOrOpen(FirewallComponentDetailsPage.urlSecurityTab(component));

@@ -8,14 +8,13 @@ package com.sonatype.clm.testing.playwright.tests;
 import java.util.regex.Pattern;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.DashboardPageAssertions;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -42,20 +41,20 @@ public class DashboardPlaywrightTest
     extends AbstractIqUiTest
 {
 
-  @Before
+  @BeforeEach
   public void openDashboardAsAdmin() {
     playwrightRefreshOrOpen(DashboardPage.url());
     playwrightLogin();
     new DashboardPage().waitUntilSpinnersGone();
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     reverseProxyServer.reset();
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testDashboardLoadsAndTabsAreVisible() {
     DashboardPage dashboard = new DashboardPage();
     DashboardPageAssertions dashboardAssertions = new DashboardPageAssertions(dashboard);
@@ -66,7 +65,7 @@ public class DashboardPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testSwitchBetweenTabs() {
     DashboardPage dashboard = new DashboardPage();
 
@@ -80,7 +79,7 @@ public class DashboardPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testFilterToggleAndExportButton_areVisible() {
     DashboardPage dashboard = new DashboardPage();
     DashboardPageAssertions dashboardAssertions = new DashboardPageAssertions(dashboard);

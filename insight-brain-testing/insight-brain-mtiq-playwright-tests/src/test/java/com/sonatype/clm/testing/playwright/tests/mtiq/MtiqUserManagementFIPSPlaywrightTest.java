@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.playwright.tests.mtiq;
 
 import com.microsoft.playwright.assertions.LocatorAssertions;
-import com.sonatype.clm.testing.playwright.categories.MtiqTest;
 import com.sonatype.clm.testing.playwright.mtiq.AbstractMtiqFipsUiTest;
 import com.sonatype.clm.testing.playwright.pages.MtiqUserManagementPage;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
@@ -14,10 +13,10 @@ import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.TenantMetadata;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -30,7 +29,7 @@ import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertTha
  * so {@code checkMtiqDefaultFlow} returns {@code false} — standard Users page renders instead
  * of the managed-IdP invite flow, even when {@code SSO_IDP_MANAGED_BY_SONATYPE} is seeded.
  */
-@Category(MtiqTest.class)
+@Tag("mtiq")
 public class MtiqUserManagementFIPSPlaywrightTest
     extends AbstractMtiqFipsUiTest
 {
@@ -51,7 +50,7 @@ public class MtiqUserManagementFIPSPlaywrightTest
 
   private MtiqUserManagementPage umPage;
 
-  @Before
+  @BeforeEach
   public void seedManagedIdpAndCreatePageObjects() {
     tempEntity.newSystemConfigurationProperty(
         SystemConfigurationProperty.SSO_IDP_MANAGED_BY_SONATYPE, String.valueOf(true));
@@ -61,7 +60,7 @@ public class MtiqUserManagementFIPSPlaywrightTest
     umPage = new MtiqUserManagementPage();
   }
 
-  @After
+  @AfterEach
   public void cleanupTenantMetadata() {
     TenantMetadataDAO dao = lookup(TenantMetadataDAO.class);
     dao.getAll().forEach(dao::delete);

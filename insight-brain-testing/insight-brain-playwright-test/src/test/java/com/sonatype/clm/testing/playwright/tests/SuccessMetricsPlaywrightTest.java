@@ -5,8 +5,6 @@
  */
 package com.sonatype.clm.testing.playwright.tests;
 
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.HeaderComponent;
@@ -22,9 +20,9 @@ import com.sonatype.insight.brain.successmetrics.SuccessMetricsService;
 
 import java.util.regex.Pattern;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -57,7 +55,7 @@ public class SuccessMetricsPlaywrightTest
 
   private static final String INDIVIDUAL_REPORT_SCOPE_JSON = "{}";
 
-  @Before
+  @BeforeEach
   public void ensureFeatureEnabledAndOpenDashboard() {
     ensureSuccessMetricsEnabled();
     playwrightRefreshOrOpen(DashboardPage.url());
@@ -65,7 +63,7 @@ public class SuccessMetricsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testSuccessMetrics_FromDashboardNavigatesAndLandingPageLoads() {
     SidebarComponent sidebar = new SidebarComponent();
     SuccessMetricsPage successMetrics = new SuccessMetricsPage();
@@ -96,7 +94,7 @@ public class SuccessMetricsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSuccessMetricsConfigurationPageRenders() {
     playwrightRefreshOrOpen(SuccessMetricsConfigurationPage.url());
 
@@ -108,7 +106,7 @@ public class SuccessMetricsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSuccessMetricsConfigurationToggle_persistsAcrossReload() {
     playwrightRefreshOrOpen(SuccessMetricsConfigurationPage.url());
 
@@ -131,7 +129,7 @@ public class SuccessMetricsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSuccessMetrics_individualReportRendersOnDirectNavigation() {
     String reportName = INDIVIDUAL_REPORT_NAME_PREFIX + "-" + TemporaryEntity.uuid();
     SuccessMetricsReport report =
@@ -146,7 +144,7 @@ public class SuccessMetricsPlaywrightTest
 
   /** Gear-menu "Success Metrics" navigates to the config page. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSuccessMetrics_gearMenuNavigatesToConfigPage() {
     new HeaderComponent().navigateToSystemPreference("Success Metrics");
 
@@ -159,7 +157,7 @@ public class SuccessMetricsPlaywrightTest
    * {@link #testSuccessMetrics_individualReportRendersOnDirectNavigation} deliberately skips.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSuccessMetrics_reportListLinkNavigatesToIndividualReport() {
     String reportName = INDIVIDUAL_REPORT_NAME_PREFIX + "-" + TemporaryEntity.uuid();
     tempEntity.newSuccessMetricsReport("admin", reportName, INDIVIDUAL_REPORT_SCOPE_JSON);

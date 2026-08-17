@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.RolesPage;
 import com.sonatype.clm.testing.playwright.pages.RolesPageAssertions;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
@@ -17,11 +16,10 @@ import com.sonatype.insight.brain.model.security.Role;
 import java.util.regex.Pattern;
 
 import com.microsoft.playwright.Route;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
-import org.junit.rules.ExternalResource;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -64,7 +62,7 @@ public class RolesPlaywrightTest
   /** Always flip via {@link #switchToRestrictedUser} — setting after login leaks the session if login throws. */
   private boolean switchedToRestrictedUser;
 
-  @Before
+  @BeforeEach
   public void openRolesPage() {
     playwrightRefreshOrOpen(RolesPage.url());
     playwrightLogin();
@@ -73,21 +71,21 @@ public class RolesPlaywrightTest
     assertions = new RolesPageAssertions(rolesPage);
   }
 
-  /** {@code @Rule} (not {@code @After}) runs deterministically vs the parent class teardown. */
-  @Rule
-  public final ExternalResource restoreAdminSession = new ExternalResource()
-  {
-    @Override
-    protected void after() {
-      if (switchedToRestrictedUser) {
-        playwrightHardreset();
-        playwrightLoginAdminAt(RolesPage.url());
-      }
+  /**
+   * Restores the admin session after tests that switch to a restricted user. Runs as an
+   * {@code @AfterEach} while the Playwright page is still open — the browser context is closed by
+   * {@code AbstractPlaywrightTest}'s lifecycle extension after all {@code @AfterEach} methods.
+   */
+  @AfterEach
+  public void restoreAdminSession() {
+    if (switchedToRestrictedUser) {
+      playwrightHardreset();
+      playwrightLoginAdminAt(RolesPage.url());
     }
-  };
+  }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRolesPage_renders() {
     assertions.shouldShowContainer();
     assertions.shouldShowPageTitle("Roles");
@@ -101,7 +99,7 @@ public class RolesPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRolesPage_navigateToCreateRole() {
 
     assertions.shouldShowContainer();
@@ -119,7 +117,7 @@ public class RolesPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testCreateRole_fieldValidation() {
     playwrightRefreshOrOpen(RolesPage.urlToCreateRole());
 
@@ -143,7 +141,7 @@ public class RolesPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testCreateRole_permissionCategories() {
     playwrightRefreshOrOpen(RolesPage.urlToCreateRole());
 
@@ -162,7 +160,7 @@ public class RolesPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testCreateRole_saveSuccessfully() {
     String uniqueRoleName = ROLE_NAME_PREFIX + TemporaryEntity.uuid();
 
@@ -182,7 +180,7 @@ public class RolesPlaywrightTest
 
   /** {@code NxStatefulForm} only renders the (mount-time) read-only error after a submit attempt. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEditRole_builtInRoleIsReadOnly() {
     assertions.shouldShowContainer();
     rolesPage.openRoleForEdit(BUILTIN_SYSTEM_ADMIN_NAME);
@@ -200,7 +198,7 @@ public class RolesPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEditRole_insufficientPermissionsReadOnly() {
     String customRoleName = ROLE_NAME_PREFIX + TemporaryEntity.uuid();
     Role customRole = tempEntity.newRole(customRoleName, ROLE_DESCRIPTION, false);
@@ -228,7 +226,7 @@ public class RolesPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeleteRole_confirmAndDelete() {
     String customRoleName = ROLE_NAME_PREFIX + TemporaryEntity.uuid();
     Role customRole = tempEntity.newRole(customRoleName, ROLE_DESCRIPTION, false);
@@ -251,7 +249,7 @@ public class RolesPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRolesList_infoAlertWithDocsLink() {
     assertions.shouldShowContainer();
     assertions.shouldShowInfoAlertWithDocsLink(INFO_ALERT_PROMPT, INFO_ALERT_DOCS_LINK_TEXT);
@@ -262,7 +260,7 @@ public class RolesPlaywrightTest
    * {@code EDIT_ROLES}.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRolesList_createRoleDisabledForReadOnlyUser() {
     String restrictedUser = RESTRICTED_USER_PREFIX + "-" + TemporaryEntity.uuid();
     Role viewOnlyRole = tempEntity.newRole(true, Permission.VIEW_ROLES);
@@ -279,21 +277,21 @@ public class RolesPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRolesList_builtInAndCustomSubtitles() {
     assertions.shouldShowContainer();
     assertions.shouldShowBuiltInAndCustomSubtitles();
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRolesList_customRolesEmptyMessageFullText() {
     assertions.shouldShowContainer();
     assertions.shouldShowCustomRolesEmptyMessage(CUSTOM_ROLES_EMPTY_MESSAGE);
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRolesList_roleItemsAreAnchorLinks() {
     String customRoleName = ROLE_NAME_PREFIX + TemporaryEntity.uuid();
     Role customRole = tempEntity.newRole(customRoleName, ROLE_DESCRIPTION, false);
@@ -313,7 +311,7 @@ public class RolesPlaywrightTest
    * {@code NxLoadWrapper} error chrome and Retry flow.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRolesList_loadErrorWithRetry() {
     Pattern rolesEndpoint = Pattern.compile(".*/api/v2/roles.*");
     page.route(rolesEndpoint, route -> route.fulfill(new Route.FulfillOptions()

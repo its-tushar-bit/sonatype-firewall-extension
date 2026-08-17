@@ -5,7 +5,6 @@
  */
 package com.sonatype.clm.testing.playwright.tests.mtiq;
 
-import com.sonatype.clm.testing.playwright.categories.MtiqTest;
 import com.sonatype.clm.testing.playwright.mtiq.AbstractMtiqUiTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.HeaderComponent;
@@ -20,13 +19,13 @@ import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 import com.sonatype.insight.brain.model.security.Role;
 
 import com.microsoft.playwright.assertions.LocatorAssertions;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-@Category(MtiqTest.class)
+@Tag("mtiq")
 public class MtiqUiExclusionsPlaywrightTest
     extends AbstractMtiqUiTest
 {
@@ -49,7 +48,7 @@ public class MtiqUiExclusionsPlaywrightTest
             .setTimeout(PlaywrightTiming.MODAL_OR_LOGIN_TIMEOUT_MS + PlaywrightTiming.SLOW_ELEMENT_TIMEOUT_MS));
   }
 
-  @Before
+  @BeforeEach
   public void loginAndCreatePageObjects() {
     playwrightLoginAdminAt(DashboardPage.url());
     adminEditPage = new MtiqAdministratorsEditPage();

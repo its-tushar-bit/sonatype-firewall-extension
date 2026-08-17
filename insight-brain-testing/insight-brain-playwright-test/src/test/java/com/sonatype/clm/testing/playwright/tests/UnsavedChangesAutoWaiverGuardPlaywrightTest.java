@@ -6,17 +6,16 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.AutoWaiversPage;
 import com.sonatype.clm.testing.playwright.pages.UnsavedChangesModalComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -32,7 +31,7 @@ public class UnsavedChangesAutoWaiverGuardPlaywrightTest
 
   private UnsavedChangesModalComponent unsavedChangesModal;
 
-  @Before
+  @BeforeEach
   public void enableAutoWaiversFeature() {
     autoWaiversPage = new AutoWaiversPage();
     unsavedChangesModal = new UnsavedChangesModalComponent();
@@ -45,7 +44,7 @@ public class UnsavedChangesAutoWaiverGuardPlaywrightTest
         LicensedFeature.DEVELOPER_DASHBOARD);
   }
 
-  @After
+  @AfterEach
   public void resetAutoWaiversFeature() {
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(false);
     unsavedChangesModal.continueIfOpen();
@@ -53,7 +52,7 @@ public class UnsavedChangesAutoWaiverGuardPlaywrightTest
 
   /** Cancel on UnsavedChangesModal keeps the auto-waiver modal open (stay / continue editing path). */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAutoWaiverDirtyModal_cancelOnUnsavedChangesKeepsModalOpen() {
     Organization org = tempEntity.newOrganization();
     playwrightRefreshOrOpen(AutoWaiversPage.url(org.getPublicId()));

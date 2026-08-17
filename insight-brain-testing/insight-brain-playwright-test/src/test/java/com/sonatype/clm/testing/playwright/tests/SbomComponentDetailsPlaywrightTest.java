@@ -14,7 +14,6 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Date;
 
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.pages.SbomApplicationsPage;
 import com.sonatype.clm.testing.playwright.pages.SbomApplicationsPageAssertions;
@@ -34,10 +33,10 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 
@@ -95,7 +94,7 @@ public class SbomComponentDetailsPlaywrightTest
 
   private Organization testOrganization;
 
-  @Before
+  @BeforeEach
   public void seedAndOpenComponentDetailsAsAdmin() throws IOException {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
     setFeatures(LicensedFeature.SBOM_MANAGER, LicensedFeature.APPLICATION_EVALUATION,
@@ -116,13 +115,13 @@ public class SbomComponentDetailsPlaywrightTest
     new SbomComponentDetailsPageAssertions(new SbomComponentDetailsPage()).shouldBeLoaded();
   }
 
-  @After
+  @AfterEach
   public void disableSbomPoliciesFeature() {
     SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(false);
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testComponentSummaryAndVulnerabilityTables() {
     SbomComponentDetailsPage details = new SbomComponentDetailsPage();
     SbomComponentDetailsPageAssertions assertions = new SbomComponentDetailsPageAssertions(details);
@@ -147,7 +146,7 @@ public class SbomComponentDetailsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testVulnerabilityDetailsPopover() {
     SbomComponentDetailsPage details = new SbomComponentDetailsPage();
     SbomComponentDetailsPageAssertions assertions = new SbomComponentDetailsPageAssertions(details);
@@ -158,7 +157,7 @@ public class SbomComponentDetailsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testPolicyViolationsTile() {
     SbomComponentDetailsPage details = new SbomComponentDetailsPage();
     SbomComponentDetailsPageAssertions assertions = new SbomComponentDetailsPageAssertions(details);
@@ -171,7 +170,7 @@ public class SbomComponentDetailsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testPolicyViolationDetailsDrawer() {
     SbomComponentDetailsPage details = new SbomComponentDetailsPage();
     SbomComponentDetailsPageAssertions assertions = new SbomComponentDetailsPageAssertions(details);

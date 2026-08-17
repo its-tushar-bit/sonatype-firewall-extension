@@ -9,8 +9,6 @@ import java.util.regex.Pattern;
 
 import com.microsoft.playwright.Route;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.AdministratorsEditPage;
 import com.sonatype.clm.testing.playwright.pages.AdministratorsEditPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.AdministratorsPage;
@@ -18,10 +16,10 @@ import com.sonatype.clm.testing.playwright.pages.AdministratorsPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.UnsavedChangesModalComponent;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightWaitUtils;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,7 +111,7 @@ public class AdministratorsPlaywrightTest
 
   private AdministratorsEditPageAssertions editAssertions;
 
-  @Before
+  @BeforeEach
   public void seedUsersAndOpenAsAdmin() {
     seedNonAdminUsers();
 
@@ -138,7 +136,7 @@ public class AdministratorsPlaywrightTest
    * still be open. Dismiss via the page object so we don't leak raw modal CSS into the test
    * (§4). The next {@code @Before} re-navigates regardless, so this is purely defensive.
    */
-  @After
+  @AfterEach
   public void dismissUnsavedChangesIfOpen() {
     try {
       new UnsavedChangesModalComponent().continueIfOpen();
@@ -149,7 +147,7 @@ public class AdministratorsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testDefaultRolesAndBuiltinUsers() {
     adminsAssertions.shouldShowContainer();
     adminsAssertions.shouldShowPageTitle();
@@ -170,7 +168,7 @@ public class AdministratorsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testClickEdit() {
     assertThat(adminsPage.row(0)).isVisible();
     PlaywrightWaitUtils.clickAndWaitForUrlContains(page, adminsPage.row(0),
@@ -185,7 +183,7 @@ public class AdministratorsPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testSubmitAddMembersForm() {
     assertThat(adminsPage.row(0)).isVisible();
     adminsAssertions.rowShouldHaveRole(0, POLICY_ADMIN_ROLE_NAME);
@@ -226,7 +224,7 @@ public class AdministratorsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAdministratorsTable_emptyState() {
     page.route(ROLE_MEMBERSHIPS_URL, route -> route.fulfill(new Route.FulfillOptions()
         .setStatus(200)
@@ -240,7 +238,7 @@ public class AdministratorsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAdministratorsTable_loadErrorWithRetryButton() {
     page.route(ROLE_MEMBERSHIPS_URL, route -> route.fulfill(new Route.FulfillOptions()
         .setStatus(500)

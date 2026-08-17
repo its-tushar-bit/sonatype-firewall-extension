@@ -10,7 +10,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.DashboardWaiversComponent;
 import com.sonatype.clm.testing.playwright.pages.HeaderRegressionComponent;
@@ -30,8 +29,8 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -61,7 +60,7 @@ public class PermissionBasedRegressionPlaywrightTest
    * absent (divergence: no route isAuthorized guard).
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testUserManagement_userWithoutConfigureSystem_containerRendersWithLoadError() {
     User user = tempEntity.newUser(TemporaryEntity.uuid());
 
@@ -78,7 +77,7 @@ public class PermissionBasedRegressionPlaywrightTest
    * VIEW_ROLES is the minimum to make the gear visible (counted by hasAnyPermissions in MenuBar.jsx).
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSystemPreferencesMenu_userWithoutConfigureSystem_menuButtonVisibleButItemsHidden() {
     User user = tempEntity.newUser(TemporaryEntity.uuid());
     Role viewRolesRole = tempEntity.newRole(true, Permission.VIEW_ROLES);
@@ -104,7 +103,7 @@ public class PermissionBasedRegressionPlaywrightTest
    * them unconditionally).
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOrgActionsDropdown_readOnlyUser_dropdownItemsAlwaysVisible() {
     Organization org = tempEntity.newOrganization();
     User user = tempEntity.newUser(TemporaryEntity.uuid());
@@ -126,7 +125,7 @@ public class PermissionBasedRegressionPlaywrightTest
    * unconditionally rendered).
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDashboardWaiversTab_existingAndRequestedWaiversSubTabsPresent() {
     playwrightRefreshOrOpen(DashboardPage.urlToWaivers());
     playwrightLogin();
@@ -142,7 +141,7 @@ public class PermissionBasedRegressionPlaywrightTest
    * WAIVER_REQUEST_WORKFLOW_ENABLED has enabledWhenAbsent=true in the test server.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testViolationDetailPage_userWithoutWaivePermission_addWaiverButtonHidden() {
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());

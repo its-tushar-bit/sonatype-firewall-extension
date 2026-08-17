@@ -41,8 +41,8 @@
     -->
     <failsafe.forkCount>0.5C</failsafe.forkCount>
     <!--
-      JUnit 4 @Category filtering, surfaced through Maven so CI can target specific suites
-      (see com.sonatype.clm.testing.api.categories.ApiRegressionTest). Empty = no filtering.
+      JUnit 5 @Tag filtering, surfaced through Maven so CI can target specific suites
+      (every test carries the inherited @Tag("apiRegression")). Empty = no filtering.
     -->
     <failsafe.groups></failsafe.groups>
     <failsafe.excludedGroups></failsafe.excludedGroups>
@@ -185,6 +185,29 @@
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-test</artifactId>
     </dependency>
+    <!--
+      @LegacyServerTest + LegacyServerHarnessExtension: reproduces the ordered JUnit 4 @Rule
+      lifecycle of the AbstractResourceTest / AbstractBaseIntegrationTest own-server chain as
+      Jupiter callbacks, so these tests boot the embedded IQ Server under the JUnit 5 engine.
+    -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-variant-test-support</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- JUnit 5 (Jupiter) engine + JUnit Platform launcher so Failsafe runs under JUnitPlatformProvider. -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.junit.vintage</groupId>
+          <artifactId>junit-vintage-engine</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
   </dependencies>
 
   <profiles>
@@ -249,8 +272,8 @@
     <!--
       Activate with:  mvn verify -pl insight-brain-api-regression-test -Papi-regression
 
-      - Selects @Category(ApiRegressionTest.class) only. Today this category covers every
-        test in this module; the profile is in place so future categories can be added
+      - Selects the @Tag("apiRegression") JUnit 5 tag only. Today this tag covers every
+        test in this module; the profile is in place so future tags can be added
         without changing the CI invocation.
       - Pins forkCount=1: the suite is small enough that a single fork (= single embedded
         IQ Server boot) is faster than parallel forks paying boot cost N times. Revisit
@@ -262,7 +285,7 @@
         <!-- Opt-in flip: enable tests when the profile is activated. -->
         <skipTests>false</skipTests>
         <failsafe.forkCount>1</failsafe.forkCount>
-        <failsafe.groups>com.sonatype.clm.testing.api.categories.ApiRegressionTest</failsafe.groups>
+        <failsafe.groups>apiRegression</failsafe.groups>
       </properties>
     </profile>
   </profiles>

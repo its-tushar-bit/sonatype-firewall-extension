@@ -9,7 +9,6 @@ import java.net.URL;
 import java.nio.file.Paths;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.ImportSbomModalPage;
 import com.sonatype.clm.testing.playwright.pages.ImportSbomModalPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
@@ -19,11 +18,11 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /** Import SBOM modal launched from an application's SBOMs tile (ImportSbomModal.jsx). */
 public class ImportSbomModalPlaywrightTest
@@ -49,7 +48,7 @@ public class ImportSbomModalPlaywrightTest
 
   private ImportSbomModalPageAssertions modalAssertions;
 
-  @Before
+  @BeforeEach
   public void seedAndOpen() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
     // The eval pipeline gates on APPLICATION_EVALUATION etc. even though import only needs SBOM_MANAGER.
@@ -73,7 +72,7 @@ public class ImportSbomModalPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testImportSbomModal_rendersWithFileInputAndButtons() {
     ownerSummary.importSbomButton().click();
     modalAssertions.shouldBeVisible();
@@ -81,7 +80,7 @@ public class ImportSbomModalPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testImportSbomModal_cancelDismissesModal() {
     ownerSummary.importSbomButton().click();
     modalAssertions.shouldBeVisible();
@@ -90,13 +89,13 @@ public class ImportSbomModalPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testImportSbomModal_cycloneDxUploadProgressesPastInitialPage() throws Exception {
     ownerSummary.importSbomButton().click();
     modalAssertions.shouldBeVisible();
 
     URL fixture = getClass().getResource(CYCLONEDX_FIXTURE);
-    assertNotNull("Fixture missing on classpath: " + CYCLONEDX_FIXTURE, fixture);
+    assertNotNull(fixture, "Fixture missing on classpath: " + CYCLONEDX_FIXTURE);
     modal.uploadFile(Paths.get(fixture.toURI()));
     modalAssertions.shouldShowSelectedFile("cyclonedx-sample.json");
     modal.importButton().click();
@@ -107,13 +106,13 @@ public class ImportSbomModalPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testImportSbomModal_spdxUploadImportsSuccessfully() throws Exception {
     ownerSummary.importSbomButton().click();
     modalAssertions.shouldBeVisible();
 
     URL fixture = getClass().getResource(SPDX_FIXTURE);
-    assertNotNull("Fixture missing on classpath: " + SPDX_FIXTURE, fixture);
+    assertNotNull(fixture, "Fixture missing on classpath: " + SPDX_FIXTURE);
     modal.uploadFile(Paths.get(fixture.toURI()));
     modalAssertions.shouldShowSelectedFile("spdx-sample.json");
     modal.importButton().click();
@@ -129,13 +128,13 @@ public class ImportSbomModalPlaywrightTest
    * upload. None of the current fixtures trigger upload-time rejection.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testImportSbomModal_malformedFileTransitionsPastUploadPage() throws Exception {
     ownerSummary.importSbomButton().click();
     modalAssertions.shouldBeVisible();
 
     URL fixture = getClass().getResource(MALFORMED_FIXTURE);
-    assertNotNull("Fixture missing on classpath: " + MALFORMED_FIXTURE, fixture);
+    assertNotNull(fixture, "Fixture missing on classpath: " + MALFORMED_FIXTURE);
     modal.uploadFile(Paths.get(fixture.toURI()));
     modal.importButton().click();
 
@@ -144,13 +143,13 @@ public class ImportSbomModalPlaywrightTest
 
   /** NxFileUpload has no client-side allowlist — .exe is accepted at the dialog; rejection is server-side. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testImportSbomModal_unsupportedExtensionAcceptedClientSide() throws Exception {
     ownerSummary.importSbomButton().click();
     modalAssertions.shouldBeVisible();
 
     URL fixture = getClass().getResource(UNSUPPORTED_FIXTURE);
-    assertNotNull("Fixture missing on classpath: " + UNSUPPORTED_FIXTURE, fixture);
+    assertNotNull(fixture, "Fixture missing on classpath: " + UNSUPPORTED_FIXTURE);
     modal.uploadFile(Paths.get(fixture.toURI()));
 
     modalAssertions.shouldShowSelectedFile("unsupported.exe");

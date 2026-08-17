@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.BaseUrlConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.DeveloperRiskTablePage;
 import com.sonatype.clm.testing.playwright.pages.ScmWizardPage;
@@ -18,10 +17,10 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -41,7 +40,7 @@ public class ScmWizardPlaywrightTest
 
   private String originalBaseUrl;
 
-  @Before
+  @BeforeEach
   public void seedAppWithoutScmConfiguration() {
     org = tempEntity.newOrganization("scm-" + TemporaryEntity.uuid());
     appName = "scm-app-" + TemporaryEntity.uuid();
@@ -51,7 +50,7 @@ public class ScmWizardPlaywrightTest
     playwrightLogin();
   }
 
-  @After
+  @AfterEach
   public void restoreBaseUrl() {
     // Restore via the same UI path so the IQ server's config cache is invalidated correctly.
     playwrightRefreshOrOpen(BaseUrlConfigurationPage.url());
@@ -102,7 +101,7 @@ public class ScmWizardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testScmWizard_modalRendersWizardCardWithCoreSectionsAndLinks() {
     ScmWizardPageAssertions assertions = openScmModalForSeededApp();
 
@@ -112,7 +111,7 @@ public class ScmWizardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testScmWizard_githubTokenUrlRenders() {
     ScmWizardPageAssertions assertions = openScmModalForSeededApp();
 
@@ -120,7 +119,7 @@ public class ScmWizardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testScmWizard_configureBaseUrlSectionShownWhenBaseUrlNotSet() {
     clearBaseUrlViaUi();
     playwrightRefreshOrOpen(SonatypeDeveloperPage.url());
@@ -130,7 +129,7 @@ public class ScmWizardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testScmWizard_configureBaseUrlSectionHiddenWhenBaseUrlSet() {
     setBaseUrlViaUi(CUSTOM_BASE_URL);
     playwrightRefreshOrOpen(SonatypeDeveloperPage.url());

@@ -8,17 +8,15 @@ package com.sonatype.clm.testing.playwright.tests;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.ColorScheme;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.LoginPage;
 import com.sonatype.clm.testing.playwright.pages.NexusOnePage;
 import com.sonatype.clm.testing.playwright.pages.NexusOnePageAssertions;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Verifies that the Nexus One SPA correctly reacts to theme settings, including live OS
@@ -52,7 +50,7 @@ public class NexusOneThemePlaywrightTest
 
   private static final String MODE_LIGHT = "light";
 
-  @Before
+  @BeforeEach
   public void enableNexusOneUiAndLogin() {
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
     // Log in on the classic shell first so the NexusOneIndexAccessFilter will allow the
@@ -76,13 +74,13 @@ public class NexusOneThemePlaywrightTest
    * {@code PlaywrightException} on an opaque {@code about:blank} origin and mask the original
    * failure cause).
    */
-  @After
+  @AfterEach
   public void resetPreviewNexusOneUiFlag() {
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(false);
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSystemLightModeProducesLightAppearance() {
     page.emulateMedia(new Page.EmulateMediaOptions().setColorScheme(ColorScheme.LIGHT));
     NexusOnePageAssertions assertions = openNexusOnePage();
@@ -91,7 +89,7 @@ public class NexusOneThemePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSystemDarkModeProducesDarkAppearance() {
     page.emulateMedia(new Page.EmulateMediaOptions().setColorScheme(ColorScheme.DARK));
     NexusOnePageAssertions assertions = openNexusOnePage();
@@ -100,7 +98,7 @@ public class NexusOneThemePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testThemeUpdatesReactivelyWhenSystemColorSchemeChanges() {
     page.emulateMedia(new Page.EmulateMediaOptions().setColorScheme(ColorScheme.LIGHT));
     NexusOnePageAssertions assertions = openNexusOnePage();
@@ -113,7 +111,7 @@ public class NexusOneThemePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testExplicitDarkThemeOverridesSystemPreference() {
     page.emulateMedia(new Page.EmulateMediaOptions().setColorScheme(ColorScheme.LIGHT));
     NexusOnePageAssertions assertions = openNexusOnePage();
@@ -125,7 +123,7 @@ public class NexusOneThemePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testExplicitLightThemeOverridesSystemPreference() {
     page.emulateMedia(new Page.EmulateMediaOptions().setColorScheme(ColorScheme.DARK));
     NexusOnePageAssertions assertions = openNexusOnePage();

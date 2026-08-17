@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.WebhookEditorPage;
 import com.sonatype.clm.testing.playwright.pages.WebhookEditorPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.WebhookListPage;
@@ -16,10 +15,10 @@ import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -40,7 +39,7 @@ public class WebhookPlaywrightTest
 
   private WebhookEditorPageAssertions editorAssertions;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     listPage = new WebhookListPage();
     listAssertions = new WebhookListPageAssertions(listPage);
@@ -50,13 +49,13 @@ public class WebhookPlaywrightTest
     playwrightLogin();
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     deleteAllTestWebhooks();
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testWebhookListRendersEmptyStateAndAddNavigates() {
     assertThat(listPage.container()).isVisible();
 
@@ -68,7 +67,7 @@ public class WebhookPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testCreateWebhookUrlValidationAndHttpWarning() {
     listPage.addWebhookButton().click();
     assertThat(editorPage.container()).isVisible();
@@ -88,7 +87,7 @@ public class WebhookPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testCreateWebhookEventTypesAndSuccessfulSave() {
     String webhookUrl = WEBHOOK_URL_PREFIX + TemporaryEntity.uuid();
 
@@ -111,7 +110,7 @@ public class WebhookPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testCreateWebhook_missingApplicationLicense_pageFailsToLoad() {
     setMissingFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS, LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
     playwrightRefreshOrOpen(WebhookEditorPage.createUrl());
@@ -121,7 +120,7 @@ public class WebhookPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEditWebhookPrePopulatedFieldsUpdateAndCancel() {
     String webhookUrl = WEBHOOK_URL_PREFIX + TemporaryEntity.uuid();
 
@@ -156,7 +155,7 @@ public class WebhookPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeleteWebhookConfirmationAndRemoval() {
     String webhookUrl = WEBHOOK_URL_PREFIX + TemporaryEntity.uuid();
 

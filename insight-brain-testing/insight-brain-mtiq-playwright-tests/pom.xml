@@ -38,7 +38,7 @@
     <!-- When true, tests that call playwrightManualPauseIfEnabled() block for Playwright Inspector. -->
     <playwright.manualPause>false</playwright.manualPause>
     <!--
-      JUnit 4 @Category filtering, surfaced through Maven so CI can target specific suites.
+      JUnit 5 @Tag filtering, surfaced through Maven so CI can target specific suites.
       Empty = no filtering (run every MTIQ test in this module).
     -->
     <failsafe.groups></failsafe.groups>
@@ -322,6 +322,17 @@
       <version>${playwright.version}</version>
       <scope>test</scope>
     </dependency>
+    <!-- JUnit 5 (Jupiter) engine + JUnit Platform launcher so Surefire/Failsafe run under JUnitPlatformProvider. -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-launcher</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <profiles>
@@ -391,7 +402,7 @@
     <profile>
       <id>mtiq</id>
       <properties>
-        <failsafe.groups>com.sonatype.clm.testing.playwright.categories.MtiqTest</failsafe.groups>
+        <failsafe.groups>mtiq</failsafe.groups>
       </properties>
     </profile>
   </profiles>

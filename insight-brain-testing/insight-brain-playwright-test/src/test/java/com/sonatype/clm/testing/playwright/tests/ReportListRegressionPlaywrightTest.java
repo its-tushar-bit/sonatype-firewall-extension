@@ -11,7 +11,6 @@ import java.net.URL;
 import com.microsoft.playwright.Locator;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.playwright.pages.ReportListPage;
 import com.sonatype.clm.testing.playwright.pages.ReportListPageAssertions;
@@ -24,9 +23,9 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -45,14 +44,14 @@ public class ReportListRegressionPlaywrightTest
 
   private static final String BUILD_REPORT_DIR = "/canned-reports/large-report";
 
-  @Before
+  @BeforeEach
   public void openReportsPageAsAdmin() {
     playwrightRefreshOrOpen(ReportListPage.url());
     playwrightLogin();
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testStageCells_unevaluatedApplicationShowsEmptyCells() {
     String suffix = TemporaryEntity.uuid();
     Organization org = tempEntity.newOrganization(ORG_NAME_PREFIX + "-122-" + suffix);
@@ -76,7 +75,7 @@ public class ReportListRegressionPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testStageCells_evaluatedApplicationBuildCellNavigatesToReport() throws IOException {
     String suffix = TemporaryEntity.uuid();
     Organization org = tempEntity.newOrganization(ORG_NAME_PREFIX + "-123-" + suffix);

@@ -18,7 +18,6 @@ import java.util.regex.Pattern;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.SbomApplicationsRegressionAssertions;
 import com.sonatype.clm.testing.playwright.pages.SbomApplicationsRegressionPage;
 import com.sonatype.clm.testing.playwright.pages.SbomManagerBomRegressionPage;
@@ -50,10 +49,10 @@ import org.assertj.core.api.Assertions;
 
 import org.apache.commons.io.FileUtils;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
@@ -113,7 +112,7 @@ public class SbomManagerBomPlaywrightTest
 
   private Application seedApp;
 
-  @Before
+  @BeforeEach
   public void seedAndOpenBomPageAsAdmin() {
     SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(false);
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
@@ -130,7 +129,7 @@ public class SbomManagerBomPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testBomPageRenders_tabsComponentSearchAndOriginalBomViewer() {
     SbomManagerBomRegressionPage page = new SbomManagerBomRegressionPage();
 
@@ -149,7 +148,7 @@ public class SbomManagerBomPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOriginalBom_searchProducesMatchCountForHitsAndZeroForNoMatch() {
     SbomManagerBomRegressionPage page = new SbomManagerBomRegressionPage();
     page.clickOriginalBomTab();
@@ -165,7 +164,7 @@ public class SbomManagerBomPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testVersionDropdown_navigatesToSelectedVersion() {
     SbomManagerBomRegressionPage page = new SbomManagerBomRegressionPage();
 
@@ -181,7 +180,7 @@ public class SbomManagerBomPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testInvalidSbomAlert_dismissRevealsPersistentIndicator() {
     SbomManagerBomRegressionPage page = new SbomManagerBomRegressionPage();
 
@@ -199,7 +198,7 @@ public class SbomManagerBomPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testExportButton_dropdownItemsModalAndInvalidBomDisabled() {
     SbomManagerBomRegressionPage page = new SbomManagerBomRegressionPage();
 
@@ -232,7 +231,7 @@ public class SbomManagerBomPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testExportSbom_downloadFiresAndProducesNonEmptyFile() throws IOException {
     playwrightRefreshOrOpen(SbomManagerBomRegressionPage.url(seedApp.getPublicId(), SBOM_VERSION_ID_INVALID));
     SbomManagerBomRegressionPage page = new SbomManagerBomRegressionPage();
@@ -241,13 +240,13 @@ public class SbomManagerBomPlaywrightTest
     Download download = page.clickExportPrimaryAndWaitForDownload();
     Assertions.assertThat(download.suggestedFilename()).isNotBlank();
 
-    Path savedPath = tempDir.newFile("exported-sbom").toPath();
+    Path savedPath = tempDir.resolve("exported-sbom");
     download.saveAs(savedPath);
     Assertions.assertThat(savedPath.toFile().length()).isGreaterThan(0);
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSummaryTile_withPoliciesSupported_showsPolicyViolationSection() {
     SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(true);
 
@@ -264,7 +263,7 @@ public class SbomManagerBomPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLoadError_retryReloadsPage() {
     page.route(SUMMARY_API_PATTERN, route -> route.fulfill(new Route.FulfillOptions()
         .setStatus(500)
@@ -284,14 +283,14 @@ public class SbomManagerBomPlaywrightTest
         .isVisible(VISIBLE_OPTS);
   }
 
-  @After
+  @AfterEach
   public void disableSbomPoliciesFlag() {
     page.unroute(SUMMARY_API_PATTERN);
     SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(false);
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOriginalBom_expandCollapseNode() {
     SbomManagerBomRegressionPage page = new SbomManagerBomRegressionPage();
     page.clickOriginalBomTab();
@@ -314,7 +313,7 @@ public class SbomManagerBomPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOriginalBom_smallSbomAutoExpandsOnLoad() {
     SbomManagerBomRegressionPage page = new SbomManagerBomRegressionPage();
     page.clickOriginalBomTab();
@@ -332,7 +331,7 @@ public class SbomManagerBomPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOriginalBom_searchShowsCountAndHighlightsMatchingText() {
     SbomManagerBomRegressionPage page = new SbomManagerBomRegressionPage();
     page.clickOriginalBomTab();
@@ -357,7 +356,7 @@ public class SbomManagerBomPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOriginalBom_arrayNodesShowIntelligentTitles() {
     SbomManagerBomRegressionPage page = new SbomManagerBomRegressionPage();
     page.clickOriginalBomTab();
@@ -371,7 +370,7 @@ public class SbomManagerBomPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOriginalBom_jsonFormatSbomRendersAndSearchWorks() {
     playwrightRefreshOrOpen(SbomManagerBomRegressionPage.url(seedApp.getPublicId(), SBOM_VERSION_ID_JSON));
     SbomManagerBomRegressionPage page = new SbomManagerBomRegressionPage();
@@ -501,7 +500,7 @@ public class SbomManagerBomPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testExportSbom_enrichedExportContainsVulnAliasUrls() throws IOException {
     playwrightRefreshOrOpen(
         SbomManagerBomRegressionPage.url(seedApp.getPublicId(), SBOM_VERSION_ID_ALIASES));
@@ -509,7 +508,7 @@ public class SbomManagerBomPlaywrightTest
     assertThat(page.reportTab()).isVisible(VISIBLE_OPTS);
 
     Download download = page.clickExportPrimaryAndWaitForDownload();
-    Path savedPath = tempDir.newFile("exported-sbom-aliases.xml").toPath();
+    Path savedPath = tempDir.resolve("exported-sbom-aliases.xml");
     download.saveAs(savedPath);
 
     String content = Files.readString(savedPath);

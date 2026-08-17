@@ -16,7 +16,6 @@ import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.SbomApplicationsRegressionAssertions;
 import com.sonatype.clm.testing.playwright.pages.SbomApplicationsRegressionPage;
 import com.sonatype.clm.testing.playwright.pages.SbomManagerBomRegressionPage;
@@ -43,9 +42,9 @@ import com.microsoft.playwright.assertions.LocatorAssertions;
 
 import org.apache.commons.io.FileUtils;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
@@ -76,7 +75,7 @@ public class SbomApplicationsRegressionPlaywrightTest
 
   private ThirdPartyScan firstScan;
 
-  @Before
+  @BeforeEach
   public void seedAndOpenSbomApplicationsAsAdmin() throws Exception {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
     setFeatures(LicensedFeature.SBOM_MANAGER);
@@ -88,7 +87,7 @@ public class SbomApplicationsRegressionPlaywrightTest
 
   /** SBOM Applications table — columns have expected headers and sortability; Latest Version link navigates to BOM. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testTableColumns_sortabilityAndLatestVersionLinkNavigatesToBom() {
     SbomApplicationsRegressionPage sbomApps = new SbomApplicationsRegressionPage();
     new SbomApplicationsRegressionAssertions(sbomApps).shouldHaveExpectedColumnsWithSortability();
@@ -103,7 +102,7 @@ public class SbomApplicationsRegressionPlaywrightTest
    * SBOM Applications table — sort resets after filter narrows to one row; sort button hidden in single-match state.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSortBehavior_multiAppAndSingleApp() {
     SbomApplicationsRegressionPage sbomApps = new SbomApplicationsRegressionPage();
     SbomApplicationsRegressionAssertions assertions = new SbomApplicationsRegressionAssertions(sbomApps);
@@ -129,7 +128,7 @@ public class SbomApplicationsRegressionPlaywrightTest
 
   /** SBOM Applications table — debounced name filter narrows rows; clearing restores full table. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testNameFilter_debounceAndClearRestoresFullTable() {
     SbomApplicationsRegressionPage sbomApps = new SbomApplicationsRegressionPage();
     SbomApplicationsRegressionAssertions assertions = new SbomApplicationsRegressionAssertions(sbomApps);
@@ -147,7 +146,7 @@ public class SbomApplicationsRegressionPlaywrightTest
    * message when no rows match filter.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRowCells_showCountersRelativeDateAndEmptyMessageWhenNoMatch() {
     SbomApplicationsRegressionPage sbomApps = new SbomApplicationsRegressionPage();
     SbomApplicationsRegressionAssertions assertions = new SbomApplicationsRegressionAssertions(sbomApps);

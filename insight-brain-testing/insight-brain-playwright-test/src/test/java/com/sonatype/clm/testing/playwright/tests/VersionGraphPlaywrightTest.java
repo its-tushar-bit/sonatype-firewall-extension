@@ -28,11 +28,10 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Playwright test for the Version Graph.
@@ -101,13 +100,13 @@ public class VersionGraphPlaywrightTest
    * sides of every test so a flag flip does not leak into other tests sharing the same fork.
    * See PLAYWRIGHT_TEST_AUTHORING_GUIDE.md §3b ("Combined {@code @Before @After}") and §7b.
    */
-  @Before
-  @After
+  @BeforeEach
+  @AfterEach
   public void resetInnerSourceTransitiveWaiverFlag() {
     SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER.setEnabled(true);
   }
 
-  @Before
+  @BeforeEach
   public void seedAppPolicyAndOpenDashboardAsAdmin() throws IOException {
     LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
     SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER.setEnabled(false);
@@ -130,19 +129,19 @@ public class VersionGraphPlaywrightTest
   // the full Version Explorer → Recommended Versions → Compare Versions flow.
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testVersionGraph_debugComponent_versionExplorerTileVisible() {
     runComponentScenario("debugComponent");
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testVersionGraph_postgresqlComponent_noVersionExplorerTileWhenHdsHasNoGraph() {
     runComponentScenario("postgresqlComponent");
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testVersionGraph_debugComponent_compareVersionsTable() {
     ComponentScenario scenario = openScenarioOverview("debugComponent");
 

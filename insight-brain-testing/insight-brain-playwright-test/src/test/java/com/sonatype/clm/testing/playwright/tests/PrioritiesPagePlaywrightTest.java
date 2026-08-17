@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.PrioritiesPage;
 import com.sonatype.clm.testing.playwright.pages.PrioritiesPageAssertions;
 import com.sonatype.clm.testing.playwright.utils.TestReportEvaluator;
@@ -36,10 +35,10 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.microsoft.playwright.Route;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -61,12 +60,12 @@ public class PrioritiesPagePlaywrightTest
 
   private TestReportEvaluator evaluator;
 
-  @Before
+  @BeforeEach
   public void prepareApp() throws IOException {
     seedDb();
   }
 
-  @After
+  @AfterEach
   public void resetContextState() {
     // BrowserContext is reused across tests in the same fork — clear clipboard grants and any
     // page.route intercepts to avoid leaking them into sibling tests.
@@ -93,7 +92,7 @@ public class PrioritiesPagePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testPrioritiesPage_expiredWaiverShowsQuestionCircleIcon() throws IOException {
     evaluator.evaluatePolicy();
     openPrioritiesPage();
@@ -118,7 +117,7 @@ public class PrioritiesPagePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testPrioritiesPage_soonToExpireWaiverShowsWarningTriangleIcon() throws IOException {
     evaluator.evaluatePolicy();
     openPrioritiesPage();
@@ -148,7 +147,7 @@ public class PrioritiesPagePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testPrioritiesPage_rendersWithHeaderAndTitleForNoBranch() throws IOException {
     evaluator.evaluatePolicy();
     openPrioritiesPage();
@@ -161,7 +160,7 @@ public class PrioritiesPagePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testPrioritiesPage_headerShowsMetadataAndViewDropdown() throws IOException {
     evaluator.evaluatePolicy();
     openPrioritiesPage();
@@ -175,7 +174,7 @@ public class PrioritiesPagePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testPrioritiesPage_commitCopyButtonShowsCheckIconAfterClick() throws IOException {
     // Scope clipboard permissions to this test: BrowserContext is reused across tests in the
     // same fork, so revoke in finally to avoid leaking the grant to siblings even if this test
@@ -199,7 +198,7 @@ public class PrioritiesPagePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testPrioritiesPage_filterInputAndFailWarnToggleUpdateUrlParams() throws IOException {
     evaluator.evaluatePolicy();
     openPrioritiesPage();
@@ -221,7 +220,7 @@ public class PrioritiesPagePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testPrioritiesPage_fullyWaivedRowShowsWaivedLabel() throws IOException {
     evaluator.evaluatePolicy();
     openPrioritiesPage();
@@ -244,7 +243,7 @@ public class PrioritiesPagePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testPrioritiesPage_recommendationCellShowsWaiveViolationsForUnknownReachability() throws IOException {
     evaluator.evaluatePolicy();
     PrioritiesPage prioritiesPage = new PrioritiesPage();
@@ -258,7 +257,7 @@ public class PrioritiesPagePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testPrioritiesPage_dependencyIndicatorsRenderInComponentCell() throws IOException {
     evaluator.evaluatePolicy();
     openPrioritiesPage();
@@ -267,7 +266,7 @@ public class PrioritiesPagePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testPrioritiesPage_licenseLockScreenShownWhenDeveloperDashboardDisabled() throws IOException {
     evaluator.evaluatePolicy();
     page.route(Pattern.compile(".*/rest/product/features([?#][^/]*)?$"),

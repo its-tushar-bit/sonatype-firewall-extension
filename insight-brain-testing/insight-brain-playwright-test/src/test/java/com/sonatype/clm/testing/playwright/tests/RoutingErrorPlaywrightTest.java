@@ -14,12 +14,11 @@ import com.sonatype.clm.testing.playwright.pages.RoutingErrorBoxComponent;
 import com.sonatype.clm.testing.playwright.pages.RoutingErrorBoxComponentAssertions;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 import com.sonatype.insight.brain.model.Organization;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
-import org.junit.experimental.categories.Category;
 
 /**
  * Playwright test for routing errors.
@@ -50,14 +49,14 @@ public class RoutingErrorPlaywrightTest
     new RoutingErrorBoxComponentAssertions(errorBox).shouldHaveErrorText("Unknown Address");
   }
 
-  @Before
+  @BeforeEach
   public void startup() {
     playwrightRefreshOrOpen(OWNER_SUMMARY_URL);
     playwrightLogin();
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void validRoutesDoNotShowError() {
     playwrightRefreshOrOpen(OWNER_SUMMARY_URL);
 
@@ -66,7 +65,7 @@ public class RoutingErrorPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void invalidRoutesShowErrorThenHiddenOnOriginalValidRoute() {
     navigateToInvalidSpaRoute();
 
@@ -79,7 +78,7 @@ public class RoutingErrorPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void invalidRoutesShowErrorThenHiddenOnNewValidRoute() {
     navigateToInvalidSpaRoute();
 

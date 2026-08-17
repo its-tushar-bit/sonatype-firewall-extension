@@ -10,7 +10,6 @@ import com.microsoft.playwright.Page;
 import com.microsoft.playwright.assertions.LocatorAssertions;
 import com.microsoft.playwright.options.AriaRole;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.playwright.pages.SourceControlConfigurationPage;
@@ -20,10 +19,10 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -109,7 +108,7 @@ public class SourceControlRegressionPlaywrightTest
 
   private static final String REPO_URL_PR = "https://github.com/test/pr-repo";
 
-  @Before
+  @BeforeEach
   public void openDashboardAndLoginAsAdmin() {
     playwrightRefreshOrOpen(DashboardPage.url());
     playwrightLogin();
@@ -134,7 +133,7 @@ public class SourceControlRegressionPlaywrightTest
    * UI clicks to cover manual step 2: sidebar → root org → Source Control tile.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testProviderFieldVisibility_usernameHiddenForGitHub_shownForBitbucket() {
     SourceControlRegressionPage regressionPage = new SourceControlRegressionPage();
     regressionPage.navigateToRootOrgSourceControlViaUi();
@@ -169,7 +168,7 @@ public class SourceControlRegressionPlaywrightTest
    * state is verified. Skipped when the GitHub App feature flag is not enabled.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testGitHubAppSection_seededInstallShowsReplaceButton() {
     // A source control config record must exist for the owner so the SC API response
     // includes the githubApps list with count > 0.
@@ -184,7 +183,7 @@ public class SourceControlRegressionPlaywrightTest
 
     editor.selectProvider(PROVIDER_GITHUB);
 
-    Assume.assumeTrue(MSG_GITHUB_APP_UNAVAILABLE, regressionPage.isGitHubAppAvailable());
+    Assumptions.assumeTrue(regressionPage.isGitHubAppAvailable(), MSG_GITHUB_APP_UNAVAILABLE);
 
     assertThat(regressionPage.githubAuthFieldset()).isVisible(VISIBLE_OPTS);
     assertThat(regressionPage.githubAuthFieldset().getByText(MSG_GITHUB_APP_COUNT))
@@ -207,7 +206,7 @@ public class SourceControlRegressionPlaywrightTest
    * asserts the advanced AutoPR checkboxes appear and are enabled.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAutomationToggles_disabledWhenAutomationNotSupported() {
     SourceControlRegressionPage regressionPage = new SourceControlRegressionPage();
     regressionPage.mockProductFeatures(FEATURE_NOTIFICATIONS, FEATURE_SAAS_SCM_PRS);
@@ -246,7 +245,7 @@ public class SourceControlRegressionPlaywrightTest
    * CSS-hidden so only {@code isEnabled()} (not {@code isVisible()}) is reliable on them.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRemediationPrToggle_advancedAutoprOptionsEnabledWhenToggleOn() {
     tempEntity.newSourceControl(Organization.ROOT_ORGANIZATION_ID, null, null,
         SourceControlProvider.GITHUB, true, null, "main");
@@ -272,7 +271,7 @@ public class SourceControlRegressionPlaywrightTest
 
   /** Root-org SC config seeded via tempEntity — cleanup is guaranteed even if Reset fails. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSaveCreatesConfig_resetModalClearsConfig() {
     tempEntity.newSourceControl(Organization.ROOT_ORGANIZATION_ID, null, TEST_TOKEN, SourceControlProvider.GITHUB);
 
@@ -306,7 +305,7 @@ public class SourceControlRegressionPlaywrightTest
    * not exist in the current implementation.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAuthWarningBanner_shownWhenTokenNotConfigured() {
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
@@ -323,7 +322,7 @@ public class SourceControlRegressionPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOrgSourceControl_inheritOverrideRadios_inheritedFieldsReadOnly() {
     // Seed root org with a non-GitHub provider so child can inherit a non-null parentValue.
     // GitLab is chosen because shouldShowGitHubAppAuth returns false for non-GitHub providers,
@@ -373,7 +372,7 @@ public class SourceControlRegressionPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAppSourceControl_urlValidation_updateModal_testConfigButtonDisabledWhenDirty() {
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
@@ -423,7 +422,7 @@ public class SourceControlRegressionPlaywrightTest
    * {@code isSourceControlForSourceTileSupported = false}.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSourceControlUnsupported_showsErrorAlert_noFormRendered() {
     SourceControlRegressionPage regressionPage = new SourceControlRegressionPage();
     regressionPage.mockProductFeatures();
@@ -444,7 +443,7 @@ public class SourceControlRegressionPlaywrightTest
 
   /** SC metrics endpoint mocked — the embedded server does not generate real PR execution history. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAppSourceControl_automatedPrTable_rendersWhenMetricsPresent() {
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());

@@ -9,7 +9,6 @@ import java.io.IOException;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.ComponentLegalOverviewPage;
 import com.sonatype.clm.testing.playwright.pages.OriginalSourcesFormPage;
 import com.sonatype.clm.testing.playwright.pages.OriginalSourcesFormPageAssertions;
@@ -20,9 +19,9 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -53,7 +52,7 @@ public class ComponentLegalOriginalSourcesPlaywrightTest
 
   private OriginalSourcesFormPageAssertions assertions;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     seedTestData();
     playwrightRefreshOrOpen(ComponentLegalOverviewPage.url(appPublicId, COMPONENT_HASH));
@@ -81,7 +80,7 @@ public class ComponentLegalOriginalSourcesPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOriginalSourcesForm_renders() {
 
     assertions.shouldShowTile();
@@ -92,7 +91,7 @@ public class ComponentLegalOriginalSourcesPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOriginalSources_addLinkAddsNewRow() {
 
     sourcesPage.openOriginalSourcesModal();
@@ -109,7 +108,7 @@ public class ComponentLegalOriginalSourcesPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOriginalSources_urlFieldConstraints() {
 
     sourcesPage.openOriginalSourcesModal();
@@ -130,7 +129,7 @@ public class ComponentLegalOriginalSourcesPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOriginalSources_noModificationsAndSaveBecomesActive() {
 
     sourcesPage.openOriginalSourcesModal();
@@ -146,7 +145,7 @@ public class ComponentLegalOriginalSourcesPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOriginalSources_scopeDropdownVisibleAndCancelCloses() {
 
     sourcesPage.openOriginalSourcesModal();

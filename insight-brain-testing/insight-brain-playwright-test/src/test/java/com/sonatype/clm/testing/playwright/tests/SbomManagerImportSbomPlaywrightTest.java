@@ -10,7 +10,6 @@ import com.microsoft.playwright.assertions.LocatorAssertions;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.SbomApplicationsPage;
 import com.sonatype.clm.testing.playwright.pages.SbomApplicationsPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.SbomManagerOwnerSummaryPage;
@@ -20,9 +19,9 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Regression tests for the SBOM Manager Import SBOM modal.
@@ -38,7 +37,7 @@ public class SbomManagerImportSbomPlaywrightTest
 
   private Organization seedOrg;
 
-  @Before
+  @BeforeEach
   public void seedAndOpenOwnerSummaryAsAdmin() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
     setFeatures(LicensedFeature.SBOM_MANAGER);
@@ -63,7 +62,7 @@ public class SbomManagerImportSbomPlaywrightTest
    * Divergence: manual says "Open Actions &gt; Import SBOM"; live UI shows a direct "Import" NxButton.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testImportSbomModal_opensWithFileUploadControl() {
     SbomManagerOwnerSummaryPage summaryPage = new SbomManagerOwnerSummaryPage();
 

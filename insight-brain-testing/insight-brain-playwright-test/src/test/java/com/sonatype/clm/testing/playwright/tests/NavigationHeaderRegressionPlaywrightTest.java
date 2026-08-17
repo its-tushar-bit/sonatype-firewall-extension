@@ -6,14 +6,13 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.HeaderRegressionAssertions;
 import com.sonatype.clm.testing.playwright.pages.HeaderRegressionComponent;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Regression tests for Navigation Header dropdown menus.
@@ -25,7 +24,7 @@ import org.junit.experimental.categories.Category;
 public class NavigationHeaderRegressionPlaywrightTest
     extends AbstractIqUiTest
 {
-  @Before
+  @BeforeEach
   public void openDashboardAndLogin() {
     playwrightRefreshOrOpen(DashboardPage.url());
     playwrightLogin();
@@ -36,7 +35,7 @@ public class NavigationHeaderRegressionPlaywrightTest
    * Divergence: "version info" link absent; "Documentation" label → "Online Help".
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testHeaderHelpMenu_dropdownOpensWithLinks() {
     HeaderRegressionComponent header = new HeaderRegressionComponent();
     header.helpMenuButton().click();
@@ -53,7 +52,7 @@ public class NavigationHeaderRegressionPlaywrightTest
    * Divergence: manual says "User Tokens"; live label is "User Tokens Configuration".
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testHeaderSystemPreferencesMenu_dropdownOpensWithAllSections() {
     HeaderRegressionComponent header = new HeaderRegressionComponent();
     header.systemConfigMenuButton().click();

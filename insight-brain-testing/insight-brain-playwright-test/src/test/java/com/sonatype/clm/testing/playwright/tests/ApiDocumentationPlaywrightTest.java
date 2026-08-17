@@ -6,14 +6,13 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.ApiDocumentationPage;
 import com.sonatype.clm.testing.playwright.pages.ApiDocumentationPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 public class ApiDocumentationPlaywrightTest
     extends AbstractIqUiTest
@@ -22,7 +21,7 @@ public class ApiDocumentationPlaywrightTest
 
   private ApiDocumentationPageAssertions apiAssertions;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     playwrightRefreshOrOpen(DashboardPage.url());
     playwrightLogin();
@@ -32,7 +31,7 @@ public class ApiDocumentationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testApiDocumentation_tryItOutExpandsExecuteButton() {
     apiAssertions.shouldShowSwaggerLoaded();
 

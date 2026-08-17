@@ -8,7 +8,6 @@ package com.sonatype.clm.testing.playwright.tests;
 import com.microsoft.playwright.Locator;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.OrgsAndPoliciesSidebarComponent;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.playwright.pages.SidebarComponent;
@@ -21,8 +20,8 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -34,7 +33,7 @@ public class NavigationSidebarContextPlaywrightTest
    * SidebarNavViolationList renders in violation detail context; the selected item is visible.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testViolationContextSidebar_sidebarNavListRenders() {
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
@@ -60,7 +59,7 @@ public class NavigationSidebarContextPlaywrightTest
    * Organizations collapsible in Orgs &amp; Policies sidebar toggles: open by default, collapses, re-expands.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testOrgsAndPoliciesSidebar_organizationsCategoryCollapsesAndExpands() {
     tempEntity.newOrganization(); // ensures ≥1 child link in #organizations-collapsible
 

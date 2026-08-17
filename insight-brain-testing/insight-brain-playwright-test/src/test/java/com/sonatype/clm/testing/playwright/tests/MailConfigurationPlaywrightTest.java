@@ -6,17 +6,16 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.MailConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.MailConfigurationPageAssertions;
 import com.sonatype.insight.brain.api.v2.service.ApiMailConfigurationService;
 
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +38,7 @@ public class MailConfigurationPlaywrightTest
 
   private MailConfigurationPageAssertions mailAssertions;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     playwrightRefreshOrOpen(MailConfigurationPage.url());
     playwrightLogin();
@@ -47,7 +46,7 @@ public class MailConfigurationPlaywrightTest
     mailAssertions = new MailConfigurationPageAssertions(mailPage);
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     playwrightLogout();
     try {
@@ -59,7 +58,7 @@ public class MailConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testMailConfigurationPageRenders() {
     mailAssertions.shouldRenderPageLayout();
     mailAssertions.shouldShowTestEmailWidgets();
@@ -67,7 +66,7 @@ public class MailConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testMailConfiguration_saveSuccessfully() {
     fillRequiredFields();
 
@@ -83,7 +82,7 @@ public class MailConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testMailConfiguration_deleteRemovesConfiguration() {
     fillRequiredFields();
     mailPage.saveButton().click();
@@ -102,7 +101,7 @@ public class MailConfigurationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSendTestEmail_showsErrorWhenHostUnreachable() {
     fillRequiredFields();
     mailPage.saveButton().click();

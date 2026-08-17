@@ -5,8 +5,6 @@
  */
 package com.sonatype.clm.testing.playwright.tests;
 
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.pages.AdvancedSearchConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.AdvancedSearchPage;
@@ -19,9 +17,9 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 
 import java.util.regex.Pattern;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -40,7 +38,7 @@ public class AdvancedSearchNavigationPlaywrightTest
 
   private static final String EXPECTED_RESULTS_LABEL_PREFIX = "Results:";
 
-  @Before
+  @BeforeEach
   public void ensureAdvancedSearchEnabledAndOpenDashboardAsAdmin() {
     ensureAdvancedSearchEnabled();
     playwrightRefreshOrOpen(DashboardPage.url());
@@ -48,7 +46,7 @@ public class AdvancedSearchNavigationPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testAdvancedSearch_FromDashboardSidebarNavigationAndKeywordFlow() {
     HeaderComponent header = new HeaderComponent();
     SidebarComponent sidebar = new SidebarComponent();
@@ -88,7 +86,7 @@ public class AdvancedSearchNavigationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAdvancedSearchConfigurationPageRenders() {
     playwrightRefreshOrOpen(AdvancedSearchConfigurationPage.url());
 

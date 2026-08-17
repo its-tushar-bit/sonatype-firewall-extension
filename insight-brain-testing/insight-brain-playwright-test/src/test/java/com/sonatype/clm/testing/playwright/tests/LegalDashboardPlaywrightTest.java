@@ -9,7 +9,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.regex.Pattern;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.pages.ComponentLegalOverviewPage;
 import com.sonatype.clm.testing.playwright.pages.ComponentLegalOverviewPageAssertions;
@@ -27,9 +26,8 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.microsoft.playwright.Locator.WaitForOptions;
 import com.microsoft.playwright.options.WaitForSelectorState;
 import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -72,7 +70,7 @@ public class LegalDashboardPlaywrightTest
 
   private LegalDashboardPageAssertions assertions;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     setFeatures(LicensedFeature.values());
     seed();
@@ -84,7 +82,7 @@ public class LegalDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @org.junit.jupiter.api.Tag("regression")
   public void testLegalDashboardLoadsWithApplicationsTabActive() {
     assertions.shouldBeVisible();
     legalDashboard.waitForApplicationsLoaded();
@@ -94,7 +92,7 @@ public class LegalDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @org.junit.jupiter.api.Tag("regression")
   public void testApplicationsTabSortByApplicationName() {
     assertions.shouldBeVisible();
     legalDashboard.waitForApplicationsLoaded();
@@ -107,7 +105,7 @@ public class LegalDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @org.junit.jupiter.api.Tag("regression")
   public void testApplicationsTabSortByLastScanTime() {
     assertions.shouldBeVisible();
     legalDashboard.waitForApplicationsLoaded();
@@ -120,7 +118,7 @@ public class LegalDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @org.junit.jupiter.api.Tag("regression")
   public void testApplicationsTabSortByAppCategories() {
     assertions.shouldBeVisible();
     legalDashboard.waitForApplicationsLoaded();
@@ -134,7 +132,7 @@ public class LegalDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @org.junit.jupiter.api.Tag("regression")
   public void testApplicationsTabPagination() {
     legalDashboard.container().waitFor();
     assertions.shouldBeVisible();
@@ -154,7 +152,7 @@ public class LegalDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @org.junit.jupiter.api.Tag("regression")
   public void testApplicationsTabClickRowNavigatesToDetails() {
     assertions.shouldBeVisible();
     legalDashboard.waitForApplicationsLoaded();
@@ -163,7 +161,7 @@ public class LegalDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @org.junit.jupiter.api.Tag("regression")
   public void testComponentsTabLoadsAndDisplaysTable() {
     assertions.shouldBeVisible();
     legalDashboard.waitForApplicationsLoaded();
@@ -183,7 +181,7 @@ public class LegalDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @org.junit.jupiter.api.Tag("regression")
   public void testComponentsTabSortByComponentName() {
     legalDashboard.switchToComponentsTab();
     assertions.shouldShowComponentsTableWithRows();
@@ -196,7 +194,7 @@ public class LegalDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @org.junit.jupiter.api.Tag("regression")
   public void testComponentsTabSortByLicense() {
     legalDashboard.switchToComponentsTab();
     assertions.shouldShowComponentsTableWithRows();
@@ -209,7 +207,7 @@ public class LegalDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @org.junit.jupiter.api.Tag("regression")
   public void testComponentsTabSortByApplicationCount() {
     legalDashboard.switchToComponentsTab();
     assertions.shouldShowComponentsTableWithRows();
@@ -222,7 +220,7 @@ public class LegalDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @org.junit.jupiter.api.Tag("regression")
   public void testComponentsTabSearch() {
     legalDashboard.switchToComponentsTab();
     assertions.shouldShowComponentsTableWithRows();
@@ -244,7 +242,7 @@ public class LegalDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @org.junit.jupiter.api.Tag("regression")
   public void testFilterDrawerOpensAndCloses() {
     assertions.shouldBeVisible();
     legalDashboard.openFilterDrawer();
@@ -256,7 +254,7 @@ public class LegalDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @org.junit.jupiter.api.Tag("regression")
   public void testFilterApplyUpdatesTable() {
     assertions.shouldBeVisible();
     legalDashboard.waitForApplicationsLoaded();
@@ -278,7 +276,7 @@ public class LegalDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @org.junit.jupiter.api.Tag("regression")
   public void testFilterSaveAndRevert() {
     assertions.shouldBeVisible();
     legalDashboard.waitForApplicationsLoaded();
@@ -304,7 +302,7 @@ public class LegalDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @org.junit.jupiter.api.Tag("regression")
   public void testCreateAttributionReportModalOpens() {
     assertions.shouldBeVisible();
     legalDashboard.waitForApplicationsLoaded();
@@ -335,7 +333,7 @@ public class LegalDashboardPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @org.junit.jupiter.api.Tag("regression")
   public void testComponentLegalOverviewRendersFromComponentsTab() {
     assertions.shouldBeVisible();
     legalDashboard.switchToComponentsTab();

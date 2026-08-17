@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.DataRetentionRegressionPage;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
@@ -15,9 +14,9 @@ import com.sonatype.insight.brain.model.Organization;
 
 import com.microsoft.playwright.assertions.LocatorAssertions;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -38,7 +37,7 @@ public class DataRetentionRegressionPlaywrightTest
 
   private static final String DEVELOP_STAGE = "develop";
 
-  @Before
+  @BeforeEach
   public void openDashboardAndLoginAsAdmin() {
     playwrightRefreshOrOpen(DashboardPage.url());
     playwrightLogin();
@@ -56,7 +55,7 @@ public class DataRetentionRegressionPlaywrightTest
    * tile rendering is also exercised.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEditorRendersWithFormAndSections() {
     Organization org = tempEntity.newOrganization();
 
@@ -77,7 +76,7 @@ public class DataRetentionRegressionPlaywrightTest
    * change without requiring text input.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testNoChangesGuard_andSaveChangePersistsOnReload() {
     Organization childOrg = tempEntity.newOrganization();
     navigateToOrgDataRetention(childOrg.getId());

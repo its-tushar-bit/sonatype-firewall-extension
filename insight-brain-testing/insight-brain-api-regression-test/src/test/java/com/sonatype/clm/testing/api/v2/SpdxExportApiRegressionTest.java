@@ -6,13 +6,11 @@
 package com.sonatype.clm.testing.api.v2;
 
 import com.sonatype.clm.testing.api.AbstractIqApiTest;
-import com.sonatype.clm.testing.api.categories.ApiRegressionTest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -38,7 +36,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * / {@code NotAcceptableException} in {@code ApiSpdxService}) before this regression can be
  * asserted. Tracking that fix outside this test-authoring PR keeps the change scoped.
  */
-@Category(ApiRegressionTest.class)
 public class SpdxExportApiRegressionTest
     extends AbstractIqApiTest
 {

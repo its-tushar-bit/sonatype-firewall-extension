@@ -5,18 +5,17 @@
  */
 package com.sonatype.clm.testing.playwright.tests.mtiq;
 
-import com.sonatype.clm.testing.playwright.categories.MtiqTest;
 import com.sonatype.clm.testing.playwright.mtiq.AbstractMtiqUiTest;
 import com.sonatype.clm.testing.playwright.pages.MtiqAdministratorsPage;
 import com.sonatype.clm.testing.playwright.pages.MtiqAdministratorsPageAssertions;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
-@Category(MtiqTest.class)
+@Tag("mtiq")
 public class MtiqAdministratorsPlaywrightTest
     extends AbstractMtiqUiTest
 {
@@ -31,7 +30,7 @@ public class MtiqAdministratorsPlaywrightTest
 
   private MtiqAdministratorsPageAssertions assertions;
 
-  @Before
+  @BeforeEach
   public void seedTenantAndLogin() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS, ProductLicenseDetails.PRODUCT_FOUNDATION);
     playwrightRefreshOrOpen("/");

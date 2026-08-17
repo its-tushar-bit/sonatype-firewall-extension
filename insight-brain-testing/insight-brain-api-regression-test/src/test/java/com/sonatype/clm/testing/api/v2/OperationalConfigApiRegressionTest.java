@@ -6,15 +6,13 @@
 package com.sonatype.clm.testing.api.v2;
 
 import com.sonatype.clm.testing.api.AbstractIqApiTest;
-import com.sonatype.clm.testing.api.categories.ApiRegressionTest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.model.Organization;
 
 import java.util.Map;
 
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 
@@ -57,7 +55,6 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
  * happy-path 200 needs a multipart license file, covered at the resource tier.</li>
  * </ul>
  */
-@Category(ApiRegressionTest.class)
 public class OperationalConfigApiRegressionTest
     extends AbstractIqApiTest
 {

@@ -9,17 +9,16 @@ import java.util.regex.Pattern;
 
 import com.microsoft.playwright.Page;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.LoginPage;
 import com.sonatype.clm.testing.playwright.pages.LoginPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.NexusOnePage;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -48,7 +47,7 @@ public class NexusOneIndexRedirectPlaywrightTest
    * {@code @Before @After} reset would silently race a future contributor's flag-enabling
    * {@code @Before}.
    */
-  @After
+  @AfterEach
   public void resetPreviewNexusOneUiFlag() {
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(false);
   }
@@ -56,13 +55,13 @@ public class NexusOneIndexRedirectPlaywrightTest
   /**
    * Defence-in-depth in case a prior test in the same fork failed to reset the flag. Cheap, idempotent.
    */
-  @Before
+  @BeforeEach
   public void disablePreviewNexusOneUiBeforeTest() {
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(false);
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testAnonymousNexusOneIndexRedirectsToClassicShell() {
     playwrightRefreshOrOpen(NexusOnePage.url());
 
@@ -71,7 +70,7 @@ public class NexusOneIndexRedirectPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testAuthenticatedNexusOneIndexRedirectsWhenFlagOff() {
     playwrightOpenAndWaitForVisible(LoginPage.rootUrl(), new LoginPage().modal());
     playwrightLogin();

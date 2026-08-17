@@ -8,7 +8,6 @@ package com.sonatype.clm.testing.playwright.tests;
 import java.util.regex.Pattern;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.FirewallPage;
 import com.sonatype.clm.testing.playwright.pages.HeaderComponent;
@@ -22,9 +21,9 @@ import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.AriaRole;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -44,14 +43,14 @@ import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertTha
 public class SolutionSwitcherRegressionPlaywrightTest
     extends AbstractIqUiTest
 {
-  @Before
+  @BeforeEach
   public void loginToDashboard() {
     playwrightRefreshOrOpen(DashboardPage.url());
     playwrightLogin();
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSolutionSwitcher_firewallEntryNavigatesToFirewallDashboard() {
     playwrightRefreshOrOpen(DashboardPage.url());
 
@@ -66,7 +65,7 @@ public class SolutionSwitcherRegressionPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSolutionSwitcher_sbomManagerEntryNavigatesToSbomManagerDashboard() {
     setFeatures(LicensedFeature.SBOM_MANAGER);
     setLicensedProducts(
@@ -85,7 +84,7 @@ public class SolutionSwitcherRegressionPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSolutionSwitcher_developerEntryNavigatesToDeveloperDashboard() {
     playwrightRefreshOrOpen(DashboardPage.url());
 

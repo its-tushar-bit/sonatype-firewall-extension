@@ -8,7 +8,6 @@ package com.sonatype.clm.testing.playwright.tests;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Route;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.SbomContinuousMonitoringPage;
 import com.sonatype.clm.testing.playwright.pages.SbomContinuousMonitoringPageAssertions;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
@@ -17,10 +16,10 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -36,7 +35,7 @@ public class SbomContinuousMonitoringPlaywrightTest
 
   private Organization organization;
 
-  @Before
+  @BeforeEach
   public void seedOrgAndOpenEditor() {
     // Editor gated on SBOM_MANAGER + POLICY_MONITORING + SBOM_CONTINUOUS_MONITORING_UI flag.
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
@@ -54,13 +53,13 @@ public class SbomContinuousMonitoringPlaywrightTest
   }
 
   /** Reset the system-config flag — license/feature resets are handled by AbstractIqUiTest's @After. */
-  @After
+  @AfterEach
   public void disableSbomContinuousMonitoringUi() {
     SystemConfigurationPropertyFeature.SBOM_CONTINUOUS_MONITORING_UI.setEnabled(false);
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEditor_rendersWithToggleAndSubmit() {
     assertions.shouldBeVisible();
     assertions.shouldShowToggle();
@@ -70,7 +69,7 @@ public class SbomContinuousMonitoringPlaywrightTest
 
   /** Toggle flips Disabled → Enabled; form becomes dirty so the validation alert clears. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testToggle_enablesAndActivatesUpdateButton() {
     assertions.shouldShowToggleDisabledLabel();
     assertions.shouldShowToggleNotChecked();
@@ -84,7 +83,7 @@ public class SbomContinuousMonitoringPlaywrightTest
 
   /** Save+reload round-trip in both directions. {@code waitForSubmitMaskSuccess()} prevents reload racing the save. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testToggle_persistsEnabledAndDisabledAfterReload() {
     editor.toggleSwitchLabel().click();
     assertions.shouldShowToggleEnabledLabel();
@@ -110,7 +109,7 @@ public class SbomContinuousMonitoringPlaywrightTest
    * MSG_NO_CHANGES_TO_SAVE alert, which clears once a real change is made.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testUpdate_dirtyStateRoutesValidation() {
     editor.submitButton().click();
     assertions.shouldShowNoChangesValidationError();
@@ -128,7 +127,7 @@ public class SbomContinuousMonitoringPlaywrightTest
    * redirect is outside the app's control.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLearnMore_opensDocsInNewTab() {
     page.context()
         .route(SbomContinuousMonitoringPage.LEARN_MORE_SOURCE_URL,

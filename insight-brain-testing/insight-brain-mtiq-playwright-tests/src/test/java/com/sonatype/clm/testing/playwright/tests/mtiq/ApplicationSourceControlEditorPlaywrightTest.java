@@ -5,16 +5,14 @@
  */
 package com.sonatype.clm.testing.playwright.tests.mtiq;
 
-import com.sonatype.clm.testing.playwright.categories.MtiqTest;
-
 import com.sonatype.clm.testing.playwright.pages.SourceControlConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.SourceControlInheritedOptionComponent;
 import com.sonatype.clm.testing.playwright.pages.SourceControlRegressionPage;
 import com.sonatype.insight.brain.model.Application;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 import static com.sonatype.clm.testing.playwright.pages.SourceControlInheritedOptionComponent.AUTOMATED_COMMIT_FEEDBACK;
@@ -25,7 +23,7 @@ import static com.sonatype.clm.testing.playwright.pages.SourceControlInheritedOp
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControl.FAKE_SECRET_KEY;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 
-@Category(MtiqTest.class)
+@Tag("mtiq")
 public class ApplicationSourceControlEditorPlaywrightTest
     extends AbstractMtiqSourceControlEditorPlaywrightTest
 {
@@ -39,7 +37,7 @@ public class ApplicationSourceControlEditorPlaywrightTest
 
   private SourceControlInheritedOptionComponent options;
 
-  @Before
+  @BeforeEach
   public void init() {
     // The "ȧpp" suffix intentionally forces a non-ASCII character into the public id, exercising
     // URL encoding along the source-control-editor route.

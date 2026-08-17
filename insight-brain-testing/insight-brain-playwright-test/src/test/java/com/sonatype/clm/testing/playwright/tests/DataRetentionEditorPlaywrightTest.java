@@ -6,15 +6,14 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.DataRetentionEditorPage;
 import com.sonatype.clm.testing.playwright.pages.DataRetentionEditorPageAssertions;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Organization;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -29,7 +28,7 @@ public class DataRetentionEditorPlaywrightTest
 
   private Organization org;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     org = tempEntity.newOrganization(ORG_NAME_PREFIX + "-" + TemporaryEntity.uuid());
     playwrightRefreshOrOpen(DataRetentionEditorPage.url(org.getId()));
@@ -37,7 +36,7 @@ public class DataRetentionEditorPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDataRetentionEditor_savesAndPersistsRetentionWindow() {
     DataRetentionEditorPage editorPage = new DataRetentionEditorPage();
     DataRetentionEditorPageAssertions assertions = new DataRetentionEditorPageAssertions(editorPage);
@@ -57,7 +56,7 @@ public class DataRetentionEditorPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDataRetentionEditor_invalidAgeShowsValidationError() {
     DataRetentionEditorPage editorPage = new DataRetentionEditorPage();
     DataRetentionEditorPageAssertions assertions = new DataRetentionEditorPageAssertions(editorPage);

@@ -9,7 +9,7 @@ import com.sonatype.clm.testing.playwright.mtiq.AbstractMtiqUiTest;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * Single-@Test-per-class isolation for child-org policy scenarios — MTIQ SPA URL guard rejects
@@ -25,7 +25,7 @@ abstract class AbstractMtiqSbomChildOrgPolicyPlaywrightTest
 
   protected Organization childOrg;
 
-  @Before
+  @BeforeEach
   public final void seedTreeAndLogin() {
     rootOrg = tempEntity.newOrganization("MTIQ Policy Root " + tempEntity.uuid());
     childOrg = tempEntity.newOrganization("MTIQ Policy Child " + tempEntity.uuid(), rootOrg);

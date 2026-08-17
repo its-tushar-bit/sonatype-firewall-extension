@@ -5,7 +5,6 @@
  */
 package com.sonatype.clm.testing.playwright.tests;
 
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.pages.ChangePasswordModal;
 import com.sonatype.clm.testing.playwright.pages.ChangePasswordModalAssertions;
@@ -14,8 +13,9 @@ import com.sonatype.clm.testing.playwright.pages.ReportListPage;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.security.User;
 
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
 /**
@@ -44,7 +44,7 @@ public class ChangePasswordPlaywrightTest
   private static final String FULL_NAME = FIRST_NAME + " " + LAST_NAME;
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testChangePassword() {
     User user = tempEntity.newUser(USERNAME, FIRST_NAME, LAST_NAME, EMAIL);
 

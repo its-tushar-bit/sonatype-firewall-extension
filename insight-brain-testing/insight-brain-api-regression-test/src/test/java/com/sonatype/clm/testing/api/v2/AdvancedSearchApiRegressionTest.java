@@ -8,12 +8,10 @@ package com.sonatype.clm.testing.api.v2;
 import java.util.Map;
 
 import com.sonatype.clm.testing.api.AbstractIqApiTest;
-import com.sonatype.clm.testing.api.categories.ApiRegressionTest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,7 +34,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Covers: search 200 with empty results; CSV export 200 with CSV content type; index rebuild
  * trigger (204); and the unauthenticated auth contract (401) for all three paths.
  */
-@Category(ApiRegressionTest.class)
 public class AdvancedSearchApiRegressionTest
     extends AbstractIqApiTest
 {

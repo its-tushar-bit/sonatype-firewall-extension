@@ -24,13 +24,12 @@ import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
-import org.junit.experimental.categories.Category;
 
 /**
  * <p>
@@ -60,7 +59,7 @@ public class FirewallPagePlaywrightTest
 
   private static final String EXPECTED_COMPONENTS_MONITORED_TEXT = "4 components monitored";
 
-  @Before
+  @BeforeEach
   public void openFirewallAsAdmin() {
     setFeatures(
         LicensedFeature.POLICY_MANAGEMENT,
@@ -82,14 +81,14 @@ public class FirewallPagePlaywrightTest
    * requires any system-config / feature-flag toggle to be paired with an {@code @After} that
    * restores it, so the next test in the same fork starts from a known state.
    */
-  @Before
-  @After
+  @BeforeEach
+  @AfterEach
   public void resetContainerImagesEvalFlag() {
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testFirewallPage_StatusPartiallyProtected() {
     seedRepositoryWithFourComponents();
     playwrightRefreshOrOpen(FirewallPage.url());
@@ -117,7 +116,7 @@ public class FirewallPagePlaywrightTest
   // status banner and the row-click navigation to component details.
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testRedirectToComponentDetailsPage() {
     seedRepositoryWithFourComponents();
     playwrightRefreshOrOpen(FirewallPage.url());

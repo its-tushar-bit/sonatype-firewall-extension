@@ -5,16 +5,15 @@
  */
 package com.sonatype.clm.testing.playwright.tests.mtiq;
 
-import com.sonatype.clm.testing.playwright.categories.MtiqTest;
 import com.sonatype.clm.testing.playwright.pages.MtiqSourceControlConfigurationPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.SourceControlConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.SourceControlRegressionPage;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 import com.sonatype.insight.brain.model.Organization;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -24,7 +23,7 @@ import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertTha
  * Azure DevOps, Bitbucket, GitHub, GitLab. Self-hosted, GitHub Enterprise, and Gitea variants
  * are absent. The constraint is frontend-only — no backend feature flag controls it.
  */
-@Category(MtiqTest.class)
+@Tag("mtiq")
 public class MtiqReducedScmProvidersPlaywrightTest
     extends AbstractMtiqSourceControlEditorPlaywrightTest
 {
@@ -34,7 +33,7 @@ public class MtiqReducedScmProvidersPlaywrightTest
 
   private SourceControlRegressionPage scm;
 
-  @Before
+  @BeforeEach
   public void createOrgAndNavigateToScmEditor() {
     Organization testOrg = tempEntity.newOrganization();
     init(testOrg);

@@ -11,13 +11,12 @@ import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.ReportListPage;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Organization;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
-import org.junit.experimental.categories.Category;
 
 /**
  * Playwright test for the Root Organization Summary view.
@@ -30,7 +29,7 @@ public class RootOrganizationSummaryViewPlaywrightTest
 {
   private Organization rootOrg;
 
-  @Before
+  @BeforeEach
   public void init() {
     rootOrg = lookup(OrganizationDAO.class).getById(ROOT_ORGANIZATION_ID);
     playwrightRefreshOrOpen(ReportListPage.url());
@@ -39,7 +38,7 @@ public class RootOrganizationSummaryViewPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testRootOrgSummaryLoads() {
     OwnerSummaryPage summaryPage = new OwnerSummaryPage();
     assertThat(summaryPage.container()).isVisible();
@@ -53,7 +52,7 @@ public class RootOrganizationSummaryViewPlaywrightTest
    * Move/Delete are intentionally not shown ({@code ActionDropdown.jsx:220, 244}).
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testActionsDropdownOptions() {
     OwnerSummaryPage summaryPage = new OwnerSummaryPage();
     summaryPage.openOwnerActionsDropdown();

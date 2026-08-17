@@ -5,14 +5,13 @@
  */
 package com.sonatype.clm.testing.playwright.tests.mtiq;
 
-import com.sonatype.clm.testing.playwright.categories.MtiqTest;
 import com.sonatype.clm.testing.playwright.mtiq.AbstractMtiqUiTest;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
 import com.sonatype.insight.brain.model.Owner;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -21,7 +20,7 @@ import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertTha
  * scrolls its associated tile into view. Ported from the Selenide
  * {@code AbstractMtiqSummaryViewTest}.
  */
-@Category(MtiqTest.class)
+@Tag("mtiq")
 public abstract class AbstractMtiqSummaryViewPlaywrightTest
     extends AbstractMtiqUiTest
 {
@@ -29,7 +28,7 @@ public abstract class AbstractMtiqSummaryViewPlaywrightTest
 
   protected Owner currentOwner;
 
-  @Before
+  @BeforeEach
   public void boot() {
     playwrightLoginAdminAt("/");
   }
@@ -51,7 +50,7 @@ public abstract class AbstractMtiqSummaryViewPlaywrightTest
    * </ul>
    */
   @Test
-  @Category(MtiqTest.class)
+  @Tag("mtiq")
   public void testNavigationPills_clickingEachPillRevealsCorrespondingTile() {
     OwnerSummaryPage ownerSummary = new OwnerSummaryPage();
 

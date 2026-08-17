@@ -13,8 +13,6 @@ import java.util.regex.Pattern;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.microsoft.playwright.Route;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.EnterpriseReportingPage;
 import com.sonatype.clm.testing.playwright.pages.EnterpriseReportingPageAssertions;
@@ -22,9 +20,9 @@ import com.sonatype.clm.testing.playwright.pages.SidebarComponent;
 import com.sonatype.clm.testing.playwright.testdatamanager.TestDataManager;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -59,7 +57,7 @@ public class EnterpriseReportingNavigationPlaywrightTest
   private static final HdsStubs ENTERPRISE_REPORTING_HDS =
       TestDataManager.load("enterprise-reporting-hds-stubs", HdsStubs.class);
 
-  @Before
+  @BeforeEach
   public void enableEnterpriseReportingLicenseAndOpenDashboardAsAdmin() {
     enableIntegratedEnterpriseReportingOnLicense();
     stubHdsEndpoints();
@@ -68,7 +66,7 @@ public class EnterpriseReportingNavigationPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testEnterpriseReporting_FromDashboardSidebarShowsLandingPage() {
     SidebarComponent sidebar = new SidebarComponent();
     EnterpriseReportingPage enterpriseReporting = new EnterpriseReportingPage();
@@ -103,7 +101,7 @@ public class EnterpriseReportingNavigationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEnterpriseReporting_react2ShellCardIsVisible() {
     SidebarComponent sidebar = new SidebarComponent();
     EnterpriseReportingPage enterpriseReporting = new EnterpriseReportingPage();
@@ -116,7 +114,7 @@ public class EnterpriseReportingNavigationPlaywrightTest
 
   /** Asserts the iframe-host mount; the iframe content (Looker) has no test connection. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEnterpriseReporting_dashboardEmbed() {
     SidebarComponent sidebar = new SidebarComponent();
     EnterpriseReportingPage enterpriseReporting = new EnterpriseReportingPage();
@@ -135,7 +133,7 @@ public class EnterpriseReportingNavigationPlaywrightTest
 
   /** Clipboard permission required for {@code navigator.clipboard.writeText}. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEnterpriseReporting_supportInfoCopyButton() {
     context.grantPermissions(List.of("clipboard-read", "clipboard-write"));
 
@@ -152,7 +150,7 @@ public class EnterpriseReportingNavigationPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEnterpriseReporting_supportInfoLoadError() {
     page.route(TELEMETRY_STATUS_ENDPOINT,
         route -> route.fulfill(new Route.FulfillOptions().setStatus(500)));

@@ -5,7 +5,6 @@
  */
 package com.sonatype.clm.testing.playwright.tests;
 
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.pages.LoginPage;
 import com.sonatype.clm.testing.playwright.pages.LoginPageAssertions;
@@ -13,9 +12,9 @@ import com.sonatype.clm.testing.playwright.pages.ReportListPage;
 import com.sonatype.clm.testing.playwright.pages.SidebarComponent;
 import com.sonatype.clm.testing.playwright.pages.SidebarComponentAssertions;
 
-import org.junit.After;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -31,13 +30,13 @@ public class LoginPlaywrightTest
 
   private static final String INVALID_CREDENTIALS_MESSAGE = "Invalid credentials";
 
-  @After
+  @AfterEach
   public void clearCookies() {
     playwrightHardreset();
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testInitialLoginFormState() {
     playwrightRefreshOrOpen(ReportListPage.url());
 
@@ -51,7 +50,7 @@ public class LoginPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testValidCredentials() {
     playwrightRefreshOrOpen(ReportListPage.url());
 
@@ -60,7 +59,7 @@ public class LoginPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testInvalidCredentials() {
     playwrightRefreshOrOpen(ReportListPage.url());
 
@@ -73,7 +72,7 @@ public class LoginPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testLogout() {
     playwrightRefreshOrOpen(ReportListPage.url());
     playwrightLogin();

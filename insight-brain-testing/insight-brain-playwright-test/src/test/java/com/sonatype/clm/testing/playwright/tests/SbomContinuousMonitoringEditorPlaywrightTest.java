@@ -9,7 +9,6 @@ import java.util.regex.Pattern;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.SbomContinuousMonitoringEditorPage;
 import com.sonatype.clm.testing.playwright.pages.SbomContinuousMonitoringEditorPageAssertions;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
@@ -18,9 +17,9 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.microsoft.playwright.Page;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -33,7 +32,7 @@ public class SbomContinuousMonitoringEditorPlaywrightTest
 
   private Organization org;
 
-  @Before
+  @BeforeEach
   public void enableSbomManagerLicense() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
     setFeatures(LicensedFeature.SBOM_MANAGER, LicensedFeature.POLICY_MONITORING);
@@ -50,7 +49,7 @@ public class SbomContinuousMonitoringEditorPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSbomContinuousMonitoring_editorRendersWithToggleAndSubmitControls() {
     SbomContinuousMonitoringEditorPageAssertions assertions = openEditor();
 
@@ -63,7 +62,7 @@ public class SbomContinuousMonitoringEditorPlaywrightTest
    * by disabling the submit button — the indicator assertions check that alert.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSbomContinuousMonitoring_toggleChangesUpdateButtonDirtyState() {
     SbomContinuousMonitoringEditorPageAssertions assertions = openEditor();
     SbomContinuousMonitoringEditorPage editorPage = new SbomContinuousMonitoringEditorPage();
@@ -81,7 +80,7 @@ public class SbomContinuousMonitoringEditorPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSbomContinuousMonitoring_toggleDisabledWhenParentHasMonitoringConfigured() {
     // Configure CM at ROOT so the child org inherits with toggleEnabled=false. Cleanup is
     // tempEntity.after() — deletes every PolicyMonitoring row, including this ROOT-scoped one.
@@ -94,7 +93,7 @@ public class SbomContinuousMonitoringEditorPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSbomContinuousMonitoring_learnMoreOpensDocumentation() {
     SbomContinuousMonitoringEditorPageAssertions assertions = openEditor();
     SbomContinuousMonitoringEditorPage editorPage = new SbomContinuousMonitoringEditorPage();

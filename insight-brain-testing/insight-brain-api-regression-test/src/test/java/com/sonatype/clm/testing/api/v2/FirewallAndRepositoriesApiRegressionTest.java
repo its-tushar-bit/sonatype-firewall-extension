@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.api.v2;
 
 import com.sonatype.clm.testing.api.AbstractIqApiTest;
-import com.sonatype.clm.testing.api.categories.ApiRegressionTest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiLabelDTO;
@@ -20,9 +19,8 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import java.util.Collections;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -61,7 +59,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * {@code ApiComponentLabelResourceV2Test}.</li>
  * </ul>
  */
-@Category(ApiRegressionTest.class)
 public class FirewallAndRepositoriesApiRegressionTest
     extends AbstractIqApiTest
 {
@@ -88,7 +85,7 @@ public class FirewallAndRepositoriesApiRegressionTest
    */
   private static final String FAKE_COMPONENT_HASH = "0000000000000000000000000000000000000000";
 
-  @Before
+  @BeforeEach
   public void enableLicenseFeatures() throws Exception {
     setFeatures(
         LicensedFeature.FIREWALL,

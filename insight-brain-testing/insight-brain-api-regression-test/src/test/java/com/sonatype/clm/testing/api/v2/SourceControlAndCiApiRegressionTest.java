@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.api.v2;
 
 import com.sonatype.clm.testing.api.AbstractIqApiTest;
-import com.sonatype.clm.testing.api.categories.ApiRegressionTest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
@@ -17,9 +16,8 @@ import com.sonatype.insight.license.model.LicensedFeature;
 
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -57,7 +55,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * DELETE. This is the only manual cleanup in the class.</li>
  * </ul>
  */
-@Category(ApiRegressionTest.class)
 public class SourceControlAndCiApiRegressionTest
     extends AbstractIqApiTest
 {
@@ -82,7 +79,7 @@ public class SourceControlAndCiApiRegressionTest
    */
   private static final String CI_CONFIG_BASE = "api/v2/config/ci";
 
-  @Before
+  @BeforeEach
   public void enableLicenseFeatures() throws Exception {
     // Two layers of license check on SCM resources:
     // 1. @ProductLicenseEnforcementPoint(SOURCE_CONTROL) at the JAX-RS filter tier.

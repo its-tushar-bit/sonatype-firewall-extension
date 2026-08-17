@@ -11,7 +11,6 @@ import java.util.Date;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.pages.RequestWaiverReviewPage;
 import com.sonatype.clm.testing.playwright.pages.RequestWaiverReviewPageAssertions;
@@ -32,10 +31,10 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -98,7 +97,7 @@ public class RequestWaiverReviewPlaywrightTest
 
   private String componentHash;
 
-  @Before
+  @BeforeEach
   public void seedWaiverRequestAndLoginAsAdmin() {
     reviewPage = new RequestWaiverReviewPage();
     assertions = new RequestWaiverReviewPageAssertions(reviewPage);
@@ -111,7 +110,7 @@ public class RequestWaiverReviewPlaywrightTest
     playwrightLoginAdminAt(reviewPageUrl());
   }
 
-  @After
+  @AfterEach
   public void logout() {
     playwrightLogout();
   }
@@ -121,7 +120,7 @@ public class RequestWaiverReviewPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testPageLayout() {
     playwrightRefreshOrOpen(reviewPageUrl());
 
@@ -134,7 +133,7 @@ public class RequestWaiverReviewPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testApproveWaiverRequest() {
     playwrightRefreshOrOpen(reviewPageUrl());
 
@@ -161,7 +160,7 @@ public class RequestWaiverReviewPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRejectWaiverRequest() {
     playwrightRefreshOrOpen(reviewPageUrl());
 
@@ -189,7 +188,7 @@ public class RequestWaiverReviewPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testReadOnlyWithoutPermission() {
     playwrightLogout();
     playwrightLoginAt(reviewPageUrl(), developerUser.getUsername(), TemporaryEntity.USER_PASSWORD_CLEAR);
@@ -199,7 +198,7 @@ public class RequestWaiverReviewPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testScopeOptionTextFormat() {
     playwrightRefreshOrOpen(reviewPageUrl());
 
@@ -207,7 +206,7 @@ public class RequestWaiverReviewPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testExpiryNeverDispatchesNull() {
     playwrightRefreshOrOpen(reviewPageUrl());
 
@@ -231,7 +230,7 @@ public class RequestWaiverReviewPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRejectedStatusDisplay() {
     markRequestRejectedWithoutReason();
 
@@ -243,7 +242,7 @@ public class RequestWaiverReviewPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRejectModalFieldsAndSuccessfulRejection() {
     playwrightRefreshOrOpen(reviewPageUrl());
 
@@ -277,7 +276,7 @@ public class RequestWaiverReviewPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testReadOnlyFormFieldsDisabled() {
     playwrightLogout();
     playwrightLoginAt(reviewPageUrl(), developerUser.getUsername(), TemporaryEntity.USER_PASSWORD_CLEAR);

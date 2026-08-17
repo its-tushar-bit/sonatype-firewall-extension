@@ -30,14 +30,12 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.assertj.core.api.Assertions;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
-import org.junit.experimental.categories.Category;
 
 public class AddWaiverPlaywrightTest
     extends AbstractIqUiTest
@@ -58,7 +56,7 @@ public class AddWaiverPlaywrightTest
 
   private String scopeParentOrgLabel;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     String suffix = TemporaryEntity.uuid();
     String parentOrgName = DATA.parentOrgNamePrefix() + "-" + suffix;
@@ -97,13 +95,13 @@ public class AddWaiverPlaywrightTest
     playwrightLogin();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     reverseProxyServer.reset();
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testPageLayout() {
     playwrightRefreshOrOpen(AddWaiverPage.url(primaryViolation.getId()));
 
@@ -131,7 +129,7 @@ public class AddWaiverPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testSubmit_createsWaiver() {
     playwrightRefreshOrOpen(AddWaiverPage.url(primaryViolation.getId()));
 
@@ -154,7 +152,7 @@ public class AddWaiverPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testSubmit_duplicateShowsError() {
     AddWaiverPage addWaiverPage = new AddWaiverPage();
 
@@ -172,7 +170,7 @@ public class AddWaiverPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testSubmit_navigatesBackToViolationDetails() {
     playwrightRefreshOrOpen(AddWaiverPage.url(primaryViolation.getId()));
 
@@ -190,7 +188,7 @@ public class AddWaiverPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testCustomExpirationDatePicker() {
     playwrightRefreshOrOpen(AddWaiverPage.url(primaryViolation.getId()));
 
@@ -206,7 +204,7 @@ public class AddWaiverPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testComments_maxLengthEnforced() {
     playwrightRefreshOrOpen(AddWaiverPage.url(primaryViolation.getId()));
 
@@ -218,7 +216,7 @@ public class AddWaiverPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testVulnerabilityDetailsLink_hiddenForNonSecurityViolation() {
     playwrightRefreshOrOpen(AddWaiverPage.url(secondaryViolation.getId()));
 
@@ -228,7 +226,7 @@ public class AddWaiverPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testCancelButton_navigatesBackWithoutCreatingWaiver() {
     playwrightRefreshOrOpen(AddWaiverPage.url(primaryViolation.getId()));
 
@@ -248,7 +246,7 @@ public class AddWaiverPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testScopeDropdown_requiredAndPreSelected() {
     playwrightRefreshOrOpen(AddWaiverPage.url(primaryViolation.getId()));
 
@@ -260,7 +258,7 @@ public class AddWaiverPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testComponentRadio_allVersionsDisabledWhenComponentIdentifierNull() {
     playwrightRefreshOrOpen(AddWaiverPage.url(noComponentIdViolation.getId()));
 
@@ -272,7 +270,7 @@ public class AddWaiverPlaywrightTest
 
   /** Guards against accidentally adding a tier gate to manual waiver creation. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSubmit_createsWaiverUnderProLicense() {
     setMissingFeature(LicensedFeature.AUTO_WAIVER_MANAGEMENT);
     playwrightRefreshOrOpen(AddWaiverPage.url(primaryViolation.getId()));

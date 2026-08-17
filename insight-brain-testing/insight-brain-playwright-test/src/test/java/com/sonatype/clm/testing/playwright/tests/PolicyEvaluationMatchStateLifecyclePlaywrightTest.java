@@ -14,7 +14,6 @@ import java.util.concurrent.TimeUnit;
 
 import com.microsoft.playwright.Locator;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
@@ -34,9 +33,9 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
@@ -94,7 +93,7 @@ public class PolicyEvaluationMatchStateLifecyclePlaywrightTest
 
   private ApplicationReportPageAssertions reportAssertions;
 
-  @Before
+  @BeforeEach
   public void initSeederAndAssertions() {
     seeder = new PolicyEvaluationSeeder(
         tempEntity, tempDir, testCLMServer.getCLMServer().getConfiguration(),
@@ -109,7 +108,7 @@ public class PolicyEvaluationMatchStateLifecyclePlaywrightTest
    * row's absence. Sibling exact-match components stay visible to confirm row-specific scope.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testActiveWaiver_suppressesViolation() throws IOException {
     SeededEvaluation seeded = seedExact();
 
@@ -124,7 +123,7 @@ public class PolicyEvaluationMatchStateLifecyclePlaywrightTest
 
   /** Past-dated expiry: the violation row renders without the waived indicator. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testExpiredWaiver_doesNotSuppressViolation() throws IOException {
     SeededEvaluation seeded = seedExact();
 
@@ -140,7 +139,7 @@ public class PolicyEvaluationMatchStateLifecyclePlaywrightTest
 
   /** Waiver created at the app level surfaces in the Dashboard Waivers tab. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testCreatedWaiver_appearsOnDashboardWaiversTab() throws IOException {
     SeededEvaluation seeded = seedExact();
     PolicyViolation target = firstViolationForJetty(seeded);
@@ -159,7 +158,7 @@ public class PolicyEvaluationMatchStateLifecyclePlaywrightTest
 
   /** Tightening the constraint from "is unknown" (1 match) to "is exact" (12) produces 12 violations after re-eval. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testTightenedPolicy_producesMoreViolationsAfterReeval() throws IOException {
     SeededEvaluation seeded = seedSingleCondition(OPERATOR_IS, VALUE_UNKNOWN);
 
@@ -175,7 +174,7 @@ public class PolicyEvaluationMatchStateLifecyclePlaywrightTest
 
   /** Relaxing a policy (constraint matches fewer components) drops the violation count to zero. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRelaxedPolicy_removesViolationsAfterReeval() throws IOException {
     SeededEvaluation seeded = seedExact();
 
@@ -191,7 +190,7 @@ public class PolicyEvaluationMatchStateLifecyclePlaywrightTest
 
   /** Violations surface on the Dashboard Violations tab with policy + threat-level attribution. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testViolationsAppearOnDashboardViolationsTab() throws IOException {
     SeededEvaluation seeded = seedSingleCondition(OPERATOR_IS_NOT, VALUE_UNKNOWN);
 
@@ -205,7 +204,7 @@ public class PolicyEvaluationMatchStateLifecyclePlaywrightTest
 
   /** Violation Details renders component, policy, and constraint for a non-security violation. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testViolationDetails_rendersComponentPolicyAndConstraint() throws IOException {
     SeededEvaluation seeded = seedExact();
     PolicyViolation target = firstViolationForJetty(seeded);
@@ -221,7 +220,7 @@ public class PolicyEvaluationMatchStateLifecyclePlaywrightTest
 
   /** Non-security violations hide the Vulnerability Details tab; the Waivers tabs remain. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testViolationDetails_nonSecurityViolation_hidesVulnerabilityTab() throws IOException {
     SeededEvaluation seeded = seedExact();
     PolicyViolation target = firstViolationForJetty(seeded);
@@ -237,7 +236,7 @@ public class PolicyEvaluationMatchStateLifecyclePlaywrightTest
 
   /** Parent-org policy evaluates against a child application's scan; violations attribute to the parent policy. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testInheritedPolicy_evaluatesAgainstChildApplication() throws IOException {
     String suffix = TemporaryEntity.uuid();
     Organization parentOrg = tempEntity.newOrganization(ORG_NAME_PREFIX + "-parent-" + suffix);
@@ -263,7 +262,7 @@ public class PolicyEvaluationMatchStateLifecyclePlaywrightTest
    * policy, validating that local policies don't shadow inherited ones (and vice versa).
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testParentAndChildPolicies_bothEvaluateOnChildApplication() throws IOException {
     String suffix = TemporaryEntity.uuid();
     Organization parentOrg = tempEntity.newOrganization(ORG_NAME_PREFIX + "-parent2-" + suffix);

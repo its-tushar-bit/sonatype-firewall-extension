@@ -14,7 +14,6 @@ import com.microsoft.playwright.Route;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.ManualPullRequestPage;
 import com.sonatype.clm.testing.playwright.pages.PrioritiesPage;
 import com.sonatype.clm.testing.playwright.utils.SmallReportFixture;
@@ -25,9 +24,9 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.After;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -51,14 +50,14 @@ public class ManualPullRequestPlaywrightTest
 
   private static final String SOURCE_CONTROL_API_PATTERN = "**/api/v2/compositeSourceControl/**";
 
-  @After
+  @AfterEach
   public void unrouteAll() {
     page.unrouteAll();
   }
 
   /** CreatePRModal renders with read-only fields and a "Create" button. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testManualPullRequest_modalRendersWithReadOnlyFields() throws IOException {
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());

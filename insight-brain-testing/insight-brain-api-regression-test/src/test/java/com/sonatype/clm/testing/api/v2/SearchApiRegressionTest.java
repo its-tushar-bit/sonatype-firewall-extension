@@ -10,15 +10,13 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.api.AbstractIqApiTest;
-import com.sonatype.clm.testing.api.categories.ApiRegressionTest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.SearchTestHelper;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,7 +36,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * No {@code setFeatures(LicensedFeature.COMPONENT_SEARCH)} call is required — the test
  * harness enables all licensed features by default.
  */
-@Category(ApiRegressionTest.class)
 public class SearchApiRegressionTest
     extends AbstractIqApiTest
 {
@@ -54,7 +51,7 @@ public class SearchApiRegressionTest
 
   private SearchTestHelper helper;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     helper = new SearchTestHelper(tempEntity);
   }

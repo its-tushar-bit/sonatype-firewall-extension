@@ -15,12 +15,11 @@ import com.sonatype.clm.testing.playwright.pages.SidebarComponentAssertions;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightWaitUtils;
 import com.sonatype.insight.brain.model.Organization;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
-import org.junit.experimental.categories.Category;
 
 /**
  * Navigation and sidebar smoke tests using Playwright.
@@ -40,14 +39,14 @@ public class NavigationPlaywrightTest
     extends AbstractIqUiTest
 {
 
-  @Before
+  @BeforeEach
   public void openDashboardAsAdmin() {
     playwrightRefreshOrOpen(DashboardPage.url());
     playwrightLogin();
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testSidebarIsVisibleAfterLogin() {
     SidebarComponent sidebar = new SidebarComponent();
     SidebarComponentAssertions sidebarAssertions = new SidebarComponentAssertions(sidebar);
@@ -56,7 +55,7 @@ public class NavigationPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testSidebarToggle() {
     SidebarComponent sidebar = new SidebarComponent();
     SidebarComponentAssertions sidebarAssertions = new SidebarComponentAssertions(sidebar);
@@ -70,7 +69,7 @@ public class NavigationPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testNavigateToDashboardViaSidebar() {
     // Leave dashboard first so the sidebar click produces a URL change — an SPA may not
     // navigate at all if you click the link for the page you are already on.
@@ -82,7 +81,7 @@ public class NavigationPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testNavigateToPoliciesViaSidebar() {
     SidebarComponent sidebar = new SidebarComponent();
     sidebar.policiesButton().click();
@@ -90,7 +89,7 @@ public class NavigationPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testHeaderMenuBarIsVisible() {
     HeaderComponent header = new HeaderComponent();
     new HeaderComponentAssertions(header).shouldBeLoggedIn();
@@ -98,7 +97,7 @@ public class NavigationPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testUserMenuShowsUsername() {
     HeaderComponent header = new HeaderComponent();
     header.userMenuDropdownToggle().click();

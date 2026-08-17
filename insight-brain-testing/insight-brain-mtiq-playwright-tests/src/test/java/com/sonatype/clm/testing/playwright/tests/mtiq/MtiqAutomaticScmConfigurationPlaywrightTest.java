@@ -5,20 +5,19 @@
  */
 package com.sonatype.clm.testing.playwright.tests.mtiq;
 
-import com.sonatype.clm.testing.playwright.categories.MtiqTest;
 import com.sonatype.clm.testing.playwright.mtiq.AbstractMtiqUiTest;
 import com.sonatype.clm.testing.playwright.pages.AutomaticSourceControlConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.AutomaticSourceControlConfigurationPageAssertions;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 
 import com.microsoft.playwright.assertions.LocatorAssertions;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-@Category(MtiqTest.class)
+@Tag("mtiq")
 public class MtiqAutomaticScmConfigurationPlaywrightTest
     extends AbstractMtiqUiTest
 {
@@ -26,7 +25,7 @@ public class MtiqAutomaticScmConfigurationPlaywrightTest
 
   private AutomaticSourceControlConfigurationPageAssertions scmAssertions;
 
-  @Before
+  @BeforeEach
   public void loginAsAdmin() {
     // MTIQFeatureService.setConfigurationBasedFeatures() sets AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED=true
     // at tenant provisioning. Each fresh tenant starts with the toggle ON — both tests verify this

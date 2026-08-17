@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.api.v2;
 
 import com.sonatype.clm.testing.api.AbstractIqApiTest;
-import com.sonatype.clm.testing.api.categories.ApiRegressionTest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.ApiSbomResource;
@@ -15,9 +14,8 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import jakarta.ws.rs.core.MediaType;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -62,7 +60,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * {@code @AuthzContext(APPLICATION_ID)} interceptor). A single dedicated unknown-app test
  * ({@code testGetSbomVersion_unknownApp_returns404}) pins the auth-interceptor 404 contract.
  */
-@Category(ApiRegressionTest.class)
 public class SbomApiRegressionTest
     extends AbstractIqApiTest
 {
@@ -74,7 +71,7 @@ public class SbomApiRegressionTest
    * license enforcement itself is exercised separately in {@link ApiSbomResource} authz tests;
    * this regression suite targets the resource contract once the feature is enabled.
    */
-  @Before
+  @BeforeEach
   public void enableSbomManagerFeature() throws Exception {
     setFeatures(LicensedFeature.SBOM_MANAGER);
   }

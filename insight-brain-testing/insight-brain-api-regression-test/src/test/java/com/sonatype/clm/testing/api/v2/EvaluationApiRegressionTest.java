@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.api.v2;
 
 import com.sonatype.clm.testing.api.AbstractIqApiTest;
-import com.sonatype.clm.testing.api.categories.ApiRegressionTest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.ApiEvaluationResourceV2;
@@ -17,8 +16,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,7 +32,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * plumbing that is out of scope for the CI-plugin write-path tranche. Auth coverage is
  * deferred to the source-control regression class (P5 §6 in the coverage plan).
  */
-@Category(ApiRegressionTest.class)
 public class EvaluationApiRegressionTest
     extends AbstractIqApiTest
 {

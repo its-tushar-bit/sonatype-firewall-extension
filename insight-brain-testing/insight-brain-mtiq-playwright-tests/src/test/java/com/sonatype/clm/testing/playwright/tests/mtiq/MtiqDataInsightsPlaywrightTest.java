@@ -5,16 +5,15 @@
  */
 package com.sonatype.clm.testing.playwright.tests.mtiq;
 
-import com.sonatype.clm.testing.playwright.categories.MtiqTest;
 import com.sonatype.clm.testing.playwright.mtiq.AbstractMtiqUiTest;
 import com.sonatype.clm.testing.playwright.pages.DataInsightsPage;
 import com.sonatype.clm.testing.playwright.pages.DataInsightsPageAssertions;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * MTIQ — Data Insights page: feature-gated container visibility.
@@ -29,7 +28,7 @@ import org.junit.experimental.categories.Category;
  * The inner {@code #labs-container} (Looker iframe host) is not asserted — the Looker
  * endpoint 404s under the embedded test server.
  */
-@Category(MtiqTest.class)
+@Tag("mtiq")
 public class MtiqDataInsightsPlaywrightTest
     extends AbstractMtiqUiTest
 {
@@ -37,7 +36,7 @@ public class MtiqDataInsightsPlaywrightTest
 
   private DataInsightsPageAssertions dataInsightsAssertions;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     dataInsightsPage = new DataInsightsPage();
     dataInsightsAssertions = new DataInsightsPageAssertions(dataInsightsPage);

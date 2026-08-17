@@ -10,8 +10,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.DashboardPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.DashboardViolationsComponent;
@@ -26,10 +24,10 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
 import org.assertj.core.api.Assertions;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -43,7 +41,7 @@ public class DashboardViolationsPlaywrightTest
 
   private Policy securityPolicy;
 
-  @Before
+  @BeforeEach
   public void openViolationsTabAsAdmin() {
     seedBaseEntities();
 
@@ -52,20 +50,20 @@ public class DashboardViolationsPlaywrightTest
     new DashboardPage().waitUntilSpinnersGone();
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     reverseProxyServer.reset();
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testViolationsTable_noDataMessage() {
     new DashboardViolationsComponentAssertions(new DashboardViolationsComponent())
         .shouldShowNoDataMessage(DATA.noDataMessage());
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testViolationsTable_loadsAndNavigatesOnRowClick() {
     seedViolation();
     playwrightRefreshOrOpen(DashboardPage.urlToViolations());
@@ -81,7 +79,7 @@ public class DashboardViolationsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testViolationsTable_columnsAndSortToggles() {
     seedThreeViolationsWithMixedThreats();
     playwrightRefreshOrOpen(DashboardPage.urlToViolations());
@@ -111,7 +109,7 @@ public class DashboardViolationsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testViolationsTable_applicationSecondarySort() {
     seedViolationsAcrossTwoApps();
     playwrightRefreshOrOpen(DashboardPage.urlToViolations());
@@ -130,7 +128,7 @@ public class DashboardViolationsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testViolationsTable_paginationNextPrevious() {
     seedNViolations(DATA.paginationViolationCount());
     playwrightRefreshOrOpen(DashboardPage.urlToViolations());
@@ -147,7 +145,7 @@ public class DashboardViolationsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testViolationsTable_filterMaskAppearsWhenDirty() {
     seedViolation();
     playwrightRefreshOrOpen(DashboardPage.urlToViolations());
@@ -161,7 +159,7 @@ public class DashboardViolationsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testViolationsTable_paginationHiddenWhenSinglePage() {
     seedViolation();
     playwrightRefreshOrOpen(DashboardPage.urlToViolations());
@@ -174,7 +172,7 @@ public class DashboardViolationsPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testViolationsTable_aggregatesAcrossApps() {
     seedViolationsAcrossTwoApps();
     playwrightRefreshOrOpen(DashboardPage.urlToViolations());

@@ -8,16 +8,15 @@ package com.sonatype.clm.testing.playwright.tests;
 import java.io.IOException;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPageAssertions;
 import com.sonatype.clm.testing.playwright.utils.PolicyEvaluationSeeder;
 import com.sonatype.clm.testing.playwright.utils.PolicyEvaluationSeeder.SeededEvaluation;
 import com.sonatype.clm.testing.playwright.utils.SmallReportFixture;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * RSC threat-level → colour-category bucketing on the violation row's NxThreatIndicator. Buckets
@@ -53,7 +52,7 @@ public class PolicyEvaluationThreatLevelDisplayPlaywrightTest
 
   private ApplicationReportPageAssertions reportAssertions;
 
-  @Before
+  @BeforeEach
   public void initSeederAndAssertions() {
     seeder = new PolicyEvaluationSeeder(
         tempEntity, tempDir, testCLMServer.getCLMServer().getConfiguration(),
@@ -62,7 +61,7 @@ public class PolicyEvaluationThreatLevelDisplayPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testThreatIndicator_critical_at10() throws IOException {
     SeededEvaluation seeded = seedAndOpenReport(10);
     reportAssertions.shouldShowViolationRowWithThreatCategory(
@@ -70,7 +69,7 @@ public class PolicyEvaluationThreatLevelDisplayPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testThreatIndicator_critical_at8() throws IOException {
     SeededEvaluation seeded = seedAndOpenReport(8);
     reportAssertions.shouldShowViolationRowWithThreatCategory(
@@ -78,7 +77,7 @@ public class PolicyEvaluationThreatLevelDisplayPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testThreatIndicator_severe_at4() throws IOException {
     SeededEvaluation seeded = seedAndOpenReport(4);
     reportAssertions.shouldShowViolationRowWithThreatCategory(
@@ -86,7 +85,7 @@ public class PolicyEvaluationThreatLevelDisplayPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testThreatIndicator_moderate_at3() throws IOException {
     SeededEvaluation seeded = seedAndOpenReport(3);
     reportAssertions.shouldShowViolationRowWithThreatCategory(
@@ -94,7 +93,7 @@ public class PolicyEvaluationThreatLevelDisplayPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testThreatIndicator_low_at1() throws IOException {
     SeededEvaluation seeded = seedAndOpenReport(1);
     reportAssertions.shouldShowViolationRowWithThreatCategory(

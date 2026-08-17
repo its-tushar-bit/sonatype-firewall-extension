@@ -5,22 +5,20 @@
  */
 package com.sonatype.clm.testing.playwright.tests.mtiq;
 
-import com.sonatype.clm.testing.playwright.categories.MtiqTest;
-
 import com.sonatype.clm.testing.playwright.pages.AccessEditorPage;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
 import com.sonatype.insight.brain.model.Application;
 
-import org.junit.Before;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 
-@Category(MtiqTest.class)
+@Tag("mtiq")
 public class MultiTenantApplicationAccessEditorPlaywrightTest
     extends AbstractMtiqAccessEditorPlaywrightTest
 {
   private String appPublicId;
 
-  @Before
+  @BeforeEach
   public void init() {
     // The "ȧpp" suffix intentionally forces a non-ASCII character into the public id.
     Application application = tempEntity.newApplicationWithParent("test_ȧpp_id", "ApplicationAccessEditorTest app");

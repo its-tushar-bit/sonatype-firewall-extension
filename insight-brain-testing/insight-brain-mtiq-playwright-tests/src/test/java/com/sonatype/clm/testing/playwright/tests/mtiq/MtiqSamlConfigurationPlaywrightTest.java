@@ -5,15 +5,14 @@
  */
 package com.sonatype.clm.testing.playwright.tests.mtiq;
 
-import com.sonatype.clm.testing.playwright.categories.MtiqTest;
 import com.sonatype.clm.testing.playwright.mtiq.AbstractMtiqUiTest;
 import com.sonatype.clm.testing.playwright.pages.SamlConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.SamlConfigurationPageAssertions;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -25,7 +24,7 @@ import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertTha
  * {@code enabledWhenAbsent = true}, so the page is available without feature-flag seeding.
  * All tests are read-only; {@link AbstractMtiqUiTest#afterTest()} handles tenant teardown.
  */
-@Category(MtiqTest.class)
+@Tag("mtiq")
 public class MtiqSamlConfigurationPlaywrightTest
     extends AbstractMtiqUiTest
 {
@@ -33,7 +32,7 @@ public class MtiqSamlConfigurationPlaywrightTest
 
   private SamlConfigurationPageAssertions samlAssertions;
 
-  @Before
+  @BeforeEach
   public void loginAndCreatePageObjects() {
     playwrightLoginAdminAt(SamlConfigurationPage.url());
     samlPage = new SamlConfigurationPage();

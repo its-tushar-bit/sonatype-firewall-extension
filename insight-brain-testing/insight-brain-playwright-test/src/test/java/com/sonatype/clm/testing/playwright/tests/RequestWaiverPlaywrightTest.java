@@ -25,12 +25,10 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 public class RequestWaiverPlaywrightTest
     extends AbstractIqUiTest
@@ -78,7 +76,7 @@ public class RequestWaiverPlaywrightTest
 
   private User developerUser;
 
-  @Before
+  @BeforeEach
   public void seedViolationAndNavigate() {
     Date twoDaysAgo = Date.from(Instant.now().minus(2, ChronoUnit.DAYS));
 
@@ -103,7 +101,7 @@ public class RequestWaiverPlaywrightTest
     playwrightLoginAt(DashboardPage.url(), developerUser.getUsername(), TemporaryEntity.USER_PASSWORD_CLEAR);
   }
 
-  @After
+  @AfterEach
   public void logout() {
     playwrightLogout();
   }
@@ -113,7 +111,7 @@ public class RequestWaiverPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testPageLayout() {
     playwrightRefreshOrOpen(RequestWaiverPage.url(policyViolation.getId()));
 
@@ -133,7 +131,7 @@ public class RequestWaiverPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testSubmitButton() {
     playwrightRefreshOrOpen(requestWaiverUrl());
 
@@ -149,7 +147,7 @@ public class RequestWaiverPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testSubmitError() {
     playwrightRefreshOrOpen(RequestWaiverPage.url(policyViolation.getId()));
 
@@ -170,7 +168,7 @@ public class RequestWaiverPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEnterprisePreviewBlocksSave() {
     setMissingFeature(LicensedFeature.WAIVER_REQUEST_WORKFLOW);
 
@@ -185,7 +183,7 @@ public class RequestWaiverPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testNoteToReviewerField() {
     playwrightRefreshOrOpen(requestWaiverUrl());
 

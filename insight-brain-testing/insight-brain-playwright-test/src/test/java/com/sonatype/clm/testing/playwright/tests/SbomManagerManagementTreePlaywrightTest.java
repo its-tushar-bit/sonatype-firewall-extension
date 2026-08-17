@@ -9,7 +9,6 @@ import com.microsoft.playwright.assertions.LocatorAssertions;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.SbomManagerManagementTreePage;
 import com.sonatype.clm.testing.playwright.pages.SidebarComponent;
@@ -17,9 +16,9 @@ import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Regression tests for the SBOM Manager Management Tree page
@@ -31,7 +30,7 @@ public class SbomManagerManagementTreePlaywrightTest
   private static final LocatorAssertions.IsVisibleOptions VISIBLE_OPTS =
       new LocatorAssertions.IsVisibleOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS);
 
-  @Before
+  @BeforeEach
   public void seedAndNavigate() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
     setFeatures(LicensedFeature.SBOM_MANAGER);
@@ -44,7 +43,7 @@ public class SbomManagerManagementTreePlaywrightTest
 
   /** OwnersTreePage renders with heading, filter input, expand/collapse buttons, and ≥1 tree item. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testManagementTree_rendersWithInheritanceHierarchy() {
     SbomManagerManagementTreePage treePage = new SbomManagerManagementTreePage();
 
@@ -67,7 +66,7 @@ public class SbomManagerManagementTreePlaywrightTest
    * {@link #testManagementTree_rendersWithInheritanceHierarchy}.
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSolutionSwitcherAndSidebar_navigateToOrganizationManagement() {
     playwrightRefreshOrOpen(DashboardPage.url());
 

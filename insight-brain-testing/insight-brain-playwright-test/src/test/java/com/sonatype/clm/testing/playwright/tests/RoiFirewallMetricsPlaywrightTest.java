@@ -6,14 +6,13 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.RoiFirewallMetricsPage;
 import com.sonatype.clm.testing.playwright.pages.RoiFirewallMetricsPageAssertions;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Metric values are hardcoded in {@code roiFirewallMetricsSlice.js#loadMetrics} (total 600000,
@@ -23,19 +22,19 @@ import org.junit.experimental.categories.Category;
 public class RoiFirewallMetricsPlaywrightTest
     extends AbstractIqUiTest
 {
-  @Before
+  @BeforeEach
   public void openRoiTabAsAdmin() {
     playwrightRefreshOrOpen(RoiFirewallMetricsPage.url());
     playwrightLogin();
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     playwrightLogout();
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testRoiFirewallMetrics_tileRendersWithThreeMetricsAndConfigureLink() {
     RoiFirewallMetricsPageAssertions assertions =
         new RoiFirewallMetricsPageAssertions(new RoiFirewallMetricsPage());

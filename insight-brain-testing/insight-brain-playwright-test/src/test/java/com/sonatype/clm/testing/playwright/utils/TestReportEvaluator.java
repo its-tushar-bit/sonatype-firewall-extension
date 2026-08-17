@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.playwright.utils;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Path;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.Application;
@@ -16,8 +17,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.brain.utils.ScanHelper;
 import com.sonatype.insight.json.store.JsonUtils;
-
-import org.junit.rules.TemporaryFolder;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -93,7 +92,7 @@ public class TestReportEvaluator
       Application app,
       String scanId,
       String reportClasspathDir,
-      TemporaryFolder tempDir,
+      Path tempDir,
       String brainBaseUrl,
       InsightWork workStorage,
       String stageId) throws IOException

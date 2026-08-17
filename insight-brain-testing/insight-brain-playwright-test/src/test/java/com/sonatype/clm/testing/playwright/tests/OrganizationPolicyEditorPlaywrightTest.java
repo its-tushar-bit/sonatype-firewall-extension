@@ -9,8 +9,6 @@ import java.util.regex.Pattern;
 
 import com.microsoft.playwright.assertions.LocatorAssertions;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.OwnersTreePage;
 import com.sonatype.clm.testing.playwright.pages.OwnersTreePageAssertions;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
@@ -25,9 +23,9 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -65,7 +63,7 @@ public class OrganizationPolicyEditorPlaywrightTest
 
   private Organization organization;
 
-  @Before
+  @BeforeEach
   public void seedOrgAndOpenAsAdmin() {
     String orgName = ORG_NAME_PREFIX + "-" + TemporaryEntity.uuid();
     organization = tempEntity.newOrganization(orgName);
@@ -75,7 +73,7 @@ public class OrganizationPolicyEditorPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testPolicyEditorLoads() {
     // Given: an existing policy on the seeded organization.
     Policy policy = tempEntity.newPolicy(organization.getId(), POLICY_NAME, POLICY_THREAT_LEVEL);
@@ -90,7 +88,7 @@ public class OrganizationPolicyEditorPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testNewPolicyCreation() {
     // Given/When: the new-policy editor URL for the seeded org is opened.
     navigateAndWaitForUrl(PolicyEditorPage.newPolicyUrl(organization), PolicyEditorPage.EDIT_URL_FRAGMENT);
@@ -103,7 +101,7 @@ public class OrganizationPolicyEditorPlaywrightTest
   }
 
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testInheritanceSection() {
     // Given: an existing policy on the seeded organization. The inheritance section is always
     // rendered for organization-owned policies (see EditPolicyInheritance.jsx).
@@ -122,7 +120,7 @@ public class OrganizationPolicyEditorPlaywrightTest
 
   /** End-to-end creation: fill name + threat + default constraint, submit, verify policy appears in owner summary. */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testCreatePolicy_endToEndFromOwnerSummary() {
     OwnerSummaryPage ownerSummary = new OwnerSummaryPage();
     PolicyEditorPage editorPage = new PolicyEditorPage();
@@ -169,7 +167,7 @@ public class OrganizationPolicyEditorPlaywrightTest
 
   /** Validation: empty name and duplicate name both show a form error without creating a policy. */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testNewPolicyValidation_missingNameAndDuplicateName() {
     OwnerSummaryPage ownerSummary = new OwnerSummaryPage();
     PolicyEditorPage editorPage = new PolicyEditorPage();
@@ -228,7 +226,7 @@ public class OrganizationPolicyEditorPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testCreatePolicy_submitMaskSuccessAndPoliciesTileUpdate() {
     OwnerSummaryPage ownerSummary = new OwnerSummaryPage();
     PolicyEditorPage editorPage = new PolicyEditorPage();
@@ -250,7 +248,7 @@ public class OrganizationPolicyEditorPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEditPolicy_updateFlowFromPoliciesTile() {
     OwnersTreePage treePage = new OwnersTreePage();
     OwnerSummaryPage ownerSummary = new OwnerSummaryPage();
@@ -274,7 +272,7 @@ public class OrganizationPolicyEditorPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeletePolicy_cancelAndConfirmFlow() {
     PolicyEditorPage editorPage = new PolicyEditorPage();
 
@@ -306,7 +304,7 @@ public class OrganizationPolicyEditorPlaywrightTest
 
   /** Enterprise gate: without CUSTOM_POLICIES license, Custom mode enters preview and save is blocked. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEnterpriseFeatureGate_defaultCustomToggleAndSaveBlocked() {
     PolicyEditorPage editorPage = new PolicyEditorPage();
 
@@ -334,7 +332,7 @@ public class OrganizationPolicyEditorPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSbomManagerPolicy_noDeleteButtonAndInfoAlert() {
     PolicyEditorPage editorPage = new PolicyEditorPage();
 
@@ -356,7 +354,7 @@ public class OrganizationPolicyEditorPlaywrightTest
 
   /** Back button on new-policy form navigates back to the owner summary without creating a policy. */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testBackButtonOnNewPolicy_returnsToOwnerSummary() {
     OwnerSummaryPage ownerSummary = new OwnerSummaryPage();
     PolicyEditorPage editorPage = new PolicyEditorPage();

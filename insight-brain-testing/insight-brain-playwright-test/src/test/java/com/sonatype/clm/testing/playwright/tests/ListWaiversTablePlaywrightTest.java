@@ -20,7 +20,6 @@ import jakarta.ws.rs.core.UriBuilder;
 
 import com.microsoft.playwright.Route;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.ListWaiversTablePage;
@@ -39,10 +38,10 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
 import org.assertj.core.api.Assertions;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -79,7 +78,7 @@ public class ListWaiversTablePlaywrightTest
 
   private String oldestExpiredWaiverDateFormatted;
 
-  @Before
+  @BeforeEach
   public void seedAndOpenAsAdmin() {
     listPage = new ListWaiversTablePage();
     assertions = new ListWaiversTablePageAssertions(listPage);
@@ -95,13 +94,13 @@ public class ListWaiversTablePlaywrightTest
     playwrightLogin();
   }
 
-  @After
+  @AfterEach
   public void resetAutoWaiversFeature() {
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(false);
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testAutoWaiverRow_appearsAtTopAboveActiveWaivers() {
     seedAutoWaiverAppliedToViolation();
     seedActiveWaivers();
@@ -115,7 +114,7 @@ public class ListWaiversTablePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testExpiredWaivers_shownBelowActiveWaivers() {
     seedActiveAndExpiredWaivers();
 
@@ -130,7 +129,7 @@ public class ListWaiversTablePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testActiveWaivers_sortedNewestFirst() {
     seedActiveWaiversWithDistinctTimes();
 
@@ -142,7 +141,7 @@ public class ListWaiversTablePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEmptyState_includesExternalDocsLink() {
     openApplicableWaiversTab();
 
@@ -150,7 +149,7 @@ public class ListWaiversTablePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testLoadingState_shownWhileWaiversLoading() {
     page.route(APPLICABLE_WAIVERS_URL_REGEX, route -> route.fulfill(new Route.FulfillOptions()
         .setStatus(500)
@@ -180,7 +179,7 @@ public class ListWaiversTablePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testErrorState_shownWithRetryButton() {
     page.route(APPLICABLE_WAIVERS_URL_REGEX, route -> route.fulfill(new Route.FulfillOptions()
         .setStatus(500)
@@ -224,7 +223,7 @@ public class ListWaiversTablePlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testDeleteWaiverModal_mountsOnlyWhenDeleteInitiated() {
     seedActiveWaivers();
 

@@ -7,7 +7,6 @@ package com.sonatype.clm.testing.playwright.tests.mtiq;
 
 import java.util.regex.Pattern;
 
-import com.sonatype.clm.testing.playwright.categories.MtiqTest;
 import com.sonatype.clm.testing.playwright.mtiq.AbstractMtiqUiTest;
 import com.sonatype.clm.testing.playwright.pages.MtiqGettingStartedPage;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
@@ -15,12 +14,12 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-@Category(MtiqTest.class)
+@Tag("mtiq")
 public class MtiqGettingStartedPlaywrightTest
     extends AbstractMtiqUiTest
 {

@@ -17,12 +17,11 @@ import com.sonatype.clm.testing.playwright.pages.UnsavedChangesModalComponent;
 import com.sonatype.insight.brain.model.Organization;
 
 import com.microsoft.playwright.Locator;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
-import org.junit.experimental.categories.Category;
 
 /**
  * Playwright migration of the Selenide {@code OrgsAndPoliciesSidebarTest}.
@@ -63,7 +62,7 @@ public class OrgsAndPoliciesSidebarPlaywrightTest
 
   // --------------- @Before / @After ---------------
 
-  @Before
+  @BeforeEach
   public void seedTreeAndOpenRootOrgAsAdmin() {
     seedRelatedOrganizations();
     playwrightRefreshOrOpen(OwnerSummaryPage.urlToRootOrg());
@@ -92,7 +91,7 @@ public class OrgsAndPoliciesSidebarPlaywrightTest
     return organizationsByDepth.get(TOTAL_DEPTH - 1).get(0);
   }
 
-  @After
+  @AfterEach
   public void dismissUnsavedChangesIfOpen() {
     new UnsavedChangesModalComponent().continueIfOpen();
   }
@@ -105,7 +104,7 @@ public class OrgsAndPoliciesSidebarPlaywrightTest
    * {@code #organizations-collapsible}.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testSidebarLoadsWithOrganizations() {
     OrgsAndPoliciesSidebarComponent sidebar = new OrgsAndPoliciesSidebarComponent();
     OrgsAndPoliciesSidebarComponentAssertions sidebarAssertions =
@@ -126,7 +125,7 @@ public class OrgsAndPoliciesSidebarPlaywrightTest
    * owner-summary URL and the displayed selected-owner updates accordingly.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testSidebarNavigationToChildOrg() {
     OrgsAndPoliciesSidebarComponent sidebar = new OrgsAndPoliciesSidebarComponent();
     OrgsAndPoliciesSidebarComponentAssertions sidebarAssertions =
@@ -147,7 +146,7 @@ public class OrgsAndPoliciesSidebarPlaywrightTest
    * and the {@code editor-owner-name} text input.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testAddApplicationFromSidebar() {
     Organization firstChildOrg = firstChildOrg();
     playwrightRefreshOrOpen(OwnerSummaryPage.url(firstChildOrg));

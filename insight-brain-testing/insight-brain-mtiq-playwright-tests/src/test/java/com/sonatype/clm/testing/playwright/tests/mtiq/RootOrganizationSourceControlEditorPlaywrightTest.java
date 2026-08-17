@@ -5,17 +5,15 @@
  */
 package com.sonatype.clm.testing.playwright.tests.mtiq;
 
-import com.sonatype.clm.testing.playwright.categories.MtiqTest;
-
 import com.sonatype.clm.testing.playwright.pages.SourceControlConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.SourceControlRegressionPage;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Organization;
 
 import com.microsoft.playwright.Locator;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
@@ -27,7 +25,7 @@ import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
  * features are mocked deterministically (automation on, PRs off) so Remediation/SSH/Manual PR
  * toggles are omitted. Token field is reached via the GitHub App / PAT chooser after selecting GitHub.
  */
-@Category(MtiqTest.class)
+@Tag("mtiq")
 public class RootOrganizationSourceControlEditorPlaywrightTest
     extends AbstractMtiqSourceControlEditorPlaywrightTest
 {
@@ -45,7 +43,7 @@ public class RootOrganizationSourceControlEditorPlaywrightTest
 
   private SourceControlRegressionPage scm;
 
-  @Before
+  @BeforeEach
   public void init() {
     Organization rootOrg = lookup(OrganizationDAO.class).getById(ROOT_ORGANIZATION_ID);
     super.init(rootOrg);

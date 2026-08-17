@@ -7,7 +7,6 @@ package com.sonatype.clm.testing.playwright.tests.mtiq;
 
 import java.util.List;
 
-import com.sonatype.clm.testing.playwright.categories.MtiqTest;
 import com.sonatype.clm.testing.playwright.mtiq.AbstractMtiqUiTest;
 import com.sonatype.clm.testing.playwright.pages.MtiqUserManagementPage;
 import com.sonatype.clm.testing.playwright.pages.MtiqUserManagementPageAssertions;
@@ -18,14 +17,14 @@ import com.sonatype.insight.brain.model.security.TenantMetadata;
 import com.sonatype.insight.brain.model.security.User;
 
 import com.microsoft.playwright.Locator;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-@Category(MtiqTest.class)
+@Tag("mtiq")
 public class MtiqUserManagementPlaywrightTest
     extends AbstractMtiqUiTest
 {
@@ -61,7 +60,7 @@ public class MtiqUserManagementPlaywrightTest
    * Without both the {@code SSO_IDP_MANAGED_BY_SONATYPE} flag and a {@link TenantMetadata} row, the
    * page hits the {@code Invalid request for managed idp} load-error branch on entry.
    */
-  @Before
+  @BeforeEach
   public void seedManagedIdpAndCreatePageObjects() {
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.SSO_IDP_MANAGED_BY_SONATYPE,
         String.valueOf(true));
@@ -75,7 +74,7 @@ public class MtiqUserManagementPlaywrightTest
         TEST_CONNECTION_NAME, TEST_ENCRYPTION_KEY_NAME, "", ""));
   }
 
-  @After
+  @AfterEach
   public void cleanupTenantMetadata() {
     TenantMetadataDAO dao = lookup(TenantMetadataDAO.class);
     dao.getAll().forEach(dao::delete);

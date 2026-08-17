@@ -8,7 +8,6 @@ package com.sonatype.clm.testing.playwright.tests;
 import java.util.regex.Pattern;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.AdministratorsPage;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.OrgsAndPoliciesSidebarComponent;
@@ -20,9 +19,9 @@ import com.sonatype.clm.testing.playwright.pages.WebhookEditorPage;
 import com.sonatype.clm.testing.playwright.pages.WebhookListPage;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
@@ -35,14 +34,14 @@ import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID
 public class FirewallNavigationRegressionPlaywrightTest
     extends AbstractIqUiTest
 {
-  @Before
+  @BeforeEach
   public void loginToDashboard() {
     playwrightRefreshOrOpen(DashboardPage.url());
     playwrightLogin();
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFirewallReposAndPoliciesSidebar_displaysOwnerManagementTree() {
     String firewallMgmtUrl = OwnerSummaryPage.firewallUrl(ROOT_ORGANIZATION_ID);
     navigateAndWaitForUrl(firewallMgmtUrl, routeOf(firewallMgmtUrl));
@@ -64,7 +63,7 @@ public class FirewallNavigationRegressionPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFirewallSystemPreferences_usersRolesAdminsWebhooksPagesAccessible() {
     navigateAndWaitForUrl(UserManagementPage.firewallUrl(), routeOf(UserManagementPage.firewallUrl()));
     assertThat(new UserManagementPage().container()).isVisible(PlaywrightTiming.VISIBLE_OPTS);

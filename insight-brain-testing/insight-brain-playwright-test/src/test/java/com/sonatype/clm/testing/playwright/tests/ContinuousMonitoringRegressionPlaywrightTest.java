@@ -10,16 +10,15 @@ import java.util.regex.Pattern;
 import com.microsoft.playwright.assertions.LocatorAssertions;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.ContinuousMonitoringRegressionPage;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 import com.sonatype.insight.brain.model.Organization;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -58,7 +57,7 @@ public class ContinuousMonitoringRegressionPlaywrightTest
   private static final Pattern PAGE_DESCRIPTION_PATTERN = Pattern.compile(
       ".*Keep daily visibility on applications.*Violation notifications can be configured per policy\\..*");
 
-  @Before
+  @BeforeEach
   public void openDashboardAndLoginAsAdmin() {
     playwrightRefreshOrOpen(DashboardPage.url());
     playwrightLogin();
@@ -71,7 +70,7 @@ public class ContinuousMonitoringRegressionPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testEditorRendersWithRadioButtonsAndFieldset() {
     Organization org = tempEntity.newOrganization();
     navigateToOrgMonitoring(org.getId());
@@ -84,7 +83,7 @@ public class ContinuousMonitoringRegressionPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testFirstRadioOption_doNotMonitorAtRootOrg_inheritFromParentAtChildOrg() {
     navigateToOrgMonitoring(Organization.ROOT_ORGANIZATION_ID);
     ContinuousMonitoringRegressionPage regPage = new ContinuousMonitoringRegressionPage();
@@ -100,7 +99,7 @@ public class ContinuousMonitoringRegressionPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSelectDoNotMonitorAndSave_removesMonitoring() {
     tempEntity.newPolicyMonitoring(Organization.ROOT_ORGANIZATION_ID, Stage.ID_BUILD);
     navigateToOrgMonitoring(Organization.ROOT_ORGANIZATION_ID);
@@ -120,7 +119,7 @@ public class ContinuousMonitoringRegressionPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testUpdateButton_noChangesGuard_showsValidationError() {
     Organization org = tempEntity.newOrganization();
     navigateToOrgMonitoring(org.getId());
@@ -132,7 +131,7 @@ public class ContinuousMonitoringRegressionPlaywrightTest
   }
 
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testPageDescriptionTextVisible() {
     Organization org = tempEntity.newOrganization();
     navigateToOrgMonitoring(org.getId());

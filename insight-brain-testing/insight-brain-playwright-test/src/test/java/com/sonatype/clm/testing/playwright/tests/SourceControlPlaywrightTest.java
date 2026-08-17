@@ -12,8 +12,6 @@ import com.microsoft.playwright.PlaywrightException;
 import com.microsoft.playwright.Route;
 import com.microsoft.playwright.options.AriaRole;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.HeaderComponent;
 import com.sonatype.clm.testing.playwright.pages.HeaderComponentAssertions;
@@ -22,10 +20,10 @@ import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.SourceControlConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.SourceControlConfigurationPageAssertions;
 
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 
@@ -58,7 +56,7 @@ public class SourceControlPlaywrightTest
       new ScmToggle("automated-commit-feedback", "Automated Commit Feedback"),
       new ScmToggle("manual-pull-requests", "Manual Pull Requests"));
 
-  @Before
+  @BeforeEach
   public void openDashboardAndLoginAsAdmin() {
     playwrightRefreshOrOpen(DashboardPage.url());
     playwrightLogin();
@@ -82,7 +80,7 @@ public class SourceControlPlaywrightTest
       page.getByTestId(pillTargetId + "-button").waitFor();
     }
     catch (PlaywrightException e) {
-      Assume.assumeTrue(featureLabel + " is not available for this license or configuration", false);
+      Assumptions.assumeTrue(false, featureLabel + " is not available for this license or configuration");
     }
   }
 
@@ -91,7 +89,7 @@ public class SourceControlPlaywrightTest
    * Configuration heading, and edit link).
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testOrgSourceControl() {
     navigateToRootOrganizationSummary();
     playwrightWaitUntilUrlContains("/management/view/organization/");
@@ -109,7 +107,7 @@ public class SourceControlPlaywrightTest
    * (with copy + advanced Git options + InnerSource block), and the Create button.
    */
   @Test
-  @Category(SanityTest.class)
+  @Tag("sanity")
   public void testOrgSourceControlConfigurationLayout() {
     navigateToRootOrganizationSummary();
     playwrightWaitUntilUrlContains("/management/view/organization/");
@@ -151,7 +149,7 @@ public class SourceControlPlaywrightTest
    * already be cached from the {@code @Before} dashboard navigation).
    */
   @Test
-  @Category(RegressionTest.class)
+  @Tag("regression")
   public void testSourceControlEditor_showsUnsupportedAlertWhenFeaturesAbsent() {
     try {
       page.route(Pattern.compile(".*/rest/product/features([?#][^/]*)?$"),

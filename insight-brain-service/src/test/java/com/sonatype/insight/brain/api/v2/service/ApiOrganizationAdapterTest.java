@@ -17,7 +17,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiTagDTO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.tag.Tag;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

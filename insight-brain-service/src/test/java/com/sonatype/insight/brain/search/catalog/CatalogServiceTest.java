@@ -70,9 +70,9 @@ import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.core.Response;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class CatalogServiceTest
 {
@@ -82,7 +82,7 @@ public class CatalogServiceTest
 
   private CatalogService service;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     SystemConfigurationPropertyFeatureTestSupport.install();
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
@@ -107,7 +107,7 @@ public class CatalogServiceTest
     service = new CatalogService(iq, searchApiClient, searchIndexClient);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     SystemConfigurationPropertyFeatureTestSupport.uninstall();
   }

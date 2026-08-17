@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.search.index.RankedGroup;
 import com.sonatype.insight.brain.search.index.RankedGroupsResult;
 import com.sonatype.insight.brain.search.opensearch.OpenSearchRankedGroupsAggregation.GroupMax;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.opensearch.client.json.JsonData;
 import org.opensearch.client.opensearch._types.aggregations.Aggregate;
 import org.opensearch.client.opensearch._types.aggregations.Buckets;

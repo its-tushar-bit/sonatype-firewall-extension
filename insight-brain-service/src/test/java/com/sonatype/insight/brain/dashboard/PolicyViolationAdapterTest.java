@@ -15,8 +15,8 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.dashboard.PolicyViolationDTOTestUtils.assertPolicyViolationDTO;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,7 +26,7 @@ public class PolicyViolationAdapterTest
 {
   private PolicyDAO policyDAO;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     policyDAO = daoFactory.createPolicyDAO();
   }

@@ -23,8 +23,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -39,7 +39,7 @@ public class HostedRepositoryComponentResolverTest
 
   private HostedRepositoryComponentResolver resolver;
 
-  @Before
+  @BeforeEach
   public void setup() {
     hostedRepositoryComponentDAO = daoFactory.createHostedRepositoryComponentDAO();
     ownerComponentDAO = daoFactory.createOwnerComponentDAO();

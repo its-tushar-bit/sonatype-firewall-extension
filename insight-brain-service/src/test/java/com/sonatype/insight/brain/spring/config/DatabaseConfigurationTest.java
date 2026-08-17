@@ -18,8 +18,8 @@ import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.service.InsightConfig;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class DatabaseConfigurationTest
 {
@@ -37,7 +37,7 @@ public class DatabaseConfigurationTest
 
   private final TestDatabaseConfiguration configuration = new TestDatabaseConfiguration(databaseContainer);
 
-  @Before
+  @BeforeEach
   public void setUp() {
     when(databaseContainer.getOperationalDataStore()).thenReturn(operationalDataStore);
     when(databaseContainer.getAggregationDataStore()).thenReturn(aggregationDataStore);

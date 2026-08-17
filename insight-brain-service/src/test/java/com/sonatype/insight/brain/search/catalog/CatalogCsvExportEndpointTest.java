@@ -65,9 +65,9 @@ import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.ByteBuffersDirectory;
 import org.apache.lucene.store.Directory;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * End-to-end CSV export of the My-Scan-Data (LOCAL) Components and Vulnerabilities lists, through the
@@ -90,7 +90,7 @@ public class CatalogCsvExportEndpointTest
 
   private CatalogResource resource;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     SystemConfigurationPropertyFeatureTestSupport.install();
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
@@ -141,7 +141,7 @@ public class CatalogCsvExportEndpointTest
     resource = new CatalogResource(service, permissionService, currentUser);
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     if (reader != null) {
       reader.close();

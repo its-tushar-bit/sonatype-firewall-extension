@@ -13,8 +13,8 @@ import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
 import org.quartz.Trigger;
@@ -38,7 +38,7 @@ public class QuartzHSQLDBDelegateTest
 
   private DataSource dataSource;
 
-  @Before
+  @BeforeEach
   public void before() throws Exception {
     dataSource = databaseRule.getOperationalDataStore().getDataSource();
     clearQuartzTables();

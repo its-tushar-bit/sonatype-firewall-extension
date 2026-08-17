@@ -28,8 +28,8 @@ import com.sonatype.insight.scan.manifest.ClairScannerVulnerability;
 
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.FIXED_BY_MAX_LENGTH;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.FORMAT_MAX_LENGTH;
@@ -62,7 +62,7 @@ public class ClairScannerResultsHandlerTest
 
   private DuplicateAwareThirdPartyFileCoordinatePersister fileCoordinatePersister;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     thirdPartyCoordinateSecurityDAO = daoFactory.createThirdPartyCoordinateSecurityDAO();
     thirdPartyCoordinateLicenseDAO = daoFactory.createThirdPartyCoordinateLicenseDAO();

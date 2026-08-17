@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.search.indexquery;
 
 import java.util.Map;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.sonatype.insight.brain.search.indexquery.IndexQueryFilterSchema.FilterDef;
 import com.sonatype.insight.brain.search.indexquery.IndexQueryFilterSchema.Kind;

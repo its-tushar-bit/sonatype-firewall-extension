@@ -20,9 +20,9 @@ import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.core.Response;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -44,7 +44,7 @@ public class ResultsEndpointTest
 
   private ResultsService service;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     SystemConfigurationPropertyFeatureTestSupport.install();
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
@@ -61,7 +61,7 @@ public class ResultsEndpointTest
         service, org.mockito.Mockito.mock(SuggestService.class), searchIndexClient);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     SystemConfigurationPropertyFeatureTestSupport.uninstall();
   }

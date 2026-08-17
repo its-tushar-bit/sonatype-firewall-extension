@@ -10,7 +10,7 @@ import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.git.PullRequestFailureCategorizer.AUTH_INVALID;
 import static com.sonatype.insight.brain.git.PullRequestFailureCategorizer.BRANCH_CONFLICT;

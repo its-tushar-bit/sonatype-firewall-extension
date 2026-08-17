@@ -14,8 +14,8 @@ import java.util.List;
 import jakarta.ws.rs.core.MediaType;
 
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -45,7 +45,7 @@ public class CSVMessageBodyWriterTest
   {
   }
 
-  @Before
+  @BeforeEach
   public void setup() {
     writer = new CSVMessageBodyWriter(new CsvMapper());
   }

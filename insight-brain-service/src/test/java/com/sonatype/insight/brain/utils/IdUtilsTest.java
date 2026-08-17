@@ -16,8 +16,8 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -27,7 +27,7 @@ public class IdUtilsTest
 {
   private IdUtils idUtils;
 
-  @Before
+  @BeforeEach
   public void before() {
     idUtils = new IdUtils(daoFactory.createApplicationDAO(), daoFactory.createOrganizationDAO(),
         daoFactory.createRepositoryDAO(), daoFactory.createRepositoryManagerDAO(),

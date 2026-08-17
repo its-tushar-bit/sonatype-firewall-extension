@@ -19,8 +19,8 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.telemetry.ClusterIdentificationService;
 import java.util.Arrays;
 import java.util.stream.Collectors;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 public class TelemetryIdTest
@@ -31,7 +31,7 @@ public class TelemetryIdTest
 
   private SystemConfigurationPropertyDAO dao;
 
-  @Before
+  @BeforeEach
   public void cleanup() {
     dao = new SystemConfigurationPropertyDAO(databaseRule.getOperationalDataStore());
     SystemConfigurationProperty generatedIdProperty = dao
@@ -41,7 +41,7 @@ public class TelemetryIdTest
     }
   }
 
-  @Before
+  @BeforeEach
   public void setup() {
     mockClusterIdentificationService = TelemetryTestUtils.setupReflectiveMockClusterIdentificationService();
   }

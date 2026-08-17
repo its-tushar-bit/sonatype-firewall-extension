@@ -16,7 +16,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiPolicyOwnerType;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

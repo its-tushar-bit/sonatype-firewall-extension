@@ -13,8 +13,8 @@ import com.sonatype.insight.brain.model.PerpetualLock;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 
 import com.google.common.collect.ImmutableList;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -41,7 +41,7 @@ public class SelfThrottlingLoadBalancerTest
 
   private TestableSelfThrottlingLoadBalancer testableSelfThrottlingLoadBalancer;
 
-  @Before
+  @BeforeEach
   public void setup() {
     MockitoAnnotations.openMocks(this);
     testableSelfThrottlingLoadBalancer =

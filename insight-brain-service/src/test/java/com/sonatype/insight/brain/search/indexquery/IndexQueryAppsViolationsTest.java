@@ -63,9 +63,9 @@ import org.apache.lucene.store.Directory;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * End-to-end coverage of the PR-B Applications + Violations completeness surface (new filters, facets,
@@ -91,7 +91,7 @@ public class IndexQueryAppsViolationsTest
 
   private OrganizationSummaryService organizationSummaryService;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     // The organizations facet resolves bucket names through an @AuthzFilter-woven call, so a Shiro
     // SecurityManager must be reachable from this thread. A null principal makes the filter pass every
@@ -203,7 +203,7 @@ public class IndexQueryAppsViolationsTest
     resource = new IndexQueryResource(service, searchIndexClient);
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     ThreadContext.unbindSubject();
     ThreadContext.unbindSecurityManager();

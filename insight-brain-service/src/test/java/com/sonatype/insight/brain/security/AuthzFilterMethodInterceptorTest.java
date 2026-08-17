@@ -18,9 +18,9 @@ import com.sonatype.insight.brain.model.security.UserPrincipal;
 import org.apache.shiro.aop.MethodInvocation;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -46,7 +46,7 @@ public class AuthzFilterMethodInterceptorTest
     return null;
   }
 
-  @Before
+  @BeforeEach
   public void init() {
     invoc = mock(MethodInvocation.class);
     when(invoc.getThis()).thenReturn(this);
@@ -60,7 +60,7 @@ public class AuthzFilterMethodInterceptorTest
     ThreadContext.bind(subject);
   }
 
-  @After
+  @AfterEach
   public void exit() {
     ThreadContext.unbindSubject();
   }

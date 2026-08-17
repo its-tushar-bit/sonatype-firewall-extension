@@ -109,6 +109,7 @@ public class PolicyInternalDAO
     var isRepository = OWNER_ANCESTOR.OWNER_TYPE.eq("REPOSITORY");
     var isRepositoryManager = OWNER_ANCESTOR.OWNER_TYPE.eq("REPOSITORY_MANAGER");
     var isRepositoryContainer = OWNER_ANCESTOR.OWNER_TYPE.eq("REPOSITORY_CONTAINER");
+    var isHostedRepositoryComponent = OWNER_ANCESTOR.OWNER_TYPE.eq("HOSTED_REPOSITORY_COMPONENT");
     var isNotDirectlyAttached = OWNER_ANCESTOR.OWNER_ID.ne(OWNER_ANCESTOR.ANCESTOR_ID);
     var isDirectlyAttached = OWNER_ANCESTOR.OWNER_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID);
 
@@ -116,15 +117,21 @@ public class PolicyInternalDAO
         .and(isNotDirectlyAttached)
         .and(DSL.exists(appTagForPolicy).or(DSL.notExists(policyHasTags)));
 
+    // Repository-family scopes (Repository, RepositoryManager, RepositoryContainer, and
+    // HostedRepositoryComponent) share the same policy-filtering rule: only untagged
+    // ancestor policies apply. Policy tags are an application-only concept — repository
+    // artifacts have no tag axis, so tagged ancestor policies are excluded here.
     var repositoryCondition = isRepository.or(isRepositoryManager)
         .or(isRepositoryContainer)
+        .or(isHostedRepositoryComponent)
         .and(isNotDirectlyAttached)
         .and(DSL.notExists(policyHasTags));
 
     var orgCondition = isApplication.not()
         .and(isRepository.not())
         .and(isRepositoryManager.not())
-        .and(isRepositoryContainer.not());
+        .and(isRepositoryContainer.not())
+        .and(isHostedRepositoryComponent.not());
 
     return tx.dsl()
         .select(POLICY.fields())
@@ -156,7 +163,7 @@ public class PolicyInternalDAO
 
     // All owner IDs in the hierarchy of ownerId: ancestors (upward) UNION descendants (downward).
     // owner_ancestor covers all owner types: ORGANIZATION, APPLICATION, REPOSITORY_CONTAINER,
-    // REPOSITORY_MANAGER, and REPOSITORY.
+    // REPOSITORY_MANAGER, REPOSITORY, and HOSTED_REPOSITORY_COMPONENT.
     //
     // Self-exclusion uses ANCESTOR_ID != ownerId rather than ancestor_distance > 0
     // to be robust against future view changes and for clarity.

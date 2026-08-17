@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -514,6 +515,61 @@ public class PolicyDAOTest
     assertThat(policies).extracting(Policy::getName)
         .containsExactlyInAnyOrder("policyOrg1", "policyOrg2",
             "policyRootOrg1", "policyRootOrg2");
+  }
+
+  // HRC owners follow the repository-family filter: every untagged policy in the ancestor
+  // chain applies. Policy tags are application-scoped and HRC has no tag axis, so tagged
+  // ancestor policies are excluded (see the sibling _HrcWithTags test).
+  @Test
+  public void testGetApplicableByOwnerIdWithHierarchy_HrcHierarchy() {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+
+    String policyNameRootOrg = "RootOrganizationPolicy";
+    tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, policyNameRootOrg);
+    String policyNameRepoContainer = "RepositoryContainerPolicy";
+    tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID, policyNameRepoContainer);
+    String policyNameRepoManager = "RepositoryManagerPolicy";
+    tempEntity.newPolicy(repositoryManager.getId(), policyNameRepoManager);
+    String policyNameRepo = "RepositoryPolicy";
+    tempEntity.newPolicy(repository.getId(), policyNameRepo);
+    String policyNameHrc = "HrcPolicy";
+    tempEntity.newPolicy(hrc.getId(), policyNameHrc);
+
+    List<Policy> policies = policyDAO.getApplicableByOwnerIdWithHierarchy(hrc.getId());
+    assertThat(policies).extracting(Policy::getName)
+        .containsExactlyInAnyOrder(policyNameHrc, policyNameRepo, policyNameRepoManager,
+            policyNameRepoContainer, policyNameRootOrg);
+  }
+
+  // HRC owners follow the repository-family filter: only untagged ancestor policies apply.
+  // Policy tags are application-scoped; HRC has no tag axis.
+  @Test
+  public void testGetApplicableByOwnerIdWithHierarchy_HrcWithTags() {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+
+    Policy policyRootOrgUntagged = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "policyRootOrgUntagged");
+    Policy policyRootOrgTagged = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "policyRootOrgTagged");
+
+    Tag tag = tempEntity.newTag(organization.getId());
+    tempEntity.newPolicyTag(policyRootOrgTagged.getId(), tag.getId());
+
+    List<Policy> policies = policyDAO.getApplicableByOwnerIdWithHierarchy(hrc.getId());
+    assertThat(policies).extracting(Policy::getName).containsExactly("policyRootOrgUntagged");
+  }
+
+  // Policies attached directly to an HRC apply regardless of tags: isDirectlyAttached
+  // bypasses the tag/hierarchy filters, matching the behavior every other owner type gets
+  // for self-attached policies.
+  @Test
+  public void testGetApplicableByOwnerIdWithHierarchy_HrcDirectlyAttachedPolicyWithTagsStillIncluded() {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+
+    Policy directlyAttached = tempEntity.newPolicy(hrc.getId(), "directlyAttachedHrcPolicy");
+    Tag tag = tempEntity.newTag(organization.getId());
+    tempEntity.newPolicyTag(directlyAttached.getId(), tag.getId());
+
+    List<Policy> policies = policyDAO.getApplicableByOwnerIdWithHierarchy(hrc.getId());
+    assertThat(policies).extracting(Policy::getName).containsExactly("directlyAttachedHrcPolicy");
   }
 
   @Test

@@ -27,19 +27,21 @@ import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.SimpleAuthenticationInfo;
 import org.apache.shiro.authc.credential.AllowAllCredentialsMatcher;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
+@ComponentH2Test
 public class SamlRealmTest
-    extends AbstractComponentTest
+    extends AbstractComponentH2Test
 {
   @Inject
   private SamlRealm samlRealm;
@@ -53,12 +55,12 @@ public class SamlRealmTest
   @Inject
   private SamlConfigurationService samlConfigurationService;
 
-  @Before
+  @BeforeEach
   public void before() {
     enableSsoWithSaml();
   }
 
-  @After
+  @AfterEach
   public void after() {
     samlUserDAO.getAll().forEach(samlUserDAO::delete);
   }

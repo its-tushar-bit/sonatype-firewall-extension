@@ -9,6 +9,7 @@ import java.util.EnumSet;
 
 import jakarta.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -17,22 +18,17 @@ import com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEvent
 
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.APPLICATION_EVALUATION;
-import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_MODE_ENABLED_ENV;
-import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastleFipsProvider;
+import static com.sonatype.insight.brain.security.FipsTestUtil.enableFipsMode;
+import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastleFipsProvider;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class WebhookServiceFIPSTest
     extends WebhookServiceTest
 {
-  @Rule
-  public EnvironmentVariables environmentVariables = new EnvironmentVariables();
-
   @Inject
   private ProductLicense productLicense;
 
@@ -44,13 +40,22 @@ public class WebhookServiceFIPSTest
 
   private static final String MOCKED_WEBHOOK_SECRET = "/$kin%&^@#{k0345";
 
-  @Before
-  public void setup() throws Exception {
-    // Ensure that the Bouncy Castle FIPS provider is inserted before the tests.
-    insertBouncyCastleFipsProvider();
+  @AfterEach
+  @Override
+  public void afterTest() {
+    super.afterTest();
 
-    // Initialize the EnvironmentVariables here instead of as a class variable as this gets run as part of a JUnit rule
-    environmentVariables.set(FIPS_MODE_ENABLED_ENV, "true");
+    // Remove the Bouncy Castle FIPS provider after the test; the parent afterTest() accesses providers.
+    removeBouncyCastleFipsProvider();
+  }
+
+  @Override
+  public TemporaryEntity createTemporaryEntity() {
+    // Enable FIPS mode (insert the BouncyCastle FIPS provider + set FIPS_MODE_ENABLED) before the Spring
+    // context and TemporaryEntity are created.
+    enableFipsMode();
+
+    return super.createTemporaryEntity();
   }
 
   @Test

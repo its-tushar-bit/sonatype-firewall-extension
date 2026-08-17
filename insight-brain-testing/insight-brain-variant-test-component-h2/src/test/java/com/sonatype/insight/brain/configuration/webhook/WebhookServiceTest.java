@@ -19,7 +19,8 @@ import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEventService;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -27,7 +28,7 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.dataaccess.TemporaryEntity.WEBHOOK_SECRET_KEY_CLEAR;
 import static com.sonatype.insight.brain.dataaccess.TemporaryEntity.WEBHOOK_SECRET_KEY_ENCRYPTED;
@@ -44,8 +45,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
+@ComponentH2Test
 public class WebhookServiceTest
-    extends AbstractComponentTest
+    extends AbstractComponentH2Test
 {
   @Inject
   private WebhookDAO webhookDAO;

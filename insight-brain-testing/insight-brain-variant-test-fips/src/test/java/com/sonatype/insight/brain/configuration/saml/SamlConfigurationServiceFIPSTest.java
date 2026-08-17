@@ -7,38 +7,28 @@ package com.sonatype.insight.brain.configuration.saml;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.junit.jupiter.api.AfterEach;
 
-import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_MODE_ENABLED_ENV;
-import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastleFipsProvider;
+import static com.sonatype.insight.brain.security.FipsTestUtil.enableFipsMode;
 import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastleFipsProvider;
 
 public class SamlConfigurationServiceFIPSTest
     extends SamlConfigurationServiceTest
 {
-  @Rule
-  public EnvironmentVariables environmentVariables;
-
-  @After
+  @AfterEach
   @Override
   public void afterTest() {
     super.afterTest();
 
-    // Ensure that the Bouncy Castle FIPS provider is removed after the tests as
-    // some providers are accessed in the afterTest parent method.
+    // Remove the Bouncy Castle FIPS provider after the test; the parent afterTest() accesses providers.
     removeBouncyCastleFipsProvider();
   }
 
   @Override
   public TemporaryEntity createTemporaryEntity() {
-    // Ensure that the Bouncy Castle FIPS provider is inserted before the TemporaryEntity is created.
-    insertBouncyCastleFipsProvider();
-
-    // initialize the EnvironmentVariables here instead of as a class variable as this gets run as part of a JUnit rule
-    environmentVariables = new EnvironmentVariables();
-    environmentVariables.set(FIPS_MODE_ENABLED_ENV, "true");
+    // Enable FIPS mode (insert the BouncyCastle FIPS provider + set FIPS_MODE_ENABLED) before the Spring
+    // context and TemporaryEntity are created.
+    enableFipsMode();
 
     return super.createTemporaryEntity();
   }

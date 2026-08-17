@@ -113,6 +113,22 @@
           </execution>
         </executions>
       </plugin>
+      <!-- Publish a test-jar so the FIPS variant module (insight-brain-variant-test-fips) can extend the
+           JUnit 5 component-test base classes relocated here (SamlConfigurationServiceTest, WebhookServiceTest,
+           SamlRealmTest, UserTokenRealmTest, SamlSsoUserProviderTest, SsoUserServiceTest,
+           ApiSamlConfigurationServiceAuthzTest). The FIPS subclasses toggle FIPS mode and inherit these
+           scenarios; the FIPS module runs reuseForks=false so it cannot share this module's reused context. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
       <!-- No artifacts to deploy: this module only runs tests. -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

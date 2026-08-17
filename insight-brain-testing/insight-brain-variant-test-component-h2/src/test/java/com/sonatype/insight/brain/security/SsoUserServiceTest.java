@@ -30,15 +30,17 @@ import com.sonatype.insight.brain.model.security.SamlGroup;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.SamlUserGroup;
 import com.sonatype.insight.brain.security.oauth2.OAuth2Realm;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@ComponentH2Test
 public class SsoUserServiceTest
-    extends AbstractComponentTest
+    extends AbstractComponentH2Test
 {
   @Inject
   private SsoUserService ssoUserService;

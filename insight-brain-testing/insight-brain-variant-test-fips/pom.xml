@@ -19,14 +19,15 @@
   <description>
     FIPS-mode integration tests: the single-tenant IQ *FIPSTest classes moved out of
     insight-brain-service. Each test class inserts a BouncyCastle FIPS security provider
-    (FipsTestUtil.insertBouncyCastleFipsProvider) and sets FIPS_MODE_ENABLED before running its
+    (FipsTestUtil.insertBouncyCastleFipsProvider) and enables FIPS_MODE_ENABLED before running its
     inherited (non-FIPS) scenarios. Because a FIPS provider is a JVM-global mutation of
     java.security.Security, these tests CANNOT share a reused, single-JVM context — they would poison
     every other test in that JVM. So they live here with reuseForks=false, giving each FIPS test class
-    its own JVM (and therefore its own clean security-provider state). The non-FIPS base classes stay
-    in insight-brain-service and arrive on the classpath via its test-jar purely as superclasses; the
-    failsafe include is narrowed to **/*FIPSTest.* so only the FIPS subclasses run and the bases never
-    execute standalone. Run:
+    its own JVM (and therefore its own clean security-provider state). The non-FIPS base classes arrive on
+    the classpath purely as superclasses: the JUnit 5 (Jupiter) bases via the
+    insight-brain-variant-test-component-h2 test-jar, and the remaining JUnit 4 bases via the
+    insight-brain-service test-jar. The failsafe include is narrowed to **/*FIPSTest.* so only the FIPS
+    subclasses run and the bases never execute standalone. Run:
     mvn verify -pl insight-brain-variant-test-fips -Dskip-functional-test
   </description>
 
@@ -49,10 +50,10 @@
         <configuration>
           <skip>false</skip>
           <includes>
-            <!-- Only the FIPS subclasses run. Every moved class ends in FIPSTest, so this matches
-                 exactly the 20 FIPS tests and never the non-FIPS base classes that arrive on the
-                 classpath via the insight-brain-service / nexus-mtiq-server test-jars purely as
-                 superclasses. This drops the fragile hand-maintained base-exclude list and is
+            <!-- Only the FIPS subclasses run. Every moved class ends in FIPSTest, so this matches the FIPS
+                 tests and never the non-FIPS base classes that arrive on the classpath via the
+                 insight-brain-variant-test-component-h2 / insight-brain-service / nexus-mtiq-server test-jars
+                 purely as superclasses. This drops the fragile hand-maintained base-exclude list and is
                  future-proof: a new non-FIPS base named *Test on the classpath can never match. -->
             <include>**/*FIPSTest.*</include>
           </includes>
@@ -158,13 +159,25 @@
       <scope>test</scope>
     </dependency>
 
-    <!-- Shared variant-test machinery (ComponentTestDbHarnessExtension, @ComponentH2Test) — not used by
-         the JUnit 4 FIPS tests directly (they extend their non-FIPS bases from the insight-brain-service
-         test-jar), but retained defensively in case a base references it. -->
+    <!-- Shared variant-test machinery (ComponentTestDbHarnessExtension, @ComponentH2Test) — inherited by the
+         JUnit 5 FIPS subclasses through their relocated @ComponentH2Test base classes below. -->
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-variant-test-support</artifactId>
       <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- The JUnit 5 (Jupiter) non-FIPS base classes relocated out of insight-brain-service:
+         SamlConfigurationServiceTest, WebhookServiceTest, SamlRealmTest, UserTokenRealmTest,
+         SamlSsoUserProviderTest, SsoUserServiceTest and ApiSamlConfigurationServiceAuthzTest. The matching
+         *FIPSTest subclasses in this module extend them (inheriting @ComponentH2Test), so the FIPS variants no
+         longer rely on a JUnit 4 base from the insight-brain-service test-jar. -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-variant-test-component-h2</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
       <scope>test</scope>
     </dependency>
 

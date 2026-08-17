@@ -15,18 +15,20 @@ import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@ComponentH2Test
 public class SamlConfigurationServiceTest
-    extends AbstractComponentTest
+    extends AbstractComponentH2Test
 {
   @Inject
   private SamlConfigurationService samlConfigurationService;

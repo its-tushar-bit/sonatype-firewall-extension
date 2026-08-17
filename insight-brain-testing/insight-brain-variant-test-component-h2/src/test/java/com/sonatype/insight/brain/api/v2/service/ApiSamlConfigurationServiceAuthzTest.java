@@ -6,20 +6,23 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature.SAML_ENABLED;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.brain.variant.AbstractComponentH2AuthzTest;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import jakarta.inject.Inject;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
+@ComponentH2Test
 public class ApiSamlConfigurationServiceAuthzTest
-    extends AbstractServiceAuthzTest
+    extends AbstractComponentH2AuthzTest
 {
   @Inject
   private ApiSamlConfigurationService apiSamlConfigurationService;
@@ -34,43 +37,46 @@ public class ApiSamlConfigurationServiceAuthzTest
     apiSamlConfigurationService.getSamlConfiguration();
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testGetSamlConfiguration_Unauthorized() {
     login();
-    apiSamlConfigurationService.getSamlConfiguration();
+    assertThrows(UnauthorizedException.class, () -> apiSamlConfigurationService.getSamlConfiguration());
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testGetSamlConfiguration_Unauthenticated() {
-    apiSamlConfigurationService.getSamlConfiguration();
+    assertThrows(UnauthenticatedException.class, () -> apiSamlConfigurationService.getSamlConfiguration());
   }
 
-  @Test(expected = BadRequestException.class)
+  @Test
   public void testInsertOrUpdateSamlConfiguration_Authorized() {
     setBaseUrl("http://iq-server:8070/");
     grantConfigureSystemPermission();
-    apiSamlConfigurationService.insertOrUpdateSamlConfiguration("", new ApiSamlConfigurationDTO());
+    assertThrows(BadRequestException.class,
+        () -> apiSamlConfigurationService.insertOrUpdateSamlConfiguration("", new ApiSamlConfigurationDTO()));
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testInsertOrUpdateSamlConfiguration_Unauthorized() {
     login();
-    apiSamlConfigurationService.insertOrUpdateSamlConfiguration("", new ApiSamlConfigurationDTO());
+    assertThrows(UnauthorizedException.class,
+        () -> apiSamlConfigurationService.insertOrUpdateSamlConfiguration("", new ApiSamlConfigurationDTO()));
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testInsertOrUpdateSamlConfiguration_Unauthenticated() {
-    apiSamlConfigurationService.insertOrUpdateSamlConfiguration("", new ApiSamlConfigurationDTO());
+    assertThrows(UnauthenticatedException.class,
+        () -> apiSamlConfigurationService.insertOrUpdateSamlConfiguration("", new ApiSamlConfigurationDTO()));
   }
 
-  @Test(expected = NotFoundException.class)
+  @Test
   public void testGetSamlConfiguration_AuthorizedAndSamlDisabled() {
     samlConfigurationService.insert(tempEntity.newSamlConfiguration());
     grantConfigureSystemPermission();
 
     SAML_ENABLED.setEnabled(false);
 
-    apiSamlConfigurationService.getSamlConfiguration();
+    assertThrows(NotFoundException.class, () -> apiSamlConfigurationService.getSamlConfiguration());
   }
 
   @Test
@@ -80,41 +86,41 @@ public class ApiSamlConfigurationServiceAuthzTest
     apiSamlConfigurationService.deleteSamlConfiguration();
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testDeleteSamlConfiguration_Unauthorized() {
     login();
-    apiSamlConfigurationService.deleteSamlConfiguration();
+    assertThrows(UnauthorizedException.class, () -> apiSamlConfigurationService.deleteSamlConfiguration());
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testDeleteSamlConfiguration_Unauthenticated() {
-    apiSamlConfigurationService.deleteSamlConfiguration();
+    assertThrows(UnauthenticatedException.class, () -> apiSamlConfigurationService.deleteSamlConfiguration());
   }
 
-  @Test(expected = NotFoundException.class)
+  @Test
   public void testDeleteSamlConfiguration_AuthorizedAndSamlDisabled() {
     samlConfigurationService.insert(tempEntity.newSamlConfiguration());
     grantConfigureSystemPermission();
 
     SAML_ENABLED.setEnabled(false);
 
-    apiSamlConfigurationService.deleteSamlConfiguration();
+    assertThrows(NotFoundException.class, () -> apiSamlConfigurationService.deleteSamlConfiguration());
   }
 
-  @Test(expected = NotFoundException.class)
+  @Test
   public void testGetMetadata_Authorized() {
     grantConfigureSystemPermission();
-    apiSamlConfigurationService.getMetadata();
+    assertThrows(NotFoundException.class, () -> apiSamlConfigurationService.getMetadata());
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testGetMetadata_Unauthorized() {
     login();
-    apiSamlConfigurationService.getMetadata();
+    assertThrows(UnauthorizedException.class, () -> apiSamlConfigurationService.getMetadata());
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testGetMetadata_Unauthenticated() {
-    apiSamlConfigurationService.getMetadata();
+    assertThrows(UnauthenticatedException.class, () -> apiSamlConfigurationService.getMetadata());
   }
 }

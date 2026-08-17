@@ -491,6 +491,81 @@ public class ContainerResultsHandlerTest
         "pkg:generic/alpine%3A3.4.6/zlib@1.2.11-r0?nexustype=container");
   }
 
+  @Test
+  public void testParseBom_pythonWheelWithQualifier_buildsSingleVariantPypiPurl() {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    String json = """
+        {
+          "report": {
+            "modules": [
+              {
+                "name": "python:pandas",
+                "version": "3.0.5",
+                "source": "python",
+                "qualifier": "cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64",
+                "extension": "whl"
+              },
+              {
+                "name": "python:six",
+                "version": "1.16.0",
+                "source": "python"
+              },
+              {
+                "name": "python:scipy",
+                "version": "1.9.0",
+                "source": "python",
+                "qualifier": "cp39-cp39-win_amd64"
+              }
+            ]
+          }
+        }
+        """;
+
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("container:img:tag", ItemContentType.CONTAINER_URI_SONATYPE, null, null, json);
+
+    Pair<Bom, Boolean> result = proxyContainerResultHandler.parseBom(content);
+
+    Bom bom = result.getLeft();
+    assertThat(bom.getComponents()).hasSize(3);
+    assertThat(bom.getComponents().get(0).getPurl()).isEqualTo(
+        "pkg:pypi/pandas@3.0.5?extension=whl&qualifier=cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64");
+    assertThat(bom.getComponents().get(1).getPurl()).isEqualTo("pkg:pypi/six@1.16.0");
+    assertThat(bom.getComponents().get(2).getPurl()).isEqualTo("pkg:pypi/scipy@1.9.0?qualifier=cp39-cp39-win_amd64");
+  }
+
+  @Test
+  public void testParseBom_pythonWheelWithQualifier_evalDisabled_returnsContainerPurlIgnoringQualifier() {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
+
+    String json = """
+        {
+          "report": {
+            "modules": [
+              {
+                "name": "python:pandas",
+                "version": "3.0.5",
+                "source": "python",
+                "qualifier": "cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64",
+                "extension": "whl"
+              }
+            ]
+          }
+        }
+        """;
+
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("container:img:tag", ItemContentType.CONTAINER_URI_SONATYPE, null, null, json);
+
+    Pair<Bom, Boolean> result = proxyContainerResultHandler.parseBom(content);
+
+    Bom bom = result.getLeft();
+    assertThat(bom.getComponents()).hasSize(1);
+    assertThat(bom.getComponents().get(0).getPurl())
+        .isEqualTo("pkg:generic/python/python%3Apandas@3.0.5?nexustype=container");
+  }
+
   private void assertCoordinateSecurity(
       final ThirdPartyCoordinateSecurity coordinateSecurity,
       final String cve,

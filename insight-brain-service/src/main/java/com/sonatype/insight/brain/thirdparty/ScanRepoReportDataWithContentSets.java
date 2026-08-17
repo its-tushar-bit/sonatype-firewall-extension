@@ -9,20 +9,34 @@ import java.util.Collections;
 import java.util.List;
 
 import com.google.gson.annotations.SerializedName;
-import com.neuvector.model.ScanRepoReport;
+import com.neuvector.model.Vulnerability;
 
 /**
  * Mirrors the structure of {@link com.neuvector.model.ScanRepoReportData} so we can deserialize the
- * NeuVector-format scan output once while also exposing the {@code ContentSets} array in the report,
- * which the upstream class does not model.
+ * NeuVector-format scan output. Beyond the upstream model it exposes the {@code ContentSets} array and,
+ * on each module, the pypi variant {@code qualifier}/{@code extension} (see {@link ScanModuleWithQualifier}),
+ * neither of which the upstream classes carry.
  */
 public class ScanRepoReportDataWithContentSets
 {
   public static class ReportWithContentSets
-      extends ScanRepoReport
   {
+    @SerializedName("vulnerabilities")
+    private Vulnerability[] vulnerabilities;
+
+    @SerializedName("modules")
+    private ScanModuleWithQualifier[] modules;
+
     @SerializedName("ContentSets")
     private List<String> contentSets;
+
+    public Vulnerability[] getVulnerabilities() {
+      return vulnerabilities;
+    }
+
+    public ScanModuleWithQualifier[] getModules() {
+      return modules;
+    }
 
     public List<String> getContentSets() {
       return contentSets != null ? contentSets : Collections.emptyList();
@@ -32,6 +46,7 @@ public class ScanRepoReportDataWithContentSets
   @SerializedName("error_message")
   private String errorMessage;
 
+  @SerializedName("report")
   private ReportWithContentSets report;
 
   public String getErrorMessage() {

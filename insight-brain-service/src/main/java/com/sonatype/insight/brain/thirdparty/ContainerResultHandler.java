@@ -44,7 +44,6 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import com.google.gson.Gson;
 import com.neuvector.model.ModuleCve;
-import com.neuvector.model.ScanModule;
 import com.neuvector.model.Vulnerability;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -168,11 +167,12 @@ public class ContainerResultHandler
     }
 
     Set<Component> componentsToAdd = new LinkedHashSet<>();
-    ScanModule[] modules = ArrayUtils.nullToEmpty(scanRepoReportData.getReport().getModules(), ScanModule[].class);
+    ScanModuleWithQualifier[] modules =
+        ArrayUtils.nullToEmpty(scanRepoReportData.getReport().getModules(), ScanModuleWithQualifier[].class);
     Map<String, org.cyclonedx.model.vulnerability.Vulnerability> cveCycloneDxVulnMap = new HashMap<>();
     Map<String, Set<String>> vulnerabilityAffectsMap = new HashMap<>();
 
-    for (ScanModule module : modules) {
+    for (ScanModuleWithQualifier module : modules) {
       String resourceId = module.getName();
 
       ComponentIdentifier componentIdentifier;
@@ -293,7 +293,7 @@ public class ContainerResultHandler
   }
 
   private ComponentIdentifier getCorrespondingComponentIdentifier(
-      final ScanModule module,
+      final ScanModuleWithQualifier module,
       final String resourceId)
   {
     switch (module.getSource()) {
@@ -315,7 +315,8 @@ public class ContainerResultHandler
         return ComponentIdentifier.createNpmCoordinates(resourceId, module.getVersion());
       case "python": {
         String name = resourceId.split(":")[1];
-        return ComponentIdentifier.createPypiCoordinates(name, module.getVersion(), null, null);
+        return ComponentIdentifier.createPypiCoordinates(
+            name, module.getVersion(), module.getQualifier(), module.getExtension());
       }
       case "ruby": {
         String name = resourceId.split(":")[1];

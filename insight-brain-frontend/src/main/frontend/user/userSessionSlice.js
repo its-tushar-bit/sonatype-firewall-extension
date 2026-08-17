@@ -106,7 +106,8 @@ export const logout = createAsyncThunk(`${REDUCER_NAME}/logout`, async (_, { get
     await dispatch(unsavedChangesModalActions.open());
   }
 
-  await pendoService.flush();
+  // Skip when Pendo was never initialized (Nexus One does not call setUrlService).
+  await pendoService?.flush();
   const resultServerLogout = await axios.delete(getSessionLogoutUrl());
 
   // Global-search history is client-side only, so ending the server session does not

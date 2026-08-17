@@ -6,6 +6,7 @@
 import {
   bundleIndexUrl,
   getBaseUrl,
+  logoutRedirection,
   toURIParams,
   uriTemplate,
   setBaseUrl,
@@ -109,6 +110,49 @@ describe('urlUtil', function () {
       expect(bundleIndexUrl('nexus-one', '#/reports')).toBe(
         'https://iq.example/iq/assets/nexus-one/index.html#/reports'
       );
+    });
+  });
+
+  describe('logoutRedirection', function () {
+    let assignSpy;
+    let originalLocation;
+
+    beforeEach(function () {
+      _setBaseUrlForTesting('http://localhost:8070');
+      originalLocation = window.location;
+      assignSpy = jest.fn();
+      Object.defineProperty(window, 'location', {
+        value: { ...originalLocation, assign: assignSpy, href: '' },
+        writable: true,
+        configurable: true,
+      });
+    });
+
+    afterEach(function () {
+      setBaseUrl();
+      Object.defineProperty(window, 'location', {
+        value: originalLocation,
+        writable: true,
+        configurable: true,
+      });
+    });
+
+    it('navigates to the IdP Location when present', function () {
+      logoutRedirection('https://idp.example/v2/logout');
+      expect(window.location.href).toBe('https://idp.example/v2/logout');
+      expect(assignSpy).not.toHaveBeenCalled();
+    });
+
+    it('falls back to the IQ root, not a bundle-relative path, so Nexus One logout reaches sign-in', function () {
+      logoutRedirection(undefined);
+      expect(assignSpy).toHaveBeenCalledWith('http://localhost:8070/');
+      expect(assignSpy).not.toHaveBeenCalledWith('../');
+    });
+
+    it('preserves a context-root IQ install', function () {
+      _setBaseUrlForTesting('https://iq.example/iq');
+      logoutRedirection(null);
+      expect(assignSpy).toHaveBeenCalledWith('https://iq.example/iq/');
     });
   });
 });

@@ -119,11 +119,13 @@ export function uriTemplate(strings, ...params) {
   return `${BASE_URL || ''}${join('', parts)}`;
 }
 
-// Defined as a function to easily mock in jest/jasmine unit tests and prevent redirections during those tests
+// Defined as a function to easily mock in jest/jasmine unit tests and prevent redirections during those tests.
+// Local auth has no Location header; send the browser to the IQ root so Classic and Nexus One both reach sign-in.
 export function logoutRedirection(toLocation) {
   if (toLocation != null) {
     window.location.href = toLocation;
   } else {
-    window.location.assign('../');
+    const root = BASE_URL || getBaseUrl(window.location.href);
+    window.location.assign(root ? `${root}/` : '/');
   }
 }

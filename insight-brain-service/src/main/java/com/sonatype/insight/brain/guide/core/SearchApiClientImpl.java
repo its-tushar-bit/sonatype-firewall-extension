@@ -365,6 +365,12 @@ public class SearchApiClientImpl
     if (request.publishedWindow() != null) {
       params.put("publishedWindow", request.publishedWindow());
     }
+    // Route to the search-server's global-search-preview alias (components + vulnerabilities +
+    // preview index types such as security-events). Sent only when true; the search-server
+    // fails closed to the stable alias when the param is absent. Matches SaaS SearchServerClient.
+    if (request.includePreview()) {
+      params.put("includePreview", "true");
+    }
     return params;
   }
 

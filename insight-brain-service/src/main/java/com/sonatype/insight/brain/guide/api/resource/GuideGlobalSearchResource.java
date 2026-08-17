@@ -85,8 +85,12 @@ public class GuideGlobalSearchResource
   {
     requireLimitWithinPolicyEnrichmentCap(limit);
     requireValidStage(stage);
+    // includePreview=true routes to the search-server's global-search-preview alias so security
+    // events surface in global-search results, byType counts, and autosuggest. SE access in IQ is
+    // gated by the same license as this resource (@ProductLicenseEnforcementPoint above), so any
+    // caller that reaches here is already entitled — no separate per-user preview grant exists.
     GuideGlobalSearchRequest request = new GuideGlobalSearchRequest(
-        query, offset, limit, sortField, sortOrder, latestStable, formats, publishedWindow);
+        query, offset, limit, sortField, sortOrder, latestStable, formats, publishedWindow, true);
     return guidePolicyService.enrichGlobalSearch(searchApiClient.globalSearch(request), ownerId, stage);
   }
 }

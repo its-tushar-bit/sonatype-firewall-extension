@@ -9,7 +9,8 @@ import userEvent from '@testing-library/user-event';
 import { useNavigate } from 'react-router';
 import { render, screen, waitFor } from '../test-utils';
 import { SearchPage } from 'GuideRoot/search/SearchPage';
-import type { SearchResponse, ComponentSearchResponse, VulnerabilitySearchResponse } from '@guide/ui-core/types';
+import type { SearchResponse, ComponentSearchResponse, VulnerabilitySearchResponse, SecurityEventDocument } from '@guide/ui-core/types';
+import type { ApiSearchResponse } from 'GuideRoot/api/securityEventsBackend';
 
 // Mock ResizeObserver (used by @guide/ui-core and @radix-ui components but not available in jsdom)
 class MockResizeObserver {
@@ -34,6 +35,11 @@ jest.mock('GuideRoot/api/vulnerabilitiesBackend', () => ({
   fetchVulnerabilityBrowseAggregations: jest.fn().mockResolvedValue(null),
 }));
 
+jest.mock('GuideRoot/api/securityEventsBackend', () => ({
+  searchSecurityEvents: jest.fn(),
+  fetchSecurityEventBrowseAggregations: jest.fn().mockResolvedValue(null),
+}));
+
 type FacetAggregations = Record<string, Record<string, number>>;
 
 jest.mock('@guide/ui-core', () => {
@@ -55,14 +61,17 @@ jest.mock('@guide/ui-core', () => {
         {children}
       </>
     ),
-    SearchTabs: ({ activeTab, totalAll, totalComponents, totalVulnerabilities }: {
+    SearchTabs: ({ activeTab, totalAll, totalComponents, totalVulnerabilities, totalSecurityEvents, showSecurityEventsTab }: {
       activeTab: string; totalAll?: number; totalComponents?: number; totalVulnerabilities?: number;
+      totalSecurityEvents?: number; showSecurityEventsTab?: boolean;
     }) => (
       <div data-testid="search-tabs">
         <span>tab:{activeTab}</span>
         <span>all:{totalAll ?? 0}</span>
         <span>cmp:{totalComponents ?? 0}</span>
         <span>vul:{totalVulnerabilities ?? 0}</span>
+        <span>sec:{totalSecurityEvents ?? 0}</span>
+        {showSecurityEventsTab && <span>se-tab-shown</span>}
       </div>
     ),
     SearchResultsList: ({ results, isPending }: { results: unknown[]; isPending: boolean }) =>
@@ -71,6 +80,8 @@ jest.mock('@guide/ui-core', () => {
       isPending ? <p role="status" aria-label="loading-skeletons" /> : <p>components-results: {components.length}</p>,
     VulnerabilitiesResultsList: ({ vulnerabilities, isPending }: { vulnerabilities: unknown[]; isPending: boolean }) =>
       isPending ? <p role="status" aria-label="loading-skeletons" /> : <p>vulnerabilities-results: {vulnerabilities.length}</p>,
+    SecurityEventResultsList: ({ events, isPending }: { events: unknown[]; isPending: boolean }) =>
+      isPending ? <p role="status" aria-label="loading-skeletons" /> : <p>security-events-results: {events.length}</p>,
     Pagination: () => <p>pagination-visible</p>,
     EmptyResultsCard: () => <p>no results</p>,
   };
@@ -79,6 +90,7 @@ jest.mock('@guide/ui-core', () => {
 import { searchAll, fetchGlobalSearchTotals } from 'GuideRoot/api/searchBackend';
 import { searchComponents, fetchComponentBrowseAggregations } from 'GuideRoot/api/componentsBackend';
 import { searchVulnerabilities, fetchVulnerabilityBrowseAggregations } from 'GuideRoot/api/vulnerabilitiesBackend';
+import { searchSecurityEvents, fetchSecurityEventBrowseAggregations } from 'GuideRoot/api/securityEventsBackend';
 
 const mockSearchAll = searchAll as jest.MockedFunction<typeof searchAll>;
 const mockFetchGlobalSearchTotals = fetchGlobalSearchTotals as jest.MockedFunction<typeof fetchGlobalSearchTotals>;
@@ -89,6 +101,9 @@ const mockFetchComponentBrowseAggregations = fetchComponentBrowseAggregations as
 >;
 const mockFetchVulnerabilityBrowseAggregations =
   fetchVulnerabilityBrowseAggregations as jest.MockedFunction<typeof fetchVulnerabilityBrowseAggregations>;
+const mockSearchSecurityEvents = searchSecurityEvents as jest.MockedFunction<typeof searchSecurityEvents>;
+const mockFetchSecurityEventBrowseAggregations =
+  fetchSecurityEventBrowseAggregations as jest.MockedFunction<typeof fetchSecurityEventBrowseAggregations>;
 
 function makeAllResponse(total: number, hitCount = 5): SearchResponse {
   return {
@@ -118,6 +133,18 @@ function makeVulnerabilitiesResponse(total: number, hitCount = 5): Vulnerability
     })) as VulnerabilitySearchResponse['hits'],
     total, offset: 0, limit: 25,
     aggregations: { byEcosystem: { npm: total }, bySeverity: {} },
+  };
+}
+
+function makeSecurityEventsResponse(total: number, hitCount = 5): ApiSearchResponse<SecurityEventDocument> {
+  return {
+    hits: Array.from({ length: hitCount }, (_, i) => ({
+      eventId: `SE-${i}`, title: `event ${i}`, overview: `overview ${i}`,
+      publishedDate: '2026-01-01', lastUpdatedDate: '2026-01-02',
+      eventSeverityCategory: 'HIGH', eventThreatType: 'MALWARE',
+    })),
+    total, offset: 0, limit: 25,
+    aggregations: { byEventSeverityCategory: { HIGH: total }, byEventThreatType: {} },
   };
 }
 
@@ -457,6 +484,27 @@ describe('SearchPage', () => {
       expect(screen.getByText('bySeverity.low=0')).toBeInTheDocument();
     });
 
+    it('Security Events tab: zero-fills facet buckets that exist in browse cache but not in the search response', async () => {
+      mockFetchGlobalSearchTotals.mockResolvedValue(makeAllResponse(5, 5));
+      mockSearchSecurityEvents.mockResolvedValue({
+        ...makeSecurityEventsResponse(1, 1),
+        aggregations: { byEventSeverityCategory: { HIGH: 1 }, byEventThreatType: { MALWARE: 1 } },
+      });
+      mockFetchSecurityEventBrowseAggregations.mockResolvedValue({
+        byEventSeverityCategory: { CRITICAL: 20, HIGH: 40, MEDIUM: 10 },
+        byEventThreatType: { MALWARE: 30, VULNERABILITY: 25 },
+      });
+
+      render(<SearchPage />, {
+        routerOptions: { initialEntries: ['/search?tab=securityEvents&query=foo&severities=HIGH'] },
+      });
+
+      await screen.findByText('byEventSeverityCategory.HIGH=1');
+      expect(screen.getByText('byEventSeverityCategory.CRITICAL=0')).toBeInTheDocument();
+      expect(screen.getByText('byEventSeverityCategory.MEDIUM=0')).toBeInTheDocument();
+      expect(screen.getByText('byEventThreatType.VULNERABILITY=0')).toBeInTheDocument();
+    });
+
     it('All tab: never fetches browse aggregations (per-type facet universe is intentionally out of scope)', async () => {
       mockSearchAll.mockResolvedValue(makeAllResponse(5, 5));
 
@@ -484,6 +532,102 @@ describe('SearchPage', () => {
 
       await screen.findByText('byFormat.npm=2');
       expect(screen.queryByText('byFormat.maven=0')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Security Events tab', () => {
+    it('always renders the Security Events tab (matching the ungated /security-events nav entry)', async () => {
+      mockSearchAll.mockResolvedValue(makeAllResponse(5, 5));
+
+      render(<SearchPage />, { routerOptions: { initialEntries: ['/search?query=foo'] } });
+
+      expect(await screen.findByText('se-tab-shown')).toBeInTheDocument();
+    });
+
+    it('queries the /security-events endpoint (not global search) and renders SE results', async () => {
+      mockFetchGlobalSearchTotals.mockResolvedValue(makeAllResponse(5, 5));
+      mockSearchSecurityEvents.mockResolvedValue(makeSecurityEventsResponse(3, 3));
+
+      render(<SearchPage />, {
+        routerOptions: { initialEntries: ['/search?tab=securityEvents&query=log4j'] },
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('security-events-results: 3')).toBeInTheDocument();
+      });
+
+      expect(mockSearchSecurityEvents).toHaveBeenCalled();
+      const seArg = mockSearchSecurityEvents.mock.calls[0]?.[0] as URLSearchParams;
+      expect(seArg.get('query')).toBe('log4j');
+      expect(seArg.get('tab')).toBe('securityEvents');
+      // Other-tab badge counts still come from the shared global-search aggregation.
+      expect(mockFetchGlobalSearchTotals).toHaveBeenCalledWith('log4j');
+    });
+
+    it('shows the SE tab badge as the fully-filtered SE total, other badges from byType', async () => {
+      mockFetchGlobalSearchTotals.mockResolvedValue(makeAllResponse(5, 5));
+      mockSearchSecurityEvents.mockResolvedValue(makeSecurityEventsResponse(42, 5));
+
+      render(<SearchPage />, {
+        routerOptions: { initialEntries: ['/search?tab=securityEvents&query=foo'] },
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('sec:42')).toBeInTheDocument();
+        expect(screen.getByText('cmp:3')).toBeInTheDocument();
+        expect(screen.getByText('vul:2')).toBeInTheDocument();
+      });
+    });
+
+    it('renders the empty state when the SE tab has no results', async () => {
+      mockFetchGlobalSearchTotals.mockResolvedValue(makeAllResponse(0, 0));
+      mockSearchSecurityEvents.mockResolvedValue(makeSecurityEventsResponse(0, 0));
+
+      render(<SearchPage />, {
+        routerOptions: { initialEntries: ['/search?tab=securityEvents&query=nope'] },
+      });
+
+      expect(await screen.findByText('no results')).toBeInTheDocument();
+    });
+
+    it('does not render stale tab data after switching onto the Security Events tab', async () => {
+      // Mirrors the Vulnerabilities-tab stale-data regression: on the All tab with loaded
+      // component-shape hits, switching to securityEvents while the SE fetch is in flight must
+      // show skeletons, not the prior tab's hits coerced into SE shape (which would render as
+      // security-event cards with undefined eventId/title).
+      mockSearchAll.mockResolvedValue(makeAllResponse(5, 5));
+      mockFetchGlobalSearchTotals.mockResolvedValue(makeAllResponse(5, 5));
+      let resolveSecurityEvents: (response: ApiSearchResponse<SecurityEventDocument>) => void = () => {};
+      mockSearchSecurityEvents.mockReturnValue(
+        new Promise<ApiSearchResponse<SecurityEventDocument>>((resolve) => { resolveSecurityEvents = resolve; })
+      );
+
+      function TriggerNavigate() {
+        const navigate = useNavigate();
+        return <button onClick={() => navigate('/search?query=foo&tab=securityEvents')}>nav</button>;
+      }
+
+      render(
+        <>
+          <SearchPage />
+          <TriggerNavigate />
+        </>,
+        { routerOptions: { initialEntries: ['/search?query=foo'] } }
+      );
+
+      await screen.findByText('all-results: 5');
+
+      const user = userEvent.setup();
+      await user.click(screen.getByRole('button', { name: 'nav' }));
+
+      // The "5" matches the All-tab hitCount; seeing "security-events-results: 5" would mean the
+      // stale All-tab hits leaked into the SE list instead of being treated as pending.
+      await screen.findByRole('status', { name: /loading-skeletons/i });
+      expect(screen.queryByText('security-events-results: 5')).not.toBeInTheDocument();
+      expect(screen.queryByText('all-results: 5')).not.toBeInTheDocument();
+
+      resolveSecurityEvents(makeSecurityEventsResponse(3, 3));
+      await screen.findByText('security-events-results: 3');
     });
   });
 });

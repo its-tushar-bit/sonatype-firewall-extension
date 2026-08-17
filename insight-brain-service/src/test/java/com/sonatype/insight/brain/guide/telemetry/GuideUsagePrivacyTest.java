@@ -61,7 +61,7 @@ public class GuideUsagePrivacyTest
     GuideVulnerabilitySearchRequest vulnSearch = new GuideVulnerabilitySearchRequest(secret, null, null,
         null, null, null, null, null, null, null, null, null, null, null, null, null, null);
     GuideGlobalSearchRequest globalSearch =
-        new GuideGlobalSearchRequest(secret, null, null, null, null, null, null, null);
+        new GuideGlobalSearchRequest(secret, null, null, null, null, null, null, null, false);
 
     GuideUsageTelemetryCollector collector = newCollector();
     GuideChannelContext.set(GuideChannel.API);

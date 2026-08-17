@@ -15,6 +15,7 @@ public record GuideGlobalSearchRequest(
     String sortOrder,
     String latestStable,
     List<String> formats,
-    String publishedWindow)
+    String publishedWindow,
+    boolean includePreview)
 {
 }

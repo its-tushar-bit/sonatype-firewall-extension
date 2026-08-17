@@ -725,7 +725,7 @@ public class SearchApiClientImplTest
   @Test
   public void testGlobalSearch_delegatesToHdsGetWithMultimap() {
     GuideGlobalSearchRequest request = new GuideGlobalSearchRequest(
-        "log4j", 0, 10, "name", "asc", "true", List.of("maven", "npm"), "30d");
+        "log4j", 0, 10, "name", "asc", "true", List.of("maven", "npm"), "30d", true);
 
     GuideGlobalSearchResponse expected = new GuideGlobalSearchResponse(
         List.of(new GuideComponentDocument(
@@ -743,6 +743,7 @@ public class SearchApiClientImplTest
     expectedParams.put("formats", "maven");
     expectedParams.put("formats", "npm");
     expectedParams.put("publishedWindow", "30d");
+    expectedParams.put("includePreview", "true");
 
     when(hdsClient.getWithMultimap(GuideGlobalSearchResponse.class, "rest/search/global",
         expectedParams)).thenReturn(expected);
@@ -756,7 +757,7 @@ public class SearchApiClientImplTest
   @Test
   public void testGlobalSearch_returnsEmptyOnNotFound() {
     GuideGlobalSearchRequest request = new GuideGlobalSearchRequest(
-        "nonexistent", 5, 25, null, null, null, null, null);
+        "nonexistent", 5, 25, null, null, null, null, null, false);
 
     Multimap<String, String> expectedParams = ArrayListMultimap.create();
     expectedParams.put("query", "nonexistent");
@@ -777,7 +778,7 @@ public class SearchApiClientImplTest
   @Test
   public void testGlobalSearch_throwsGuideApiExceptionOnBadGateway() {
     GuideGlobalSearchRequest request = new GuideGlobalSearchRequest(
-        "test", null, null, null, null, null, null, null);
+        "test", null, null, null, null, null, null, null, false);
 
     Multimap<String, String> expectedParams = ArrayListMultimap.create();
     expectedParams.put("query", "test");
@@ -793,7 +794,7 @@ public class SearchApiClientImplTest
   @Test
   public void testGlobalSearch_throwsGuideApiExceptionOnInternalServerError() {
     GuideGlobalSearchRequest request = new GuideGlobalSearchRequest(
-        "test", null, null, null, null, null, null, null);
+        "test", null, null, null, null, null, null, null, false);
 
     Multimap<String, String> expectedParams = ArrayListMultimap.create();
     expectedParams.put("query", "test");

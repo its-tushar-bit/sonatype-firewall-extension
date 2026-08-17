@@ -18,6 +18,7 @@ import {
   SearchResultsList,
   ComponentsResultsList,
   VulnerabilitiesResultsList,
+  SecurityEventResultsList,
   EmptyResultsCard,
   Pagination,
   useAdapterSearchParams,
@@ -31,6 +32,9 @@ import {
   vulnerabilityFilterDefinitions,
   vulnerabilitySortOptions,
   VULNERABILITY_FILTER_ORDER,
+  securityEventSortOptions,
+  SECURITY_EVENT_FILTER_ORDER,
+  extractTabCounts,
   getOffsetFromParams,
   getLimitFromParams,
   getStringParam,
@@ -49,6 +53,11 @@ import {
   searchVulnerabilities,
   fetchVulnerabilityBrowseAggregations,
 } from 'GuideRoot/api/vulnerabilitiesBackend';
+import {
+  searchSecurityEvents,
+  fetchSecurityEventBrowseAggregations,
+} from 'GuideRoot/api/securityEventsBackend';
+import type { ApiSearchResponse } from 'GuideRoot/api/securityEventsBackend';
 import { toParamsRecord } from 'GuideRoot/utils/searchParams';
 import { FilteredPageSkeleton } from 'GuideRoot/layout/FilteredPageSkeleton';
 import { PolicyContextBar } from 'GuideRoot/components/navigation/context-picker/PolicyContextBar';
@@ -58,16 +67,21 @@ import type {
   VulnerabilitySearchResponse,
   Component,
   Vulnerability,
+  SecurityEventDocument,
 } from '@guide/ui-core/types';
 
 const LIMIT = 25;
 
-type ActiveTab = 'all' | 'components' | 'vulnerabilities';
-type TabResponse = SearchResponse | ComponentSearchResponse | VulnerabilitySearchResponse;
+type ActiveTab = 'all' | 'components' | 'vulnerabilities' | 'securityEvents';
+type TabResponse =
+  | SearchResponse
+  | ComponentSearchResponse
+  | VulnerabilitySearchResponse
+  | ApiSearchResponse<SecurityEventDocument>;
 
 function readActiveTab(params: Record<string, string | string[]>): ActiveTab {
   const t = getStringParam(params, 'tab', 'all');
-  return t === 'components' || t === 'vulnerabilities' ? t : 'all';
+  return t === 'components' || t === 'vulnerabilities' || t === 'securityEvents' ? t : 'all';
 }
 
 function buildTabConfig(activeTab: ActiveTab) {
@@ -83,6 +97,12 @@ function buildTabConfig(activeTab: ActiveTab) {
         filterConfigs: { ...VULNERABILITY_FILTER_ORDER, ...vulnerabilityFilterDefinitions },
         sortOptions: vulnerabilitySortOptions,
         placeholder: 'Search vulnerabilities...',
+      };
+    case 'securityEvents':
+      return {
+        filterConfigs: SECURITY_EVENT_FILTER_ORDER,
+        sortOptions: securityEventSortOptions,
+        placeholder: 'Filter security events',
       };
     default:
       return {
@@ -148,6 +168,17 @@ export function SearchPage() {
         fetchGlobalSearchTotals(query),
         fetchVulnerabilityBrowseAggregations(),
       ]).then(([tab, all, browse]) => ({ tab, all, browse }));
+    } else if (activeTab === 'securityEvents') {
+      const params = new URLSearchParams(searchParams.toString());
+      if (!params.has('limit')) params.set('limit', String(LIMIT));
+      // Dedicated Security Events tab: query the /security-events endpoint directly so the
+      // SE-only filters (severity, threat type, known-exploited, ecosystem) and sort apply.
+      // Other-tab badge counts still come from the shared global-search byType aggregation.
+      combinedPromise = Promise.all([
+        searchSecurityEvents(params),
+        fetchGlobalSearchTotals(query),
+        fetchSecurityEventBrowseAggregations(),
+      ]).then(([tab, all, browse]) => ({ tab, all, browse }));
     } else {
       const params = new URLSearchParams(searchParams.toString());
       if (!params.has('limit')) params.set('limit', String(LIMIT));
@@ -197,13 +228,22 @@ export function SearchPage() {
     mergeAggregations(browseAggregations, effectiveTabData?.aggregations as Aggregations | undefined) ?? {};
   const offset = getOffsetFromParams(paramsRecord);
 
-  // Backend `byType` uses plural keys (`components`, `vulnerabilities`); accept
-  // singular as a fallback so older mock data and any future contract drift don't
-  // silently zero the badges.
-  const totalsSource = allData?.aggregations?.byType ?? {};
-  const totalComponents = totalsSource.components ?? totalsSource.component ?? 0;
-  const totalVulnerabilities = totalsSource.vulnerabilities ?? totalsSource.vulnerability ?? 0;
-  const totalAll = allData?.total ?? (totalComponents + totalVulnerabilities);
+  // Per-tab badge counts come from the shared global-search byType aggregation. extractTabCounts
+  // centralizes the plural component/vulnerability keys and the hyphenated `security-events` key so
+  // they can't silently drift. totalAll falls back to the summed type counts when the response
+  // omits its own total.
+  const {
+    totalComponents,
+    totalVulnerabilities,
+    totalSecurityEvents: byTypeTotalSecurityEvents,
+  } = extractTabCounts(allData?.aggregations?.byType, allData?.total ?? 0);
+  const totalAll =
+    allData?.total ?? totalComponents + totalVulnerabilities + byTypeTotalSecurityEvents;
+  // On the dedicated Security Events tab the badge reflects the fully-filtered SE total from the
+  // /security-events endpoint; other tabs fall back to the byType-derived count (0 if the IQ
+  // global-search backend doesn't emit a security-events bucket).
+  const totalSecurityEvents =
+    activeTab === 'securityEvents' ? total : byTypeTotalSecurityEvents;
 
   const tabConfig = buildTabConfig(activeTab);
   const limit = getLimitFromParams(paramsRecord, LIMIT);
@@ -238,6 +278,21 @@ export function SearchPage() {
           )}
         />
       );
+  } else if (activeTab === 'securityEvents') {
+    const events = (effectiveTabData as ApiSearchResponse<SecurityEventDocument> | null)?.hits ?? [];
+    resultsNode = !isPending && events.length === 0
+      ? emptyResultsCard
+      : (
+        <SecurityEventResultsList
+          events={events}
+          isPending={isPending}
+          limit={limit}
+          moduleName="search-page"
+          renderLinkWrapper={({ event, children }: { event: SecurityEventDocument; children: ReactNode }) => (
+            <Link to={`/security-event/${encodeURIComponent(event.eventId)}`} className="unstyled-link">{children}</Link>
+          )}
+        />
+      );
   } else {
     const hits = (effectiveTabData as SearchResponse | null)?.hits ?? [];
     resultsNode = !isPending && hits.length === 0
@@ -253,6 +308,9 @@ export function SearchPage() {
           )}
           renderVulnerabilityLink={(vulnerability: Vulnerability, _index: number, children: ReactNode) => (
             <Link to={`/vulnerability/${vulnerability.vulnId}`} className="unstyled-link">{children}</Link>
+          )}
+          renderSecurityEventLink={(event: SecurityEventDocument, _index: number, children: ReactNode) => (
+            <Link to={`/security-event/${encodeURIComponent(event.eventId)}`} className="unstyled-link">{children}</Link>
           )}
         />
       );
@@ -291,6 +349,8 @@ export function SearchPage() {
             totalAll={totalAll}
             totalComponents={totalComponents}
             totalVulnerabilities={totalVulnerabilities}
+            totalSecurityEvents={totalSecurityEvents}
+            showSecurityEventsTab
             searchParams={paramsRecord}
           />
         }

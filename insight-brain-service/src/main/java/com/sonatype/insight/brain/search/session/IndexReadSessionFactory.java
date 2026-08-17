@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.search.index.SearchIndexException;
 import com.sonatype.insight.brain.search.lucene.LuceneIndexReadSession;
 import com.sonatype.insight.brain.search.lucene.LuceneIndexWriterOwner;
 import com.sonatype.insight.brain.search.lucene.LuceneSearcherManagerHolder;
+import com.sonatype.insight.brain.search.lucene.SearcherManagerUnavailableException;
 import com.sonatype.insight.brain.search.opensearch.OpenSearchSearchIndexClient;
 import com.sonatype.insight.brain.security.CurrentUser;
 
@@ -122,14 +123,48 @@ public class IndexReadSessionFactory
   }
 
   private IndexReadSession openLuceneSession(final Query rbacFilter) {
-    LuceneSearcherManagerHolder holder = resolveSearcherManagerHolder();
+    try {
+      return acquireReadSession(rbacFilter, resolveSearcherManagerHolder());
+    }
+    catch (SearcherManagerUnavailableException unavailable) {
+      // Subtype of IOException, so it must precede the general catch: a closed/paused searcher retries via the
+      // blocking accessor rather than failing the read.
+      return retryReadSessionViaBlockingAccessor(rbacFilter, unavailable);
+    }
+    catch (IOException e) {
+      throw new SearchIndexException(e);
+    }
+  }
+
+  /**
+   * The lock-free holder became unavailable between the usability check and acquire (rebuild cutover, tenant
+   * deregister, or shutdown); retry once via the blocking accessor, which serves once the write lock is released.
+   */
+  private IndexReadSession retryReadSessionViaBlockingAccessor(
+      final Query rbacFilter,
+      final SearcherManagerUnavailableException unavailable)
+  {
+    if (indexWriterOwner == null) {
+      throw new SearchIndexException(unavailable);
+    }
+    log.debug("Lucene searcher holder was unavailable on the lock-free read; retrying via the blocking accessor");
+    try {
+      return acquireReadSession(rbacFilter, indexWriterOwner.getSearcherManagerHolder());
+    }
+    catch (IOException e) {
+      log.warn("Lucene searcher holder still unavailable after a blocking retry; failing the read session", e);
+      throw new SearchIndexException(e);
+    }
+  }
+
+  private IndexReadSession acquireReadSession(
+      final Query rbacFilter,
+      final LuceneSearcherManagerHolder holder) throws IOException
+  {
     IndexSearcher searcher = null;
     try {
       searcher = holder.acquire();
       return new LuceneIndexReadSession(searcher, rbacFilter, holder);
-    }
-    catch (IOException e) {
-      throw new SearchIndexException(e);
     }
     catch (RuntimeException e) {
       releaseAfterOpenFailure(holder, searcher, e);
@@ -141,7 +176,8 @@ public class IndexReadSessionFactory
     if (searcherManagerHolder != null) {
       return searcherManagerHolder;
     }
-    return indexWriterOwner.getSearcherManagerHolder();
+    return indexWriterOwner.getSearcherManagerHolderIfUsable()
+        .orElseGet(indexWriterOwner::getSearcherManagerHolder);
   }
 
   private void releaseAfterOpenFailure(

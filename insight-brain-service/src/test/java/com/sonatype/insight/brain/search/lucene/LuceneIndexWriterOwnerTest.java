@@ -617,6 +617,81 @@ public class LuceneIndexWriterOwnerTest
   }
 
   @Test
+  public void getSearcherManagerHolderIfUsable_returnsHolderWithoutBlockingWhileWriteLockHeld() throws Exception {
+    try (Directory directory = new ByteBuffersDirectory();
+        Analyzer analyzer = new LowerCaseKeywordAnalyzer();
+        LuceneIndexWriterOwner owner = LuceneIndexWriterOwner.openForTest(directory, analyzer))
+    {
+      LuceneSearcherManagerHolder searcherManagerHolder = mock(LuceneSearcherManagerHolder.class);
+      when(searcherManagerHolder.isUsable()).thenReturn(true);
+      owner.setSearcherManagerHolder(searcherManagerHolder);
+
+      CountDownLatch writeLockHeld = new CountDownLatch(1);
+      CountDownLatch releaseWriteLock = new CountDownLatch(1);
+      Thread writerThread = new Thread(() -> {
+        try {
+          owner.runWithWriter(writer -> {
+            writeLockHeld.countDown();
+            assertThat(releaseWriteLock.await(30, TimeUnit.SECONDS)).isTrue();
+          });
+        }
+        catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      });
+      writerThread.start();
+      assertThat(writeLockHeld.await(5, TimeUnit.SECONDS)).isTrue();
+
+      AtomicReference<Optional<LuceneSearcherManagerHolder>> result = new AtomicReference<>(Optional.empty());
+      CountDownLatch readCompleted = new CountDownLatch(1);
+      Thread readerThread = new Thread(() -> {
+        result.set(owner.getSearcherManagerHolderIfUsable());
+        readCompleted.countDown();
+      });
+      readerThread.start();
+      boolean completedWhileLockHeld = readCompleted.await(10, TimeUnit.SECONDS);
+
+      releaseWriteLock.countDown();
+      writerThread.join(30_000L);
+      readerThread.join(30_000L);
+
+      assertThat(completedWhileLockHeld)
+          .as("session read must not block on the write lock while incremental indexing holds it")
+          .isTrue();
+      assertThat(result.get()).contains(searcherManagerHolder);
+    }
+  }
+
+  @Test
+  public void getSearcherManagerHolderIfUsable_returnsEmptyWhenHolderNotUsable() throws Exception {
+    try (Directory directory = new ByteBuffersDirectory();
+        Analyzer analyzer = new LowerCaseKeywordAnalyzer();
+        LuceneIndexWriterOwner owner = LuceneIndexWriterOwner.openForTest(directory, analyzer))
+    {
+      LuceneSearcherManagerHolder searcherManagerHolder = mock(LuceneSearcherManagerHolder.class);
+      when(searcherManagerHolder.isUsable()).thenReturn(false);
+      owner.setSearcherManagerHolder(searcherManagerHolder);
+
+      assertThat(owner.getSearcherManagerHolderIfUsable()).isEmpty();
+    }
+  }
+
+  @Test
+  public void getSearcherManagerHolderIfUsable_returnsEmptyWhenIndexUnavailable() throws Exception {
+    try (Directory directory = new ByteBuffersDirectory();
+        Analyzer analyzer = new LowerCaseKeywordAnalyzer();
+        LuceneIndexWriterOwner owner = LuceneIndexWriterOwner.openForTest(directory, analyzer))
+    {
+      LuceneSearcherManagerHolder searcherManagerHolder = mock(LuceneSearcherManagerHolder.class);
+      when(searcherManagerHolder.isUsable()).thenReturn(true);
+      owner.setSearcherManagerHolder(searcherManagerHolder);
+      setField(owner.currentIndexForTest(), "available", false);
+
+      assertThat(owner.getSearcherManagerHolderIfUsable()).isEmpty();
+    }
+  }
+
+  @Test
   public void getSearcherManagerHolder_isIsolatedPerTenant() throws Exception {
     TenantTestHelper.initMultiTenantMode();
     Path tenant1Path = temporaryFolder.newFolder("tenant1-index").toPath();

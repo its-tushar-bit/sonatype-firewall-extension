@@ -22,6 +22,7 @@ import io.micrometer.core.instrument.Timer;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.SearcherManager;
+import org.apache.lucene.store.AlreadyClosedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,13 +104,14 @@ public class LuceneSearcherManagerHolder
    * Acquires a searcher from the current manager, then registers it under {@code acquiredSearchers}.
    * The lock intentionally does not wrap {@link SearcherManager#acquire()} (avoids deadlock with
    * {@link #pause()}/{@link #reopen()}). Lucene's release path remains safe if the manager is closed
-   * in the gap between acquire and registration.
+   * in the gap between acquire and registration; a concurrent close of the captured manager surfaces
+   * as {@link SearcherManagerUnavailableException} so callers see one unavailable signal.
    */
   public IndexSearcher acquire() throws IOException {
     long start = System.nanoTime();
     try {
       SearcherManager manager = currentManager();
-      IndexSearcher searcher = manager.acquire();
+      IndexSearcher searcher = acquireFrom(manager);
       synchronized (acquiredSearchers) {
         SearcherAcquisition acquisition = acquiredSearchers.get(searcher);
         if (acquisition == null) {
@@ -123,6 +125,15 @@ public class LuceneSearcherManagerHolder
     }
     finally {
       recordAcquireWait(System.nanoTime() - start);
+    }
+  }
+
+  private static IndexSearcher acquireFrom(final SearcherManager manager) throws IOException {
+    try {
+      return manager.acquire();
+    }
+    catch (AlreadyClosedException e) {
+      throw new SearcherManagerUnavailableException("Lucene SearcherManager was closed during acquire.", e);
     }
   }
 
@@ -167,7 +178,9 @@ public class LuceneSearcherManagerHolder
    * False while paused/closed so callers can fall back to opening a DirectoryReader instead of
    * failing {@link #acquire()} during rebuild/shutdown.
    */
-  public synchronized boolean isUsable() {
+  public boolean isUsable() {
+    // Both fields are volatile and this result is advisory (rechecked at acquire()), so no monitor is taken here;
+    // a monitor would serialize the lock-free read behind maybeRefresh()/pause()/reopen().
     return !closed && searcherManager != null;
   }
 

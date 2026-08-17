@@ -179,10 +179,7 @@ public class LuceneIndexWriterOwner
       return Optional.empty();
     }
     try {
-      if (!index.available || index.searcherManagerHolder == null || !index.searcherManagerHolder.isUsable()) {
-        return Optional.empty();
-      }
-      return Optional.of(index.searcherManagerHolder);
+      return usableHolder(index);
     }
     finally {
       index.lock.unlock();
@@ -203,6 +200,26 @@ public class LuceneIndexWriterOwner
     finally {
       index.lock.unlock();
     }
+  }
+
+  /**
+   * Reads the holder without {@link TenantIndex#lock} so reads don't serialize behind the writer's commit; empty when
+   * the index is not yet initialized, unavailable, or paused.
+   */
+  public Optional<LuceneSearcherManagerHolder> getSearcherManagerHolderIfUsable() {
+    return usableHolder(existingState());
+  }
+
+  private static Optional<LuceneSearcherManagerHolder> usableHolder(final TenantIndex index) {
+    if (index == null || !index.available) {
+      return Optional.empty();
+    }
+    LuceneSearcherManagerHolder holder = index.searcherManagerHolder;
+    // Read the volatile once: a re-read could observe null after the usability check passes.
+    if (holder == null || !holder.isUsable()) {
+      return Optional.empty();
+    }
+    return Optional.of(holder);
   }
 
   public void setSearcherManagerHolder(final LuceneSearcherManagerHolder searcherManagerHolder) {
@@ -762,7 +779,7 @@ public class LuceneIndexWriterOwner
 
     IndexWriter writer;
 
-    LuceneSearcherManagerHolder searcherManagerHolder;
+    volatile LuceneSearcherManagerHolder searcherManagerHolder;
 
     volatile boolean available = true;
   }

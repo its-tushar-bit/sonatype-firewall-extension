@@ -35,7 +35,7 @@
  ▼
  ┌──────────────────────────────────────────────────────────────────────────────────────────────┐
  │  4. STASH TEST ARTIFACTS                                                                     │
- │     • Stash SNAPSHOT JARs and test classes for distributed agents                            │
+ │     • Stash SNAPSHOT JARs + ALL modules' test-classes + root jvm.options for distributed agents │
  └──────────────────────────────────────────────────────────────────────────────────────────────┘
  │
  ▼
@@ -43,21 +43,20 @@
  │  5. TEST                                                               ║ PARALLEL ║          │
  ├─────────────────────────┬───────────────────────┬───────────────────────────────────────────┤
  │  Frontend Tests         │  Static Analysis      │  Policy Evaluation (conditional)          │
- │  ──────────────         │  ───────────────      │  ────────────────────────────             │
- │  • main agent           │  • agent: iq          │  • nexusPolicyEvaluation                  │
- │  • Jest                 │  • Spotless Check     │                                           │
- │                         │  • License Check      │                                           │
- ├──────────────┬──────────┬──────────┬──────────┬──────────┬──────────┬────────────────────┤
- │  Postgres    │  Surefire│  Failsafe│  Failsafe│  Failsafe│  Failsafe│  Playwright        │
- │  Tests       │  ────────│  1 (A)   │  2 (B-L) │  3 (M-R) │  4 (S-Z) │  Functional Tests  │
- │  • main      │  • main  │  • iq    │  • iq    │  • iq    │  • iq    │  • iq              │
- │  • Postgres  │  • test  │  27%     │  25%     │  25%     │  21%     │  • -Psanity        │
- ├──────────────┴──────────┴──────────┴──────────┴──────────┴──────────┴────────────────────┤
- │  MTIQ Tests • main agent • surefire+failsafe                                            │
- ├─────────────────────────┬─────────────────────────┬──────────────────────────────────────┤
- │  Playwright Regr 1      │  Playwright Regr 2      │  Playwright Regr 3                   │
- │  (A-L)  • iq  33%       │  (M-P)  • iq  36%       │  (Q-Z)  • iq  31%                    │
- │  • -Pregression • opt-out via skipPlaywrightRegressionTests (default: runs)              │
+ │  • main agent • Jest    │  • agent: iq          │  • nexusPolicyEvaluation                  │
+ ├─────────────────────────┴───────────────────────┴───────────────────────────────────────────┤
+ │  MODULE PARTITIONS - each on its own iq-large agent (deps come from Build's install):         │
+ │    • Fast Module Tests   -T 4  reactor: db/policy/common/event/tenancy/guide/*-db-pg/mtiq-fips │
+ │    • Service Tests       insight-brain-service                                                 │
+ │    • MTIQ Server Tests   nexus-mtiq-server                                                     │
+ │    • Data Tests          insight-brain-data                                                    │
+ │    • Component H2 Tests  variant-test-component-h2                                             │
+ │    • Component PG Tests  variant-test-component-pg                                             │
+ │    • Variant H2 + PG     variant-test-h2 + -pg (overlapped -T 2)                               │
+ │    • Variant MTIQ + FIPS variant-test-mtiq + -fips (overlapped -T 2)                           │
+ │    • Legacy A-E/F-Q/R-Z  variant-test-legacy (reuseForks=false, 3-way class-name split)        │
+ ├───────────────────────────────────────────────────────────────────────────────────────────────┤
+ │  Playwright Functional (-Psanity) + Playwright Regr 1/2/3 (-Pregression, opt-out)             │
  └──────────────────────────────────────────────────────────────────────────────────────────────┘
  │
  ▼
@@ -265,16 +264,26 @@ pipeline {
           }
         }
 
-        // Backend tests (Surefire + MTIQ + Postgres) on distributed agent
-        stage('Postgres + MTIQ Tests') {
+        // Backend tests are split by MODULE, not by class-name letter. Each variant-test module boots
+        // its fixture once per module JVM (reuseForks per the module pom), so a class-name split across
+        // agents would re-boot that fixture on every agent and mix modules with different fork configs.
+        // Instead every heavy module gets its own distributed agent; the small independent leaf modules
+        // are overlapped two-to-an-agent via a Maven -T reactor. The remaining quick JVM modules run in
+        // one 'Fast Module Tests' reactor. Keep this set in sync with slowTestModules() (Fast reactor
+        // excludes + Collect Results JaCoCo unstash). Module deps come from the Build stage's install
+        // into the shared local repo, so no -am is needed.
+
+        // Every quick JVM module in one -T 4 reactor (all modules NOT given a dedicated stage below,
+        // and not frontend/playwright/legacy). This is where insight-brain-db/policy/common/event/
+        // tenancy/guide + the PG DAO leaf modules (data-pg/db-pg/mtiq-db-pg) + mtiq-fips run.
+        stage('Fast Module Tests') {
           agent { label DISTRIBUTED_TEST_AGENT }
           options {
-            // Increased timeout for Jakarta EE 11 migration - tests take longer due to framework changes
             timeout(time: 90, unit: 'MINUTES')
           }
           steps {
             script {
-              runDistributedBackendTests()
+              runFastModuleTests()
             }
           }
           post {
@@ -288,19 +297,20 @@ pipeline {
           }
         }
 
-        // Failsafe Tests - split across 4 agents by test class name pattern
-        // Uses -Dit.test=%regex[pattern] syntax (same as Jenkinsfile.main)
-        // Distribution: A (574, 27%), B-L (537, 25%), M-R (538, 25%), S-Z (440, 21%)
-        stage('Failsafe Tests 1 (A)') {
+        // insight-brain-service surefire/failsafe: the largest single module, kept solo.
+        stage('Service Tests') {
           agent { label DISTRIBUTED_TEST_AGENT }
+          options {
+            timeout(time: 120, unit: 'MINUTES')
+          }
           steps {
             script {
-              runDistributedFailsafeTests('.*/A.*Test.class')
+              runDistributedModuleTests('insight-brain-service')
             }
           }
           post {
             always {
-              junit testResults: '**/target/failsafe-reports/*.xml', allowEmptyResults: true
+              junit testResults: '**/target/surefire-reports/*.xml, **/target/failsafe-reports/*.xml', allowEmptyResults: true
               script {
                 String stashName = "jacoco-${env.STAGE_NAME.replaceAll('[^a-zA-Z0-9]', '-')}"
                 stash name: stashName, includes: '**/target/jacoco.exec, **/target/site/jacoco/jacoco.xml', allowEmpty: true
@@ -309,16 +319,19 @@ pipeline {
           }
         }
 
-        stage('Failsafe Tests 2 (B-L)') {
+        stage('MTIQ Server Tests') {
           agent { label DISTRIBUTED_TEST_AGENT }
+          options {
+            timeout(time: 90, unit: 'MINUTES')
+          }
           steps {
             script {
-              runDistributedFailsafeTests('.*/[B-L].*Test.class')
+              runDistributedModuleTests('nexus-mtiq-server')
             }
           }
           post {
             always {
-              junit testResults: '**/target/failsafe-reports/*.xml', allowEmptyResults: true
+              junit testResults: '**/target/surefire-reports/*.xml, **/target/failsafe-reports/*.xml', allowEmptyResults: true
               script {
                 String stashName = "jacoco-${env.STAGE_NAME.replaceAll('[^a-zA-Z0-9]', '-')}"
                 stash name: stashName, includes: '**/target/jacoco.exec, **/target/site/jacoco/jacoco.xml', allowEmpty: true
@@ -327,16 +340,21 @@ pipeline {
           }
         }
 
-        stage('Failsafe Tests 3 (M-R)') {
+        // Data is upstream of every test module; kept solo (short, and it cannot overlap a dependent
+        // module without the reactor serialising it).
+        stage('Data Tests') {
           agent { label DISTRIBUTED_TEST_AGENT }
+          options {
+            timeout(time: 120, unit: 'MINUTES')
+          }
           steps {
             script {
-              runDistributedFailsafeTests('.*/[M-R].*Test.class')
+              runDistributedModuleTests('insight-brain-data')
             }
           }
           post {
             always {
-              junit testResults: '**/target/failsafe-reports/*.xml', allowEmptyResults: true
+              junit testResults: '**/target/surefire-reports/*.xml, **/target/failsafe-reports/*.xml', allowEmptyResults: true
               script {
                 String stashName = "jacoco-${env.STAGE_NAME.replaceAll('[^a-zA-Z0-9]', '-')}"
                 stash name: stashName, includes: '**/target/jacoco.exec, **/target/site/jacoco/jacoco.xml', allowEmpty: true
@@ -345,20 +363,146 @@ pipeline {
           }
         }
 
-        stage('Failsafe Tests 4 (S-Z)') {
+        // Component H2 is the largest variant suite (~590 classes, single reused H2 fixture); solo.
+        stage('Component H2 Tests') {
           agent { label DISTRIBUTED_TEST_AGENT }
+          options {
+            timeout(time: 120, unit: 'MINUTES')
+          }
           steps {
             script {
-              runDistributedFailsafeTests('.*/[S-Z].*Test.class')
+              runDistributedModuleTests('insight-brain-variant-test-component-h2')
             }
           }
           post {
             always {
-              junit testResults: '**/target/failsafe-reports/*.xml', allowEmptyResults: true
+              junit testResults: '**/target/surefire-reports/*.xml, **/target/failsafe-reports/*.xml', allowEmptyResults: true
               script {
                 String stashName = "jacoco-${env.STAGE_NAME.replaceAll('[^a-zA-Z0-9]', '-')}"
                 stash name: stashName, includes: '**/target/jacoco.exec, **/target/site/jacoco/jacoco.xml', allowEmpty: true
               }
+            }
+          }
+        }
+
+        // Component PG is a single long-running Postgres-backed fork; keep it solo.
+        stage('Component PG Tests') {
+          agent { label DISTRIBUTED_TEST_AGENT }
+          options {
+            timeout(time: 120, unit: 'MINUTES')
+          }
+          steps {
+            script {
+              runDistributedModuleTests('insight-brain-variant-test-component-pg')
+            }
+          }
+          post {
+            always {
+              junit testResults: '**/target/surefire-reports/*.xml, **/target/failsafe-reports/*.xml', allowEmptyResults: true
+              script {
+                String stashName = "jacoco-${env.STAGE_NAME.replaceAll('[^a-zA-Z0-9]', '-')}"
+                stash name: stashName, includes: '**/target/jacoco.exec, **/target/site/jacoco/jacoco.xml', allowEmpty: true
+              }
+            }
+          }
+        }
+
+        // Two independent single-fork leaf modules overlapped via -T 2. H2 uses an in-memory DB, PG a
+        // Postgres container - separate fixtures in separate forked JVMs, so no cross-module collision.
+        stage('Variant H2 + PG Tests') {
+          agent { label DISTRIBUTED_TEST_AGENT }
+          options {
+            timeout(time: 120, unit: 'MINUTES')
+          }
+          steps {
+            script {
+              runDistributedModuleReactor(
+                  ['insight-brain-variant-test-h2', 'insight-brain-variant-test-pg'], '2')
+            }
+          }
+          post {
+            always {
+              junit testResults: '**/target/surefire-reports/*.xml, **/target/failsafe-reports/*.xml', allowEmptyResults: true
+              script {
+                String stashName = "jacoco-${env.STAGE_NAME.replaceAll('[^a-zA-Z0-9]', '-')}"
+                stash name: stashName, includes: '**/target/jacoco.exec, **/target/site/jacoco/jacoco.xml', allowEmpty: true
+              }
+            }
+          }
+        }
+
+        // Variant MTIQ + FIPS overlapped via -T 2 (FIPS is reuseForks=false: one class-JVM at a time).
+        stage('Variant MTIQ + FIPS Tests') {
+          agent { label DISTRIBUTED_TEST_AGENT }
+          options {
+            timeout(time: 120, unit: 'MINUTES')
+          }
+          steps {
+            script {
+              runDistributedModuleReactor(
+                  ['insight-brain-variant-test-mtiq', 'insight-brain-variant-test-fips'], '2')
+            }
+          }
+          post {
+            always {
+              junit testResults: '**/target/surefire-reports/*.xml, **/target/failsafe-reports/*.xml', allowEmptyResults: true
+              script {
+                String stashName = "jacoco-${env.STAGE_NAME.replaceAll('[^a-zA-Z0-9]', '-')}"
+                stash name: stashName, includes: '**/target/jacoco.exec, **/target/site/jacoco/jacoco.xml', allowEmpty: true
+              }
+            }
+          }
+        }
+
+        // Legacy boots a full server per class (reuseForks=false) and is the most makespan-volatile
+        // lane, so keep the balanced THREE-way class-range split rather than one slow stage.
+        stage('Legacy Tests A-E') {
+          agent { label DISTRIBUTED_TEST_AGENT }
+          options {
+            timeout(time: 90, unit: 'MINUTES')
+          }
+          steps {
+            script {
+              runLegacyPartition('.*/[A-E].*Test.class')
+            }
+          }
+          post {
+            always {
+              junit testResults: '**/target/surefire-reports/*.xml, **/target/failsafe-reports/*.xml', allowEmptyResults: true
+            }
+          }
+        }
+
+        stage('Legacy Tests F-Q') {
+          agent { label DISTRIBUTED_TEST_AGENT }
+          options {
+            timeout(time: 90, unit: 'MINUTES')
+          }
+          steps {
+            script {
+              runLegacyPartition('.*/[F-Q].*Test.class')
+            }
+          }
+          post {
+            always {
+              junit testResults: '**/target/surefire-reports/*.xml, **/target/failsafe-reports/*.xml', allowEmptyResults: true
+            }
+          }
+        }
+
+        stage('Legacy Tests R-Z') {
+          agent { label DISTRIBUTED_TEST_AGENT }
+          options {
+            timeout(time: 90, unit: 'MINUTES')
+          }
+          steps {
+            script {
+              runLegacyPartition('.*/[R-Z].*Test.class')
+            }
+          }
+          post {
+            always {
+              junit testResults: '**/target/surefire-reports/*.xml, **/target/failsafe-reports/*.xml', allowEmptyResults: true
             }
           }
         }
@@ -469,12 +613,17 @@ pipeline {
             // Unstash JaCoCo data from distributed test agents
             // Exec files go into build dir so report-aggregate can find them
             // XML files go into separate directories for recordCoverage to merge
+            // One entry per distributed stage that stashes JaCoCo (jacoco-<sanitized stage name>).
+            // Legacy stages are excluded from JaCoCo so they do not appear here.
             def distributedStages = [
-                'Postgres + MTIQ Tests',
-                'Failsafe Tests 1 (A)',
-                'Failsafe Tests 2 (B-L)',
-                'Failsafe Tests 3 (M-R)',
-                'Failsafe Tests 4 (S-Z)',
+                'Fast Module Tests',
+                'Service Tests',
+                'MTIQ Server Tests',
+                'Data Tests',
+                'Component H2 Tests',
+                'Component PG Tests',
+                'Variant H2 + PG Tests',
+                'Variant MTIQ + FIPS Tests',
                 'Playwright Functional Tests',
                 'Playwright Regression 1 (A-L)',
                 'Playwright Regression 2 (M-P)',
@@ -1015,23 +1164,24 @@ void stashTestArtifacts() {
       exit 1
     fi
 
-    # Parallel copy of classes and test-classes directories
+    # Parallel copy of classes/test-classes for EVERY module at any depth (not a hardcoded list) so
+    # every distributed stage -- including the variant-test suites now nested under
+    # insight-brain-testing/ -- has its compiled tests on the remote agent. mvnDirectForDistributedTests
+    # runs surefire:test directly and does NOT recompile, so a module whose test-classes are missing
+    # here silently runs zero tests. Frontend is excluded (its Jest tests run on the main agent).
     echo "Copying classes/test-classes in parallel..."
     pids=""
-    for module in insight-brain-service insight-brain-db insight-brain-data insight-brain-policy \\
-                  insight-brain-common insight-brain-event insight-brain-tenancy nexus-mtiq-server \\
-                  insight-brain-testing/insight-brain-variant-test-data-pg insight-brain-testing/insight-brain-variant-test-db-pg insight-brain-testing/insight-brain-variant-test-mtiq-db-pg \\
-                  insight-brain-testing/insight-brain-playwright-test; do
-      mkdir -p "${stashDir}/test-classes/\$module/target"
-      if [ -d "\$module/target/test-classes" ]; then
-        cp -r "\$module/target/test-classes" "${stashDir}/test-classes/\$module/target/" &
-        pids="\$pids \$!"
-      fi
-      if [ -d "\$module/target/classes" ]; then
-        cp -r "\$module/target/classes" "${stashDir}/test-classes/\$module/target/" &
-        pids="\$pids \$!"
-      fi
-    done
+    # Write the dir list to a file and read it with `while read -r` so paths with spaces are not word-split
+    # (matches the pom.xml copy below); a plain `for tc in \$(find ...)` would split on whitespace.
+    find . -type d \\( -name test-classes -o -name classes \\) -path '*/target/*' \\
+                  -not -path './insight-brain-frontend/*' -not -path '*/.test-stash/*' > "${stashDir}/.class-dirs.txt"
+    while read -r tc; do
+      module_target=\$(dirname "\$tc")
+      mkdir -p "${stashDir}/test-classes/\$module_target"
+      cp -r "\$tc" "${stashDir}/test-classes/\$module_target/" &
+      pids="\$pids \$!"
+    done < "${stashDir}/.class-dirs.txt"
+    rm -f "${stashDir}/.class-dirs.txt"
     # Wait for all class copies to complete
     for pid in \$pids; do wait \$pid || exit 1; done
     echo "  Copied classes directories"
@@ -1043,6 +1193,12 @@ void stashTestArtifacts() {
       dir=\$(dirname "\$pom")
       mkdir -p "${stashDir}/test-classes/\$dir"
       cp "\$pom" "${stashDir}/test-classes/\$dir/"
+    done
+
+    # Root argfiles referenced by forked test JVMs (parent pom argLine: @<root>/jvm.options).
+    # Without this, forks on remote agents fail to open jvm.options -> 0 tests.
+    for f in jvm.options; do
+      [ -f "\$f" ] && cp "\$f" "${stashDir}/test-classes/\$f"
     done
 
     # Report sizes
@@ -1103,6 +1259,10 @@ String unstashTestArtifacts() {
           dir=\$(dirname "\$pom")
           mkdir -p "${env.WORKSPACE}/\$dir"
           cp "\$pom" "${env.WORKSPACE}/\$dir/"
+        done
+        # Restore root argfiles (e.g. jvm.options) referenced by forked test JVMs
+        for f in jvm.options; do
+          [ -f "\$f" ] && cp "\$f" "${env.WORKSPACE}/\$f"
         done
       ) &
       pids="\$pids \$!"
@@ -1209,66 +1369,62 @@ String buildDistributedFrontendTestMavenOptions() {
   return opts.join(' ')
 }
 
+/** The test modules that each get their own parallel stage on a dedicated distributed agent. */
+List slowTestModules() {
+  // Everything NOT listed here -- and not frontend, playwright or legacy -- runs together in the
+  // single 'Fast Module Tests' reactor. Keep in sync with buildFastModuleTestMavenOptions() and the
+  // Collect Results stage list. stashTestArtifacts carries test-classes for ALL modules plus the
+  // root jvm.options argfile, so every module listed here runs its real tests on a fresh agent.
+  return [
+      'insight-brain-service',
+      'insight-brain-data',
+      'nexus-mtiq-server',
+      'insight-brain-variant-test-component-h2',
+      'insight-brain-variant-test-component-pg',
+      'insight-brain-variant-test-h2',
+      'insight-brain-variant-test-pg',
+      'insight-brain-variant-test-mtiq',
+      'insight-brain-variant-test-fips'
+  ]
+}
+
 /**
- * Run backend tests (Surefire + MTIQ) on a distributed agent.
- *
- * This function:
- * 1. Unstashes the build artifacts from the main build agent
- * 2. Runs surefire tests
- * 3. Runs MTIQ tests
+ * Run one test module on the current (distributed) agent: restore the build artifacts, then run the
+ * module's surefire + failsafe tests. Each variant-test module boots its fixture once per module JVM
+ * (reuseForks per the module pom), so running the whole module on one agent boots it exactly once.
  */
-void runDistributedBackendTests() {
-  echo "Running distributed backend tests (Surefire + MTIQ + Postgres)..."
-  echo "  Workspace: ${env.WORKSPACE}"
-
-  // Restore stashed artifacts
+void runDistributedModuleTests(String module) {
+  echo "Running distributed tests for ${module}..."
   def localRepo = unstashTestArtifacts()
-
   withSonatypeDockerRegistry() {
     withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/",
              "TESTCONTAINERS_RYUK_DISABLED=true"]) {
-
-      // Run surefire tests
-      echo "Running Surefire tests..."
-      def surefireOpts = buildDistributedSurefireTestMavenOptions()
-      mvnDirectForDistributedTests(surefireOpts, 'surefire:test', localRepo)
-
-      // Run MTIQ tests
-      echo "Running MTIQ tests..."
-      def mtiqOpts = buildDistributedMtiqTestMavenOptions()
-      mvnDirectForDistributedTests(mtiqOpts, 'surefire:test failsafe:integration-test failsafe:verify', localRepo)
+      mvnDirectForDistributedTests(buildModuleTestMavenOptions(module),
+          'surefire:test failsafe:integration-test failsafe:verify', localRepo)
     }
   }
 }
 
-/**
- * Build Maven options for distributed surefire test execution.
- */
-String buildDistributedSurefireTestMavenOptions() {
+/** Build Maven options for a single-module distributed test run. */
+String buildModuleTestMavenOptions(String module) {
   def opts = []
 
   opts << "--no-transfer-progress"
-  opts << "-T 1"
-  opts << "-pl '!insight-brain-frontend,!nexus-mtiq-server'"
+  // No -T: a single module has no cross-module parallelism; test concurrency is the module's own
+  // surefire/failsafe forkCount defined in its pom.
+  opts << "-pl ':${module}'"
+  opts << "-DdetectTestEntityLeaks"
   opts << "-D skip-functional-test"
   opts << "-D build.number=${env.BUILD_NUMBER}"
 
-  // Test configuration
   opts << "-Dsurefire.runOrder=alphabetical"
   opts << "-Dsurefire.rerunFailingTestsCount=2"
   opts << "-Dsurefire.failOnFlakeCount=5"
+  opts << "-Dfailsafe.runOrder=alphabetical"
+  opts << "-Dfailsafe.rerunFailingTestsCount=2"
+  opts << "-Dfailsafe.failOnFlakeCount=5"
 
-  // Excluded test groups - ref-policy import is gated by a build param
-  def excludedGroups = []
-  if (!params.runRefPolicyImportIntTest) {
-    excludedGroups << "ReferencePolicyImportIntegrationTest"
-  }
-  opts << "-DexcludedGroups=${excludedGroups.join(',')}"
-
-  // Docker registry
   opts << "-Ddocker.registry=${sonatypeDockerRegistryId()}"
-
-  // Error handling
   opts << "-e"
   opts << "-C"
   opts << "-fae"
@@ -1278,18 +1434,35 @@ String buildDistributedSurefireTestMavenOptions() {
 }
 
 /**
- * Build Maven options for distributed MTIQ test execution.
+ * Run several INDEPENDENT leaf test modules together on one distributed agent, overlapped via Maven
+ * -T reactor parallelism. Each module keeps its own surefire/failsafe forkCount, so the agent's
+ * concurrent JVMs = sum of the modules' fork counts; keep that x -Xmx under the agents' 16 GB (see
+ * CLM-39214). If a listed module depends on another the reactor orders them and they run
+ * sequentially instead of overlapping.
  */
-String buildDistributedMtiqTestMavenOptions() {
+void runDistributedModuleReactor(List<String> modules, String threads) {
+  echo "Running distributed reactor for ${modules.join(', ')} (-T ${threads})..."
+  def localRepo = unstashTestArtifacts()
+  withSonatypeDockerRegistry() {
+    withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/",
+             "TESTCONTAINERS_RYUK_DISABLED=true"]) {
+      mvnDirectForDistributedTests(buildReactorTestMavenOptions(modules, threads),
+          'surefire:test failsafe:integration-test failsafe:verify', localRepo)
+    }
+  }
+}
+
+/** Build Maven options for a multi-module (-pl ... -T ...) distributed reactor test run. */
+String buildReactorTestMavenOptions(List<String> modules, String threads) {
   def opts = []
 
   opts << "--no-transfer-progress"
-  opts << "-T 1"
-  opts << "-pl 'nexus-mtiq-server'"
+  opts << "-T ${threads}"
+  opts << "-pl '${modules.collect { ":${it}" }.join(',')}'"
+  opts << "-DdetectTestEntityLeaks"
   opts << "-D skip-functional-test"
   opts << "-D build.number=${env.BUILD_NUMBER}"
 
-  // Test configuration
   opts << "-Dsurefire.runOrder=alphabetical"
   opts << "-Dsurefire.rerunFailingTestsCount=2"
   opts << "-Dsurefire.failOnFlakeCount=5"
@@ -1297,19 +1470,7 @@ String buildDistributedMtiqTestMavenOptions() {
   opts << "-Dfailsafe.rerunFailingTestsCount=2"
   opts << "-Dfailsafe.failOnFlakeCount=5"
 
-  // Excluded test groups
-  def excludedGroups = []
-  if (!params.runRefPolicyImportIntTest) {
-    excludedGroups << "ReferencePolicyImportIntegrationTest"
-  }
-  if (excludedGroups) {
-    opts << "-DexcludedGroups=${excludedGroups.join(',')}"
-  }
-
-  // Docker registry
   opts << "-Ddocker.registry=${sonatypeDockerRegistryId()}"
-
-  // Error handling
   opts << "-e"
   opts << "-C"
   opts << "-fae"
@@ -1319,88 +1480,98 @@ String buildDistributedMtiqTestMavenOptions() {
 }
 
 /**
- * Run failsafe tests on a distributed agent.
- *
- * This function:
- * 1. Unstashes the build artifacts from the main build agent
- * 2. Runs failsafe tests matching the specified pattern
- *
- * @param testPattern The test pattern to run (e.g., '[A-G]*Test.java')
+ * Run one class-name partition of the legacy module on the current (distributed) agent. Legacy boots
+ * a full server per class (reuseForks=false), so it is split across several stages by a contiguous
+ * class-name range via surefire/failsafe -Dtest / -Dit.test regex. Legacy is excluded from JaCoCo.
  */
-void runDistributedFailsafeTests(String testPattern) {
-  echo "Running distributed failsafe tests with pattern: ${testPattern}"
-  echo "  Workspace: ${env.WORKSPACE}"
-
-  // Restore stashed artifacts
+void runLegacyPartition(String testRegex) {
+  echo "Running legacy partition ${testRegex}..."
   def localRepo = unstashTestArtifacts()
-
-  // Debug: show what we have after unstash
-  sh """
-    echo "=== Workspace contents after unstash ==="
-    ls -la ${env.WORKSPACE}/
-    echo ""
-    echo "=== Module directories ==="
-    ls -la ${env.WORKSPACE}/insight-brain-service/ 2>/dev/null || echo "insight-brain-service not found"
-    echo ""
-    echo "=== Test classes check ==="
-    ls -la ${env.WORKSPACE}/insight-brain-service/target/test-classes/ 2>/dev/null | head -10 || echo "No test-classes found"
-    echo ""
-    echo "=== Pom files ==="
-    find ${env.WORKSPACE} -name 'pom.xml' -not -path '*/.m2/*' | head -10
-  """
-
   withSonatypeDockerRegistry() {
     withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/",
              "TESTCONTAINERS_RYUK_DISABLED=true"]) {
-
-      def opts = buildDistributedTestMavenOptions([],
-          '!insight-brain-frontend,!nexus-mtiq-server', testPattern)
-      mvnDirectForDistributedTests(opts, 'failsafe:integration-test failsafe:verify', localRepo)
+      mvnDirectForDistributedTests(buildLegacyPartitionOptions(testRegex),
+          'surefire:test failsafe:integration-test failsafe:verify', localRepo)
     }
   }
-
-  // Debug: show test reports
-  sh """
-    echo "=== Test reports ==="
-    find ${env.WORKSPACE} -path '*/failsafe-reports/*.xml' 2>/dev/null | head -10 || echo "No failsafe reports found"
-  """
 }
 
-/**
- * Build Maven options for distributed test execution.
- */
-String buildDistributedTestMavenOptions(List<String> additionalExcludedGroups, String moduleList,
-    String testPattern) {
+/** Build Maven options for one legacy class-name partition. */
+String buildLegacyPartitionOptions(String testRegex) {
   def opts = []
 
   opts << "--no-transfer-progress"
-  opts << "-T 1"
-  opts << "-pl '${moduleList}'"
+  opts << "-pl ':insight-brain-variant-test-legacy'"
+  opts << "-DdetectTestEntityLeaks"
   opts << "-D skip-functional-test"
   opts << "-D build.number=${env.BUILD_NUMBER}"
 
-  // Test pattern - only run tests matching this pattern
-  // Using %regex[...] syntax (same as Jenkinsfile.main)
-  opts << "-Dit.test=%regex[${testPattern}]"
-
-  // Test configuration
+  opts << "-Dsurefire.runOrder=alphabetical"
+  opts << "-Dsurefire.rerunFailingTestsCount=2"
+  opts << "-Dsurefire.failOnFlakeCount=5"
   opts << "-Dfailsafe.runOrder=alphabetical"
   opts << "-Dfailsafe.rerunFailingTestsCount=2"
   opts << "-Dfailsafe.failOnFlakeCount=5"
 
-  // Excluded test groups
-  def excludedGroups = [] + additionalExcludedGroups
+  // Select this partition's classes; also drop ReferencePolicyImportIntegrationTest (imports the
+  // live reference policy from external staging) unless explicitly requested via build param.
+  String filter = "%regex[${testRegex}]"
   if (!params.runRefPolicyImportIntTest) {
-    excludedGroups << "ReferencePolicyImportIntegrationTest"
+    filter += ",!ReferencePolicyImportIntegrationTest"
   }
-  if (excludedGroups) {
-    opts << "-DexcludedGroups=${excludedGroups.join(',')}"
-  }
+  opts << "-Dtest='${filter}'"
+  opts << "-Dit.test='${filter}'"
 
-  // Docker registry
   opts << "-Ddocker.registry=${sonatypeDockerRegistryId()}"
+  opts << "-e"
+  opts << "-C"
+  opts << "-fae"
+  opts << "-Dmaven.test.failure.ignore"
 
-  // Error handling
+  return opts.join(' ')
+}
+
+/**
+ * Run the 'Fast Module Tests' reactor on the current (distributed) agent: every quick JVM module in
+ * one -T 4 pass. The slow modules (slowTestModules), plus frontend, playwright and legacy, each run
+ * in their own stage, so they are excluded here.
+ */
+void runFastModuleTests() {
+  echo "Running fast module tests reactor..."
+  def localRepo = unstashTestArtifacts()
+  withSonatypeDockerRegistry() {
+    withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/",
+             "TESTCONTAINERS_RYUK_DISABLED=true"]) {
+      mvnDirectForDistributedTests(buildFastModuleTestMavenOptions(),
+          'surefire:test failsafe:integration-test failsafe:verify', localRepo)
+    }
+  }
+}
+
+/** Build Maven options for the 'Fast Module Tests' reactor (every quick module in one -T 4 pass). */
+String buildFastModuleTestMavenOptions() {
+  def opts = []
+
+  opts << "--no-transfer-progress"
+  opts << "-T 4"
+  // Exclude frontend and playwright (own stages), legacy (own split stages), plus every distributed
+  // slow module. Everything else -- db/policy/common/event/tenancy/guide + the PG DAO leaf modules
+  // (data-pg/db-pg/mtiq-db-pg) + mtiq-fips -- runs here.
+  def excluded = ['insight-brain-frontend', 'insight-brain-playwright-test',
+                  'insight-brain-variant-test-legacy'] + slowTestModules()
+  opts << "-pl '${excluded.collect { "!:${it}" }.join(',')}'"
+  opts << "-DdetectTestEntityLeaks"
+  opts << "-D skip-functional-test"
+  opts << "-D build.number=${env.BUILD_NUMBER}"
+
+  opts << "-Dsurefire.runOrder=alphabetical"
+  opts << "-Dsurefire.rerunFailingTestsCount=2"
+  opts << "-Dsurefire.failOnFlakeCount=5"
+  opts << "-Dfailsafe.runOrder=alphabetical"
+  opts << "-Dfailsafe.rerunFailingTestsCount=2"
+  opts << "-Dfailsafe.failOnFlakeCount=5"
+
+  opts << "-Ddocker.registry=${sonatypeDockerRegistryId()}"
   opts << "-e"
   opts << "-C"
   opts << "-fae"

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.variant;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.service.config.MultiTenantConfigurationDefaultsService;
 
 import org.junit.jupiter.api.Test;
 
@@ -25,6 +26,11 @@ class MtiqConfigurationDefaultsServiceTest
   @Test
   void shouldSetGlobalConfigurationOnSystemStart() {
     ctx.testAsGlobal(t -> {
+      // MultiTenantConfigurationDefaultsService.register() is the GlobalTenantJob that seeds these
+      // defaults at system start. The reused MTIQ test server resets the database between tests, so
+      // run that same registration here before asserting its effect.
+      ctx.lookup(MultiTenantConfigurationDefaultsService.class).register();
+
       SystemConfigurationPropertyDAO dao = ctx.lookup(SystemConfigurationPropertyDAO.class);
 
       assertThat(dao.get(AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES)).isEqualTo("120");

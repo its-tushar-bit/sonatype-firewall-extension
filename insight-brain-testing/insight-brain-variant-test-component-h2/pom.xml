@@ -51,15 +51,26 @@
           </includes>
           <trimStackTrace>false</trimStackTrace>
           <!--
-            Single Spring context + single H2 fixture per module, so reuseForks=true is safe: all
-            test classes run in one JVM and share the ONE cached ApplicationContext (built by
-            SpringExtension) and the ONE DatabaseContainerRule fixture, amortizing context build and
-            DB provisioning across the whole module. The IQ-H2 / IQ-Postgres DatabaseContainerRule
-            singleton collision is avoided by keeping H2 and Postgres component tests in separate
-            modules (this one vs a future -component-pg) rather than separate forks.
+            reuseForks=true + forkCount>1 SHARDS this module's ~590 test classes across several JVMs.
+            Each fork builds ONE cached ApplicationContext (SpringExtension) + ONE DatabaseContainerRule
+            H2 fixture and reuses it across the classes assigned to that fork, so context/DB build cost
+            is amortized per fork while the classes themselves run in parallel across forks. This is by
+            far the largest test module, so sharding it is the main wall-clock lever; it runs on its own
+            CI agent (the 'Component H2 Tests' stage in Jenkinsfile.feature / .main) so the forks get
+            dedicated cores.
+
+            Safe because each fork is a separate JVM: the DatabaseContainerRule singleton, in-memory H2,
+            and license statics are all per-JVM, and each fork gets its own work directory via
+            test.forkId=#${surefire.forkNumber} (see SpringTestConfiguration.uniqueWorkDirectory). The
+            IQ-H2 / IQ-Postgres DatabaseContainerRule singleton collision is avoided by keeping H2 and
+            Postgres component tests in separate modules (this one vs -component-pg).
+
+            forkCount=0.5C with each fork -Xmx2048M balances parallelism against heap on the 16 GB
+            iq-large agent (0.5C forks x 2 GB stays within budget). Mirrors the fork-sharding proven in
+            insight-brain-variant-test-legacy.
           -->
           <reuseForks>true</reuseForks>
-          <forkCount>1</forkCount>
+          <forkCount>0.5C</forkCount>
           <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
           <forkedProcessExitTimeoutInSeconds>30</forkedProcessExitTimeoutInSeconds>
           <shutdown>kill</shutdown>
@@ -79,7 +90,7 @@
             --add-opens=java.base/sun.security.util=ALL-UNNAMED
             --add-opens=java.xml/com.sun.org.apache.xerces.internal.jaxp.datatype=ALL-UNNAMED
             --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
-            -Xmx3072M
+            -Xmx2048M
             -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar
             -XX:+HeapDumpOnOutOfMemoryError
             -XX:HeapDumpPath=${project.build.directory}/

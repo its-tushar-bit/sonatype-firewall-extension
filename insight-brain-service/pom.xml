@@ -906,13 +906,14 @@
           <reuseForks>true</reuseForks>
           <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
           <!--
-            Intentional divergence from main: forkCount reduced from 0.75C to 0.375C (CLM-39214 Spring Boot migration).
-            This branch boots Spring Boot application contexts in 18+ tests (main has 0). Combined with
-            Jenkins's c6i.2xlarge agents (8 vCPU / 16 GB) and Maven 4-thread reactor parallelism, the main-aligned 0.75C
-            caused OS-level memory pressure and agent SSH flapping.
-            TODO CLM-39984: revert to 0.75C once Spring test contexts are lighter or CI agents are larger.
+            forkCount=0.5C shards this module's tests across forks. It boots Spring Boot application
+            contexts in 18+ tests, so each fork's real footprint (heap + metaspace + H2 + native) is
+            large; 0.5C x -Xmx2000m fits the c6i.2xlarge agents (8 vCPU / 16 GB) because the module
+            runs SOLO on its own CI agent (the 'Service Tests' stage) with no competing reactor.
+            Treat 0.5C as the heap ceiling here: higher fork counts caused OS memory pressure and
+            agent SSH flapping under reactor parallelism (CLM-39214).
           -->
-          <forkCount>0.375C</forkCount>
+          <forkCount>0.5C</forkCount>
           <!-- Heap-dump-on-OOM flags come from the root argLine (dumps to target/, which always exists). -->
           <argLine>@{argLine} -Xmx2000m -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar</argLine>
           <systemPropertyVariables>

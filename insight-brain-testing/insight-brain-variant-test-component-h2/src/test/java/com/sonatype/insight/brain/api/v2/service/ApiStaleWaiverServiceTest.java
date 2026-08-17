@@ -86,6 +86,18 @@ public class ApiStaleWaiverServiceTest
 
   @BeforeEach
   public void setupData() {
+    // Reused-context isolation: getStaleWaivers() is a global query, and waivers scoped to the root
+    // organization survive a sibling test's org-cascade cleanup. Clear any pre-existing stale waivers
+    // so this class's global size/empty assertions are not polluted across the shared H2 context.
+    List<ApiStaleWaiverDTO> preExistingStaleWaivers = apiStaleWaiverService.getStaleWaivers();
+    if (!preExistingStaleWaivers.isEmpty()) {
+      List<String> preExistingIds = new ArrayList<>();
+      for (ApiStaleWaiverDTO staleWaiver : preExistingStaleWaivers) {
+        preExistingIds.add(staleWaiver.waiverId);
+      }
+      policyWaiverDAO.getByIds(preExistingIds).forEach(policyWaiverDAO::delete);
+    }
+
     org = tempEntity.newOrganization();
     policy = tempEntity.newPolicy(org.getId());
     componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");

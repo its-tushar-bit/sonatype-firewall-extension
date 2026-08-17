@@ -198,17 +198,16 @@ void configureBranchJob() {
       choice(name: 'playwrightTraceMode', choices: ['on-failure', 'always', 'off'],
           description: 'Playwright trace: on-failure (routine CI); always when debugging flakes; off to disable.'),
 
-      // Unit/Integration Test Skip Parameters
-      booleanParam(name: 'skipUnitA', defaultValue: false, description: 'Skip: Unit and Integration Tests A'),
-      booleanParam(name: 'skipUnitB', defaultValue: false, description: 'Skip: Unit and Integration Tests B'),
-      booleanParam(name: 'skipUnitDG', defaultValue: false, description: 'Skip: Unit and Integration Tests D-G'),
-      booleanParam(name: 'skipUnitHJ', defaultValue: false, description: 'Skip: Unit and Integration Tests H-J'),
-      booleanParam(name: 'skipUnitLN', defaultValue: false, description: 'Skip: Unit and Integration Tests L-N'),
-      booleanParam(name: 'skipUnitOP', defaultValue: false, description: 'Skip: Unit and Integration Tests O-P'),
-      booleanParam(name: 'skipUnitRT', defaultValue: false, description: 'Skip: Unit and Integration Tests R+T'),
-      booleanParam(name: 'skipUnitS', defaultValue: false, description: 'Skip: Unit and Integration Tests S'),
-      booleanParam(name: 'skipUnitCUZ', defaultValue: false, description: 'Skip: Unit and Integration Tests C+U-Z'),
-      booleanParam(name: 'skipUnitMtiq', defaultValue: false, description: 'Skip: MTIQ Unit and Integration Tests'),
+      // Unit/Integration Test Skip Parameters (one per module partition)
+      booleanParam(name: 'skipFastModules', defaultValue: false, description: 'Skip: Fast Module Tests (quick JVM modules reactor)'),
+      booleanParam(name: 'skipService', defaultValue: false, description: 'Skip: Service Tests (insight-brain-service)'),
+      booleanParam(name: 'skipMtiqServer', defaultValue: false, description: 'Skip: MTIQ Server Tests (nexus-mtiq-server)'),
+      booleanParam(name: 'skipData', defaultValue: false, description: 'Skip: Data Tests (insight-brain-data)'),
+      booleanParam(name: 'skipComponentH2', defaultValue: false, description: 'Skip: Component H2 Tests (variant-test-component-h2)'),
+      booleanParam(name: 'skipComponentPg', defaultValue: false, description: 'Skip: Component PG Tests (variant-test-component-pg)'),
+      booleanParam(name: 'skipVariantH2Pg', defaultValue: false, description: 'Skip: Variant H2 + PG Tests'),
+      booleanParam(name: 'skipVariantMtiqFips', defaultValue: false, description: 'Skip: Variant MTIQ + FIPS Tests'),
+      booleanParam(name: 'skipLegacy', defaultValue: false, description: 'Skip: Legacy Tests (variant-test-legacy, 3-way split)'),
       booleanParam(name: 'skipFrontend', defaultValue: false, description: 'Skip: Frontend Tests (Jest)')
       ]
 
@@ -555,40 +554,47 @@ Map<String, Closure> getParallelTests(List <String> zips) {
     testStages << createPlaywrightTests('Playwright Regression 3 (Q-Z)', '.*/[Q-Z].*Test.class', zips, 'regression')
   }
 
-  // These tests make use of iq-tests.zip which does not include insight-brain-frontend (1.2GB)
-    if (!params.skipUnitA) {
-      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 25 A', 'OpenJDK 25', '.*/[A].*Test.class', zips)
-    }
-    if (!params.skipUnitB) {
-      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 25 B', 'OpenJDK 25', '.*/[B].*Test.class', zips)
-    }
-    if (!params.skipUnitDG) {
-      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 25 D-G', 'OpenJDK 25', '.*/[D-G].*Test.class', zips)
-    }
-    if (!params.skipUnitHJ) {
-      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 25 H-J', 'OpenJDK 25', '.*/[H-K].*Test.class', zips)
-    }
-    if (!params.skipUnitLN) {
-      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 25 L-N', 'OpenJDK 25', '.*/[L-N].*Test.class', zips)
-    }
-    if (!params.skipUnitOP) {
-      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 25 O-P', 'OpenJDK 25', '.*/[O-P].*Test.class', zips)
-    }
-    if (!params.skipUnitRT) {
-      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 25 R + T', 'OpenJDK 25', '.*/[RT].*Test.class', zips)
-    }
-    if (!params.skipUnitS) {
-      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 25 S', 'OpenJDK 25', '.*/[S].*Test.class', zips)
-    }
-    if (!params.skipUnitCUZ) {
-      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 25 C + U-Z', 'OpenJDK 25', '.*/[CU-Z].*Test.class', zips)
-    }
-    if (!params.skipUnitMtiq) {
-      testStages << createMtiqUnitTests('MTIQ Unit and Integration Tests - OpenJDK 25', 'OpenJDK 25', zips)
-    }
-    if (!params.skipFrontend) {
-      testStages << createFrontendTests('Frontend Tests - Jest', zips)
-    }
+  // Backend tests are partitioned by MODULE, not by class-name letter. Each variant-test module boots
+  // its fixture once per module JVM (reuseForks per the module pom), so a class-name split across agents
+  // would re-boot that fixture on every agent and mix modules with different fork configs. Instead every
+  // heavy module gets its own agent; the small independent leaf modules are overlapped two-to-an-agent
+  // via Maven --threads. The remaining quick JVM modules run together in one 'Fast Module Tests' reactor.
+  // Keep this set in sync with slowTestModules(). copyRepo unzips the whole workspace, so every module
+  // already has its compiled test-classes on the agent.
+  if (!params.skipFastModules) {
+    testStages << createFastModuleTests('Fast Module Tests', zips)
+  }
+  if (!params.skipService) {
+    testStages << createModuleTests('Service Tests', 'insight-brain-service', zips)
+  }
+  if (!params.skipMtiqServer) {
+    testStages << createMtiqServerTests('MTIQ Server Tests', zips)
+  }
+  if (!params.skipData) {
+    testStages << createModuleTests('Data Tests', 'insight-brain-data', zips)
+  }
+  if (!params.skipComponentH2) {
+    testStages << createModuleTests('Component H2 Tests', 'insight-brain-variant-test-component-h2', zips)
+  }
+  if (!params.skipComponentPg) {
+    testStages << createModuleTests('Component PG Tests', 'insight-brain-variant-test-component-pg', zips)
+  }
+  if (!params.skipVariantH2Pg) {
+    testStages << createModuleReactorTests('Variant H2 + PG Tests',
+        ['insight-brain-variant-test-h2', 'insight-brain-variant-test-pg'], '2', zips)
+  }
+  if (!params.skipVariantMtiqFips) {
+    testStages << createModuleReactorTests('Variant MTIQ + FIPS Tests',
+        ['insight-brain-variant-test-mtiq', 'insight-brain-variant-test-fips'], '2', zips)
+  }
+  if (!params.skipLegacy) {
+    testStages << createLegacyPartitionTests('Legacy Tests A-E', '.*/[A-E].*Test.class', zips)
+    testStages << createLegacyPartitionTests('Legacy Tests F-Q', '.*/[F-Q].*Test.class', zips)
+    testStages << createLegacyPartitionTests('Legacy Tests R-Z', '.*/[R-Z].*Test.class', zips)
+  }
+  if (!params.skipFrontend) {
+    testStages << createFrontendTests('Frontend Tests - Jest', zips)
+  }
   return testStages
 }
 
@@ -655,28 +661,53 @@ Map<String, Closure> createFrontendTests(String stageName, List<String> zipFiles
   }]
 }
 
-Map<String, Closure> createUnitTests(String stageName, String jdk, String regex, List<String> zipFiles) {
+/** The test modules that each get their own parallel stage. Everything NOT here -- and not frontend,
+ *  playwright or legacy -- runs together in the single 'Fast Module Tests' reactor. */
+List slowTestModules() {
+  return [
+      'insight-brain-service',
+      'insight-brain-data',
+      'nexus-mtiq-server',
+      'insight-brain-variant-test-component-h2',
+      'insight-brain-variant-test-component-pg',
+      'insight-brain-variant-test-h2',
+      'insight-brain-variant-test-pg',
+      'insight-brain-variant-test-mtiq',
+      'insight-brain-variant-test-fips'
+  ]
+}
+
+/** Test flags common to every module/reactor/legacy/fast partition on a main-style build. */
+String commonModuleTestMavenOptions() {
+  String opts = ""
+  opts += " -Dskip-functional-test"
+  opts += " -DdetectTestEntityLeaks"
+  opts += " -Dsurefire.runOrder=alphabetical"
+  opts += " -Dsurefire.rerunFailingTestsCount=2"
+  opts += " -Dsurefire.failOnFlakeCount=5"
+  opts += " -Dfailsafe.runOrder=alphabetical"
+  opts += " -Dfailsafe.rerunFailingTestsCount=2"
+  opts += " -Dfailsafe.failOnFlakeCount=5"
+  opts += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
+  opts += " -Pbuildsupport-sonar-coverage "
+  // Main-style builds always run ReferencePolicyImportIntegrationTest (returns empty here).
+  opts += getRunRefPolicyImportIntTestMavenOption()
+  return opts
+}
+
+/** Run one module's surefire+failsafe tests on its own agent (single reused fixture boot per module). */
+Map<String, Closure> createModuleTests(String stageName, String module, List<String> zipFiles) {
   return [(stageName): {
-    node('iq-large'){
+    node('iq-large') {
       stage(stageName) {
         try {
           copyRepo(zipFiles)
-
-          String mavenOptions = "-pl '!nexus-mtiq-server,!com.sonatype.insight.brain:insight-brain-variant-test-mtiq-fips'"
-          mavenOptions += " -pl '!insight-brain-frontend'"
-          mavenOptions += " -Dtest=%regex[${regex}]"
-          mavenOptions += " -Dit.test=%regex[${regex}]"
-          mavenOptions += " -Dskip-functional-test"
-          mavenOptions += " -DdetectTestEntityLeaks"
-          mavenOptions += " -Dfailsafe.rerunFailingTestsCount=2"
-          mavenOptions += " -Dfailsafe.failOnFlakeCount=5"
-          mavenOptions += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
-          mavenOptions += " -Pbuildsupport-sonar-coverage "
-          mavenOptions += " --threads 4"
-          mavenOptions += getRunRefPolicyImportIntTestMavenOption()
-
-          Map<String, ?> testConfig = testConfig(mavenOptions, null, jdk)
-          mvn testConfig, 'jacoco:prepare-agent surefire:test failsafe:integration-test failsafe:verify jacoco:report'
+          String mavenOptions = "-pl ':${module}'"
+          mavenOptions += commonModuleTestMavenOptions()
+          Map<String, ?> testConfig = testConfig(mavenOptions, null, 'OpenJDK 25')
+          timeout(time: 120, unit: 'MINUTES') {
+            mvn testConfig, 'jacoco:prepare-agent surefire:test failsafe:integration-test failsafe:verify jacoco:report'
+          }
         }
         finally {
           captureResultsAndCleanup()
@@ -686,28 +717,97 @@ Map<String, Closure> createUnitTests(String stageName, String jdk, String regex,
   }]
 }
 
-Map<String, Closure> createMtiqUnitTests(String stageName, String jdk, List<String> zipFiles) {
+/**
+ * Run several INDEPENDENT leaf modules together on one agent, overlapped via Maven --threads. Each
+ * module keeps its own surefire/failsafe forkCount, so the agent's concurrent JVMs = sum of the
+ * modules' fork counts; keep that x -Xmx under the agents' RAM (see CLM-39214).
+ */
+Map<String, Closure> createModuleReactorTests(String stageName, List<String> modules, String threads, List<String> zipFiles) {
   return [(stageName): {
-    node('iq-large'){
+    node('iq-large') {
       stage(stageName) {
         try {
           copyRepo(zipFiles)
+          String mavenOptions = "-pl '${modules.collect { ":${it}" }.join(',')}'"
+          mavenOptions += " --threads ${threads}"
+          mavenOptions += commonModuleTestMavenOptions()
+          Map<String, ?> testConfig = testConfig(mavenOptions, null, 'OpenJDK 25')
+          timeout(time: 120, unit: 'MINUTES') {
+            mvn testConfig, 'jacoco:prepare-agent surefire:test failsafe:integration-test failsafe:verify jacoco:report'
+          }
+        }
+        finally {
+          captureResultsAndCleanup()
+        }
+      }
+    }
+  }]
+}
 
-          String mavenOptions = "-pl com.sonatype.insight.brain:nexus-mtiq-server,com.sonatype.insight.brain:insight-brain-variant-test-mtiq-fips"
-          mavenOptions += " -Dskip-functional-test"
-          mavenOptions += " -Dskip-functional-test"
-          mavenOptions += " -DdetectTestEntityLeaks"
-          mavenOptions += " -Dfailsafe.rerunFailingTestsCount=2"
-          mavenOptions += " -Dfailsafe.failOnFlakeCount=5"
-          mavenOptions += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
-          mavenOptions += " -Pbuildsupport-sonar-coverage "
-          mavenOptions += " --threads 4"
-          mavenOptions += getRunRefPolicyImportIntTestMavenOption()
+/** Run one class-name partition of the legacy module (reuseForks=false: a full server per class). */
+Map<String, Closure> createLegacyPartitionTests(String stageName, String regex, List<String> zipFiles) {
+  return [(stageName): {
+    node('iq-large') {
+      stage(stageName) {
+        try {
+          copyRepo(zipFiles)
+          String mavenOptions = "-pl ':insight-brain-variant-test-legacy'"
+          mavenOptions += " -Dtest=%regex[${regex}]"
+          mavenOptions += " -Dit.test=%regex[${regex}]"
+          mavenOptions += commonModuleTestMavenOptions()
+          Map<String, ?> testConfig = testConfig(mavenOptions, null, 'OpenJDK 25')
+          timeout(time: 90, unit: 'MINUTES') {
+            mvn testConfig, 'jacoco:prepare-agent surefire:test failsafe:integration-test failsafe:verify jacoco:report'
+          }
+        }
+        finally {
+          captureResultsAndCleanup()
+        }
+      }
+    }
+  }]
+}
 
-          Map<String, ?> testConfig = testConfig(mavenOptions, null, jdk)
+/** nexus-mtiq-server: shaded server module; needs the 'initialize' phase and a longer timeout. */
+Map<String, Closure> createMtiqServerTests(String stageName, List<String> zipFiles) {
+  return [(stageName): {
+    node('iq-large') {
+      stage(stageName) {
+        try {
+          copyRepo(zipFiles)
+          String mavenOptions = "-pl ':nexus-mtiq-server'"
+          mavenOptions += commonModuleTestMavenOptions()
+          Map<String, ?> testConfig = testConfig(mavenOptions, null, 'OpenJDK 25')
           // 90 minute timeout for Jakarta EE 11 migration experimentation (CLM-34044)
           timeout(time: 90, unit: 'MINUTES') {
             mvn testConfig, 'jacoco:prepare-agent initialize surefire:test failsafe:integration-test failsafe:verify jacoco:report'
+          }
+        }
+        finally {
+          captureResultsAndCleanup()
+        }
+      }
+    }
+  }]
+}
+
+/** Every quick JVM module in one --threads reactor: all modules NOT given a dedicated stage, and not
+ *  frontend/playwright/legacy. This is where db/policy/common/event/tenancy/guide + the PG DAO leaf
+ *  modules (data-pg/db-pg/mtiq-db-pg) + mtiq-fips run. */
+Map<String, Closure> createFastModuleTests(String stageName, List<String> zipFiles) {
+  return [(stageName): {
+    node('iq-large') {
+      stage(stageName) {
+        try {
+          copyRepo(zipFiles)
+          def excluded = ['insight-brain-frontend', 'insight-brain-playwright-test',
+                          'insight-brain-variant-test-legacy'] + slowTestModules()
+          String mavenOptions = "-pl '${excluded.collect { "!:${it}" }.join(',')}'"
+          mavenOptions += " --threads 4"
+          mavenOptions += commonModuleTestMavenOptions()
+          Map<String, ?> testConfig = testConfig(mavenOptions, null, 'OpenJDK 25')
+          timeout(time: 90, unit: 'MINUTES') {
+            mvn testConfig, 'jacoco:prepare-agent surefire:test failsafe:integration-test failsafe:verify jacoco:report'
           }
         }
         finally {

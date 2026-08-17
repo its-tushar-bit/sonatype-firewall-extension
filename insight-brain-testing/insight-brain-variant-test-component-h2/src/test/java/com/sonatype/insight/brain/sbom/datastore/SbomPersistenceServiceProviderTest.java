@@ -13,10 +13,9 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
 import com.sonatype.insight.brain.service.config.StorageConfig.HybridDataStoreConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
-import com.sonatype.insight.brain.variant.ComponentH2Test;
+import com.sonatype.insight.brain.variant.ComponentH2DirtiesContextTest;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.LinkedHashSet;
 
@@ -24,11 +23,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 // This test mutates the shared insightConfig.storage to exercise each persistence-service variant,
 // which changes the type of the lazily-created @Primary sbomPersistenceService singleton
-// (PersistenceConfiguration builds it from provider.get()). Dirtying the shared context here would
-// otherwise leak the wrong bean type into sibling classes when the module is sharded across forks
-// (reuseForks=true, forkCount>1), so evict the context after this class runs.
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-@ComponentH2Test
+// (PersistenceConfiguration builds it from provider.get()). @ComponentH2DirtiesContextTest keeps the
+// DirtiesContext listeners (which @ComponentH2Test disables for context reuse) so the shared context is
+// evicted and rebuilt clean after this class, instead of leaking the wrong bean type into sibling classes
+// when the module is sharded across forks (reuseForks=true, forkCount>1).
+@ComponentH2DirtiesContextTest
 public class SbomPersistenceServiceProviderTest
     extends AbstractComponentH2Test
 {

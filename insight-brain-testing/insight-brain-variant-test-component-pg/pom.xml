@@ -54,15 +54,21 @@
           </includes>
           <trimStackTrace>false</trimStackTrace>
           <!--
-            Single Spring context + single Postgres fixture per module, so reuseForks=true is safe: all
-            test classes run in one JVM and share the ONE cached ApplicationContext (built by
-            SpringExtension) and the ONE embedded PostgreSQL cluster, amortizing context build and DB
-            provisioning across the whole module. The IQ-H2 / IQ-Postgres DatabaseContainerRule
-            singleton collision is avoided by keeping H2 and Postgres component tests in separate
-            modules (insight-brain-variant-test-component-h2 vs this one) rather than separate forks.
+            reuseForks=true + forkCount>1 SHARDS this module's test classes across several JVMs. Each
+            fork builds ONE cached ApplicationContext (SpringExtension) and starts its OWN embedded
+            PostgreSQL cluster (zonky picks a random free port per JVM; PostgresTestCluster's role
+            creation tolerates parallel forks), then reuses both across the classes assigned to that
+            fork. Each fork re-runs the template migration once, so the win is on class execution, not
+            the fixed migration cost. Safe because each fork is a separate JVM with its own PG port and
+            per-fork work directory via test.forkId=#${surefire.forkNumber}; the IQ-H2 / IQ-Postgres
+            DatabaseContainerRule singleton collision is avoided by keeping H2 and Postgres component
+            tests in separate modules (insight-brain-variant-test-component-h2 vs this one).
+
+            forkCount=0.5C with each fork -Xmx2048M keeps JVM heap + embedded-PG processes within the
+            16 GB iq-large agent (this module runs solo on the 'Component PG Tests' stage).
           -->
           <reuseForks>true</reuseForks>
-          <forkCount>1</forkCount>
+          <forkCount>0.5C</forkCount>
           <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
           <forkedProcessExitTimeoutInSeconds>30</forkedProcessExitTimeoutInSeconds>
           <shutdown>kill</shutdown>
@@ -82,7 +88,7 @@
             --add-opens=java.base/sun.security.util=ALL-UNNAMED
             --add-opens=java.xml/com.sun.org.apache.xerces.internal.jaxp.datatype=ALL-UNNAMED
             --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
-            -Xmx3072M
+            -Xmx2048M
             -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar
             -XX:+HeapDumpOnOutOfMemoryError
             -XX:HeapDumpPath=${project.build.directory}/

@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics.Aggre
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics.SearchCount;
 import com.sonatype.insight.brain.tenancy.Tenant;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
@@ -31,6 +32,15 @@ public class AdvancedSearchTelemetryMetricsTest
 {
   @Inject
   private AdvancedSearchTelemetryMetrics metrics;
+
+  @BeforeEach
+  public void clearLeakedDefaultTenantStats() {
+    // Reused-context isolation: AdvancedSearchTelemetryMetrics is a process-wide singleton whose per-tenant search
+    // counts survive across classes. A sibling test that runs an advanced search under the default SINGLE_TENANT
+    // (without computeStatsAndReset) leaves a stat behind, which breaks this class's default-tenant assertions once
+    // the module is sharded across forks. Reset the current (default) tenant's counters so each test starts clean.
+    metrics.computeStatsAndReset();
+  }
 
   @Test
   public void testComputeStatsAndReset_NoSearches() {

@@ -77,7 +77,7 @@
             test.forkId=#${surefire.forkNumber}. Wall is floored near ~125s by the single slowest class
             (PolicyMonitorTest), so going beyond ~4 yields diminishing returns and more CPU contention.
             Each fork uses -Xmx3072M; on a resource-constrained CI agent prefer a core-relative value such as
-            <forkCount>0.5C</forkCount> to avoid heap/CPU thrash. See docs/legacy-test-time-investigation.md.
+            <forkCount>0.5C</forkCount> to avoid heap/CPU thrash.
           -->
           <forkCount>4</forkCount>
           <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>

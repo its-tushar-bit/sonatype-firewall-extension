@@ -158,6 +158,15 @@ public class AbstractComponentTest
     SbomPersistenceService.class
   };
 
+  // The @Primary storage beans declared in PersistenceConfiguration (built from the storage provider); destroyed by
+  // name in destroyStorageScopedSingletons so a storage-mutating sibling cannot leave the wrong runtime type cached
+  // in the reused context.
+  private static final String[] STORAGE_SCOPED_PRIMARY_BEAN_NAMES = {
+    "scanPersistenceService",
+    "lifecycleReportPersistenceService",
+    "sbomPersistenceService"
+  };
+
   @Mock
   protected Subject subject;
 
@@ -207,6 +216,12 @@ public class AbstractComponentTest
     if (systemConfigurationPropertyDAO != null) {
       systemConfigurationPropertyDAO.invalidateCache();
     }
+    refreshConfigurationCache();
+    // Restore the full test product license before each test. A sibling test that removes a licensed feature
+    // (setMissingFeatures / setFeatures) leaves the reused TestProductLicense restricted; feature checks run at
+    // test-body time, so re-establishing the default license here (in addition to afterTest) keeps each test from
+    // inheriting another class's license restriction when the module is sharded across forks.
+    resetProductLicenseTestState();
     resetProxyServerConfiguration();
     setUpTestLicenseThreatGroups();
     grantDefaultTestUserAllPermissions();
@@ -226,10 +241,31 @@ public class AbstractComponentTest
     runCleanupStep("reset Jira configuration", this::resetJiraConfiguration);
     runCleanupStep("reset access allowlist", this::resetAccessAllowlist);
     runCleanupStep("reset API access allow list", this::resetApiAccessAllowList);
+    runCleanupStep("reset webhook secret passphrase", this::resetWebhookSecretPassphrase);
     runCleanupStep("reset advanced reporting insights", this::resetAdvancedReportingInsightsEnabled);
     runCleanupStep("disable OAuth2 SSO", this::disableSsoWithOAuth2);
     runCleanupStep("disable SAML SSO", this::disableSsoWithSaml);
     runCleanupStep("reset mutable singleton test state", this::resetMutableSingletonTestState);
+  }
+
+  /**
+   * Reloads the reused {@link Configuration} singleton's in-memory cache from the (now clean) database.
+   * <p>
+   * With the Spring context cached across classes, {@code Configuration} keeps one process-wide cache of the
+   * system configuration properties. A test that mutates a property (e.g. via {@code configurationChanged(...)} or
+   * {@code applyConfigurationToClients(...)}) leaves the changed value in that cache; {@code TemporaryEntity}
+   * deletes the DB row and {@code beforeTest()} invalidates the {@code SystemConfigurationPropertyDAO} cache, but the
+   * {@code Configuration} cache still holds the leaked value. That surfaces as cross-class flakiness once the module
+   * shards its classes across forks in a different order (for example a stale
+   * {@code MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD} silently caps {@code PolicyViolationLoader}). Re-registering
+   * reloads every property from the persisted baseline, so each test starts from the same configuration regardless of
+   * what ran before it in the same fork.
+   */
+  private void refreshConfigurationCache() {
+    Configuration configuration = lookupIfAvailable(Configuration.class);
+    if (configuration != null) {
+      configuration.register();
+    }
   }
 
   /**
@@ -336,6 +372,25 @@ public class AbstractComponentTest
       return;
     }
     Set<String> propertyNames = ImmutableSet.of(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST);
+    service.deleteConfigurationInDatabaseNoAuthz(propertyNames);
+    service.applyConfigurationToClients(propertyNames);
+  }
+
+  /**
+   * Drops any webhook secret passphrase override and re-applies the default to the in-memory {@link Configuration}
+   * bean. Tests that set {@code WEBHOOK_SECRET_PASSPHRASE} push it into the cached bean; {@code TemporaryEntity}
+   * deletes the DB row after each test, but with the Spring context cached across classes the bean keeps the leaked
+   * passphrase, so a later test that decrypts a webhook secret encrypted with the default passphrase fails with
+   * {@code PlexusCipherException: BadPaddingException}. Re-applying the (now empty) configuration restores the
+   * default. Called from {@code afterTest()}.
+   */
+  public void resetWebhookSecretPassphrase() {
+    ApiConfigurationService service = lookupIfAvailable(ApiConfigurationService.class);
+    if (service == null) {
+      return;
+    }
+    Set<String> propertyNames = ImmutableSet.of(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE,
+        SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS);
     service.deleteConfigurationInDatabaseNoAuthz(propertyNames);
     service.applyConfigurationToClients(propertyNames);
   }
@@ -698,6 +753,17 @@ public class AbstractComponentTest
         if (beanFactory.containsSingleton(beanName)) {
           beanFactory.destroySingleton(beanName);
         }
+      }
+    }
+    // The @Primary storage beans in PersistenceConfiguration are created from the provider based on the current
+    // storage config, so their runtime type (File / S3 / Hybrid) is chosen once and cached in the reused context.
+    // getBeanNamesForType above cannot always resolve a factory-@Bean's runtime type without eager init, so a
+    // storage-mutating sibling can leave (for example) a Hybrid lifecycleReportPersistenceService behind and a later
+    // class that injects the File type by name fails with a bean-type mismatch. Destroy the well-known @Primary
+    // names explicitly so they are rebuilt from the (already reset) default FILE storage on next access.
+    for (String beanName : STORAGE_SCOPED_PRIMARY_BEAN_NAMES) {
+      if (beanFactory.containsSingleton(beanName)) {
+        beanFactory.destroySingleton(beanName);
       }
     }
   }

@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiUserDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserListDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserService;
 
@@ -93,6 +94,7 @@ public class ApiUserResource
 
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
+  @HasFeature(SystemConfigurationPropertyFeature.USER_MANAGEMENT_PAGES)
   @Audited(AuditEvent.CREATE_USER)
   @Operation(description = "Use this method to create a new user." +
       "\n" +

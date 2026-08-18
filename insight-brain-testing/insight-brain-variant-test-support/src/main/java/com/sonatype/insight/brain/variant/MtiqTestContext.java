@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -27,6 +28,10 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.db.rule.MultiTenantDatabaseContainerRule;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.product.TestProductLicenseRule;
 import com.sonatype.insight.brain.security.SsoUserService;
 import com.sonatype.insight.brain.service.Configuration;
@@ -358,6 +363,17 @@ public final class MtiqTestContext
 
   public String getUsername() {
     return server.getCLMServer().getClientConfiguration().getServerAuth().getUsername();
+  }
+
+  public User createUserWithRole(final Permission... permissions) {
+    AtomicReference<User> user = new AtomicReference<>();
+    testAsTestTenant(t -> {
+      User created = tempEntity().newUser();
+      Role role = tempEntity().newRole(false /* global */, permissions);
+      tempEntity().newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), created.getUsername());
+      user.set(created);
+    });
+    return user.get();
   }
 
   // --- bean / data access ----------------------------------------------------------------------

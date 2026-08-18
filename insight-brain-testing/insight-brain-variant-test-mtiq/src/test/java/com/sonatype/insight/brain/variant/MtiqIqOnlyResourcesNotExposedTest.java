@@ -6,9 +6,7 @@
 package com.sonatype.insight.brain.variant;
 
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 
 import org.junit.jupiter.api.Test;
@@ -282,16 +280,7 @@ class MtiqIqOnlyResourcesNotExposedTest
   @Test
   void testIqOnlyResources_NotAccessible_AsAdmin() throws Exception {
     // Create an admin user with all permissions to ensure it's not a permission issue
-    User[] adminHolder = new User[1];
-    ctx.testAsTestTenant(t -> {
-      User admin = ctx.tempEntity().newUser();
-      Role adminRole = ctx.tempEntity().newRole(false /* global */, Permission.values());
-      ctx.tempEntity()
-          .newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, adminRole.getId(),
-              admin.getUsername());
-      adminHolder[0] = admin;
-    });
-    User admin = adminHolder[0];
+    User admin = ctx.createUserWithRole(Permission.values());
 
     // Test a few critical endpoints with admin user
 
@@ -361,13 +350,6 @@ class MtiqIqOnlyResourcesNotExposedTest
    * Helper method to create a test user with basic permissions
    */
   private User getUser() {
-    User[] userHolder = new User[1];
-    ctx.testAsTestTenant(t -> {
-      User user = ctx.tempEntity().newUser();
-      Role role = ctx.tempEntity().newRole(false /* global */, Permission.READ);
-      ctx.tempEntity().newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), user.getUsername());
-      userHolder[0] = user;
-    });
-    return userHolder[0];
+    return ctx.createUserWithRole(Permission.READ);
   }
 }

@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenExistsDTO;
-import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
+import com.sonatype.insight.brain.configuration.ldap.EmbeddedLdapServerExtension;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
@@ -31,9 +31,9 @@ import com.sonatype.insight.brain.variant.IqTestContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -52,18 +52,14 @@ public class ApiUserTokenResourceTest
 
   private IqTestContext ctx;
 
-  private final TestLdapServer embeddedTestLdapServer = new TestLdapServer();
+  @RegisterExtension
+  private final EmbeddedLdapServerExtension embeddedTestLdapServer = new EmbeddedLdapServerExtension();
 
   private UserTokenDAO userTokenDAO;
 
   @BeforeEach
   public void setup() {
     userTokenDAO = ctx.lookup(UserTokenDAO.class);
-  }
-
-  @AfterEach
-  public void tearDown() throws Exception {
-    embeddedTestLdapServer.stop();
   }
 
   @Test

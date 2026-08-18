@@ -11,7 +11,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
-import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
+import com.sonatype.insight.brain.configuration.ldap.EmbeddedLdapServerExtension;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
@@ -26,6 +26,7 @@ import com.sonatype.insight.test.LogOutput;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -39,7 +40,8 @@ class ApiUserTokenResourceAuditTest
 {
   private IqTestContext ctx;
 
-  private final TestLdapServer embeddedTestLdapServer = new TestLdapServer();
+  @RegisterExtension
+  private final EmbeddedLdapServerExtension embeddedTestLdapServer = new EmbeddedLdapServerExtension();
 
   private final TestLogOutput logOutput =
       new TestLogOutput(com.sonatype.insight.brain.audit.AuditRecorder.BASE_LOGGER_NAME);
@@ -56,7 +58,6 @@ class ApiUserTokenResourceAuditTest
   @AfterEach
   void tearDown() throws Exception {
     logOutput.tearDown();
-    embeddedTestLdapServer.stop();
   }
 
   @Override

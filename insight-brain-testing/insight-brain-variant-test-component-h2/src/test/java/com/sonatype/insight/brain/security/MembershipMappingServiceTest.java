@@ -21,8 +21,9 @@ import jakarta.inject.Inject;
 import com.sonatype.insight.brain.api.v2.dto.ApiMemberDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingListDTO;
+import com.sonatype.insight.brain.configuration.ldap.EmbeddedLdapServer;
+import com.sonatype.insight.brain.configuration.ldap.EmbeddedLdapServerExtension;
 import com.sonatype.insight.brain.configuration.ldap.LdapService;
-import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
@@ -58,6 +59,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.model.security.Role.APPLICATION_EVALUATOR_ROLE_ID;
@@ -114,7 +116,8 @@ public class MembershipMappingServiceTest
   @Inject
   private OrganizationDAO organizationDAO;
 
-  public TestLdapServer testLdapServer = new TestLdapServer();
+  @RegisterExtension
+  private final EmbeddedLdapServerExtension testLdapServer = new EmbeddedLdapServerExtension();
 
   private TestEventHandler<RoleEvent> handler;
 
@@ -352,7 +355,7 @@ public class MembershipMappingServiceTest
     ldapUserMappingDAO.insert(createUserMapping(ldapServer));
   }
 
-  private LdapConnection createLdapConnection(LdapServer ldapServer, TestLdapServer testLdapServer) {
+  private LdapConnection createLdapConnection(LdapServer ldapServer, EmbeddedLdapServer testLdapServer) {
     LdapConnection ldapConnection = ldapService.getLdapConnection(ldapServer.getId());
     ldapConnection.setServerId(ldapServer.getId());
     ldapConnection.setProtocol(LdapProtocol.LDAP);

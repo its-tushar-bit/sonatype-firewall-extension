@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.service.ApiReverseProxyAuthenticationConfigurationService;
-import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
+import com.sonatype.insight.brain.configuration.ldap.EmbeddedLdapServerExtension;
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.security.ReverseProxyAuthenticationFilter;
@@ -26,6 +26,7 @@ import com.sonatype.insight.test.LogOutput;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -45,7 +46,8 @@ class IqH2ReverseProxyAuthcTest
 {
   private IqTestContext ctx;
 
-  private final TestLdapServer testLdapServer = new TestLdapServer();
+  @RegisterExtension
+  private final EmbeddedLdapServerExtension testLdapServer = new EmbeddedLdapServerExtension();
 
   private final TestLogOutput logOutput = new TestLogOutput(ReverseProxyAuthenticationFilter.class);
 
@@ -57,7 +59,6 @@ class IqH2ReverseProxyAuthcTest
 
   @AfterEach
   void tearDown() throws Exception {
-    testLdapServer.stop();
     logOutput.tearDown();
   }
 

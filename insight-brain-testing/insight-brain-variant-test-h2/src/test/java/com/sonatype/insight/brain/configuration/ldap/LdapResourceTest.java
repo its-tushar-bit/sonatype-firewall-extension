@@ -27,9 +27,9 @@ import com.sonatype.insight.brain.variant.IqH2Test;
 import com.sonatype.insight.brain.variant.IqTestContext;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -44,7 +44,8 @@ class LdapResourceTest
 {
   private IqTestContext ctx;
 
-  private final TestLdapServer testLdapServer = new TestLdapServer();
+  @RegisterExtension
+  private final EmbeddedLdapServerExtension testLdapServer = new EmbeddedLdapServerExtension();
 
   private LdapUserMappingDAO ldapUserMappingDAO;
 
@@ -57,11 +58,6 @@ class LdapResourceTest
     ldapUserMappingDAO = ctx.lookup(LdapUserMappingDAO.class);
     ldapConnectionDAO = ctx.lookup(LdapConnectionDAO.class);
     ldapServerDAO = ctx.lookup(LdapServerDAO.class);
-  }
-
-  @AfterEach
-  void tearDown() throws Exception {
-    testLdapServer.stop();
   }
 
   private HttpRequest restRequest() {

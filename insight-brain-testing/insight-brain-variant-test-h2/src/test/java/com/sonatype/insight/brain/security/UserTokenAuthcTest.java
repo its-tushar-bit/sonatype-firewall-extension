@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
+import com.sonatype.insight.brain.configuration.ldap.EmbeddedLdapServerExtension;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.Group;
@@ -26,8 +26,8 @@ import com.sonatype.insight.brain.security.oauth2.OAuth2Realm;
 import com.sonatype.insight.brain.variant.IqH2Test;
 import com.sonatype.insight.brain.variant.IqTestContext;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -50,9 +50,11 @@ class UserTokenAuthcTest
   // Must match the username defined in the LDAP config for these tests.
   private static final String USERNAME = "testuser";
 
-  private final TestLdapServer testLdapServer1 = new TestLdapServer();
+  @RegisterExtension
+  private final EmbeddedLdapServerExtension testLdapServer1 = new EmbeddedLdapServerExtension();
 
-  private final TestLdapServer testLdapServer2 = new TestLdapServer();
+  @RegisterExtension
+  private final EmbeddedLdapServerExtension testLdapServer2 = new EmbeddedLdapServerExtension();
 
   private final String userTokenPassword = "TestPassword";
 
@@ -69,12 +71,6 @@ class UserTokenAuthcTest
   private UserToken userToken;
 
   private UserTokenDAO userTokenDAO;
-
-  @AfterEach
-  void tearDown() throws Exception {
-    testLdapServer1.stop();
-    testLdapServer2.stop();
-  }
 
   static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{

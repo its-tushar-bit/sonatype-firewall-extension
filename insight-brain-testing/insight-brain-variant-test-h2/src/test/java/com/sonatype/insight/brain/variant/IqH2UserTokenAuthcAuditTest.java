@@ -12,7 +12,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
-import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
+import com.sonatype.insight.brain.configuration.ldap.EmbeddedLdapServerExtension;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.UserToken;
@@ -22,7 +22,6 @@ import com.sonatype.insight.brain.security.UserSessionResource;
 import com.sonatype.insight.brain.service.AuditTestSupport;
 import com.sonatype.insight.test.LogOutput;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -40,12 +39,8 @@ class IqH2UserTokenAuthcAuditTest
   @RegisterExtension
   private final LogOutput logOutput = new LogOutput(AuditRecorder.BASE_LOGGER_NAME);
 
-  private final TestLdapServer embeddedTestldapServer = new TestLdapServer();
-
-  @AfterEach
-  void tearDown() throws Exception {
-    embeddedTestldapServer.stop();
-  }
+  @RegisterExtension
+  private final EmbeddedLdapServerExtension embeddedTestldapServer = new EmbeddedLdapServerExtension();
 
   @Override
   public LogOutput getLogOutput() {

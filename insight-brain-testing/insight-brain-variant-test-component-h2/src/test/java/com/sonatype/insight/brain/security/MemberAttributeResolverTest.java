@@ -13,12 +13,13 @@ import java.util.List;
 import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.configuration.ldap.LdapService;
-import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
+import com.sonatype.insight.brain.configuration.ldap.EmbeddedLdapServerExtension;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.MemberType;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -34,9 +35,11 @@ public class MemberAttributeResolverTest
 
   private MemberAttributeResolver memberAttributeResolver;
 
-  public TestLdapServer embeddedLdapServer1 = new TestLdapServer();
+  @RegisterExtension
+  private final EmbeddedLdapServerExtension embeddedLdapServer1 = new EmbeddedLdapServerExtension();
 
-  public TestLdapServer embeddedLdapServer2 = new TestLdapServer();
+  @RegisterExtension
+  private final EmbeddedLdapServerExtension embeddedLdapServer2 = new EmbeddedLdapServerExtension();
 
   @BeforeEach
   public void init() {

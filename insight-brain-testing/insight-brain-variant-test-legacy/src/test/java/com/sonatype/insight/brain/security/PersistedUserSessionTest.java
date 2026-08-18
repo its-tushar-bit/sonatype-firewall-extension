@@ -14,6 +14,9 @@ import com.sonatype.insight.brain.variant.LegacyServerTest;
 
 import org.junit.jupiter.api.Test;
 
+// Requires an isolated per-class TestCLMServer: the test stops and restarts the server to verify user
+// sessions persist across a restart, which is incompatible with the one-boot-per-module reused server
+// (CLM-45580 re-audit).
 @LegacyServerTest
 public class PersistedUserSessionTest
     extends AbstractResourceTest

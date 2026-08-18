@@ -12,6 +12,9 @@ import com.sonatype.insight.brain.variant.LegacyServerTest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
+// Requires an isolated per-class TestCLMServer: the search-index rebuild/cancel lifecycle deletes and
+// recreates the on-disk Lucene index, which conflicts with a reused server's open index reader, so it
+// cannot run in a reused-server variant cohort (CLM-45580 re-audit).
 @LegacyServerTest
 public class LuceneApiAdvancedSearchResourceV2Test
     extends AbstractApiAdvancedSearchResourceV2Test

@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.KeyValueDAO;
 import com.sonatype.insight.brain.dataaccess.evaluation.EvaluationQueueDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
+import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.KeyValue;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -27,8 +28,8 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
-import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
-import com.sonatype.insight.brain.variant.LegacyServerTest;
+import com.sonatype.insight.brain.variant.IqPostgresTest;
+import com.sonatype.insight.brain.variant.IqTestContext;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -38,22 +39,19 @@ import org.quartz.JobExecutionContext;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-// Requires an isolated per-class TestCLMServer: the multi-SBOM third-party query spans the
-// insight_brain_ods / insight_brain_third_party_scans schemas, which the reused-server H2 fixture does
-// not provision. The Postgres variant runs as IqPostgresEvaluationQueueIntegrationTest in
-// insight-brain-variant-test-pg (CLM-45580 re-audit).
-@LegacyServerTest
-public class EvaluationQueueIntegrationTest
-    extends AbstractBrainServiceIntegrationTest
+@IqPostgresTest
+public class IqPostgresEvaluationQueueIntegrationTest
 {
+  private IqTestContext ctx;
+
   @BeforeEach
   public void disableEvaluationQueueProducer() {
-    getCLMServer().getInstance(EvaluationQueueProducer.class).disableForTesting = true;
+    ctx.lookup(EvaluationQueueProducer.class).disableForTesting = true;
     // Clear any stale checkpoint that may have been created by automatic execution during server startup.
     // During startup, register() schedules a periodic task that can fire before disableForTesting is set,
     // creating a completed checkpoint (with no SBOMs) that would cause subsequent manual execute() calls
     // to skip processing.
-    getCLMServer().getInstance(KeyValueDAO.class).deleteByKey(KeyValue.EVALUATION_QUEUE_PRODUCER_CHECKPOINT);
+    ctx.lookup(KeyValueDAO.class).deleteByKey(KeyValue.EVALUATION_QUEUE_PRODUCER_CHECKPOINT);
   }
 
   @Test
@@ -67,26 +65,26 @@ public class EvaluationQueueIntegrationTest
         .consumerThreadsPerTenant(1)
         .consumerMaxQueuedRows(10)
         .build();
-    getCLMServer().getInstance(ApiConfigurationService.class)
+    ctx.lookup(ApiConfigurationService.class)
         .setConfigurationNoAuthz(
             Map.of(SystemConfigurationProperty.EVALUATION_QUEUE_CONFIG, JsonUtils.convertValue(config, Map.class)));
-    Application app1 = tempEntity.newApplicationWithParent();
-    tempEntity.newPolicyMonitoring(app1.getId(), ComplianceStageType.ID);
+    Application app1 = ctx.tempEntity().newApplicationWithParent();
+    ctx.tempEntity().newPolicyMonitoring(app1.getId(), ComplianceStageType.ID);
     createSbomWithScan(app1.getId(), new Date(1));
 
-    getCLMServer().getInstance(EvaluationQueueProducer.class).execute((JobExecutionContext) null);
+    ctx.lookup(EvaluationQueueProducer.class).execute((JobExecutionContext) null);
 
-    EvaluationQueueDAO evaluationQueueDAO = getCLMServer().getInstance(EvaluationQueueDAO.class);
+    EvaluationQueueDAO evaluationQueueDAO = ctx.lookup(EvaluationQueueDAO.class);
     assertThat(evaluationQueueDAO.getCount()).isEqualTo(1);
 
-    EvaluationQueueConsumer consumer = getCLMServer().getInstance(EvaluationQueueConsumer.class);
+    EvaluationQueueConsumer consumer = ctx.lookup(EvaluationQueueConsumer.class);
     consumer.run();
 
     await().atMost(Duration.ofSeconds(30))
         .pollInterval(Duration.ofSeconds(1))
         .until(() -> evaluationQueueDAO.getCount() == 0);
 
-    PolicyEvaluationDAO policyEvaluationDAO = getCLMServer().getInstance(PolicyEvaluationDAO.class);
+    PolicyEvaluationDAO policyEvaluationDAO = ctx.lookup(PolicyEvaluationDAO.class);
     PolicyEvaluation evaluation =
         policyEvaluationDAO.getLastByOwnerIdAndStageId(app1.getId(), ComplianceStageType.ID);
     assertThat(evaluation).isNotNull();
@@ -94,30 +92,32 @@ public class EvaluationQueueIntegrationTest
   }
 
   private void createSbomWithScan(final String applicationId, final Date createdDate) throws Exception {
-    ThirdPartySbomMetadata sbom = tempEntity.newThirdPartySbomMetadata(
-        applicationId,
-        ThirdPartySbomMetadataStatus.ACTIVE,
-        createdDate);
+    ThirdPartySbomMetadata sbom = ctx.tempEntity()
+        .newThirdPartySbomMetadata(
+            applicationId,
+            ThirdPartySbomMetadataStatus.ACTIVE,
+            createdDate);
 
     String scanId = "scan-" + System.currentTimeMillis();
 
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(scanId);
     scanReceipt.setTimeToReport(1L);
-    mockScanReceipt(scanReceipt);
-    mockReport(scanId, "/" + EvaluationQueueIntegrationTest.class.getSimpleName() + "/report");
+    ctx.hdsRespondWith(scanReceipt).atUri(ScanUploader.HDS_PATH);
+    ctx.mockReport(scanId, "/" + getClass().getSimpleName() + "/report");
 
     ThirdPartyFile thirdPartyFile =
-        getCLMServer().getInstance(ThirdPartyFileDAO.class).getById(sbom.getThirdPartyFileId());
+        ctx.lookup(ThirdPartyFileDAO.class).getById(sbom.getThirdPartyFileId());
     String filteredScanFile = "filtered-scan-" + System.currentTimeMillis();
-    tempEntity.newThirdPartyScan(
-        "scanRequestId-" + System.currentTimeMillis(),
-        scanId,
-        thirdPartyFile,
-        filteredScanFile);
+    ctx.tempEntity()
+        .newThirdPartyScan(
+            "scanRequestId-" + System.currentTimeMillis(),
+            scanId,
+            thirdPartyFile,
+            filteredScanFile);
 
     ScanEntity filteredScan =
-        getCLMServer().getInstance(ScanPersistenceService.class).getScanByName(applicationId, filteredScanFile);
+        ctx.lookup(ScanPersistenceService.class).getScanByName(applicationId, filteredScanFile);
     try (OutputStream outputStream = filteredScan.getOutputStream()) {
       outputStream.write("dummy scan content".getBytes(StandardCharsets.UTF_8));
     }

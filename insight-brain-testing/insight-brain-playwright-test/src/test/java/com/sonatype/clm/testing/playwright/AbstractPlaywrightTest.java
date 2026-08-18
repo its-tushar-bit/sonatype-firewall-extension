@@ -339,6 +339,19 @@ public abstract class AbstractPlaywrightTest
     }
   }
 
+  /**
+   * Hook for opt-in authentication reuse. When a subclass returns a non-null Playwright
+   * {@code storageState} JSON string, {@link #setupPlaywrightTest} seeds the per-test
+   * {@link BrowserContext} with it so the test starts already authenticated and can skip the
+   * UI login. Returns {@code null} by default, which seeds nothing so the context starts
+   * unauthenticated.
+   *
+   * @return a Playwright storageState JSON string to seed, or {@code null} to start clean
+   */
+  protected String reusableStorageState() {
+    return null;
+  }
+
   @BeforeEach
   public void setupPlaywrightTest(TestInfo testInfo) {
     String currentTest =
@@ -361,6 +374,12 @@ public abstract class AbstractPlaywrightTest
     if (RECORD_VIDEO) {
       contextOptions.setRecordVideoDir(VIDEO_DIR)
           .setRecordVideoSize(VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
+    }
+    // A subclass may seed the new context with a captured storageState (cookies) so it starts
+    // authenticated; null seeds nothing (see reusableStorageState()).
+    String seedStorageState = reusableStorageState();
+    if (seedStorageState != null) {
+      contextOptions.setStorageState(seedStorageState);
     }
     context = browser.newContext(contextOptions);
 

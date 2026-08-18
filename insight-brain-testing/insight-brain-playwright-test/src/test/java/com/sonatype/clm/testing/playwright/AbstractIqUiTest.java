@@ -592,10 +592,25 @@ public abstract class AbstractIqUiTest
    * Call this from every login helper that returns control to a test, so subsequent
    * navigations are not racing async auth hydration.
    */
-  private void waitForAuthenticatedHeader() {
+  protected void waitForAuthenticatedHeader() {
     assertThat(new HeaderComponent().userMenu())
         .isVisible(new LocatorAssertions.IsVisibleOptions()
             .setTimeout(PlaywrightTiming.MODAL_OR_LOGIN_TIMEOUT_MS));
+  }
+
+  /**
+   * Non-throwing probe for {@link #waitForAuthenticatedHeader}: returns {@code true} if the
+   * authenticated header hydrates within the timeout, {@code false} otherwise. Lets auth-reuse
+   * subclasses detect a stale seeded session and recover instead of failing the test.
+   */
+  protected boolean isAuthenticatedHeaderVisible() {
+    try {
+      waitForAuthenticatedHeader();
+      return true;
+    }
+    catch (AssertionError | RuntimeException headerDidNotHydrate) {
+      return false;
+    }
   }
 
   /**
@@ -607,11 +622,19 @@ public abstract class AbstractIqUiTest
   }
 
   private void playwrightLogout(boolean dismissUnsavedModal) {
-    new HeaderComponent().logout();
-    if (dismissUnsavedModal) {
-      new UnsavedChangesModalComponent().dismissIfAppearsWithin(PlaywrightTiming.SHORT_UI_CUE_MS);
+    // Logout deletes the server-side session, so any storageState a subclass captured for auth
+    // reuse is now stale. Clear it in a finally so a hiccup dismissing the modal or asserting the
+    // login page (614) can't leave a dead session cached for the next test to seed.
+    try {
+      new HeaderComponent().logout();
+      if (dismissUnsavedModal) {
+        new UnsavedChangesModalComponent().dismissIfAppearsWithin(PlaywrightTiming.SHORT_UI_CUE_MS);
+      }
+      new LoginPageAssertions(new LoginPage()).shouldBeVisibleWithin(PlaywrightTiming.MODAL_OR_LOGIN_TIMEOUT_MS);
     }
-    new LoginPageAssertions(new LoginPage()).shouldBeVisibleWithin(PlaywrightTiming.MODAL_OR_LOGIN_TIMEOUT_MS);
+    finally {
+      invalidateReusableLogin();
+    }
   }
 
   /**
@@ -635,4 +658,11 @@ public abstract class AbstractIqUiTest
     playwrightLoginAt(path, TestCredentials.ADMIN_USERNAME, TestCredentials.ADMIN_PASSWORD);
   }
 
+  /**
+   * Hook invoked after a UI logout. Opt-in subclasses that reuse a captured
+   * {@code storageState} (see {@link #reusableStorageState()}) override this to discard the now
+   * dead session so the next test performs a fresh login. Default is a no-op.
+   */
+  protected void invalidateReusableLogin() {
+  }
 }

@@ -111,14 +111,53 @@ public class NexusOneClassicEmbedPlaywrightTest
 
   private String originalSuccessMetricsEnabled;
 
+  // Auth reuse (CLM-45709): the admin session captured on the first login in this class is
+  // replayed into every later test's fresh BrowserContext via reusableStorageState(), so most
+  // tests skip the UI login instead of logging in once per test. Tests that log out (the
+  // unauthorized-redirect cases) null the field, so the class does roughly one admin login plus
+  // one per logout. Static so it survives across this class's methods within the single reused
+  // fork; volatile for visibility. Tests run sequentially (-T 1), so no locking.
+  private static volatile String reusableAdminStorageState;
+
   @BeforeEach
   public void enablePreviewUiAndLogin() {
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
     originalSuccessMetricsEnabled =
         lookup(SystemConfigurationPropertyDAO.class).get(SuccessMetricsService.PROPERTY_ENABLED);
     lookup(SystemConfigurationPropertyDAO.class).set(SuccessMetricsService.PROPERTY_ENABLED, "true");
+
+    if (reusableAdminStorageState == null) {
+      loginAsAdminAndCaptureSession();
+      return;
+    }
+
+    // The context was seeded with the captured admin session (see reusableStorageState()), so we
+    // are authenticated without a login round-trip. If that session is stale — expired over a long
+    // class run, or invalidated by an earlier logout — self-heal by discarding it and logging in
+    // fresh, which recaptures a live session for the following tests.
+    playwrightRefreshOrOpen(LoginPage.rootUrl());
+    if (!isAuthenticatedHeaderVisible()) {
+      reusableAdminStorageState = null;
+      loginAsAdminAndCaptureSession();
+    }
+  }
+
+  private void loginAsAdminAndCaptureSession() {
     playwrightOpenAndWaitForVisible(LoginPage.rootUrl(), new LoginPage().modal());
     playwrightLogin();
+    reusableAdminStorageState = context.storageState();
+  }
+
+  @Override
+  protected String reusableStorageState() {
+    return reusableAdminStorageState;
+  }
+
+  @Override
+  protected void invalidateReusableLogin() {
+    // A test logged out (e.g. the unauthorized-redirect cases), which deletes the captured admin
+    // session server-side; drop it so the next test logs in fresh and recaptures a live session.
+    reusableAdminStorageState = null;
   }
 
   @AfterEach

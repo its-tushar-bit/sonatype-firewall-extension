@@ -862,8 +862,11 @@ public class RepositoryService
    * references its id.</li>
    * <li>{@code dashboard.metrics.sql.DashboardMetricsScopeResolver} — metrics scope.</li>
    * </ul>
-   * General-purpose owner surfaces (sidebar tree, firewall lifecycle plane, webhook payloads)
-   * must call {@link #getRepositoryManagersExcludingVirtual()} instead.
+   * General-purpose owner surfaces (firewall lifecycle plane, webhook payloads) must call
+   * {@link #getRepositoryManagersExcludingVirtual()} instead. The "Orgs and Policies" sidebar
+   * tree calls {@link #getRepositoryManagersForSidebar()} — it renders VRMs under a dedicated
+   * "Virtual Repository Managers" section when the redirector UI flag is on, and otherwise
+   * behaves like the excluding variant.
    */
   @AuthzFilter(permission = Permission.READ, context = Context.REPOSITORY_MANAGER)
   public List<RepositoryManager> getRepositoryManagers() {
@@ -874,16 +877,37 @@ public class RepositoryService
    * Returns the readable {@link RepositoryManager}s excluding those with
    * {@link com.sonatype.insight.brain.model.repository.ManagerType#VIRTUAL}.
    * <p>
-   * Callers that render general-purpose owner surfaces (e.g. the "Orgs and Policies"
-   * sidebar tree) must use this variant to enforce the "IQ as Redirector" isolation
-   * invariant — Virtual Repository Managers belong to the redirector configuration
-   * plane and must not leak into UIs unrelated to redirector configuration. Policy-plane
-   * callers that need to evaluate policies attached to VRMs must continue to use
-   * {@link #getRepositoryManagers()}.
+   * Callers that render general-purpose owner surfaces (e.g. webhook payloads, firewall
+   * lifecycle plane) must use this variant to enforce the "IQ as Redirector" isolation
+   * invariant — Virtual Repository Managers belong to the redirector configuration plane
+   * and must not leak into UIs unrelated to redirector configuration. Policy-plane callers
+   * that need to evaluate policies attached to VRMs must continue to use
+   * {@link #getRepositoryManagers()}. The "Orgs and Policies" sidebar tree calls
+   * {@link #getRepositoryManagersForSidebar()} because it is the redirector configuration UI
+   * once the redirect-UI feature flag is on.
    */
   @AuthzFilter(permission = Permission.READ, context = Context.REPOSITORY_MANAGER)
   public List<RepositoryManager> getRepositoryManagersExcludingVirtual() {
     return repositoryManagerDAO.getAllExcludingVirtual();
+  }
+
+  /**
+   * Returns the readable {@link RepositoryManager}s for the "Orgs and Policies" sidebar tree,
+   * including Virtual Repository Managers.
+   * <p>
+   * The sidebar renders VRMs under a dedicated "Virtual Repository Managers" collapsible when
+   * the redirector UI is active; {@code OwnerHierarchyRepositoryContainerDTO.addChild} routes
+   * each child into {@code repositoryManagerIds} or {@code virtualRepositoryManagerIds} based
+   * on {@code managerType}, so the same DTO shape serves both traditional and virtual managers.
+   * <p>
+   * Callers gate on the redirector UI flag ({@code iq-firewall-enterprise-redirect-ui-enabled}
+   * composed with {@code iq-firewall-enterprise-enabled}) — when either flag is off the sidebar
+   * calls {@link #getRepositoryManagersExcludingVirtual()} to preserve the "IQ as Redirector"
+   * isolation invariant against legacy VRM rows that predate a flag flip.
+   */
+  @AuthzFilter(permission = Permission.READ, context = Context.REPOSITORY_MANAGER)
+  public List<RepositoryManager> getRepositoryManagersForSidebar() {
+    return repositoryManagerDAO.getAll();
   }
 
   /**

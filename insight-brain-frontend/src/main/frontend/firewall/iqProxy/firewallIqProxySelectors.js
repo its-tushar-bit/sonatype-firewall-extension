@@ -13,3 +13,12 @@ export const selectSaveError = createSelector(selectFirewallIqProxy, prop('saveE
 export const selectSaveErrorId = createSelector(selectFirewallIqProxy, prop('saveErrorId'));
 export const selectCreatingManager = createSelector(selectFirewallIqProxy, prop('creatingManager'));
 export const selectCreateManagerError = createSelector(selectFirewallIqProxy, prop('createManagerError'));
+export const selectVirtualRepositoryManagers = createSelector(selectFirewallIqProxy, prop('virtualRepositoryManagers'));
+export const selectLoadingVirtualRepositoryManagers = createSelector(
+  selectFirewallIqProxy,
+  prop('loadingVirtualRepositoryManagers')
+);
+export const selectVirtualRepositoryManagersLoadError = createSelector(
+  selectFirewallIqProxy,
+  prop('virtualRepositoryManagersLoadError')
+);

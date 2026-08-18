@@ -296,6 +296,24 @@ owner-side-nav.nx-viewport-sized__container {
     }
   }
 
+  .iq-virtual-repository-managers-empty {
+    font-style: italic;
+    color: var(--nx-swatch-indigo-80);
+    cursor: default;
+
+    &:hover {
+      background-color: transparent;
+    }
+
+    @include nx-dark-mode-helpers.dark-mode {
+      color: var(--nx-swatch-indigo-60);
+    }
+
+    &__label {
+      @include nx-text-helpers.truncate-ellipsis;
+    }
+  }
+
   .iq-owner-name {
     @include nx-text-helpers.truncate-ellipsis;
     @include nx-container-helpers.container-horizontal;

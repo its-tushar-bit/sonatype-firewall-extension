@@ -7,7 +7,12 @@ import React from 'react';
 import { userEvent } from '@testing-library/user-event';
 import { render, screen, axiosMockAdapter, within, waitFor, setupPortalContainer } from 'TestRoot/SpecUtil';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
-import { getOwnerListUrl, getPermissionContextTestUrl, getRepositoriesUrl } from 'MainRoot/util/CLMLocation';
+import {
+  getOwnerListUrl,
+  getPermissionContextTestUrl,
+  getRepositoriesUrl,
+  getVirtualRepositoryManagersUrl,
+} from 'MainRoot/util/CLMLocation';
 import { getOwnersMap } from './nLevelMockData';
 import OwnerSideNav from 'MainRoot/OrgsAndPolicies/ownerSideNav/OwnerSideNav';
 import router from 'MainRoot/router/routerInstance';
@@ -1974,6 +1979,8 @@ describe('OwnerSideNav', () => {
         productFeatures: {
           firewall: true,
           'orgs-and-apps': true,
+          'iq-firewall-enterprise-enabled': true,
+          'iq-firewall-enterprise-redirect-ui-enabled': true,
         },
       },
       router: {
@@ -2042,6 +2049,100 @@ describe('OwnerSideNav', () => {
       await screen.findByRole('button', { name: /Virtual Repository Managers/ });
       expect(screen.queryByRole('button', { name: 'Add Virtual Repository Manager' })).toBeNull();
     });
+
+    it('hides the Add Virtual Repository Manager button when the master flag is OFF (FIRE-662)', async () => {
+      const stateMasterFlagOff = mergeDeepRight(virtualContainerState, {
+        productFeatures: { productFeatures: { 'iq-firewall-enterprise-enabled': false } },
+        orgsAndPolicies: { ownerSummary: { hasEditIqPermission: true } },
+      });
+
+      renderComponent(stateMasterFlagOff);
+
+      await screen.findByRole('button', { name: /Virtual Repository Managers/ });
+      expect(screen.queryByRole('button', { name: 'Add Virtual Repository Manager' })).toBeNull();
+    });
+
+    it('hides the Add Virtual Repository Manager button when the sub flag is OFF (FIRE-662)', async () => {
+      const stateSubFlagOff = mergeDeepRight(virtualContainerState, {
+        productFeatures: { productFeatures: { 'iq-firewall-enterprise-redirect-ui-enabled': false } },
+        orgsAndPolicies: { ownerSummary: { hasEditIqPermission: true } },
+      });
+
+      renderComponent(stateSubFlagOff);
+
+      await screen.findByRole('button', { name: /Virtual Repository Managers/ });
+      expect(screen.queryByRole('button', { name: 'Add Virtual Repository Manager' })).toBeNull();
+    });
+
+    it('renders "No Virtual Repos" placeholder when the VRM list is empty (FIRE-662)', async () => {
+      const user = userEvent.setup();
+      mockAxiosCalls.onGet(ownerListUrl).reply(200, {
+        topParentOrganizationId,
+        ownersMap: {
+          ROOT_ORGANIZATION_ID: {
+            id: 'ROOT_ORGANIZATION_ID',
+            name: 'ROOT_ORGANIZATION_NAME',
+            type: 'organization',
+            repositoryContainerId: 'REPOSITORY_CONTAINER_ID',
+          },
+          REPOSITORY_CONTAINER_ID: {
+            id: 'REPOSITORY_CONTAINER_ID',
+            name: 'Virtual Repository Managers',
+            type: 'repository_container',
+            parentId: 'ROOT_ORGANIZATION_ID',
+            virtualRepositoryManagerIds: [],
+          },
+        },
+      });
+      const emptyVrmState = mergeDeepRight(virtualContainerState, {
+        orgsAndPolicies: {
+          ownerSideNav: {
+            displayedOrganization: {
+              virtualRepositoryManagerIds: [],
+            },
+          },
+        },
+      });
+
+      renderComponent(emptyVrmState);
+
+      const trigger = await screen.findByRole('button', { name: /Virtual Repository Managers/ });
+      await user.click(trigger);
+      expect(screen.getByText('No Virtual Repository Managers exist')).toBeInTheDocument();
+    });
+
+    it('omits the "No Virtual Repos" placeholder when at least one VRM exists (FIRE-662)', async () => {
+      const user = userEvent.setup();
+      renderComponent(virtualContainerState);
+
+      const trigger = await screen.findByRole('button', { name: /Virtual Repository Managers/ });
+      await user.click(trigger);
+      expect(screen.queryByText('No Virtual Repository Managers exist')).toBeNull();
+    });
+
+    it('refreshes the VRM list after a successful create when both flags are ON (FIRE-662)', async () => {
+      const user = userEvent.setup();
+      mockAxiosCalls
+        .onPost(getVirtualRepositoryManagersUrl())
+        .reply(201, { id: 'vrm-new', name: 'my-new-vrm' })
+        .onGet(getVirtualRepositoryManagersUrl())
+        .reply(200, { virtualRepositoryManagers: [] });
+
+      const stateWithWriteAccess = mergeDeepRight(virtualContainerState, {
+        orgsAndPolicies: { ownerSummary: { hasEditIqPermission: true } },
+      });
+
+      renderComponent(stateWithWriteAccess);
+
+      await user.click(await screen.findByRole('button', { name: 'Add Virtual Repository Manager' }));
+      const nameInput = await screen.findByRole('textbox', { name: /Repository Manager Name/ });
+      await user.type(nameInput, 'my-new-vrm');
+      await user.click(screen.getByRole('button', { name: 'Save' }));
+
+      await waitFor(() => {
+        expect(mockAxiosCalls.history.get.some((req) => req.url === getVirtualRepositoryManagersUrl())).toBe(true);
+      });
+    });
   });
 
   describe('Virtual Repository Managers navigation link access control', () => {
@@ -2062,7 +2163,14 @@ describe('OwnerSideNav', () => {
     };
 
     const firewallNavState = {
-      productFeatures: { productFeatures: { firewall: true, 'orgs-and-apps': true, 'iq-proxy-enabled': true } },
+      productFeatures: {
+        productFeatures: {
+          firewall: true,
+          'orgs-and-apps': true,
+          'iq-firewall-enterprise-enabled': true,
+          'iq-firewall-enterprise-redirect-ui-enabled': true,
+        },
+      },
       router: {
         currentState: { name: 'firewall.management.view.organization' },
         currentParams: { organizationId: 'ROOT_ORGANIZATION_ID' },

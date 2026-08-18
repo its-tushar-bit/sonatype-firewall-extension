@@ -1473,7 +1473,7 @@ public class RepositoryServiceTest
   @Test
   public void testGetRepositoryManagersExcludingVirtual() {
     // The sibling seam enforces the "IQ as Redirector" isolation invariant for general-purpose
-    // owner surfaces (e.g. the "Orgs and Policies" tree via SidebarService).
+    // owner surfaces (webhook payloads, firewall lifecycle plane).
     RepositoryManager traditional = tempEntity.newRepositoryManager();
     RepositoryManager virtual = tempEntity.newRepositoryManager("virtual-" + System.nanoTime());
     virtual.setManagerType(ManagerType.VIRTUAL);
@@ -1486,6 +1486,24 @@ public class RepositoryServiceTest
         .extracting(RepositoryManager::getId)
         .contains(traditional.getId())
         .doesNotContain(virtual.getId());
+  }
+
+  @Test
+  public void testGetRepositoryManagersForSidebar_IncludesVirtualRepositoryManagers() {
+    // SidebarService calls this seam when the redirector UI is active so the "Orgs and Policies"
+    // tree can render VRMs under a dedicated section. The flag gate happens at SidebarService,
+    // so this seam always includes VRMs — the caller decides whether to invoke it.
+    RepositoryManager traditional = tempEntity.newRepositoryManager();
+    RepositoryManager virtual = tempEntity.newRepositoryManager("virtual-" + System.nanoTime());
+    virtual.setManagerType(ManagerType.VIRTUAL);
+    virtual.setName("vrm-visible-in-sidebar");
+    repositoryManagerDAO.update(virtual);
+
+    List<RepositoryManager> repoManagers = repositoryService.getRepositoryManagersForSidebar();
+
+    assertThat(repoManagers)
+        .extracting(RepositoryManager::getId)
+        .contains(traditional.getId(), virtual.getId());
   }
 
   @Test

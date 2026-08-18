@@ -21,6 +21,8 @@ import {
   selectShowLimitedFirewallAccessAlert,
 } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectIsVirtualRepositoryContainer, selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsIqFirewallEnterpriseConfigPlaneEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { actions as firewallIqProxyActions } from 'MainRoot/firewall/iqProxy/firewallIqProxySlice';
 
 export default function RepositoriesSummaryView() {
   const dispatch = useDispatch();
@@ -31,6 +33,7 @@ export default function RepositoriesSummaryView() {
   const showLimitedFirewallAccessAlert = useSelector(selectShowLimitedFirewallAccessAlert);
   const isVirtualRepositoryContainer = useSelector(selectIsVirtualRepositoryContainer);
   const isFirewall = useSelector(selectIsFirewall);
+  const isFirewallEnterpriseConfigPlaneEnabled = useSelector(selectIsIqFirewallEnterpriseConfigPlaneEnabled);
 
   const doLoad = () => dispatch(actions.loadOwnerSummary());
 
@@ -39,6 +42,13 @@ export default function RepositoriesSummaryView() {
       doLoad();
     }
   }, []);
+
+  // The endpoint 404s unless both flags are ON, so the gate keeps the fetch from firing then.
+  useEffect(() => {
+    if (isVirtualRepositoryContainer && isFirewallEnterpriseConfigPlaneEnabled) {
+      dispatch(firewallIqProxyActions.fetchVirtualRepositoryManagers());
+    }
+  }, [isVirtualRepositoryContainer, isFirewallEnterpriseConfigPlaneEnabled]);
 
   function repositoriesSummary() {
     const pageTitle = isVirtualRepositoryContainer ? 'Virtual Repository Managers' : owner.name;

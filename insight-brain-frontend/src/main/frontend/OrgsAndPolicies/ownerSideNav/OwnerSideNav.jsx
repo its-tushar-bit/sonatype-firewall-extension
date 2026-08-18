@@ -58,7 +58,7 @@ import {
   selectIsScmEnabled,
   selectIsOrgsAndAppsEnabled,
   selectIsFirewallSupported,
-  selectIsIqProxyEnabled,
+  selectIsIqFirewallEnterpriseConfigPlaneEnabled,
   selectNoSbomManagerEnabledError,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
@@ -66,6 +66,7 @@ import { selectRepositoriesLength } from 'MainRoot/OrgsAndPolicies/repositories/
 import { getOwnerInfo } from './utils';
 import { IQ_SIDEBAR_CONTAINER_ID } from 'MainRoot/util/constants';
 import AddRepositoryManagerModal from 'MainRoot/firewall/iqProxy/AddRepositoryManagerModal';
+import { actions as firewallIqProxyActions } from 'MainRoot/firewall/iqProxy/firewallIqProxySlice';
 const getId = (repositoryOrId) => {
   if (typeof repositoryOrId === 'string') return repositoryOrId;
   return repositoryOrId.id;
@@ -111,13 +112,13 @@ export default function OwnerSideNav() {
     ownersMap?.['REPOSITORY_CONTAINER_ID']?.virtualRepositoryManagerIds?.length || 0;
   const showRepositoriesLink =
     repositoriesCounter && isOrganizationTopOfHierarchyForUser && !isSbomManager && !isRepositoriesRelated;
-  const isIqProxyEnabled = useSelector(selectIsIqProxyEnabled);
+  const isFirewallEnterpriseConfigPlaneEnabled = useSelector(selectIsIqFirewallEnterpriseConfigPlaneEnabled);
   const showVirtualRepositoriesLink =
     isOrganizationTopOfHierarchyForUser &&
     !isSbomManager &&
     !isRepositoriesRelated &&
     hasViewIqPermission &&
-    isIqProxyEnabled;
+    isFirewallEnterpriseConfigPlaneEnabled;
   const selectedApplicationId = useSelector(selectApplicationId);
   const selectedRepositoryId = useSelector(selectRepositoryId);
   const isManagementViewRoute = useSelector(selectIsManagementViewRouterState);
@@ -169,6 +170,9 @@ export default function OwnerSideNav() {
     setIsAddRepoManagerModalOpen(false);
     if (name) {
       dispatch(actions.forceReload());
+      if (isFirewallEnterpriseConfigPlaneEnabled) {
+        dispatch(firewallIqProxyActions.fetchVirtualRepositoryManagers());
+      }
     }
   };
   // in addition to initial loading -> handles one particular case: when user clicks
@@ -224,7 +228,8 @@ export default function OwnerSideNav() {
 
     const repositoryManagerIds = owner.repositoryManagerIds || [];
     const virtualRepositoryManagerIds = owner.virtualRepositoryManagerIds || [];
-    const addVirtualRepoManagerButton = hasEditIqPermission ? (
+    const canAddVirtualRepoManager = hasEditIqPermission && isFirewallEnterpriseConfigPlaneEnabled;
+    const addVirtualRepoManagerButton = canAddVirtualRepoManager ? (
       <NxButton
         data-testid="virtual-repository-managers-add"
         variant="icon-only"
@@ -262,13 +267,21 @@ export default function OwnerSideNav() {
             triggerContent={`Virtual Repository Managers (${virtualRepositoryManagerIds.length})`}
             actionContent={addVirtualRepoManagerButton}
           >
-            {virtualRepositoryManagerIds.map((repositoryManagerId) => {
-              return (
-                <NxCollapsibleItems.Child role="menuitem" key={repositoryManagerId}>
-                  <RepositoryManager repositoryManagerId={repositoryManagerId} />
-                </NxCollapsibleItems.Child>
-              );
-            })}
+            {virtualRepositoryManagerIds.length === 0 ? (
+              <NxCollapsibleItems.Child className="iq-virtual-repository-managers-empty" role="menuitem">
+                <span className="iq-virtual-repository-managers-empty__label">
+                  No Virtual Repository Managers exist
+                </span>
+              </NxCollapsibleItems.Child>
+            ) : (
+              virtualRepositoryManagerIds.map((repositoryManagerId) => {
+                return (
+                  <NxCollapsibleItems.Child role="menuitem" key={repositoryManagerId}>
+                    <RepositoryManager repositoryManagerId={repositoryManagerId} />
+                  </NxCollapsibleItems.Child>
+                );
+              })
+            )}
           </NxCollapsibleItems>
         )}
       </>
@@ -412,7 +425,8 @@ export default function OwnerSideNav() {
   const renderVirtualFilteredRepositoryManagers = (repositoryManagers) => {
     if (!isVirtualRepositoryContainer || isEmpty(repositoryManagers)) return null;
 
-    const plusButton = (
+    const canAddVirtualRepoManager = hasEditIqPermission && isFirewallEnterpriseConfigPlaneEnabled;
+    const plusButton = canAddVirtualRepoManager ? (
       <NxButton
         data-testid="virtual-repository-managers-add"
         variant="icon-only"
@@ -421,7 +435,7 @@ export default function OwnerSideNav() {
       >
         <NxFontAwesomeIcon icon={faPlus} />
       </NxButton>
-    );
+    ) : null;
 
     return (
       <NxCollapsibleItems

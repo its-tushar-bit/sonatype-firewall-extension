@@ -361,4 +361,19 @@ export const selectIsPreviewNexusOneUiEnabled = createSelector(
   propOr(false, 'preview-nexus-one-ui')
 );
 
-export const selectIsIqProxyEnabled = createSelector(selectProductFeatures, propOr(false, 'iq-proxy-enabled'));
+export const selectIsIqFirewallEnterpriseEnabled = createSelector(
+  selectProductFeatures,
+  propOr(false, 'iq-firewall-enterprise-enabled')
+);
+
+export const selectIsIqFirewallEnterpriseRedirectUiEnabled = createSelector(
+  selectProductFeatures,
+  propOr(false, 'iq-firewall-enterprise-redirect-ui-enabled')
+);
+
+// Both flags must be ON for the Epic 3 config plane to respond, matching FIRE-661 backend contract.
+export const selectIsIqFirewallEnterpriseConfigPlaneEnabled = createSelector(
+  selectIsIqFirewallEnterpriseEnabled,
+  selectIsIqFirewallEnterpriseRedirectUiEnabled,
+  and
+);

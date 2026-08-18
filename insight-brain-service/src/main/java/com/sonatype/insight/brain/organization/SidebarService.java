@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -109,7 +110,12 @@ public class SidebarService
     ownerHierarchyDTO.ownersMap = new HashMap<>();
     List<Organization> orgs = organizationService.getAllWithoutRelatedRepositories();
     List<Application> apps = applicationService.getApplicationsWithoutRelatedRepositoriesOrderedByName();
-    List<RepositoryManager> repositoryManagers = repositoryService.getRepositoryManagersExcludingVirtual();
+    // The redirector configuration UI renders VRMs under a dedicated section in the sidebar;
+    // when either flag is off the sidebar reverts to the excluding variant so legacy VRM rows
+    // that predate a flag flip cannot leak into other product surfaces.
+    List<RepositoryManager> repositoryManagers = isRedirectorConfigPlaneEnabled()
+        ? repositoryService.getRepositoryManagersForSidebar()
+        : repositoryService.getRepositoryManagersExcludingVirtual();
     List<Repository> repositories = repositoryService.getRepositoriesWithReadPermission();
 
     OwnerHierarchy hierarchy = createOrganizationHierarchy(orgs, apps, repositoryManagers, repositories);
@@ -122,6 +128,11 @@ public class SidebarService
     }
 
     return ownerHierarchyDTO;
+  }
+
+  private static boolean isRedirectorConfigPlaneEnabled() {
+    return SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.isEnabled()
+        && SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_REDIRECT_UI_ENABLED.isEnabled();
   }
 
   private OwnerHierarchy createOrganizationHierarchy(

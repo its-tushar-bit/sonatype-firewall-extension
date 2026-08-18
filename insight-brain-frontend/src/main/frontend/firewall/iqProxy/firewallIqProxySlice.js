@@ -8,6 +8,7 @@ import { always } from 'ramda';
 import createSlice from 'MainRoot/reduxConfig/createSlice';
 import axios from 'axios';
 import { getAddRepositoryUrl, getVirtualRepositoryManagersUrl } from 'MainRoot/util/CLMLocation';
+import { Messages } from 'MainRoot/util/CommonServices';
 
 const REDUCER_NAME = 'firewallIqProxy';
 
@@ -17,6 +18,9 @@ export const initialState = {
   saveErrorId: 0,
   creatingManager: false,
   createManagerError: null,
+  virtualRepositoryManagers: [],
+  loadingVirtualRepositoryManagers: false,
+  virtualRepositoryManagersLoadError: null,
 };
 
 const saveRepositoryRequested = (state) => {
@@ -30,7 +34,7 @@ const saveRepositoryFulfilled = (state) => {
 
 const saveRepositoryFailed = (state, { payload }) => {
   state.saving = false;
-  state.saveError = payload?.response?.data || 'An error occurred while saving.';
+  state.saveError = Messages.getHttpErrorMessage(payload) || 'An error occurred while saving.';
   state.saveErrorId += 1;
 };
 
@@ -46,9 +50,23 @@ const createVirtualRepositoryManagerFulfilled = (state) => {
 const createVirtualRepositoryManagerFailed = (state, { payload }) => {
   state.creatingManager = false;
   state.createManagerError =
-    payload?.response?.data?.message ||
-    payload?.response?.data ||
-    'An error occurred while creating the repository manager.';
+    Messages.getHttpErrorMessage(payload) || 'An error occurred while creating the repository manager.';
+};
+
+const fetchVirtualRepositoryManagersRequested = (state) => {
+  state.loadingVirtualRepositoryManagers = true;
+  state.virtualRepositoryManagersLoadError = null;
+};
+
+const fetchVirtualRepositoryManagersFulfilled = (state, { payload }) => {
+  state.loadingVirtualRepositoryManagers = false;
+  state.virtualRepositoryManagers = payload;
+};
+
+const fetchVirtualRepositoryManagersFailed = (state, { payload }) => {
+  state.loadingVirtualRepositoryManagers = false;
+  state.virtualRepositoryManagersLoadError =
+    Messages.getHttpErrorMessage(payload) || 'An error occurred while loading virtual repository managers.';
 };
 
 export const saveRepository = createAsyncThunk(
@@ -69,6 +87,15 @@ export const createVirtualRepositoryManager = createAsyncThunk(
       .catch(rejectWithValue)
 );
 
+export const fetchVirtualRepositoryManagers = createAsyncThunk(
+  `${REDUCER_NAME}/fetchVirtualRepositoryManagers`,
+  (_, { rejectWithValue }) =>
+    axios
+      .get(getVirtualRepositoryManagersUrl())
+      .then(({ data }) => data?.virtualRepositoryManagers || [])
+      .catch(rejectWithValue)
+);
+
 const firewallIqProxySlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -82,6 +109,9 @@ const firewallIqProxySlice = createSlice({
     [createVirtualRepositoryManager.pending]: createVirtualRepositoryManagerRequested,
     [createVirtualRepositoryManager.fulfilled]: createVirtualRepositoryManagerFulfilled,
     [createVirtualRepositoryManager.rejected]: createVirtualRepositoryManagerFailed,
+    [fetchVirtualRepositoryManagers.pending]: fetchVirtualRepositoryManagersRequested,
+    [fetchVirtualRepositoryManagers.fulfilled]: fetchVirtualRepositoryManagersFulfilled,
+    [fetchVirtualRepositoryManagers.rejected]: fetchVirtualRepositoryManagersFailed,
   },
 });
 
@@ -89,6 +119,7 @@ export const actions = {
   ...firewallIqProxySlice.actions,
   saveRepository,
   createVirtualRepositoryManager,
+  fetchVirtualRepositoryManagers,
 };
 
 export default firewallIqProxySlice.reducer;

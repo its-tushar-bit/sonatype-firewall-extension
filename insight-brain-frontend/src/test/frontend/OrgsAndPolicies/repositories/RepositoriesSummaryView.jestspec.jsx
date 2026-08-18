@@ -4,9 +4,14 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen, axiosMockAdapter, mockInterceptionObserver } from 'TestRoot/SpecUtil';
+import { render, screen, axiosMockAdapter, mockInterceptionObserver, waitFor } from 'TestRoot/SpecUtil';
 import RepositoriesSummaryView from 'MainRoot/OrgsAndPolicies/repositories/RepositoriesSummaryView';
-import { getRepositoryContainer, getPermissionContextTestUrl, getAccessPageRolesUrl } from 'MainRoot/util/CLMLocation';
+import {
+  getRepositoryContainer,
+  getPermissionContextTestUrl,
+  getAccessPageRolesUrl,
+  getVirtualRepositoryManagersUrl,
+} from 'MainRoot/util/CLMLocation';
 
 describe('RepositoriesSummaryView', () => {
   let renderComponent, axiosMock, preloadedState;
@@ -143,6 +148,86 @@ describe('RepositoriesSummaryView', () => {
       expect(screen.queryByTestId('repositories_configuration')).not.toBeInTheDocument();
       expect(screen.queryByTestId('repositories_access')).not.toBeInTheDocument();
       expect(screen.queryByTestId('policies-tile')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Virtual Repository Manager fetch (FIRE-662)', () => {
+    const virtualContainerState = () => ({
+      ...preloadedState,
+      router: {
+        currentState: {
+          name: 'management.view.virtual_repository_container',
+          url: '/virtual_repository_container/{repositoryContainerId}',
+        },
+        currentParams: { repositoryContainerId: 'REPOSITORY_CONTAINER_ID' },
+      },
+    });
+
+    it('fetches the VRM list when both Firewall Enterprise flags are ON', async () => {
+      axiosMock.onGet(getVirtualRepositoryManagersUrl()).reply(200, {
+        virtualRepositoryManagers: [{ id: 'vrm-1', name: 'first', childRepositoryCount: 2 }],
+      });
+
+      const state = virtualContainerState();
+      state.productFeatures = {
+        productFeatures: {
+          'iq-firewall-enterprise-enabled': true,
+          'iq-firewall-enterprise-redirect-ui-enabled': true,
+        },
+      };
+
+      render(<RepositoriesSummaryView />, { preloadedState: state });
+
+      await waitFor(() => {
+        expect(axiosMock.history.get.some((req) => req.url === getVirtualRepositoryManagersUrl())).toBe(true);
+      });
+    });
+
+    it('does not fetch when only the master flag is ON', async () => {
+      axiosMock.onGet(getVirtualRepositoryManagersUrl()).reply(200, { virtualRepositoryManagers: [] });
+
+      const state = virtualContainerState();
+      state.productFeatures = {
+        productFeatures: { 'iq-firewall-enterprise-enabled': true },
+      };
+
+      render(<RepositoriesSummaryView />, { preloadedState: state });
+
+      await screen.findByTestId('repositories_configuration');
+      expect(axiosMock.history.get.some((req) => req.url === getVirtualRepositoryManagersUrl())).toBe(false);
+    });
+
+    it('does not fetch when only the sub flag is ON', async () => {
+      axiosMock.onGet(getVirtualRepositoryManagersUrl()).reply(200, { virtualRepositoryManagers: [] });
+
+      const state = virtualContainerState();
+      state.productFeatures = {
+        productFeatures: { 'iq-firewall-enterprise-redirect-ui-enabled': true },
+      };
+
+      render(<RepositoriesSummaryView />, { preloadedState: state });
+
+      await screen.findByTestId('repositories_configuration');
+      expect(axiosMock.history.get.some((req) => req.url === getVirtualRepositoryManagersUrl())).toBe(false);
+    });
+
+    it('does not fetch when not on the virtual container route', async () => {
+      axiosMock.onGet(getVirtualRepositoryManagersUrl()).reply(200, { virtualRepositoryManagers: [] });
+
+      const state = {
+        ...preloadedState,
+        productFeatures: {
+          productFeatures: {
+            'iq-firewall-enterprise-enabled': true,
+            'iq-firewall-enterprise-redirect-ui-enabled': true,
+          },
+        },
+      };
+
+      render(<RepositoriesSummaryView />, { preloadedState: state });
+
+      await screen.findByTestId('repositories_configuration');
+      expect(axiosMock.history.get.some((req) => req.url === getVirtualRepositoryManagersUrl())).toBe(false);
     });
   });
 });

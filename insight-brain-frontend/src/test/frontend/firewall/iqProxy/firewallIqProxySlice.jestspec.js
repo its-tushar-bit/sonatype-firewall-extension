@@ -10,7 +10,16 @@ describe('firewallIqProxySlice', () => {
     it('returns the correct initial state', () => {
       const state = reducer(undefined, { type: '@@INIT' });
 
-      expect(state).toEqual({ saving: false, saveError: null, saveErrorId: 0, creatingManager: false, createManagerError: null });
+      expect(state).toEqual({
+        saving: false,
+        saveError: null,
+        saveErrorId: 0,
+        creatingManager: false,
+        createManagerError: null,
+        virtualRepositoryManagers: [],
+        loadingVirtualRepositoryManagers: false,
+        virtualRepositoryManagersLoadError: null,
+      });
     });
   });
 
@@ -53,13 +62,13 @@ describe('firewallIqProxySlice', () => {
       expect(newState.saveError).toBe('Repository already exists.');
     });
 
-    it('/rejected uses fallback message when payload has no response data', () => {
+    it('/rejected uses "Error" from Messages when payload has no response data', () => {
       const state = { saving: true, saveError: null };
 
       const newState = reducer(state, { type: 'firewallIqProxy/saveRepository/rejected', payload: {} });
 
       expect(newState.saving).toBe(false);
-      expect(newState.saveError).toBe('An error occurred while saving.');
+      expect(newState.saveError).toBe('Error');
     });
 
     it('/rejected uses fallback message when payload is undefined', () => {
@@ -117,6 +126,80 @@ describe('firewallIqProxySlice', () => {
 
       expect(newState.creatingManager).toBe(false);
       expect(newState.createManagerError).toBe('An error occurred while creating the repository manager.');
+    });
+  });
+
+  describe('firewallIqProxy/fetchVirtualRepositoryManagers', () => {
+    it('/pending sets loading to true and clears prior error', () => {
+      const state = {
+        loadingVirtualRepositoryManagers: false,
+        virtualRepositoryManagersLoadError: 'previous error',
+        virtualRepositoryManagers: [],
+      };
+
+      const newState = reducer(state, { type: 'firewallIqProxy/fetchVirtualRepositoryManagers/pending' });
+
+      expect(newState.loadingVirtualRepositoryManagers).toBe(true);
+      expect(newState.virtualRepositoryManagersLoadError).toBeNull();
+    });
+
+    it('/fulfilled stores the returned list and clears loading', () => {
+      const state = {
+        loadingVirtualRepositoryManagers: true,
+        virtualRepositoryManagersLoadError: null,
+        virtualRepositoryManagers: [],
+      };
+      const payload = [
+        { id: 'vrm-1', name: 'first', childRepositoryCount: 2 },
+        { id: 'vrm-2', name: 'second', childRepositoryCount: 0 },
+      ];
+
+      const newState = reducer(state, {
+        type: 'firewallIqProxy/fetchVirtualRepositoryManagers/fulfilled',
+        payload,
+      });
+
+      expect(newState.loadingVirtualRepositoryManagers).toBe(false);
+      expect(newState.virtualRepositoryManagers).toEqual(payload);
+    });
+
+    it('/rejected stores error message and clears loading', () => {
+      const state = {
+        loadingVirtualRepositoryManagers: true,
+        virtualRepositoryManagersLoadError: null,
+        virtualRepositoryManagers: [],
+      };
+      const payload = { response: { data: 'Feature not supported.' } };
+
+      const newState = reducer(state, {
+        type: 'firewallIqProxy/fetchVirtualRepositoryManagers/rejected',
+        payload,
+      });
+
+      expect(newState.loadingVirtualRepositoryManagers).toBe(false);
+      expect(newState.virtualRepositoryManagersLoadError).toBe('Feature not supported.');
+    });
+
+    it('/rejected uses fallback message when payload is undefined', () => {
+      const state = {
+        loadingVirtualRepositoryManagers: true,
+        virtualRepositoryManagersLoadError: null,
+        virtualRepositoryManagers: [],
+      };
+
+      const newState = reducer(state, {
+        type: 'firewallIqProxy/fetchVirtualRepositoryManagers/rejected',
+        payload: undefined,
+      });
+
+      expect(newState.loadingVirtualRepositoryManagers).toBe(false);
+      expect(newState.virtualRepositoryManagersLoadError).toBe(
+        'An error occurred while loading virtual repository managers.'
+      );
+    });
+
+    it('exposes fetchVirtualRepositoryManagers via actions', () => {
+      expect(actions.fetchVirtualRepositoryManagers).toBeInstanceOf(Function);
     });
   });
 });

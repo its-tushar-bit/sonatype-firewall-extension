@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess.configuration;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
@@ -27,6 +28,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.cache.CacheBuilder;
 import org.jooq.Table;
+import org.jooq.exception.DataAccessException;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.SystemConfigurationProperty.SYSTEM_CONFIGURATION_PROPERTY;
 import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.runAsGlobal;
@@ -306,6 +308,46 @@ public class SystemConfigurationPropertyDAO
         property.setValue(value);
         update(tx, property);
       }
+    }
+  }
+
+  /**
+   * Stores {@code value} only when the property has no value yet, and returns the value in force afterwards — the
+   * existing one when there was one, otherwise the value just stored. The read bypasses the cache and honours the
+   * MTIQ global fallback, so a value visible to readers is never replaced. The unique constraint on the property name
+   * settles two callers racing on an absent property: the loser's insert fails, and it returns the winner's value
+   * rather than the value it tried to store.
+   *
+   * @throws NullPointerException when {@code value} is null. Unlike {@link #set(String, String)}, which deletes the
+   *           property when handed a null value, this method has no meaning for one.
+   */
+  public String setIfAbsent(String name, String value) {
+    Objects.requireNonNull(value, "A null value cannot be stored under '" + name + "'.");
+    String existing = getUncached(name);
+    if (existing == null) {
+      try (TransactionContext tx = createTransactionContext()) {
+        tx.begin();
+        insert(tx, new SystemConfigurationProperty(name, value));
+        tx.commit();
+        return value;
+      }
+      catch (DataAccessException e) {
+        existing = getUncached(name);
+        if (existing == null) {
+          throw e;
+        }
+      }
+    }
+    // The value in force was stored by someone else, whose invalidation this node may not have seen, so drop the
+    // cached copy here as well: a read that follows this call has to agree with the value it returned.
+    invalidateCache();
+    return existing;
+  }
+
+  private String getUncached(String name) {
+    // No begin(): the read borrows a connection per statement instead of holding one until close
+    try (TransactionContext tx = createTransactionContext()) {
+      return get(tx, name);
     }
   }
 

@@ -61,7 +61,7 @@ public class DevelopmentPrioritiesServiceIntegrationTest
   @Test
   public void testGetAllPrioritizedFindings_fullRealBeanFlow() {
     List<PrioritizedComponent> result =
-        developmentPrioritiesService.getAllPrioritizedFindings(app.getPublicId(), scanId, null, null);
+        developmentPrioritiesService.getAllPrioritizedFindings(app, scanId, null, null);
 
     assertThat(result).isNotNull();
   }

@@ -10,8 +10,10 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.development.prioritization.DevelopmentPrioritiesService;
 import com.sonatype.insight.brain.development.prioritization.DevelopmentPrioritizationResults;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.utils.Csv;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -49,9 +51,15 @@ public class ApiDeveloperPrioritiesResourceV2
 
   private DevelopmentPrioritiesService developmentPrioritiesService;
 
+  private ApplicationDAO applicationDAO;
+
   @Inject
-  public ApiDeveloperPrioritiesResourceV2(final DevelopmentPrioritiesService developmentPrioritiesService) {
+  public ApiDeveloperPrioritiesResourceV2(
+      final DevelopmentPrioritiesService developmentPrioritiesService,
+      final ApplicationDAO applicationDAO)
+  {
     this.developmentPrioritiesService = developmentPrioritiesService;
+    this.applicationDAO = applicationDAO;
   }
 
   @GET
@@ -85,8 +93,9 @@ public class ApiDeveloperPrioritiesResourceV2
       @Parameter(
           description = "Whether to enable Fail/Warn policy action filter or not") @QueryParam("filterOnPolicyActions") @DefaultValue("true") final boolean filterOnPolicyActions)
   {
+    final Application application = applicationDAO.getByPublicIdNotNull(applicationId);
     return developmentPrioritiesService
-        .getPrioritizedFindings(applicationId, scanId, page, pageSize,
+        .getPrioritizedFindings(application, scanId, page, pageSize,
             componentNameFilter, includeRemediation, filterOnPolicyActions);
   }
 
@@ -109,8 +118,9 @@ public class ApiDeveloperPrioritiesResourceV2
       @Parameter(description = "Enter the applicationId.") @PathParam("applicationId") final String applicationId,
       @Parameter(description = "Enter the scanId.") @PathParam("scanId") final String scanId)
   {
+    final Application application = applicationDAO.getByPublicIdNotNull(applicationId);
     List<PrioritizedComponent> results =
-        developmentPrioritiesService.getAllPrioritizedFindings(applicationId, scanId, null, null);
+        developmentPrioritiesService.getAllPrioritizedFindings(application, scanId, null, null);
     String fileNamePrefix = applicationId + "-" + scanId + "-priorities";
     return Csv.generate(Response.ok(), fileNamePrefix, PrioritizedComponent.getCsvHeader(), results).build();
   }

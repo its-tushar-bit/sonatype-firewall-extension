@@ -740,14 +740,29 @@ public class ReportService
       final String scanId)
   {
     final Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    final LifecycleReport applicationReport = getReportNoAuth(application, scanId);
+    return getPolicyThreatsInternal(application, scanId, String.format(
+        "Report policy threats entry is missing for the requested application [%s] and scan ID [%s]",
+        applicationPublicId, scanId));
+  }
+
+  public PolicyThreats getPolicyThreats(final Owner owner, final String scanId) {
+    return getPolicyThreatsInternal(owner, scanId, String.format(
+        "Report policy threats entry is missing for the requested owner [%s] and scan ID [%s]",
+        owner.getId(), scanId));
+  }
+
+  private PolicyThreats getPolicyThreatsInternal(
+      final Owner owner,
+      final String scanId,
+      final String notFoundMessage)
+  {
+    final LifecycleReport report = getReportNoAuth(owner, scanId);
 
     try {
-      final ReportEntry reportEntry = applicationReport.getEntry(POLICY_THREATS.getName());
+      final ReportEntry reportEntry = report.getEntry(POLICY_THREATS.getName());
 
       if (reportEntry == null) {
-        throw new NotFoundException(String.format("Report policy threats entry is missing for the requested " +
-            "application [%s] and scan ID [%s]", applicationPublicId, scanId));
+        throw new NotFoundException(notFoundMessage);
       }
 
       return JsonUtils.parse(reportEntry.buf, PolicyThreats.class);

@@ -40,7 +40,6 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediation
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentRemediationService;
 import com.sonatype.insight.brain.callflow.ComponentReachabilityService;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationComponentInfoDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -49,7 +48,7 @@ import com.sonatype.insight.brain.development.prioritization.dto.PrioritizationR
 import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.innersource.InnerSourceService;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
@@ -70,7 +69,6 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
-import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -108,8 +106,6 @@ public class DevelopmentPrioritiesService
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
-  private final ApplicationDAO applicationDAO;
-
   private final PolicyWaiverDAO policyWaiverDAO;
 
   private final InnerSourceService innerSourceService;
@@ -127,7 +123,6 @@ public class DevelopmentPrioritiesService
       final DevelopmentPrioritiesUtilsService developmentPrioritiesUtilsService,
       final PolicyEvaluationDiffService policyEvaluationDiffService,
       final PolicyEvaluationDAO policyEvaluationDAO,
-      final ApplicationDAO applicationDAO,
       final PolicyWaiverDAO policyWaiverDAO,
       final InnerSourceService innerSourceService,
       final AutoPolicyWaiverDAO autoPolicyWaiverDAO)
@@ -141,7 +136,6 @@ public class DevelopmentPrioritiesService
     this.developmentPrioritiesUtilsService = developmentPrioritiesUtilsService;
     this.policyEvaluationDiffService = policyEvaluationDiffService;
     this.policyEvaluationDAO = policyEvaluationDAO;
-    this.applicationDAO = applicationDAO;
     this.policyWaiverDAO = policyWaiverDAO;
     this.innerSourceService = innerSourceService;
     this.autoPolicyWaiverDAO = autoPolicyWaiverDAO;
@@ -149,7 +143,7 @@ public class DevelopmentPrioritiesService
 
   @Authorize(permission = Permission.READ)
   public DevelopmentPrioritizationResults getPrioritizedFindings(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
+      @AuthzContext(AuthzContext.Key.OWNER) final Owner owner,
       final String scanId,
       final int page,
       final int pageSize,
@@ -161,12 +155,13 @@ public class DevelopmentPrioritiesService
 
     final int skipCount = (page - 1) * pageSize;
 
-    final Application application = applicationDAO.getByPublicId(applicationPublicId);
-    if (application == null) {
-      throw new NotFoundException("Application not found: " + applicationPublicId);
-    }
-    final PolicyEvaluation mainPolicyEvaluation =
-        policyEvaluationDAO.getLastByOwnerIdAndStageId(application.getId(), Stage.ID_BUILD);
+    // Main-branch build-stage evaluation is an application-only concept. The DAO query itself
+    // filters only on owner id + stage id (no owner-type restriction), and NXRM-side stage
+    // normalization can produce Stage.ID_BUILD for hosted scans, so gate on the owner type
+    // here rather than relying on the query being incidentally empty for HRC.
+    final PolicyEvaluation mainPolicyEvaluation = owner instanceof Application
+        ? policyEvaluationDAO.getLastByOwnerIdAndStageId(owner.getId(), Stage.ID_BUILD)
+        : null;
 
     final String scanIdFromLatestBuildStageEvaluation =
         mainPolicyEvaluation != null ? mainPolicyEvaluation.getScanId() : "";
@@ -174,8 +169,8 @@ public class DevelopmentPrioritiesService
     final boolean hasAutoWaiversConfigured = autoPolicyWaiverDAO.getCount() > 0;
 
     final List<PrioritizedComponent> allPrioritizedFindings = includeRemediation
-        ? computePrioritizedFindings(application, scanId, skipCount, pageSize, mainPolicyEvaluation)
-        : computePrioritizedFindings(application, scanId, null, null, mainPolicyEvaluation);
+        ? computePrioritizedFindings(owner, scanId, skipCount, pageSize, mainPolicyEvaluation)
+        : computePrioritizedFindings(owner, scanId, null, null, mainPolicyEvaluation);
 
     final List<PrioritizedComponent> filteredByNameAndAction = allPrioritizedFindings.stream()
         .filter(prioritizedComponent -> StringUtils.isEmpty(componentNameFilter) ||
@@ -199,47 +194,42 @@ public class DevelopmentPrioritiesService
   }
 
   /**
-   * This method is used to get all prioritized findings for the specified application Id and scan Id.
+   * This method is used to get all prioritized findings for the specified application and scan Id.
    * If the skipCount and limit are provided, it will set remediation for the components inside the skip and limit
    * remediation range (page size).
    **/
   @Authorize(permission = Permission.READ)
   public List<PrioritizedComponent> getAllPrioritizedFindings(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
+      @AuthzContext(AuthzContext.Key.OWNER) final Application application,
       final String scanId,
       final Integer remediationSkip,
       final Integer remediationLimit)
   {
     throwErrorIfDevelopmentNotEnabledByLicense();
 
-    final Application application = applicationDAO.getByPublicId(applicationPublicId);
-    if (application == null) {
-      throw new NotFoundException("Application not found: " + applicationPublicId);
-    }
     final PolicyEvaluation mainPolicyEvaluation =
         policyEvaluationDAO.getLastByOwnerIdAndStageId(application.getId(), Stage.ID_BUILD);
     return computePrioritizedFindings(application, scanId, remediationSkip, remediationLimit, mainPolicyEvaluation);
   }
 
   private List<PrioritizedComponent> computePrioritizedFindings(
-      final Application application,
+      final Owner owner,
       final String scanId,
       final Integer remediationSkip,
       final Integer remediationLimit,
       @Nullable final PolicyEvaluation mainPolicyEvaluation)
   {
-    final String applicationPublicId = application.getPublicId();
-    final String applicationId = application.getId();
+    final String ownerId = owner.getId();
 
     // Precondition: callers must be @Authorize-annotated; this helper does not enforce
     // authorization itself. getDependencyInformation below also runs @Authorize on its own
     // entry, providing defence-in-depth.
     final ApiReportRawDataDTOV2 apiReportRawDataDTOV2 =
-        developmentPrioritiesReportService.getDependencyInformation(applicationPublicId, scanId);
-    final PolicyThreats policyThreats = reportService.getPolicyThreats(applicationPublicId, scanId);
+        developmentPrioritiesReportService.getDependencyInformation(owner, scanId);
+    final PolicyThreats policyThreats = reportService.getPolicyThreats(owner, scanId);
 
     PolicyEvaluation policyEvaluation =
-        policyEvaluationDAO.getLastByOwnerIdAndScanId(applicationId, scanId);
+        policyEvaluationDAO.getLastByOwnerIdAndScanId(ownerId, scanId);
 
     String policyEvaluationStage = policyEvaluation != null ? policyEvaluation.getStageTypeId() : null;
 
@@ -257,7 +247,7 @@ public class DevelopmentPrioritiesService
 
     Map<String, List<PolicyWaiver>> policyWaiversByHash;
     try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
-      policyWaiversByHash = policyWaiverDAO.getByOwnerIdAndHashes(tx, applicationId, componentHashes);
+      policyWaiversByHash = policyWaiverDAO.getByOwnerIdAndHashes(tx, ownerId, componentHashes);
     }
 
     final Map<String, DevelopmentPrioritizationComponentInfo> componentInfoByHash;
@@ -420,7 +410,7 @@ public class DevelopmentPrioritiesService
 
     List<UnprioritizedComponent> sortedComponentsWithRemediation = setRemediationForComponents(
         sortedComponents,
-        applicationPublicId,
+        owner,
         scanId,
         policyEvaluationStage,
         remediationSkip,
@@ -469,7 +459,7 @@ public class DevelopmentPrioritiesService
    **/
   private List<UnprioritizedComponent> setRemediationForComponents(
       final List<UnprioritizedComponent> sortedComponents,
-      final String applicationPublicId,
+      final Owner owner,
       final String scanId,
       final String stageId,
       final Integer remediationSkip,
@@ -482,7 +472,7 @@ public class DevelopmentPrioritiesService
             UnprioritizedComponent unprioritizedComponent = sortedComponents.get(index);
 
             if (index >= remediationSkip && index < remediationSkip + remediationLimit) {
-              return loadRemediation(unprioritizedComponent, applicationPublicId, scanId, stageId,
+              return loadRemediation(unprioritizedComponent, owner, scanId, stageId,
                   isBulkRecommendationsEnabled);
             }
 
@@ -496,7 +486,7 @@ public class DevelopmentPrioritiesService
 
   private UnprioritizedComponent loadRemediation(
       UnprioritizedComponent unprioritizedComponent,
-      String applicationPublicId,
+      Owner owner,
       String scanId,
       String stageId,
       boolean isBulkRecommendationsEnabled)
@@ -508,8 +498,8 @@ public class DevelopmentPrioritiesService
         ApiComponentRemediationDTO apiComponentRemediationDTO =
             apiComponentRemediationService.getSuggestedRemediationForComponentNoAuthz(
                 unprioritizedComponent.component,
-                OwnerType.APPLICATION,
-                applicationPublicId,
+                owner.getType(),
+                owner.getId(),
                 stageId,
                 null,
                 scanId,

@@ -537,10 +537,13 @@ public class ApiReportDataServiceV2
       final String applicationPublicId,
       final String scanId) throws IOException
   {
-    Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
-    LifecycleReport applicationReport = reportService.getReport(app.getId(), scanId);
+    return getDataForPrioritization(appDAO.getByPublicIdNotNull(applicationPublicId), scanId);
+  }
 
-    Map<String, ReportEntry> entries = applicationReport.getEntries(List.of(
+  public ApiReportRawDataDTOV2 getDataForPrioritization(final Owner owner, final String scanId) throws IOException {
+    LifecycleReport report = reportService.getReport(owner, scanId);
+
+    Map<String, ReportEntry> entries = report.getEntries(List.of(
         BOM_JSON.getName(),
         DEPENDENCIES_JSON.getName()));
     ReportEntry bomEntry = entries.get(BOM_JSON.getName());
@@ -550,7 +553,7 @@ public class ApiReportDataServiceV2
       throw new BadRequestException("The report with ID " + scanId + " contains no component data.");
     }
 
-    List<Component> components = componentLoaderFactory.createComponentLoader(app)
+    List<Component> components = componentLoaderFactory.createComponentLoader(owner)
         .getAll(null /* license data */, null /* security data */, bomEntry.buf, dependenciesEntry.buf);
 
     ApiReportRawDataDTOV2 data = new ApiReportRawDataDTOV2();

@@ -16,39 +16,46 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 
-import com.codahale.metrics.annotation.Timed;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.api.v2.HasFeature;
+import com.sonatype.insight.brain.dataaccess.repository.HostedRepositoryComponentDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 
-// This will expose an endpoint which requires a CSRF token/user session for the web client to use
-// The same logic is also exposed via the api for third parties to invoke with api style authentication
+import com.codahale.metrics.annotation.Timed;
+
+/**
+ * HRC-scoped sibling of {@link DevelopmentPrioritiesRestResource}. Resolves the
+ * {@code HostedRepositoryComponent} owner and delegates through the shared owner-scoped
+ * {@link DevelopmentPrioritiesService#getPrioritizedFindings} used by the app path.
+ */
 @Named
 @Timed
-@Path(DevelopmentPrioritiesRestResource.RESOURCE_PATH)
-public class DevelopmentPrioritiesRestResource
+@Path(DevelopmentPrioritiesHrcRestResource.RESOURCE_PATH)
+@HasFeature(SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION)
+public class DevelopmentPrioritiesHrcRestResource
 {
   static final String DEFAULT_PAGE = "1";
 
   static final String DEFAULT_PAGE_SIZE = "10";
 
-  static final String RESOURCE_PATH = "rest/developer/priorities/{applicationId}/{scanId}";
+  static final String RESOURCE_PATH = "rest/developer/priorities/hostedRepositoryComponent/{hrcId}/{scanId}";
 
   private final DevelopmentPrioritiesService developmentPrioritiesService;
 
-  private final ApplicationDAO applicationDAO;
+  private final HostedRepositoryComponentDAO hostedRepositoryComponentDAO;
 
   @Inject
-  DevelopmentPrioritiesRestResource(
+  DevelopmentPrioritiesHrcRestResource(
       final DevelopmentPrioritiesService developmentPrioritiesService,
-      final ApplicationDAO applicationDAO)
+      final HostedRepositoryComponentDAO hostedRepositoryComponentDAO)
   {
     this.developmentPrioritiesService = developmentPrioritiesService;
-    this.applicationDAO = applicationDAO;
+    this.hostedRepositoryComponentDAO = hostedRepositoryComponentDAO;
   }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public DevelopmentPrioritizationResults getPriorities(
-      @PathParam("applicationId") final String applicationId,
+      @PathParam("hrcId") final String hrcId,
       @PathParam("scanId") final String scanId,
       @DefaultValue(DEFAULT_PAGE) @QueryParam("page") final int page,
       @DefaultValue(DEFAULT_PAGE_SIZE) @QueryParam("pageSize") final int pageSize,
@@ -56,7 +63,7 @@ public class DevelopmentPrioritiesRestResource
       @QueryParam("filterOnPolicyActions") @DefaultValue("true") final boolean filterOnPolicyActions)
   {
     return developmentPrioritiesService
-        .getPrioritizedFindings(applicationDAO.getByPublicIdNotNull(applicationId), scanId, page, pageSize,
+        .getPrioritizedFindings(hostedRepositoryComponentDAO.getByIdNotNull(hrcId), scanId, page, pageSize,
             componentNameFilter, false, filterOnPolicyActions);
   }
 }

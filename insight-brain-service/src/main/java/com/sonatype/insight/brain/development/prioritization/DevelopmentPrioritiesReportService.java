@@ -12,6 +12,7 @@ import jakarta.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -47,6 +48,21 @@ public class DevelopmentPrioritiesReportService
     catch (final IOException ioException) {
       log.warn("IOException fetching bom and dependencies data from report files ({}, {}): {}",
           applicationPublicId, scanId, ioException.getMessage());
+      throw new NotFoundException(NOT_FOUND_ERROR_MESSAGE);
+    }
+  }
+
+  @Authorize(permission = Permission.READ)
+  public ApiReportRawDataDTOV2 getDependencyInformation(
+      @AuthzContext(AuthzContext.Key.OWNER) final Owner owner,
+      final String scanId)
+  {
+    try {
+      return this.apiReportDataServiceV2.getDataForPrioritization(owner, scanId);
+    }
+    catch (final IOException ioException) {
+      log.warn("IOException fetching bom and dependencies data from report files ({}, {}): {}",
+          owner.getId(), scanId, ioException.getMessage());
       throw new NotFoundException(NOT_FOUND_ERROR_MESSAGE);
     }
   }

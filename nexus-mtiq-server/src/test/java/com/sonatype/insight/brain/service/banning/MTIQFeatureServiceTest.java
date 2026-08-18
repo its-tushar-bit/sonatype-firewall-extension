@@ -32,6 +32,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.sonatype.insight.brain.features.TenantFeature.MULTI_TENANT;
 import static com.sonatype.insight.brain.features.TenantFeature.SINGLE_TENANT;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AI_DEVELOPER_OPT_IN;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS;
 import static com.sonatype.insight.brain.successmetrics.SuccessMetricsService.PROPERTY_ENABLED;
@@ -103,6 +104,24 @@ public class MTIQFeatureServiceTest
     }
 
     assertThat(features).containsExactlyInAnyOrderElementsOf(expectedFeatures);
+  }
+
+  @Test
+  public void testGetFeatures_includesAiDeveloperAfterTheTenantOptsIn() {
+    tenantTemporaryEntity.newMailConfigurationWithNoAuthentication();
+    assertThat(underTest.getFeatures()).doesNotContain(LicensedFeature.AI_DEVELOPER);
+
+    systemConfigurationPropertyDAO.set(AI_DEVELOPER_OPT_IN, "admin,2026-08-17T09:15:00Z");
+    try {
+      assertThat(underTest.getFeatures())
+          .contains(LicensedFeature.AI_DEVELOPER)
+          // Guide is a separate product and stays banned in MTIQ; the opt-in must not drag its features in with
+          // AI Developer. The Guide API and MCP paths do open, because that is how AI Developer itself is served.
+          .doesNotContain(LicensedFeature.GUIDE, LicensedFeature.GUIDE_MCP, LicensedFeature.GUIDE_SEARCH);
+    }
+    finally {
+      systemConfigurationPropertyDAO.set(AI_DEVELOPER_OPT_IN, null);
+    }
   }
 
   @Test

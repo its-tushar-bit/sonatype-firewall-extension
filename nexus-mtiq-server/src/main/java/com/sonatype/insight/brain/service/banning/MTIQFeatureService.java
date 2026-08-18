@@ -81,9 +81,10 @@ public class MTIQFeatureService
       // GUIDE_UI: prevents tenants from toggling the flag via the features API; product switcher visibility
       // is gated by TenantUtil.isMultiTenant() in SolutionResolver independently of this flag.
       SystemConfigurationPropertyFeature.GUIDE_UI,
-      // Guide self-hosted is single-tenant only. SearchLicenseFilter and McpLicenseFilter
-      // also hard-block any /api/v2/guide/* and /mcp/* request when isMultiTenant() is true;
-      // banning the licensed features here keeps the features API consistent with that.
+      // Guide self-hosted is single-tenant only, so its licensed features are never offered here.
+      // SearchLicenseFilter and McpLicenseFilter deny /api/v2/guide/* and /mcp/* to a multi-tenant
+      // Guide license for the same reason, but still admit AI Developer on the AiDeveloperSaas SKU —
+      // those paths are how AI Developer is served, in either tenancy.
       LicensedFeature.GUIDE,
       LicensedFeature.GUIDE_MCP,
       LicensedFeature.GUIDE_SEARCH);

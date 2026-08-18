@@ -23,18 +23,20 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.security.PasswordHandler;
-import com.sonatype.insight.brain.service.AbstractComponentAuditTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ScanHelper;
+import com.sonatype.insight.brain.variant.AbstractComponentH2AuditTest;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import jakarta.inject.Inject;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
+@ComponentH2Test
 public class SourceControlScanServiceAuditTest
-    extends AbstractComponentAuditTest
+    extends AbstractComponentH2AuditTest
 {
   private SourceControlScanService sourceControlScanService;
 
@@ -58,7 +60,7 @@ public class SourceControlScanServiceAuditTest
 
   private MockReportDownloader mockReportDownloader;
 
-  @Before
+  @BeforeEach
   public void before() {
     applyBeanFieldOverride(SourceControlScanService.class, "gitApiFactory", mockGitApiFactory);
     applyBeanFieldOverride(PolicyEvaluateService.class, "scanHandler", mockScanHandler);

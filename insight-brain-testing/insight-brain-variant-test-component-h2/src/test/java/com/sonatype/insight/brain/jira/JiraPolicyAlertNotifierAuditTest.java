@@ -25,17 +25,19 @@ import com.sonatype.insight.brain.model.jira.JiraConfiguration;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
-import com.sonatype.insight.brain.service.AbstractComponentAuditTest;
+import com.sonatype.insight.brain.variant.AbstractComponentH2AuditTest;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import jakarta.inject.Inject;
 import java.util.Arrays;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
+@ComponentH2Test
 public class JiraPolicyAlertNotifierAuditTest
-    extends AbstractComponentAuditTest
+    extends AbstractComponentH2AuditTest
 {
   @Mock
   private JiraService mockJiraService;
@@ -57,7 +59,7 @@ public class JiraPolicyAlertNotifierAuditTest
 
   private static final String STAGE_ID = Stage.ID_BUILD;
 
-  @Before
+  @BeforeEach
   public void before() {
     setBaseUrl("http://localhost");
 

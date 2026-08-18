@@ -27,7 +27,8 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
-import com.sonatype.insight.brain.service.AbstractComponentAuditTest;
+import com.sonatype.insight.brain.variant.AbstractComponentH2AuditTest;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.brain.webhook.ManagementEvent.LabelEvent;
 import com.sonatype.insight.brain.webhook.ManagementEvent.LicenseThreatGroupEvent;
 import com.sonatype.insight.brain.webhook.ManagementEvent.OwnerEvent;
@@ -39,15 +40,16 @@ import org.eclipse.jetty.ee11.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee11.servlet.ServletHolder;
 import org.eclipse.jetty.server.Server;
 import jakarta.servlet.http.HttpServlet;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+@ComponentH2Test
 public class WebhookDispatcherAuditTest
-    extends AbstractComponentAuditTest
+    extends AbstractComponentH2AuditTest
 {
   @Inject
   private WebhookDispatcher webhookDispatcher;
@@ -56,7 +58,7 @@ public class WebhookDispatcherAuditTest
 
   private volatile Integer webhookStatusCode = 200;
 
-  @Before
+  @BeforeEach
   public void before() throws Exception {
     server = new Server(0);
     ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
@@ -72,7 +74,7 @@ public class WebhookDispatcherAuditTest
     server.start();
   }
 
-  @After
+  @AfterEach
   public void after() throws Exception {
     if (server != null) {
       server.stop();

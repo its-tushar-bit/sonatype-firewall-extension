@@ -21,11 +21,12 @@ import jakarta.inject.Inject;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 
 @ComponentH2Test
+@ExtendWith(AdvancedSearchTelemetryResetExtension.class)
 public class AdvancedSearchTelemetryCollectorTest
     extends AbstractComponentH2Test
 {
@@ -43,17 +44,6 @@ public class AdvancedSearchTelemetryCollectorTest
 
   @Mock
   private TelemetrySender telemetrySenderMock;
-
-  /**
-   * The H2 component context is shared across all classes in the module and is NOT rebuilt per test
-   * (see {@code @ComponentH2Test}). The search-metrics singleton is not transactional, so searches
-   * recorded by sibling test classes can leak in. Drain it before each test so search telemetry is
-   * driven only by this test.
-   */
-  @BeforeEach
-  public void resetSearchMetrics() {
-    metrics.computeStatsAndReset();
-  }
 
   @Test
   public void testCollectAllData_NoData() {

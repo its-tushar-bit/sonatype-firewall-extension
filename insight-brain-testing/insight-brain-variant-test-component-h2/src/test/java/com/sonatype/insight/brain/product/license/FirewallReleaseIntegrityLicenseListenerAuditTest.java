@@ -10,12 +10,14 @@ import jakarta.inject.Inject;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
-import com.sonatype.insight.brain.service.AbstractComponentAuditTest;
+import com.sonatype.insight.brain.variant.AbstractComponentH2AuditTest;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
+@ComponentH2Test
 public class FirewallReleaseIntegrityLicenseListenerAuditTest
-    extends AbstractComponentAuditTest
+    extends AbstractComponentH2AuditTest
 {
   @Inject
   private FirewallReleaseIntegrityLicenseListener firewallReleaseIntegrityLicenseListener;

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.repository;
+package com.sonatype.insight.brain.policy.evaluator;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -12,62 +12,71 @@ import static org.mockito.Mockito.when;
 
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.OwnerComponent;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
-import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
-import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
-import com.sonatype.insight.brain.service.AbstractComponentAuditTest;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.InsightMail;
+import com.sonatype.insight.brain.variant.AbstractComponentH2AuditTest;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-public class RepositoryPolicyAlertEmailerAuditTest
-    extends AbstractComponentAuditTest
+@ComponentH2Test
+public class PolicyAlertEmailerAuditTest
+    extends AbstractComponentH2AuditTest
 {
   private static final List<String> EMAILS = Arrays.asList("test1@sonatype.com", "test2@sonatype.com");
 
   private static final Comparator<AuditDTO> EMAIL_COMPARATOR = Comparator
       .comparing(auditDTO -> (String) auditDTO.data.getOrDefault("emailAddress", ""));
 
+  private static final String SCAN_ID = "scanId";
+
+  private static final String STAGE_ID = BuildStageType.ID;
+
   @Inject
   private PolicyDAO policyDAO;
 
   @Inject
-  private RepositoryPolicyAlertEmailer repositoryPolicyAlertEmailer;
+  private PolicyAlertEmailer policyAlertEmailer;
 
   @Mock
   private InsightMail mockInsightMail;
 
-  private Repository repository;
+  private Application application;
 
-  @Before
+  @BeforeEach
   public void before() {
     setBaseUrl("http://localhost");
     when(mockInsightMail.getCdnUrl()).thenReturn("https://cdn.sonatype.com/");
-    repository = tempEntity.newRepository();
+    application = tempEntity.newApplicationWithParent();
   }
 
   @Test
   public void testSendNotifications() {
     List<PolicyNotification> policyNotifications = createPolicyNotifications();
 
-    repositoryPolicyAlertEmailer.sendNotifications(repository, policyNotifications);
+    policyAlertEmailer.sendNotifications(application, SCAN_ID, new Stage(STAGE_ID), policyNotifications, 0, false);
 
     List<AuditDTO> auditDTOs = awaitLogEntries(AuditEvent.SEND_MAIL, 2);
     auditDTOs.sort(EMAIL_COMPARATOR);
-    assertRepositoryPolicyNotificationAuditData(auditDTOs.get(0), policyNotifications.size(), EMAILS.get(0), null);
-    assertRepositoryPolicyNotificationAuditData(auditDTOs.get(1), policyNotifications.size(), EMAILS.get(1), null);
+    assertApplicationPolicyNotificationAuditData(auditDTOs.get(0), policyNotifications.size(), EMAILS.get(0), null);
+    assertApplicationPolicyNotificationAuditData(auditDTOs.get(1), policyNotifications.size(), EMAILS.get(1), null);
   }
 
   @Test
@@ -75,19 +84,20 @@ public class RepositoryPolicyAlertEmailerAuditTest
     List<PolicyNotification> policyNotifications = createPolicyNotifications();
     doThrow(new RuntimeException()).doNothing().when(mockInsightMail).sendHtml(any(), anyString(), anyString());
 
-    repositoryPolicyAlertEmailer.sendNotifications(repository, policyNotifications);
+    policyAlertEmailer.sendNotifications(application, SCAN_ID, new Stage(STAGE_ID), policyNotifications, 0, false);
 
     List<AuditDTO> auditDTOs = awaitLogEntries(AuditEvent.SEND_MAIL, 2);
     auditDTOs.sort(EMAIL_COMPARATOR);
-    assertRepositoryPolicyNotificationAuditData(auditDTOs.get(0), policyNotifications.size(), EMAILS.get(0),
+    assertApplicationPolicyNotificationAuditData(auditDTOs.get(0), policyNotifications.size(), EMAILS.get(0),
         "server-error");
-    assertRepositoryPolicyNotificationAuditData(auditDTOs.get(1), policyNotifications.size(), EMAILS.get(1), null);
+    assertApplicationPolicyNotificationAuditData(auditDTOs.get(1), policyNotifications.size(), EMAILS.get(1), null);
   }
 
   private List<PolicyNotification> createPolicyNotifications() {
-    Policy policy = tempEntity.newPolicy();
-    policy.getNotifications().add(new UserNotification(EMAILS.get(0), ProxyStageType.ID));
-    policy.getNotifications().add(new UserNotification(EMAILS.get(1), ProxyStageType.ID));
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, SCAN_ID);
+    Policy policy = tempEntity.newPolicy(application);
+    policy.getNotifications().add(new UserNotification(EMAILS.get(0), policyEvaluation.getStageTypeId()));
+    policy.getNotifications().add(new UserNotification(EMAILS.get(1), policyEvaluation.getStageTypeId()));
     policyDAO.update(policy);
     List<PolicyNotification> policyNotifications = new ArrayList<>();
     policyNotifications.add(createPolicyNotification(policy, "hash1"));
@@ -98,20 +108,23 @@ public class RepositoryPolicyAlertEmailerAuditTest
 
   private PolicyNotification createPolicyNotification(Policy policy, String hash) {
     PolicyFact policyFact = new PolicyFact(policy.getId(), policy.getName(), policy.getThreatLevel());
-    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository, hash);
+    OwnerComponent component = tempEntity
+        .newApplicationComponent(application.getId(), STAGE_ID, hash, MatchState.EXACT, false);
     policyFact.addComponentFact(new ComponentFact(component.getComponentIdentifier(), component.getHash()));
     return new PolicyNotification(policyFact, policy.getNotifications());
   }
 
-  private void assertRepositoryPolicyNotificationAuditData(
+  private void assertApplicationPolicyNotificationAuditData(
       AuditDTO auditDTO,
       int totalPolicyViolationCount,
       String email,
       String error)
   {
     assertStandardData(auditDTO, AuditEvent.SEND_MAIL, error, SYSTEM_USER);
-    assertRepositoryData(auditDTO, repository);
+    assertApplicationData(auditDTO, application);
     if (error == null) {
+      assertCustomData(auditDTO, "scanId", SCAN_ID);
+      assertCustomData(auditDTO, "stageId", STAGE_ID);
       assertCustomData(auditDTO, "totalPolicyViolationCount", totalPolicyViolationCount);
       assertCustomData(auditDTO, "emailAddress", email);
     }

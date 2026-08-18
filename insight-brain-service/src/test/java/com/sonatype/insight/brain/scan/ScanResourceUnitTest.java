@@ -21,14 +21,12 @@ import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.SimplePrincipalCollection;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-import org.mockito.quality.Strictness;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -36,10 +34,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class ScanResourceUnitTest
 {
-  @Rule
-  public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
 
   @Mock
   private ScanService scanService;
@@ -52,7 +49,7 @@ public class ScanResourceUnitTest
 
   private final HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
 
-  @Before
+  @BeforeEach
   public void bindSecurityManager() {
     SecurityManager securityManager = mock(SecurityManager.class);
     ThreadContext.bind(securityManager);
@@ -65,14 +62,14 @@ public class ScanResourceUnitTest
     ThreadContext.bind(subject);
   }
 
-  @After
+  @AfterEach
   public void unbindSecurityManager() {
     SecurityAspectControl.enableEnforcement();
     ThreadContext.unbindSubject();
     ThreadContext.unbindSecurityManager();
   }
 
-  @Before
+  @BeforeEach
   public void setUp() {
     when(HdsClient.getClientUserAgent(httpServletRequest)).thenReturn("userAgent");
   }

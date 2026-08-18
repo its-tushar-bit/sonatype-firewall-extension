@@ -13,10 +13,9 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.stubbing.Answer;
 
@@ -29,7 +28,6 @@ import static org.mockito.MockitoAnnotations.openMocks;
 /**
  * @since 1.21
  */
-@RunWith(Parameterized.class)
 public class HttpHeaderValidatorFilterTest
 {
   @Mock
@@ -46,16 +44,6 @@ public class HttpHeaderValidatorFilterTest
 
   private HttpHeaderValidatorFilter filter;
 
-  private final String[] headers;
-
-  private final String invalidHeaderName;
-
-  public HttpHeaderValidatorFilterTest(String[] headers, String invalidHeaderName) {
-    this.headers = headers;
-    this.invalidHeaderName = invalidHeaderName;
-  }
-
-  @Parameterized.Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
       // valid RFC 1123 hostname with valid schemes
@@ -183,15 +171,16 @@ public class HttpHeaderValidatorFilterTest
     });
   }
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     openMocks(this);
     filter = new HttpHeaderValidatorFilter();
     when(response.getWriter()).thenReturn(writer);
   }
 
-  @Test
-  public void testFilter() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testFilter(String[] headers, String invalidHeaderName) throws Exception {
     when(request.getHeader(anyString())).thenAnswer((Answer<String>) invocation -> {
       String headerName = (String) invocation.getArguments()[0];
       switch (headerName) {

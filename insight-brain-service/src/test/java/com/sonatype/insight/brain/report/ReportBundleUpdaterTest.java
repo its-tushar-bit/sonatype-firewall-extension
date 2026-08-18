@@ -19,19 +19,20 @@ import java.util.zip.ZipFile;
 
 import com.sonatype.insight.brain.report.ReportBundleUpdater.FilenameMapping;
 
+import com.sonatype.insight.brain.testsupport.TempFolder;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.CharSequenceInputStream;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReportBundleUpdaterTest
 {
-  @Rule
-  public TemporaryFolder tmpDir = new TemporaryFolder();
+  @RegisterExtension
+  public TempFolder tmpDir = new TempFolder();
 
   private Stream<ReportEntity> originalReportEntities;
 
@@ -94,7 +95,7 @@ public class ReportBundleUpdaterTest
     }
   }
 
-  @Before
+  @BeforeEach
   public void init() throws Exception {
     updatedFile = new File(tmpDir.getRoot(), "not-yet-existent/report.zip");
 

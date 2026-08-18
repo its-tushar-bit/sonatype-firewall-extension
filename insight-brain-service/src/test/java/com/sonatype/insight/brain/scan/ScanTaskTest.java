@@ -37,10 +37,11 @@ import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import com.sonatype.insight.brain.testsupport.TempFolder;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.ArgumentCaptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -98,10 +99,10 @@ public class ScanTaskTest
 
   private FileScanEntity tmpScanEntity;
 
-  @Rule
-  public TemporaryFolder tmpDir = new TemporaryFolder();
+  @RegisterExtension
+  public TempFolder tmpDir = new TempFolder();
 
-  @Before
+  @BeforeEach
   public void init() throws Exception {
     persistedScanTicketDAO = daoFactory.createPersistedScanTicketDAO();
     task = new ScanTask(scanner, scanPolicyEvaluator, notifier, fileCleaner, proprietaryConfigService,

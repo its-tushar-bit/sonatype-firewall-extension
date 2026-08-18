@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.dataaccess.continuousmonitoring.EligibilityCur
 import com.sonatype.insight.brain.dataaccess.continuousmonitoring.Page;
 import com.sonatype.insight.brain.tenancy.MtiqBatchJob;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;

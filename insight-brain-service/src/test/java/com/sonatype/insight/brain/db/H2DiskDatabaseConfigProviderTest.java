@@ -12,26 +12,22 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.db.H2DatabaseEngine;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-import org.mockito.quality.Strictness;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.spy;
 
+@ExtendWith(MockitoExtension.class)
 public class H2DiskDatabaseConfigProviderTest
 {
   private static final long DEFAULT_CACHE_SIZE_KILOBYTES = 16L * 1024;
 
   private static final long MAX_CACHE_SIZE_KILOBYTES = 7L * 1024 * 1024;
-
-  @Rule
-  public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
 
   @Mock
   private Runtime runtime;
@@ -40,7 +36,7 @@ public class H2DiskDatabaseConfigProviderTest
 
   private H2DiskDatabaseConfigProvider h2DiskDatabaseConfigProvider;
 
-  @Before
+  @BeforeEach
   public void init() {
     insightConfig = new InsightConfig();
     h2DiskDatabaseConfigProvider = new H2DiskDatabaseConfigProvider(insightConfig, runtime);

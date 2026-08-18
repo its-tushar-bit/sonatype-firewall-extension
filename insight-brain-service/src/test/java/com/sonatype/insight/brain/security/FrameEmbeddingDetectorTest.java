@@ -7,13 +7,11 @@ package com.sonatype.insight.brain.security;
 
 import com.sonatype.insight.brain.service.Configuration;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-import org.mockito.quality.Strictness;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -21,17 +19,16 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class FrameEmbeddingDetectorTest
 {
-  @Rule
-  public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
 
   @Mock
   private Configuration configuration;
 
   private FrameEmbeddingDetector detector;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     detector = new FrameEmbeddingDetector(configuration);
   }

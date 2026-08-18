@@ -19,10 +19,11 @@ import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.git.utils.api.GitException;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import com.sonatype.insight.brain.testsupport.TempFolder;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -39,8 +40,8 @@ import static org.mockito.Mockito.verify;
 public class PullRequestTargetCommitPolicyEvaluationResolverTest
     extends VerifiableLoggingTestBase
 {
-  @Rule
-  public TemporaryFolder tmpDir = new TemporaryFolder();
+  @RegisterExtension
+  public TempFolder tmpDir = new TempFolder();
 
   @Mock
   private SourceControlScanService mockSourceControlScanService;
@@ -55,7 +56,7 @@ public class PullRequestTargetCommitPolicyEvaluationResolverTest
     super(PullRequestTargetCommitPolicyEvaluationResolver.class);
   }
 
-  @Before
+  @BeforeEach
   @Override
   public void setup() {
     super.setup();

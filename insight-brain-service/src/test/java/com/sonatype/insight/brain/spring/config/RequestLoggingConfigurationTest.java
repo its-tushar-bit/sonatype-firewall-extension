@@ -56,9 +56,9 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import com.sonatype.insight.brain.testsupport.TempFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.jetty.JettyWebServer;
 import org.springframework.boot.jetty.servlet.JettyServletWebServerFactory;
@@ -66,10 +66,10 @@ import org.springframework.boot.web.server.WebServer;
 
 public class RequestLoggingConfigurationTest
 {
-  @Rule
-  public TemporaryFolder tempFolder = new TemporaryFolder();
+  @RegisterExtension
+  public TempFolder tempFolder = new TempFolder();
 
-  @Rule
+  @RegisterExtension
   public LogbackStateRule logbackState = new LogbackStateRule();
 
   @Test

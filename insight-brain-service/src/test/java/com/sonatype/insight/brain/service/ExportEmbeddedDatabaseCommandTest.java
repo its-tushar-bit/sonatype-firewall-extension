@@ -21,10 +21,10 @@ import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2InMemoryTest;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.brain.testsupport.TempFolder;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -32,8 +32,8 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class ExportEmbeddedDatabaseCommandTest
     extends AbstractDatabaseTest
 {
-  @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
+  @RegisterExtension
+  public TempFolder tempDir = new TempFolder();
 
   @Test
   @H2InMemoryTest(cleanDatabase = true)

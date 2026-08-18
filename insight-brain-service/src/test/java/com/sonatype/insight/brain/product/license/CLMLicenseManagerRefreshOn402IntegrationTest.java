@@ -16,15 +16,16 @@ import com.sonatype.insight.brain.security.SecurityAspectControl;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.license.model.LicensedFeature;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -50,7 +51,7 @@ import static org.mockito.Mockito.when;
  * wire-up test is sufficient evidence that the components work together as designed
  * without duplicating heavy fixture machinery here.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class CLMLicenseManagerRefreshOn402IntegrationTest
 {
   private static final String PURL = "pkg:maven/org.example/lib@1.0.0";
@@ -70,14 +71,14 @@ public class CLMLicenseManagerRefreshOn402IntegrationTest
 
   private SearchApiClientImpl searchApiClient;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     SecurityAspectControl.disableEnforcement();
     revocationHandler = new GuideLicenseRevocationHandler(clmLicenseManager, productLicense);
     searchApiClient = new SearchApiClientImpl(hdsClient, revocationHandler);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     SecurityAspectControl.enableEnforcement();
   }
@@ -86,7 +87,10 @@ public class CLMLicenseManagerRefreshOn402IntegrationTest
   public void paymentRequired_triggersRefreshAndThrowsLicenseUnavailable() {
     // Stage 1: HDS reports the customer is licensed for GUIDE_SEARCH.
     AtomicBoolean refreshed = new AtomicBoolean(false);
-    when(productLicense.hasFeature(LicensedFeature.GUIDE_SEARCH))
+    // snapshotFeatures() in the revocation handler queries hasFeature() for every LicensedFeature; only
+    // GUIDE_SEARCH is relevant here, so keep this stub lenient (the strict Jupiter Mockito engine would otherwise
+    // flag the other-feature calls as a potential-stubbing problem and swallow the refresh).
+    lenient().when(productLicense.hasFeature(LicensedFeature.GUIDE_SEARCH))
         .thenAnswer(inv -> !refreshed.get());
     // Stage 2: when CLMLicenseManager.loadLicense() runs in response to the 402, the
     // in-memory feature set transitions to "no GUIDE_SEARCH" — modeling the customer's

@@ -39,14 +39,14 @@ import com.sonatype.insight.test.LogOutput;
 
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.ArgumentCaptor;
 
 public class DashboardMetricsShadowComparisonServiceTest
 {
-  @Rule
+  @RegisterExtension
   public LogOutput logOutput = new LogOutput(DashboardMetricsShadowComparisonService.class);
 
   private final DashboardMetricsScopeResolver resolver = mock(DashboardMetricsScopeResolver.class);
@@ -66,7 +66,7 @@ public class DashboardMetricsShadowComparisonServiceTest
       Set.of("app"),
       false);
 
-  @After
+  @AfterEach
   public void tearDown() {
     ThreadContext.remove();
     TenantTestHelper.resetAfterTest();

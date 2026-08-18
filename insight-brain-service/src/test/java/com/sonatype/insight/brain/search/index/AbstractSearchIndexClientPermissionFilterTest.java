@@ -43,9 +43,9 @@ import org.apache.lucene.search.TermInSetQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.ByteBuffersDirectory;
 import org.apache.lucene.store.Directory;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Asserts the new {@code TermInSetQuery} permission envelope matches an independently-modeled
@@ -92,7 +92,7 @@ public class AbstractSearchIndexClientPermissionFilterTest
   /** Index of {docId -> owning app id} for the oracle. {@code null} when no app. */
   private final Map<Integer, String> appIdByDocId = new HashMap<>();
 
-  @Before
+  @BeforeEach
   public void buildFixture() throws IOException {
     directory = new ByteBuffersDirectory();
     Random rng = new Random(FIXTURE_SEED);
@@ -124,7 +124,7 @@ public class AbstractSearchIndexClientPermissionFilterTest
     reader = DirectoryReader.open(directory);
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws IOException {
     if (reader != null) {
       reader.close();

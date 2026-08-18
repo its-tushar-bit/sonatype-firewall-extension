@@ -20,10 +20,10 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Map;
+import com.sonatype.insight.brain.testsupport.TempFolder;
 import java.util.concurrent.atomic.AtomicReference;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -33,8 +33,8 @@ import org.springframework.core.io.ClassPathResource;
 
 public class DropwizardConfigBootstrapTest
 {
-  @Rule
-  public TemporaryFolder tempFolder = new TemporaryFolder();
+  @RegisterExtension
+  public TempFolder tempFolder = new TempFolder();
 
   @Test
   public void shouldFallBackToDefaultsWhenImplicitDefaultConfigFileIsMissing() throws Exception {

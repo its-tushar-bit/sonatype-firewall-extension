@@ -15,14 +15,14 @@ import com.sonatype.insight.brain.scheduler.QuartzJobSchedulingService.BuiltJob;
 import com.sonatype.insight.test.LogOutput;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.quartz.JobDetail;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
@@ -36,21 +36,20 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class QuartzJobSchedulingServiceTest
 {
-  @Rule
-  public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-  @Rule
+  @RegisterExtension
   public LogOutput logOutput = new LogOutput(QuartzJobSchedulingService.class);
 
-  @Rule
+  @RegisterExtension
   public QuartzJobSchedulingServiceRule quartzJobSchedulingServiceRule = new QuartzJobSchedulingServiceRule();
 
   @Mock
@@ -64,10 +63,10 @@ public class QuartzJobSchedulingServiceTest
 
   private QuartzJobSchedulingService underTest;
 
-  @Before
+  @BeforeEach
   public void setup() throws SchedulerException {
     underTest = new QuartzJobSchedulingService();
-    when(mockQuartzScheduler.getSchedulerName()).thenReturn("testScheduler");
+    lenient().when(mockQuartzScheduler.getSchedulerName()).thenReturn("testScheduler");
   }
 
   @Test

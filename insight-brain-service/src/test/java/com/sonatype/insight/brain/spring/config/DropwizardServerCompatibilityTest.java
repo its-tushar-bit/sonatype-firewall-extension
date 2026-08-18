@@ -16,13 +16,13 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import com.sonatype.insight.brain.testsupport.TempFolder;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
-import org.junit.Assume;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.boot.env.YamlPropertySourceLoader;
 import org.springframework.boot.jetty.JettyWebServer;
 import org.springframework.boot.jetty.servlet.JettyServletWebServerFactory;
@@ -34,8 +34,8 @@ import org.springframework.core.io.ClassPathResource;
 
 public class DropwizardServerCompatibilityTest
 {
-  @Rule
-  public TemporaryFolder tempFolder = new TemporaryFolder();
+  @RegisterExtension
+  public TempFolder tempFolder = new TempFolder();
 
   @Test
   public void shouldTranslateApplicationAndAdminConnectorsIntoSpringPorts() throws Exception {
@@ -172,7 +172,7 @@ public class DropwizardServerCompatibilityTest
   @Test
   public void shouldResolveEnvironmentVariablesBeforeExposingSpringProperties() throws Exception {
     String home = System.getenv("HOME");
-    Assume.assumeTrue(home != null && !home.isEmpty());
+    Assumptions.assumeTrue(home != null && !home.isEmpty());
 
     File config = tempFolder.newFile("env-config.yml");
     Files.writeString(config.toPath(),
@@ -188,7 +188,7 @@ public class DropwizardServerCompatibilityTest
   @Test
   public void shouldResolveEnvironmentVariablesBeforeBindingInsightConfig() throws Exception {
     String home = System.getenv("HOME");
-    Assume.assumeTrue(home != null && !home.isEmpty());
+    Assumptions.assumeTrue(home != null && !home.isEmpty());
 
     File config = tempFolder.newFile("env-binding.yml");
     Files.writeString(config.toPath(),

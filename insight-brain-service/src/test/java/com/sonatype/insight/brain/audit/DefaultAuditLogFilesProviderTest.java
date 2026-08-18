@@ -17,15 +17,16 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import com.sonatype.insight.brain.testsupport.TempFolder;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class DefaultAuditLogFilesProviderTest
 {
-  @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
+  @RegisterExtension
+  public TempFolder tempDir = new TempFolder();
 
   private DefaultAuditLogFilesProvider defaultAuditLogFilesProvider;
 
@@ -33,7 +34,7 @@ public class DefaultAuditLogFilesProviderTest
 
   private Path logDir;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     logDir = tempDir.newFolder("logs").toPath();
 

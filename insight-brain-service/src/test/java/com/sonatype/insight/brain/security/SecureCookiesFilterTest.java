@@ -12,14 +12,14 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-import org.mockito.quality.Strictness;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import com.sonatype.insight.brain.spring.config.SecurityConfiguration;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -31,19 +31,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.sonatype.insight.brain.spring.config.SecurityConfiguration;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletResponse;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-import org.mockito.quality.Strictness;
-
+@ExtendWith(MockitoExtension.class)
 public class SecureCookiesFilterTest
 {
   private static final String SET_COOKIE = "Set-Cookie";
@@ -57,9 +45,6 @@ public class SecureCookiesFilterTest
 
   private static final String COOKIE_4_SECURE =
       "rememberMe=deleteMe; Path=/; HttpOnly" + SecureCookiesFilter.SECURE_FLAGS;
-
-  @Rule
-  public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
 
   @Mock
   private HttpServletResponse response;
@@ -78,7 +63,7 @@ public class SecureCookiesFilterTest
 
   private SecureCookiesFilter cookieFilter;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     this.cookieFilter = new SecureCookiesFilter(frameEmbeddingDetector);
   }

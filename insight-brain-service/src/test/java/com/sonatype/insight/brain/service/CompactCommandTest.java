@@ -17,8 +17,8 @@ import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.test.LogOutput;
 
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class CompactCommandTest
     extends AbstractDatabaseTest
 {
-  @Rule
+  @RegisterExtension
   public LogOutput logOutput = new LogOutput(CompactCommand.class);
 
   @Test

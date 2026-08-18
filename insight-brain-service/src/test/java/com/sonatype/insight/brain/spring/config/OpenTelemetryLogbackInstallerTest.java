@@ -16,24 +16,24 @@ import ch.qos.logback.core.Appender;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.logs.Severity;
 import io.opentelemetry.sdk.logs.data.LogRecordData;
-import io.opentelemetry.sdk.testing.junit4.OpenTelemetryRule;
+import io.opentelemetry.sdk.testing.junit5.OpenTelemetryExtension;
 import java.util.Iterator;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.slf4j.LoggerFactory;
 
 public class OpenTelemetryLogbackInstallerTest
 {
-  @Rule
-  public OpenTelemetryRule otelRule = OpenTelemetryRule.create();
+  @RegisterExtension
+  public static OpenTelemetryExtension otelRule = OpenTelemetryExtension.create();
 
   private LoggerContext loggerContext;
 
   private RequestLogImpl requestLog;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
     requestLog = new RequestLogImpl();

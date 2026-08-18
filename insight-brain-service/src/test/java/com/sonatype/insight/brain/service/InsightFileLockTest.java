@@ -5,16 +5,17 @@
  */
 package com.sonatype.insight.brain.service;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import com.sonatype.insight.brain.testsupport.TempFolder;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class InsightFileLockTest
 {
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+  @RegisterExtension
+  public TempFolder temporaryFolder = new TempFolder();
 
   @Test
   public void testLockRelease_SameInstance() {

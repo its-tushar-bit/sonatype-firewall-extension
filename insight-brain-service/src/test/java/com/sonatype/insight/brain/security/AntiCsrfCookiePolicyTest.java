@@ -13,14 +13,12 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.service.Configuration;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-import org.mockito.quality.Strictness;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.atLeastOnce;
@@ -30,10 +28,9 @@ import static org.mockito.Mockito.when;
 /**
  * Fast unit tests proving CLM-CSRF-TOKEN cookie policy without starting a full server.
  */
+@ExtendWith(MockitoExtension.class)
 public class AntiCsrfCookiePolicyTest
 {
-  @Rule
-  public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
 
   @Mock
   private Configuration configuration;
@@ -52,7 +49,7 @@ public class AntiCsrfCookiePolicyTest
 
   private AntiCsrfFilter filter;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     filter = new AntiCsrfFilter(configuration, frameEmbeddingDetector);
     filter.processPathConfig("/test", "");

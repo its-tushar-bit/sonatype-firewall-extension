@@ -10,21 +10,18 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.error.exception.BadGatewayException;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-import org.mockito.quality.Strictness;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class CspHeaderFilterTest
 {
-  @Rule
-  public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
 
   @Mock
   private Configuration configuration;
@@ -37,7 +34,7 @@ public class CspHeaderFilterTest
 
   private CspHeaderFilter cspHeaderFilter;
 
-  @Before
+  @BeforeEach
   public void before() {
     cspHeaderFilter = new CspHeaderFilter(configuration, enterpriseReportingService, productLicense);
     when(productLicense.isValid()).thenReturn(true);

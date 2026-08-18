@@ -22,16 +22,17 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 import java.io.File;
 import javax.sql.DataSource;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import com.sonatype.insight.brain.testsupport.TempFolder;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.ArgumentCaptor;
 
 public class DbBackupTaskExecutionTest
 {
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+  @RegisterExtension
+  public TempFolder temporaryFolder = new TempFolder();
 
   private final InsightConfig config = new InsightConfig();
 
@@ -45,7 +46,7 @@ public class DbBackupTaskExecutionTest
 
   private DbBackupTask dbBackupTask;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     File workDir = temporaryFolder.newFolder("sonatype-work");
     File backupRoot = temporaryFolder.newFolder("db-backups");

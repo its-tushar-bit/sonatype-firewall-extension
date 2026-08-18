@@ -14,8 +14,8 @@ import java.util.function.Function;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.test.LogOutput;
 
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobKey;
 
@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class JobLoggerTest
 {
-  @Rule
+  @RegisterExtension
   public LogOutput logOutput = new LogOutput(JobLogger.class);
 
   @Test

@@ -5,19 +5,19 @@
  */
 package com.sonatype.insight.brain.service;
 
+import com.sonatype.insight.brain.testsupport.TempFolder;
 import java.io.File;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class WorkDirectoryBootstrapTest
 {
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+  @RegisterExtension
+  public TempFolder temporaryFolder = new TempFolder();
 
   @Test
   public void shouldCreateDirectoriesAndReleaseLockOnShutdown() throws Exception {

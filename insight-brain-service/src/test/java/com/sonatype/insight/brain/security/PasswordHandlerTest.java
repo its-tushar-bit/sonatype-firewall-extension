@@ -8,9 +8,8 @@ package com.sonatype.insight.brain.security;
 import java.security.InvalidKeyException;
 import java.security.NoSuchProviderException;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_MODE_ENABLED_ENV;
 import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastleFipsProvider;
@@ -20,10 +19,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class PasswordHandlerTest
 {
-  @Rule
-  public EnvironmentVariables environmentVariables = new EnvironmentVariables();
+  private final TestEnvironmentVariables environmentVariables = new TestEnvironmentVariables();
 
   private final PasswordHandler pwHandler = new PasswordHandler(new TestEncryptionKeyStore());
+
+  @AfterEach
+  void restoreEnvironmentVariables() {
+    environmentVariables.restore();
+  }
 
   @Test
   public void testEncryptPasswordDecryptPassword() {

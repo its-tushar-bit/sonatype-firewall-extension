@@ -11,26 +11,23 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.db.PostgresDatabaseEngine;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-import org.mockito.quality.Strictness;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.postgresql.Driver;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@ExtendWith(MockitoExtension.class)
 public class PostgresDatabaseConfigProviderTest
 {
-  @Rule
-  public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
 
   private InsightConfig insightConfig;
 
   private PostgresDatabaseConfigProvider postgresDatabaseConfigProvider;
 
-  @Before
+  @BeforeEach
   public void init() {
     insightConfig = new InsightConfig();
     postgresDatabaseConfigProvider = new PostgresDatabaseConfigProvider(insightConfig);

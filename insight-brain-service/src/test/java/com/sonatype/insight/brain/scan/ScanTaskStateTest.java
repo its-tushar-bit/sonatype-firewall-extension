@@ -26,11 +26,13 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.scan.model.ClientScanType;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.mockito.stubbing.Answer;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,7 +51,8 @@ import static org.mockito.Mockito.when;
  *
  * Refer to {@link ScanStateToTicketTranslatorTest} for translation from state to ticket steps.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ScanTaskStateTest
     extends AbstractDataTest
 {
@@ -77,7 +80,7 @@ public class ScanTaskStateTest
 
   TaskStateCapturer captureState = new TaskStateCapturer();
 
-  @Before
+  @BeforeEach
   public void init() throws Exception {
     var persistedScanTicketDAO = daoFactory.createPersistedScanTicketDAO();
     task = new ScanTask(scanner, scanPolicyEvaluator, notifier, fileCleaner, proprietaryConfigService,

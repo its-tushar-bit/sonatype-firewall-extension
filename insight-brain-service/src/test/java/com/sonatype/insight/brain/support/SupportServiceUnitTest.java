@@ -8,16 +8,16 @@ package com.sonatype.insight.brain.support;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.testsupport.TempFolder;
 import java.io.File;
 import java.io.IOException;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class SupportServiceUnitTest
 {
-  @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
+  @RegisterExtension
+  public TempFolder tempDir = new TempFolder();
 
   @Test
   public void testGetAuditLog() throws Exception {

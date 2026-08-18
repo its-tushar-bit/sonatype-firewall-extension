@@ -18,9 +18,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -39,12 +39,12 @@ public class AbstractPollDispatchQueueConsumerInjectionTest
 {
   private ExecutorService injectedExecutor;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     TenantTestHelper.setSingleTenant();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     if (injectedExecutor != null) {
       injectedExecutor.shutdownNow();

@@ -34,20 +34,20 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import com.sonatype.insight.brain.testsupport.TempFolder;
 import java.util.SortedMap;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 public class SystemInfoTest
 {
-  @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
+  @RegisterExtension
+  public TempFolder tempDir = new TempFolder();
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -71,7 +71,7 @@ public class SystemInfoTest
 
   private RelayPollerCounters relayPollerCounters;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     File sonatypeWork = tempDir.newFolder("sonatype-work");
     File clusterDirectory = tempDir.newFolder("cluster-directory");
@@ -102,7 +102,7 @@ public class SystemInfoTest
         relayPollerCounters);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     ApplicationLifecycle.setConfigFile(null);
   }

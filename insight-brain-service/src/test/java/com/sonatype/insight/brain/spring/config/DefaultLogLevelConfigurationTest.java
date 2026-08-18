@@ -22,23 +22,23 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import com.sonatype.insight.brain.testsupport.TempFolder;
 import java.util.Map;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.slf4j.LoggerFactory;
 
 public class DefaultLogLevelConfigurationTest
 {
-  @Rule
-  public TemporaryFolder tempFolder = new TemporaryFolder();
+  @RegisterExtension
+  public TempFolder tempFolder = new TempFolder();
 
   private final LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
 
   private final List<String> cleanupLoggerNames = new ArrayList<>();
 
-  @After
+  @AfterEach
   public void tearDown() {
     for (String name : cleanupLoggerNames) {
       Logger logger = loggerContext.getLogger(name);

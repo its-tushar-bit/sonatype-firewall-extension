@@ -8,24 +8,24 @@ package com.sonatype.insight.brain.operational.check;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.testsupport.TempFolder;
 import java.io.File;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.Status;
 
 public class WorkDirectoriesOperationalCheckTest
 {
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+  @RegisterExtension
+  public TempFolder temporaryFolder = new TempFolder();
 
   private InsightConfig insightConfig;
 
   private WorkDirectoriesOperationalCheck workDirectoriesOperationalCheck;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     insightConfig = new InsightConfig();
     File sonatypeWork = temporaryFolder.newFolder("sonatype-work");

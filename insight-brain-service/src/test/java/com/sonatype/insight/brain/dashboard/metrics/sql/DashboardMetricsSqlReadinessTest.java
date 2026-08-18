@@ -20,12 +20,14 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.test.LogOutput;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import static com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsSqlMode.OFF;
 import static com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsSqlMode.ON;
@@ -42,12 +44,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class DashboardMetricsSqlReadinessTest
 {
   private static final String SCHEMA = "tenant_one";
 
-  @Rule
+  @RegisterExtension
   public LogOutput logOutput = new LogOutput(DashboardMetricsSqlReadiness.class);
 
   @Mock
@@ -61,7 +64,7 @@ public class DashboardMetricsSqlReadinessTest
 
   private MutableClock clock;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     clock = new MutableClock(Instant.parse("2026-07-16T12:00:00Z"));
     when(operationalDataStore.getDatabaseSchema()).thenReturn(SCHEMA);

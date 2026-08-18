@@ -16,22 +16,17 @@ import org.cyclonedx.model.Component;
 import org.cyclonedx.model.Component.Scope;
 import org.cyclonedx.model.Component.Type;
 import org.cyclonedx.model.Hash;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
-import org.junit.runners.Suite;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(Suite.class)
-@Suite.SuiteClasses({
-  AbstractCycloneDxExporterComponentRefTest.BasicTests.class,
-  AbstractCycloneDxExporterComponentRefTest.GoldenValueTests.class
-})
 public class AbstractCycloneDxExporterComponentRefTest
 {
-  public static class BasicTests
+  @Nested
+  public class BasicTests
   {
     @Test
     public void getComponentRef_withBomRef_returnsSha1OfBomRef() {
@@ -120,22 +115,9 @@ public class AbstractCycloneDxExporterComponentRefTest
    * regression guards: if any of these fail, existing customer SBOM records would silently
    * fail to match after upgrade.
    */
-  @RunWith(Parameterized.class)
-  public static class GoldenValueTests
+  @Nested
+  public class GoldenValueTests
   {
-    private final String description;
-
-    private final Component component;
-
-    private final String expectedHash;
-
-    public GoldenValueTests(String description, Component component, String expectedHash) {
-      this.description = description;
-      this.component = component;
-      this.expectedHash = expectedHash;
-    }
-
-    @Parameters(name = "{0}")
     public static Collection<Object[]> data() {
       return Arrays.asList(new Object[][]{
         {"Maven component with bomRef (purl as bomRef)",
@@ -183,8 +165,9 @@ public class AbstractCycloneDxExporterComponentRefTest
       });
     }
 
-    @Test
-    public void getComponentRef_matchesGoldenValue() {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("data")
+    public void getComponentRef_matchesGoldenValue(String description, Component component, String expectedHash) {
       String result = SbomIdentityUtils.getComponentRef(component);
       assertThat(result)
           .as("componentRef for: %s", description)

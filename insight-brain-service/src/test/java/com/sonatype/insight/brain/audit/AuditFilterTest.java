@@ -11,14 +11,13 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.audit.AuditFilter.ResponseWrapper;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-import org.mockito.quality.Strictness;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -28,13 +27,11 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class AuditFilterTest
 {
-  @Rule
+  @RegisterExtension
   public TestAuditSession testAuditSession = new TestAuditSession();
-
-  @Rule
-  public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
 
   @Mock
   private AuditData auditData;
@@ -46,7 +43,7 @@ public class AuditFilterTest
 
   private ResponseWrapper responseWrapper;
 
-  @Before
+  @BeforeEach
   public void before() {
     testAuditSession.set(auditData);
     responseWrapper = new ResponseWrapper(httpServletResponse);

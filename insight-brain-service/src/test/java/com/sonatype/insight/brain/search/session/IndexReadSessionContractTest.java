@@ -29,9 +29,8 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.store.ByteBuffersDirectory;
 import org.apache.lucene.store.Directory;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.aggregations.Aggregate;
 import org.opensearch.client.opensearch._types.aggregations.StringTermsBucket;
@@ -52,19 +51,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@RunWith(Parameterized.class)
 public class IndexReadSessionContractTest
 {
-  private final String mode;
-
-  private final SessionFactory sessionFactory;
-
-  public IndexReadSessionContractTest(final String mode, final SessionFactory sessionFactory) {
-    this.mode = mode;
-    this.sessionFactory = sessionFactory;
-  }
-
-  @Parameterized.Parameters(name = "{0}")
   public static Object[][] modes() {
     return new Object[][]{
       {"lucene", (SessionFactory) IndexReadSessionContractTest::luceneSession},
@@ -73,8 +61,12 @@ public class IndexReadSessionContractTest
     };
   }
 
-  @Test
-  public void searchPage_collectsOneExtraHitAndResumesWithBackendBoundSearchAfter() throws Exception {
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("modes")
+  public void searchPage_collectsOneExtraHitAndResumesWithBackendBoundSearchAfter(
+      final String mode,
+      final SessionFactory sessionFactory) throws Exception
+  {
     try (IndexReadSession session = sessionFactory.open()) {
       IndexPageResult firstPage = session.searchPage(new IndexPageRequest(new MatchAllDocsQuery(), null, 2, List.of()));
 
@@ -95,8 +87,12 @@ public class IndexReadSessionContractTest
     }
   }
 
-  @Test
-  public void count_returnsMatchingDocumentCount() throws Exception {
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("modes")
+  public void count_returnsMatchingDocumentCount(
+      final String mode,
+      final SessionFactory sessionFactory) throws Exception
+  {
     try (IndexReadSession session = sessionFactory.open()) {
       assertThat(session.count(new MatchAllDocsQuery()))
           .as(mode)
@@ -104,8 +100,12 @@ public class IndexReadSessionContractTest
     }
   }
 
-  @Test
-  public void termsAggregation_returnsNonEmptyBuckets() throws Exception {
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("modes")
+  public void termsAggregation_returnsNonEmptyBuckets(
+      final String mode,
+      final SessionFactory sessionFactory) throws Exception
+  {
     try (IndexReadSession session = sessionFactory.open()) {
       assertThat(session.termsAggregation(new MatchAllDocsQuery(), "category", 10))
           .as(mode)
@@ -115,8 +115,12 @@ public class IndexReadSessionContractTest
     }
   }
 
-  @Test
-  public void countDistinctGroupedBy_emptyGroupValues_returnsEmpty() throws Exception {
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("modes")
+  public void countDistinctGroupedBy_emptyGroupValues_returnsEmpty(
+      final String mode,
+      final SessionFactory sessionFactory) throws Exception
+  {
     try (IndexReadSession session = sessionFactory.open()) {
       assertThat(session.countDistinctGroupedBy(
           new MatchAllDocsQuery(), "componentHash", "applicationId", List.of()))
@@ -125,8 +129,12 @@ public class IndexReadSessionContractTest
     }
   }
 
-  @Test
-  public void countDistinctGroupedBy_nullGroupValues_returnsEmpty() throws Exception {
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("modes")
+  public void countDistinctGroupedBy_nullGroupValues_returnsEmpty(
+      final String mode,
+      final SessionFactory sessionFactory) throws Exception
+  {
     try (IndexReadSession session = sessionFactory.open()) {
       assertThat(session.countDistinctGroupedBy(
           new MatchAllDocsQuery(), "componentHash", "applicationId", null))
@@ -135,8 +143,12 @@ public class IndexReadSessionContractTest
     }
   }
 
-  @Test
-  public void searchPage_rejectsCursorFromDifferentBackend() throws Exception {
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("modes")
+  public void searchPage_rejectsCursorFromDifferentBackend(
+      final String mode,
+      final SessionFactory sessionFactory) throws Exception
+  {
     try (IndexReadSession session = sessionFactory.open()) {
       String otherBackend = session.backendId().equals("lucene") ? "opensearch" : "lucene";
 

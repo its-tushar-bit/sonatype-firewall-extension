@@ -13,8 +13,8 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.test.LogOutput;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class AutomatedRemediationStatusDTOTest
 {
-  @Rule
+  @RegisterExtension
   public LogOutput logOutput = new LogOutput(AutomatedRemediationStatusDTO.class);
 
   @Test

@@ -10,16 +10,16 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.File;
 import java.io.IOException;
+import com.sonatype.insight.brain.testsupport.TempFolder;
 import java.nio.file.Files;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.core.env.StandardEnvironment;
 
 public class DropwizardConfigLoaderTest
 {
-  @Rule
-  public TemporaryFolder tempFolder = new TemporaryFolder();
+  @RegisterExtension
+  public TempFolder tempFolder = new TempFolder();
 
   @Test
   public void loadConfig_legacyHttpSection_throwsUpgradeGuidance() throws IOException {

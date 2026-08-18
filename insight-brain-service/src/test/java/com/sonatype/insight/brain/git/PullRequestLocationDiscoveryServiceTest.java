@@ -30,14 +30,16 @@ import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
 import com.sonatype.nexus.iq.location.dto.RankedSourceLocation;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import com.sonatype.insight.brain.testsupport.TempFolder;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -46,12 +48,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class PullRequestLocationDiscoveryServiceTest
     extends VerifiableLoggingTestBase
 {
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+  @RegisterExtension
+  public TempFolder temporaryFolder = new TempFolder();
 
   @Mock
   private GitApiFactory gitApiFactory;
@@ -88,9 +91,8 @@ public class PullRequestLocationDiscoveryServiceTest
     super(PullRequestLocationDiscoveryService.class);
   }
 
-  @Before
+  @BeforeEach
   public void setUp() {
-    MockitoAnnotations.openMocks(this);
     super.setup();
 
     when(gitApiFactory.createGitApi(gitRepositoryInfo)).thenReturn(gitApi);

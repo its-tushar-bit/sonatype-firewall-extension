@@ -20,14 +20,19 @@ import javax.net.ssl.TrustManagerFactory;
 
 import com.sonatype.insight.test.networking.SslProperties;
 
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.rules.ExternalResource;
 
 /**
  * JUnit rule to configure {@link SSLContext#getDefault()} with our testing key/trust store and cleanup after
- * {@link #use()}.
+ * {@link #use()}. Implements the JUnit 5 callbacks so it can be used via {@code @RegisterExtension} as well as the
+ * legacy {@code @Rule}.
  */
 public class SslSettings
     extends ExternalResource
+    implements BeforeEachCallback, AfterEachCallback
 {
   private SSLContext previousContext;
 
@@ -41,6 +46,16 @@ public class SslSettings
     if (previousContext != null) {
       SSLContext.setDefault(previousContext);
     }
+  }
+
+  @Override
+  public void beforeEach(final ExtensionContext context) throws Exception {
+    before();
+  }
+
+  @Override
+  public void afterEach(final ExtensionContext context) {
+    after();
   }
 
   public void use() {

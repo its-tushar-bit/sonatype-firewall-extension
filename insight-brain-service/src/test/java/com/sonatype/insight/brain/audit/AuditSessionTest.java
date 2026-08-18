@@ -5,23 +5,26 @@
  */
 package com.sonatype.insight.brain.audit;
 
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 public class AuditSessionTest
 {
-  @Rule
+  @RegisterExtension
   public TestAuditSession testAuditSession = new TestAuditSession();
 
-  @Test(expected = NullPointerException.class)
+  @Test
   public void testConstructor_RejectNullData() {
-    try (AuditSession auditSession = new AuditSession(null)) {
-      // noop
-    }
+    assertThrows(NullPointerException.class, () -> {
+      try (AuditSession auditSession = new AuditSession(null)) {
+        // noop
+      }
+    });
   }
 
   @Test

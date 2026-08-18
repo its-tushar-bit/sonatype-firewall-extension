@@ -31,18 +31,18 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Map;
 import java.util.Iterator;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import com.sonatype.insight.brain.testsupport.TempFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.StandardEnvironment;
 
 public class DropwizardLoggingAppenderConfigurationTest
 {
-  @Rule
-  public TemporaryFolder tempFolder = new TemporaryFolder();
+  @RegisterExtension
+  public TempFolder tempFolder = new TempFolder();
 
-  @Rule
+  @RegisterExtension
   public LogbackStateRule logbackState = new LogbackStateRule();
 
   private LoggerContext loggerContext;

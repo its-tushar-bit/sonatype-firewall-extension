@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.service.config.StorageConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
 import com.sonatype.insight.brain.service.config.StorageConfig.HybridDataStoreConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
+import com.sonatype.insight.brain.testsupport.TempFolder;
 import com.sonatype.insight.test.LogOutput;
 import java.io.File;
 import java.util.HashMap;
@@ -26,18 +27,17 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
 
 public class InsightConfigTest
 {
-  @Rule
+  @RegisterExtension
   public LogOutput logOutput = new LogOutput(InsightConfig.class);
 
-  @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
+  @RegisterExtension
+  public TempFolder tempDir = new TempFolder();
 
   @Test
   public void testClusterDirectory() {

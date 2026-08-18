@@ -16,9 +16,9 @@ import com.sonatype.insight.brain.SslSettings;
 import com.sonatype.insight.test.networking.SslProperties;
 
 import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -37,10 +37,10 @@ public class EmbeddedLdapServerTest
 
   private EmbeddedLdapServer testLdapServer = new EmbeddedLdapServer();
 
-  @Rule
+  @RegisterExtension
   public SslSettings sslSettings = new SslSettings();
 
-  @After
+  @AfterEach
   public void stopServer() throws Exception {
     if (testLdapServer != null) {
       testLdapServer.stop();

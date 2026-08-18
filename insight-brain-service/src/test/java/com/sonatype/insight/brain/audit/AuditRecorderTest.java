@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.audit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isA;
@@ -33,17 +34,17 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.function.Consumer;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 public class AuditRecorderTest
 {
-  @Rule
+  @RegisterExtension
   public LogOutput logOutput = new LogOutput(AuditRecorder.toLoggerName(AuditEvent.LOGIN.getDomain()));
 
-  @Rule
+  @RegisterExtension
   public TestAuditSession tempAuditData = new TestAuditSession();
 
   @Test
@@ -108,9 +109,9 @@ public class AuditRecorderTest
     assertThat(argumentCaptor2.getValue().getEvent()).isEqualTo(AuditEvent.LOGIN);
   }
 
-  @Test(expected = NullPointerException.class)
+  @Test
   public void testRecordSystemEvent_Null() {
-    new AuditRecorder(null).recordSystemEvent(null);
+    assertThrows(NullPointerException.class, () -> new AuditRecorder(null).recordSystemEvent(null));
   }
 
   @Test

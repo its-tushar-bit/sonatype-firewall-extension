@@ -16,13 +16,14 @@ import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.datastore.DataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
+import com.sonatype.insight.brain.security.TestEnvironmentVariables;
 import com.sonatype.insight.test.LogOutput;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,19 +32,23 @@ import static org.mockito.Mockito.verify;
 public class DatabaseMigrationsTest
     extends AbstractDatabaseTest
 {
-  @Rule
-  public EnvironmentVariables environmentVariables = new EnvironmentVariables();
+  private final TestEnvironmentVariables environmentVariables = new TestEnvironmentVariables();
 
-  @Rule
+  @RegisterExtension
   public LogOutput logOutput = new LogOutput(LegacyDatabaseMigrator.class);
 
   private DatabaseMigrations databaseMigrations;
 
   private List<DatabaseMigrator> testDatabaseMigrators;
 
-  @Before
+  @BeforeEach
   public void before() {
     databaseMigrations = new TestDatabaseMigrations(databaseRule);
+  }
+
+  @AfterEach
+  void restoreEnvironmentVariables() {
+    environmentVariables.restore();
   }
 
   @Test

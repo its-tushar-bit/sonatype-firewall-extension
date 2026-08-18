@@ -8,6 +8,9 @@ package com.sonatype.insight.brain.testing;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.util.ContextInitializer;
 import ch.qos.logback.core.joran.spi.JoranException;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.rules.ExternalResource;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +24,7 @@ import org.slf4j.LoggerFactory;
  */
 public class LogbackStateRule
     extends ExternalResource
+    implements BeforeEachCallback, AfterEachCallback
 {
   @Override
   protected void before() {
@@ -29,6 +33,16 @@ public class LogbackStateRule
 
   @Override
   protected void after() {
+    resetToBaseline();
+  }
+
+  @Override
+  public void beforeEach(final ExtensionContext context) {
+    resetToBaseline();
+  }
+
+  @Override
+  public void afterEach(final ExtensionContext context) {
     resetToBaseline();
   }
 

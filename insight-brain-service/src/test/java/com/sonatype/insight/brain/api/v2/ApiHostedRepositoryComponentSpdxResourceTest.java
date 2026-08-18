@@ -9,17 +9,16 @@ import jakarta.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.api.v2.service.ApiSpdxService;
 import com.sonatype.insight.brain.dataaccess.repository.HostedRepositoryComponentDAO;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.security.SecurityAspectControl;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -32,7 +31,7 @@ import static org.mockito.Mockito.when;
  * and forwards {@code format}, {@code generateCycloneDx}, and {@code spdxVersion} to
  * {@link ApiSpdxService} verbatim.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ApiHostedRepositoryComponentSpdxResourceTest
 {
   private static final String HRC_ID = "hrc-1";
@@ -56,9 +55,8 @@ public class ApiHostedRepositoryComponentSpdxResourceTest
 
   private HostedRepositoryComponent hrc;
 
-  @Before
+  @BeforeEach
   public void setUp() {
-    SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.setEnabled(true);
     // AspectJ compile-time weaving inserts a @HasFeature aspect on the resource class and an
     // @Authorize aspect on its service-call sites. Both fire during Mockito unit tests that
     // bypass the Spring proxy. Disable enforcement here so the aspects short-circuit to the
@@ -69,10 +67,9 @@ public class ApiHostedRepositoryComponentSpdxResourceTest
     when(hostedRepositoryComponentDAO.getByIdNotNull(HRC_ID)).thenReturn(hrc);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     SecurityAspectControl.enableEnforcement();
-    SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.setEnabled(false);
   }
 
   @Test

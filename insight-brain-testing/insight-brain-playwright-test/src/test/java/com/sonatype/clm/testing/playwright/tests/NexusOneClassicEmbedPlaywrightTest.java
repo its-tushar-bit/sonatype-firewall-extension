@@ -207,6 +207,68 @@ public class NexusOneClassicEmbedPlaywrightTest
         .setBody(body)));
   }
 
+  /**
+   * Runs the shared shell dirty-guard flow for a config page: dirty the form, attempt to navigate
+   * away and Cancel (which keeps the user on the still-dirty page), then attempt the same
+   * navigation again and Continue (which discards and lands on the target). Cancel preserves the
+   * dirty state, so the second navigation re-triggers the guard without re-dirtying — this keeps
+   * the flow correct for both fill-based and toggle-based forms.
+   *
+   * @param pageUrl the embed path of the config page under test
+   * @param pageContainer the page's root/container locator (waited for, asserted visible after
+   *          Cancel and hidden after Continue)
+   * @param makeDirty dirties the form so the unsaved-changes guard will fire
+   * @param awayUrl the embed path navigated to in order to trigger the guard
+   */
+  private void assertDirtyGuardCancelThenContinue(
+      String pageUrl,
+      Locator pageContainer,
+      Runnable makeDirty,
+      String awayUrl)
+  {
+    assertDirtyGuardCancelThenContinue(pageUrl, pageContainer, makeDirty, awayUrl, () -> {
+    });
+  }
+
+  /**
+   * Variant of {@link #assertDirtyGuardCancelThenContinue(String, Locator, Runnable, String)} that
+   * also runs {@code afterCancel} once Cancel has kept the user on the page, to assert the unsaved
+   * edit itself survived (e.g. the edited field still holds its dirty value / the toggle stayed
+   * flipped) rather than only that navigation was aborted.
+   *
+   * @param afterCancel extra assertions run after Cancel keeps the user on the still-dirty page
+   */
+  private void assertDirtyGuardCancelThenContinue(
+      String pageUrl,
+      Locator pageContainer,
+      Runnable makeDirty,
+      String awayUrl,
+      Runnable afterCancel)
+  {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl(pageUrl));
+    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+
+    pageContainer.waitFor();
+    makeDirty.run();
+
+    // Cancel keeps the user on the still-dirty page.
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl(awayUrl));
+    assertThat(modal.container()).isVisible();
+    modal.cancelButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(pageContainer).isVisible();
+    afterCancel.run();
+
+    // Continue discards and navigates away (form is still dirty from above).
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl(awayUrl));
+    assertThat(modal.container()).isVisible();
+    modal.continueButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(pageContainer).isHidden();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+  }
+
   @Test
   @Tag("regression")
   public void testEmbeddedApiPage_rendersSwaggerInsideNexusOneShell() {
@@ -653,54 +715,20 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   /**
-   * CLM-42186 dirty-guard cancel path: toggling the switch dirties the form; a
-   * hash navigation triggers the shell dirty-guard; Cancel keeps the user on
-   * the config page with the dirty state intact.
+   * CLM-42186 dirty-guard: toggling the switch dirties the form; navigating away triggers the shell
+   * dirty-guard. Cancel keeps the user on the still-dirty config page, then Continue discards and
+   * lands on the target.
    */
   @Test
   @Tag("regression")
-  public void testEmbeddedSuccessMetricsConfiguration_dirtyGuardBlocksNavigationOnCancel() {
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/successMetricsConfiguration"));
-
+  public void testEmbeddedSuccessMetricsConfiguration_dirtyGuardCancelKeepsPageThenContinueNavigatesAway() {
     SuccessMetricsConfigurationPage configPage = new SuccessMetricsConfigurationPage();
-    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
-
-    configPage.container().waitFor();
-    configPage.enabledToggle().click();
-
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/success-metrics"));
-    assertThat(modal.container()).isVisible();
-
-    modal.cancelButton().click();
-    assertThat(modal.container()).isHidden();
-    assertThat(configPage.container()).isVisible();
-    assertThat(configPage.enabledToggleInput()).not().isChecked();
-  }
-
-  /**
-   * CLM-42186 dirty-guard continue path: Continue closes the modal and lets
-   * the transition proceed; the config page unmounts and the user lands on
-   * the target route.
-   */
-  @Test
-  @Tag("regression")
-  public void testEmbeddedSuccessMetricsConfiguration_dirtyGuardAllowsNavigationOnContinue() {
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/successMetricsConfiguration"));
-
-    SuccessMetricsConfigurationPage configPage = new SuccessMetricsConfigurationPage();
-    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
-    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
-
-    configPage.container().waitFor();
-    configPage.enabledToggle().click();
-
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/success-metrics"));
-    assertThat(modal.container()).isVisible();
-
-    modal.continueButton().click();
-    assertThat(modal.container()).isHidden();
-    assertThat(configPage.container()).isHidden();
-    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertDirtyGuardCancelThenContinue(
+        "/successMetricsConfiguration",
+        configPage.container(),
+        () -> configPage.enabledToggle().click(),
+        "/coming-soon/success-metrics",
+        () -> assertThat(configPage.enabledToggleInput()).not().isChecked());
   }
 
   /**
@@ -751,52 +779,19 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   /**
-   * CLM-42465: createUser form mounts at {@code /users/_new_}. Filling any
-   * field sets {@code userConfiguration.isDirty}; navigating away triggers
-   * the shell dirty-guard modal. Cancel keeps the user on the form.
+   * CLM-42465 dirty-guard: filling a field dirties the create-user form; navigating away triggers
+   * the shell dirty-guard. Cancel keeps the user on the form, then Continue discards and lands on
+   * the target.
    */
   @Test
   @Tag("regression")
-  public void testEmbeddedCreateUser_dirtyGuardBlocksNavigationOnCancel() {
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/users/_new_"));
-
+  public void testEmbeddedCreateUser_dirtyGuardCancelKeepsPageThenContinueNavigatesAway() {
     UserManagementPage userPage = new UserManagementPage();
-    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
-
-    userPage.userForm().waitFor();
-    userPage.firstNameInput().fill("dirty");
-
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/dashboard"));
-    assertThat(modal.container()).isVisible();
-
-    modal.cancelButton().click();
-    assertThat(modal.container()).isHidden();
-    assertThat(userPage.userForm()).isVisible();
-  }
-
-  /**
-   * CLM-42465: Continue closes the dirty-guard modal and lets the navigation
-   * proceed; the create-user form unmounts and the target page mounts.
-   */
-  @Test
-  @Tag("regression")
-  public void testEmbeddedCreateUser_dirtyGuardAllowsNavigationOnContinue() {
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/users/_new_"));
-
-    UserManagementPage userPage = new UserManagementPage();
-    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
-    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
-
-    userPage.userForm().waitFor();
-    userPage.firstNameInput().fill("dirty");
-
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/successMetricsConfiguration"));
-    assertThat(modal.container()).isVisible();
-
-    modal.continueButton().click();
-    assertThat(modal.container()).isHidden();
-    assertThat(userPage.userForm()).isHidden();
-    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertDirtyGuardCancelThenContinue(
+        "/users/_new_",
+        userPage.userForm(),
+        () -> userPage.firstNameInput().fill("dirty"),
+        "/successMetricsConfiguration");
   }
 
   /**
@@ -854,57 +849,20 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   /**
-   * CLM-42464 dirty-guard cancel path: selecting a user from the search dropdown
-   * adds them to addedUsers, setting isDirty=true; a hash navigation triggers
-   * the shell dirty-guard; Cancel keeps the user on the edit page with the dirty
-   * state intact.
+   * CLM-42464 dirty-guard: selecting a user from the search dropdown dirties the edit form;
+   * navigating away triggers the shell dirty-guard. Cancel keeps the user on the edit page, then
+   * Continue discards and lands on the target.
    */
   @Test
   @Tag("regression")
-  public void testEmbeddedAdministratorsEdit_dirtyGuardBlocksNavigationOnCancel() {
+  public void testEmbeddedAdministratorsEdit_dirtyGuardCancelKeepsPageThenContinueNavigatesAway() {
     String searchableUserItem = seedSearchableAdministratorCandidate();
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/administrators/" + Role.POLICY_ADMIN_ROLE_ID));
-
     AdministratorsEditPage editPage = new AdministratorsEditPage();
-    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
-
-    editPage.root().waitFor();
-    editPage.searchAndAddByText("*", searchableUserItem);
-
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/administrators"));
-    assertThat(modal.container()).isVisible();
-
-    modal.cancelButton().click();
-    assertThat(modal.container()).isHidden();
-    assertThat(editPage.root()).isVisible();
-  }
-
-  /**
-   * CLM-42464 dirty-guard continue path: selecting a user from the search
-   * dropdown sets isDirty=true; Continue closes the modal and lets the
-   * transition proceed; the edit page unmounts and the user lands on
-   * the target route.
-   */
-  @Test
-  @Tag("regression")
-  public void testEmbeddedAdministratorsEdit_dirtyGuardAllowsNavigationOnContinue() {
-    String searchableUserItem = seedSearchableAdministratorCandidate();
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/administrators/" + Role.POLICY_ADMIN_ROLE_ID));
-
-    AdministratorsEditPage editPage = new AdministratorsEditPage();
-    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
-    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
-
-    editPage.root().waitFor();
-    editPage.searchAndAddByText("*", searchableUserItem);
-
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/administrators"));
-    assertThat(modal.container()).isVisible();
-
-    modal.continueButton().click();
-    assertThat(modal.container()).isHidden();
-    assertThat(editPage.root()).isHidden();
-    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertDirtyGuardCancelThenContinue(
+        "/administrators/" + Role.POLICY_ADMIN_ROLE_ID,
+        editPage.root(),
+        () -> editPage.searchAndAddByText("*", searchableUserItem),
+        "/administrators");
   }
 
   /**
@@ -959,57 +917,19 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   /**
-   * Base URL dirty-guard cancel path: editing the URL field dirties the form;
-   * a hash navigation triggers the shell dirty-guard; Cancel keeps the user on
-   * the config page with the dirty state intact.
+   * Base URL dirty-guard: editing the URL field dirties the form; navigating away triggers the
+   * shell dirty-guard. Cancel keeps the user on the config page, then Continue discards and lands
+   * on the target.
    */
   @Test
   @Tag("regression")
-  public void testEmbeddedBaseUrlConfiguration_dirtyGuardBlocksNavigationOnCancel() {
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/baseUrl"));
-
+  public void testEmbeddedBaseUrlConfiguration_dirtyGuardCancelKeepsPageThenContinueNavigatesAway() {
     BaseUrlConfigurationPage configPage = new BaseUrlConfigurationPage();
-    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
-
-    configPage.saveButton().waitFor();
-    configPage.baseUrlAttribute().fill(DIRTY_GUARD_TEST_BASE_URL);
-
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/dashboard"));
-    assertThat(modal.container()).isVisible();
-
-    modal.cancelButton().click();
-    assertThat(modal.container()).isHidden();
-    assertThat(configPage.saveButton()).isVisible();
-  }
-
-  /**
-   * Base URL dirty-guard continue path: Continue closes the modal and lets the
-   * transition proceed; the config page unmounts and the user lands on
-   * another Classic-embedded page ({@code /successMetricsConfiguration})
-   * whose classic-component mount asserts the transition actually completed.
-   * Not {@code /dashboard} — that's a native NOUX route with no
-   * {@link NexusOneClassicEmbedPage#classicComponentMount()}, so the sibling
-   * mount assertion never fires there.
-   */
-  @Test
-  @Tag("regression")
-  public void testEmbeddedBaseUrlConfiguration_dirtyGuardAllowsNavigationOnContinue() {
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/baseUrl"));
-
-    BaseUrlConfigurationPage configPage = new BaseUrlConfigurationPage();
-    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
-    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
-
-    configPage.saveButton().waitFor();
-    configPage.baseUrlAttribute().fill(DIRTY_GUARD_TEST_BASE_URL);
-
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/successMetricsConfiguration"));
-    assertThat(modal.container()).isVisible();
-
-    modal.continueButton().click();
-    assertThat(modal.container()).isHidden();
-    assertThat(configPage.saveButton()).isHidden();
-    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertDirtyGuardCancelThenContinue(
+        "/baseUrl",
+        configPage.saveButton(),
+        () -> configPage.baseUrlAttribute().fill(DIRTY_GUARD_TEST_BASE_URL),
+        "/successMetricsConfiguration");
   }
 
   /**
@@ -1034,53 +954,19 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   /**
-   * CLM-42206 dirty-guard cancel path: typing in the notice text field dirties
-   * the form; a hash navigation triggers the shell dirty-guard; Cancel keeps
-   * the user on the config page.
+   * CLM-42206 dirty-guard: typing in the notice text field dirties the form; navigating away
+   * triggers the shell dirty-guard. Cancel keeps the user on the config page, then Continue
+   * discards and lands on the target.
    */
   @Test
   @Tag("regression")
-  public void testEmbeddedSystemNoticeConfiguration_dirtyGuardBlocksNavigationOnCancel() {
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
-
+  public void testEmbeddedSystemNoticeConfiguration_dirtyGuardCancelKeepsPageThenContinueNavigatesAway() {
     SystemNoticePage noticePage = new SystemNoticePage();
-    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
-
-    noticePage.container().waitFor();
-    noticePage.noticeText().fill("dirty notice text");
-
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/success-metrics"));
-    assertThat(modal.container()).isVisible();
-
-    modal.cancelButton().click();
-    assertThat(modal.container()).isHidden();
-    assertThat(noticePage.container()).isVisible();
-  }
-
-  /**
-   * CLM-42206 dirty-guard continue path: Continue closes the modal and lets
-   * the transition proceed; the config page unmounts and the user lands on
-   * the target route.
-   */
-  @Test
-  @Tag("regression")
-  public void testEmbeddedSystemNoticeConfiguration_dirtyGuardAllowsNavigationOnContinue() {
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
-
-    SystemNoticePage noticePage = new SystemNoticePage();
-    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
-    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
-
-    noticePage.container().waitFor();
-    noticePage.noticeText().fill("dirty notice text");
-
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/success-metrics"));
-    assertThat(modal.container()).isVisible();
-
-    modal.continueButton().click();
-    assertThat(modal.container()).isHidden();
-    assertThat(noticePage.container()).isHidden();
-    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertDirtyGuardCancelThenContinue(
+        "/systemNoticeConfiguration",
+        noticePage.container(),
+        () -> noticePage.noticeText().fill("dirty notice text"),
+        "/coming-soon/success-metrics");
   }
 
   /**
@@ -1136,60 +1022,19 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   /**
-   * Mail configuration dirty guard blocks navigation on cancel.
-   *
-   * <p>
-   * Fills a mail hostname field to trigger the dirty state, then attempts to
-   * navigate away. The unsaved changes modal should appear and canceling should
-   * return to the mail config page with the unsaved data still visible.
+   * Mail configuration dirty-guard: filling the hostname field dirties the form; navigating away
+   * triggers the shell dirty-guard. Cancel keeps the user on the config page, then Continue
+   * discards and lands on the target.
    */
   @Test
   @Tag("regression")
-  public void testEmbeddedMailConfiguration_dirtyGuardBlocksNavigationOnCancel() {
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/mailConfig"));
-
+  public void testEmbeddedMailConfiguration_dirtyGuardCancelKeepsPageThenContinueNavigatesAway() {
     MailConfigurationPage mailPage = new MailConfigurationPage();
-    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
-
-    mailPage.container().waitFor();
-    mailPage.hostnameInput().fill("dirty-test-mail.example.invalid");
-
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
-    assertThat(modal.container()).isVisible();
-
-    modal.cancelButton().click();
-    assertThat(modal.container()).isHidden();
-    assertThat(mailPage.container()).isVisible();
-  }
-
-  /**
-   * Mail configuration dirty guard allows navigation on continue.
-   *
-   * <p>
-   * Fills a mail hostname field to trigger the dirty state, then attempts to
-   * navigate away. The unsaved changes modal should appear and continuing should
-   * navigate to the target page (system notice configuration), discarding unsaved
-   * changes.
-   */
-  @Test
-  @Tag("regression")
-  public void testEmbeddedMailConfiguration_dirtyGuardAllowsNavigationOnContinue() {
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/mailConfig"));
-
-    MailConfigurationPage mailPage = new MailConfigurationPage();
-    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
-    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
-
-    mailPage.container().waitFor();
-    mailPage.hostnameInput().fill("dirty-test-mail.example.invalid");
-
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
-    assertThat(modal.container()).isVisible();
-
-    modal.continueButton().click();
-    assertThat(modal.container()).isHidden();
-    assertThat(mailPage.container()).isHidden();
-    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertDirtyGuardCancelThenContinue(
+        "/mailConfig",
+        mailPage.container(),
+        () -> mailPage.hostnameInput().fill("dirty-test-mail.example.invalid"),
+        "/systemNoticeConfiguration");
   }
 
   /**
@@ -1239,54 +1084,20 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   /**
-   * CLM-42956 dirty-guard cancel path: typing in the identity provider name
-   * field dirties the form; a hash navigation triggers the shell dirty-guard;
-   * Cancel keeps the user on the config page with the dirty state intact.
+   * CLM-42956 dirty-guard: typing in the identity provider name field dirties the form; navigating
+   * away triggers the shell dirty-guard. Cancel keeps the user on the config page, then Continue
+   * discards and lands on the target.
    */
   @Test
   @Tag("regression")
-  public void testEmbeddedSamlConfiguration_dirtyGuardBlocksNavigationOnCancel() {
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/saml"));
-
+  public void testEmbeddedSamlConfiguration_dirtyGuardCancelKeepsPageThenContinueNavigatesAway() {
     SamlConfigurationPage samlPage = new SamlConfigurationPage();
-    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
-
-    samlPage.identityProviderName().waitFor();
-    // This value is client-only and requires no server-side cleanup.
-    samlPage.identityProviderName().fill("dirty-idp-name");
-
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
-    assertThat(modal.container()).isVisible();
-
-    modal.cancelButton().click();
-    assertThat(modal.container()).isHidden();
-    assertThat(samlPage.identityProviderName()).hasValue("dirty-idp-name");
-  }
-
-  /**
-   * CLM-42956 dirty-guard continue path: Continue closes the modal and lets
-   * the transition proceed; the config page unmounts and the user lands on
-   * the target route.
-   */
-  @Test
-  @Tag("regression")
-  public void testEmbeddedSamlConfiguration_dirtyGuardAllowsNavigationOnContinue() {
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/saml"));
-
-    SamlConfigurationPage samlPage = new SamlConfigurationPage();
-    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
-    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
-
-    samlPage.identityProviderName().waitFor();
-    samlPage.identityProviderName().fill("dirty-idp-name");
-
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
-    assertThat(modal.container()).isVisible();
-
-    modal.continueButton().click();
-    assertThat(modal.container()).isHidden();
-    assertThat(samlPage.identityProviderName()).isHidden();
-    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertDirtyGuardCancelThenContinue(
+        "/saml",
+        samlPage.identityProviderName(),
+        () -> samlPage.identityProviderName().fill("dirty-idp-name"),
+        "/systemNoticeConfiguration",
+        () -> assertThat(samlPage.identityProviderName()).hasValue("dirty-idp-name"));
   }
 
   /**
@@ -1339,48 +1150,15 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   /**
-   * CLM-42964 dirty-guard cancel path: toggling expiration dirties the form;
-   * a hash navigation triggers the shell dirty-guard; Cancel keeps the user
-   * on the config page with the toggle state preserved.
+   * CLM-42964 dirty-guard: toggling expiration dirties the form; navigating away triggers the
+   * shell dirty-guard. Cancel keeps the user on the config page, then Continue discards and lands
+   * on the target.
    */
   @Test
   @Tag("regression")
-  public void testEmbeddedUserTokensConfiguration_dirtyGuardBlocksNavigationOnCancel() {
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/userTokensConfiguration"));
-
-    UserTokenConfigurationPage userTokensPage = new UserTokenConfigurationPage();
-    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
-
-    userTokensPage.container().waitFor();
-    // Read the initial toggle state so we can verify the flip after clicking.
-    boolean wasChecked = userTokensPage.expirationToggleInput().isChecked();
-    // Toggle the expiration setting to make the form dirty.
-    // This is a client-only change and needs no server-side cleanup.
-    userTokensPage.expirationToggle().click();
-
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
-    assertThat(modal.container()).isVisible();
-
-    modal.cancelButton().click();
-    assertThat(modal.container()).isHidden();
-    assertThat(userTokensPage.container()).isVisible();
-    // Verify the dirty toggle state survived the cancel (state should be flipped).
-    if (wasChecked) {
-      assertThat(userTokensPage.expirationToggleInput()).not().isChecked();
-    }
-    else {
-      assertThat(userTokensPage.expirationToggleInput()).isChecked();
-    }
-  }
-
-  /**
-   * CLM-42964 dirty-guard continue path: Continue closes the modal and lets
-   * the transition proceed; the config page unmounts and the user lands on
-   * the target route.
-   */
-  @Test
-  @Tag("regression")
-  public void testEmbeddedUserTokensConfiguration_dirtyGuardAllowsNavigationOnContinue() {
+  public void testEmbeddedUserTokensConfiguration_dirtyGuardCancelKeepsPageThenContinueNavigatesAway() {
+    // Inlined rather than using assertDirtyGuardCancelThenContinue because the post-Cancel check
+    // asserts the toggle flipped relative to its initial state, read after the page loads.
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/userTokensConfiguration"));
 
     UserTokenConfigurationPage userTokensPage = new UserTokenConfigurationPage();
@@ -1388,12 +1166,27 @@ public class NexusOneClassicEmbedPlaywrightTest
     NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
 
     userTokensPage.container().waitFor();
-    // Toggle the expiration setting to make the form dirty.
+    // Read the initial toggle state so we can verify the flip after clicking.
+    boolean wasChecked = userTokensPage.expirationToggleInput().isChecked();
+    // Toggle the expiration setting to make the form dirty (client-only, no server cleanup).
     userTokensPage.expirationToggle().click();
 
+    // Cancel keeps the user on the still-dirty page with the toggle state flipped.
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
     assertThat(modal.container()).isVisible();
+    modal.cancelButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(userTokensPage.container()).isVisible();
+    if (wasChecked) {
+      assertThat(userTokensPage.expirationToggleInput()).not().isChecked();
+    }
+    else {
+      assertThat(userTokensPage.expirationToggleInput()).isChecked();
+    }
 
+    // Continue discards and navigates away (form is still dirty from above).
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
+    assertThat(modal.container()).isVisible();
     modal.continueButton().click();
     assertThat(modal.container()).isHidden();
     assertThat(userTokensPage.container()).isHidden();
@@ -1502,56 +1295,20 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   /**
-   * CLM-42196: Roles editor dirty-guard cancel path — editing the role name
-   * dirties the form; navigation triggers the shell dirty-guard; Cancel keeps
-   * the user on the editor page with the dirty value intact.
+   * CLM-42196 dirty-guard: editing the role name dirties the editor; navigating away triggers the
+   * shell dirty-guard. Cancel keeps the user on the editor, then Continue discards and lands on
+   * the roles list.
    */
   @Test
   @Tag("regression")
-  public void testEmbeddedRoleEditor_dirtyGuardBlocksNavigationOnCancel() {
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/roles/_new_"));
-
+  public void testEmbeddedRoleEditor_dirtyGuardCancelKeepsPageThenContinueNavigatesAway() {
     RolesPage rolesPage = new RolesPage();
-    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
-
-    rolesPage.roleEditor().waitFor();
-    // Dirty value is client-only; no server-side cleanup needed.
-    rolesPage.roleNameInput().fill("dirty-role-name");
-
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/roles"));
-    assertThat(modal.container()).isVisible();
-
-    modal.cancelButton().click();
-    assertThat(modal.container()).isHidden();
-    // Cancel preserves the dirty value — hasValue, not just isVisible.
-    assertThat(rolesPage.roleNameInput()).hasValue("dirty-role-name");
-  }
-
-  /**
-   * CLM-42196: Roles editor dirty-guard continue path — Continue closes the modal
-   * and lets the transition proceed; the editor unmounts and the user lands on
-   * the roles list (another Classic-embedded page).
-   */
-  @Test
-  @Tag("regression")
-  public void testEmbeddedRoleEditor_dirtyGuardAllowsNavigationOnContinue() {
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/roles/_new_"));
-
-    RolesPage rolesPage = new RolesPage();
-    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
-    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
-
-    rolesPage.roleEditor().waitFor();
-    // Dirty value is client-only; no server-side cleanup needed.
-    rolesPage.roleNameInput().fill("dirty-role-name");
-
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/roles"));
-    assertThat(modal.container()).isVisible();
-
-    modal.continueButton().click();
-    assertThat(modal.container()).isHidden();
-    assertThat(rolesPage.roleEditor()).isHidden();
-    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertDirtyGuardCancelThenContinue(
+        "/roles/_new_",
+        rolesPage.roleEditor(),
+        () -> rolesPage.roleNameInput().fill("dirty-role-name"),
+        "/roles",
+        () -> assertThat(rolesPage.roleNameInput()).hasValue("dirty-role-name"));
   }
 
   /**
@@ -1640,52 +1397,15 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   /**
-   * CLM-42963 dirty-guard cancel path: toggling the checkbox dirties the form;
-   * a hash navigation triggers the shell dirty-guard; Cancel keeps the user on
-   * the config page with the dirty value preserved.
+   * CLM-42963 dirty-guard: toggling the checkbox dirties the form; navigating away triggers the
+   * shell dirty-guard. Cancel keeps the user on the config page, then Continue discards and lands
+   * on the target.
    */
   @Test
   @Tag("regression")
-  public void testEmbeddedAdvancedSearchConfiguration_dirtyGuardBlocksNavigationOnCancel() {
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/advancedSearchConfig"));
-
-    AdvancedSearchConfigurationPage configPage = new AdvancedSearchConfigurationPage();
-    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
-
-    configPage.container().waitFor();
-
-    // Capture the initial state, then flip it to dirty the form. Read-then-flip
-    // avoids the hardcoded assumption that the checkbox starts unchecked — a
-    // prior test in this class (or a server-side setting from a previous run)
-    // can leave it in either state.
-    // The dirty value is client-only, so no server-side cleanup is needed.
-    boolean wasChecked = configPage.enabledCheckbox().isChecked();
-    configPage.enabledCheckbox().click();
-
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/success-metrics"));
-    assertThat(modal.container()).isVisible();
-
-    modal.cancelButton().click();
-    assertThat(modal.container()).isHidden();
-    assertThat(configPage.container()).isVisible();
-
-    // Assert the checkbox is flipped from its initial state — the dirty value survived.
-    if (wasChecked) {
-      assertThat(configPage.enabledCheckbox()).not().isChecked();
-    }
-    else {
-      assertThat(configPage.enabledCheckbox()).isChecked();
-    }
-  }
-
-  /**
-   * CLM-42963 dirty-guard continue path: Continue closes the modal and lets
-   * the transition proceed; the config page unmounts and the user lands on
-   * the target route.
-   */
-  @Test
-  @Tag("regression")
-  public void testEmbeddedAdvancedSearchConfiguration_dirtyGuardAllowsNavigationOnContinue() {
+  public void testEmbeddedAdvancedSearchConfiguration_dirtyGuardCancelKeepsPageThenContinueNavigatesAway() {
+    // Inlined rather than using assertDirtyGuardCancelThenContinue because the post-Cancel check
+    // asserts the checkbox flipped relative to its initial state, read after the page loads.
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/advancedSearchConfig"));
 
     AdvancedSearchConfigurationPage configPage = new AdvancedSearchConfigurationPage();
@@ -1693,13 +1413,27 @@ public class NexusOneClassicEmbedPlaywrightTest
     NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
 
     configPage.container().waitFor();
-
-    // Toggle the checkbox to dirty the form.
+    // Read-then-flip avoids assuming the checkbox's initial state (a prior test or server-side
+    // setting can leave it either way). The dirty value is client-only, so no server cleanup.
+    boolean wasChecked = configPage.enabledCheckbox().isChecked();
     configPage.enabledCheckbox().click();
 
+    // Cancel keeps the user on the still-dirty page with the checkbox flipped.
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/success-metrics"));
     assertThat(modal.container()).isVisible();
+    modal.cancelButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(configPage.container()).isVisible();
+    if (wasChecked) {
+      assertThat(configPage.enabledCheckbox()).not().isChecked();
+    }
+    else {
+      assertThat(configPage.enabledCheckbox()).isChecked();
+    }
 
+    // Continue discards and navigates away (form is still dirty from above).
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/success-metrics"));
+    assertThat(modal.container()).isVisible();
     modal.continueButton().click();
     assertThat(modal.container()).isHidden();
     assertThat(configPage.container()).isHidden();
@@ -1816,58 +1550,25 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   /**
-   * CLM-42877: The dirty guard should block navigation when the user toggles the enable switch
-   * and then attempts to navigate away, clicking Cancel should keep them on the page.
+   * CLM-42877 dirty-guard: toggling the enable switch dirties the form; navigating away triggers
+   * the shell dirty-guard. Cancel keeps the user on the config page, then Continue discards and
+   * lands on the target.
    */
   @Test
   @Tag("regression")
-  public void testEmbeddedAutomaticApplicationsConfiguration_dirtyGuardBlocksNavigationOnCancel() {
-    // Stub the same routes as the render test above: NxStatefulForm's loading
-    // spinner hides the enabled-toggle label until both /rest/organization*
-    // and /rest/config/automaticApplications** have returned. Without stubs
-    // this test is a real API round-trip that can time out under CI load.
+  public void testEmbeddedAutomaticApplicationsConfiguration_dirtyGuardCancelKeepsPageThenContinueNavigatesAway() {
+    // Stub organizations + config so NxStatefulForm's spinner clears and the enabled toggle label
+    // is present (see the render test above for the same stubbing rationale).
     stubAutomaticApplicationsRoutes(AUTO_APP_CONFIG_DISABLED_NO_PARENT_JSON, AUTO_APP_ORGANIZATIONS_JSON);
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/automaticApplicationsConfiguration"));
-
     AutomaticApplicationsConfigurationPage autoAppsPage = new AutomaticApplicationsConfigurationPage();
-    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
-
-    autoAppsPage.enabledToggleLabel().waitFor();
-    autoAppsPage.enabledToggleLabel().click();
-
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
-    assertThat(modal.container()).isVisible();
-
-    modal.cancelButton().click();
-    assertThat(modal.container()).isHidden();
-    assertThat(autoAppsPage.tile()).isVisible();
-  }
-
-  /**
-   * CLM-42877: The dirty guard should allow navigation when the user toggles the enable switch
-   * and then clicks Continue on the unsaved changes modal, navigating away from the page.
-   */
-  @Test
-  @Tag("regression")
-  public void testEmbeddedAutomaticApplicationsConfiguration_dirtyGuardAllowsNavigationOnContinue() {
-    // See dirtyGuardBlocksNavigationOnCancel above for why these stubs are needed.
-    stubAutomaticApplicationsRoutes(AUTO_APP_CONFIG_DISABLED_NO_PARENT_JSON, AUTO_APP_ORGANIZATIONS_JSON);
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/automaticApplicationsConfiguration"));
-
-    AutomaticApplicationsConfigurationPage autoAppsPage = new AutomaticApplicationsConfigurationPage();
-    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
-    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
-
-    autoAppsPage.enabledToggleLabel().waitFor();
-    autoAppsPage.enabledToggleLabel().click();
-
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
-    assertThat(modal.container()).isVisible();
-
-    modal.continueButton().click();
-    assertThat(modal.container()).isHidden();
-    assertThat(autoAppsPage.tile()).isHidden();
-    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertDirtyGuardCancelThenContinue(
+        "/automaticApplicationsConfiguration",
+        autoAppsPage.tile(),
+        () -> {
+          autoAppsPage.enabledToggleLabel().waitFor();
+          autoAppsPage.enabledToggleLabel().click();
+        },
+        "/systemNoticeConfiguration");
   }
 
   /**
@@ -1914,48 +1615,15 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   /**
-   * CLM-42962 dirty-guard cancel path: toggling the enabled checkbox dirties
-   * the form; a hash navigation triggers the shell dirty-guard; Cancel keeps
-   * the user on the config page with the dirty state intact.
+   * CLM-42962 dirty-guard: toggling the enabled checkbox dirties the form; navigating away triggers
+   * the shell dirty-guard. Cancel keeps the user on the config page, then Continue discards and
+   * lands on the target.
    */
   @Test
   @Tag("regression")
-  public void testEmbeddedAutomaticSourceControlConfiguration_dirtyGuardBlocksNavigationOnCancel() {
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/automaticSourceControlConfiguration"));
-
-    AutomaticSourceControlConfigurationPage autoScmPage = new AutomaticSourceControlConfigurationPage();
-    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
-
-    autoScmPage.container().waitFor();
-    // Capture initial state, then flip it to create a dirty value. Read-then-flip
-    // avoids the hardcoded assumption that the toggle starts unchecked — a prior
-    // test in this class can leave it in either state.
-    boolean wasChecked = autoScmPage.toggleInput().isChecked();
-    autoScmPage.toggleLabel().click();
-
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
-    assertThat(modal.container()).isVisible();
-
-    modal.cancelButton().click();
-    assertThat(modal.container()).isHidden();
-    // Cancel preserves the dirty value — assert the toggle is flipped from its initial state.
-    assertThat(autoScmPage.container()).isVisible();
-    if (wasChecked) {
-      assertThat(autoScmPage.toggleInput()).not().isChecked();
-    }
-    else {
-      assertThat(autoScmPage.toggleInput()).isChecked();
-    }
-  }
-
-  /**
-   * CLM-42962 dirty-guard continue path: Continue closes the modal and lets
-   * the transition proceed; the config page unmounts and the user lands on
-   * another Classic-embedded page.
-   */
-  @Test
-  @Tag("regression")
-  public void testEmbeddedAutomaticSourceControlConfiguration_dirtyGuardAllowsNavigationOnContinue() {
+  public void testEmbeddedAutomaticSourceControlConfiguration_dirtyGuardCancelKeepsPageThenContinueNavigatesAway() {
+    // Inlined rather than using assertDirtyGuardCancelThenContinue because the post-Cancel check
+    // asserts the toggle flipped relative to its initial state, read after the page loads.
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/automaticSourceControlConfiguration"));
 
     AutomaticSourceControlConfigurationPage autoScmPage = new AutomaticSourceControlConfigurationPage();
@@ -1963,12 +1631,27 @@ public class NexusOneClassicEmbedPlaywrightTest
     NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
 
     autoScmPage.container().waitFor();
-    // Toggle to create dirty state
+    // Read-then-flip avoids assuming the toggle's initial state (a prior test can leave it either
+    // way). The dirty value is client-only, so no server cleanup is needed.
+    boolean wasChecked = autoScmPage.toggleInput().isChecked();
     autoScmPage.toggleLabel().click();
 
+    // Cancel keeps the user on the still-dirty page with the toggle flipped.
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
     assertThat(modal.container()).isVisible();
+    modal.cancelButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(autoScmPage.container()).isVisible();
+    if (wasChecked) {
+      assertThat(autoScmPage.toggleInput()).not().isChecked();
+    }
+    else {
+      assertThat(autoScmPage.toggleInput()).isChecked();
+    }
 
+    // Continue discards and navigates away (form is still dirty from above).
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
+    assertThat(modal.container()).isVisible();
     modal.continueButton().click();
     assertThat(modal.container()).isHidden();
     assertThat(autoScmPage.container()).isHidden();
@@ -2077,13 +1760,18 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   /**
-   * CLM-42876 dirty-guard cancel path: editing the host name dirties the form;
-   * a hash navigation triggers the shell dirty-guard; Cancel keeps the user on
-   * the Proxy page with the dirty state intact.
+   * CLM-42876 dirty-guard: editing the host name dirties the form; navigating to the dashboard (a
+   * native NOUX route with no dirty guard) triggers the shell dirty-guard. Cancel keeps the user on
+   * the still-dirty Proxy page, then Continue discards and lands on the dashboard.
+   *
+   * <p>
+   * Inlined rather than using {@link #assertDirtyGuardCancelThenContinue} because this pair
+   * navigates via {@link NexusOnePage#url} to {@code /dashboard} (which has no
+   * {@link NexusOneClassicEmbedPage#classicComponentMount()}) and asserts the destination by URL.
    */
   @Test
   @Tag("regression")
-  public void testEmbeddedProxyConfiguration_dirtyGuardBlocksNavigationOnCancel() {
+  public void testEmbeddedProxyConfiguration_dirtyGuardCancelKeepsPageThenContinueNavigatesAway() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/proxyConfig"));
 
     ProxyConfigurationPage proxyPage = new ProxyConfigurationPage();
@@ -2094,42 +1782,20 @@ public class NexusOneClassicEmbedPlaywrightTest
     // @Before re-login reloads a fresh page and no server-side cleanup is required.
     proxyPage.hostName().fill("dirty-proxy-test.example.invalid");
 
-    // Navigate to dashboard, which has no dirty guard
+    // Cancel keeps the user on the still-dirty page.
     playwrightRefreshOrOpen(NexusOnePage.url("/dashboard"));
     assertThat(modal.container()).isVisible();
-
     modal.cancelButton().click();
     assertThat(modal.container()).isHidden();
     assertThat(proxyPage.hostName()).isVisible();
     assertThat(proxyPage.hostName()).hasValue("dirty-proxy-test.example.invalid");
-  }
 
-  /**
-   * CLM-42876 dirty-guard continue path: Continue closes the modal and lets
-   * the transition proceed; the proxy page unmounts and the user lands on
-   * the destination page.
-   */
-  @Test
-  @Tag("regression")
-  public void testEmbeddedProxyConfiguration_dirtyGuardAllowsNavigationOnContinue() {
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/proxyConfig"));
-
-    ProxyConfigurationPage proxyPage = new ProxyConfigurationPage();
-    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
-    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
-
-    proxyPage.hostName().waitFor();
-    // Client-only dirty value — see cancel test above.
-    proxyPage.hostName().fill("dirty-proxy-test.example.invalid");
-
-    // Navigate to dashboard, which has no dirty guard
+    // Continue discards and navigates to the dashboard (form is still dirty from above).
     playwrightRefreshOrOpen(NexusOnePage.url("/dashboard"));
     assertThat(modal.container()).isVisible();
-
     modal.continueButton().click();
     assertThat(modal.container()).isHidden();
     assertThat(proxyPage.hostName()).isHidden();
-    // Verify we arrived at the dashboard, not just away from proxy
     assertThat(page).hasURL(Pattern.compile(".*/dashboard.*"));
   }
 
@@ -2224,61 +1890,21 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   /**
-   * CLM-42957 dirty-guard cancel path: filling the Server url field dirties
-   * the form; a hash navigation triggers the shell dirty-guard; Cancel keeps
-   * the user on the config page with the dirty state intact.
+   * CLM-42957 dirty-guard: filling the Server URL field dirties the form; navigating away triggers
+   * the shell dirty-guard. Cancel keeps the user on the config page, then Continue discards and
+   * lands on the target.
    */
   @Test
   @Tag("regression")
-  public void testEmbeddedCrowdConfiguration_dirtyGuardBlocksNavigationOnCancel() {
+  public void testEmbeddedCrowdConfiguration_dirtyGuardCancelKeepsPageThenContinueNavigatesAway() {
     setFeatures(LicensedFeature.values());
-
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/crowd"));
-
     CrowdConfigurationPage crowdPage = new CrowdConfigurationPage();
-    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
-
-    crowdPage.container().waitFor();
-    // Dirty value is client-only; no server-side cleanup needed.
-    crowdPage.serverUrl().fill("http://dirty-crowd.invalid");
-
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/dashboard"));
-    assertThat(modal.container()).isVisible();
-
-    modal.cancelButton().click();
-    assertThat(modal.container()).isHidden();
-    assertThat(crowdPage.container()).isVisible();
-    // The dirty value survives the cancel action.
-    assertThat(crowdPage.serverUrl()).hasValue("http://dirty-crowd.invalid");
-  }
-
-  /**
-   * CLM-42957 dirty-guard continue path: Continue closes the modal and lets
-   * the transition proceed; the config page unmounts and the user lands on
-   * another Classic-embedded page ({@code /successMetricsConfiguration})
-   * whose classic-component mount asserts the transition actually completed.
-   */
-  @Test
-  @Tag("regression")
-  public void testEmbeddedCrowdConfiguration_dirtyGuardAllowsNavigationOnContinue() {
-    setFeatures(LicensedFeature.values());
-
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/crowd"));
-
-    CrowdConfigurationPage crowdPage = new CrowdConfigurationPage();
-    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
-    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
-
-    crowdPage.container().waitFor();
-    crowdPage.serverUrl().fill("http://dirty-crowd.invalid");
-
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/successMetricsConfiguration"));
-    assertThat(modal.container()).isVisible();
-
-    modal.continueButton().click();
-    assertThat(modal.container()).isHidden();
-    assertThat(crowdPage.container()).isHidden();
-    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertDirtyGuardCancelThenContinue(
+        "/crowd",
+        crowdPage.container(),
+        () -> crowdPage.serverUrl().fill("http://dirty-crowd.invalid"),
+        "/successMetricsConfiguration",
+        () -> assertThat(crowdPage.serverUrl()).hasValue("http://dirty-crowd.invalid"));
   }
 
   /**
@@ -2387,55 +2013,20 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   /**
-   * CLM-42961 dirty-guard cancel path: editing the URL field dirties the form;
-   * a hash navigation triggers the shell dirty-guard; Cancel keeps the user on
-   * the edit page with the dirty state intact.
+   * CLM-42961 dirty-guard: editing the URL field dirties the editor; navigating away triggers the
+   * shell dirty-guard. Cancel keeps the user on the editor, then Continue discards and lands on the
+   * target.
    */
   @Test
   @Tag("regression")
-  public void testEmbeddedWebhookEditor_dirtyGuardBlocksNavigationOnCancel() {
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/webhooks/create"));
-
+  public void testEmbeddedWebhookEditor_dirtyGuardCancelKeepsPageThenContinueNavigatesAway() {
     WebhookEditorPage editorPage = new WebhookEditorPage();
-    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
-
-    editorPage.container().waitFor();
-    // Dirty value is client-only; no server-side cleanup needed.
-    editorPage.urlInput().fill("https://dirty-webhook-test.invalid");
-
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/webhooks/list"));
-    assertThat(modal.container()).isVisible();
-
-    modal.cancelButton().click();
-    assertThat(modal.container()).isHidden();
-    assertThat(editorPage.container()).isVisible();
-    assertThat(editorPage.urlInput()).hasValue("https://dirty-webhook-test.invalid");
-  }
-
-  /**
-   * CLM-42961 dirty-guard continue path: Continue closes the modal and lets
-   * the transition proceed; the edit page unmounts and the user lands on
-   * another Classic-embedded page.
-   */
-  @Test
-  @Tag("regression")
-  public void testEmbeddedWebhookEditor_dirtyGuardAllowsNavigationOnContinue() {
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/webhooks/create"));
-
-    WebhookEditorPage editorPage = new WebhookEditorPage();
-    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
-    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
-
-    editorPage.container().waitFor();
-    editorPage.urlInput().fill("https://dirty-webhook-test.invalid");
-
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
-    assertThat(modal.container()).isVisible();
-
-    modal.continueButton().click();
-    assertThat(modal.container()).isHidden();
-    assertThat(editorPage.container()).isHidden();
-    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertDirtyGuardCancelThenContinue(
+        "/webhooks/create",
+        editorPage.container(),
+        () -> editorPage.urlInput().fill("https://dirty-webhook-test.invalid"),
+        "/systemNoticeConfiguration",
+        () -> assertThat(editorPage.urlInput()).hasValue("https://dirty-webhook-test.invalid"));
   }
 
   /**

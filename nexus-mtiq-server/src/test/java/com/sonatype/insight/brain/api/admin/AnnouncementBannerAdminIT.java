@@ -5,22 +5,27 @@
  */
 package com.sonatype.insight.brain.api.admin;
 
-import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.configuration.AnnouncementBannerResource;
 import com.sonatype.insight.brain.logging.MultiTenantAuditLogAppenderFactory;
 import com.sonatype.insight.brain.model.configuration.AnnouncementBanner;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
-import com.sonatype.insight.brain.tenancy.Tenant;
 
-import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_ANNOUNCEMENT_BANNER_PATH;
@@ -159,18 +164,44 @@ public class AnnouncementBannerAdminIT
 
   @Test
   public void shouldWriteAuditLogEntry_whenPutSucceeds() throws Exception {
-    // @Audited(CONFIGURE_ANNOUNCEMENT_BANNER) must land in the global-tenant audit log on a successful PUT.
+    // A successful PUT writes a CONFIGURE_ANNOUNCEMENT_BANNER audit entry (identified by its audit domain).
+    // The SiftingAppender writes per tenant under <base>/<tenant>/log/audit.log, so match on the domain
+    // across any tenant folder rather than a fixed path.
     AnnouncementBanner banner = enabledBanner("audit-smoke");
 
     HttpResponse put = callBannerAdminEndpoint("global").body(banner).put();
     assertResponseStatus(200, put);
 
-    String auditLogFileName = MultiTenantAuditLogAppenderFactory.getAuditLogFileName(Tenant.GLOBAL_TENANT.tenantSlug);
-    File auditLogFile = new File(auditLogFileName);
-    await().atMost(5, TimeUnit.SECONDS).until(auditLogFile::exists);
+    String auditDomain = AuditEvent.CONFIGURE_ANNOUNCEMENT_BANNER.getDomain();
+    // getAuditLogFileName returns "<base>/<tenant>/log/audit.log"; the shared <base> that holds every
+    // tenant's audit folder is three segments up. requireParent asserts each step so a shorter-than-expected
+    // path fails with a clear message instead of an NPE inside readAuditEntries.
+    Path auditBase = requireParent(requireParent(requireParent(
+        Paths.get(MultiTenantAuditLogAppenderFactory.getAuditLogFileName("x")))));
 
-    String auditLog = FileUtils.readFileToString(auditLogFile, StandardCharsets.UTF_8);
-    assertThat(auditLog).contains("CONFIGURE_ANNOUNCEMENT_BANNER");
+    await().atMost(15, TimeUnit.SECONDS)
+        .untilAsserted(() -> assertThat(readAuditEntries(auditBase))
+            .as("audit entries under %s", auditBase)
+            .anyMatch(entry -> entry.contains(auditDomain)));
+  }
+
+  private static List<String> readAuditEntries(final Path auditBase) throws IOException {
+    if (!Files.isDirectory(auditBase)) {
+      return List.of();
+    }
+    try (Stream<Path> paths = Files.walk(auditBase)) {
+      List<String> entries = new ArrayList<>();
+      for (Path auditLog : paths.filter(path -> path.getFileName().toString().equals("audit.log")).toList()) {
+        entries.addAll(Files.readAllLines(auditLog, StandardCharsets.UTF_8));
+      }
+      return entries;
+    }
+  }
+
+  private static Path requireParent(final Path path) {
+    Path parent = path.getParent();
+    assertThat(parent).as("expected a parent directory for %s", path).isNotNull();
+    return parent;
   }
 
   @Test

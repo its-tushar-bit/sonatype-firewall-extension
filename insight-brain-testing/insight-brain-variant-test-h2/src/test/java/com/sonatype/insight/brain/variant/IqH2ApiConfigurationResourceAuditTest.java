@@ -47,6 +47,10 @@ class IqH2ApiConfigurationResourceAuditTest
 
   @AfterEach
   void after() {
+    // These tests set deployment-global BASE_URL/FORCE_BASE_URL on the shared reused server. Un-force it
+    // (BASE_URL=null, FORCE_BASE_URL=false) so later tests on the same server (e.g. redirect
+    // base-URL/forwarded-proto behavior) are unaffected.
+    ctx.setBaseUrl(null);
     logOutput.tearDown();
   }
 

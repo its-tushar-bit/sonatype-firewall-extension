@@ -93,119 +93,130 @@ public class AdminServletTest
     assertThat(adminRequest().path("pprof").query("frequency", -1).query("duration", "1").get()).isNotNull();
   }
 
+  /**
+   * Verifies that a graceful shutdown waits for every category of registered blocking item before exiting, and that
+   * items are drained in {@link com.sonatype.insight.brain.shutdown.ShutdownPriority} order: ACTIVE_REQUESTS (an
+   * in-flight REST request), then QUARTZ_SCHEDULERS (a running scheduler job), then DEFAULT (a bare thread and an
+   * executor service).
+   *
+   * <p>
+   * All four item types are registered against a single server and drained by a single {@code tasks/shutdown}, so
+   * this pays for one server boot instead of one boot per item type.
+   */
   @Test
-  public void testTasksShutdown_WaitsForActiveRequests() throws Exception {
-    TestBlockResource testBlockResource = getCLMServer().getInstance(TestBlockResource.class);
-    AtomicReference<HttpResponse> blockResponse = new AtomicReference<>();
-    testTasksShutdown_WaitsFor(
-        () -> tryCheckedRunnable(() -> blockResponse.set(restRequest().path("test", "block").post())),
-        testBlockResource.blocker,
-        Duration.ofMinutes(1),
-        "[^']*ActiveRequestCounterFilter[^']*",
-        () -> assertThat(restRequest().path("rest", "product", "version").get().getStatusCode()).isEqualTo(503));
-    assertThat(blockResponse.get().getStatusCode()).isEqualTo(204);
-  }
+  @Timeout(value = 120, unit = TimeUnit.SECONDS)
+  public void testTasksShutdown_WaitsForRegisteredItemsInPriorityOrder() throws Exception {
+    Duration timeout = Duration.ofMinutes(1);
+    long stillBlockedCheckMillis = 300;
+    // The test performs one sustained-block sleep per registered item (4 items). Budget the shared deadline for all
+    // of them on top of the shutdown-wait timeout, so the later await()/Mockito-timeout calls that use
+    // (end - now) never see a near-zero or negative remaining budget on a loaded CI box.
+    int sustainedBlockChecks = 4;
+    long end =
+        System.currentTimeMillis() + timeout.toMillis() + (sustainedBlockChecks * stillBlockedCheckMillis);
 
-  @Test
-  public void testTasksShutdown_WaitsForScheduler() throws Exception {
     TaskScheduler taskScheduler = getCLMServer().getInstance(TaskScheduler.class);
+    ShutdownHandler shutdownHandler = getCLMServer().getInstance(ShutdownHandler.class);
     try {
+      // ACTIVE_REQUESTS (order 0): an in-flight REST request tracked by ActiveRequestCounterFilter
+      TestBlockResource testBlockResource = getCLMServer().getInstance(TestBlockResource.class);
+      AtomicReference<HttpResponse> blockResponse = new AtomicReference<>();
+      new Thread(() -> tryCheckedRunnable(() -> blockResponse.set(restRequest().path("test", "block").post())))
+          .start();
+
+      // QUARTZ_SCHEDULERS (order 1): a running scheduler job
       taskScheduler.disableForTesting = false;
       taskScheduler.start();
       TestBlockJob testBlockJob = getCLMServer().getInstance(TestBlockJob.class);
-      testTasksShutdown_WaitsFor(
-          () -> taskScheduler.scheduleOneTimeTask(testBlockJob),
-          testBlockJob.blocker,
-          Duration.ofMinutes(1),
-          "[^']*StdScheduler[^']*");
-      assertThat(taskScheduler.getScheduler()).isNull();
-    }
-    finally {
-      taskScheduler.disableForTesting = true;
-    }
-  }
+      new Thread(() -> taskScheduler.scheduleOneTimeTask(testBlockJob)).start();
 
-  @Test
-  public void testTasksShutdown_WaitsForThread() throws Exception {
-    ShutdownHandler shutdownHandler = getCLMServer().getInstance(ShutdownHandler.class);
-    Blocker blocker = new Blocker();
-    Thread thread = new Thread(() -> tryCheckedRunnable(blocker::block));
-    shutdownHandler.add(thread);
-    testTasksShutdown_WaitsFor(
-        thread::start,
-        blocker,
-        Duration.ofMinutes(1),
-        "[^']*" + Integer.toHexString(thread.hashCode()) + "[^']*");
-    assertThat(thread.isAlive()).isFalse();
-  }
+      // DEFAULT (order 2): a bare thread and an executor service
+      Blocker threadBlocker = new Blocker();
+      Thread thread = new Thread(() -> tryCheckedRunnable(threadBlocker::block));
+      shutdownHandler.add(thread);
+      thread.start();
 
-  @Test
-  public void testTasksShutdown_WaitsForExecutorService() throws Exception {
-    ShutdownHandler shutdownHandler = getCLMServer().getInstance(ShutdownHandler.class);
-    Blocker blocker = new Blocker();
-    ExecutorService executorService = Executors.newSingleThreadExecutor();
-    shutdownHandler.add(executorService);
-    testTasksShutdown_WaitsFor(
-        () -> executorService.submit(() -> tryCheckedRunnable(blocker::block)),
-        blocker,
-        Duration.ofMinutes(1),
-        "[^']*" + Integer.toHexString(executorService.hashCode()) + "[^']*");
-  }
+      Blocker executorBlocker = new Blocker();
+      ExecutorService executorService = Executors.newSingleThreadExecutor();
+      shutdownHandler.add(executorService);
+      executorService.submit(() -> tryCheckedRunnable(executorBlocker::block));
 
-  private void testTasksShutdown_WaitsFor(
-      final Runnable blockerTrigger,
-      final Blocker blocker,
-      final Duration timeout,
-      final String itemDescriptionRegex,
-      final CheckedRunnable... assertions) throws Exception
-  {
-    long extraMillisToWait = 1000;
-    long end = System.currentTimeMillis() + timeout.toMillis() + extraMillisToWait;
-    try {
-      // Start whatever should block shutdown until we decide to unblock it
-      new Thread(blockerTrigger).start();
-      await().atMost(end - System.currentTimeMillis(), TimeUnit.MILLISECONDS).until(blocker::isBlocking);
+      // Every item must be actively blocking before shutdown is initiated
+      await().atMost(end - System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+          .until(() -> testBlockResource.blocker.isBlocking()
+              && testBlockJob.blocker.isBlocking()
+              && threadBlocker.isBlocking()
+              && executorBlocker.isBlocking());
 
-      // Start shutdown
+      // Initiate shutdown
       AtomicReference<HttpResponse> shutdownResponse = new AtomicReference<>();
       Thread shutdownTaskThread = new Thread(
           () -> tryCheckedRunnable(() -> shutdownResponse.set(adminRequest().path("tasks", "shutdown").post())));
       shutdownTaskThread.start();
-      await().atMost(5, TimeUnit.SECONDS)
-          .untilAsserted(() -> assertThat(logOutput)
-              .atDebugLevel()
-              .containsPattern(
-                  String.format("Initiating shutdown for order '[^']*', origin '[^']*', item '%s'.",
-                      itemDescriptionRegex))
-              .containsPattern(
-                  String.format("Waiting for shutdown for order '[^']*', origin '[^']*', item '%s'.",
-                      itemDescriptionRegex)));
 
-      // Wait some time
-      Thread.sleep(extraMillisToWait);
-
-      // Check shutdown is still blocked
-      assertThat(blocker.isBlocking()).isTrue();
+      // ACTIVE_REQUESTS is drained first; shutdown blocks here until the in-flight request finishes
+      awaitShutdownWaitingFor("[^']*ActiveRequestCounterFilter[^']*", end);
+      // New requests are rejected with 503 while shutdown is in progress
+      assertThat(restRequest().path("rest", "product", "version").get().getStatusCode()).isEqualTo(503);
+      // Shutdown must still be blocked after a beat (it must wait for the item, not race through)
+      Thread.sleep(stillBlockedCheckMillis);
+      assertThat(testBlockResource.blocker.isBlocking()).isTrue();
       assertThat(shutdownTaskThread.isAlive()).isTrue();
-
-      // Unblock shutdown
-      blocker.unblock();
-      // Wait for shutdown to finish
+      testBlockResource.blocker.unblock();
       await().atMost(end - System.currentTimeMillis(), TimeUnit.MILLISECONDS)
-          .untilAsserted(() -> assertThat(blocker.isBlocking()).isFalse());
+          .untilAsserted(() -> assertThat(blockResponse.get()).isNotNull());
+      assertThat(blockResponse.get().getStatusCode()).isEqualTo(204);
+
+      // QUARTZ_SCHEDULERS is drained next
+      awaitShutdownWaitingFor("[^']*StdScheduler[^']*", end);
+      // Shutdown must still be blocked on the running scheduler job — proves it actually waits, not just that
+      // ShutdownHandler logged the (unconditional) "Waiting for" line before calling future.get().
+      Thread.sleep(stillBlockedCheckMillis);
+      assertThat(testBlockJob.blocker.isBlocking()).isTrue();
+      assertThat(shutdownTaskThread.isAlive()).isTrue();
+      testBlockJob.blocker.unblock();
+
+      // DEFAULT items (thread + executor service) are drained last. Items sharing an order are initiated together but
+      // waited on sequentially, so unblock the thread before expecting the executor service's wait.
+      awaitShutdownWaitingFor("[^']*" + Integer.toHexString(thread.hashCode()) + "[^']*", end);
+      // Shutdown must still be blocked on the DEFAULT thread item.
+      Thread.sleep(stillBlockedCheckMillis);
+      assertThat(threadBlocker.isBlocking()).isTrue();
+      assertThat(shutdownTaskThread.isAlive()).isTrue();
+      threadBlocker.unblock();
+      awaitShutdownWaitingFor("[^']*" + Integer.toHexString(executorService.hashCode()) + "[^']*", end);
+      // Shutdown must still be blocked on the DEFAULT executor-service item.
+      Thread.sleep(stillBlockedCheckMillis);
+      assertThat(executorBlocker.isBlocking()).isTrue();
+      assertThat(shutdownTaskThread.isAlive()).isTrue();
+      executorBlocker.unblock();
+
+      // Shutdown completes only once every item has drained
       await().atMost(end - System.currentTimeMillis(), TimeUnit.MILLISECONDS)
           .untilAsserted(() -> assertThat(shutdownResponse.get()).isNotNull());
       assertThat(shutdownResponse.get().getStatusCode()).isEqualTo(200);
       TestShutdownHandler spyTestShutdownHandler =
           (TestShutdownHandler) getCLMServer().getInstance(ShutdownHandler.class);
       verify(spyTestShutdownHandler, timeout(end - System.currentTimeMillis())).exit(0);
-      for (CheckedRunnable checkedRunnable : assertions) {
-        checkedRunnable.run();
-      }
+      assertThat(thread.isAlive()).isFalse();
+      assertThat(taskScheduler.getScheduler()).isNull();
     }
     finally {
+      taskScheduler.disableForTesting = true;
       stopClmServer();
     }
+  }
+
+  private void awaitShutdownWaitingFor(final String itemDescriptionRegex, final long end) {
+    await().atMost(end - System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+        .untilAsserted(() -> assertThat(logOutput)
+            .atDebugLevel()
+            .containsPattern(
+                String.format("Initiating shutdown for order '[^']*', origin '[^']*', item '%s'.",
+                    itemDescriptionRegex))
+            .containsPattern(
+                String.format("Waiting for shutdown for order '[^']*', origin '[^']*', item '%s'.",
+                    itemDescriptionRegex)));
   }
 
   public static final class Blocker

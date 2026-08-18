@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -30,6 +31,14 @@ class IqH2ApiConfigurationResourceTest
   @BeforeEach
   void setUp() {
     dao = ctx.lookup(SystemConfigurationPropertyDAO.class);
+  }
+
+  @AfterEach
+  void resetBaseUrlConfiguration() {
+    // testGetConfiguration/testSetConfiguration set deployment-global BASE_URL/FORCE_BASE_URL on the shared
+    // reused server without cleanup; un-force it (BASE_URL=null, FORCE_BASE_URL=false) so later tests on the
+    // same server (e.g. redirect base-URL/forwarded-proto behavior) are unaffected.
+    ctx.setBaseUrl(null);
   }
 
   private HttpRequest restRequest() {

@@ -47,6 +47,9 @@ public class PolicyAlertScmNotifier
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyAlertScmNotifier.class);
 
+  /** Prefix of the async SCM-notifier thread name (per scan); shared with tests that join on it. */
+  public static final String THREAD_NAME_PREFIX = "PolicyAlertScmNotifierForScan-";
+
   private final AutomatedPullRequestCreationService automatedPullRequestCreationService;
 
   private final PullRequestCommentingRemediationService pullRequestCommentingRemediationService;
@@ -173,7 +176,7 @@ public class PolicyAlertScmNotifier
   {
     public void execute(final String scanId, Runnable runnable) {
       Thread scmNotificationThread =
-          new Thread(new TenantAwareOneTimeRunnable(runnable), "PolicyAlertScmNotifierForScan-" + scanId);
+          new Thread(new TenantAwareOneTimeRunnable(runnable), THREAD_NAME_PREFIX + scanId);
       shutdownHandler.add(scmNotificationThread, ShutdownPriority.NOTIFICATIONS);
       scmNotificationThread.start();
     }

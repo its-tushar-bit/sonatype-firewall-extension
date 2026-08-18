@@ -80,6 +80,17 @@ public abstract class SpringInjectedTest
 
   private static String lastActiveFixtureSignature;
 
+  /**
+   * Set when the shared test {@code DatabaseContainer} is re-provisioned by <em>another</em> test in the
+   * same reused JVM (e.g. a full-server {@code AbstractBaseIntegrationTest} flips the
+   * {@code DatabaseContainerRule} singleton onto a different base-class fixture, closing the previous
+   * connection pool). The cached Spring context still holds beans bound to the now-closed datasource, yet
+   * the fixture-type signature is unchanged, so the normal fixture check would not rebuild it. This flag
+   * forces the next dependency-injected test to refresh its context before touching the DB. Written via
+   * {@link #onSharedDatabaseContainerReprovisioned()} and consumed under {@link #FIXTURE_LOCK}.
+   */
+  private static volatile boolean sharedDatabaseContainerReprovisioned;
+
   private static final String DB_FIXTURE_ANNOTATION_PREFIX =
       "com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations$";
 
@@ -164,6 +175,17 @@ public abstract class SpringInjectedTest
     // Synchronized to prevent TOCTOU races under parallel test execution - the read-compare-act
     // must be atomic so one thread's getAndSet cannot cause another thread to spuriously refresh.
     synchronized (FIXTURE_LOCK) {
+      // A test elsewhere in this reused JVM re-provisioned the shared DatabaseContainer (closing the
+      // previous connection pool). The fixture-type signature is unchanged, so the checks below would
+      // not rebuild the cached context and its beans would stay bound to the now-closed datasource.
+      // Force a rebuild so this test's DB access uses the current pool.
+      if (sharedDatabaseContainerReprovisioned) {
+        sharedDatabaseContainerReprovisioned = false;
+        lastActiveFixtureSignature = currentSignature;
+        LAST_CONTEXT_SIGNATURES.put(testClass, currentSignature);
+        refreshApplicationContext(testClass, testInstance);
+        return;
+      }
       // Cross-class fixture check: detect when a previous test class left the Spring context
       // configured for a different fixture type (e.g., PostgreSQL beans leaking into an H2-based
       // test due to Spring context caching). The per-class check below only compares within the
@@ -184,6 +206,16 @@ public abstract class SpringInjectedTest
         refreshApplicationContext(testClass, testInstance);
       }
     }
+  }
+
+  /**
+   * Signals that the shared test {@code DatabaseContainer} was re-provisioned (its connection pool
+   * swapped/closed) by some other test in this reused JVM. The next dependency-injected test will
+   * rebuild its Spring context before touching the DB, so its beans are re-bound to the live pool
+   * instead of the closed one. Invoked by {@code DatabaseContainerRule} when it creates a new container.
+   */
+  public static void onSharedDatabaseContainerReprovisioned() {
+    sharedDatabaseContainerReprovisioned = true;
   }
 
   private static void clearTrackedContextSignature(final Class<?> testClass) {

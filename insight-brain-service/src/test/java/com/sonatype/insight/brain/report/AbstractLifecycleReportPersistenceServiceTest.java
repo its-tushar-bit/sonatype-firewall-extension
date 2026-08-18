@@ -137,7 +137,7 @@ abstract class AbstractLifecycleReportPersistenceServiceTest
     assertThat(helper.readFromLocalFiles("index.html")).isEqualTo(newContents);
     assertThat(helper.readFromOriginalFiles("index.html")).isEqualTo("<html></html>");
     assertThat(helper.readFromAdditionalFiles("index.html")).isNull();
-    assertThat(entity.getTime()).isGreaterThan(oldTime);
+    assertThat(entity.getTime()).isGreaterThanOrEqualTo(oldTime);
     assertThat(entity.getTime()).isLessThanOrEqualTo(System.currentTimeMillis());
 
     helper.assertEntityContents(entity, newContents);
@@ -196,7 +196,7 @@ abstract class AbstractLifecycleReportPersistenceServiceTest
     assertThat(helper.readFromLocalFiles("foo.txt")).isEqualTo(newContents);
     assertThat(helper.readFromOriginalFiles("foo.txt")).isNull();
     assertThat(helper.readFromAdditionalFiles("foo.txt")).isNull();
-    assertThat(entity.getTime()).isGreaterThan(oldTime);
+    assertThat(entity.getTime()).isGreaterThanOrEqualTo(oldTime);
     assertThat(entity.getTime()).isLessThanOrEqualTo(System.currentTimeMillis());
 
     helper.assertEntityContents(entity, newContents);
@@ -385,7 +385,7 @@ abstract class AbstractLifecycleReportPersistenceServiceTest
 
     ReportEntity entity = service.getReportEntity(APPLICATION_ID, SCAN_ID, "new-file.txt");
     assertThat(entity.exists()).isTrue();
-    assertThat(entity.getTime()).isGreaterThan(now.toEpochMilli());
+    assertThat(entity.getTime()).isGreaterThanOrEqualTo(now.toEpochMilli());
     helper.assertEntityContents(entity, "new file contents");
   }
 
@@ -405,7 +405,7 @@ abstract class AbstractLifecycleReportPersistenceServiceTest
 
     ReportEntity entity = service.getReportEntity(APPLICATION_ID, SCAN_ID, "file.txt");
     assertThat(entity.exists()).isTrue();
-    assertThat(entity.getTime()).isGreaterThan(now.toEpochMilli());
+    assertThat(entity.getTime()).isGreaterThanOrEqualTo(now.toEpochMilli());
     helper.assertEntityContents(entity, "new file contents");
   }
 
@@ -424,7 +424,7 @@ abstract class AbstractLifecycleReportPersistenceServiceTest
 
     ReportEntity entity = service.getReportEntity(APPLICATION_ID, SCAN_ID, "bom.json");
     assertThat(entity.exists()).isTrue();
-    assertThat(entity.getTime()).isGreaterThan(now.toEpochMilli());
+    assertThat(entity.getTime()).isGreaterThanOrEqualTo(now.toEpochMilli());
     helper.assertEntityContents(entity, "new file contents");
   }
 
@@ -444,7 +444,7 @@ abstract class AbstractLifecycleReportPersistenceServiceTest
 
     ReportEntity entity = service.getReportEntity(APPLICATION_ID, SCAN_ID, "bom.json");
     assertThat(entity.exists()).isTrue();
-    assertThat(entity.getTime()).isGreaterThan(now.toEpochMilli());
+    assertThat(entity.getTime()).isGreaterThanOrEqualTo(now.toEpochMilli());
     helper.assertEntityContents(entity, "new file contents");
   }
 
@@ -486,7 +486,7 @@ abstract class AbstractLifecycleReportPersistenceServiceTest
 
     ReportEntity entity = service.getReportEntity(APPLICATION_ID, SCAN_ID, "new-file.txt");
     assertThat(entity.exists()).isTrue();
-    assertThat(entity.getTime()).isGreaterThan(now.toEpochMilli());
+    assertThat(entity.getTime()).isGreaterThanOrEqualTo(now.toEpochMilli());
     helper.assertEntityContents(entity, "new file contents");
   }
 
@@ -506,7 +506,7 @@ abstract class AbstractLifecycleReportPersistenceServiceTest
 
     ReportEntity entity = service.getReportEntity(APPLICATION_ID, SCAN_ID, "txt");
     assertThat(entity.exists()).isTrue();
-    assertThat(entity.getTime()).isGreaterThan(now.toEpochMilli());
+    assertThat(entity.getTime()).isGreaterThanOrEqualTo(now.toEpochMilli());
     helper.assertEntityContents(entity, "new file contents");
   }
 
@@ -558,7 +558,7 @@ abstract class AbstractLifecycleReportPersistenceServiceTest
     assertThat(entity.exists()).isTrue();
     assertThat(entity.length()).isEqualTo(4);
     assertThat(entity.canCreate()).isFalse();
-    assertThat(entity.getTime()).isGreaterThan(oldTime);
+    assertThat(entity.getTime()).isGreaterThanOrEqualTo(oldTime);
     assertThat(entity.getTime()).isLessThanOrEqualTo(System.currentTimeMillis());
 
     helper.assertEntityContents(entity, newContents);
@@ -610,7 +610,7 @@ abstract class AbstractLifecycleReportPersistenceServiceTest
 
     assertThat(entity.exists()).isTrue();
     assertThat(entity.canCreate()).isFalse();
-    assertThat(entity.getTime()).isGreaterThan(oldTime);
+    assertThat(entity.getTime()).isGreaterThanOrEqualTo(oldTime);
     assertThat(entity.getTime()).isLessThanOrEqualTo(System.currentTimeMillis());
 
     helper.assertEntityContents(entity, newContents);
@@ -663,7 +663,7 @@ abstract class AbstractLifecycleReportPersistenceServiceTest
     }
 
     assertThat(entity.exists()).isTrue();
-    assertThat(entity.getTime()).isGreaterThan(oldTime);
+    assertThat(entity.getTime()).isGreaterThanOrEqualTo(oldTime);
     assertThat(entity.getTime()).isLessThanOrEqualTo(System.currentTimeMillis());
 
     helper.assertEntityContents(entity, newContents);

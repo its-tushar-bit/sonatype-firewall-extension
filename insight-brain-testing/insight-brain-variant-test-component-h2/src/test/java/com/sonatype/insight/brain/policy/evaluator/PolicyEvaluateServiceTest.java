@@ -64,6 +64,7 @@ import com.sonatype.insight.brain.jira.JiraClientFactory;
 import com.sonatype.insight.brain.jira.JiraField;
 import com.sonatype.insight.brain.jira.JiraIssueCreateRequest;
 import com.sonatype.insight.brain.jira.JiraIssueCreateRequest.JiraIssueCreateResponse;
+import com.sonatype.insight.brain.jira.JiraPolicyAlertNotifier;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -553,7 +554,8 @@ public class PolicyEvaluateServiceTest
     assertPolicyEvaluation(app.getId(), scanId, ScanTriggerType.CLI, true /* isReevaluation */);
 
     // Notification message should not have been sent since this is a re-evaluation
-    assertNotifications(notifications, 0, 5000);
+    awaitPolicyAlertNotifiersComplete();
+    assertThat(notifications).isEmpty();
   }
 
   @Test
@@ -744,6 +746,32 @@ public class PolicyEvaluateServiceTest
       Thread.sleep(50);
     }
     throw new RuntimeException("Evaluation did not complete within the expected 20 seconds to get the polling result.");
+  }
+
+  /**
+   * Join the asynchronous policy-alert notifier threads (email, JIRA and SCM) so that
+   * "no notification was sent" assertions are deterministic instead of relying on a blind
+   * {@link Thread#sleep}. These threads are started synchronously during policy evaluation and named from the
+   * production {@code THREAD_NAME_PREFIX} constants (see {@link PolicyAlertEmailer}, {@link JiraPolicyAlertNotifier}
+   * and {@link PolicyAlertScmNotifier}), so a prod rename becomes a compile break here rather than a silent
+   * zero-match. Once evaluation returns they are guaranteed to be running and can be joined; after they terminate no
+   * further notification side effects can occur.
+   */
+  private static void awaitPolicyAlertNotifiersComplete() throws InterruptedException {
+    long deadlineMillis = System.currentTimeMillis() + 30_000;
+    for (Thread thread : Thread.getAllStackTraces().keySet()) {
+      String name = thread.getName();
+      if (name != null && (name.startsWith(PolicyAlertEmailer.THREAD_NAME_PREFIX)
+          || name.startsWith(JiraPolicyAlertNotifier.THREAD_NAME_PREFIX)
+          || name.startsWith(PolicyAlertScmNotifier.THREAD_NAME_PREFIX)))
+      {
+        long remainingMillis = deadlineMillis - System.currentTimeMillis();
+        if (remainingMillis <= 0) {
+          break;
+        }
+        thread.join(remainingMillis);
+      }
+    }
   }
 
   @Test
@@ -1192,8 +1220,9 @@ public class PolicyEvaluateServiceTest
     }
 
     // notification message should not have been sent since the results are the same
-    assertNotifications(messagesA, 0, 5000);
-    assertNotifications(messagesB, 0, 1000);
+    awaitPolicyAlertNotifiersComplete();
+    assertThat(messagesA).isEmpty();
+    assertThat(messagesB).isEmpty();
 
     verify(mockJiraClient, times(0)).createIssue(any(JiraIssueCreateRequest.class), anyBoolean());
 

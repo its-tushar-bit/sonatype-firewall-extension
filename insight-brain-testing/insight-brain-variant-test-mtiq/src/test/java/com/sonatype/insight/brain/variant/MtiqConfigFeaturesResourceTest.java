@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.db.rule.MultiTenantDatabaseContainerRule;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.service.config.MultiTenantConfigurationDefaultsService;
 import com.sonatype.insight.brain.tenancy.Tenant;
 
 import org.junit.jupiter.api.AfterEach;
@@ -180,6 +181,11 @@ class MtiqConfigFeaturesResourceTest
   void after() {
     ctx.testAsGlobal(g -> {
       privateGlobalTemporaryEntity.after();
+      // privateGlobalTemporaryEntity.after() restores TemporaryEntity's shared, tenant-blind snapshot of
+      // system configuration, which does not include the MTIQ global defaults and therefore wipes them
+      // from the global schema on the reused server. Re-seed them so later tests (e.g.
+      // MtiqConfigurationDefaultsServiceTest) still observe them.
+      ctx.lookup(MultiTenantConfigurationDefaultsService.class).register();
     });
   }
 

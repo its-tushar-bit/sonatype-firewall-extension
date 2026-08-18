@@ -70,18 +70,23 @@ public class QuartzJobStoreTXTest
   @Inject
   private OperationalDataStore operationalDataStore;
 
-  private QuartzJobStoreTX quartzJobStoreTXSpy;
+  private QuartzJobStoreTX jobStoreUnderTest;
 
   private List<SchedulerStateUpdaterThread> schedulerStateUpdaterThreads = new ArrayList<>();
 
   @Before
   public void before() {
     taskScheduler.createScheduler();
-    quartzJobStoreTXSpy = spy(quartzJobStoreTX);
+    jobStoreUnderTest = spy(quartzJobStoreTX);
   }
 
   @After
   public void after() throws Exception {
+    // Tear down the JVM-global Quartz scheduler so each test method's before() recreates and
+    // re-initializes the job store. Without this, later methods reuse the scheduler created by an
+    // earlier method while SpringInjectedTest's snapshot/restore has reset the store's inherited
+    // Quartz state (classLoadHelper/lockHandler) back to null, causing NPEs in doCheckin.
+    taskScheduler.stop();
     deleteAllSchedulerStateRecords();
     deleteAllFiredTriggers();
     schedulerStateUpdaterThreads.forEach(SchedulerStateUpdaterThread::terminate);
@@ -117,148 +122,148 @@ public class QuartzJobStoreTXTest
     insightConfig.setClusterDirectory(
         Paths.get(insightConfig.getSonatypeWork().getAbsolutePath(), "clusterDirectory").toString());
     testProductLicense.setMissingFeatures(LicensedFeature.NODE_CLUSTERING);
-    doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());
-    quartzJobStoreTXSpy.productLicenseChanged();
-    quartzJobStoreTXSpy.doCheckin();
+    doNothing().when(jobStoreUnderTest).exitInNewThread(anyInt(), anyString());
+    jobStoreUnderTest.productLicenseChanged();
+    jobStoreUnderTest.doCheckin();
     createRunningSchedulerStateRecord("other",
-        quartzJobStoreTXSpy.getSchedulerStateRecords().get(0).getCheckinTimestamp() + 1);
+        jobStoreUnderTest.getSchedulerStateRecords().get(0).getCheckinTimestamp() + 1);
 
-    quartzJobStoreTXSpy.doCheckin();
+    jobStoreUnderTest.doCheckin();
 
     assertThat(logOutput).atErrorLevel()
         .contains(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
         .doesNotContain(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
         .contains(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
-    verify(quartzJobStoreTXSpy).exitInNewThread(QuartzJobStoreTX.NODE_CLUSTERING_NOT_ENABLED_EXIT_STATUS,
+    verify(jobStoreUnderTest).exitInNewThread(QuartzJobStoreTX.NODE_CLUSTERING_NOT_ENABLED_EXIT_STATUS,
         QuartzJobStoreTX.UNCLUSTERED_NODE_SHUTDOWN_THREAD_NAME);
   }
 
   @Test
   public void testDoCheckin_ClusterDirectoryNotSet() throws Exception {
-    doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());
-    quartzJobStoreTXSpy.productLicenseChanged();
-    quartzJobStoreTXSpy.doCheckin();
+    doNothing().when(jobStoreUnderTest).exitInNewThread(anyInt(), anyString());
+    jobStoreUnderTest.productLicenseChanged();
+    jobStoreUnderTest.doCheckin();
     createRunningSchedulerStateRecord("other",
-        quartzJobStoreTXSpy.getSchedulerStateRecords().get(0).getCheckinTimestamp() + 1);
+        jobStoreUnderTest.getSchedulerStateRecords().get(0).getCheckinTimestamp() + 1);
 
-    quartzJobStoreTXSpy.doCheckin();
+    jobStoreUnderTest.doCheckin();
 
     assertThat(logOutput).atErrorLevel()
         .doesNotContain(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
         .contains(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
         .contains(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
-    verify(quartzJobStoreTXSpy).exitInNewThread(QuartzJobStoreTX.NODE_CLUSTERING_NOT_ENABLED_EXIT_STATUS,
+    verify(jobStoreUnderTest).exitInNewThread(QuartzJobStoreTX.NODE_CLUSTERING_NOT_ENABLED_EXIT_STATUS,
         QuartzJobStoreTX.UNCLUSTERED_NODE_SHUTDOWN_THREAD_NAME);
   }
 
   @Test
   public void testDoCheckin_NodeClusteringNotSupportedAndClusterDirectoryNotSet() throws Exception {
     testProductLicense.setMissingFeatures(LicensedFeature.NODE_CLUSTERING);
-    doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());
-    quartzJobStoreTXSpy.productLicenseChanged();
-    quartzJobStoreTXSpy.doCheckin();
+    doNothing().when(jobStoreUnderTest).exitInNewThread(anyInt(), anyString());
+    jobStoreUnderTest.productLicenseChanged();
+    jobStoreUnderTest.doCheckin();
     createRunningSchedulerStateRecord("other",
-        quartzJobStoreTXSpy.getSchedulerStateRecords().get(0).getCheckinTimestamp() + 1);
+        jobStoreUnderTest.getSchedulerStateRecords().get(0).getCheckinTimestamp() + 1);
 
-    quartzJobStoreTXSpy.doCheckin();
+    jobStoreUnderTest.doCheckin();
 
     assertThat(logOutput).atErrorLevel()
         .contains(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
         .contains(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
         .contains(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
-    verify(quartzJobStoreTXSpy).exitInNewThread(QuartzJobStoreTX.NODE_CLUSTERING_NOT_ENABLED_EXIT_STATUS,
+    verify(jobStoreUnderTest).exitInNewThread(QuartzJobStoreTX.NODE_CLUSTERING_NOT_ENABLED_EXIT_STATUS,
         QuartzJobStoreTX.UNCLUSTERED_NODE_SHUTDOWN_THREAD_NAME);
   }
 
   @Test
   public void testDoCheckin_NoLicenseLoaded() throws Exception {
     testProductLicense.setMissingFeatures(LicensedFeature.NODE_CLUSTERING);
-    lenient().doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());
-    quartzJobStoreTXSpy.doCheckin();
+    lenient().doNothing().when(jobStoreUnderTest).exitInNewThread(anyInt(), anyString());
+    jobStoreUnderTest.doCheckin();
     createRunningSchedulerStateRecord("other", System.currentTimeMillis());
 
-    quartzJobStoreTXSpy.doCheckin();
+    jobStoreUnderTest.doCheckin();
 
     assertThat(logOutput).atErrorLevel()
         .doesNotContain(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
         .doesNotContain(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
         .doesNotContain(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
-    verify(quartzJobStoreTXSpy, never()).exitInNewThread(anyInt(), anyString());
+    verify(jobStoreUnderTest, never()).exitInNewThread(anyInt(), anyString());
   }
 
   @Test
   public void testDoCheckin_HasNodeClusteringFeatureAndClusterDirectoryIsSetByUser() throws Exception {
     insightConfig.setClusterDirectory(
         Paths.get(insightConfig.getSonatypeWork().getAbsolutePath(), "clusterDirectory").toString());
-    lenient().doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());
-    quartzJobStoreTXSpy.productLicenseChanged();
-    quartzJobStoreTXSpy.doCheckin();
+    lenient().doNothing().when(jobStoreUnderTest).exitInNewThread(anyInt(), anyString());
+    jobStoreUnderTest.productLicenseChanged();
+    jobStoreUnderTest.doCheckin();
     createRunningSchedulerStateRecord("other",
-        quartzJobStoreTXSpy.getSchedulerStateRecords().get(0).getCheckinTimestamp() + 1);
+        jobStoreUnderTest.getSchedulerStateRecords().get(0).getCheckinTimestamp() + 1);
 
-    quartzJobStoreTXSpy.doCheckin();
+    jobStoreUnderTest.doCheckin();
 
     assertThat(logOutput).atErrorLevel()
         .doesNotContain(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
         .doesNotContain(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
         .doesNotContain(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
-    verify(quartzJobStoreTXSpy, never()).exitInNewThread(anyInt(), anyString());
+    verify(jobStoreUnderTest, never()).exitInNewThread(anyInt(), anyString());
   }
 
   @Test
   public void testDoCheckin_NoOtherNodesCheckedInAfter() throws Exception {
     testProductLicense.setMissingFeatures(LicensedFeature.NODE_CLUSTERING);
-    lenient().doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());
-    quartzJobStoreTXSpy.productLicenseChanged();
-    quartzJobStoreTXSpy.doCheckin();
+    lenient().doNothing().when(jobStoreUnderTest).exitInNewThread(anyInt(), anyString());
+    jobStoreUnderTest.productLicenseChanged();
+    jobStoreUnderTest.doCheckin();
     createStoppedSchedulerStateRecord("other",
-        quartzJobStoreTXSpy.getSchedulerStateRecords().get(0).getCheckinTimestamp() - 1);
+        jobStoreUnderTest.getSchedulerStateRecords().get(0).getCheckinTimestamp() - 1);
 
-    quartzJobStoreTXSpy.doCheckin();
+    jobStoreUnderTest.doCheckin();
 
     assertThat(logOutput).atErrorLevel()
         .doesNotContain(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
         .doesNotContain(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
         .doesNotContain(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
-    verify(quartzJobStoreTXSpy, never()).exitInNewThread(anyInt(), anyString());
+    verify(jobStoreUnderTest, never()).exitInNewThread(anyInt(), anyString());
   }
 
   @Test
   public void testDoCheckin_OtherNodeCheckinSameTime_AlphaLess() throws Exception {
     testProductLicense.setMissingFeatures(LicensedFeature.NODE_CLUSTERING);
-    lenient().doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());
-    doReturn("me").when(quartzJobStoreTXSpy).getInstanceId();
-    quartzJobStoreTXSpy.productLicenseChanged();
-    quartzJobStoreTXSpy.doCheckin();
+    lenient().doNothing().when(jobStoreUnderTest).exitInNewThread(anyInt(), anyString());
+    doReturn("me").when(jobStoreUnderTest).getInstanceId();
+    jobStoreUnderTest.productLicenseChanged();
+    jobStoreUnderTest.doCheckin();
     createRunningSchedulerStateRecord("other",
-        quartzJobStoreTXSpy.getSchedulerStateRecords().get(0).getCheckinTimestamp());
+        jobStoreUnderTest.getSchedulerStateRecords().get(0).getCheckinTimestamp());
 
-    quartzJobStoreTXSpy.doCheckin();
+    jobStoreUnderTest.doCheckin();
 
     assertThat(logOutput).atErrorLevel()
         .doesNotContain(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
         .doesNotContain(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
         .doesNotContain(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
-    verify(quartzJobStoreTXSpy, never()).exitInNewThread(anyInt(), anyString());
+    verify(jobStoreUnderTest, never()).exitInNewThread(anyInt(), anyString());
   }
 
   @Test
   public void testDoCheckin_OtherNodeCheckinSameTime_AlphaMore() throws Exception {
     testProductLicense.setMissingFeatures(LicensedFeature.NODE_CLUSTERING);
-    doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());
-    doReturn("stillme").when(quartzJobStoreTXSpy).getInstanceId();
-    quartzJobStoreTXSpy.productLicenseChanged();
-    quartzJobStoreTXSpy.doCheckin();
+    doNothing().when(jobStoreUnderTest).exitInNewThread(anyInt(), anyString());
+    doReturn("stillme").when(jobStoreUnderTest).getInstanceId();
+    jobStoreUnderTest.productLicenseChanged();
+    jobStoreUnderTest.doCheckin();
     createRunningSchedulerStateRecord("other",
-        quartzJobStoreTXSpy.getSchedulerStateRecords().get(0).getCheckinTimestamp());
+        jobStoreUnderTest.getSchedulerStateRecords().get(0).getCheckinTimestamp());
 
-    quartzJobStoreTXSpy.doCheckin();
+    jobStoreUnderTest.doCheckin();
 
     assertThat(logOutput).atErrorLevel()
         .contains(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
         .contains(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
         .contains(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
-    verify(quartzJobStoreTXSpy).exitInNewThread(QuartzJobStoreTX.NODE_CLUSTERING_NOT_ENABLED_EXIT_STATUS,
+    verify(jobStoreUnderTest).exitInNewThread(QuartzJobStoreTX.NODE_CLUSTERING_NOT_ENABLED_EXIT_STATUS,
         QuartzJobStoreTX.UNCLUSTERED_NODE_SHUTDOWN_THREAD_NAME);
   }
 
@@ -267,28 +272,28 @@ public class QuartzJobStoreTXTest
     createStoppedSchedulerStateRecord("other",
         System.currentTimeMillis() - QuartzJobStoreTX.CLUSTER_CHECKIN_INTERVAL_MILLIS + 1);
     testProductLicense.setMissingFeatures(LicensedFeature.NODE_CLUSTERING);
-    lenient().doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());
-    quartzJobStoreTXSpy.productLicenseChanged();
-    quartzJobStoreTXSpy.doCheckin();
+    lenient().doNothing().when(jobStoreUnderTest).exitInNewThread(anyInt(), anyString());
+    jobStoreUnderTest.productLicenseChanged();
+    jobStoreUnderTest.doCheckin();
 
     assertThat(logOutput).atErrorLevel()
         .doesNotContain(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
         .doesNotContain(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
         .doesNotContain(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
-    verify(quartzJobStoreTXSpy, never()).exitInNewThread(anyInt(), anyString());
+    verify(jobStoreUnderTest, never()).exitInNewThread(anyInt(), anyString());
   }
 
   @Test
   public void testDoCheckin_NewNodeStartsEvenIfAnotherNodeIsRunning() throws Exception {
     createRunningSchedulerStateRecord("other",
         System.currentTimeMillis() - QuartzJobStoreTX.CLUSTER_CHECKIN_INTERVAL_MILLIS + 1);
-    quartzJobStoreTXSpy.doCheckin();
+    jobStoreUnderTest.doCheckin();
 
     assertThat(logOutput).atErrorLevel()
         .doesNotContain(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
         .doesNotContain(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
         .doesNotContain(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
-    verify(quartzJobStoreTXSpy, never()).exitInNewThread(anyInt(), anyString());
+    verify(jobStoreUnderTest, never()).exitInNewThread(anyInt(), anyString());
   }
 
   @Test
@@ -296,15 +301,15 @@ public class QuartzJobStoreTXTest
     createRunningSchedulerStateRecord("other",
         System.currentTimeMillis() - QuartzJobStoreTX.CLUSTER_CHECKIN_INTERVAL_MILLIS + 1);
     testProductLicense.setMissingFeatures(LicensedFeature.NODE_CLUSTERING);
-    doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());
-    quartzJobStoreTXSpy.productLicenseChanged();
-    quartzJobStoreTXSpy.doCheckin();
+    doNothing().when(jobStoreUnderTest).exitInNewThread(anyInt(), anyString());
+    jobStoreUnderTest.productLicenseChanged();
+    jobStoreUnderTest.doCheckin();
 
     assertThat(logOutput).atErrorLevel()
         .contains(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
         .contains(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
         .contains(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
-    verify(quartzJobStoreTXSpy).exitInNewThread(QuartzJobStoreTX.NODE_CLUSTERING_NOT_ENABLED_EXIT_STATUS,
+    verify(jobStoreUnderTest).exitInNewThread(QuartzJobStoreTX.NODE_CLUSTERING_NOT_ENABLED_EXIT_STATUS,
         QuartzJobStoreTX.UNCLUSTERED_NODE_SHUTDOWN_THREAD_NAME);
   }
 
@@ -314,36 +319,36 @@ public class QuartzJobStoreTXTest
     createStoppedSchedulerStateRecord("one-more-other",
         System.currentTimeMillis() - QuartzJobStoreTX.CLUSTER_CHECKIN_INTERVAL_MILLIS * 2);
     testProductLicense.setMissingFeatures(LicensedFeature.NODE_CLUSTERING);
-    doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());
-    quartzJobStoreTXSpy.productLicenseChanged();
-    quartzJobStoreTXSpy.doCheckin();
+    doNothing().when(jobStoreUnderTest).exitInNewThread(anyInt(), anyString());
+    jobStoreUnderTest.productLicenseChanged();
+    jobStoreUnderTest.doCheckin();
 
     assertThat(logOutput).atErrorLevel()
         .contains(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
         .contains(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
         .contains(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
-    verify(quartzJobStoreTXSpy).exitInNewThread(QuartzJobStoreTX.NODE_CLUSTERING_NOT_ENABLED_EXIT_STATUS,
+    verify(jobStoreUnderTest).exitInNewThread(QuartzJobStoreTX.NODE_CLUSTERING_NOT_ENABLED_EXIT_STATUS,
         QuartzJobStoreTX.UNCLUSTERED_NODE_SHUTDOWN_THREAD_NAME);
   }
 
   @Test
   public void testAquireNextTrigger() throws Exception {
     JobDetail job = JobBuilder.newJob(TestJob.class).build();
-    quartzJobStoreTXSpy.storeJob(job, true);
+    jobStoreUnderTest.storeJob(job, true);
     OperableTrigger triggerForMe = (OperableTrigger) TriggerBuilder.newTrigger()
         .forJob(job)
         .withSchedule(SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionIgnoreMisfires())
-        .usingJobData(TaskScheduler.QUARTZ_NODE_ID, quartzJobStoreTXSpy.getInstanceId())
+        .usingJobData(TaskScheduler.QUARTZ_NODE_ID, jobStoreUnderTest.getInstanceId())
         .build();
     triggerForMe.setNextFireTime(new Date());
-    quartzJobStoreTXSpy.storeTrigger(triggerForMe, true);
+    jobStoreUnderTest.storeTrigger(triggerForMe, true);
     OperableTrigger triggerForOther = (OperableTrigger) TriggerBuilder.newTrigger()
         .forJob(job)
         .withSchedule(SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionIgnoreMisfires())
         .usingJobData(TaskScheduler.QUARTZ_NODE_ID, "other1")
         .build();
     triggerForOther.setNextFireTime(new Date());
-    quartzJobStoreTXSpy.storeTrigger(triggerForOther, true);
+    jobStoreUnderTest.storeTrigger(triggerForOther, true);
     OperableTrigger staleTriggerForOther = (OperableTrigger) TriggerBuilder.newTrigger()
         .forJob(job)
         .withSchedule(SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionIgnoreMisfires())
@@ -351,9 +356,9 @@ public class QuartzJobStoreTXTest
         .build();
     staleTriggerForOther
         .setNextFireTime(new Date(System.currentTimeMillis() - (StdJDBCDelegateUtils.ORPHANED_MILLIS + 1)));
-    quartzJobStoreTXSpy.storeTrigger(staleTriggerForOther, true);
+    jobStoreUnderTest.storeTrigger(staleTriggerForOther, true);
 
-    List<OperableTrigger> operableTriggers = quartzJobStoreTXSpy.acquireNextTrigger(
+    List<OperableTrigger> operableTriggers = jobStoreUnderTest.acquireNextTrigger(
         operationalDataStore.getDataSource().getConnection(), Long.MAX_VALUE, 3, 0);
 
     assertThat(operableTriggers).hasSize(2);
@@ -467,7 +472,7 @@ public class QuartzJobStoreTXTest
               taskScheduler.getScheduler().getSchedulerName(),
               schedulerInstanceId,
               checkinTimestamp,
-              quartzJobStoreTXSpy.getClusterCheckinInterval())
+              jobStoreUnderTest.getClusterCheckinInterval())
           .execute();
     }
   }

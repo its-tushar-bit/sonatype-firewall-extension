@@ -122,7 +122,9 @@ describe('OidcConfigurationPage', () => {
   });
 
   it('should enable save button when all required fields are filled', async () => {
-    const user = userEvent.setup();
+    // delay: null removes the artificial per-keystroke delay so typing many fields does not time out
+    // under a heavily loaded CI box (the one-box run saturates the agent).
+    const user = userEvent.setup({ delay: null });
     renderComponent();
 
     await waitFor(() => {
@@ -140,8 +142,11 @@ describe('OidcConfigurationPage', () => {
     await user.type(screen.getByLabelText(/JWS Algorithm/i), 'RS256');
     await user.type(screen.getByLabelText(/JWKS URL/i), 'https://identity-provider.com/.well-known/jwks.json');
 
-    const saveButton = screen.getByText('Save');
-    expect(saveButton.closest('button')).not.toHaveClass('disabled');
+    // The Save button enables only after async form validation settles, so poll for the enabled state
+    // rather than asserting synchronously immediately after the last keystroke.
+    await waitFor(() => {
+      expect(screen.getByText('Save').closest('button')).not.toHaveClass('disabled');
+    }, { timeout: 10000 });
   }, 15000); // Increase timeout to 15 seconds for slow user interactions
 
   it('should show delete modal when delete button is clicked', async () => {

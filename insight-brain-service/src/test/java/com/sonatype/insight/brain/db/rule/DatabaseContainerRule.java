@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.db.TestDatabaseContainer;
 import com.sonatype.insight.brain.db.fixture.h2.H2DiskDatabaseFixture;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.db.DatabaseEngine;
+import com.sonatype.insight.test.SpringInjectedTest;
 import com.sonatype.insight.test.SpringTestExecutionContext;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -193,6 +194,10 @@ public class DatabaseContainerRule
 
   private TestDatabaseContainer createTestDatabaseContainer() {
     log.info("Creating new test DatabaseContainer");
+    // A new container means the previous connection pool is being swapped out (and closed). Any cached
+    // dependency-injected Spring context still holds beans bound to the old pool, so signal that the
+    // next such test must rebuild its context before touching the DB.
+    SpringInjectedTest.onSharedDatabaseContainerReprovisioned();
     return new TestDatabaseContainer(getDataSourceProvider(), this);
   }
 

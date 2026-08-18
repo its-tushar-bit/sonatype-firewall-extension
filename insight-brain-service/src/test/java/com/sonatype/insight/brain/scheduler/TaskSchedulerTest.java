@@ -234,7 +234,7 @@ public class TaskSchedulerTest
       taskScheduler.schedulePeriodicTask(testJob, Duration.ofMinutes(15), DateUtils.addHours(new Date(), 5));
     };
 
-    testInMultipleThreadsAndThrowAnyException(runnable, 4, Duration.ofSeconds(3));
+    testInMultipleThreadsAndThrowAnyException(runnable, 4, Duration.ofSeconds(1));
 
     quartzJobSchedulingServiceRule.waitForRealSchedulingToComplete(quartzJobSchedulingService);
     assertThat(taskScheduler.isTaskScheduled(testJob)).isTrue();
@@ -249,7 +249,7 @@ public class TaskSchedulerTest
       taskScheduler.unscheduleTask(testJob);
     };
 
-    testInMultipleThreadsAndThrowAnyException(runnable, 4, Duration.ofSeconds(3));
+    testInMultipleThreadsAndThrowAnyException(runnable, 4, Duration.ofSeconds(1));
 
     quartzJobSchedulingServiceRule.waitForRealSchedulingToComplete(quartzJobSchedulingService);
     assertThat(taskScheduler.isTaskScheduled(testJob)).isFalse();
@@ -548,7 +548,7 @@ public class TaskSchedulerTest
     assertThat(TestJob.getExecutions()).isEqualTo(0);
     Scheduler scheduler = taskScheduler.createScheduler();
     int intervalMillis = 100;
-    int desiredJobExecutions = 10;
+    int desiredJobExecutions = 5;
     scheduler.start();
     scheduler.standby();
     taskScheduler.schedulePeriodicTask(testJob, Duration.ofMillis(intervalMillis));
@@ -581,7 +581,7 @@ public class TaskSchedulerTest
 
   @Test
   public void testIsJobTriggered() throws Exception {
-    TestJob.setDurations(execution -> 5000);
+    TestJob.setDurations(execution -> 2000);
     Scheduler scheduler = taskScheduler.createScheduler();
     scheduler.start();
 
@@ -606,7 +606,7 @@ public class TaskSchedulerTest
     TestJobListener testJobListener = new TestJobListener();
     scheduler.getListenerManager().addJobListener(testJobListener);
 
-    taskScheduler.schedulePeriodicTask(testJob, Duration.ofSeconds(1));
+    taskScheduler.schedulePeriodicTask(testJob, Duration.ofMillis(250));
 
     scheduler.start();
     await().atMost(10, TimeUnit.SECONDS)

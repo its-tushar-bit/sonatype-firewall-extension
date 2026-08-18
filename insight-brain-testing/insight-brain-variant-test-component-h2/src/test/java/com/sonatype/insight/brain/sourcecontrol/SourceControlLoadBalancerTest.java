@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.concurrent.PerpetualLockManager;
@@ -23,6 +24,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.scale.HeartbeatPartitionManager;
 import com.sonatype.insight.brain.scale.SelfThrottlingLoadBalancer;
+import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 
 import org.junit.jupiter.api.AfterEach;
@@ -32,6 +34,7 @@ import org.mockito.MockitoAnnotations;
 
 import static java.lang.Thread.sleep;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.mock;
 
 @ComponentH2Test
@@ -265,12 +268,12 @@ public class SourceControlLoadBalancerTest
     assertThat(balancerOne.reserveEvent(user1Event7)).isTrue();
     assertThat(balancerOne.reserveEvent(user2Event8)).isTrue();
 
-    // when: we let the lock for user3 expire
-    sleep(2_500);
-    balancerTwo.rebalance();
-
-    // then:
-    assertThat(balancerTwo.reserveEvent(user3Event6)).isTrue();
+    // then: once the user3 lock expires, balancerTwo can reserve the event. Poll (re-running partition
+    // analysis each cycle) instead of sleeping a fixed interval tuned to lock-expiry wall-clock timing.
+    await().atMost(5, TimeUnit.SECONDS).until(() -> {
+      balancerTwo.rebalance();
+      return balancerTwo.reserveEvent(user3Event6);
+    });
   }
 
   @Test
@@ -497,15 +500,22 @@ public class SourceControlLoadBalancerTest
         new SourceControlEventDAO(ods),
         mock(TenantUtil.class));
     loadBalancer.start();
-    try {
-      sleep(1_000);
-    }
-    catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-    }
+
+    // The heartbeat task is scheduled with an initial delay of 0, so the heartbeat lock is written almost
+    // immediately on a background thread. Poll for it instead of sleeping a fixed interval.
+    awaitHeartbeatRegistered(perpetualLockManager, loadBalancer.getInstanceId());
 
     activeLoadBalancers.add(loadBalancer);
 
     return loadBalancer;
+  }
+
+  private void awaitHeartbeatRegistered(PerpetualLockManager perpetualLockManager, String instanceId) {
+    // The heartbeat lock is the perpetual lock whose owner equals this instance's id.
+    await().atMost(5, TimeUnit.SECONDS)
+        .until(() -> TenantThreadLocal.runAsGlobal(() -> perpetualLockManager
+            .getAllActivePerpetualLocksForCategory(SourceControlLoadBalancer.LOAD_BALANCER_CATEGORY_FOR_SCM)
+            .stream()
+            .anyMatch(lock -> instanceId.equals(lock.getOwner()))));
   }
 }

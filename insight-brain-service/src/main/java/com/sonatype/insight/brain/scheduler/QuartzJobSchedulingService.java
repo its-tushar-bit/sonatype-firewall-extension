@@ -16,6 +16,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import jakarta.annotation.PreDestroy;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
@@ -73,11 +74,30 @@ public class QuartzJobSchedulingService
   // Note we allow tests to override this value to reduce test duration. See QuartzJobSchedulingServiceRule.
   protected static long DELAY_MILLIS = DEFAULT_DELAY_MILLIS;
 
+  /** Name of the single batching-executor thread; shared with tests that assert on / join it. */
+  public static final String SCHEDULING_THREAD_NAME = "QuartzJobSchedulingServiceThread";
+
   private final ScheduledExecutorService jobSchedulingExecutor =
-      new ScheduledThreadPoolExecutor(1, r -> new Thread(r, "QuartzJobSchedulingServiceThread"));
+      new ScheduledThreadPoolExecutor(1, r -> new Thread(r, SCHEDULING_THREAD_NAME));
 
   // Note all usages of a TenantQuartzJobs instance should be `synchronized`
   private final TenantReference<TenantQuartzJobs> tenantsQuartzJobs = new TenantReference<>(TenantQuartzJobs::new);
+
+  /**
+   * Shut down the batching executor when the Spring context closes so its {@link #SCHEDULING_THREAD_NAME} thread
+   * does not outlive the context. Without this the thread (and the beans captured by its pending tasks) is retained
+   * after {@code applicationContext.close()}, which leaks a full context per server restart in reused-JVM test runs.
+   *
+   * <p>
+   * {@code shutdownNow()} intentionally abandons any jobs still batched in the executor (those enqueued within the
+   * last {@link #DELAY_MILLIS} before close) rather than draining them: on context close the server is going away,
+   * so flushing those late batches into Quartz against a closing context has no value. Before this hook the leaking
+   * thread would eventually have flushed them against a stale context anyway, so no behavior is lost.
+   */
+  @PreDestroy
+  void shutdown() {
+    jobSchedulingExecutor.shutdownNow();
+  }
 
   /**
    * Enqueues a job for scheduling with the given scheduler. The job is not scheduled immediately; it is batched with

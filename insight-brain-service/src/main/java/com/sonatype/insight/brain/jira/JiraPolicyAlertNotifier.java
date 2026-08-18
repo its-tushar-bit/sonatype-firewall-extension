@@ -58,6 +58,9 @@ public class JiraPolicyAlertNotifier
 {
   private static final Logger log = LoggerFactory.getLogger(JiraPolicyAlertNotifier.class);
 
+  /** Prefix of the async JIRA-notifier thread name (per scan); shared with tests that join on it. */
+  public static final String THREAD_NAME_PREFIX = "PolicyAlertJIRANotifierForScan-";
+
   private final ADFBuilder adfBuilder;
 
   private final UserDirectory userDirectory;
@@ -187,7 +190,7 @@ public class JiraPolicyAlertNotifier
           }
         }
       }
-    }), "PolicyAlertJIRANotifierForScan-" + scanId);
+    }), THREAD_NAME_PREFIX + scanId);
     shutdownHandler.add(jiraNotificationThread, ShutdownPriority.NOTIFICATIONS);
     jiraNotificationThread.start();
   }

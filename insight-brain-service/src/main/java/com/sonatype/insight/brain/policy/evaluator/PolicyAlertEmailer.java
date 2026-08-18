@@ -50,6 +50,9 @@ public class PolicyAlertEmailer
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyAlertEmailer.class);
 
+  /** Prefix of the async email-notifier thread name (per scan); shared with tests that join on it. */
+  public static final String THREAD_NAME_PREFIX = "PolicyAlertEmailNotifierForScan-";
+
   private final BaseUrl baseUrl;
 
   private final UserDirectory userDirectory;
@@ -169,7 +172,7 @@ public class PolicyAlertEmailer
         log.error(t.getMessage(), t);
         System.exit(1);
       }
-    }), "PolicyAlertEmailNotifierForScan-" + scanId
+    }), THREAD_NAME_PREFIX + scanId
 
     );
     shutdownHandler.add(emailNotificationThread, ShutdownPriority.NOTIFICATIONS);

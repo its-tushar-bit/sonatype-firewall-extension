@@ -359,7 +359,8 @@ public class PolicyMonitorTest
 
     // Evaluate the policy. Only the developer should receive a notification.
     evaluatePolicy(app.getPublicId(), scanId1, stage);
-    assertNotifications(notificationsMonitor1, 0, 5000);
+    awaitEmailNotifications();
+    assertNotifications(notificationsMonitor1, 0, 0);
     assertNotifications(notificationsMonitor2, 0, 0);
     assertNotifications(notificationsMonitor3, 0, 0);
     assertNotifications(notificationsDeveloper, 1, 0);
@@ -377,6 +378,7 @@ public class PolicyMonitorTest
     String scanId2 = "PolicyMonitorTest_scanId2";
     mockScanReceiptAndReport(scanId2);
     policyMonitor.run();
+    awaitEmailNotifications();
     PolicyEvaluation policyEvaluation2 = policyEvaluationDAO.getLastByOwnerIdAndStageId(app.getId(),
         stage.getStageTypeId());
     assertThat(policyEvaluation2.getId()).isNotEqualTo(policyEvaluation1.getId());
@@ -387,7 +389,7 @@ public class PolicyMonitorTest
     {
       assertThat(policyViolation.getActionTypeId()).isNull();
     }
-    assertNotifications(notificationsDeveloper, 0, 5000);
+    assertNotifications(notificationsDeveloper, 0, 0);
     assertNotifications(notificationsMonitor1, 0, 0);
     assertNotifications(notificationsMonitor2, 0, 0);
     assertNotifications(notificationsMonitor3, 0, 0);
@@ -402,6 +404,7 @@ public class PolicyMonitorTest
     String scanId3 = "PolicyMonitorTest_scanId3";
     mockScanReceiptAndReport(scanId3);
     policyMonitor.run();
+    awaitEmailNotifications();
     PolicyEvaluation policyEvaluation3 = policyEvaluationDAO.getLastByOwnerIdAndStageId(app.getId(),
         stage.getStageTypeId());
     assertThat(policyEvaluation3.getId()).isNotEqualTo(policyEvaluation2.getId());
@@ -412,7 +415,7 @@ public class PolicyMonitorTest
     {
       assertThat(policyViolation.getActionTypeId()).isNull();
     }
-    assertNotifications(notificationsDeveloper, 0, 5000);
+    assertNotifications(notificationsDeveloper, 0, 0);
     assertNotifications(notificationsMonitor1, 0, 0);
     assertNotifications(notificationsMonitor2, 0, 0);
     assertNotifications(notificationsMonitor3, 0, 0);
@@ -426,6 +429,7 @@ public class PolicyMonitorTest
     String scanId4 = "PolicyMonitorTest_scanId4";
     mockScanReceiptAndReport(scanId4);
     policyMonitor.run();
+    awaitEmailNotifications();
     PolicyEvaluation policyEvaluation4 = policyEvaluationDAO.getLastByOwnerIdAndStageId(app.getId(),
         stage.getStageTypeId());
     assertThat(policyEvaluation4.getId()).isNotEqualTo(policyEvaluation3.getId());
@@ -436,7 +440,7 @@ public class PolicyMonitorTest
     {
       assertThat(policyViolation.getActionTypeId()).isNull();
     }
-    assertNotifications(notificationsDeveloper, 0, 5000);
+    assertNotifications(notificationsDeveloper, 0, 0);
     assertNotifications(notificationsMonitor2, 0, 0);
     assertNotifications(notificationsMonitor3, 0, 0);
     assertNotifications(notificationsMonitor1, 1, 0);
@@ -451,6 +455,7 @@ public class PolicyMonitorTest
     String scanId5 = "PolicyMonitorTest_scanId5";
     mockScanReceiptAndReport(scanId5);
     policyMonitor.run();
+    awaitEmailNotifications();
     PolicyEvaluation policyEvaluation5 = policyEvaluationDAO.getLastByOwnerIdAndStageId(app.getId(),
         stage.getStageTypeId());
     assertThat(policyEvaluation5.getId()).isNotEqualTo(policyEvaluation4.getId());
@@ -461,7 +466,7 @@ public class PolicyMonitorTest
     {
       assertThat(policyViolation.getActionTypeId()).isNull();
     }
-    assertNotifications(notificationsDeveloper, 0, 5000);
+    assertNotifications(notificationsDeveloper, 0, 0);
     assertNotifications(notificationsMonitor1, 0, 0);
     assertNotifications(notificationsMonitor2, 1, 0);
     assertNotifications(notificationsMonitor3, 0, 0);
@@ -476,6 +481,7 @@ public class PolicyMonitorTest
     String scanId6 = "PolicyMonitorTest_scanId6";
     mockScanReceiptAndReport(scanId6);
     policyMonitor.run();
+    awaitEmailNotifications();
     PolicyEvaluation policyEvaluation6 = policyEvaluationDAO.getLastByOwnerIdAndStageId(app.getId(),
         stage.getStageTypeId());
     assertThat(policyEvaluation6.getId()).isNotEqualTo(policyEvaluation5.getId());
@@ -486,7 +492,7 @@ public class PolicyMonitorTest
     {
       assertThat(policyViolation.getActionTypeId()).isNull();
     }
-    assertNotifications(notificationsDeveloper, 0, 5000);
+    assertNotifications(notificationsDeveloper, 0, 0);
     assertNotifications(notificationsMonitor1, 0, 0);
     assertNotifications(notificationsMonitor2, 0, 0);
     assertNotifications(notificationsMonitor3, 1, 0);
@@ -944,7 +950,9 @@ public class PolicyMonitorTest
   private void mockScanReceiptAndReport(String scanId) {
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(scanId);
-    scanReceipt.setTimeToReport(1L);
+    // The mock report is registered synchronously below, so no report delay is needed. waitForReport() sleeps
+    // timeToReport*1000ms, so a non-zero value would add a full second of dead time to every scan evaluation.
+    scanReceipt.setTimeToReport(0L);
     mockScanReceipt(scanReceipt);
     mockReport(scanId, "/" + getClass().getSimpleName() + "/report");
   }
@@ -971,6 +979,25 @@ public class PolicyMonitorTest
   private void assertShutdownHandler() {
     verify(mockShutdownHandler).add(policyMonitor.getExecutorService());
     verify(mockShutdownHandler).remove(policyMonitor.getExecutorService());
+  }
+
+  /**
+   * Policy alert emails are delivered on background threads (see {@code PolicyAlertEmailer}), so mailbox contents are
+   * not populated synchronously when an evaluation or monitor run returns. Join any outstanding notifier threads so the
+   * subsequent {@code assertNotifications} checks are deterministic instead of relying on fixed sleeps.
+   */
+  private static void awaitEmailNotifications() throws InterruptedException {
+    long deadlineMillis = System.currentTimeMillis() + 30_000;
+    for (Thread thread : Thread.getAllStackTraces().keySet()) {
+      String name = thread.getName();
+      if (name != null && name.startsWith(PolicyAlertEmailer.THREAD_NAME_PREFIX)) {
+        long remainingMillis = deadlineMillis - System.currentTimeMillis();
+        if (remainingMillis <= 0) {
+          break;
+        }
+        thread.join(remainingMillis);
+      }
+    }
   }
 
   private void setEvaluationQueueConfig(final boolean enabled) {

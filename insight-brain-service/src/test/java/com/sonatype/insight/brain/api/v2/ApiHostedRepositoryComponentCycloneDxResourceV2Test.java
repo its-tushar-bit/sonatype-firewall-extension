@@ -61,8 +61,11 @@ public class ApiHostedRepositoryComponentCycloneDxResourceV2Test
   public void setUp() {
     // AspectJ compile-time weaving inserts a @HasFeature aspect on the resource class and an
     // @Authorize aspect on its service-call sites. Both fire during Mockito unit tests that
-    // bypass the Spring proxy. Disable enforcement here so the aspects short-circuit to the
-    // mocked service call — see SecurityAspectControl's javadoc for the intended use.
+    // bypass the Spring proxy. Disabling enforcement short-circuits both to the mocked service
+    // call — see SecurityAspectControl's javadoc for the intended use. This also covers
+    // @HasFeature(HOSTED_REPOSITORY_EVALUATION), so the feature must not be toggled here:
+    // SystemConfigurationPropertyFeature.setEnabled reaches for a statically injected
+    // SystemConfigurationPropertyDAO that a plain MockitoJUnitRunner never wires.
     SecurityAspectControl.disableEnforcement();
     hrc = new HostedRepositoryComponent("repo-1", "path/lib.jar", "hash-abc");
     hrc.setId(HRC_ID);

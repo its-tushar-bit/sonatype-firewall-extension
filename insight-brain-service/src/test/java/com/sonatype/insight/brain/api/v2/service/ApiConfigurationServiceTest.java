@@ -71,6 +71,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ContextConfiguration;
 
+/**
+ * <b>Intentionally retained as an isolated, per-class-configuration test</b> (not migrated to the reused-context
+ * component-h2 module). It mutates process-global environment variables via {@code @Rule EnvironmentVariables}
+ * (NXIQ_* keys) and installs a {@code @Primary} spy of {@code SystemConfigurationPropertyDAO}; both leak across a
+ * shared context, so it requires its own Spring context and JUnit 4 rule lifecycle. See CLM-45581.
+ */
 @ContextConfiguration(classes = ApiConfigurationServiceTest.ApiConfigurationServiceTestConfiguration.class)
 public class ApiConfigurationServiceTest
     extends AbstractComponentTest

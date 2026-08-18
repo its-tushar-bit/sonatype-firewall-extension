@@ -11,23 +11,21 @@ import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.test.LogOutput;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.test.context.ContextConfiguration;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ContextConfiguration(classes = MailConfigurationMigratorTest.MailConfigurationMigratorTestConfiguration.class)
+@ComponentH2Test
 public class MailConfigurationMigratorTest
-    extends AbstractComponentTest
+    extends AbstractComponentH2Test
 {
   @Inject
   private MigrationTrackerDAO migrationTrackerDAO;
@@ -44,11 +42,10 @@ public class MailConfigurationMigratorTest
   @Inject
   private InsightMail insightMail;
 
-  @Rule
   public LogOutput logOutput = new LogOutput(MailConfigurationMigrator.class);
 
-  @Before
-  @After
+  @BeforeEach
+  @AfterEach
   public void clear() {
     migrationTrackerDAO.deleteById(MailConfigurationMigrator.MIGRATION_ID);
     mailConfigurationDAO.delete();
@@ -225,12 +222,5 @@ public class MailConfigurationMigratorTest
     assertThat(dbConfig.getSystemEmail()).isEqualTo("system@email");
 
     assertThat(logOutput).atWarnLevel().contains(MailConfigurationMigrator.OBSOLETE_CONFIG_MESSAGE);
-  }
-
-  @TestConfiguration
-  static class MailConfigurationMigratorTestConfiguration
-  {
-    // Intentionally empty. Declaring an explicit concrete test configuration preserves the
-    // database-backed Spring test context for this migrator test under the migrated harness.
   }
 }

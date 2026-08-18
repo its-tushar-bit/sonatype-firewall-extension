@@ -76,6 +76,14 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
 
+/**
+ * <b>Intentionally retained as an isolated, per-class-configuration test</b> (not migrated to the reused-context
+ * {@code insight-brain-variant-test-component-h2} module). Its {@link TaskSchedulerTestConfiguration} builds a bespoke
+ * Quartz stack — its own {@code QuartzJobStoreTX}, {@code OperationalDataStore}, trigger/concurrency listeners,
+ * license beans and a mock {@code ShutdownHandler} — that replaces core scheduler beans. The test validates that
+ * specific bean graph and scheduler lifecycle, so it genuinely requires its own Spring context and cannot share the
+ * single reused component-test context. See CLM-45581.
+ */
 @ContextConfiguration(classes = TaskSchedulerTest.TaskSchedulerTestConfiguration.class)
 public class TaskSchedulerTest
     extends AbstractComponentTest

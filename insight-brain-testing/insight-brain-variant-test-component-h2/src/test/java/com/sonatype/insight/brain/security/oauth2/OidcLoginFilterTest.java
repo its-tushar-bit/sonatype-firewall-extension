@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.security.oauth2;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -21,11 +20,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.sonatype.insight.brain.testsupport.wiremock.ReusableWireMockExtension;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.security.PasswordHandler;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.tenancy.TenantReference;
@@ -52,9 +52,10 @@ import org.eclipse.jetty.ee11.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee11.servlet.ServletHolder;
 import org.eclipse.jetty.server.NetworkConnector;
 import org.eclipse.jetty.server.Server;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -62,8 +63,9 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ContextConfiguration;
 
 @ContextConfiguration(classes = OidcLoginFilterTest.OidcLoginFilterTestConfiguration.class)
+@ComponentH2Test
 public class OidcLoginFilterTest
-    extends AbstractComponentTest
+    extends AbstractComponentH2Test
 {
   @TestConfiguration
   static class OidcLoginFilterTestConfiguration
@@ -93,8 +95,8 @@ public class OidcLoginFilterTest
 
   public static final String BASE_URL = "http://localhost:8070/";
 
-  @Rule
-  public WireMockRule idpServer = new WireMockRule(wireMockConfig().dynamicPort());
+  @RegisterExtension
+  static ReusableWireMockExtension idpServer = new ReusableWireMockExtension();
 
   @Inject
   private OidcLoginFilter oidcLoginFilter;
@@ -110,11 +112,19 @@ public class OidcLoginFilterTest
 
   private String encryptedClientSecret;
 
-  @Before
+  @BeforeEach
   public void setup() {
     reset(mockBaseUrl, mockConfiguration);
     SystemConfigurationPropertyFeature.OAUTH2_ENABLED.setEnabled(true);
     encryptedClientSecret = passwordHandler.encryptPassword(CLIENT_SECRET);
+  }
+
+  @AfterEach
+  public void resetOauth2Feature() {
+    // The reused component-h2 context shares one H2 DB across the cohort, so restore OAUTH2_ENABLED to its
+    // absent/disabled default (enabledWhenAbsent=false) after each method — otherwise the row written in setup()
+    // (or flipped by individual tests) would leak to other classes in the cohort.
+    SystemConfigurationPropertyFeature.OAUTH2_ENABLED.setEnabled(false);
   }
 
   @Test

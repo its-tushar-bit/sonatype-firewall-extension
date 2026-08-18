@@ -43,7 +43,8 @@ import com.sonatype.insight.brain.sbom.SbomTestHelper;
 import com.sonatype.insight.brain.sbom.utils.SbomFileDetector;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.scan.datastore.FileScanEntity;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ExistingFilesHelper;
@@ -88,33 +89,20 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParser;
 import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.test.context.ContextConfiguration;
 import org.w3c.dom.Document;
 
-@ContextConfiguration(classes = ThirdPartyScanResultsProcessorTest.ExistingFilesHelperTestConfig.class)
+@ComponentH2Test
 public class ThirdPartyScanResultsProcessorTest
-    extends AbstractComponentTest
+    extends AbstractComponentH2Test
 {
-  @TestConfiguration
-  static class ExistingFilesHelperTestConfig
-  {
-    @Bean
-    ExistingFilesHelper existingFilesHelper() {
-      return new ExistingFilesHelper();
-    }
-  }
 
   private final String loggerName = ThirdPartyScanResultsProcessor.class.getName();
 
   private static final String DUMMY_APP_ID = UUID.randomUUID().toString().replace("-", "");
 
-  @Rule
   public LogOutput logOutput = new LogOutput(loggerName);
 
   @Inject
@@ -166,7 +154,7 @@ public class ThirdPartyScanResultsProcessorTest
 
   private static final String DEFAULT_STAGE_TYPE = StageTypes.DEVELOP.getName();
 
-  @Before
+  @BeforeEach
   public void before() {
     thirdPartyScanResultsProcessorSpy = spy(new ThirdPartyScanResultsProcessor(
         thirdPartyScanDAO,

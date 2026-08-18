@@ -8,64 +8,38 @@ package com.sonatype.insight.brain.git;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.google.common.util.concurrent.UncheckedExecutionException;
-import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.security.PasswordHandler;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
+import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.nexus.scm.GitApiClientFactory;
 import com.sonatype.nexus.scm.api.auth.AuthenticationStrategy;
 import com.sonatype.nexus.scm.github.auth.GitHubAppAuthStrategy;
 import jakarta.inject.Inject;
 import java.util.Date;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ContextConfiguration;
 
-@ContextConfiguration(classes = GitHubAppAuthStrategyCacheTest.GitHubAppAuthStrategyCacheTestConfig.class)
+@ContextConfiguration(classes = GitHubAppWireMockCohortConfig.class)
+@ComponentH2Test
 public class GitHubAppAuthStrategyCacheTest
-    extends AbstractComponentTest
+    extends AbstractComponentH2Test
 {
-  @TestConfiguration
-  static class GitHubAppAuthStrategyCacheTestConfig
-  {
-    @Bean
-    @Primary
-    GitHubAppAuthStrategyCache gitHubAppAuthStrategyCache(
-        final GitHubAppDAO githubAppDAO,
-        final InsightProxy insightProxy,
-        final GitApiClientFactory gitApiClientFactory,
-        final PasswordHandler passwordHandler)
-    {
-      return new GitHubAppAuthStrategyCache(
-          githubAppDAO,
-          insightProxy,
-          gitApiClientFactory,
-          passwordHandler,
-          "http://localhost:" + WIREMOCK_PORT);
-    }
-  }
 
-  private static final int WIREMOCK_PORT = 18089;
-
-  @Rule
-  public WireMockRule githubMockServer = new WireMockRule(wireMockConfig().port(WIREMOCK_PORT));
+  @Inject
+  private WireMockServer gitHubAppWireMockServer;
 
   @Inject
   private GitHubAppAuthStrategyCache cache;
@@ -78,7 +52,12 @@ public class GitHubAppAuthStrategyCacheTest
 
   private static int tokenCounter = 10000;
 
-  @After
+  @BeforeEach
+  public void resetWireMock() {
+    gitHubAppWireMockServer.resetAll();
+  }
+
+  @AfterEach
   public void tearDown() {
     // Reset tenant context after each test to prevent cross-test pollution
     TenantTestHelper.resetAfterTest();
@@ -90,7 +69,7 @@ public class GitHubAppAuthStrategyCacheTest
    */
   private void stubGitHubTokenEndpointWithUniqueToken() {
     String uniqueToken = "ghs_test_token_" + (tokenCounter++);
-    githubMockServer.stubFor(
+    gitHubAppWireMockServer.stubFor(
         post(urlPathMatching("/app/installations/\\d+/access_tokens"))
             .willReturn(aResponse()
                 .withStatus(201)
@@ -107,7 +86,7 @@ public class GitHubAppAuthStrategyCacheTest
    */
   private void stubGitHubTokenEndpointForInstallation(long installationId) {
     String uniqueToken = "ghs_test_token_" + installationId + "_" + (tokenCounter++);
-    githubMockServer.stubFor(
+    gitHubAppWireMockServer.stubFor(
         post(urlPathMatching("/app/installations/" + installationId + "/access_tokens"))
             .willReturn(aResponse()
                 .withStatus(201)
@@ -221,7 +200,7 @@ public class GitHubAppAuthStrategyCacheTest
     String token1Value = "ghs_test_token_" + (tokenCounter++);
     String token2Value = "ghs_test_token_" + (tokenCounter++);
 
-    githubMockServer.stubFor(
+    gitHubAppWireMockServer.stubFor(
         post(urlPathMatching("/app/installations/" + app.getInstallationId() + "/access_tokens"))
             .inScenario("token-refresh")
             .whenScenarioStateIs(Scenario.STARTED)
@@ -231,7 +210,7 @@ public class GitHubAppAuthStrategyCacheTest
                 .withBody("{\"token\":\"" + token1Value + "\",\"expires_at\":\"2099-01-01T00:00:00Z\"}"))
             .willSetStateTo("second-call"));
 
-    githubMockServer.stubFor(
+    gitHubAppWireMockServer.stubFor(
         post(urlPathMatching("/app/installations/" + app.getInstallationId() + "/access_tokens"))
             .inScenario("token-refresh")
             .whenScenarioStateIs("second-call")

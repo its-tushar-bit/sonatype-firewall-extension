@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.spring.config.ScheduledConfiguration;
 import com.sonatype.insight.brain.spring.config.SearchConfiguration;
 import com.sonatype.insight.brain.spring.config.SecurityConfiguration;
 import com.sonatype.insight.brain.testsupport.SingleTenantTestSupportConfiguration;
+import com.sonatype.insight.brain.utils.ExistingFilesHelper;
 import com.sonatype.insight.scan.model.io.ScanReader;
 import com.sonatype.insight.test.SpringTestExecutionContext;
 import jakarta.inject.Named;
@@ -199,6 +200,17 @@ public class SpringTestConfiguration
   @Bean
   public ScanReader scanReader() {
     return new ScanReader();
+  }
+
+  /**
+   * Shared, reuse-safe {@link ExistingFilesHelper} for SBOM file-system assertions. {@code ExistingFilesHelper} is a
+   * {@code @Named} test-classpath helper, so {@link SpringTestConfiguration}'s {@code @ComponentScan} deliberately
+   * excludes it; declaring it here (rather than in a per-class {@code @TestConfiguration}) lets SBOM tests share the
+   * single reused component-test context instead of each forcing its own.
+   */
+  @Bean
+  public ExistingFilesHelper existingFilesHelper() {
+    return new ExistingFilesHelper();
   }
 
   /**

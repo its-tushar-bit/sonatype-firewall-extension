@@ -57,23 +57,11 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.test.context.ContextConfiguration;
 
-@ContextConfiguration(classes = PendingSbomMetadataCleanerTest.ExistingFilesHelperTestConfig.class)
 @ComponentH2Test
 public class PendingSbomMetadataCleanerTest
     extends AbstractComponentH2Test
 {
-  @TestConfiguration
-  static class ExistingFilesHelperTestConfig
-  {
-    @Bean
-    ExistingFilesHelper existingFilesHelper() {
-      return new ExistingFilesHelper();
-    }
-  }
 
   @Inject
   private PendingSbomMetadataCleaner pendingSbomMetadataCleaner;

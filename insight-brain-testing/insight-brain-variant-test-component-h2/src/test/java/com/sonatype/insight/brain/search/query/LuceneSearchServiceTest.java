@@ -15,27 +15,22 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
-import com.sonatype.insight.brain.search.index.SearchIndexClient;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.brain.search.lucene.LuceneIndexWriterOwner;
-import com.sonatype.insight.brain.search.lucene.LuceneSearchIndexClient;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryCollector;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 import jakarta.inject.Inject;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
-import org.springframework.test.context.ContextConfiguration;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.apache.commons.io.FileUtils.deleteDirectory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-@ContextConfiguration(classes = LuceneSearchServiceTest.LuceneSearchServiceTestConfiguration.class)
+@ComponentH2Test
 public class LuceneSearchServiceTest
     extends AbstractSearchServiceTest
 {
@@ -45,22 +40,12 @@ public class LuceneSearchServiceTest
   @Inject
   private LuceneIndexWriterOwner luceneIndexWriterOwner;
 
-  @TestConfiguration
-  static class LuceneSearchServiceTestConfiguration
-  {
-    @Bean
-    @Primary
-    SearchIndexClient searchIndexClient(final LuceneSearchIndexClient luceneSearchIndexClient) {
-      return luceneSearchIndexClient;
-    }
-  }
-
   @Override
   protected void grantDefaultTestUserAllPermissions() {
     tempEntity.newUser(USERNAME);
   }
 
-  @Before
+  @BeforeEach
   public void resetLuceneSearchFixture() throws IOException {
     advancedSearchTelemetryCollector.collectAllData();
     luceneIndexWriterOwner.deregister();

@@ -37,6 +37,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
+/**
+ * <b>Intentionally retained as an isolated, per-class-configuration test</b> (not migrated to the reused-context
+ * component-h2 module). It installs a {@code @Primary} mock of the {@code ApiComponentDetailsServiceV2} HDS boundary
+ * and asserts against a clean root-organization policy/evaluation state; both couple it to a dedicated context and
+ * database, so it cannot share the reused component-test context. See CLM-45581.
+ */
 @ContextConfiguration(classes = GuidePolicyEvaluatorIT.GuidePolicyEvaluatorITConfiguration.class)
 public class GuidePolicyEvaluatorIT
     extends BrainInjectedTest

@@ -109,25 +109,13 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.internal.stubbing.answers.AnswersWithDelay;
 import org.mockito.internal.stubbing.answers.Returns;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.xmlunit.assertj.XmlAssert;
 
 @ComponentPgTest
-@ContextConfiguration(classes = ApiSbomServiceTest.ExistingFilesHelperTestConfig.class)
 public class ApiSbomServiceTest
     extends AbstractComponentPgTest
 {
-  @TestConfiguration
-  static class ExistingFilesHelperTestConfig
-  {
-    @Bean
-    ExistingFilesHelper existingFilesHelper() {
-      return new ExistingFilesHelper();
-    }
-  }
 
   public LogOutput logOutput = new LogOutput(1, ApiSbomServiceTest.class, ApiSbomService.class);
 

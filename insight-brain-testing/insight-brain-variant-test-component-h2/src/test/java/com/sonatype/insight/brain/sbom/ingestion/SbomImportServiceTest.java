@@ -10,7 +10,7 @@ import static com.sonatype.insight.brain.sbom.SbomSpecification.CYCLONEDX;
 import static com.sonatype.insight.brain.sbom.SbomSpecification.SPDX;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -36,7 +36,8 @@ import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
 import com.sonatype.insight.brain.sbom.utils.SbomSummary;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.report.ReportDownloader;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.thirdparty.SbomScanType;
 import com.sonatype.insight.brain.utils.ExistingFilesHelper;
@@ -73,29 +74,18 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
 
-@ContextConfiguration(classes = SbomImportServiceTest.ExistingFilesHelperTestConfig.class)
+@ComponentH2Test
 public class SbomImportServiceTest
-    extends AbstractComponentTest
+    extends AbstractComponentH2Test
 {
-  @TestConfiguration
-  static class ExistingFilesHelperTestConfig
-  {
-    @Bean
-    ExistingFilesHelper existingFilesHelper() {
-      return new ExistingFilesHelper();
-    }
-  }
 
   private static final String TEST_FILENAME_XML = "test-filename.xml";
 
@@ -131,7 +121,7 @@ public class SbomImportServiceTest
 
   private ThreadPoolExecutor executor;
 
-  @Before
+  @BeforeEach
   public void before() {
     sbomImportService = lookup(SbomImportService.class);
     ScanUploadService scanUploadService = lookup(ScanUploadService.class);
@@ -148,7 +138,7 @@ public class SbomImportServiceTest
     SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.setEnabled(false);
   }
 
-  @After
+  @AfterEach
   public void shutdownThreadPool() {
     if (executor != null) {
       executor.shutdown();
@@ -739,9 +729,10 @@ public class SbomImportServiceTest
     URL resource = SbomImportServiceTest.class
         .getResource("/SbomImportServiceTest/binary.jar");
     File binary = new File(Objects.requireNonNull(resource).getFile());
-    assertThrows("Importing binary files for SBOM Manager is disabled", BadRequestException.class,
+    assertThrows(BadRequestException.class,
         () -> sbomImportService.detectSbom(application.getId(),
-            new ByteArrayInputStream(Files.readAllBytes(binary.toPath())), "binary.jar", false));
+            new ByteArrayInputStream(Files.readAllBytes(binary.toPath())), "binary.jar", false),
+        "Importing binary files for SBOM Manager is disabled");
 
     assertExistingSbomFiles();
   }
@@ -1096,9 +1087,10 @@ public class SbomImportServiceTest
 
   @Test
   public void testDetectSbom_Failure_InvalidApplicationId() throws IOException {
-    assertThrows("Application with id applicationId does not exist", NotFoundException.class,
+    assertThrows(NotFoundException.class,
         () -> sbomImportService.detectSbom("applicationId", new ByteArrayInputStream(new byte[0]), TEST_FILENAME_XML,
-            false));
+            false),
+        "Application with id applicationId does not exist");
 
     assertExistingSbomFiles();
   }
@@ -1245,8 +1237,9 @@ public class SbomImportServiceTest
 
   @Test
   public void testImportDetectedSbom_Failure_InvalidApplicationId() throws IOException {
-    assertThrows("Application with id applicationId does not exist", NotFoundException.class,
-        () -> sbomImportService.importDetectedSbom("notAnApplicationId", "1", null, "userAgent"));
+    assertThrows(NotFoundException.class,
+        () -> sbomImportService.importDetectedSbom("notAnApplicationId", "1", null, "userAgent"),
+        "Application with id applicationId does not exist");
 
     assertExistingSbomFiles();
   }
@@ -1256,9 +1249,9 @@ public class SbomImportServiceTest
     String invalidVersion = "invalidVersion";
 
     assertThrows(
-        "SBOM with applicationId %s and version %s does not exist".formatted(application.getId(), invalidVersion),
         NotFoundException.class,
-        () -> sbomImportService.importDetectedSbom(application.getId(), invalidVersion, null, "userAgent"));
+        () -> sbomImportService.importDetectedSbom(application.getId(), invalidVersion, null, "userAgent"),
+        "SBOM with applicationId %s and version %s does not exist".formatted(application.getId(), invalidVersion));
 
     assertExistingSbomFiles();
   }
@@ -1266,10 +1259,10 @@ public class SbomImportServiceTest
   @Test
   public void testDetectSbom_Failure_MaxSbomLimitHasBeenReached() throws IOException {
     productLicense.setMaxSbom(0);
-    assertThrows("You have exceeded the licensed limit of " + productLicense.getMaxSboms() + " sboms.",
-        PaymentRequiredException.class,
+    assertThrows(PaymentRequiredException.class,
         () -> sbomImportService.detectSbom(application.getId(), new ByteArrayInputStream(new byte[0]),
-            TEST_FILENAME_XML, false));
+            TEST_FILENAME_XML, false),
+        "You have exceeded the licensed limit of " + productLicense.getMaxSboms() + " sboms.");
     productLicense.reset();
 
     assertExistingSbomFiles();

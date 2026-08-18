@@ -24,7 +24,6 @@ import com.sonatype.insight.brain.scan.datastore.FileScanPersistenceService;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
 import com.sonatype.insight.brain.variant.ComponentH2Test;
-import com.sonatype.insight.brain.utils.ExistingFilesHelper;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
 import java.io.IOException;
@@ -32,28 +31,16 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.test.context.ContextConfiguration;
 
 /**
  * Tests for the from-scan paths of {@link ThirdPartyPersistenceService}: {@code saveSbomManagerSbomFromScan} and
  * {@code saveSbomManagerBinaryFromScan}. Tests for the user-upload path ({@code saveSbomManagerSbomOrBinary}) live in
  * {@code PendingSbomMetadataCleanerTest} and {@code SbomImportServiceTest}.
  */
-@ContextConfiguration(classes = ThirdPartyPersistenceServiceTest.ExistingFilesHelperTestConfig.class)
 @ComponentH2Test
 public class ThirdPartyPersistenceServiceTest
     extends AbstractComponentH2Test
 {
-  @TestConfiguration
-  static class ExistingFilesHelperTestConfig
-  {
-    @Bean
-    ExistingFilesHelper existingFilesHelper() {
-      return new ExistingFilesHelper();
-    }
-  }
 
   @Inject
   private ThirdPartyPersistenceService thirdPartyPersistenceService;

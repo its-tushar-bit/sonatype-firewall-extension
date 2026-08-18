@@ -15,7 +15,9 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.scheduler.QuartzJobSchedulingService;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.index.IndexService;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.search.lucene.LuceneIndexWriterOwner;
+import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
@@ -24,14 +26,14 @@ import java.io.File;
 import java.time.Duration;
 import java.util.Arrays;
 import org.apache.commons.io.FileUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.springframework.test.annotation.DirtiesContext;
 
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@ComponentH2Test
 public class AdvancedSearchServiceTest
-    extends AbstractComponentTest
+    extends AbstractComponentH2Test
 {
   @Inject
   private AdvancedSearchService advancedSearchService;
@@ -51,14 +53,28 @@ public class AdvancedSearchServiceTest
   @Inject
   private QuartzJobSchedulingService quartzJobSchedulingService;
 
+  @Inject
+  private LuceneIndexWriterOwner luceneIndexWriterOwner;
+
   @Mock
   private TelemetrySender telemetrySenderMock;
 
-  @Before
+  @BeforeEach
   public void resetSearchIndexState() throws Exception {
     quartzJobSchedulingServiceRule.waitForRealSchedulingToComplete(quartzJobSchedulingService);
     taskScheduler.createScheduler();
     taskScheduler.clear();
+    // Reused context: the LuceneIndexWriterOwner singleton holds an open IndexWriter across tests, so deregister
+    // (close) it before deleting the index directory to avoid a stale writer over a removed path.
+    luceneIndexWriterOwner.deregister();
+    FileUtils.deleteDirectory(insightWork.getSearchIndexDir());
+  }
+
+  @AfterEach
+  public void cleanupSearchIndexState() throws Exception {
+    // Symmetric teardown so the shared LuceneIndexWriterOwner + on-disk index are not left dirty after this class's
+    // last method in the reused context (the @BeforeEach reset only guards entry). Keeps the cohort order-independent.
+    luceneIndexWriterOwner.deregister();
     FileUtils.deleteDirectory(insightWork.getSearchIndexDir());
   }
 

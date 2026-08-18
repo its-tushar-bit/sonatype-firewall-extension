@@ -10,7 +10,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.sonatype.insight.brain.metrics.ScmPrIneligibleReason.ALREADY_REMEDIATED;
 import static com.sonatype.insight.brain.metrics.ScmPrIneligibleReason.NOT_ELIGIBLE;
 import static com.sonatype.insight.brain.metrics.ScmPrIneligibleReason.NO_REMEDIATION;
@@ -23,7 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.WireMockServer;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -34,11 +33,10 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentCha
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiSuggestedVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
-import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
-import com.sonatype.insight.brain.git.GitHubAppAuthStrategyCache;
+import com.sonatype.insight.brain.git.GitHubAppWireMockCohortConfig;
 import com.sonatype.insight.brain.git.utils.PullRequestBranchNameGenerator;
 import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
@@ -56,14 +54,13 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.report.InnerSourceUtils;
 import com.sonatype.insight.brain.security.PasswordHandler;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightProxy;
+import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryStats.SourceEndpoint;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.test.LogOutput;
-import com.sonatype.nexus.scm.GitApiClientFactory;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.github.dto.GithubUser;
 import jakarta.inject.Inject;
@@ -72,42 +69,18 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import org.apache.hc.core5.http.HttpHeaders;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ContextConfiguration;
 
-@ContextConfiguration(classes = ManualPullRequestCreationServiceTest.ManualPullRequestCreationServiceTestConfig.class)
+@ContextConfiguration(classes = GitHubAppWireMockCohortConfig.class)
+@ComponentH2Test
 public class ManualPullRequestCreationServiceTest
-    extends AbstractComponentTest
+    extends AbstractComponentH2Test
 {
-  private static final int WIREMOCK_PORT = 18091;
-
-  @TestConfiguration
-  static class ManualPullRequestCreationServiceTestConfig
-  {
-    @Bean
-    @Primary
-    GitHubAppAuthStrategyCache gitHubAppAuthStrategyCache(
-        final GitHubAppDAO githubAppDAO,
-        final InsightProxy insightProxy,
-        final GitApiClientFactory gitApiClientFactory,
-        final PasswordHandler passwordHandler)
-    {
-      return new GitHubAppAuthStrategyCache(
-          githubAppDAO,
-          insightProxy,
-          gitApiClientFactory,
-          passwordHandler,
-          "http://localhost:" + WIREMOCK_PORT);
-    }
-  }
 
   private static final String DEFAULT_SCAN_ID = "scan-id";
 
@@ -148,8 +121,8 @@ public class ManualPullRequestCreationServiceTest
           "ukkm6Cc03G16SqcmicaVFoto9GSgI6ZX2ynicH7B58DARZrZxzMLRLd+NvDhUnLU" +
           "/2Zcph16+6zclEkOgCD+Gw==";
 
-  @Rule
-  public WireMockRule gitService = new WireMockRule(wireMockConfig().port(WIREMOCK_PORT));
+  @Inject
+  private WireMockServer gitHubAppWireMockServer;
 
   @Mock
   private ComponentInfoService mockComponentInfoService;
@@ -175,7 +148,6 @@ public class ManualPullRequestCreationServiceTest
   @Inject
   private PasswordHandler passwordHandler;
 
-  @Rule
   public LogOutput logOutput = new LogOutput(ManualPullRequestCreationService.class);
 
   private Application application;
@@ -184,8 +156,9 @@ public class ManualPullRequestCreationServiceTest
 
   private Stage stage;
 
-  @Before
+  @BeforeEach
   public void setup() throws PlexusCipherException {
+    gitHubAppWireMockServer.resetAll();
     application = tempEntity.newApplicationWithParent("abc123");
     mavenComponent = ComponentIdentifier.createMavenCoordinates("group", "artifact", DEFAULT_VERSION);
     stage = new Stage("build");
@@ -193,9 +166,9 @@ public class ManualPullRequestCreationServiceTest
 
     GithubUser githubUser = new GithubUser();
     githubUser.setGlobalId("userId");
-    gitService.stubFor(get("/api/v3/user").withHeader("Authorization", matching("token token"))
+    gitHubAppWireMockServer.stubFor(get("/api/v3/user").withHeader("Authorization", matching("token token"))
         .willReturn(aResponse().withStatus(200).withBody(JsonUtils.format(githubUser))));
-    gitService.stubFor(get(urlPathMatching("/api/v3/repos/[^/]+/[^/]+"))
+    gitHubAppWireMockServer.stubFor(get(urlPathMatching("/api/v3/repos/[^/]+/[^/]+"))
         .willReturn(aResponse()
             .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
             .withBody("{ \"private\": true }")));
@@ -204,7 +177,7 @@ public class ManualPullRequestCreationServiceTest
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
     final SourceControl sourceControl = new SourceControl();
     sourceControl.setOwnerId(application.getId());
-    sourceControl.setRepositoryUrl(gitService.baseUrl() + "/org/proj");
+    sourceControl.setRepositoryUrl(gitHubAppWireMockServer.baseUrl() + "/org/proj");
     sourceControl.setManualPullRequestsEnabled(true);
     sourceControl.setToken(new DefaultPlexusCipher().encrypt("token", "CMMDwoV"));
     tempEntity.newSourceControl(sourceControl);
@@ -553,7 +526,7 @@ public class ManualPullRequestCreationServiceTest
     String branchName = branchNameGenerator.getBranchName(application, mavenComponent, DEFAULT_REMEDIATION_VERSION);
 
     Long installationId = 789012L;
-    gitService.stubFor(post(urlPathMatching("/app/installations/" + installationId + "/access_tokens"))
+    gitHubAppWireMockServer.stubFor(post(urlPathMatching("/app/installations/" + installationId + "/access_tokens"))
         .willReturn(aResponse()
             .withStatus(201)
             .withHeader("Content-Type", "application/json")
@@ -615,7 +588,7 @@ public class ManualPullRequestCreationServiceTest
     String branchName = branchNameGenerator.getBranchName(application, mavenComponent, DEFAULT_REMEDIATION_VERSION);
 
     Long installationId = 999999L;
-    gitService.stubFor(post(urlPathMatching("/app/installations/" + installationId + "/access_tokens"))
+    gitHubAppWireMockServer.stubFor(post(urlPathMatching("/app/installations/" + installationId + "/access_tokens"))
         .willReturn(aResponse()
             .withStatus(201)
             .withHeader("Content-Type", "application/json")

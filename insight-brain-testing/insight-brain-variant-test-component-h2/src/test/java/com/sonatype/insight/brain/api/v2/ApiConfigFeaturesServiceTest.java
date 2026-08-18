@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -15,14 +16,16 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.FIPSConfig;
+import com.sonatype.insight.brain.security.TestEnvironmentVariables;
 import com.sonatype.insight.brain.service.SystemConfigurationPropertyCacheInvalidationJob;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.*;
@@ -30,14 +33,39 @@ import static com.sonatype.insight.brain.model.configuration.SystemConfiguration
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@ComponentH2Test
 public class ApiConfigFeaturesServiceTest
-    extends AbstractComponentTest
+    extends AbstractComponentH2Test
 {
   @Inject
   private ApiConfigFeaturesService service;
 
-  @Rule
-  public EnvironmentVariables environmentVariables = new EnvironmentVariables();
+  // Feature flags whose enablement this class mutates via SystemConfigurationPropertyFeature.setEnabled. Their state
+  // is persisted to the DB, which is reused across all component-h2 test classes in the same JVM fork, so it is
+  // captured before each test and restored after to prevent leaking into an unrelated later test class.
+  private static final List<SystemConfigurationPropertyFeature> MUTATED_FEATURES = List.of(
+      SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED,
+      SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING,
+      SystemConfigurationPropertyFeature.SBOM_MANAGER,
+      SystemConfigurationPropertyFeature.ALP_FOR_SBOM_MANAGER);
+
+  private final TestEnvironmentVariables environmentVariables = new TestEnvironmentVariables();
+
+  private final Map<SystemConfigurationPropertyFeature, Boolean> originalFeatureState =
+      new EnumMap<>(SystemConfigurationPropertyFeature.class);
+
+  @BeforeEach
+  public void captureMutatedFeatureState() {
+    for (SystemConfigurationPropertyFeature feature : MUTATED_FEATURES) {
+      originalFeatureState.put(feature, feature.isEnabled());
+    }
+  }
+
+  @AfterEach
+  public void restoreMutatedTestState() {
+    originalFeatureState.forEach(SystemConfigurationPropertyFeature::setEnabled);
+    environmentVariables.restore();
+  }
 
   @Test
   public void testGetPropertyNameForFeature() {

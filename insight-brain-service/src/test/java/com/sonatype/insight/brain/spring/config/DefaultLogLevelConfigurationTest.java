@@ -106,6 +106,11 @@ public class DefaultLogLevelConfigurationTest
 
   @Test
   public void testDefaultPolicyViolationLogger_skippedWhenUserConfigured() throws IOException {
+    // Start from a clean baseline: a sibling test in this reused JVM fork may have left the policy-violation logger at
+    // a non-null level. This test verifies the level is left unchanged for a user-configured logger, so the level must
+    // be unset beforehand for the assertion to hold regardless of test execution order.
+    trackLogger(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME).setLevel(null);
+
     initializeDefaults(String.join("\n",
         "logging:",
         "  loggers:",

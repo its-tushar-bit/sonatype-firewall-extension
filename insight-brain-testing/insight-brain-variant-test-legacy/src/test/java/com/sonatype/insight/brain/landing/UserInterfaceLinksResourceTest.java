@@ -26,11 +26,12 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.security.UserSessionResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
 import com.sonatype.insight.mock.hds.HttpResponseProcessor;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.COMPONENT_SCAN_REPORT_PATH;
 import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.INTEGRATIONS_PRIORITIES_PATH;
@@ -42,6 +43,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
+@LegacyServerTest
 public class UserInterfaceLinksResourceTest
     extends AbstractResourceTest
 {

@@ -56,20 +56,22 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.telemetry.ClientUserAgentUtil;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.variant.LegacyServerTest;
 import com.sonatype.insight.jaxrs.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.mock.hds.HttpResponseProcessor;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
+@LegacyServerTest
 public class IdeResourceTest
     extends AbstractResourceTest
 {
@@ -79,7 +81,7 @@ public class IdeResourceTest
 
   private Application app = null;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     hashComponentIdentifierDAO = lookup(HashComponentIdentifierDAO.class);
     configurationService = lookup(Configuration.class);

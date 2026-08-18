@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -50,6 +51,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * This test now benchmarks that unified code path.
  * </p>
  */
+@Ignore("CLM-45708: pure microbenchmark (only assertion is totalTime > 0) providing no regression protection; "
+    + "394s / ~43% of Service Tests stage wall. Relocate to a dedicated non-CI perf job before re-enabling.")
 @RunWith(Parameterized.class)
 public class AuthorizationCheckerPerformanceTest
     extends AbstractDataTest

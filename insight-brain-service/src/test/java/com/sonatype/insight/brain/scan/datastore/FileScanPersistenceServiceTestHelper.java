@@ -17,6 +17,7 @@ import java.util.stream.Stream;
 import java.util.zip.GZIPOutputStream;
 
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.testing.FileTimestampTestUtil;
 
 public class FileScanPersistenceServiceTestHelper
     implements ScanPersistenceServiceTestHelper
@@ -63,7 +64,7 @@ public class FileScanPersistenceServiceTestHelper
 
   @Override
   public void waitForNewFileTime() throws InterruptedException {
-    Thread.sleep(2000);
+    FileTimestampTestUtil.waitForNewFileTime(insightWork.getWorkDir().toPath());
   }
 
   @Override

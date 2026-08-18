@@ -16,6 +16,7 @@ import java.util.Map;
 
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.testing.FileTimestampTestUtil;
 import com.sonatype.insight.brain.utils.ReportHelper;
 
 import org.junit.rules.TemporaryFolder;
@@ -176,9 +177,6 @@ public class FileLifecycleReportPersistenceServiceTestHelper
 
   @Override
   public void waitForNewFileTime() throws InterruptedException {
-    // attempt to guarantee that a file access after this will have a different timestamp in the filesystem than
-    // one before it. Worst case is probably a FAT filesystem, which has a resolution of 2 seconds on file modification
-    // timestamps
-    Thread.sleep(2000);
+    FileTimestampTestUtil.waitForNewFileTime(insightWork.getWorkDir().toPath());
   }
 }

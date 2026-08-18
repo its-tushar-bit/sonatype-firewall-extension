@@ -27,7 +27,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.sonatype.agp</groupId>
   <artifactId>agp-core</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.208.0-SNAPSHOT</version>
   <name>Agent P Core</name>
   <description>Framework-neutral Agent P domain model and orchestration behind host-supplied ports</description>
 

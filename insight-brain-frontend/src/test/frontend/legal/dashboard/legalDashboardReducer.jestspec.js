@@ -16,7 +16,9 @@ import {
   LEGAL_DASHBOARD_COMPONENT_SET_SEARCH_INPUT_VALUE,
 } from '../../../../main/frontend/legal/dashboard/legalDashboardActions';
 import {
+  LEGAL_DASHBOARD_APPLY_FILTER_FAILED,
   LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED,
+  LEGAL_DASHBOARD_APPLY_SAVED_FILTER_FAILED,
   LEGAL_DASHBOARD_LOAD_FILTER_REQUESTED,
 } from 'MainRoot/legal/dashboard/filter/legalDashboardFilterActions';
 
@@ -43,7 +45,7 @@ describe('legalDashboardReducer', function () {
         totalResultsCount: 0,
         page: 0,
         backendPage: 1,
-        loading: false,
+        loading: true,
       });
       expect(newState.components).toEqual({
         results: [],
@@ -51,6 +53,7 @@ describe('legalDashboardReducer', function () {
         backendPage: 1,
         error: null,
         sortField: null,
+        loading: true,
         componentNameToSearch: '',
         componentSearchInput: { isPristine: true, value: '', trimmedValue: '', validationErrors: null },
       });
@@ -69,10 +72,10 @@ describe('legalDashboardReducer', function () {
   });
 
   describe('LEGAL_DASHBOARD_LOAD_FILTER_REQUESTED action', function () {
-    it('resets all tabs state except pagination', function () {
+    it('resets all tabs state except pagination and preserves the loading flag', function () {
       const state = Object.freeze({
-        components: { results: [1, 2], numResults: 2, error: 'foo', page: 1, backendPage: 2 },
-        applications: { results: [3, 4], numResults: 2, error: 'foo', page: 3, backendPage: 4 },
+        components: { results: [1, 2], numResults: 2, error: 'foo', page: 1, backendPage: 2, loading: true },
+        applications: { results: [3, 4], numResults: 2, error: 'foo', page: 3, backendPage: 4, loading: true },
         other: otherObject,
       });
       const action = { type: LEGAL_DASHBOARD_LOAD_FILTER_REQUESTED };
@@ -85,7 +88,21 @@ describe('legalDashboardReducer', function () {
       expect(newState.applications.error).toBeNull();
       expect(newState.applications.page).toBe(3);
       expect(newState.applications.backendPage).toBe(4);
+      expect(newState.applications.loading).toBe(true);
+      expect(newState.components.loading).toBe(true);
       expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+
+    it('preserves loading:false so a standalone filter reload does not strand the results spinner', function () {
+      const state = Object.freeze({
+        components: { results: [1, 2], error: 'foo', page: 1, backendPage: 2, loading: false },
+        applications: { results: [3, 4], error: 'foo', page: 3, backendPage: 4, loading: false },
+        other: otherObject,
+      });
+      const action = { type: LEGAL_DASHBOARD_LOAD_FILTER_REQUESTED };
+      const newState = legalDashboardReducer(state, action);
+      expect(newState.applications.loading).toBe(false);
+      expect(newState.components.loading).toBe(false);
     });
   });
 
@@ -106,6 +123,8 @@ describe('legalDashboardReducer', function () {
       expect(newState.applications.error).toBeNull();
       expect(newState.applications.page).toBe(0);
       expect(newState.applications.backendPage).toBe(1);
+      expect(newState.applications.loading).toBe(true);
+      expect(newState.components.loading).toBe(true);
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });
@@ -124,8 +143,25 @@ describe('legalDashboardReducer', function () {
       const newState = legalDashboardReducer(state, action);
       expect(newState.applications.results).toEqual([]);
       expect(newState.applications.error).toBeNull();
+      expect(newState.applications.loading).toBe(true);
       expect(newState.components).toBe(state.components);
       expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('filter apply failure actions', function () {
+    [LEGAL_DASHBOARD_APPLY_FILTER_FAILED, LEGAL_DASHBOARD_APPLY_SAVED_FILTER_FAILED].forEach(function (type) {
+      it(`clears the loading flag on both tabs for ${type}`, function () {
+        const state = Object.freeze({
+          components: { results: [], loading: true },
+          applications: { results: [], loading: true },
+          other: otherObject,
+        });
+        const newState = legalDashboardReducer(state, { type, payload: 'error message' });
+        expect(newState.applications.loading).toBe(false);
+        expect(newState.components.loading).toBe(false);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
     });
   });
 

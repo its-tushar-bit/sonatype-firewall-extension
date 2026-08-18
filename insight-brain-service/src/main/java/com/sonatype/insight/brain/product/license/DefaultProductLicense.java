@@ -236,22 +236,41 @@ public class DefaultProductLicense
       return developerEnablementService.shouldEnableDeveloperProduct();
     }
     // Delegates so TestProductLicense overrides of getFeatures() are honored.
-    return getFeatures().contains(feature);
+    if (getFeatures().contains(feature)) {
+      return true;
+    }
+    return LicensedFeature.AI_DEVELOPER.equals(feature) && isAiDeveloperEnabledByOptIn();
   }
 
   private boolean isProTier() {
-    if (systemConfigurationPropertyDAO == null) {
+    return CLMLicenseManager.TIER_PRO.equalsIgnoreCase(readConfig(SystemConfigurationProperty.LIFECYCLE_TIER));
+  }
+
+  /**
+   * Whether AI Developer is granted by the organization's opt-in rather than by the license. Requires a Lifecycle
+   * product in the license: an install with no Lifecycle product gains nothing from opting in.
+   */
+  private boolean isAiDeveloperEnabledByOptIn() {
+    Set<String> products = getProducts();
+    if (products == null || !CLMLicenseManager.hasAnyLifecycleProduct(products)) {
       return false;
+    }
+    String optIn = readConfig(SystemConfigurationProperty.AI_DEVELOPER_OPT_IN);
+    return optIn != null && !optIn.isBlank();
+  }
+
+  private String readConfig(String name) {
+    if (systemConfigurationPropertyDAO == null) {
+      return null;
     }
     try {
-      SystemConfigurationProperty prop =
-          systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.LIFECYCLE_TIER);
-      String tier = prop != null ? prop.getValue() : null;
-      return CLMLicenseManager.TIER_PRO.equalsIgnoreCase(tier == null ? null : tier.trim());
+      SystemConfigurationProperty property = systemConfigurationPropertyDAO.getByName(name);
+      String value = property != null ? property.getValue() : null;
+      return value != null ? value.trim() : null;
     }
     catch (Exception e) {
-      log.warn("Could not read LifecycleTier config, defaulting to Legacy", e);
-      return false;
+      log.warn("Could not read {} config, treating it as unset", name, e);
+      return null;
     }
   }
 
@@ -260,7 +279,10 @@ public class DefaultProductLicense
     if (ProductLicenseDetails.PRODUCT_SONATYPE_DEVELOPMENT.equals(product)) {
       return developerEnablementService.shouldEnableDeveloperProduct();
     }
-    return getProducts().contains(product);
+    if (getProducts().contains(product)) {
+      return true;
+    }
+    return CLMLicenseManager.AI_DEVELOPER_PRODUCTS.contains(product) && isAiDeveloperEnabledByOptIn();
   }
 
   @Override

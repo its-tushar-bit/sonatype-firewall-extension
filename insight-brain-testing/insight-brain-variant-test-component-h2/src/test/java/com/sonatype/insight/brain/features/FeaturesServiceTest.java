@@ -222,6 +222,23 @@ public class FeaturesServiceTest
   }
 
   @Test
+  public void testGetFeatures_AiDeveloperGrantedOutsideTheLicense() {
+    when(productLicense.isValid()).thenReturn(true);
+    when(productLicense.getFeatures()).thenReturn(Collections.emptySet());
+    when(productLicense.hasFeature(LicensedFeature.AI_DEVELOPER)).thenReturn(true);
+
+    assertThat(featuresService.getFeatures()).contains(LicensedFeature.AI_DEVELOPER);
+  }
+
+  @Test
+  public void testGetFeatures_AiDeveloperNotGranted() {
+    when(productLicense.isValid()).thenReturn(true);
+    when(productLicense.getFeatures()).thenReturn(Collections.emptySet());
+
+    assertThat(featuresService.getFeatures()).doesNotContain(LicensedFeature.AI_DEVELOPER);
+  }
+
+  @Test
   public void testGetFeatures_UserManagementPagesEnabled() {
     when(productLicense.isValid()).thenReturn(true);
     assertThat(featuresService.getFeatures())

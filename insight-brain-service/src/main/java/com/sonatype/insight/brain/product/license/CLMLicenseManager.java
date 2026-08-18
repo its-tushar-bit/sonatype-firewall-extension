@@ -149,7 +149,7 @@ public class CLMLicenseManager
 
   private static final Set<String> GUIDE_PRODUCTS = Set.of(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
 
-  private static final Set<String> AI_DEVELOPER_PRODUCTS = Set.of(ProductLicenseDetails.PRODUCT_AI_DEVELOPER,
+  static final Set<String> AI_DEVELOPER_PRODUCTS = Set.of(ProductLicenseDetails.PRODUCT_AI_DEVELOPER,
       ProductLicenseDetails.PRODUCT_AI_DEVELOPER_SAAS);
 
   // Visible for testing

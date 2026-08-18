@@ -82,6 +82,12 @@ public class FeaturesService
         features.add(LicensedFeature.DEVELOPER_DASHBOARD);
       }
 
+      // addLicenseSpecificFeatures reads the raw license feature set, so features granted outside the license
+      // (AI Developer via the organization's opt-in) have to be added through hasFeature.
+      if (productLicense.hasFeature(LicensedFeature.AI_DEVELOPER)) {
+        features.add(LicensedFeature.AI_DEVELOPER);
+      }
+
       removeDisabledFeatures(features);
 
       features.add(SINGLE_TENANT);

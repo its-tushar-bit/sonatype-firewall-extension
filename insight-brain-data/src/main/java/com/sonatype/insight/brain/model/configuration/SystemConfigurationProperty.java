@@ -416,6 +416,12 @@ public class SystemConfigurationProperty
 
   public static final String GUIDE_UI_ENABLED = "guideUiEnabled";
 
+  /**
+   * Records the organization's opt-in to AI Developer. Any non-blank value means the organization has opted in, which
+   * grants AI Developer to every user in it when the license carries a Lifecycle product. Absent means not opted in.
+   */
+  public static final String AI_DEVELOPER_OPT_IN = "aiDeveloperOptIn";
+
   public static final String EVALUATION_QUEUE_CONFIG = "evaluationQueueConfig";
 
   public static final String HOSTED_REPOSITORY_EVALUATION = "hostedRepositoryEvaluation";

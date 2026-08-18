@@ -1453,6 +1453,42 @@ public class RepositoryServiceTest
   }
 
   @Test
+  public void testGetRepositoryManagers_IncludesVirtualRepositoryManagers() {
+    // The primary readable-managers seam must keep returning VRMs so policy-plane callers
+    // (ApiPolicyService owner-scope collection) can evaluate policies attached to them.
+    // Filtering happens in the sibling getRepositoryManagersExcludingVirtual().
+    RepositoryManager traditional = tempEntity.newRepositoryManager();
+    RepositoryManager virtual = tempEntity.newRepositoryManager("virtual-" + System.nanoTime());
+    virtual.setManagerType(ManagerType.VIRTUAL);
+    virtual.setName("vrm-visible-to-policy-plane");
+    repositoryManagerDAO.update(virtual);
+
+    List<RepositoryManager> repoManagers = repositoryService.getRepositoryManagers();
+
+    assertThat(repoManagers)
+        .extracting(RepositoryManager::getId)
+        .contains(traditional.getId(), virtual.getId());
+  }
+
+  @Test
+  public void testGetRepositoryManagersExcludingVirtual() {
+    // The sibling seam enforces the "IQ as Redirector" isolation invariant for general-purpose
+    // owner surfaces (e.g. the "Orgs and Policies" tree via SidebarService).
+    RepositoryManager traditional = tempEntity.newRepositoryManager();
+    RepositoryManager virtual = tempEntity.newRepositoryManager("virtual-" + System.nanoTime());
+    virtual.setManagerType(ManagerType.VIRTUAL);
+    virtual.setName("vrm-excluded-from-shared-surfaces");
+    repositoryManagerDAO.update(virtual);
+
+    List<RepositoryManager> repoManagers = repositoryService.getRepositoryManagersExcludingVirtual();
+
+    assertThat(repoManagers)
+        .extracting(RepositoryManager::getId)
+        .contains(traditional.getId())
+        .doesNotContain(virtual.getId());
+  }
+
+  @Test
   public void testGetProprietaryComponentNamePatternsByOwner() {
     RepositoryManager repoManager1 = tempEntity.newRepositoryManager();
     Repository repo1 =
@@ -1597,5 +1633,31 @@ public class RepositoryServiceTest
         .isThrownBy(() -> repositoryService.getProprietaryComponentNamePatternsByOwner(OwnerType.REPOSITORY_MANAGER,
             "managerId", request))
         .withMessage("Page and Page size must be greater than 0");
+  }
+
+  @Test
+  public void testIsVrmChildRepository_TrueForVirtualChild() {
+    RepositoryManager virtual = tempEntity.newRepositoryManager("virtualInstance-" + System.nanoTime());
+    virtual.setManagerType(ManagerType.VIRTUAL);
+    virtual.setName("vrm-under-test");
+    repositoryManagerDAO.update(virtual);
+
+    Repository child = tempEntity.newRepository(virtual);
+
+    assertThat(repositoryService.isVrmChildRepository(child.getId())).isTrue();
+  }
+
+  @Test
+  public void testIsVrmChildRepository_FalseForTraditionalChild() {
+    RepositoryManager traditional = tempEntity.newRepositoryManager();
+    Repository child = tempEntity.newRepository(traditional);
+
+    assertThat(repositoryService.isVrmChildRepository(child.getId())).isFalse();
+  }
+
+  @Test
+  public void testIsVrmChildRepository_FalseForUnknownRepository() {
+    assertThat(repositoryService.isVrmChildRepository("does-not-exist")).isFalse();
+    assertThat(repositoryService.isVrmChildRepository(null)).isFalse();
   }
 }

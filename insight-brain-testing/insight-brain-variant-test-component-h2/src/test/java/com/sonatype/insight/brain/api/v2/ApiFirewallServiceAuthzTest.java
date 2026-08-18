@@ -305,10 +305,11 @@ public class ApiFirewallServiceAuthzTest
   public void testAddVirtualRepositoryManager_Authorized() {
     grantWritePermission(RepositoryContainer.SINGLETON.getId());
 
+    // productName / productVersion / instanceId / id are rejected by
+    // validateVirtualRepositoryManagerRequest for virtual managers — server-owned so a client
+    // supplying them is a request shape error. Only name is required.
     ApiRepositoryManagerDTO apiRepositoryManagerDTO = new ApiRepositoryManagerDTO();
     apiRepositoryManagerDTO.name = "testVirtualName";
-    apiRepositoryManagerDTO.productName = "testProductName";
-    apiRepositoryManagerDTO.productVersion = "testProductVersion";
 
     apiFirewallService.addVirtualRepositoryManager(apiRepositoryManagerDTO);
   }

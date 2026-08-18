@@ -72,7 +72,10 @@ public class ApiLifecycleService
 
   public ApiLifecycleRepositoryManagerListDTO getRepositoryManagers() {
     requireAccess();
-    List<RepositoryManager> repositoryManagers = repositoryManagerDAO.getAll();
+    // The lifecycle-plane list surface describes traditional (NXRM) managers; Virtual Repository
+    // Managers belong to the redirector configuration plane and are exposed through
+    // ApiFirewallResource's VRM endpoints instead.
+    List<RepositoryManager> repositoryManagers = repositoryManagerDAO.getAllExcludingVirtual();
 
     List<Repository> allHostedRepositories =
         repositoryDAO.getByRepositoryType(RepositoryType.hosted);

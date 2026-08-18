@@ -882,4 +882,28 @@ public class RepositoryDAOTest
         .usingRecursiveFieldByFieldElementComparatorIgnoringFields(JPA.IGNORE_FIELDS)
         .containsExactlyInAnyOrder(repository1, repository2);
   }
+
+  @Test
+  public void testCountByRepositoryManagerIds() {
+    RepositoryManager withTwo = tempEntity.newRepositoryManager();
+    tempEntity.newRepository(withTwo);
+    tempEntity.newRepository(withTwo);
+
+    RepositoryManager withOne = tempEntity.newRepositoryManager();
+    tempEntity.newRepository(withOne);
+
+    RepositoryManager empty = tempEntity.newRepositoryManager();
+
+    var counts = dao.countByRepositoryManagerIds(
+        Set.of(withTwo.getId(), withOne.getId(), empty.getId()));
+
+    assertThat(counts).containsEntry(withTwo.getId(), 2L).containsEntry(withOne.getId(), 1L);
+    assertThat(counts).doesNotContainKey(empty.getId());
+  }
+
+  @Test
+  public void testCountByRepositoryManagerIds_EmptyInput() {
+    assertThat(dao.countByRepositoryManagerIds(Set.of())).isEmpty();
+    assertThat(dao.countByRepositoryManagerIds(null)).isEmpty();
+  }
 }

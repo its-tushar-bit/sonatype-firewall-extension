@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.repository.ManagerType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.security.CurrentUser;
@@ -146,6 +147,33 @@ public class OrganizationApplicationManagementEventServiceTest
     assertThat(event.repositories)
         .extracting(summary -> summary.id)
         .contains(repository.getId());
+  }
+
+  @Test
+  public void testPostEventForFirewall_ExcludesVirtualRepositoryManagers() {
+    // Firewall webhook payloads describe the traditional (NXRM) surface; Virtual Repository
+    // Managers belong to the redirector configuration plane and must not leak into events
+    // dispatched to customer receivers.
+    final AsyncEventBus eventBusSpy = spy(asyncEventBus);
+    final OrganizationApplicationManagementEventService orgAppSummaryEventService =
+        new OrganizationApplicationManagementEventService(
+            eventBusSpy, organizationDAO, applicationDAO, repositoryManagerDAO, repositoryDAO, currentUser);
+
+    final RepositoryManager traditional =
+        tempEntity.newRepositoryManager("instance-traditional", "traditional-rm", "Nexus Repository", "3.0");
+    final RepositoryManager virtual = tempEntity.newRepositoryManager("instance-virtual-" + System.nanoTime());
+    virtual.setManagerType(ManagerType.VIRTUAL);
+    virtual.setName("vrm-excluded-from-webhook");
+    repositoryManagerDAO.update(virtual);
+
+    orgAppSummaryEventService.postEventForFirewall();
+    verify(eventBusSpy).post(eventArgumentCaptor.capture());
+
+    final OrganizationApplicationManagementEvent event = eventArgumentCaptor.getValue();
+    assertThat(event.repositoryManagers)
+        .extracting(summary -> summary.id)
+        .contains(traditional.getId())
+        .doesNotContain(virtual.getId());
   }
 
   @Test

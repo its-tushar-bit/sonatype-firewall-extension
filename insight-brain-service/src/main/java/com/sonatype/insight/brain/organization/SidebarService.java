@@ -109,7 +109,7 @@ public class SidebarService
     ownerHierarchyDTO.ownersMap = new HashMap<>();
     List<Organization> orgs = organizationService.getAllWithoutRelatedRepositories();
     List<Application> apps = applicationService.getApplicationsWithoutRelatedRepositoriesOrderedByName();
-    List<RepositoryManager> repositoryManagers = repositoryService.getRepositoryManagers();
+    List<RepositoryManager> repositoryManagers = repositoryService.getRepositoryManagersExcludingVirtual();
     List<Repository> repositories = repositoryService.getRepositoriesWithReadPermission();
 
     OwnerHierarchy hierarchy = createOrganizationHierarchy(orgs, apps, repositoryManagers, repositories);

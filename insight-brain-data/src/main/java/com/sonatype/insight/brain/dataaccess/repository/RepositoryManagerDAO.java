@@ -13,6 +13,7 @@ import java.util.Set;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.model.DuplicateNameException;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.repository.ManagerType;
@@ -25,6 +26,7 @@ import jakarta.inject.Named;
 import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.Condition;
 import org.jooq.Record;
 import org.jooq.Table;
 import org.jooq.exception.DataAccessException;
@@ -52,6 +54,10 @@ public class RepositoryManagerDAO
   static final String REPOSITORY_MANAGER_NAME_UK = "repository_manager_name_uk";
 
   static final String REPOSITORY_MANAGER_UK = "repository_manager_uk";
+
+  // Suffix used when building the duplicate-name message. Kept private now that
+  // DuplicateNameException lets callers branch on type rather than string content.
+  private static final String DUPLICATE_NAME_MESSAGE_SUFFIX = " is already used as a name.";
 
   private final Provider<OwnerDAO> ownerDAOProvider;
 
@@ -159,7 +165,7 @@ public class RepositoryManagerDAO
     if (repositoryManager.getName() != null
         && getByNameAndManagerType(tx, repositoryManager.getName(), repositoryManager.getManagerType()) != null)
     {
-      throw new InvalidNameException(repositoryManager.getName() + " is already used as a name.");
+      throw new DuplicateNameException(repositoryManager.getName() + DUPLICATE_NAME_MESSAGE_SUFFIX);
     }
 
     try {
@@ -191,8 +197,8 @@ public class RepositoryManagerDAO
       if (foundByNameRepositoryManager != null && !repositoryManager.getId()
           .equals(foundByNameRepositoryManager.getId()))
       {
-        throw new InvalidNameException(
-            repositoryManager.getName() + " is already used as a name.");
+        throw new DuplicateNameException(
+            repositoryManager.getName() + DUPLICATE_NAME_MESSAGE_SUFFIX);
       }
     }
 
@@ -243,7 +249,7 @@ public class RepositoryManagerDAO
    * Inspects the exception's message chain to identify which constraint fired so that the
    * translation is correct: an {@code instance_id} race maps to
    * {@link InvalidRepositoryManagerException}, a name-uniqueness race maps to
-   * {@link InvalidNameException}. Unknown constraint violations propagate as-is.
+   * {@link DuplicateNameException}. Unknown constraint violations propagate as-is.
    */
   // package-private for direct unit testing of the exception-translation branching — the
   // check-then-act race that reaches this method requires two concurrent writers and is not
@@ -254,7 +260,7 @@ public class RepositoryManagerDAO
   {
     final String constraint = extractConstraintName(cause);
     if (REPOSITORY_MANAGER_NAME_UK.equals(constraint)) {
-      return new InvalidNameException(repositoryManager.getName() + " is already used as a name.", cause);
+      return new DuplicateNameException(repositoryManager.getName() + DUPLICATE_NAME_MESSAGE_SUFFIX, cause);
     }
     if (REPOSITORY_MANAGER_UK.equals(constraint)) {
       return new InvalidRepositoryManagerException("There is already a repository manager with instance ID "
@@ -458,6 +464,53 @@ public class RepositoryManagerDAO
             .fetch(r -> toEntity(r.into(REPOSITORY_MANAGER)));
       }
     });
+  }
+
+  /**
+   * jOOQ {@link Condition} that excludes rows with {@code manager_type = VIRTUAL}.
+   * <p>
+   * Reusable helper so that existing list surfaces can enforce the "IQ as Redirector" isolation
+   * invariant (Virtual Repository Managers must not leak into UIs and APIs unrelated to the
+   * redirector configuration plane) with a single call.
+   * <p>
+   * <b>Depends on {@code manager_type} being {@code NOT NULL}.</b> {@code ne()} renders as
+   * {@code manager_type &lt;&gt; 'VIRTUAL'}, which under SQL three-valued logic evaluates to
+   * {@code NULL} (not {@code TRUE}) for a {@code NULL} {@code manager_type}. A row with a null
+   * type would therefore be silently dropped from every caller of this helper — firewall list,
+   * lifecycle list, sidebar tree, firewall webhook — including a manager disappearing from the
+   * Orgs and Policies tree. Safe today only because {@code schema_incremental_0482.sql}
+   * backfilled existing NULLs to {@code 'TRADITIONAL'} and set {@code NOT NULL} in the same
+   * migration that shipped the composite UK. Any future migration that reintroduces a nullable
+   * {@code manager_type} must revisit this predicate first.
+   */
+  public static Condition excludeVirtual() {
+    return REPOSITORY_MANAGER.MANAGER_TYPE.ne(ManagerType.VIRTUAL.name());
+  }
+
+  /**
+   * Returns all repository managers with the given {@link ManagerType}.
+   */
+  public List<RepositoryManager> getAllByManagerType(ManagerType managerType) {
+    Objects.requireNonNull(managerType, "managerType");
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(REPOSITORY_MANAGER)
+          .where(REPOSITORY_MANAGER.MANAGER_TYPE.eq(managerType.name()))
+          .fetch(this::toEntity);
+    }
+  }
+
+  /**
+   * Returns all repository managers excluding those with {@code manager_type = VIRTUAL}.
+   * Callers use this to enforce the redirector isolation invariant on existing list surfaces.
+   */
+  public List<RepositoryManager> getAllExcludingVirtual() {
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(REPOSITORY_MANAGER)
+          .where(excludeVirtual())
+          .fetch(this::toEntity);
+    }
   }
 
   public List<RepositoryManager> getByIds(Set<String> repositoryManagerIds) {

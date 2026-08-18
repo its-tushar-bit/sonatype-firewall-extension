@@ -848,9 +848,55 @@ public class RepositoryService
     log.debug("Repository manager with id {} updated to name: {}", repositoryManagerId, name);
   }
 
+  /**
+   * Returns the readable {@link RepositoryManager}s, including Virtual Repository Managers.
+   * <p>
+   * Reserved for the policy plane (policy evaluation, waiver attach/lookup, dashboard waiver
+   * listing). A VRM surfaces to a user-facing response through this method only when a policy
+   * or waiver row references its id, which is the intended behaviour once FIRE-771 lands the
+   * attach-to-VRM story. Known callers:
+   * <ul>
+   * <li>{@code ApiPolicyService} / {@code PolicyResource} — policy visibility scope.</li>
+   * <li>{@code dashboard.PolicyWaiverService} and {@code dashboard.DashboardPolicyWaiverRequestService}
+   * — waiver dashboards, where a VRM appears only after a {@code PolicyWaiver} row
+   * references its id.</li>
+   * <li>{@code dashboard.metrics.sql.DashboardMetricsScopeResolver} — metrics scope.</li>
+   * </ul>
+   * General-purpose owner surfaces (sidebar tree, firewall lifecycle plane, webhook payloads)
+   * must call {@link #getRepositoryManagersExcludingVirtual()} instead.
+   */
   @AuthzFilter(permission = Permission.READ, context = Context.REPOSITORY_MANAGER)
   public List<RepositoryManager> getRepositoryManagers() {
     return repositoryManagerDAO.getAll();
+  }
+
+  /**
+   * Returns the readable {@link RepositoryManager}s excluding those with
+   * {@link com.sonatype.insight.brain.model.repository.ManagerType#VIRTUAL}.
+   * <p>
+   * Callers that render general-purpose owner surfaces (e.g. the "Orgs and Policies"
+   * sidebar tree) must use this variant to enforce the "IQ as Redirector" isolation
+   * invariant — Virtual Repository Managers belong to the redirector configuration
+   * plane and must not leak into UIs unrelated to redirector configuration. Policy-plane
+   * callers that need to evaluate policies attached to VRMs must continue to use
+   * {@link #getRepositoryManagers()}.
+   */
+  @AuthzFilter(permission = Permission.READ, context = Context.REPOSITORY_MANAGER)
+  public List<RepositoryManager> getRepositoryManagersExcludingVirtual() {
+    return repositoryManagerDAO.getAllExcludingVirtual();
+  }
+
+  /**
+   * Returns {@code true} when the given repository is owned by a repository manager with
+   * {@link ManagerType#VIRTUAL}. Returns {@code false} for a missing repository or a repository
+   * owned by a traditional (NXRM) manager.
+   * <p>
+   * Central detection helper for the "IQ as Redirector" isolation invariant so consumers don't
+   * duplicate {@code manager_type} checks across resource, service, and DAO layers. Delegates
+   * to a single JOIN in {@link RepositoryDAO#isVrmChildRepository(String)}.
+   */
+  public boolean isVrmChildRepository(String repositoryId) {
+    return repositoryDAO.isVrmChildRepository(repositoryId);
   }
 
   ProprietaryComponentNamePatternsPage getProprietaryComponentNamePatternsByOwner(

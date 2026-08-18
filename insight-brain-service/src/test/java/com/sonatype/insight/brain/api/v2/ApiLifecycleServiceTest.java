@@ -43,6 +43,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -99,7 +101,7 @@ public class ApiLifecycleServiceTest
   @Test
   public void lastActivityTime_isNull_whenNoHostedRepos() {
     RepositoryManager rm = repositoryManager(RM_ID, RM_INSTANCE_ID);
-    when(repositoryManagerDAO.getAll()).thenReturn(List.of(rm));
+    when(repositoryManagerDAO.getAllExcludingVirtual()).thenReturn(List.of(rm));
     when(repositoryDAO.getByRepositoryType(RepositoryType.hosted)).thenReturn(Collections.emptyList());
     when(hostedRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList())).thenReturn(Collections.emptyMap());
 
@@ -113,7 +115,7 @@ public class ApiLifecycleServiceTest
   public void lastActivityTime_isNull_whenRepoHasNoActivity() {
     RepositoryManager rm = repositoryManager(RM_ID, RM_INSTANCE_ID);
     Repository repo = hostedRepo(REPO_ID, RM_ID, null);
-    when(repositoryManagerDAO.getAll()).thenReturn(List.of(rm));
+    when(repositoryManagerDAO.getAllExcludingVirtual()).thenReturn(List.of(rm));
     when(repositoryDAO.getByRepositoryType(RepositoryType.hosted)).thenReturn(List.of(repo));
     when(hostedRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList())).thenReturn(Collections.emptyMap());
 
@@ -128,7 +130,7 @@ public class ApiLifecycleServiceTest
     long scanEpoch = 1_700_000_000_000L;
     RepositoryManager rm = repositoryManager(RM_ID, RM_INSTANCE_ID);
     Repository repo = hostedRepo(REPO_ID, RM_ID, null);
-    when(repositoryManagerDAO.getAll()).thenReturn(List.of(rm));
+    when(repositoryManagerDAO.getAllExcludingVirtual()).thenReturn(List.of(rm));
     when(repositoryDAO.getByRepositoryType(RepositoryType.hosted)).thenReturn(List.of(repo));
     when(hostedRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList()))
         .thenReturn(Map.of(REPO_ID, new Date(scanEpoch)));
@@ -145,7 +147,7 @@ public class ApiLifecycleServiceTest
     long configEpoch = 1_700_000_100_000L; // 100 seconds later
     RepositoryManager rm = repositoryManager(RM_ID, RM_INSTANCE_ID);
     Repository repo = hostedRepo(REPO_ID, RM_ID, new Date(configEpoch));
-    when(repositoryManagerDAO.getAll()).thenReturn(List.of(rm));
+    when(repositoryManagerDAO.getAllExcludingVirtual()).thenReturn(List.of(rm));
     when(repositoryDAO.getByRepositoryType(RepositoryType.hosted)).thenReturn(List.of(repo));
     when(hostedRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList()))
         .thenReturn(Map.of(REPO_ID, new Date(scanEpoch)));
@@ -162,7 +164,7 @@ public class ApiLifecycleServiceTest
     long scanEpoch = 1_700_000_100_000L; // 100 seconds later
     RepositoryManager rm = repositoryManager(RM_ID, RM_INSTANCE_ID);
     Repository repo = hostedRepo(REPO_ID, RM_ID, new Date(configEpoch));
-    when(repositoryManagerDAO.getAll()).thenReturn(List.of(rm));
+    when(repositoryManagerDAO.getAllExcludingVirtual()).thenReturn(List.of(rm));
     when(repositoryDAO.getByRepositoryType(RepositoryType.hosted)).thenReturn(List.of(repo));
     when(hostedRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList()))
         .thenReturn(Map.of(REPO_ID, new Date(scanEpoch)));
@@ -181,7 +183,7 @@ public class ApiLifecycleServiceTest
     RepositoryManager rm = repositoryManager(RM_ID, RM_INSTANCE_ID);
     Repository repo1 = hostedRepo(REPO_ID, RM_ID, null);
     Repository repo2 = hostedRepo(repoId2, RM_ID, null);
-    when(repositoryManagerDAO.getAll()).thenReturn(List.of(rm));
+    when(repositoryManagerDAO.getAllExcludingVirtual()).thenReturn(List.of(rm));
     when(repositoryDAO.getByRepositoryType(RepositoryType.hosted)).thenReturn(List.of(repo1, repo2));
     when(hostedRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList()))
         .thenReturn(Map.of(REPO_ID, new Date(earlyEpoch), repoId2, new Date(laterEpoch)));
@@ -203,7 +205,7 @@ public class ApiLifecycleServiceTest
     RepositoryManager rmB = repositoryManager(rmBId, rmBInstanceId);
     Repository repoA = hostedRepo(REPO_ID, RM_ID, null);
     Repository repoB = hostedRepo(rmBRepoId, rmBId, null);
-    when(repositoryManagerDAO.getAll()).thenReturn(List.of(rmA, rmB));
+    when(repositoryManagerDAO.getAllExcludingVirtual()).thenReturn(List.of(rmA, rmB));
     when(repositoryDAO.getByRepositoryType(RepositoryType.hosted)).thenReturn(List.of(repoA, repoB));
     when(hostedRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList()))
         .thenReturn(Map.of(REPO_ID, new Date(rmAEpoch), rmBRepoId, new Date(rmBEpoch)));
@@ -258,7 +260,7 @@ public class ApiLifecycleServiceTest
         any(Subject.class), eq(OwnerType.GLOBAL), eq(MembershipMapping.GLOBAL_CONTEXT_ID),
         eq(EnumSet.of(Permission.CONFIGURE_SYSTEM))))
             .thenReturn(EnumSet.of(Permission.CONFIGURE_SYSTEM));
-    when(repositoryManagerDAO.getAll()).thenReturn(Collections.emptyList());
+    when(repositoryManagerDAO.getAllExcludingVirtual()).thenReturn(Collections.emptyList());
     when(repositoryDAO.getByRepositoryType(RepositoryType.hosted)).thenReturn(Collections.emptyList());
     when(hostedRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList())).thenReturn(Collections.emptyMap());
 
@@ -272,7 +274,7 @@ public class ApiLifecycleServiceTest
     // Explicit setup: user has READ on at least one owner, no CONFIGURE_SYSTEM.
     when(permissionService.getContextIdsForUserWithPermission(any(UserPrincipal.class), eq(Permission.READ)))
         .thenReturn(java.util.Set.of("some-org-id"));
-    when(repositoryManagerDAO.getAll()).thenReturn(Collections.emptyList());
+    when(repositoryManagerDAO.getAllExcludingVirtual()).thenReturn(Collections.emptyList());
     when(repositoryDAO.getByRepositoryType(RepositoryType.hosted)).thenReturn(Collections.emptyList());
     when(hostedRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList())).thenReturn(Collections.emptyMap());
 
@@ -289,7 +291,7 @@ public class ApiLifecycleServiceTest
     RepositoryManager rm = repositoryManager(RM_ID, RM_INSTANCE_ID);
     Repository monitored = hostedRepo(REPO_ID, RM_ID, null);
     Repository nonMonitored = nonMonitoredHostedRepo(nonMonitoredRepoId, RM_ID);
-    when(repositoryManagerDAO.getAll()).thenReturn(List.of(rm));
+    when(repositoryManagerDAO.getAllExcludingVirtual()).thenReturn(List.of(rm));
     when(repositoryDAO.getByRepositoryType(RepositoryType.hosted)).thenReturn(List.of(monitored, nonMonitored));
     when(hostedRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList()))
         .thenReturn(Map.of(REPO_ID, new Date(monitoredEpoch), nonMonitoredRepoId, new Date(nonMonitoredEpoch)));
@@ -297,6 +299,22 @@ public class ApiLifecycleServiceTest
     ApiLifecycleRepositoryManagerListDTO result = service.getRepositoryManagers();
 
     assertThat(result.repositoryManagers.get(0).lastActivityTime).isEqualTo(monitoredEpoch);
+  }
+
+  @Test
+  public void getRepositoryManagers_readsThroughExcludingVirtualSeam() {
+    // The lifecycle-plane list surface must enforce the "IQ as Redirector" isolation invariant:
+    // Virtual Repository Managers belong to the redirector configuration plane and must not
+    // surface here. Assert the service reads through the excluding-virtual DAO seam rather than
+    // the general one.
+    when(repositoryManagerDAO.getAllExcludingVirtual()).thenReturn(Collections.emptyList());
+    when(repositoryDAO.getByRepositoryType(RepositoryType.hosted)).thenReturn(Collections.emptyList());
+    when(hostedRepositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList())).thenReturn(Collections.emptyMap());
+
+    service.getRepositoryManagers();
+
+    verify(repositoryManagerDAO).getAllExcludingVirtual();
+    verify(repositoryManagerDAO, never()).getAll();
   }
 
   private static Repository hostedRepo(

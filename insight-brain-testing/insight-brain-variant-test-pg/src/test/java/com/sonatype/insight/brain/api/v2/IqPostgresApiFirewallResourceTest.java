@@ -53,6 +53,8 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.repository.ManagerType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
@@ -923,21 +925,135 @@ class IqPostgresApiFirewallResourceTest
   }
 
   @Test
-  public void testAddVirtualRepositoryManager_WhenIqProxyDisabled_Returns404() throws Exception {
+  public void testGetVirtualRepositoryManagers_BothFlagsOff_Returns404() throws Exception {
+    withFlags(false, false, () -> {
+      HttpResponse response = ctx.restRequest()
+          .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.VIRTUAL_MANAGERS_PATH)
+          .get();
+      ctx.assertResponseStatus(404, response);
+    });
+  }
+
+  @Test
+  public void testGetVirtualRepositoryManagers_MasterOnSubOff_Returns404() throws Exception {
+    // Master @HasFeature check passes but the inline sub-flag guard (requireRedirectorUiEnabled)
+    // still 404s. Both flags must be on for the endpoint to be reachable.
+    withFlags(true, false, () -> {
+      HttpResponse response = ctx.restRequest()
+          .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.VIRTUAL_MANAGERS_PATH)
+          .get();
+      ctx.assertResponseStatus(404, response);
+    });
+  }
+
+  @Test
+  public void testGetVirtualRepositoryManagers_MasterOffSubOn_Returns404() throws Exception {
+    // @HasFeature on the master flag short-circuits before the handler runs.
+    withFlags(false, true, () -> {
+      HttpResponse response = ctx.restRequest()
+          .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.VIRTUAL_MANAGERS_PATH)
+          .get();
+      ctx.assertResponseStatus(404, response);
+    });
+  }
+
+  @Test
+  public void testGetVirtualRepositoryManagers_BothFlagsOn_Returns200() throws Exception {
+    withFlags(true, true, () -> {
+      HttpResponse response = ctx.restRequest()
+          .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.VIRTUAL_MANAGERS_PATH)
+          .get();
+      ctx.assertResponseStatus(200, response);
+    });
+  }
+
+  @Test
+  public void testAddVirtualRepositoryManager_BothFlagsOff_Returns404() throws Exception {
     ApiRepositoryManagerDTO apiRepositoryManagerDTO = new ApiRepositoryManagerDTO();
-    apiRepositoryManagerDTO.instanceId = "testInstanceId";
-    apiRepositoryManagerDTO.name = "testName";
-    apiRepositoryManagerDTO.productName = "testProductName";
-    apiRepositoryManagerDTO.productVersion = "testProductVersion";
+    apiRepositoryManagerDTO.name = "testName-bothOff";
 
-    HttpResponse response =
-        ctx.restRequest()
-            .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.VIRTUAL_MANAGERS_PATH)
-            .body(apiRepositoryManagerDTO)
-            .post();
+    withFlags(false, false, () -> {
+      HttpResponse response = ctx.restRequest()
+          .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.VIRTUAL_MANAGERS_PATH)
+          .body(apiRepositoryManagerDTO)
+          .post();
+      ctx.assertResponseStatus(404, response);
+    });
+    assertThat(repositoryManagerDAO.getAll())
+        .extracting(RepositoryManager::getName)
+        .doesNotContain("testName-bothOff");
+  }
 
-    ctx.assertResponseStatus(404, response);
-    assertThat(repositoryManagerDAO.getByInstanceId("testInstanceId")).isNull();
+  @Test
+  public void testAddVirtualRepositoryManager_MasterOnSubOff_Returns404() throws Exception {
+    ApiRepositoryManagerDTO apiRepositoryManagerDTO = new ApiRepositoryManagerDTO();
+    apiRepositoryManagerDTO.name = "testName-masterOn";
+
+    withFlags(true, false, () -> {
+      HttpResponse response = ctx.restRequest()
+          .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.VIRTUAL_MANAGERS_PATH)
+          .body(apiRepositoryManagerDTO)
+          .post();
+      ctx.assertResponseStatus(404, response);
+    });
+    assertThat(repositoryManagerDAO.getAll())
+        .extracting(RepositoryManager::getName)
+        .doesNotContain("testName-masterOn");
+  }
+
+  @Test
+  public void testAddVirtualRepositoryManager_MasterOffSubOn_Returns404() throws Exception {
+    ApiRepositoryManagerDTO apiRepositoryManagerDTO = new ApiRepositoryManagerDTO();
+    apiRepositoryManagerDTO.name = "testName-subOn";
+
+    withFlags(false, true, () -> {
+      HttpResponse response = ctx.restRequest()
+          .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.VIRTUAL_MANAGERS_PATH)
+          .body(apiRepositoryManagerDTO)
+          .post();
+      ctx.assertResponseStatus(404, response);
+    });
+    assertThat(repositoryManagerDAO.getAll())
+        .extracting(RepositoryManager::getName)
+        .doesNotContain("testName-subOn");
+  }
+
+  @Test
+  public void testAddVirtualRepositoryManager_BothFlagsOn_Returns200() throws Exception {
+    ApiRepositoryManagerDTO apiRepositoryManagerDTO = new ApiRepositoryManagerDTO();
+    apiRepositoryManagerDTO.name = "testName-bothOn";
+
+    withFlags(true, true, () -> {
+      HttpResponse response = ctx.restRequest()
+          .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.VIRTUAL_MANAGERS_PATH)
+          .body(apiRepositoryManagerDTO)
+          .post();
+      ctx.assertResponseStatus(200, response);
+      ApiRepositoryManagerDTO created = response.getBody(ApiRepositoryManagerDTO.class);
+      assertThat(created.name).isEqualTo("testName-bothOn");
+      assertThat(created.managerType).isEqualTo(ManagerType.VIRTUAL);
+      assertThat(created.instanceId).isNotNull();
+    });
+  }
+
+  private interface RestAction
+  {
+    void run() throws Exception;
+  }
+
+  private void withFlags(boolean master, boolean sub, RestAction action) throws Exception {
+    boolean previousMaster = SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.isEnabled();
+    boolean previousSub =
+        SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_REDIRECT_UI_ENABLED.isEnabled();
+    SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.setEnabled(master);
+    SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_REDIRECT_UI_ENABLED.setEnabled(sub);
+    try {
+      action.run();
+    }
+    finally {
+      SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.setEnabled(previousMaster);
+      SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_REDIRECT_UI_ENABLED.setEnabled(previousSub);
+    }
   }
 
   @Test

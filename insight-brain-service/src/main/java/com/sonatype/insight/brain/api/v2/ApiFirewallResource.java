@@ -49,6 +49,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerListDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiVirtualRepositoryManagerListDTO;
 import com.sonatype.insight.brain.api.v2.dto.PaginationResponseBuilder;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -62,6 +63,7 @@ import com.sonatype.insight.brain.integration.Goal;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
@@ -776,26 +778,61 @@ public class ApiFirewallResource
     return applicationSummaryService.getApplications(Goal.VIEW_CIP, null, Collections.emptySet());
   }
 
+  @GET
+  @Path(VIRTUAL_MANAGERS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Hidden
+  @HasFeature(SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED)
+  @Operation(description = "Use this method to list all configured virtual repository managers with their " +
+      "child repository counts." +
+      "\n" +
+      "\n" +
+      "Permissions required: View IQ Elements",
+      responses = {
+        @ApiResponse(responseCode = "200",
+            description = "The response contains the list of virtual repository managers.",
+            useReturnTypeSchema = true),
+        @ApiResponse(responseCode = "404",
+            description = "The virtual repository manager feature is not enabled.")
+      })
+  public ApiVirtualRepositoryManagerListDTO getVirtualRepositoryManagers() {
+    requireRedirectorUiEnabled();
+    return apiFirewallService.getVirtualRepositoryManagers();
+  }
+
   @POST
   @Path(VIRTUAL_MANAGERS_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CREATE_REPOSITORY_MANAGER)
   @Hidden
-  @HasFeature(SystemConfigurationPropertyFeature.IQ_PROXY_ENABLED)
-  @Operation(description = "Use this method to add a new repository manager." +
+  @HasFeature(SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED)
+  @Operation(description = "Use this method to add a new virtual repository manager. Only the name may be " +
+      "specified in the request body; all other fields are set by the server." +
       "\n" +
       "\n" +
       "Permissions required: Edit IQ Elements",
       responses = {
         @ApiResponse(responseCode = "200",
             description = "The response contains the details of the new repository manager.",
-            useReturnTypeSchema = true)
+            useReturnTypeSchema = true),
+        @ApiResponse(responseCode = "400",
+            description = "The request body includes fields that are not supported for virtual repository " +
+                "managers, or the name conflicts with an existing virtual repository manager."),
+        @ApiResponse(responseCode = "404",
+            description = "The virtual repository manager feature is not enabled.")
       })
   public ApiRepositoryManagerDTO addVirtualRepositoryManager(
-      @RequestBody(description = "Enter values for the new repository manager.",
+      @RequestBody(description = "Enter the name for the new virtual repository manager.",
           required = true, useParameterTypeSchema = true) ApiRepositoryManagerDTO apiRepositoryManagerDTO)
   {
+    requireRedirectorUiEnabled();
     return apiFirewallService.addVirtualRepositoryManager(apiRepositoryManagerDTO);
+  }
+
+  private static void requireRedirectorUiEnabled() {
+    if (!SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_REDIRECT_UI_ENABLED.isEnabled()) {
+      throw new NotFoundException("Feature not supported.");
+    }
   }
 }

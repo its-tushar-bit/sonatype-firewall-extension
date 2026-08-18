@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerListDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiVirtualRepositoryManagerListDTO;
 import com.sonatype.insight.brain.api.v2.service.PolicyViolationTestHelper;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.JPA;
@@ -61,6 +62,7 @@ import com.sonatype.insight.brain.integration.repository.RepositoryService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -2738,8 +2740,6 @@ public class ApiFirewallServiceTest
   public void testAddVirtualRepositoryManager() throws Exception {
     ApiRepositoryManagerDTO apiRepositoryManagerDTO = new ApiRepositoryManagerDTO();
     apiRepositoryManagerDTO.name = "testVirtualName";
-    apiRepositoryManagerDTO.productName = "testProductName";
-    apiRepositoryManagerDTO.productVersion = "testProductVersion";
 
     apiRepositoryManagerDTO = apiFirewallService.addVirtualRepositoryManager(apiRepositoryManagerDTO);
 
@@ -2747,8 +2747,6 @@ public class ApiFirewallServiceTest
     assertThat(apiRepositoryManagerDTO.id).isNotNull();
     assertThat(apiRepositoryManagerDTO.instanceId).isNotBlank();
     assertThat(apiRepositoryManagerDTO.name).isEqualTo("testVirtualName");
-    assertThat(apiRepositoryManagerDTO.productName).isEqualTo("testProductName");
-    assertThat(apiRepositoryManagerDTO.productVersion).isEqualTo("testProductVersion");
     assertThat(apiRepositoryManagerDTO.managerType).isEqualTo(ManagerType.VIRTUAL);
 
     // Assert the data persisted in the db
@@ -2759,12 +2757,10 @@ public class ApiFirewallServiceTest
   }
 
   @Test
-  public void testAddVirtualRepositoryManager_SetsManagerTypeWhenCallerOmitsIt() throws Exception {
+  public void testAddVirtualRepositoryManager_AcceptsExplicitVirtualManagerType() throws Exception {
     ApiRepositoryManagerDTO apiRepositoryManagerDTO = new ApiRepositoryManagerDTO();
-    apiRepositoryManagerDTO.name = "testVirtualName";
-    apiRepositoryManagerDTO.productName = "testProductName";
-    apiRepositoryManagerDTO.productVersion = "testProductVersion";
-    apiRepositoryManagerDTO.managerType = null;
+    apiRepositoryManagerDTO.name = "testVirtualName-explicit";
+    apiRepositoryManagerDTO.managerType = ManagerType.VIRTUAL;
 
     apiRepositoryManagerDTO = apiFirewallService.addVirtualRepositoryManager(apiRepositoryManagerDTO);
 
@@ -2778,12 +2774,91 @@ public class ApiFirewallServiceTest
     ApiRepositoryManagerDTO apiRepositoryManagerDTO = new ApiRepositoryManagerDTO();
     apiRepositoryManagerDTO.id = "testId";
     apiRepositoryManagerDTO.name = "testVirtualName";
-    apiRepositoryManagerDTO.productName = "testProductName";
-    apiRepositoryManagerDTO.productVersion = "testProductVersion";
 
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> apiFirewallService.addVirtualRepositoryManager(apiRepositoryManagerDTO))
         .withMessageContaining("The repository manager ID must be null.");
+  }
+
+  @Test
+  public void testAddVirtualRepositoryManager_RejectsInstanceId() {
+    ApiRepositoryManagerDTO dto = new ApiRepositoryManagerDTO();
+    dto.name = "vrm";
+    dto.instanceId = "should-not-be-set";
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiFirewallService.addVirtualRepositoryManager(dto))
+        .withMessageContaining("instance ID must not be set");
+  }
+
+  @Test
+  public void testAddVirtualRepositoryManager_RejectsProductName() {
+    ApiRepositoryManagerDTO dto = new ApiRepositoryManagerDTO();
+    dto.name = "vrm";
+    dto.productName = "nxrm";
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiFirewallService.addVirtualRepositoryManager(dto))
+        .withMessageContaining("product name must not be set");
+  }
+
+  @Test
+  public void testAddVirtualRepositoryManager_RejectsProductVersion() {
+    ApiRepositoryManagerDTO dto = new ApiRepositoryManagerDTO();
+    dto.name = "vrm";
+    dto.productVersion = "3.0";
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiFirewallService.addVirtualRepositoryManager(dto))
+        .withMessageContaining("product version must not be set");
+  }
+
+  @Test
+  public void testAddVirtualRepositoryManager_RejectsTraditionalManagerType() {
+    ApiRepositoryManagerDTO dto = new ApiRepositoryManagerDTO();
+    dto.name = "vrm";
+    dto.managerType = ManagerType.TRADITIONAL;
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiFirewallService.addVirtualRepositoryManager(dto))
+        .withMessageContaining("manager type must be VIRTUAL or omitted");
+  }
+
+  @Test
+  public void testAddVirtualRepositoryManager_RejectsEmptyName() {
+    ApiRepositoryManagerDTO dto = new ApiRepositoryManagerDTO();
+    dto.name = "  ";
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiFirewallService.addVirtualRepositoryManager(dto))
+        .withMessageContaining("name is required");
+  }
+
+  @Test
+  public void testAddVirtualRepositoryManager_DuplicateNameRejected() {
+    ApiRepositoryManagerDTO first = new ApiRepositoryManagerDTO();
+    first.name = "dupName";
+    apiFirewallService.addVirtualRepositoryManager(first);
+
+    ApiRepositoryManagerDTO second = new ApiRepositoryManagerDTO();
+    second.name = "dupName";
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiFirewallService.addVirtualRepositoryManager(second))
+        .withMessageContaining("virtual repository manager named 'dupName'");
+  }
+
+  @Test
+  public void testAddVirtualRepositoryManager_AllowsSameNameAsTraditionalManager() {
+    // Composite UK on (name_lowercase_no_whitespace, manager_type) scopes name uniqueness by type.
+    tempEntity.newRepositoryManager("instanceCollide", "sharedName", "nxrm", "3.0");
+
+    ApiRepositoryManagerDTO virtual = new ApiRepositoryManagerDTO();
+    virtual.name = "sharedName";
+    ApiRepositoryManagerDTO created = apiFirewallService.addVirtualRepositoryManager(virtual);
+
+    assertThat(created.managerType).isEqualTo(ManagerType.VIRTUAL);
+    assertThat(created.name).isEqualTo("sharedName");
   }
 
   @Test
@@ -2792,11 +2867,158 @@ public class ApiFirewallServiceTest
 
     ApiRepositoryManagerDTO apiRepositoryManagerDTO = new ApiRepositoryManagerDTO();
     apiRepositoryManagerDTO.name = "testVirtualName";
-    apiRepositoryManagerDTO.productName = "testProductName";
-    apiRepositoryManagerDTO.productVersion = "testProductVersion";
 
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> apiFirewallService.addVirtualRepositoryManager(apiRepositoryManagerDTO));
+  }
+
+  @Test
+  public void testGetVirtualRepositoryManagers_ExcludesTraditional() {
+    // Seed a traditional manager to prove list filters by type.
+    tempEntity.newRepositoryManager("instance-t", "traditional-only", "nxrm", "3.0");
+
+    ApiVirtualRepositoryManagerListDTO result = apiFirewallService.getVirtualRepositoryManagers();
+
+    assertThat(result.virtualRepositoryManagers)
+        .extracting(vrm -> vrm.name)
+        .doesNotContain("traditional-only");
+  }
+
+  @Test
+  public void testGetVirtualRepositoryManagers_WithChildCounts() {
+    // Two VRMs — one with two children, one with none.
+    ApiRepositoryManagerDTO vrmA = new ApiRepositoryManagerDTO();
+    vrmA.name = "vrmA-counts";
+    vrmA = apiFirewallService.addVirtualRepositoryManager(vrmA);
+
+    ApiRepositoryManagerDTO vrmB = new ApiRepositoryManagerDTO();
+    vrmB.name = "vrmB-counts";
+    vrmB = apiFirewallService.addVirtualRepositoryManager(vrmB);
+
+    RepositoryManager rmA = repositoryManagerDAO.getById(vrmA.id);
+    tempEntity.newRepository(rmA, "childA-1", RepositoryType.proxy, "npm", new Date());
+    tempEntity.newRepository(rmA, "childA-2", RepositoryType.proxy, "maven", new Date());
+
+    ApiVirtualRepositoryManagerListDTO result = apiFirewallService.getVirtualRepositoryManagers();
+
+    Map<String, Long> counts = result.virtualRepositoryManagers.stream()
+        .filter(vrm -> "vrmA-counts".equals(vrm.name) || "vrmB-counts".equals(vrm.name))
+        .collect(Collectors.toMap(vrm -> vrm.name, vrm -> vrm.childRepositoryCount));
+    assertThat(counts).containsOnlyKeys("vrmA-counts", "vrmB-counts")
+        .containsEntry("vrmA-counts", 2L)
+        .containsEntry("vrmB-counts", 0L);
+  }
+
+  @Test
+  public void testGetVirtualRepositoryManagers_NoFirewallFeature() {
+    testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL);
+
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> apiFirewallService.getVirtualRepositoryManagers());
+  }
+
+  @Test
+  public void testGetRepositoryManagers_ExcludesVirtual() {
+    tempEntity.newRepositoryManager("instance-trad", "traditional", "nxrm", "3.0");
+    ApiRepositoryManagerDTO virtual = new ApiRepositoryManagerDTO();
+    virtual.name = "hiddenVirtual";
+    apiFirewallService.addVirtualRepositoryManager(virtual);
+
+    ApiRepositoryManagerListDTO result = apiFirewallService.getRepositoryManagers();
+
+    assertThat(result.repositoryManagers)
+        .extracting(rm -> rm.name)
+        .contains("traditional")
+        .doesNotContain("hiddenVirtual");
+  }
+
+  @Test
+  public void testGetRepositoryManager_VirtualHiddenWhenMasterFlagOff() {
+    boolean previous = SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.isEnabled();
+    SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.setEnabled(false);
+    try {
+      ApiRepositoryManagerDTO virtual = new ApiRepositoryManagerDTO();
+      virtual.name = "hiddenById";
+      ApiRepositoryManagerDTO created = apiFirewallService.addVirtualRepositoryManager(virtual);
+
+      assertThatExceptionOfType(NotFoundException.class)
+          .isThrownBy(() -> apiFirewallService.getRepositoryManager(created.id));
+    }
+    finally {
+      SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.setEnabled(previous);
+    }
+  }
+
+  @Test
+  public void testGetRepositoryManager_VirtualVisibleWhenMasterFlagOn() {
+    boolean previous = SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.isEnabled();
+    SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.setEnabled(true);
+    try {
+      ApiRepositoryManagerDTO virtual = new ApiRepositoryManagerDTO();
+      virtual.name = "visibleById";
+      ApiRepositoryManagerDTO created = apiFirewallService.addVirtualRepositoryManager(virtual);
+
+      ApiRepositoryManagerDTO fetched = apiFirewallService.getRepositoryManager(created.id);
+
+      assertThat(fetched.id).isEqualTo(created.id);
+      assertThat(fetched.managerType).isEqualTo(ManagerType.VIRTUAL);
+    }
+    finally {
+      SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.setEnabled(previous);
+    }
+  }
+
+  @Test
+  public void testDeleteRepositoryManager_VirtualHiddenWhenMasterFlagOff() {
+    boolean previous = SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.isEnabled();
+    SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.setEnabled(false);
+    try {
+      ApiRepositoryManagerDTO virtual = new ApiRepositoryManagerDTO();
+      virtual.name = "hiddenForDelete";
+      ApiRepositoryManagerDTO created = apiFirewallService.addVirtualRepositoryManager(virtual);
+
+      assertThatExceptionOfType(NotFoundException.class)
+          .isThrownBy(() -> apiFirewallService.deleteRepositoryManager(created.id));
+
+      assertThat(repositoryManagerDAO.getById(created.id)).isNotNull();
+    }
+    finally {
+      SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.setEnabled(previous);
+    }
+  }
+
+  @Test
+  public void testDeleteRepositoryManager_VirtualDeletedWhenMasterFlagOn() {
+    // With the master flag on, DELETE /repositoryManagers/{vrm-id} falls through to the generic
+    // cascade path — VRMs have no related organization, so the cascade only touches child proxy
+    // repositories (of which a freshly-created VRM has none). Deliberate rollback-safety
+    // behaviour until the VRM plane grows its own DELETE endpoint.
+    boolean previous = SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.isEnabled();
+    SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.setEnabled(true);
+    try {
+      ApiRepositoryManagerDTO virtual = new ApiRepositoryManagerDTO();
+      virtual.name = "visibleForDelete";
+      ApiRepositoryManagerDTO created = apiFirewallService.addVirtualRepositoryManager(virtual);
+
+      apiFirewallService.deleteRepositoryManager(created.id);
+
+      assertThat(repositoryManagerDAO.getById(created.id)).isNull();
+    }
+    finally {
+      SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.setEnabled(previous);
+    }
+  }
+
+  @Test
+  public void testGetRepositoryManager_MissingIdReturnsNotFound() {
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> apiFirewallService.getRepositoryManager("nonexistent-id"));
+  }
+
+  @Test
+  public void testDeleteRepositoryManager_MissingIdReturnsNotFound() {
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> apiFirewallService.deleteRepositoryManager("nonexistent-id"));
   }
 
   private void configureAndAssertRepositories(Object... repositoriesAndUpdatedAfterDate) {

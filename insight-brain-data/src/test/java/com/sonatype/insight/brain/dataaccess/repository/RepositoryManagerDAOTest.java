@@ -751,4 +751,34 @@ public class RepositoryManagerDAOTest
     JPA.assertContainsEntitiesExactlyInAnyOrder(
         dao.getByIds(repositoryManagerIds), repositoryManager1, repositoryManager2);
   }
+
+  @Test
+  public void testGetAllExcludingVirtual_omitsVirtualRows() {
+    RepositoryManager traditional = tempEntity.newRepositoryManager();
+    RepositoryManager virtual = newVirtualRepositoryManager("vrm-excluded");
+
+    assertThat(dao.getAllExcludingVirtual())
+        .extracting(RepositoryManager::getId)
+        .contains(traditional.getId())
+        .doesNotContain(virtual.getId());
+  }
+
+  @Test
+  public void testGetAllByManagerType_returnsOnlyRequestedType() {
+    RepositoryManager traditional = tempEntity.newRepositoryManager();
+    RepositoryManager virtual = newVirtualRepositoryManager("vrm-listed");
+
+    assertThat(dao.getAllByManagerType(ManagerType.VIRTUAL))
+        .extracting(RepositoryManager::getId)
+        .contains(virtual.getId())
+        .doesNotContain(traditional.getId());
+  }
+
+  private RepositoryManager newVirtualRepositoryManager(String name) {
+    RepositoryManager virtual = tempEntity.newRepositoryManager("virtual-" + System.nanoTime());
+    virtual.setManagerType(ManagerType.VIRTUAL);
+    virtual.setName(name);
+    dao.update(virtual);
+    return virtual;
+  }
 }

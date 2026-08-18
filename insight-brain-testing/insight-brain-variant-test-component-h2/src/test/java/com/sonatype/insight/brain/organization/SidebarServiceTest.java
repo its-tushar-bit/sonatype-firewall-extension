@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.repository.ManagerType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -321,6 +322,29 @@ public class SidebarServiceTest
     assertThat(repositoryThreeDTO.getParentId()).isEqualTo(repositoryThree.getParentOwnerId());
     assertThat(repositoryThreeDTO.repositoryManagerId).isEqualTo(repositoryManagerTwo.getId());
     assertThat(repositoryThreeDTO.repositoryType).isEqualTo(repositoryThree.getRepositoryType().name());
+  }
+
+  @Test
+  public void testGetOwnerList_ExcludesVirtualRepositoryManagers() {
+    // The "Orgs and Policies" owner-hierarchy tree must not surface Virtual Repository Managers:
+    // VRMs belong to the redirector configuration plane and are exposed through their dedicated
+    // admin surface, not this shared policy-administration tree.
+    RepositoryManager traditional = tempEntity.newRepositoryManager();
+    RepositoryManager virtual = tempEntity.newRepositoryManager("virtual-" + System.nanoTime());
+    virtual.setManagerType(ManagerType.VIRTUAL);
+    virtual.setName("vrm-excluded-from-sidebar");
+    repositoryManagerDAO.update(virtual);
+
+    OwnerHierarchyDTO ownerHierarchyDTO = sidebarService.getOwnerList();
+
+    OwnerHierarchyRepositoryContainerDTO repositoryContainer =
+        (OwnerHierarchyRepositoryContainerDTO) ownerHierarchyDTO.ownersMap.get(
+            RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    assertThat(repositoryContainer.repositoryManagerIds)
+        .contains(traditional.getId())
+        .doesNotContain(virtual.getId());
+    assertThat(ownerHierarchyDTO.ownersMap).containsKey(traditional.getId());
+    assertThat(ownerHierarchyDTO.ownersMap).doesNotContainKey(virtual.getId());
   }
 
   @Test

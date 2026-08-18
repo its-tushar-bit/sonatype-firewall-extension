@@ -5,8 +5,12 @@
  */
 package com.sonatype.insight.brain.dataaccess.repository;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.jooq.Condition;
@@ -20,6 +24,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.model.repository.ManagerType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryMigration;
@@ -41,6 +46,7 @@ import static com.sonatype.insight.brain.jooq.generated.ods.tables.Organization.
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.Repository.REPOSITORY;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryAncestor.REPOSITORY_ANCESTOR;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryManager.REPOSITORY_MANAGER;
+import static org.jooq.impl.DSL.count;
 
 @Named
 @Singleton
@@ -604,13 +610,70 @@ public class RepositoryDAO
 
   public List<Repository> getByIds(Set<String> repositoryIds) {
     if (repositoryIds == null || repositoryIds.isEmpty()) {
-      return java.util.Collections.emptyList();
+      return Collections.emptyList();
     }
     try (TransactionContext tx = createTransactionContext()) {
       return tx.dsl()
           .selectFrom(REPOSITORY)
           .where(REPOSITORY.REPOSITORY_ID.in(repositoryIds))
           .fetch(this::toEntity);
+    }
+  }
+
+  /**
+   * Returns the number of repositories grouped by their {@code repository_manager_id} for the
+   * given set of manager IDs. The returned map only contains manager IDs with at least one
+   * repository; a manager ID with zero repositories is absent from the map, and callers must
+   * default absent keys to {@code 0} (e.g. {@code getOrDefault(id, 0L)}).
+   * <p>
+   * Takes a {@link Set} rather than a {@link Collection}: {@code AbstractSqlDAO.getListWithSqlInClause}
+   * partitions the input, and a duplicate ID landing in two partitions would be counted twice
+   * when the partition results are merged with {@code Long::sum}.
+   * <p>
+   * Single batched query using {@code AbstractSqlDAO.getListWithSqlInClause} to avoid N+1.
+   */
+  public Map<String, Long> countByRepositoryManagerIds(Set<String> repositoryManagerIds) {
+    if (repositoryManagerIds == null || repositoryManagerIds.isEmpty()) {
+      return Collections.emptyMap();
+    }
+    List<Map.Entry<String, Long>> rows = getListWithSqlInClause(repositoryManagerIds, partition -> {
+      try (TransactionContext tx = createTransactionContext()) {
+        return tx.dsl()
+            .select(REPOSITORY.REPOSITORY_MANAGER_ID, count())
+            .from(REPOSITORY)
+            .where(REPOSITORY.REPOSITORY_MANAGER_ID.in(partition))
+            .groupBy(REPOSITORY.REPOSITORY_MANAGER_ID)
+            .fetch(r -> Map.entry(r.value1(), r.value2().longValue()));
+      }
+    });
+    Map<String, Long> result = new HashMap<>();
+    for (Map.Entry<String, Long> row : rows) {
+      result.merge(row.getKey(), row.getValue(), Long::sum);
+    }
+    return result;
+  }
+
+  /**
+   * Returns {@code true} when the given repository is owned by a repository manager with
+   * {@link ManagerType#VIRTUAL}. Returns {@code false} for a missing repository or a repository
+   * owned by a traditional (NXRM) manager.
+   * <p>
+   * Single JOIN across {@code repository} and {@code repository_manager} — one round trip.
+   */
+  public boolean isVrmChildRepository(String repositoryId) {
+    if (repositoryId == null) {
+      return false;
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .select(REPOSITORY_MANAGER.MANAGER_TYPE)
+          .from(REPOSITORY)
+          .join(REPOSITORY_MANAGER)
+          .on(REPOSITORY.REPOSITORY_MANAGER_ID.eq(REPOSITORY_MANAGER.REPOSITORY_MANAGER_ID))
+          .where(REPOSITORY.REPOSITORY_ID.eq(repositoryId))
+          .fetchOptional()
+          .map(r -> ManagerType.VIRTUAL.name().equals(r.value1()))
+          .orElse(false);
     }
   }
 

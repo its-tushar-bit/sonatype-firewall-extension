@@ -160,7 +160,10 @@ public class OrganizationApplicationManagementEventService
   }
 
   private List<RepositoryManagerSummary> createRepositoryManagerSummaries() {
-    return repositoryManagerDAO.getAll()
+    // Firewall webhooks describe the traditional (NXRM) surface; Virtual Repository Managers
+    // belong to the redirector configuration plane and must not leak into payloads sent to
+    // customer receivers.
+    return repositoryManagerDAO.getAllExcludingVirtual()
         .stream()
         .sorted(Comparator.comparing(rm -> rm.getName() != null ? rm.getName().toLowerCase(Locale.ROOT) : ""))
         .map(RepositoryManagerSummary::new)

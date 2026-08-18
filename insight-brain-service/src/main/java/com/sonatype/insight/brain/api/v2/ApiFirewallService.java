@@ -49,6 +49,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerListDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiVirtualRepositoryManagerDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiVirtualRepositoryManagerListDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsAdapter;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyViolationAdapter;
 import com.sonatype.insight.brain.api.v2.service.ComponentFormatConstants;
@@ -67,10 +69,14 @@ import com.sonatype.insight.brain.dataaccess.repository.InvalidRepositoryExcepti
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.InvalidRepositoryManagerException;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.integration.repository.AbstractRepositoryService;
 import com.sonatype.insight.brain.integration.repository.RepositoryService;
+import com.sonatype.insight.brain.model.DuplicateNameException;
+import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.AutoUnquarantinePolicyConditionType;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
@@ -106,6 +112,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.google.common.base.Strings;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -535,7 +542,7 @@ public class ApiFirewallService
     productLicense.validateFeature(LicensedFeature.FIREWALL);
 
     List<RepositoryManager> repositoryManagersWithReadPermission =
-        filterRepositoryManagersWithReadPermission(repositoryManagerDAO.getAll());
+        filterRepositoryManagersWithReadPermission(repositoryManagerDAO.getAllExcludingVirtual());
     List<ApiRepositoryManagerDTO> apiRepositoryManagerDTOS = repositoryManagersWithReadPermission.stream()
         .map(ApiFirewallService::fromRepositoryManager)
         .collect(Collectors.toList());
@@ -719,12 +726,24 @@ public class ApiFirewallService
   public ApiRepositoryManagerDTO getRepositoryManager(
       @AuthzContext(Key.REPOSITORY_MANAGER_ID) String repositoryManagerId)
   {
-    return fromRepositoryManager(repositoryManagerDAO.getById(repositoryManagerId));
+    RepositoryManager repoManager = repositoryManagerDAO.getById(repositoryManagerId);
+    if (repoManager == null || isHiddenVirtualManager(repoManager)) {
+      throw new NotFoundException("Repository manager not found.");
+    }
+    return fromRepositoryManager(repoManager);
   }
 
   @Authorize(permission = Permission.WRITE)
   public void deleteRepositoryManager(@AuthzContext(Key.REPOSITORY_MANAGER_ID) String repositoryManagerId) {
     RepositoryManager repoManager = repositoryManagerDAO.getById(repositoryManagerId);
+    if (repoManager == null || isHiddenVirtualManager(repoManager)) {
+      throw new NotFoundException("Repository manager not found.");
+    }
+    // With the master flag on, a VRM row is reachable here and falls through to the generic
+    // cascade below. That is deliberate as a rollback-safety escape hatch until the VRM plane
+    // grows its own DELETE endpoint. VRMs have no related organization (getRelatedOrganizationId
+    // returns null → org-delete skipped), and any child proxy repositories cascade-delete
+    // through mainRepositoryService just as they do for a traditional manager.
     // Delete related organization
     if (repoManager.getRelatedOrganizationId() != null) {
       try {
@@ -827,18 +846,101 @@ public class ApiFirewallService
     productLicense.validateFeature(LicensedFeature.FIREWALL);
     checkWritePermission(RepositoryContainer.SINGLETON);
 
-    if (apiRepositoryManagerDTO.id != null) {
-      throw new BadRequestException("The repository manager ID must be null.");
-    }
+    validateVirtualRepositoryManagerRequest(apiRepositoryManagerDTO);
 
-    apiRepositoryManagerDTO.instanceId = UUID.randomUUID().toString();
-    apiRepositoryManagerDTO.managerType = ManagerType.VIRTUAL;
+    // Set server-owned fields on the entity rather than mutating the caller's DTO, so the
+    // request object stays as the caller passed it in.
     RepositoryManager repositoryManager = toRepositoryManager(apiRepositoryManagerDTO);
-    repositoryManagerDAO.insert(repositoryManager);
+    repositoryManager.setInstanceId(UUID.randomUUID().toString());
+    repositoryManager.setManagerType(ManagerType.VIRTUAL);
+    try {
+      repositoryManagerDAO.insert(repositoryManager);
+    }
+    catch (DuplicateNameException e) {
+      throw new BadRequestException(
+          String.format("A virtual repository manager named '%s' already exists.", repositoryManager.getName()), e);
+    }
+    catch (InvalidNameException | InvalidRepositoryManagerException e) {
+      // Length / blank name from validateName, or (astronomically unlikely) UUID instanceId
+      // collision from validateInstanceId. Both are 400-shaped via @HttpStatusCode; wrap
+      // explicitly so the caller-facing response is uniform BadRequestException.
+      throw new BadRequestException(e.getMessage(), e);
+    }
 
     AuditData.get().setRepositoryManager(repositoryManager);
 
     return fromRepositoryManager(repositoryManager);
+  }
+
+  /**
+   * Lists all Virtual Repository Managers with their child repository counts. Guarded by the
+   * caller (feature-flag check happens at the resource layer via {@code @HasFeature} plus the
+   * inline redirector-UI sub-flag check).
+   */
+  public ApiVirtualRepositoryManagerListDTO getVirtualRepositoryManagers() {
+    productLicense.validateFeature(LicensedFeature.FIREWALL);
+    // Container-level READ is deliberate here: VRMs have no per-manager ACLs, unlike the
+    // traditional list surface which filters via @AuthzFilter. Any principal with the View IQ
+    // Elements permission on RepositoryContainer.SINGLETON can list VRM names, and the child
+    // count is a raw COUNT(*) that is not per-manager permission-filtered (unlike the
+    // per-manager @Authorize(READ) applied by getConfiguredRepositories).
+    checkReadPermission(RepositoryContainer.SINGLETON);
+
+    // No pagination: VRM cardinality is expected to stay in the tens (one VRM per NXRM
+    // proxied through the redirector), so returning the full list in one payload is fine and
+    // keeps the response shape stable for the redirector UI consumers.
+    //
+    // The list read and the count read run in separate TransactionContexts, so a repository
+    // added between them can produce a childRepositoryCount that a follow-up GET on the same
+    // VRM does not yet reflect. This is a cosmetic transient inconsistency on an admin
+    // config-plane list — the UI does not treat this count as authoritative.
+    List<RepositoryManager> virtualManagers = repositoryManagerDAO.getAllByManagerType(ManagerType.VIRTUAL);
+    if (virtualManagers.isEmpty()) {
+      return new ApiVirtualRepositoryManagerListDTO(List.of());
+    }
+
+    Set<String> managerIds = virtualManagers.stream().map(RepositoryManager::getId).collect(Collectors.toSet());
+    Map<String, Long> childCountByManagerId = repositoryDAO.countByRepositoryManagerIds(managerIds);
+
+    List<ApiVirtualRepositoryManagerDTO> dtos = virtualManagers.stream()
+        .map(rm -> new ApiVirtualRepositoryManagerDTO(
+            rm.getId(),
+            rm.getName(),
+            childCountByManagerId.getOrDefault(rm.getId(), 0L)))
+        .collect(Collectors.toList());
+
+    return new ApiVirtualRepositoryManagerListDTO(dtos);
+  }
+
+  private static boolean isRedirectorMasterFlagEnabled() {
+    return SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.isEnabled();
+  }
+
+  private static boolean isHiddenVirtualManager(RepositoryManager repositoryManager) {
+    return repositoryManager != null
+        && repositoryManager.getManagerType() == ManagerType.VIRTUAL
+        && !isRedirectorMasterFlagEnabled();
+  }
+
+  private void validateVirtualRepositoryManagerRequest(ApiRepositoryManagerDTO apiRepositoryManagerDTO) {
+    if (apiRepositoryManagerDTO.id != null) {
+      throw new BadRequestException("The repository manager ID must be null.");
+    }
+    if (apiRepositoryManagerDTO.instanceId != null) {
+      throw new BadRequestException("The instance ID must not be set for a virtual repository manager.");
+    }
+    if (apiRepositoryManagerDTO.productName != null) {
+      throw new BadRequestException("The product name must not be set for a virtual repository manager.");
+    }
+    if (apiRepositoryManagerDTO.productVersion != null) {
+      throw new BadRequestException("The product version must not be set for a virtual repository manager.");
+    }
+    if (apiRepositoryManagerDTO.managerType != null && apiRepositoryManagerDTO.managerType != ManagerType.VIRTUAL) {
+      throw new BadRequestException("The manager type must be VIRTUAL or omitted.");
+    }
+    if (StringUtils.isBlank(apiRepositoryManagerDTO.name)) {
+      throw new BadRequestException("The virtual repository manager name is required.");
+    }
   }
 
   public ApiRepositoryContainerDTO getRepositoryContainer() {

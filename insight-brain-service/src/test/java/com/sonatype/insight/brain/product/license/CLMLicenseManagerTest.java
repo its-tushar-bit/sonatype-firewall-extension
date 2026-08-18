@@ -2776,6 +2776,46 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testInstallLicense_EmbeddedDatabase_LifecycleWithoutAiDeveloper() throws Exception {
+    // Embedded database is the @Before default: a Lifecycle license without the entitlement installs fine.
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFingerprint()).isNotNull();
+    assertThat(productLicense.hasFeature(LicensedFeature.AI_DEVELOPER)).isFalse();
+  }
+
+  @Test
+  public void testInstallLicense_EmbeddedDatabase_AiDeveloperEntitlement_Fails() {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION,
+        ProductLicenseDetails.PRODUCT_AI_DEVELOPER);
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.AI_DEVELOPER));
+    assertThatExceptionOfType(ExternalDatabaseNotSupportedException.class)
+        .isThrownBy(this::installLicense)
+        .withMessage(
+            "AI Developer feature requires use of an external database, please retry using an external database.");
+  }
+
+  @Test
+  public void testOptIn_GrantsAiDeveloperOnlyWithExternalDatabase() throws Exception {
+    systemConfigurationPropertyDAO.insert(new SystemConfigurationProperty(
+        SystemConfigurationProperty.AI_DEVELOPER_OPT_IN, "admin,2026-08-17T09:15:00Z"));
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+
+    // Embedded database (the @Before default): the opt-in grants nothing, and refusing is silent — telling the user an
+    // external database is required is GUIDE-3342, which owns the opt-in response.
+    assertThat(productLicense.hasFeature(LicensedFeature.AI_DEVELOPER)).isFalse();
+    assertThat(productLicense.hasProduct(ProductLicenseDetails.PRODUCT_AI_DEVELOPER)).isFalse();
+
+    // The guard is evaluated per call, so switching to an external database takes effect without reinstalling.
+    config.setDatabase(new DatabaseConfig());
+    assertThat(productLicense.hasFeature(LicensedFeature.AI_DEVELOPER)).isTrue();
+    assertThat(productLicense.hasProduct(ProductLicenseDetails.PRODUCT_AI_DEVELOPER)).isTrue();
+  }
+
+  @Test
   public void testGetFeatures_GuideSelfHosted() throws Exception {
     config.setDatabase(new DatabaseConfig());
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
@@ -2961,6 +3001,19 @@ public class CLMLicenseManagerTest
     assertThat(info.creditAmountToDisplay).isNull();
     assertThat(info.applicationLimitToDisplay).isEqualTo(100);
     assertThat(info.sbomLimitToDisplay).isEqualTo(50);
+  }
+
+  @Test
+  public void testGetLicenseInfo_OptIn_NoCreditEntitlement_noCreditAmount() throws Exception {
+    // Opting in grants the feature, not a credit entitlement: credit stays keyed to the signed license.
+    systemConfigurationPropertyDAO.insert(new SystemConfigurationProperty(
+        SystemConfigurationProperty.AI_DEVELOPER_OPT_IN, "admin,2026-08-17T09:15:00Z"));
+    config.setDatabase(new DatabaseConfig());
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    installLicense();
+
+    assertThat(productLicense.hasFeature(LicensedFeature.AI_DEVELOPER)).isTrue();
+    assertThat(clmLicenseManager.getLicenseInfo().creditAmountToDisplay).isNull();
   }
 
   @Test

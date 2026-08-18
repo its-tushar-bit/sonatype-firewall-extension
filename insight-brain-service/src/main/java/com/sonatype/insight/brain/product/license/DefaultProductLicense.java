@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.StageType;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import org.slf4j.Logger;
@@ -54,6 +55,9 @@ public class DefaultProductLicense
   @Lazy
   private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
+  @Inject
+  private InsightConfig config;
+
   public DefaultProductLicense() {
   }
 
@@ -63,10 +67,12 @@ public class DefaultProductLicense
 
   protected DefaultProductLicense(
       DeveloperEnablementService developerEnablementService,
-      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO)
+      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
+      InsightConfig config)
   {
     this.developerEnablementService = developerEnablementService;
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
+    this.config = config;
   }
 
   static class ProductLicenseData
@@ -248,7 +254,9 @@ public class DefaultProductLicense
 
   /**
    * Whether AI Developer is granted by the organization's opt-in rather than by the license. Requires a Lifecycle
-   * product in the license: an install with no Lifecycle product gains nothing from opting in.
+   * product in the license (an install with no Lifecycle product gains nothing from opting in) and an external
+   * database, which is the same requirement {@code CLMLicenseManager.validateExternalDatabaseForFeature} enforces
+   * for a license that carries the entitlement.
    */
   private boolean isAiDeveloperEnabledByOptIn() {
     Set<String> products = getProducts();
@@ -256,7 +264,10 @@ public class DefaultProductLicense
       return false;
     }
     String optIn = readConfig(SystemConfigurationProperty.AI_DEVELOPER_OPT_IN);
-    return optIn != null && !optIn.isBlank();
+    if (optIn == null || optIn.isBlank()) {
+      return false;
+    }
+    return config != null && !config.isDatabaseEmbedded();
   }
 
   private String readConfig(String name) {

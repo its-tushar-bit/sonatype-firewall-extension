@@ -10,6 +10,8 @@ import java.util.Set;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
@@ -86,7 +88,24 @@ class DefaultProductLicenseTest
     SystemConfigurationPropertyDAO dao = mock(SystemConfigurationPropertyDAO.class);
     when(dao.getByName(anyString())).thenThrow(new IllegalStateException("database is down"));
 
-    assertThat(licenseReading(LIFECYCLE, Set.of(), dao).hasFeature(LicensedFeature.AI_DEVELOPER)).isFalse();
+    assertThat(licenseReading(LIFECYCLE, Set.of(), dao, externalDatabase()).hasFeature(LicensedFeature.AI_DEVELOPER))
+        .isFalse();
+  }
+
+  @Test
+  void optInGrantsNothingOnTheEmbeddedDatabase() {
+    DefaultProductLicense license = license(LIFECYCLE, Set.of(), OPT_IN, embeddedDatabase());
+
+    assertThat(license.hasFeature(LicensedFeature.AI_DEVELOPER)).isFalse();
+    assertThat(license.hasProduct(ProductLicenseDetails.PRODUCT_AI_DEVELOPER)).isFalse();
+    assertThat(license.hasProduct(ProductLicenseDetails.PRODUCT_AI_DEVELOPER_SAAS)).isFalse();
+  }
+
+  @Test
+  void optInGrantsNothingWithoutServerConfiguration() {
+    // A license constructed without the server configuration cannot tell an embedded database from an external one, so
+    // it refuses rather than granting the feature.
+    assertThat(license(LIFECYCLE, Set.of(), OPT_IN, null).hasFeature(LicensedFeature.AI_DEVELOPER)).isFalse();
   }
 
   private static DefaultProductLicense license(
@@ -94,19 +113,39 @@ class DefaultProductLicenseTest
       Set<LicensedFeature> features,
       String optInValue)
   {
+    return license(products, features, optInValue, externalDatabase());
+  }
+
+  private static DefaultProductLicense license(
+      Set<String> products,
+      Set<LicensedFeature> features,
+      String optInValue,
+      InsightConfig config)
+  {
     SystemConfigurationPropertyDAO dao = mock(SystemConfigurationPropertyDAO.class);
     when(dao.getByName(SystemConfigurationProperty.AI_DEVELOPER_OPT_IN)).thenReturn(optInValue == null
         ? null
         : new SystemConfigurationProperty(SystemConfigurationProperty.AI_DEVELOPER_OPT_IN, optInValue));
-    return licenseReading(products, features, dao);
+    return licenseReading(products, features, dao, config);
+  }
+
+  private static InsightConfig externalDatabase() {
+    InsightConfig config = new InsightConfig();
+    config.setDatabase(new DatabaseConfig());
+    return config;
+  }
+
+  private static InsightConfig embeddedDatabase() {
+    return new InsightConfig();
   }
 
   private static DefaultProductLicense licenseReading(
       Set<String> products,
       Set<LicensedFeature> features,
-      SystemConfigurationPropertyDAO dao)
+      SystemConfigurationPropertyDAO dao,
+      InsightConfig config)
   {
-    return new DefaultProductLicense(mock(DeveloperEnablementService.class), dao)
+    return new DefaultProductLicense(mock(DeveloperEnablementService.class), dao, config)
     {
       @Override
       public Set<String> getProducts() {

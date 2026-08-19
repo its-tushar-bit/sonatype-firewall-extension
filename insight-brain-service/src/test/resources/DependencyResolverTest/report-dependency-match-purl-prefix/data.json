@@ -1,0 +1,29 @@
+{
+  "partiallyMatchedComponentCount" : 0,
+  "notProvidedLicenseCount" : 18,
+  "liberalLicenseCount" : 4,
+  "scanLabel" : null,
+  "globals" : {
+    "earliestReleaseDate" : 1124431419000,
+    "dataVersion" : null,
+    "exceededRowLimit" : false,
+    "scanErrorCount" : 0,
+    "currentDate" : 1729154889427,
+    "hideFilename" : true
+  },
+  "exactlyMatchedComponentCount" : 4,
+  "nonStandardLicenseCount" : 4,
+  "copyleftLicenseCount" : 4,
+  "knownArtifactCount" : 4,
+  "totalArtifactCount" : 4,
+  "weakcopyleftLicenseCount" : 1,
+  "securityCounts" : [ 0, 1, 2, 3, 4, 5, 4, 3, 2, 1 ],
+  "insecureArtifactCount" : 3,
+  "effectiveLicenseCounts" : [ 2, 0, 3, 0, 0, 4, 5, 2, 0, 5, 2 ],
+  "securityPunchCard" : [ ],
+  "licensePunchCard" : [ ],
+  "policyCounts" : [ 0, 3, 0, 3, 0, 0, 0, 1, 0, 2, 2 ],
+  "policyComponentCount" : 4,
+  "grandfatheredPolicyViolationCount" : 0,
+  "legacyViolationCount" : 0
+}

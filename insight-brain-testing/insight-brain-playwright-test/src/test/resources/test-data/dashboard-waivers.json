@@ -1,0 +1,151 @@
+{
+  "noDataMessage": "No data available in the last 30 days given the applied filters and permissions.",
+  "parentOrgName": "Parent Org 1",
+  "orgName": "Org 1",
+  "app1Name": "App 1",
+  "app1Id": "app1",
+  "app2Name": "App 2",
+  "app2Id": "app2",
+  "repositoryName": "Repository 1",
+  "repositoryContainerName": "Repository Managers",
+  "policies": [
+    {
+      "name": "Policy 1",
+      "threatLevel": 7
+    },
+    {
+      "name": "Policy 2",
+      "threatLevel": 9
+    },
+    {
+      "name": "Policy 3",
+      "threatLevel": 3
+    },
+    {
+      "name": "Policy 4",
+      "threatLevel": 4
+    }
+  ],
+  "componentGroupId": "Group1",
+  "componentArtifactId": "Artifact1",
+  "componentVersion": "1.2.3",
+  "componentExtension": "jar",
+
+  "scanId": "scan1",
+  "dateFormat": "yyyy-MM-dd",
+
+  "violations": [
+    {"groupId": "Group1", "artifactId": "Artifact1", "version": "Version1", "hash": "hash1", "refId": "sonatype-2017-0507", "policyIndex": 0, "evaluationIndex": 0},
+    {"groupId": "Group2", "artifactId": "Artifact2", "version": "Version2", "hash": "hash2", "refId": "sonatype-2017-8912", "policyIndex": 1, "evaluationIndex": 0},
+    {"groupId": "Group3", "artifactId": "Artifact3", "version": "Version3", "hash": "hash3", "refId": "sonatype-2017-7848", "policyIndex": 2, "evaluationIndex": 1}
+  ],
+  "creatorId": "testuser",
+  "creatorName": "Test User",
+  "organizationScopePrefix": "Organization - ",
+  "applicationScopePrefix": "Application - ",
+  "repositoryScopePrefix": "Repository - ",
+  "componentSeparator": " : ",
+  "allVersionsSuffix": " (all versions)",
+  "allComponentsLabel": "All Components",
+  "upgradeAvailableText": "Available",
+  "neverExpiryText": "Never",
+  "autoWaiverExpiryLabel": "Auto",
+  "autoWaiverThreatLevel": 5,
+  "existingWaiversTabLabel": "Existing Waivers",
+  "requestedWaiversTabLabel": "Requested Waivers",
+  "expectedWaiversCount": 9,
+  "waivers": [
+    {
+      "rowIndex": 0,
+      "hash": "hash1",
+      "policyIndex": 0,
+      "ownerKey": "org",
+      "matchStrategy": "EXACT_COMPONENT",
+      "comment": "comment org",
+      "createDaysAgo": 2,
+      "expiryDaysFromNow": 3,
+      "upgradeAvailable": true
+    },
+    {
+      "rowIndex": 1,
+      "hash": "hash2",
+      "policyIndex": 2,
+      "ownerKey": "app2",
+      "matchStrategy": "EXACT_COMPONENT",
+      "comment": "comment app 2",
+      "createDaysAgo": 3,
+      "expiryDaysFromNow": 5,
+      "upgradeAvailable": true
+    },
+    {
+      "rowIndex": 8,
+      "hash": "hash3",
+      "policyIndex": 2,
+      "ownerKey": "app1",
+      "matchStrategy": "EXACT_COMPONENT",
+      "comment": "comment app 1",
+      "createDaysAgo": 5
+    },
+    {
+      "rowIndex": 2,
+      "hash": "hash4",
+      "policyIndex": 1,
+      "ownerKey": "org",
+      "matchStrategy": "ALL_COMPONENTS",
+      "comment": "org all components",
+      "createDaysAgo": 6,
+      "expiryDaysFromNow": 6
+    },
+    {
+      "rowIndex": 3,
+      "hash": "hash5",
+      "policyIndex": 1,
+      "ownerKey": "app1",
+      "matchStrategy": "ALL_VERSIONS",
+      "comment": "app all versions",
+      "createDaysAgo": 7,
+      "expiryDaysFromNow": 7
+    },
+    {
+      "rowIndex": 4,
+      "hash": "hash6",
+      "policyIndex": 3,
+      "ownerKey": "rootOrg",
+      "matchStrategy": "EXACT_COMPONENT",
+      "comment": "comment root org",
+      "createDaysAgo": 8,
+      "expiryDaysFromNow": 8
+    },
+    {
+      "rowIndex": 5,
+      "hash": "hash7",
+      "policyIndex": 0,
+      "ownerKey": "repo",
+      "matchStrategy": "EXACT_COMPONENT",
+      "comment": "comment repo",
+      "createDaysAgo": 9,
+      "expiryDaysFromNow": 9,
+      "upgradeAvailable": true
+    },
+    {
+      "rowIndex": 6,
+      "hash": "hash8",
+      "policyIndex": 1,
+      "ownerKey": "repoContainer",
+      "matchStrategy": "EXACT_COMPONENT",
+      "comment": "comment repo container",
+      "createDaysAgo": 14,
+      "expiryDaysFromNow": 14
+    },
+    {
+      "rowIndex": 7,
+      "hash": "hash9",
+      "policyIndex": 1,
+      "ownerKey": "parentOrg",
+      "matchStrategy": "EXACT_COMPONENT",
+      "comment": "comment parent org",
+      "createDaysAgo": 30,
+      "expiryDaysFromNow": 30
+    }
+  ]
+}

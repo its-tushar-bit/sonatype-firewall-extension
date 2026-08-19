@@ -1,0 +1,6 @@
+{
+  "sonatypeMailFallbackWarning": "This will fall back to using Sonatype's mail service",
+  "mailConfigHostname": "smtp.example-mtiq-test.com",
+  "mailConfigPort": 587,
+  "mailConfigSystemEmail": "noreply@example-mtiq-test.com"
+}

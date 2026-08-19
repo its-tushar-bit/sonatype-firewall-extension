@@ -1,0 +1,54 @@
+{
+  "SPDXID" : "SPDXRef-DOCUMENT",
+  "spdxVersion" : "SPDX-2.3",
+  "creationInfo" : {
+    "created" : "2024-03-08T22:14:19Z",
+    "creators" : [ "Person: John Doe (john.doe@example.com)", "Person: Jane Doe", "Organization: Example Organization (example@example.com)","Organization: Example Organization","Tool: Sonatype IQ Server-1.175.0-SNAPSHOT" ]
+  },
+  "name" : "pkg:generic/sonatype/iq_application_app@265f352057714ed0bd3fb1557af4a554",
+  "dataLicense" : "CC0-1.0",
+  "documentNamespace" : "http://localhost:8070/ui/links/application/app/report/265f352057714ed0bd3fb1557af4a554",
+  "packages" : [ {
+    "SPDXID" : "SPDXRef-maven-com.h2database-h2-2.1.214",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "comment" : "source: SONATYPE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://localhost:8070/ui/links/vln/sonatype-2018-0863",
+      "referenceType" : "advisory"
+    }, {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/com.h2database/h2@2.1.214?type=jar",
+      "referenceType" : "purl"
+    }, {
+      "comment" : "source: SONATYPE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://localhost:8070/ui/links/vln/sonatype-2022-6243",
+      "referenceType" : "advisory"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "(EPL-1.0 AND LGPL-3.0 AND MPL-2.0 AND BSD-3-Clause)",
+    "licenseDeclared" : "(EPL-1.0 AND LGPL-3.0 AND MPL-2.0 AND BSD-3-Clause)",
+    "name" : "com.h2database:h2",
+    "versionInfo" : "2.1.214"
+  }, {
+    "SPDXID" : "SPDXRef-generic-sonatype-iq-application-app-265f352057714ed0bd3fb1557af4a554",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:generic/sonatype/iq_application_app@265f352057714ed0bd3fb1557af4a554",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "sonatype:iq_application_app",
+    "versionInfo" : "265f352057714ed0bd3fb1557af4a554",
+    "primaryPackagePurpose": "APPLICATION"
+  } ],
+  "relationships" : [ {
+    "spdxElementId" : "SPDXRef-DOCUMENT",
+    "relationshipType" : "DESCRIBES",
+    "relatedSpdxElement" : "SPDXRef-generic-sonatype-iq-application-app-265f352057714ed0bd3fb1557af4a554"
+  } ]
+}

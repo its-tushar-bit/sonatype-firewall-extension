@@ -1,0 +1,146 @@
+{
+  "version" : 4,
+  "aaData" : [{
+    "hash" : "1249e25aebb15358bedd",
+    "componentIdentifier" : null,
+    "policyId" : "644a8c0052eb42b2829d6f9fcaba7ea3",
+    "policyName" : "Security-High",
+    "policyThreatLevel" : 9,
+    "activeViolations" : [ {
+      "policyId" : "6430b4c764314ac6aee439ad1c045ad1",
+      "policyName" : "Security-Medium",
+      "policyThreatLevel" : 7,
+      "waived" : false,
+      "grandfathered" : true,
+      "constraintFactsJson" : "[{\"constraintId\":\"ebc08aa780524f9282b7fa8926893c3b\",\"constraintName\":\"Medium risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 4\",\"reason\":\"Found security vulnerability CVE-2018-1199 with severity 5.3.\",\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"CVE-2018-1199\\\",\\\"severity\\\":5.3}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 7\",\"reason\":\"Found security vulnerability CVE-2018-1199 with severity 5.3.\",\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"CVE-2018-1199\\\",\\\"severity\\\":5.3}}\"},{\"conditionTypeId\":\"SecurityVulnerabilityStatus\",\"conditionIndex\":2,\"summary\":\"Security Vulnerability Status is not NOT_APPLICABLE\",\"reason\":\"Found security vulnerability CVE-2018-1199 with status 'Open', not 'Not Applicable'.\",\"triggerJson\":\"{\\\"conditionIndex\\\":2,\\\"trigger\\\":{\\\"refId\\\":\\\"CVE-2018-1199\\\",\\\"statusId\\\":\\\"OPEN\\\"}}\"}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "ebc08aa780524f9282b7fa8926893c3b",
+        "constraintName" : "Medium risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 4",
+          "conditionReason" : "Found security vulnerability CVE-2018-1199 with severity 5.3."
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 7",
+          "conditionReason" : "Found security vulnerability CVE-2018-1199 with severity 5.3."
+        }, {
+          "conditionType" : "SecurityVulnerabilityStatus",
+          "conditionSummary" : "Security Vulnerability Status is not NOT_APPLICABLE",
+          "conditionReason" : "Found security vulnerability CVE-2018-1199 with status 'Open', not 'Not Applicable'."
+        } ]
+      } ]
+    }, {
+      "policyId" : "6430b4c764314ac6aee439ad1c045ad1",
+      "policyName" : "Security-Medium",
+      "policyThreatLevel" : 7,
+      "waived" : false,
+      "grandfathered" : true,
+      "constraintFactsJson" : "[{\"constraintId\":\"ebc08aa780524f9282b7fa8926893c3b\",\"constraintName\":\"Medium risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 4\",\"reason\":\"Found security vulnerability sonatype-2017-0507 with severity 5.0.\",\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2017-0507\\\",\\\"severity\\\":5.0}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 7\",\"reason\":\"Found security vulnerability sonatype-2017-0507 with severity 5.0.\",\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2017-0507\\\",\\\"severity\\\":5.0}}\"},{\"conditionTypeId\":\"SecurityVulnerabilityStatus\",\"conditionIndex\":2,\"summary\":\"Security Vulnerability Status is not NOT_APPLICABLE\",\"reason\":\"Found security vulnerability sonatype-2017-0507 with status 'Open', not 'Not Applicable'.\",\"triggerJson\":\"{\\\"conditionIndex\\\":2,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2017-0507\\\",\\\"statusId\\\":\\\"OPEN\\\"}}\"}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "ebc08aa780524f9282b7fa8926893c3b",
+        "constraintName" : "Medium risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 4",
+          "conditionReason" : "Found security vulnerability sonatype-2017-0507 with severity 5.0."
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 7",
+          "conditionReason" : "Found security vulnerability sonatype-2017-0507 with severity 5.0."
+        }, {
+          "conditionType" : "SecurityVulnerabilityStatus",
+          "conditionSummary" : "Security Vulnerability Status is not NOT_APPLICABLE",
+          "conditionReason" : "Found security vulnerability sonatype-2017-0507 with status 'Open', not 'Not Applicable'."
+        } ]
+      } ]
+    }, {
+      "policyId" : "644a8c0052eb42b2829d6f9fcaba7ea3",
+      "policyName" : "Security-High",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"1af3bb3b73374c099cace1c607a98e32\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability CVE-2016-9879 with severity 7.5.\",\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"CVE-2016-9879\\\",\\\"severity\\\":7.5}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 10\",\"reason\":\"Found security vulnerability CVE-2016-9879 with severity 7.5.\",\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"CVE-2016-9879\\\",\\\"severity\\\":7.5}}\"},{\"conditionTypeId\":\"SecurityVulnerabilityStatus\",\"conditionIndex\":2,\"summary\":\"Security Vulnerability Status is not NOT_APPLICABLE\",\"reason\":\"Found security vulnerability CVE-2016-9879 with status 'Open', not 'Not Applicable'.\",\"triggerJson\":\"{\\\"conditionIndex\\\":2,\\\"trigger\\\":{\\\"refId\\\":\\\"CVE-2016-9879\\\",\\\"statusId\\\":\\\"OPEN\\\"}}\"}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "1af3bb3b73374c099cace1c607a98e32",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability CVE-2016-9879 with severity 7.5."
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 10",
+          "conditionReason" : "Found security vulnerability CVE-2016-9879 with severity 7.5."
+        }, {
+          "conditionType" : "SecurityVulnerabilityStatus",
+          "conditionSummary" : "Security Vulnerability Status is not NOT_APPLICABLE",
+          "conditionReason" : "Found security vulnerability CVE-2016-9879 with status 'Open', not 'Not Applicable'."
+        } ]
+      } ]
+    } ],
+    "waivedViolations" : [ ],
+    "allViolations" : [ {
+      "policyId" : "6430b4c764314ac6aee439ad1c045ad1",
+      "policyName" : "Security-Medium",
+      "policyThreatLevel" : 7,
+      "policyThreatCategory": "SECURITY",
+      "waived" : true,
+      "grandfathered" : true,
+      "constraintFactsJson" : "[{\"constraintId\":\"ebc08aa780524f9282b7fa8926893c3b\",\"constraintName\":\"Medium risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 4\",\"reason\":\"Found security vulnerability CVE-2018-1199 with severity 5.3.\",\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"CVE-2018-1199\\\",\\\"severity\\\":5.3}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 7\",\"reason\":\"Found security vulnerability CVE-2018-1199 with severity 5.3.\",\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"CVE-2018-1199\\\",\\\"severity\\\":5.3}}\"},{\"conditionTypeId\":\"SecurityVulnerabilityStatus\",\"conditionIndex\":2,\"summary\":\"Security Vulnerability Status is not NOT_APPLICABLE\",\"reason\":\"Found security vulnerability CVE-2018-1199 with status 'Open', not 'Not Applicable'.\",\"triggerJson\":\"{\\\"conditionIndex\\\":2,\\\"trigger\\\":{\\\"refId\\\":\\\"CVE-2018-1199\\\",\\\"statusId\\\":\\\"OPEN\\\"}}\"}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "ebc08aa780524f9282b7fa8926893c3b",
+        "constraintName" : "Medium risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 4",
+          "conditionReason" : "Found security vulnerability CVE-2018-1199 with severity 5.3."
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 7",
+          "conditionReason" : "Found security vulnerability CVE-2018-1199 with severity 5.3."
+        }, {
+          "conditionType" : "SecurityVulnerabilityStatus",
+          "conditionSummary" : "Security Vulnerability Status is not NOT_APPLICABLE",
+          "conditionReason" : "Found security vulnerability CVE-2018-1199 with status 'Open', not 'Not Applicable'."
+        } ]
+      } ]
+    }, {
+      "policyId" : "644a8c0052eb42b2829d6f9fcaba7ea3",
+      "policyName" : "Security-High",
+      "policyThreatLevel" : 9,
+      "policyThreatCategory": "SECURITY",
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"1af3bb3b73374c099cace1c607a98e32\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability CVE-2016-9879 with severity 7.5.\",\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"CVE-2016-9879\\\",\\\"severity\\\":7.5}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 10\",\"reason\":\"Found security vulnerability CVE-2016-9879 with severity 7.5.\",\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"CVE-2016-9879\\\",\\\"severity\\\":7.5}}\"},{\"conditionTypeId\":\"SecurityVulnerabilityStatus\",\"conditionIndex\":2,\"summary\":\"Security Vulnerability Status is not NOT_APPLICABLE\",\"reason\":\"Found security vulnerability CVE-2016-9879 with status 'Open', not 'Not Applicable'.\",\"triggerJson\":\"{\\\"conditionIndex\\\":2,\\\"trigger\\\":{\\\"refId\\\":\\\"CVE-2016-9879\\\",\\\"statusId\\\":\\\"OPEN\\\"}}\"}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "1af3bb3b73374c099cace1c607a98e32",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability CVE-2016-9879 with severity 7.5."
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 10",
+          "conditionReason" : "Found security vulnerability CVE-2016-9879 with severity 7.5."
+        }, {
+          "conditionType" : "SecurityVulnerabilityStatus",
+          "conditionSummary" : "Security Vulnerability Status is not NOT_APPLICABLE",
+          "conditionReason" : "Found security vulnerability CVE-2016-9879 with status 'Open', not 'Not Applicable'."
+        } ]
+      } ]
+    } ]
+
+  }]
+}

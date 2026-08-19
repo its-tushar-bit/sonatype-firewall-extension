@@ -1,0 +1,33 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+.iq-dependency-tree-page {
+  .nx-tree .nx-threat-indicator {
+    // margin-left: 2px is manually calculated number which helps to adapt .nx-threat-indicator
+    // shift for nested .nx-tree items (RSC .nx-tree items work perfectly with
+    // icons but should be adapted a bit when used with .nx-threat-indicator)
+    margin: 0 var(--nx-spacing-2x) 0 2px;
+  }
+
+  .iq-dependency-tree-page__search-match {
+    background-color: var(--nx-swatch-orange-95);
+  }
+}
+
+.nx-tree .iq-dependency-indicator {
+  margin-right: var(--nx-spacing-2x);
+}
+
+.nx-tree .iq-matched-hash-tree-label {
+  @include nx-text-helpers.semi-bold;
+}
+
+.iq-dependency-tree__empty {
+  text-align: center;
+  margin-top: var(--nx-spacing-4x);
+}

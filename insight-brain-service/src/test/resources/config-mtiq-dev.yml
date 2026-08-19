@@ -1,0 +1,76 @@
+hdsUrl: https://clm-staging.sonatype.com/
+#hdsUrl: "http://localhost:8080/"
+relayUrl: https://clm-staging.sonatype.com/
+
+logging:
+  # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
+  level: DEBUG
+  loggers:
+    "com.sonatype.insight.brain.git.event": INFO
+    "com.sonatype.insight.brain.git.PullRequestPollingScheduler": INFO
+    "com.sonatype.insight.scan": INFO
+    "com.sonatype.nexus.git.utils.api.NativeGitUtils": INFO
+    "eu.medsea.mimeutil.MimeUtil2": INFO
+    "org.apache.http": INFO
+    "org.apache.http.wire": ERROR
+    "org.apache.commons.beanutils.converters": INFO
+    "org.apache.shiro": INFO
+    "org.eclipse.birt.report.engine.layout.pdf.font.FontConfigReader": WARN
+    "org.eclipse.jetty": INFO
+    "org.quartz": INFO
+    "org.springframework.jdbc.datasource.init.ResourceDatabasePopulator": INFO
+    "org.zeroturnaround.exec": INFO
+    "org.thymeleaf": INFO
+    "com.sonatype.insight.audit":
+      appenders:
+        - type: file
+          # The file to which audit statements will be logged.
+          currentLogFilename: ./log/audit.log
+          # When the audit log file rotates, the archived audit log will be renamed to this and gzipped. The
+          # %d is replaced with the previous day (yyyy-MM-dd). Custom rolling windows can be created
+          # by passing a SimpleDateFormat-compatible format as an argument: "%d{yyyy-MM-dd-hh}".
+          #
+          # If archive is true, this must be specified.
+          archivedLogFilenamePattern: ./log/audit-%d.log.gz
+          # The number of archived audit log files to keep.
+          archivedFileCount: 50
+    "com.sonatype.insight.policy.violation":
+      appenders:
+        - type: console
+    "com.networknt.schema": OFF
+  appenders:
+    - type: console
+      logFormat: "%d{'yyyy-MM-dd HH:mm:ss,SSSZ'} %level [%thread] %X{username} %logger - %msg%n"
+
+clusterDirectory: /home/kasun/Projects/insight-brain/cluster-directory
+
+mainDatabase:
+  maxConnections: 50
+  maxIdleConnections: 10
+  url: jdbc:postgresql://localhost:5432/nexusmtiq
+  username: nexusmtiq
+  password: the-secret-password
+
+locksDatabase:
+  maxConnections: 20
+  maxIdleConnections: 5
+  url: jdbc:postgresql://localhost:5432/nexusmtiq_lock
+  username: nexusmtiq
+  password: the-secret-password
+
+# System IP Address Filter Allowlist
+# Supports single IP address and IP address range in CIDR notation
+#systemAllowlist:
+#  - ipAddress: 192.168.33.33
+#    description: Only allow access from 192.168.33.33
+
+# This is made explicit in order to make it overridable on the command line.  When doing frontend dev work,
+# webpack-dev-server runs on port 8070 and the dropwizard app should be moved to port 8072 by specifying
+# the -Ddw.server.applicationConnectors[0].port=8072 system property (or modifying this file)
+server:
+  applicationConnectors:
+    - type: http
+      port: ${APP_PORT:-8072}
+  adminConnectors:
+    - type: http
+      port: ${ADMIN_PORT:-8071}

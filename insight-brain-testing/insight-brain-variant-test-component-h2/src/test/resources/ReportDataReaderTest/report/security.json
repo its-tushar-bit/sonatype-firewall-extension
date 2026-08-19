@@ -1,0 +1,42 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "commons-beanutils",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "commons-beanutils",
+          "version": "1.6"
+        }
+      },
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "hash": "ed3c2b07d1b16ec11440",
+      "url": "1.url",
+      "reference": "CVE-2023-1234",
+      "aliases": ["Sonatype-2023-1234"],
+      "source": "NVD",
+      "score": 9.0,
+      "cwe": "cwe-1,2.cwe",
+      "cvssVectorString": "vector-string",
+      "cvssVectorSource": "vector-source",
+      "matchState": "exact",
+      "proprietary": null,
+      "vulnerabilityCategories": [
+        "data"
+      ],
+      "fixedVersion": null,
+      "description": "FG-R00229 test",
+      "severity": "High",
+      "ratingMethod": null,
+      "recommendations": "1.recommendations",
+      "advisories": "1.advisories",
+      "researchType": "PUBLIC_RESEARCH",
+      "detectionType": "CPE_MATCH",
+      "identificationSource": "Sonatype"
+    }
+  ]
+}

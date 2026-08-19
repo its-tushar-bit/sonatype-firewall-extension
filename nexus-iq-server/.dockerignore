@@ -1,0 +1,5 @@
+# Ignore this stuff
+src/**
+pom.xml
+# Explicitly do not ignore the tar file
+!target/*.tar.gz

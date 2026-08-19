@@ -1,0 +1,113 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": null,
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "filenames": [
+        "g.a-1.1-SNAPSHOT.jar"
+      ],
+      "pathnames": [
+        "g.a-1.1-SNAPSHOT.jar"
+      ],
+      "aggregateFiles": [],
+      "matchState": "unknown",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "635bacfc3ce81e2ae820",
+      "sha256": "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941",
+      "relativePopularity": null,
+      "createTime": null,
+      "lastModifiedTime": 1633356270000,
+      "lastModifiedEntryTime": 1632940910000,
+      "website": null,
+      "identificationSource": null,
+      "componentCategories": [],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "cli",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "integrityRating": null,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Filename",
+            "value": "g.a.1.1-SNAPSHOT.jar"
+          }
+        ],
+        "name": "g.a.1.1-SNAPSHOT.jar"
+      }
+    },
+    {
+      "componentIdentifier": null,
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "filenames": [
+        "g.nosha56-2.2-SNAPSHOT.jar"
+      ],
+      "pathnames": [
+        "g.nosha56-2.2-SNAPSHOT.jar"
+      ],
+      "aggregateFiles": [],
+      "matchState": "unknown",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "635bacfc3ce81e2ae820",
+      "relativePopularity": null,
+      "createTime": null,
+      "lastModifiedTime": 1633356270000,
+      "lastModifiedEntryTime": 1632940910000,
+      "website": null,
+      "identificationSource": null,
+      "componentCategories": [],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "cli",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "integrityRating": null,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Filename",
+            "value": "g.nosha56.2.2-SNAPSHOT.jar"
+          }
+        ],
+        "name": "g.nosha56.2.2-SNAPSHOT.jar"
+      }
+    },
+    {
+      "componentIdentifier": null,
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "filenames": [
+        "ace.js"
+      ],
+      "pathnames": [
+        "full.jar/WebGoat-6.0.1/js/ace/ace.js"
+      ],
+      "matchState": "unknown",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "c7101dbeb7ea8d39e146",
+      "sha256": "8c7ac48903b2a4382561321e5c25913960007a65d0f5e4a167a80d41984092c9",
+      "relativePopularity": null,
+      "createTime": null,
+      "lastModifiedTime": 1413088368000,
+      "lastModifiedEntryTime": null,
+      "website": null
+    }
+  ]
+}

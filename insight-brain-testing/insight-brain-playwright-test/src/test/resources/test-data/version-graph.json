@@ -1,0 +1,54 @@
+{
+  "scanId": "306e0a923df34c64b836358182b1b902",
+  "organizationName": "ApplicationReportTest",
+  "applicationId": "8bbaa746602142d9adf2de00a9ca4d4a",
+  "applicationName": "ApplicationReportTest",
+  "applicationInternalName": "ApplicationReportTest",
+  "cannedReportClasspathDir": "/canned-reports/version-graph-test-report",
+  "policy": {
+    "name": "SecurityPolicy",
+    "threatLevel": 10,
+    "conditionTypeId": "SecurityVulnerabilitySeverity",
+    "operator": ">",
+    "value": "7"
+  },
+  "componentScenarios": {
+    "debugComponent": {
+      "rowIndex": 0,
+      "expectVersionExplorerTile": true,
+      "currentVersion": "3.0.0",
+      "recommendedVersion": "3.2.7",
+      "recommendedVersionHdsStub": {
+        "uri": "rest/ci/componentDetails",
+        "resourcePath": "/componentDetails/debugComponentDetails-3.2.7.json"
+      },
+      "hdsStubs": [
+        {
+          "uri": "rest/ci/componentDetails",
+          "resourcePath": "/componentDetails/debugComponentDetails-3.0.0.json"
+        },
+        {
+          "uri": "rest/ci/componentDetails/list",
+          "resourcePath": "/componentDetails/debugComponentVersionsList.json"
+        }
+      ]
+    },
+    "postgresqlComponent": {
+      "rowIndex": 1,
+      "expectVersionExplorerTile": false,
+      "currentVersion": null,
+      "recommendedVersion": null,
+      "recommendedVersionHdsStub": null,
+      "hdsStubs": [
+        {
+          "uri": "rest/ci/componentDetails",
+          "resourcePath": "/componentDetails/postgresqlComponentDetails-42.2.2.json"
+        },
+        {
+          "uri": "rest/ci/componentDetails/list",
+          "resourcePath": "/componentDetails/postgresqlComponentVersionsList.json"
+        }
+      ]
+    }
+  }
+}

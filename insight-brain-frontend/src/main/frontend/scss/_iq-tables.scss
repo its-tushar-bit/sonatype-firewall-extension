@@ -1,0 +1,378 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+/*
+  #Tables
+*/
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use './variables' as *;
+
+$-table-header-row-height: 24px;
+$-table-header-filter-row-height: 38px;
+$-cell-filter-left-padding: 3px;
+$-cell-filter-right-padding: 2px;
+
+.iq-table {
+  border-collapse: collapse;
+  display: table;
+  height: 1px; // hack to fix threat bars in multi-line cells in FF
+  margin: $iq-spacing-sm 0 $iq-spacing-l 0;
+  width: 100%;
+}
+
+thead {
+  .iq-table-row {
+    border-bottom: 1px solid $iq-grey-2;
+  }
+}
+
+tbody {
+  .iq-table-row:last-child {
+    .iq-cell {
+      border-bottom: 1px solid $iq-grey-1;
+    }
+  }
+}
+
+.iq-table-row {
+  &:last-child {
+    .iq-cell:not(.iq-cell--header):not(.iq-error) {
+      border-bottom: $iq-border-row;
+    }
+  }
+
+  &.iq-clickable {
+    &:last-child {
+      &:hover .iq-cell {
+        border-bottom: $iq-border-row-hover;
+      }
+    }
+
+    &:hover {
+      .iq-cell {
+        border-top: $iq-border-row-hover;
+      }
+
+      + .iq-table-row .iq-cell {
+        border-top: $iq-border-row-hover;
+      }
+
+      .iq-cell--label,
+      .iq-cell--chevron {
+        color: $iq-text-color;
+      }
+    }
+
+    .iq-cell--label {
+      @include nx-text-helpers.semi-bold;
+
+      color: $iq-text-color-light;
+    }
+  }
+}
+
+.iq-table-row--header {
+  border-bottom: $iq-border-row-dark;
+}
+
+.iq-cell {
+  @include nx-text-helpers.truncate-ellipsis;
+
+  background-clip: padding-box;
+  border-top: $iq-border-row;
+  box-sizing: border-box;
+  color: $iq-text-color;
+  display: table-cell;
+  height: 39px; // 38px cell, 1px top border
+  line-height: 14px;
+  padding: $iq-spacing-xs $iq-spacing-sm;
+  position: relative;
+  text-align: left;
+
+  &.iq-disabled {
+    color: $iq-grey-4;
+  }
+
+  &.iq-error {
+    border-color: $iq-fail-color-bg;
+    border-bottom-color: $iq-fail-color;
+    color: $iq-text-color-error;
+    text-align: center;
+  }
+}
+
+.iq-cell--header {
+  @include nx-text-helpers.semi-bold;
+  background-color: $iq-off-white;
+  border-bottom: $iq-border-row-dark;
+  border-top: none;
+  color: $iq-text-color-light;
+  font-size: 12px;
+  height: 24px;
+  line-height: 12px;
+  padding-bottom: $iq-spacing-xxs;
+  text-align: left;
+  text-transform: uppercase;
+
+  &.iq-cell--selected,
+  &.selected-column {
+    color: $iq-text-color;
+
+    .iq-column-sort-trigger {
+      color: $iq-text-color;
+    }
+  }
+
+  &.iq-disabled {
+    color: $iq-grey-4;
+
+    a {
+      cursor: default;
+    }
+
+    .iq-column-sort-trigger {
+      color: $iq-grey-4;
+    }
+
+    .iq-col-sort-icons,
+    .iq-column-sort-icons {
+      color: $iq-grey-3;
+    }
+  }
+}
+
+.iq-cell--selected-column,
+.iq-cell--selected {
+  background-color: $iq-grey-2;
+}
+
+.iq-column-sort-trigger {
+  color: $iq-slate;
+  display: inline-block;
+  width: 100%;
+
+  &:hover {
+    color: $iq-off-black;
+    text-decoration: none;
+  }
+}
+
+.iq-col-sort-icons,
+.iq-column-sort-icons {
+  color: $iq-grey-4;
+  display: inline-block;
+  margin-right: 6px;
+  position: relative;
+  top: -12px;
+  width: 6px;
+
+  .fa-caret-up {
+    line-height: 7px;
+    position: absolute;
+    top: 1px;
+
+    &.up {
+      color: $iq-slate;
+    }
+  }
+
+  .fa-caret-down {
+    line-height: 7px;
+    position: absolute;
+    top: 8px;
+
+    &.down {
+      color: $iq-slate;
+    }
+  }
+}
+
+.iq-cell--label {
+  @include nx-text-helpers.semi-bold;
+
+  color: $iq-off-black;
+}
+
+// Used when table contents are empty
+.iq-cell--empty {
+  @include nx-text-helpers.regular;
+
+  box-sizing: border-box;
+  color: $iq-text-color-light;
+  text-align: center;
+
+  // for tables that don't use display: table due to sticky headers. Assumes the empty cell is the only
+  // one in its row
+  width: 100%;
+}
+
+// special cells that usually contain a button or indicator - usually on the right side
+.iq-cell--chevron {
+  color: $iq-text-color-light;
+  padding: 0 $iq-spacing-sm;
+  text-align: right;
+  width: 14px;
+  max-width: 32px;
+  min-width: 14px;
+}
+
+.iq-cell--icon {
+  color: $iq-text-color-light;
+  padding: 0 $iq-spacing-sm;
+  text-align: right;
+  width: 14px;
+  max-width: 32px;
+  min-width: 14px;
+}
+
+// a cell that only contains an icon that acts as a button
+.iq-cell--btn-icon {
+  padding-right: 0;
+  width: 32px;
+}
+
+// used on pages where we want an input field at the top of the table column to filter the column contents
+// it is expected that the column filters will be located in the <thead>
+thead {
+  .iq-table-row--filters {
+    border-color: transparent;
+    height: $-table-header-filter-row-height;
+  }
+}
+
+.iq-cell--filter {
+  $height: 35px;
+
+  border-color: transparent;
+  height: $height;
+  line-height: $height;
+  padding: 3px $-cell-filter-right-padding 3px $-cell-filter-left-padding;
+
+  .input-prepend {
+    line-height: $height;
+    margin: 0;
+    vertical-align: top;
+    width: 100%;
+
+    .add-on {
+      padding: 3px 4px 3px 2px;
+
+      // NOTE [type=text] was necessary to increase specificity above that of some of the styles from clm-form
+      & + input[type='text'] {
+        height: 18px;
+        padding-left: 0;
+        width: calc(100% - 30px);
+      }
+    }
+  }
+
+  .fa-filter {
+    color: $iq-slate;
+  }
+
+  &:first-child {
+    padding-right: $-cell-filter-right-padding;
+    padding-left: 0;
+    text-align: left;
+  }
+
+  &:last-child {
+    padding-right: 0;
+    padding-left: $-cell-filter-left-padding - 1px;
+    text-align: right;
+  }
+}
+
+.iq-scrollable > .iq-table {
+  margin-top: 0;
+}
+
+/*
+  #Table with a fixed header and scrolling contents
+ */
+
+// a page utilizing a fixed header table will require a modified ".iq-scrollable", e.g. ".iq-scrollable--mypage".
+// This custom ".iq-scrollable--mypage" should invoke the `table-fixed-widths` mixin with the desired number
+// of columns in order to get width styles for that many equal-width columns.
+
+.iq-tile-content--fixed-table {
+  position: relative;
+}
+
+.iq-scrollable--fixed-table,
+.iq-scrollable--full-height {
+  height: 100%;
+  max-height: 100%;
+}
+
+// Fixed table styles
+.iq-table--fixed {
+  border-bottom: 1px solid $iq-grey-1;
+  display: block;
+  margin-top: 0;
+
+  .iq-cell {
+    box-sizing: border-box;
+  }
+
+  .iq-table-row {
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+  }
+}
+
+.iq-table--fixed__header {
+  @include nx-text-helpers.semi-bold;
+
+  background-color: $iq-off-white;
+  display: block;
+  font-size: 14px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  text-transform: uppercase;
+  width: 100%;
+  z-index: $iq-dashboard-headers-zindex;
+
+  .iq-cell--header {
+    display: inline-block;
+    height: $-table-header-row-height;
+    line-height: $-table-header-row-height;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .iq-cell--filter {
+    display: inline-block;
+  }
+}
+
+.iq-table--fixed__content {
+  display: block;
+  padding-top: $-table-header-row-height; // pushes top row from below header
+  position: relative;
+  width: 100%;
+
+  .iq-cell {
+    display: inline-block;
+    line-height: 23px; // necessary for vertical centering of contents
+    min-width: 0;
+
+    &:last-child {
+      padding-right: 11px;
+    }
+
+    &.iq-cell--empty {
+      width: 100%;
+    }
+  }
+}
+
+.iq-table--fixed__content--filtered {
+  padding-top: $-table-header-row-height + $-table-header-filter-row-height;
+}

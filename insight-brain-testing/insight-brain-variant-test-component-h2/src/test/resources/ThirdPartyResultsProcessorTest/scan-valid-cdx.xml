@@ -1,0 +1,134 @@
+<scan version="2.24">
+  <configuration>
+    <properties>
+      <property name="archiveNames" value="true"/>
+      <property name="anonymizeArtifactIds" value="false"/>
+      <property name="fileExcludes" value=""/>
+      <property name="anonymizePaths" value="false"/>
+      <property name="maxDepth" value="256"/>
+      <property name="operatingSystem" value="true"/>
+      <property name="hashFiles" value="true"/>
+      <property name="fileIncludes" value=""/>
+      <property name="procArch" value="true"/>
+      <property name="maxSymlinkDepth" value="5"/>
+      <property name="jreInfo" value="true"/>
+      <property name="proprietaryPackages" value=""/>
+      <property name="pomProperties" value="true"/>
+      <property name="fileSizes" value="false"/>
+      <property name="nameHashes" value="true"/>
+      <property name="dirExcludes" value="**/.*, **/CVS"/>
+      <property name="hashJavaTypes" value="true"/>
+      <property name="ipAddresses" value="false"/>
+      <property name="dirIncludes" value=""/>
+      <property name="proprietaryRegexes" value=""/>
+      <property name="resourceNames" value="true"/>
+    </properties>
+  </configuration>
+  <item path="third-party-simple-bom.xml" contentType="SBOM" lastModified="1718372585825" sha1="c719f96120d1af185463"
+        sha512="e0ea98b1569188b9ce635dce95bd3a9e032c4acc69275279f0b4a8d025235e32deffebce344f33975951c2e03968d71955eb458228187a3f732229888b5ebaf7">
+    <content>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+      &lt;bom serialNumber=&quot;urn:uuid:33dfc2b6-6d6f-4174-8f4f-2b09cd3ba363&quot; version=&quot;1&quot; xmlns=&quot;http://cyclonedx.org/schema/bom/1.4&quot;&gt;
+      &lt;metadata&gt;
+      &lt;timestamp&gt;2022-10-10T16:50:51Z&lt;/timestamp&gt;
+      &lt;component type=&quot;application&quot; bom-ref=&quot;pkg:maven/com.sonatype.insight.scan/insight-scanner@2.36.19-SNAPSHOT?type=pom&quot;&gt;
+      &lt;group&gt;com.sonatype.insight.scan&lt;/group&gt;
+      &lt;name&gt;insight-scanner&lt;/name&gt;
+      &lt;version&gt;2.36.19-SNAPSHOT&lt;/version&gt;
+      &lt;purl&gt;pkg:maven/com.sonatype.insight.scan/insight-scanner@2.36.19-SNAPSHOT?type=pom&lt;/purl&gt;
+      &lt;modified&gt;false&lt;/modified&gt;
+      &lt;properties&gt;
+      &lt;property name=&quot;Match State&quot;/&gt;
+      &lt;property name=&quot;Identification Source&quot;/&gt;
+      &lt;/properties&gt;
+      &lt;/component&gt;
+      &lt;/metadata&gt;
+      &lt;components&gt;
+      &lt;component type=&quot;library&quot; bom-ref=&quot;pkg:fake/com.google.guava/guava@30.1-jre?type=jar&quot;&gt;
+      &lt;group&gt;com.google.guava&lt;/group&gt;
+      &lt;name&gt;guava&lt;/name&gt;
+      &lt;version&gt;30.1-jre&lt;/version&gt;
+      &lt;licenses&gt;
+      &lt;license&gt;
+      &lt;name&gt;Public Domain&lt;/name&gt;
+      &lt;/license&gt;
+      &lt;license&gt;
+      &lt;id&gt;Apache-2.0&lt;/id&gt;
+      &lt;/license&gt;
+      &lt;/licenses&gt;
+      &lt;purl&gt;pkg:fake/com.google.guava/guava@30.1-jre?type=jar&lt;/purl&gt;
+      &lt;modified&gt;false&lt;/modified&gt;
+      &lt;/component&gt;
+      &lt;/components&gt;
+      &lt;dependencies&gt;
+      &lt;dependency ref=&quot;pkg:fake/com.google.guava/guava@30.1-jre?type=jar&quot;&gt;
+      &lt;dependency ref=&quot;pkg:maven/com.google.guava/failureaccess@1.0.1?type=jar&quot;/&gt;
+      &lt;dependency ref=&quot;pkg:maven/com.google.guava/listenablefuture@9999.0-empty-to-avoid-conflict-with-guava?type=jar&quot;/&gt;
+      &lt;dependency ref=&quot;pkg:maven/com.google.code.findbugs/jsr305@3.0.2?type=jar&quot;/&gt;
+      &lt;dependency ref=&quot;pkg:maven/org.checkerframework/checker-qual@3.5.0?type=jar&quot;/&gt;
+      &lt;dependency ref=&quot;pkg:maven/com.google.errorprone/error_prone_annotations@2.3.4?type=jar&quot;/&gt;
+      &lt;dependency ref=&quot;pkg:maven/com.google.j2objc/j2objc-annotations@1.3?type=jar&quot;/&gt;
+      &lt;/dependency&gt;
+      &lt;/dependencies&gt;
+      &lt;vulnerabilities&gt;
+      &lt;vulnerability&gt;
+      &lt;id&gt;sonatype-2020-0926&lt;/id&gt;
+      &lt;source&gt;
+      &lt;name&gt;SONATYPE&lt;/name&gt;
+      &lt;url&gt;http://localhost:8072/ui/links/vln/sonatype-2020-0926&lt;/url&gt;
+      &lt;/source&gt;
+      &lt;ratings&gt;
+      &lt;rating&gt;
+      &lt;source&gt;
+      &lt;name&gt;SONATYPE&lt;/name&gt;
+      &lt;/source&gt;
+      &lt;score&gt;6.2&lt;/score&gt;
+      &lt;severity&gt;high&lt;/severity&gt;
+      &lt;method&gt;CVSSv3&lt;/method&gt;
+      &lt;vector&gt;CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N&lt;/vector&gt;
+      &lt;/rating&gt;
+      &lt;/ratings&gt;
+      &lt;cwes&gt;
+      &lt;cwe&gt;379&lt;/cwe&gt;
+      &lt;/cwes&gt;
+      &lt;affects&gt;
+      &lt;target&gt;
+      &lt;ref&gt;pkg:fake/com.google.guava/guava@30.1-jre?type=jar&lt;/ref&gt;
+      &lt;/target&gt;
+      &lt;/affects&gt;
+      &lt;/vulnerability&gt;
+      &lt;/vulnerabilities&gt;
+      &lt;/bom&gt;
+    </content>
+  </item>
+  <summary>
+    <scannerDriver>brain</scannerDriver>
+    <scannerVersion>1.178.0-SNAPSHOT</scannerVersion>
+    <operatingSystem>Mac OS X</operatingSystem>
+    <processorArchitecture>aarch64</processorArchitecture>
+    <startTime>2024-06-14T13:43:05+0000</startTime>
+    <endTime>2024-06-14T13:43:06+0000</endTime>
+    <files>1</files>
+    <clientInfo>
+      <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+      <property name="java.runtime.version" value="1.8.0_382-b05"/>
+      <property name="java.specification.version" value="1.8"/>
+      <property name="java.specification.name" value="Java Platform API Specification"/>
+      <property name="java.vendor.url" value="https://aws.amazon.com/corretto/"/>
+      <property name="java.vm.version" value="25.382-b05"/>
+      <property name="os.name" value="Mac OS X"/>
+      <property name="os.arch" value="aarch64"/>
+      <property name="java.version" value="1.8.0_382"/>
+      <property name="java.vm.specification.version" value="1.8"/>
+      <property name="java.vendor.url.bug" value="https://github.com/corretto/corretto-8/issues/"/>
+      <property name="insight.scannerVersion" value="1.178.0-SNAPSHOT"/>
+      <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+      <property name="java.specification.vendor" value="Oracle Corporation"/>
+      <property name="java.vm.vendor" value="Amazon.com Inc."/>
+      <property name="java.vm.info" value="mixed mode"/>
+      <property name="java.specification.maintenance.version" value="5"/>
+      <property name="insight.scannerDriver" value="brain"/>
+      <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+      <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    </clientInfo>
+  </summary>
+</scan>

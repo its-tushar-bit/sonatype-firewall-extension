@@ -1,0 +1,78 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+import { forwardRef, useMemo } from 'react';
+import {
+  Link as RouterLink,
+  useNavigate,
+  useLocation,
+  useSearchParams as useRouterSearchParams,
+} from 'react-router';
+import type { NavigationAdapter, LinkProps, FormProps } from '@guide/ui-core';
+
+function LinkAdapter({ href, prefetch, children, ...props }: LinkProps) {
+  return (
+    <RouterLink to={href} {...props}>
+      {children}
+    </RouterLink>
+  );
+}
+
+const FormAdapter = forwardRef<HTMLFormElement, FormProps>(
+  ({ action, children, onSubmit, ...props }, ref) => {
+    const navigate = useNavigate();
+    const handleSubmit: React.SubmitEventHandler<HTMLFormElement> = (e) => {
+      e.preventDefault();
+      // Capture form data before invoking consumer onSubmit, which may clear inputs.
+      const formData = new FormData(e.currentTarget);
+      const params = new URLSearchParams();
+      formData.forEach((value, key) => {
+        if (typeof value === 'string' && value !== '') {
+          params.append(key, value);
+        }
+      });
+      onSubmit?.(e);
+      const queryString = params.toString();
+      const separator = action.includes('?') ? '&' : '?';
+      navigate(queryString ? `${action}${separator}${queryString}` : action);
+    };
+    return (
+      <form ref={ref} action={action} {...props} onSubmit={handleSubmit}>
+        {children}
+      </form>
+    );
+  }
+);
+FormAdapter.displayName = 'FormAdapter';
+
+export function useReactRouterAdapter(): NavigationAdapter {
+  const nav = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useRouterSearchParams();
+
+  return useMemo(
+    () => ({
+      navigate: (url: string, options?: { scroll?: boolean; replace?: boolean }) => {
+        nav(url, {
+          replace: options?.replace,
+          preventScrollReset: options?.scroll === false,
+        });
+      },
+      /**
+       * No-op for React Router's HashRouter. Navigation with updated search params
+       * automatically triggers re-renders via useSearchParams().
+       */
+      refresh: () => {
+        // Intentionally empty - React Router re-renders on search param changes automatically
+      },
+      usePathname: () => location.pathname,
+      useSearchParams: () => searchParams,
+      Link: LinkAdapter,
+      Form: FormAdapter,
+    }),
+    [nav, location.pathname, searchParams]
+  );
+}

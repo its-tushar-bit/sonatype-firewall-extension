@@ -1,0 +1,210 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+// 31*4 - four charts
+// 48*3 - padding between charts
+// 24   - top padding
+// 292 = 31*4 + 48*3 + 24
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '../../../../scss/variables' as *;
+
+$chart-height: 292px;
+
+// Reproduce the global `h4` typography from `scss/_typography.scss` scoped to
+// this chart's row labels. The Classic bundle gets these styles from the
+// global typography partial; the Nexus One bundle (which embeds this page
+// natively) deliberately doesn't load that partial because it redefines all
+// `h1`–`h4` globally and would clash with Radix `<Heading>` in native NOUX
+// pages. Without these rules the row labels render at browser-default
+// `<h4>` (24px, mixed case) instead of the compact uppercase labels the
+// chart layout was designed around. CLM-41537.
+.iq-cell--violation-trends-row-label h4 {
+  @include nx-text-helpers.semi-bold;
+
+  font-size: 14px;
+  line-height: 16px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+$total-delta-icon-margin-right: 12px;
+$total-delta-icon-margin-left: 8px;
+
+.iq-table--violation-trends-chart-table {
+  thead {
+    .iq-table-row {
+      border-top: 0;
+      border-bottom: 0;
+    }
+  }
+
+  .iq-cell--header {
+    border: none;
+    color: $iq-off-black;
+    font-size: 10px;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+  }
+
+  tbody {
+    background-image: url(data:image/gif;base64,R0lGODlhAQBPAPEAAOrq6v///yZFySZFySH5BAEAAAIALAAAAAABAE8AAAIIjI+py+0PQQEAOw==);
+    background-position: 0 20px;
+    background-repeat: repeat;
+  }
+
+  .iq-table-row {
+    .iq-cell {
+      border: none;
+      margin: unset;
+      padding: unset;
+      position: static;
+    }
+
+    &:last-child {
+      border: none;
+    }
+
+    .iq-cell--violation-trends-row-label {
+      height: 79px;
+      text-align: right;
+      width: 50px;
+    }
+
+    .iq-cell--violation-trends-chart-total {
+      color: $iq-slate;
+      font-size: 21px;
+      font-weight: bold;
+      padding-left: 12px;
+      text-align: right;
+      width: 100px;
+    }
+
+    .iq-cell--violation-trends-chart {
+      height: $chart-height;
+      min-width: 120px;
+
+      .label,
+      .component.label {
+        background-color: transparent;
+        padding: 0;
+      }
+    }
+  }
+}
+
+.iq-cell--violation-trends-gutter {
+  background-color: $iq-off-white;
+  padding: 0;
+  width: 48px;
+}
+
+.iq-cell--violation-trends-chart-total-number {
+  // leave space for floated delta icon = icon width + icon margins
+  margin-right: 10px + $total-delta-icon-margin-right + $total-delta-icon-margin-left;
+}
+
+.iq-cell--violation-trends-chart-total-delta-icon {
+  // The Classic bundle gets `float: right` for this element from the global
+  // `.iq-pull-right` helper in `scss/_global.scss`. The Nexus One bundle
+  // doesn't load that partial (its other rules would conflict with NOUX), so
+  // reproduce the float here scoped to this element. Without it the caret
+  // icon stacks above the total number, doubling the row height and
+  // misaligning the row labels with the totals. CLM-41537.
+  float: right;
+
+  .iq-violation-trends__delta-icon {
+    margin-right: $total-delta-icon-margin-right;
+  }
+}
+
+.iq-table-row--violation-trends-chart-deltas {
+  .iq-cell--violation-trends-row-label h4,
+  .iq-cell--violation-trends-chart-total-delta-icon,
+  .iq-cell--violation-trends-chart-total-number {
+    padding-top: 36px;
+  }
+}
+
+.iq-table-row--violation-trends-chart-new {
+  .iq-cell--violation-trends-row-label h4,
+  .iq-cell--violation-trends-chart-total-number {
+    padding-top: 26px;
+  }
+}
+
+.iq-table-row--violation-trends-chart-waived {
+  .iq-cell--violation-trends-row-label h4,
+  .iq-cell--violation-trends-chart-total-number {
+    padding-top: 14px;
+  }
+}
+
+.iq-table-row--violation-trends-chart-fixed {
+  .iq-cell--violation-trends-row-label h4,
+  .iq-cell--violation-trends-chart-total-number {
+    padding-top: 4px;
+  }
+}
+
+.iq-violation-trends__chart {
+  height: $chart-height;
+  margin-right: auto;
+  margin-left: auto;
+  padding: 24px 12px;
+  width: 120px;
+
+  .plottable {
+    width: 100%;
+
+    .guide-line-layer.iq-violation-trends__guideline .content line.guide-line {
+      stroke: $iq-off-black;
+    }
+  }
+}
+
+.iq-violation-trends__tooltip {
+  pointer-events: none;
+  position: absolute;
+  visibility: hidden;
+  white-space: nowrap;
+
+  .iq-violation-trends__delta-icon {
+    padding-left: 4px;
+  }
+}
+
+.iq-violation-trends__bar--delta-up {
+  fill: $iq-dark-red;
+}
+
+.iq-violation-trends__bar--delta-down {
+  fill: $iq-dark-blue;
+}
+
+.iq-violation-trends__bar--discovered {
+  fill: $iq-dark-red;
+}
+
+.iq-violation-trends__bar--waived {
+  fill: $iq-dark-blue;
+}
+
+.iq-violation-trends__bar--fixed {
+  fill: $iq-dark-green;
+}
+
+.iq-violation-trends__delta-icon {
+  .fa-caret-up {
+    height: 18px;
+    color: $iq-dark-red;
+  }
+
+  .fa-caret-down {
+    height: 18px;
+    color: $iq-dark-blue;
+  }
+}

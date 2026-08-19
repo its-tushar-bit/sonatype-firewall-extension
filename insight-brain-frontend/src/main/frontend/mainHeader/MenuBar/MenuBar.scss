@@ -1,0 +1,44 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use './MenuButton/MenuButton';
+@use './UserMenu/UserMenu';
+@use './LoginButton/LoginButton';
+@use './NotificationsMenu/NotificationsMenu';
+@use './SolutionSwitcherContainer/SolutionSwitcherContainer';
+@use './SystemPreferencesMenu/SystemPreferencesMenu';
+@use './TierBadge/TierBadge';
+
+menu-bar {
+  display: contents;
+}
+
+.menu-bar {
+  .nx-icon-dropdown {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  &.nx-global-header-2 {
+    padding-left: var(--nx-spacing-3x);
+  }
+
+  .nx-btn--icon-only .nx-icon {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+#menu-bar__bread-crumb-container {
+  .nx-breadcrumb__link--current {
+    cursor: default;
+
+    &:hover {
+      color: var(--nx-color-text-dark);
+      text-decoration: none;
+    }
+  }
+}

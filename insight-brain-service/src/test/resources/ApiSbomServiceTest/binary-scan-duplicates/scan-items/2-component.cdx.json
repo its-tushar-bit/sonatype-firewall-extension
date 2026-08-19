@@ -1,0 +1,98 @@
+{
+  "bomFormat" : "CycloneDX",
+  "specVersion" : "1.6",
+  "version" : 1,
+  "metadata" : {
+    "timestamp" : "2025-02-05T10:57:11Z",
+    "tools" : {
+      "components" : [
+        {
+          "type" : "application",
+          "name" : "Sonatype SBOM Manager",
+          "version" : "1.188.0-SNAPSHOT"
+        }
+      ]
+    },
+    "component" : {
+      "type" : "library",
+      "bom-ref" : "ff5f890d-4638-48b9-8726-3fd52f9b105c",
+      "group" : "org.jackson",
+      "name" : "databind-root",
+      "version" : "2.9.9"
+    }    
+  },
+  "components" : [
+    {
+      "type" : "library",
+      "bom-ref" : "e5d73f8227c94760981c8a18bfe812eb",
+      "name" : "com.fasterxml.jackson.core:jackson-databind",
+      "version" : "2.9.9",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"
+    }
+  ],
+  "vulnerabilities" : [
+    {
+      "bom-ref" : "CVE-2019-12384-d9b67a0462e44e6ab0624fbb356ca6b7",
+      "id" : "CVE-2019-12384",
+      "source" : {
+        "name" : "NVD",
+        "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-12384"
+      },
+      "ratings" : [
+        {
+          "source" : {
+            "name" : "NVD",
+            "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-12384"
+          },
+          "score" : 5.9,
+          "severity" : "medium",
+          "method" : "CVSSv3",
+          "vector" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N"
+        }
+      ],
+      "cwes" : [
+        502
+      ],
+      "affects" : [
+        {
+          "ref" : "e5d73f8227c94760981c8a18bfe812eb"
+        }
+      ]
+    },
+    {
+      "bom-ref" : "CVE-2022-42004-6d37ae8fa0a74428922dc72c3effdf3d",
+      "id" : "CVE-2022-42004",
+      "source" : {
+        "name" : "NVD",
+        "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-42004"
+      },
+      "ratings" : [
+        {
+          "source" : {
+            "name" : "NVD",
+            "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-42004"
+          },
+          "score" : 7.5,
+          "severity" : "high",
+          "method" : "CVSSv3",
+          "vector" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+        }
+      ],
+      "cwes" : [
+        502
+      ],
+      "affects" : [
+        {
+          "ref" : "e5d73f8227c94760981c8a18bfe812eb"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,165 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+// ── Waiver Request Status Badge ──────────────────────────────────────────────
+
+.iq-waiver-request-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+
+  &__icon {
+    font-size: 0.625rem;
+  }
+
+  &__content {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    width: 6.5rem;
+    justify-content: center;
+    font-weight: 600;
+  }
+
+  &--requested {
+    background-color: var(--nx-swatch-grey-90, rgba(121, 127, 229, 0.36));
+    color: var(--nx-swatch-grey-30, #555);
+  }
+
+  &--approved {
+    background-color: var(--nx-swatch-green-90, #e6f5ec);
+    color: var(--nx-swatch-green-20, #176a37);
+  }
+
+  &--rejected {
+    background-color: var(--nx-swatch-red-90, #fdecea);
+    color: var(--nx-swatch-red-20, #9b1c1c);
+  }
+}
+
+// ── Requested Waivers Table ───────────────────────────────────────────────────
+
+.iq-requested-waivers-table {
+  width: 100%;
+}
+
+.iq-requested-waivers-table-row {
+  &__threat {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  &__scope,
+  &__component {
+    max-width: 200px;
+
+    span {
+      display: block;
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}
+
+// ── Waivers Page ─────────────────────────────────────────────────────────────
+
+.iq-firewall-waivers-page {
+  &__top-tabs {
+    margin-bottom: 0;
+  }
+}
+
+.iq-firewall-waivers-page-main {
+  // Remove tile background/border/padding from DashboardWaivers when inside this page
+  .iq-firewall-waivers-page .nx-tile {
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  // Remove extra spacing from dashboard waivers internal elements
+  .iq-firewall-waivers-page .nx-table-container {
+    border: none;
+    margin-top: 0;
+    padding: 0;
+  }
+
+  .iq-firewall-waivers-page .nx-page-title {
+    display: none;
+  }
+}
+
+// ── Request Waiver Modal ──────────────────────────────────────────────────────
+
+.iq-fw-request-waiver-modal {
+  &__policy {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  &__justification,
+  &__note {
+    min-height: 6rem;
+  }
+
+  &__duration-select {
+    .nx-form-select {
+      min-width: 12rem;
+    }
+  }
+}
+
+// ── Review Waiver Request Page ────────────────────────────────────────────────
+
+.iq-fw-review-waiver-page {
+  &__expiry-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  &__expiry-days-message {
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--nx-color-text-stark);
+  }
+  &__back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-bottom: 1rem;
+    text-decoration: none;
+    color: var(--nx-color-link, #0066cc);
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  &__policy {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  &__rejection-form {
+    margin-top: 1rem;
+  }
+
+  &__rejection-reason {
+    min-height: 6rem;
+  }
+}

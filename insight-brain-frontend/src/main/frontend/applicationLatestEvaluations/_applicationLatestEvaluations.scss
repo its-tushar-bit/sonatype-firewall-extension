@@ -1,0 +1,42 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+application-latest-evaluations-page {
+  display: contents;
+}
+
+.iq-application-latest-evaluations__table {
+  table-layout: auto;
+
+  .nx-cell {
+    text-wrap: nowrap;
+    // Safari needs this to be at least 1px to avoid giving the evaluation date too much width
+    // and causing the trigger cell to overlap with the violations
+    width: 1px;
+  }
+
+  .iq-application-latest-evaluations__trigger-cell {
+    // This is needed to avoid the table overflowing the width of its container.
+    // Using table-layout: auto, what seems to happen is that
+    // 1. It makes the cell the size of its contents
+    // 2. It lowers the width to this width
+    // 3. It increases the width until the table is full width
+    max-width: 1px;
+    width: auto;
+  }
+}
+
+.iq-application-latest-evaluations__stage-label {
+  font-weight: bold;
+}
+
+.iq-application-latest-evaluations__continuous-monitoring {
+  font-style: italic;
+  white-space: pre;
+}
+
+.iq-application-latest-evaluations__trigger-content {
+  display: flex;
+}

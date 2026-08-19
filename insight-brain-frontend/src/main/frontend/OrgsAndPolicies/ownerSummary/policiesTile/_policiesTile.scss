@@ -1,0 +1,176 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '../../../scss/variables' as *;
+
+#owner-pill-policy {
+  $stagesMaxWidth: 105px;
+
+  .nx-tile-header {
+    padding-bottom: var(--nx-spacing-4x);
+  }
+
+  .policy-tile__enforcement-action {
+    text-transform: capitalize;
+    padding: 3px 8px 4px;
+    border-radius: 15px;
+    font-weight: 600;
+    font-size: 13px;
+
+    &.warn {
+      color: var(--nx-swatch-grey-05);
+      background-color: var(--nx-swatch-orange-55);
+    }
+
+    &.fail {
+      color: var(--nx-swatch-white);
+      background-color: var(--nx-swatch-red-40);
+    }
+  }
+
+  .policy-tile__cell--disabled {
+    color: var(--nx-swatch-grey-60);
+
+    .nx-cell__sort-btn {
+      color: var(--nx-swatch-grey-60);
+      pointer-events: none;
+    }
+
+    .nx-icon path {
+      fill: var(--nx-swatch-grey-60);
+    }
+
+    .policy-tile__enforcement-action.warn,
+    .policy-tile__enforcement-action.fail {
+      background-color: initial;
+      border: 1px solid var(--nx-swatch-grey-60);
+      color: var(--nx-swatch-grey-60);
+    }
+  }
+
+  .nx-table tr {
+    display: grid;
+    grid-auto-columns: auto;
+    grid-template-columns:
+      67px
+      minmax(70px, 1fr)
+      minmax(70px, $stagesMaxWidth)
+      minmax(70px, $stagesMaxWidth)
+      minmax(70px, $stagesMaxWidth)
+      minmax(70px, $stagesMaxWidth)
+      minmax(70px, $stagesMaxWidth)
+      minmax(70px, $stagesMaxWidth)
+      minmax(70px, $stagesMaxWidth)
+      minmax(70px, $stagesMaxWidth)
+      max-content;
+
+    .nx-threat-indicator {
+      margin-left: 0;
+    }
+
+    &.iq-collapsible-row {
+      display: table-row;
+      .iq-collapsible-row__header {
+        margin: 0;
+        h3.nx-h3.iq-collapsible-row__header-title {
+          font-size: var(--nx-font-size-s);
+        }
+        svg {
+          margin-left: 0px;
+        }
+      }
+    }
+
+    &.iq-collapsible-row__empty-message {
+      display: table-row;
+      text-align: center;
+      .nx-cell {
+        &:first-child {
+          justify-content: center !important;
+        }
+      }
+    }
+
+    .nx-cell {
+      display: flex;
+      vertical-align: middle;
+      white-space: normal;
+      box-sizing: border-box;
+      font-size: var(--nx-font-size-s);
+
+      &.nx-cell--header,
+      &.nx-cell--header:nth-of-type(2) {
+        font-weight: 700;
+      }
+
+      &:nth-of-type(2),
+      .nx-threat-number {
+        font-size: var(--nx-font-size-s);
+        font-weight: 600;
+      }
+
+      &:not(:nth-of-type(2)) {
+        text-align: center;
+        justify-content: center;
+      }
+
+      &:first-child:not(.nx-cell--meta-info) {
+        justify-content: flex-start;
+      }
+
+      &.nx-cell--meta-info {
+        grid-column-start: 1;
+        grid-column-end: 11;
+      }
+
+      .nx-cell__sort-btn {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        padding-left: 0;
+        padding-right: 0;
+      }
+
+      &:nth-of-type(2) .nx-cell__sort-btn {
+        justify-content: flex-start;
+      }
+
+      .policy-tile__cell--overflow {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+
+      &.nx-cell--row-btn:not(.nx-cell--header) .nx-cell__row-btn {
+        padding-right: var(--nx-spacing-6x);
+      }
+    }
+  }
+
+  thead .nx-cell {
+    font-size: 14px;
+  }
+
+  $actionColumns: 7;
+  @for $i from 1 through $actionColumns {
+    .policy-tile__stages-num--#{$i} {
+      .nx-table tr {
+        grid-template-columns:
+          67px
+          minmax(80px, 1fr)
+          repeat($i, minmax(75px, $stagesMaxWidth))
+          28px;
+      }
+    }
+  }
+
+  .policy-tile__stages-num--0 {
+    .nx-table tr {
+      grid-template-columns: 67px 1fr 28px;
+    }
+  }
+}

@@ -1,0 +1,9 @@
+hdsUrl: https://clm-staging.sonatype.com
+logging:
+  level: DEBUG
+  loggers:
+    com.sonatype.insight.brain.git.event: INFO
+    com.sonatype.insight.brain.git.PullRequestPollingScheduler: INFO
+  appenders:
+  - type: console
+    logFormat: '%d{"yyyy-MM-dd HH:mm:ss,SSSZ"} %level %logger - %msg%n'

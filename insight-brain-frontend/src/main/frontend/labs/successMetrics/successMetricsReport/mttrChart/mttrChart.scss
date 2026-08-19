@@ -1,0 +1,48 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use '../../../../scss/variables' as *;
+
+.iq-chart--mttr {
+  height: 400px;
+
+  .legend {
+    text {
+      font-size: 16px;
+    }
+  }
+
+  .plottable .axis text {
+    @include nx-text-helpers.regular;
+
+    color: $iq-slate;
+    font-size: 20px;
+  }
+
+  .plottable .axis-label text {
+    font-size: 26px;
+  }
+
+  .iq-chart__dataset--overall {
+    fill: $iq-light-red;
+    stroke: $iq-light-red;
+  }
+
+  .iq-chart__dataset--critical {
+    fill: $iq-dark-red;
+    stroke: $iq-dark-red;
+  }
+
+  .legend-entry:nth-child(1) .legend-symbol {
+    fill: $iq-dark-red;
+  }
+
+  .legend-entry:nth-child(2) .legend-symbol {
+    fill: $iq-light-red;
+  }
+}

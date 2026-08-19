@@ -1,0 +1,841 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "httpcore",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.httpcomponents",
+        "version" : "4.4.13"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.apache.httpcomponents/httpcore@4.4.13?type=jar",
+    "groupId" : "org.apache.httpcomponents",
+    "artifactId" : "httpcore",
+    "version" : "4.4.13",
+    "filenames" : [ "httpcore-4.4.13.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-client-utils:jar:2.36.19-SNAPSHOT/org.apache.httpcomponents:httpcore:jar:4.4.13", "dependency:/com.sonatype.insight.scan:insight-test-reverse-proxy:jar:2.36.19-SNAPSHOT/org.apache.httpcomponents:httpcore:jar:4.4.13" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "853b96d3afbb7bf8cc30",
+    "relativePopularity" : 1.0,
+    "createTime" : 1578574658000,
+    "lastModifiedTime" : 1650503362000,
+    "lastModifiedEntryTime" : 1578596236000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.apache.httpcomponents"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "httpcore"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "4.4.13"
+      } ],
+      "name" : "httpcore"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:maven/org.apache.httpcomponents/httpclient@4.5.13?type=jar" ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-codec",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-codec",
+        "version" : "1.15"
+      }
+    },
+    "packageUrl" : "pkg:maven/commons-codec/commons-codec@1.15?type=jar",
+    "groupId" : "commons-codec",
+    "artifactId" : "commons-codec",
+    "version" : "1.15",
+    "filenames" : [ "commons-codec-1.15.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-client-utils:jar:2.36.19-SNAPSHOT/commons-codec:commons-codec:jar:1.15", "dependency:/com.sonatype.insight.scan:insight-scanner-archive:jar:2.36.19-SNAPSHOT/commons-codec:commons-codec:jar:1.15", "dependency:/com.sonatype.insight.scan:insight-scanner-manifest-model:jar:2.36.19-SNAPSHOT/commons-codec:commons-codec:jar:1.15", "dependency:/com.sonatype.insight.scan:insight-test-reverse-proxy:jar:2.36.19-SNAPSHOT/commons-codec:commons-codec:jar:1.15" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "49d94806b6e3dc933dac",
+    "relativePopularity" : 0.61,
+    "createTime" : 1598616174000,
+    "lastModifiedTime" : 1650503370000,
+    "lastModifiedEntryTime" : 1579723816000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "commons-codec"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-codec"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.15"
+      } ],
+      "name" : "commons-codec"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:maven/org.apache.httpcomponents/httpclient@4.5.13?type=jar", "pkg:maven/org.cyclonedx/cyclonedx-core-java@7.2.0?type=jar" ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "slf4j-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.slf4j",
+        "version" : "1.7.36"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.slf4j/slf4j-api@1.7.36?type=jar",
+    "groupId" : "org.slf4j",
+    "artifactId" : "slf4j-api",
+    "version" : "1.7.36",
+    "filenames" : [ "slf4j-api-1.7.36.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-client-utils:jar:2.36.19-SNAPSHOT/org.slf4j:slf4j-api:jar:1.7.36", "dependency:/com.sonatype.insight.scan:insight-module-model:jar:2.36.19-SNAPSHOT/org.slf4j:slf4j-api:jar:1.7.36", "dependency:/com.sonatype.insight.scan:insight-scanner-archive:jar:2.36.19-SNAPSHOT/org.slf4j:slf4j-api:jar:1.7.36", "dependency:/com.sonatype.insight.scan:insight-scanner-core:jar:2.36.19-SNAPSHOT/org.slf4j:slf4j-api:jar:1.7.36", "dependency:/com.sonatype.insight.scan:insight-scanner-manifest-model:jar:2.36.19-SNAPSHOT/org.slf4j:slf4j-api:jar:1.7.36", "dependency:/com.sonatype.insight.scan:insight-scanner-model-io:jar:2.36.19-SNAPSHOT/org.slf4j:slf4j-api:jar:1.7.36", "dependency:/com.sonatype.insight.scan:insight-scanner-tools:jar:2.36.19-SNAPSHOT/org.slf4j:slf4j-api:jar:1.7.36", "dependency:/com.sonatype.insight.scan:insight-test-reverse-proxy:jar:2.36.19-SNAPSHOT/org.slf4j:slf4j-api:jar:1.7.36" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "6c62681a2f655b49963a",
+    "relativePopularity" : 0.0,
+    "createTime" : 1644327230000,
+    "lastModifiedTime" : 1650560214000,
+    "lastModifiedEntryTime" : 1644345060000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.slf4j"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "slf4j-api"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.7.36"
+      } ],
+      "name" : "slf4j-api"
+    },
+    "directDependency" : true,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:maven/com.networknt/json-schema-validator@1.0.72?type=jar" ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jcl-over-slf4j",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.slf4j",
+        "version" : "1.7.36"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.slf4j/jcl-over-slf4j@1.7.36?type=jar",
+    "groupId" : "org.slf4j",
+    "artifactId" : "jcl-over-slf4j",
+    "version" : "1.7.36",
+    "filenames" : [ "jcl-over-slf4j-1.7.36.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-client-utils:jar:2.36.19-SNAPSHOT/org.slf4j:jcl-over-slf4j:jar:1.7.36", "dependency:/com.sonatype.insight.scan:insight-scanner-archive:jar:2.36.19-SNAPSHOT/org.slf4j:jcl-over-slf4j:jar:1.7.36", "dependency:/com.sonatype.insight.scan:insight-test-reverse-proxy:jar:2.36.19-SNAPSHOT/org.slf4j:jcl-over-slf4j:jar:1.7.36" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "d877e195a05aca4a2f1a",
+    "relativePopularity" : 0.0,
+    "createTime" : 1644327313000,
+    "lastModifiedTime" : 1650560188000,
+    "lastModifiedEntryTime" : 1644345060000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.slf4j"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jcl-over-slf4j"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.7.36"
+      } ],
+      "name" : "jcl-over-slf4j"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "httpclient",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.httpcomponents",
+        "version" : "4.5.13"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.apache.httpcomponents/httpclient@4.5.13?type=jar",
+    "groupId" : "org.apache.httpcomponents",
+    "artifactId" : "httpclient",
+    "version" : "4.5.13",
+    "filenames" : [ "httpclient-4.5.13.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-client-utils:jar:2.36.19-SNAPSHOT/org.apache.httpcomponents:httpclient:jar:4.5.13", "dependency:/com.sonatype.insight.scan:insight-test-reverse-proxy:jar:2.36.19-SNAPSHOT/org.apache.httpcomponents:httpclient:jar:4.5.13" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "e5f6cae5ca7ecaac1ec2",
+    "relativePopularity" : 1.0,
+    "createTime" : 1601736460000,
+    "lastModifiedTime" : 1650503372000,
+    "lastModifiedEntryTime" : 1601761646000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.apache.httpcomponents"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "httpclient"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "4.5.13"
+      } ],
+      "name" : "httpclient"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "insight-test-networking",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.sonatype.insight.scan",
+        "version" : "2.36.19-SNAPSHOT"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "insight-test-networking-2.36.19-SNAPSHOT.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-client-utils:jar:2.36.19-SNAPSHOT/com.sonatype.insight.scan:insight-test-networking:jar:2.36.19-SNAPSHOT", "dependency:/com.sonatype.insight.scan:insight-test-reverse-proxy:jar:2.36.19-SNAPSHOT/com.sonatype.insight.scan:insight-test-networking:jar:2.36.19-SNAPSHOT" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "7817b556c5ea246303b6",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1665181334000,
+    "lastModifiedEntryTime" : 1665181334000,
+    "website" : null,
+    "identificationSource" : "Package Manifest",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "mvn",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false,
+      "manifestContentType" : "null"
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.sonatype.insight.scan"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "insight-test-networking"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.36.19-SNAPSHOT"
+      } ],
+      "name" : "insight-test-networking"
+    },
+    "packageUrl" : "pkg:maven/com.sonatype.insight.scan/insight-test-networking@2.36.19-SNAPSHOT?type=jar",
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "insight-test-reverse-proxy",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.sonatype.insight.scan",
+        "version" : "2.36.19-SNAPSHOT"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "insight-test-reverse-proxy-2.36.19-SNAPSHOT.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-client-utils:jar:2.36.19-SNAPSHOT/com.sonatype.insight.scan:insight-test-reverse-proxy:jar:2.36.19-SNAPSHOT" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "c8846799f44490c10371",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1665181340000,
+    "lastModifiedEntryTime" : 1665181340000,
+    "website" : null,
+    "identificationSource" : "Package Manifest",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "mvn",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false,
+      "manifestContentType" : "null"
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.sonatype.insight.scan"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "insight-test-reverse-proxy"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.36.19-SNAPSHOT"
+      } ],
+      "name" : "insight-test-reverse-proxy"
+    },
+    "packageUrl" : "pkg:maven/com.sonatype.insight.scan/insight-test-reverse-proxy@2.36.19-SNAPSHOT?type=jar",
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "insight-test-networking",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.sonatype.insight.scan",
+        "version" : "2.36.19-SNAPSHOT"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "insight-test-networking-2.36.19-SNAPSHOT.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-client-utils:jar:2.36.19-SNAPSHOT/com.sonatype.insight.scan:insight-test-networking:jar:2.36.19-SNAPSHOT", "dependency:/com.sonatype.insight.scan:insight-test-reverse-proxy:jar:2.36.19-SNAPSHOT/com.sonatype.insight.scan:insight-test-networking:jar:2.36.19-SNAPSHOT" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "7817b556c5ea246303b6",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1665181334000,
+    "lastModifiedEntryTime" : 1665181334000,
+    "website" : null,
+    "identificationSource" : "Package Manifest",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "mvn",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false,
+      "manifestContentType" : "null"
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.sonatype.insight.scan"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "insight-test-networking"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.36.19-SNAPSHOT"
+      } ],
+      "name" : "insight-test-networking"
+    },
+    "packageUrl" : "pkg:maven/com.sonatype.insight.scan/insight-test-networking@2.36.19-SNAPSHOT?type=jar",
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jetty-server",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.eclipse.jetty",
+        "version" : "9.4.46.v20220331"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.eclipse.jetty/jetty-server@9.4.46.v20220331?type=jar",
+    "groupId" : "org.eclipse.jetty",
+    "artifactId" : "jetty-server",
+    "version" : "9.4.46.v20220331",
+    "filenames" : [ "jetty-server-9.4.46.v20220331.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-client-utils:jar:2.36.19-SNAPSHOT/org.eclipse.jetty:jetty-server:jar:9.4.46.v20220331", "dependency:/com.sonatype.insight.scan:insight-test-reverse-proxy:jar:2.36.19-SNAPSHOT/org.eclipse.jetty:jetty-server:jar:9.4.46.v20220331" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "0187655c62538a2e68be",
+    "relativePopularity" : 0.0,
+    "createTime" : 1648744796000,
+    "lastModifiedTime" : 1650567240000,
+    "lastModifiedEntryTime" : 1648744792000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.eclipse.jetty"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jetty-server"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "9.4.46.v20220331"
+      } ],
+      "name" : "jetty-server"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "javax.servlet-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "javax.servlet",
+        "version" : "3.1.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/javax.servlet/javax.servlet-api@3.1.0?type=jar",
+    "groupId" : "javax.servlet",
+    "artifactId" : "javax.servlet-api",
+    "version" : "3.1.0",
+    "filenames" : [ "javax.servlet-api-3.1.0.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-client-utils:jar:2.36.19-SNAPSHOT/javax.servlet:javax.servlet-api:jar:3.1.0", "dependency:/com.sonatype.insight.scan:insight-test-reverse-proxy:jar:2.36.19-SNAPSHOT/javax.servlet:javax.servlet-api:jar:3.1.0" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "3cd63d075497751784b2",
+    "relativePopularity" : 1.0,
+    "createTime" : 1471565476000,
+    "lastModifiedTime" : 1650503218000,
+    "lastModifiedEntryTime" : 1366926746000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "javax.servlet"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "javax.servlet-api"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.1.0"
+      } ],
+      "name" : "javax.servlet-api"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:maven/org.eclipse.jetty/jetty-server@9.4.46.v20220331?type=jar" ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jetty-http",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.eclipse.jetty",
+        "version" : "9.4.46.v20220331"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.eclipse.jetty/jetty-http@9.4.46.v20220331?type=jar",
+    "groupId" : "org.eclipse.jetty",
+    "artifactId" : "jetty-http",
+    "version" : "9.4.46.v20220331",
+    "filenames" : [ "jetty-http-9.4.46.v20220331.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-client-utils:jar:2.36.19-SNAPSHOT/org.eclipse.jetty:jetty-http:jar:9.4.46.v20220331", "dependency:/com.sonatype.insight.scan:insight-test-reverse-proxy:jar:2.36.19-SNAPSHOT/org.eclipse.jetty:jetty-http:jar:9.4.46.v20220331" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "7a4690498baf0c918290",
+    "relativePopularity" : 0.0,
+    "createTime" : 1648744735000,
+    "lastModifiedTime" : 1650567240000,
+    "lastModifiedEntryTime" : 1648744790000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.eclipse.jetty"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jetty-http"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "9.4.46.v20220331"
+      } ],
+      "name" : "jetty-http"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:maven/org.eclipse.jetty/jetty-server@9.4.46.v20220331?type=jar" ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jetty-util",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.eclipse.jetty",
+        "version" : "9.4.46.v20220331"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.eclipse.jetty/jetty-util@9.4.46.v20220331?type=jar",
+    "groupId" : "org.eclipse.jetty",
+    "artifactId" : "jetty-util",
+    "version" : "9.4.46.v20220331",
+    "filenames" : [ "jetty-util-9.4.46.v20220331.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-client-utils:jar:2.36.19-SNAPSHOT/org.eclipse.jetty:jetty-util:jar:9.4.46.v20220331", "dependency:/com.sonatype.insight.scan:insight-test-reverse-proxy:jar:2.36.19-SNAPSHOT/org.eclipse.jetty:jetty-util:jar:9.4.46.v20220331" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "c50392a531b5c500b520",
+    "relativePopularity" : 0.0,
+    "createTime" : 1648744696000,
+    "lastModifiedTime" : 1650567240000,
+    "lastModifiedEntryTime" : 1648744790000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.eclipse.jetty"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jetty-util"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "9.4.46.v20220331"
+      } ],
+      "name" : "jetty-util"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:maven/org.eclipse.jetty/jetty-http@9.4.46.v20220331?type=jar" ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jetty-io",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.eclipse.jetty",
+        "version" : "9.4.46.v20220331"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.eclipse.jetty/jetty-io@9.4.46.v20220331?type=jar",
+    "groupId" : "org.eclipse.jetty",
+    "artifactId" : "jetty-io",
+    "version" : "9.4.46.v20220331",
+    "filenames" : [ "jetty-io-9.4.46.v20220331.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.scan:insight-client-utils:jar:2.36.19-SNAPSHOT/org.eclipse.jetty:jetty-io:jar:9.4.46.v20220331", "dependency:/com.sonatype.insight.scan:insight-test-reverse-proxy:jar:2.36.19-SNAPSHOT/org.eclipse.jetty:jetty-io:jar:9.4.46.v20220331" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "814a07795a9ebb017758",
+    "relativePopularity" : 0.0,
+    "createTime" : 1648744718000,
+    "lastModifiedTime" : 1650567240000,
+    "lastModifiedEntryTime" : 1648744790000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.eclipse.jetty"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jetty-io"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "9.4.46.v20220331"
+      } ],
+      "name" : "jetty-io"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:maven/org.eclipse.jetty/jetty-server@9.4.46.v20220331?type=jar" ]
+  } ],
+  "dependencyDataIncluded" : true
+}

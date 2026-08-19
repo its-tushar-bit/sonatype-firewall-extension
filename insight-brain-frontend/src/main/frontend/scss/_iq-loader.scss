@@ -1,0 +1,29 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+/*
+  #Loader
+*/
+
+.iq-spinner__wrapper {
+  height: 14px;
+  line-height: 14px;
+  margin: 8px 0;
+}
+
+.iq-spinner__icon {
+  animation: spin 2s linear infinite;
+  display: inline-block;
+  margin-right: 4px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "aaData" : [ {
+    "filenames" : [ "commons-dbcp-1.4.jar" ],
+    "pathnames" : [ "commons-dbcp-1.4.jar" ],
+    "groupId" : "commons-dbcp",
+    "artifactId" : "commons-dbcp",
+    "version" : "1.4",
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "30be73c965cc990b153a",
+    "relativePopularity" : 1.0,
+    "createTime" : 1265565386000,
+    "lastModifiedTime" : 1399300952000,
+    "lastModifiedEntryTime" : 1265565158000,
+    "website" : null
+  } ]
+}

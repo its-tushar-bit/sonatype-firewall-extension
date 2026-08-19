@@ -1,0 +1,43 @@
+{
+  "dependencyGraph" : [ {
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "ant",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "ant",
+          "version" : "1.6.4"
+        }
+      }
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ant",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ant",
+        "version" : "1.6.4"
+      }
+    }
+  } ],
+  "gavDepths" : {
+    "ant:ant:1.6.4" : [ 1 ]
+  },
+  "componentDepths" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ant",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ant",
+        "version" : "1.6.4"
+      }
+    },
+    "depths" : [ 1 ]
+  } ]
+}

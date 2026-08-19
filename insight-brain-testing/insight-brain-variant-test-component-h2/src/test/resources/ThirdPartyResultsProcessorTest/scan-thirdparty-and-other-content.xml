@@ -1,0 +1,115 @@
+<scan version="2.21">
+<configuration>
+  <properties>
+    <property name="anonymizeArtifactIds" value="false"/>
+    <property name="jreInfo" value="true"/>
+    <property name="maxSymlinkDepth" value="5"/>
+    <property name="dirExcludes" value="**/.*, **/CVS"/>
+    <property name="hashFiles" value="true"/>
+    <property name="anonymizePaths" value="false"/>
+    <property name="procArch" value="true"/>
+    <property name="proprietaryPackages" value=""/>
+    <property name="proprietaryRegexes" value=""/>
+    <property name="fileIncludes" value=""/>
+    <property name="fileSizes" value="false"/>
+    <property name="thirdPartyScanningEnabled" value="true"/>
+    <property name="operatingSystem" value="true"/>
+    <property name="archiveNames" value="true"/>
+    <property name="fileExcludes" value=""/>
+    <property name="maxDepth" value="256"/>
+    <property name="resourceNames" value="true"/>
+    <property name="dirIncludes" value=""/>
+    <property name="pomProperties" value="true"/>
+    <property name="ipAddresses" value="false"/>
+    <property name="nameHashes" value="true"/>
+    <property name="hashJavaTypes" value="true"/>
+  </properties>
+</configuration>
+<item path="clair-scanner-out/other/clair-scanner-output.json" contentType="CLAIR_SCANNER" lastModified="1565180731371" sha1="48a7c753d9515c185d76">
+  <content>{&quot;image&quot;:&quot;smart-brain-boost-api-dockerized_postgres&quot;,&quot;vulnerabilities&quot;:[{&quot;featurename&quot;:&quot;apt&quot;,&quot;featureversion&quot;:&quot;1.4.8&quot;,&quot;vulnerability&quot;:&quot;CVE-2019-3462&quot;,&quot;namespace&quot;:&quot;debian:9&quot;,&quot;description&quot;:&quot;&quot;,&quot;link&quot;:&quot;https://security-tracker.debian.org/tracker/CVE-2019-3462&quot;,&quot;severity&quot;:&quot;Critical&quot;,&quot;fixedby&quot;:&quot;1.4.9&quot;},{&quot;featurename&quot;:&quot;glibc&quot;,&quot;featureversion&quot;:&quot;2.24-11+deb9u3&quot;,&quot;vulnerability&quot;:&quot;CVE-2017-16997&quot;,&quot;namespace&quot;:&quot;debian:9&quot;,&quot;description&quot;:&quot;&quot;,&quot;link&quot;:&quot;https://security-tracker.debian.org/tracker/CVE-2017-16997&quot;,&quot;severity&quot;:&quot;Critical&quot;,&quot;fixedby&quot;:&quot;2.24-11+deb9u4&quot;},{&quot;featurename&quot;:&quot;libxslt&quot;,&quot;featureversion&quot;:&quot;1.1.29-2.1&quot;,&quot;vulnerability&quot;:&quot;CVE-2019-13118&quot;,&quot;namespace&quot;:&quot;debian:9&quot;,&quot;description&quot;:&quot;&quot;,&quot;link&quot;:&quot;https://security-tracker.debian.org/tracker/CVE-2019-13118&quot;,&quot;severity&quot;:&quot;Unknown&quot;,&quot;fixedby&quot;:&quot;&quot;}]}</content>
+</item>
+<item path="path2/requirements.txt" contentType="PYTHON_REQUIREMENTS" lastModified="1568660577000" sha1="1ea26e4eab703b6bd734">
+  <content>aiohttp==3.5.4
+astral==1.10.1
+async_timeout==3.0.1
+attrs==19.1.0
+bcrypt==3.1.7</content>
+</item>
+<item path="path2/go.sum" contentType="GO_MODULE" lastModified="1543337377271" sha1="fd96d0a29d3e5888f1f8">
+    <content>github.com/unknown/unknown v1.1.0</content>
+</item>
+<item contentType="SBOM" lastModified="1571789481391" sha1="c963081e41394dfafc76" path="test-bom.xml">
+  <content>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;bom xmlns=&quot;http://cyclonedx.org/schema/bom/1.1&quot; serialNumber=&quot;urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79&quot; version=&quot;1&quot;&gt;
+  &lt;components&gt;
+    &lt;component type=&quot;library&quot;&gt;
+      &lt;publisher&gt;Apache&lt;/publisher&gt;
+      &lt;group&gt;org.apache.tomcat&lt;/group&gt;
+      &lt;name&gt;tomcat-catalina&lt;/name&gt;
+      &lt;version&gt;9.0.14&lt;/version&gt;
+      &lt;hashes&gt;
+        &lt;hash alg=&quot;MD5&quot;&gt;3942447fac867ae5cdb3229b658f4d48&lt;/hash&gt;
+        &lt;hash alg=&quot;SHA-1&quot;&gt;e6b1000b94e835ffd37f4c6dcbdad43f4b48a02a&lt;/hash&gt;
+        &lt;hash alg=&quot;SHA-256&quot;&gt;f498a8ff2dd007e29c2074f5e4b01a9a01775c3ff3aeaf6906ea503bc5791b7b&lt;/hash&gt;
+        &lt;hash alg=&quot;SHA-512&quot;&gt;e8f33e424f3f4ed6db76a482fde1a5298970e442c531729119e37991884bdffab4f9426b7ee11fccd074eeda0634d71697d6f88a460dce0ac8d627a29f7d1282&lt;/hash&gt;
+      &lt;/hashes&gt;
+      &lt;licenses&gt;
+        &lt;license&gt;
+          &lt;id&gt;Apache-2.0&lt;/id&gt;
+        &lt;/license&gt;
+      &lt;/licenses&gt;
+      &lt;purl&gt;pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar&lt;/purl&gt;
+    &lt;/component&gt;
+    &lt;component type=&quot;library&quot;&gt;
+      &lt;name&gt;abc&lt;/name&gt;
+      &lt;version&gt;1&lt;/version&gt;
+      &lt;purl&gt;pkg:test/abc@1?qualifier=q&lt;/purl&gt;
+    &lt;/component&gt;
+  &lt;/components&gt;
+&lt;/bom&gt;</content>
+</item>
+<item path="path1/requirements.txt" contentType="PYTHON_REQUIREMENTS" lastModified="1568660577000" sha1="1ea26e4eab703b6bd731"/>
+<item path="path1/go.sum" contentType="GO_MODULE" lastModified="1543337377271" sha1="fd96d0a29d3e5888f1f7"/>
+<dir key="ApplicationScanProcessorTestKey100" sha1="acacacacacacacaca100" path="sweets.jar">
+    <item key="2e8cf92205ec303e7304888d382cb6a8cf5f56ba" path="META-INF/MANIFEST.MF" sha1="a06f47c577aaa25d578571e45fbff4863225a4b4"/>
+    <item key="832d0f0450b9644e97c33fa28bfb59bbb9a7ba90" path="org/sonatype/sweets/Yummy.class" sha1="0c34a889c4cb37bf5ba4e780c765f23980956479" sha1JA001="4316caf42646354836c520d8a0b1b906a8fc81ec" sha1JB001="2928ef1b32b6f080cca4c4a5ca296a65d241b8d5" sha1JC001="54781c61eb2f37b792f0a25b6e03ca100740ef9a" sha1JD001="c8f73892c7c5492a2b758bea1909cb30ae582f53" sha1KA001="fcc149aa2b7576a836eb545b083843bfa8407a03" sha1KB001="2424f9c7659d7c9b8b578cbbfc8ca8fe6f72e675,b0ed938d1dcc605abf914058d6fd975cccf4e08b" sha1KC001="631a49db8f13833a82cb00e0b37ed67b9dd2916d" sha1KD001="4243249a4ce4dada88849ab2774be7ee166d059a" sha1LA001="e895603b4bfdba70611db69ad638f1dc48d574e4" sha1LB001="2424f9c7659d7c9b8b578cbbfc8ca8fe6f72e675,b0ed938d1dcc605abf914058d6fd975cccf4e08b" sha1LC001="631a49db8f13833a82cb00e0b37ed67b9dd2916d" sha1LD001="4243249a4ce4dada88849ab2774be7ee166d059a"/>
+</dir>
+<dir key="Binary" path="binary.tar.gz" size="0" lastModified="1395102134000" sha1="acacacacacacacacaca1">
+  <item key="JavaScriptFileOne" path="javaScriptFileOne.js" size="0" lastModified="1395101223000" sha1="acacacacacacacacaca2"/>
+  <item key="JavaScriptFileTwo" path="javaScriptFileTwo.js" size="0" lastModified="1395101163000" sha1="acacacacacacacacaca3"/>
+  <dir key="RandomJar" path="randomJar.jar" size="0" lastModified="1392151928000" sha1="acacacacacacacacaca4"/>
+</dir>
+<summary>
+  <scannerDriver>cli</scannerDriver>
+  <scannerVersion>1.70.0-SNAPSHOT</scannerVersion>
+  <operatingSystem>Mac OS X</operatingSystem>
+  <processorArchitecture>x86_64</processorArchitecture>
+  <startTime>2019-08-07T17:29:54+0000</startTime>
+  <endTime>2019-08-07T17:29:54+0000</endTime>
+  <directories>1</directories>
+  <files>1</files>
+  <clientInfo>
+    <property name="java.specification.version" value="10"/>
+    <property name="java.runtime.version" value="10.0.1+10"/>
+    <property name="java.vm.vendor" value="&quot;Oracle Corporation&quot;"/>
+    <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
+    <property name="java.vendor.url" value="http://java.oracle.com/"/>
+    <property name="insight.scannerVersion" value="1.70.0-SNAPSHOT"/>
+    <property name="os.name" value="Mac OS X"/>
+    <property name="java.vm.specification.version" value="10"/>
+    <property name="java.vm.name" value="Java HotSpot(TM) 64-Bit Server VM"/>
+    <property name="java.vendor.version" value="18.3"/>
+    <property name="java.vendor.url.bug" value="http://bugreport.java.com/bugreport/"/>
+    <property name="insight.scannerDriver" value="cli"/>
+    <property name="java.version" value="10.0.1"/>
+    <property name="os.arch" value="x86_64"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.vm.info" value="mixed mode"/>
+    <property name="java.vm.version" value="10.0.1+10"/>
+  </clientInfo>
+</summary>
+</scan>

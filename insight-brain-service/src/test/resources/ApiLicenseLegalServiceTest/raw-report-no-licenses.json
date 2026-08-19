@@ -1,0 +1,113 @@
+{
+  "components": [
+    {
+      "packageUrl": "pkg:maven/com.fasterxml.jackson.module/jackson-module-parameter-names@2.10.3?type=jar",
+      "hash": "033e7a20b23ea284d474",
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "jackson-module-parameter-names",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.fasterxml.jackson.module",
+          "version": "2.10.3"
+        }
+      },
+      "proprietary": false,
+      "matchState": "exact",
+      "pathnames": [
+        "com.sonatype:license-legal-service:jar:0.0.4-SNAPSHOT/com.fasterxml.jackson.module:jackson-module-parameter-names:jar:2.10.3"
+      ],
+      "displayName": "com.fasterxml.jackson.module : jackson-module-parameter-names : 2.10.3",
+      "licenseData": {
+        "declaredLicenses": [
+        ],
+        "observedLicenses": [
+        ],
+        "effectiveLicenses": [
+        ],
+        "overriddenLicenses": [],
+        "status": "Open",
+        "effectiveLicenseThreats": [
+        ]
+      },
+      "securityData": {
+        "securityIssues": []
+      }
+    },
+    {
+      "packageUrl": "pkg:maven/com.fasterxml.jackson.datatype/jackson-datatype-jdk8@2.10.3?type=jar",
+      "hash": "05fc73a94e771eb044e4",
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "jackson-datatype-jdk8",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.fasterxml.jackson.datatype",
+          "version": "2.10.3"
+        }
+      },
+      "proprietary": false,
+      "matchState": "exact",
+      "pathnames": [
+        "com.sonatype:license-legal-service:jar:0.0.4-SNAPSHOT/com.fasterxml.jackson.datatype:jackson-datatype-jdk8:jar:2.10.3"
+      ],
+      "displayName": "com.fasterxml.jackson.datatype : jackson-datatype-jdk8 : 2.10.3",
+      "licenseData": {
+        "declaredLicenses": [
+        ],
+        "observedLicenses": [
+        ],
+        "effectiveLicenses": [
+        ],
+        "overriddenLicenses": [],
+        "status": "Open",
+        "effectiveLicenseThreats": [
+        ]
+      },
+      "securityData": {
+        "securityIssues": []
+      }
+    },
+    {
+      "packageUrl": "pkg:maven/org.springframework.boot/spring-boot-actuator@2.2.6.RELEASE?type=jar",
+      "hash": "07d6baf032f9361d6f8b",
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "spring-boot-actuator",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.springframework.boot",
+          "version": "2.2.6.RELEASE"
+        }
+      },
+      "proprietary": false,
+      "matchState": "exact",
+      "pathnames": [
+        "com.sonatype:license-legal-service:jar:0.0.4-SNAPSHOT/org.springframework.boot:spring-boot-actuator:jar:2.2.6.RELEASE"
+      ],
+      "displayName": "org.springframework.boot : spring-boot-actuator : 2.2.6.RELEASE",
+      "licenseData": {
+        "declaredLicenses": [
+        ],
+        "observedLicenses": [
+        ],
+        "effectiveLicenses": [
+        ],
+        "overriddenLicenses": [],
+        "status": "Open",
+        "effectiveLicenseThreats": [
+        ]
+      },
+      "securityData": {
+        "securityIssues": []
+      }
+    }
+  ],
+  "matchSummary": {
+    "totalComponentCount": 3,
+    "knownComponentCount": 3
+  }
+}

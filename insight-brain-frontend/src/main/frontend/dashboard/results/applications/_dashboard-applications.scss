@@ -1,0 +1,99 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
+@use '../../../scss/variables' as *;
+
+// RGB value comes from /frontend/dashboard/utils/classybrew.factory.js
+$-cell-heatmap-border-color: rgb(247, 251, 255);
+
+#dashboard-applications {
+  position: relative;
+
+  .nx-table {
+    .iq-dashboard-application-risk-row {
+      > td:first-child {
+        text-align: right;
+      }
+    }
+
+    .iq-cell--heatmap {
+      @include nx-text-helpers.semi-bold;
+
+      border-left: 1px solid $-cell-heatmap-border-color;
+      @include nx-dark-mode-helpers.dark-mode {
+        border-left-color: var(--nx-color-border-secondary);
+      }
+
+      &.white-text {
+        color: $iq-off-white;
+      }
+
+      &.grey-text {
+        color: $iq-grey-4;
+        border-left-color: transparent;
+        @include nx-dark-mode-helpers.dark-mode {
+          color: var(--nx-swatch-indigo-05);
+        }
+      }
+
+      &.default-text {
+        @include nx-dark-mode-helpers.dark-mode {
+          color: var(--nx-swatch-indigo-05);
+        }
+      }
+    }
+
+    .nx-cell--num {
+      &.iq-cell--total-risk {
+        width: 121px;
+      }
+      &.iq-cell--critical-risk {
+        width: 128px;
+      }
+      &.iq-cell--severe-risk {
+        width: 115px;
+      }
+      &.iq-cell--moderate-risk {
+        width: 143px;
+      }
+      &.iq-cell--low-risk {
+        width: 102px;
+      }
+
+      > span:first-child {
+        @include nx-container-helpers.container-horizontal;
+      }
+    }
+
+    tbody {
+      .nx-cell {
+        border-bottom: none;
+        border-top: $iq-border-row;
+        @include nx-dark-mode-helpers.dark-mode {
+          border-top-color: var(--nx-color-border-secondary);
+        }
+      }
+
+      .iq-dashboard-application-risk-row--separator-border {
+        .nx-cell {
+          border-bottom: 3px solid var(--nx-swatch-indigo-95);
+          @include nx-dark-mode-helpers.dark-mode {
+            border-bottom: 3px solid var(--nx-color-border-secondary);
+          }
+        }
+      }
+    }
+  }
+
+  .nx-table-container.nx-scrollable {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}

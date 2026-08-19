@@ -1,0 +1,81 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
+component-license-details {
+  display: contents;
+}
+
+#component-license-details-content {
+  display: grid;
+  column-gap: var(--nx-spacing-4x);
+  grid-template-columns: var(--sidebar-width) 1fr;
+}
+
+.component-license-overview__column-header > :first-child {
+  margin-top: 0;
+}
+
+#license-full-details-tile {
+  margin-bottom: 0;
+}
+
+#license-full-details-tile__obligations-and-license {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  .nx-grid-col {
+    margin-bottom: 0;
+    margin-top: var(--nx-spacing-2x);
+  }
+}
+
+.license-full-details__obligation-text {
+  color: var(--nx-swatch-grey-30);
+  background-color: var(--nx-selectable-color-light);
+  padding-right: var(--nx-spacing-4x);
+  cursor: pointer;
+}
+
+.license-full-details__license-obligation-highlight {
+  background-color: var(--nx-selectable-color-light);
+}
+
+.component-license-details-license-preformatted {
+  white-space: pre-wrap;
+  @include nx-text-helpers.monospace;
+  padding-left: var(--nx-spacing-2x);
+  padding-right: var(--nx-spacing-2x);
+}
+
+.component-license-details-license-container {
+  margin: 0;
+}
+
+#license-full-details-tile__obligations-container {
+  div:first-child {
+    dt {
+      margin-top: var(--nx-spacing-2x);
+    }
+  }
+
+  .nx-read-only__data {
+    q {
+      line-height: var(--nx-line-height);
+    }
+  }
+}
+
+#license-full-details-tile__license-header {
+  margin-top: var(--nx-spacing-2x);
+  padding-left: var(--nx-spacing-2x);
+}
+
+.license-obligations-modal-textarea textarea.nx-text-input__input,
+.edit-licenses-modal-textarea textarea.nx-text-input__input {
+  min-height: 120px;
+}

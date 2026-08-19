@@ -1,0 +1,49 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
+/*
+  Sonatype Product-Specific Active Colors
+*/
+$lifecycle: #0459c8;
+$lifecycle-dark: #056ffa;
+$developer: #e15d05;
+$sbom-manager: #0099d6;
+$firewall: #b41ac6;
+$firewall-dark: #bd23cf;
+
+.iq-lifecycle-sidebar {
+  --nx-background-global-sidebar-2-link-selected: #{$lifecycle};
+
+  @include nx-dark-mode-helpers.dark-mode {
+    --nx-background-global-sidebar-2-link-selected: #{$lifecycle-dark};
+  }
+}
+
+.iq-firewall-sidebar {
+  --nx-background-global-sidebar-2-link-selected: #{$firewall};
+
+  @include nx-dark-mode-helpers.dark-mode {
+    --nx-background-global-sidebar-2-link-selected: #{$firewall-dark};
+  }
+}
+
+.iq-developer-sidebar {
+  --nx-background-global-sidebar-2-link-selected: #{$developer};
+}
+
+.iq-sbom-manager-sidebar {
+  --nx-background-global-sidebar-2-link-selected: #{$sbom-manager};
+}
+
+.iq-developer-sidebar,
+.iq-sbom-manager-sidebar,
+.iq-lifecycle-sidebar,
+.iq-firewall-sidebar {
+  @include nx-dark-mode-helpers.dark-mode {
+    --nx-color-global-sidebar-2-link-selected: var(--nx-swatch-indigo-97);
+  }
+}

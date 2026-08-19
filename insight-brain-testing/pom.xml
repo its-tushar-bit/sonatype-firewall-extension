@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+    Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+    "Sonatype" is a trademark of Sonatype, Inc.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.sonatype.insight.brain</groupId>
+    <artifactId>insight-brain</artifactId>
+    <version>1.208.0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+  <artifactId>insight-brain-testing</artifactId>
+  <packaging>pom</packaging>
+
+  <description>
+    Aggregator that groups the repository's test-only modules under a single directory to keep the
+    top-level tree navigable. This module only aggregates: each child keeps its parent set to the
+    root insight-brain POM, so inherited dependency and plugin management is unchanged. Children are
+    the unit-test support library, the deployment-variant integration-test modules
+    (insight-brain-variant-test-*), the JaCoCo coverage aggregator, and the functional / Playwright /
+    API-regression suites, plus the shared test-support servers (HDS and GitLab mocks) and Docker test utilities.
+  </description>
+
+  <properties>
+    <clm.skip>true</clm.skip>
+    <!-- Aggregator only; nothing to publish. -->
+    <maven.deploy.skip>true</maven.deploy.skip>
+  </properties>
+
+  <modules>
+    <module>insight-brain-test</module>
+    <!-- Shared test-support servers and utilities. -->
+    <module>docker-utils</module>
+    <module>hds-mock-server</module>
+    <module>gitlab-server</module>
+    <module>insight-brain-variant-test-support</module>
+    <module>insight-brain-variant-test-h2</module>
+    <module>insight-brain-variant-test-component-h2</module>
+    <module>insight-brain-variant-test-pg</module>
+    <module>insight-brain-variant-test-component-pg</module>
+    <module>insight-brain-variant-test-data-pg</module>
+    <module>insight-brain-variant-test-db-pg</module>
+    <module>insight-brain-variant-test-mtiq</module>
+    <module>insight-brain-variant-test-mtiq-db-pg</module>
+    <module>insight-brain-variant-test-legacy</module>
+    <module>insight-brain-variant-test-fips</module>
+    <module>insight-brain-variant-test-mtiq-fips</module>
+    <!-- Aggregates JaCoCo coverage across all variant-test-* modules; must build after them. -->
+    <module>insight-brain-variant-test-coverage</module>
+    <module>insight-brain-functional-test-common</module>
+    <module>insight-brain-playwright-test</module>
+    <module>insight-brain-mtiq-playwright-tests</module>
+    <module>insight-brain-api-regression-test</module>
+  </modules>
+</project>

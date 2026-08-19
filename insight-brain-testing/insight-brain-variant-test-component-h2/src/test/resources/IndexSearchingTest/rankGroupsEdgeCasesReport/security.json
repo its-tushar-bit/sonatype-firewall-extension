@@ -1,0 +1,83 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "artifactUnscored",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "test",
+          "version": "1.0"
+        }
+      },
+      "hash": "hashRankUnscored0000",
+      "reference": "CVE-RANK-UNSCORED",
+      "source": "cve",
+      "cwe": "200",
+      "status": "Open",
+      "matchState": "exact",
+      "proprietary": false
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "artifactTieA",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "test",
+          "version": "1.0"
+        }
+      },
+      "hash": "hashRankTieA00000000",
+      "reference": "CVE-RANK-TIE-A",
+      "source": "cve",
+      "score": 6.5,
+      "cwe": "200",
+      "status": "Open",
+      "matchState": "exact",
+      "proprietary": false
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "artifactTieB",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "test",
+          "version": "1.0"
+        }
+      },
+      "hash": "hashRankTieB00000000",
+      "reference": "CVE-RANK-TIE-B",
+      "source": "cve",
+      "score": 6.5,
+      "cwe": "200",
+      "status": "Open",
+      "matchState": "exact",
+      "proprietary": false
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "artifactBoundary",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "test",
+          "version": "1.0"
+        }
+      },
+      "hash": "hashRankBoundary0000",
+      "reference": "CVE-RANK-BOUNDARY",
+      "source": "cve",
+      "score": 7.0,
+      "cwe": "200",
+      "status": "Open",
+      "matchState": "exact",
+      "proprietary": false
+    }
+  ]
+}

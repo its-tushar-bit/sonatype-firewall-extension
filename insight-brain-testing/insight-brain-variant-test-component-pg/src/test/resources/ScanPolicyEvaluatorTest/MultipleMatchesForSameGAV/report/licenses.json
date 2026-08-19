@@ -1,0 +1,21 @@
+{
+  "aaData" : [ {
+    "hash" : "3102cdd0edd5a05afe00",
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.0.28",
+    "declaredLicenses" : [ "Not Provided" ],
+    "observedLicenses" : [ "Not Provided" ],
+    "effectiveLicenses" : [ "Not Provided" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 6,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : "NOT-PROVIDED",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "securityThreatLevel" : 5.0,
+    "catalogDate" : 1133961124000
+  } ]
+}

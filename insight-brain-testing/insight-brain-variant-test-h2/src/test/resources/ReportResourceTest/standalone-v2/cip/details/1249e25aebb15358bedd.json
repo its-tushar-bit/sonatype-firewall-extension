@@ -1,0 +1,64 @@
+{
+  "hash" : "1249e25aebb15358bedd",
+  "matchState" : "exact",
+  "declaredLicenses" : [ {
+    "licenseId" : "Not-Declared",
+    "licenseName" : "Not Declared"
+  } ],
+  "observedLicenses" : [ {
+    "licenseId" : "No-Sources",
+    "licenseName" : "No Sources"
+  } ],
+  "overriddenLicenses" : [ ],
+  "effectiveLicenses" : [ ],
+  "effectiveLicenseStatus" : null,
+  "catalogDate" : 1323964380000,
+  "relativePopularity" : 35,
+  "securityVulnerabilities" : [ {
+    "refId" : "36079",
+    "severity" : 3.5,
+    "source" : "osvdb",
+    "summary" : "This would be a summ",
+    "status" : null
+  }, {
+    "refId" : "62054",
+    "severity" : null,
+    "source" : "osvdb",
+    "summary" : "This would be a summ",
+    "status" : null
+  }, {
+    "refId" : "71557",
+    "severity" : null,
+    "source" : "osvdb",
+    "summary" : "This would be a summ",
+    "status" : null
+  }, {
+    "refId" : "71558",
+    "severity" : null,
+    "source" : "osvdb",
+    "summary" : "This would be a summ",
+    "status" : null
+  } ],
+  "website" : "http://tomcat.apache.org/",
+  "policyAlerts" : null,
+  "licenseThreatLevel" : null,
+  "licenseThreatGroupNames" : null,
+  "majorRevisionStep" : false,
+  "identificationSource" : null,
+  "identificationSourceComment" : null,
+  "componentIdentifier" : {
+    "format" : "maven",
+    "coordinates" : {
+      "groupId" : "tomcat",
+      "artifactId" : "tomcat-util",
+      "version" : "5.5.23",
+      "classifier" : "",
+      "extension" : "jar"
+    }
+  },
+  "version" : "5.5.23",
+  "groupId" : "tomcat",
+  "artifactId" : "tomcat-util",
+  "declaredLicenseIds" : [ "Not-Declared" ],
+  "observedLicenseIds" : [ "No-Sources" ]
+}

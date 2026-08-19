@@ -1,0 +1,102 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+.nosc-violations-filter-group {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.nosc-violations-filter-legend {
+  padding: 0;
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-2);
+  font-weight: var(--font-weight-bold);
+  color: var(--gray-12);
+}
+
+.nosc-violations-filter-rail {
+  box-sizing: border-box;
+  width: 220px;
+  max-width: 220px;
+  flex: 0 0 220px;
+  min-width: 0;
+  // Keep long facet ids/names from painting under the violations grid.
+  overflow-x: hidden;
+}
+
+.nosc-violations-filter-rail > *,
+.nosc-violations-filter-option-label {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.nosc-violations-filter-option {
+  cursor: pointer;
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+}
+
+// Every flex ancestor up to the fixed-width rail must allow shrinking below content size,
+// otherwise a long org/app name expands the rail into the main grid.
+.nosc-violations-filter-option-row {
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  align-items: flex-start;
+}
+
+// Wrap inside the rail (do not spill horizontally). Count badge stays on the first line via flex-shrink: 0.
+.nosc-violations-filter-option-label {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.nosc-violations-filter-option-row .rt-Badge {
+  flex-shrink: 0;
+}
+
+// Cap tall facet lists so the rail stays usable at estate scale. Orgs/Apps also use See more/See less;
+// the scroll cap still applies once expanded.
+.nosc-violations-filter-scroll {
+  max-height: 200px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+// Radix ScrollArea viewport can report an intrinsic min-width from long unbroken tokens; pin it
+// to the rail so labels wrap instead of expanding the column.
+.nosc-violations-filter-scroll [data-radix-scroll-area-viewport] {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.nosc-violations-filter-see-more {
+  align-self: flex-start;
+  margin-top: var(--space-1);
+  padding-left: 0;
+  gap: var(--space-1);
+}
+
+@media (max-width: 768px) {
+  .nosc-violations-filter-rail {
+    width: 100%;
+    max-width: 100%;
+    flex: 1 1 100%;
+  }
+}
+
+// Inside the mobile filter drawer the rail should always fill the dialog width.
+.violations-page__filter-drawer .nosc-violations-filter-rail {
+  width: 100%;
+  max-width: 100%;
+  flex: 1 1 100%;
+}

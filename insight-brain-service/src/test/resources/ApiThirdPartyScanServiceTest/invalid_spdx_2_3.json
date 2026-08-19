@@ -1,0 +1,134 @@
+{
+  "SPDXID" : "SPDXRef-DOCUMENT",
+  "spdxVersion" : "SPDX-2.3",
+  "creationInfo" : {
+    "created" : "2023-07-19T19:00:10Z",
+    "creators" : [ "Tool: Sonatype IQ Server - 1.166.0-SNAPSHOT" ]
+  },
+  "dataLicense" : "CC0-1.0",
+  "documentNamespace" : "http://localhost:8070/ui/links/application/local-iq-app/report/d6ffc430f2594d2480c7af837eb2a5b6",
+  "packages" : [ {
+    "SPDXID" : "SPDXRef-maven-com.fasterxml.jackson.core-jackson-annotations-2.14.0",
+    "downloadLocation": "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.14.0?type=jar",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "(AGPL-3.0-only AND MIT)",
+    "licenseDeclared" : "Apache-2.0",
+    "name" : "com.fasterxml.jackson.core:jackson-annotations",
+    "versionInfo" : "2.14.0"
+  }, {
+    "SPDXID" : "SPDXRef-maven-com.sonatype.testing-pr-comment-02-1.0-SNAPSHOT",
+    "downloadLocation": "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/com.sonatype.testing/pr-comment-02@1.0-SNAPSHOT?type=jar",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NONE",
+    "licenseDeclared" : "NONE",
+    "name" : "com.sonatype.testing:pr-comment-02",
+    "versionInfo" : "1.0-SNAPSHOT"
+  }, {
+    "SPDXID" : "SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.16.0",
+    "downloadLocation": "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/org.apache.logging.log4j/log4j-core@2.16.0?type=jar",
+      "referenceType" : "purl"
+    }, {
+      "comment" : "source: NVD",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-45105",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: NVD",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44832",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: NVD",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44228",
+      "referenceType" : "advisory"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "Apache-2.0",
+    "licenseDeclared" : "Apache-2.0",
+    "name" : "org.apache.logging.log4j:log4j-core",
+    "versionInfo" : "2.16.0"
+  }, {
+    "SPDXID" : "SPDXRef-maven-com.fasterxml.jackson.core-jackson-core-2.14.0",
+    "downloadLocation": "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.14.0?type=jar",
+      "referenceType" : "purl"
+    }, {
+      "comment" : "source: SONATYPE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://localhost:8070/ui/links/vln/sonatype-2022-6438",
+      "referenceType" : "advisory"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "(Apache-2.0 AND MIT)",
+    "licenseDeclared" : "(Apache-2.0 AND MIT)",
+    "name" : "com.fasterxml.jackson.core:jackson-core",
+    "versionInfo" : "2.14.0"
+  }, {
+    "SPDXID" : "SPDXRef-maven-org.apache.logging.log4j-log4j-api-2.16.0",
+    "downloadLocation": "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/org.apache.logging.log4j/log4j-api@2.16.0?type=jar",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "Apache-2.0",
+    "licenseDeclared" : "Apache-2.0",
+    "name" : "org.apache.logging.log4j:log4j-api",
+    "versionInfo" : "2.16.0"
+  }, {
+    "SPDXID" : "SPDXRef-maven-com.fasterxml.jackson.core-jackson-databind-2.14.0",
+    "downloadLocation": "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.14.0?type=jar",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "Apache-2.0",
+    "licenseDeclared" : "Apache-2.0",
+    "name" : "com.fasterxml.jackson.core:jackson-databind",
+    "versionInfo" : "2.14.0"
+  } ],
+  "relationships" : [ {
+    "spdxElementId" : "SPDXRef-DOCUMENT",
+    "relationshipType" : "DESCRIBES",
+    "relatedSpdxElement" : "SPDXRef-maven-com.sonatype.testing-pr-comment-02-1.0-SNAPSHOT"
+  }, {
+    "spdxElementId" : "SPDXRef-maven-com.sonatype.testing-pr-comment-02-1.0-SNAPSHOT",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-maven-com.fasterxml.jackson.core-jackson-databind-2.14.0"
+  }, {
+    "spdxElementId" : "SPDXRef-maven-com.sonatype.testing-pr-comment-02-1.0-SNAPSHOT",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.16.0"
+  }, {
+    "spdxElementId" : "SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.16.0",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-maven-org.apache.logging.log4j-log4j-api-2.16.0"
+  }, {
+    "spdxElementId" : "SPDXRef-maven-com.fasterxml.jackson.core-jackson-databind-2.14.0",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-maven-com.fasterxml.jackson.core-jackson-annotations-2.14.0"
+  }, {
+    "spdxElementId" : "SPDXRef-maven-com.fasterxml.jackson.core-jackson-databind-2.14.0",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-maven-com.fasterxml.jackson.core-jackson-core-2.14.0"
+  } ]
+}

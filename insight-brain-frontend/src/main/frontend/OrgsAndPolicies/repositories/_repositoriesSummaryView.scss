@@ -1,0 +1,196 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
+#iq-repositories-configuration-table {
+  display: grid;
+  grid-template-columns:
+    minmax(180px, 1.5fr)
+    minmax(48px, max-content)
+    minmax(48px, max-content)
+    minmax(48px, max-content)
+    min-content
+    min-content;
+
+  &.iq-repositories-configuration-table--with-pccs {
+    // FIRE-665: replaces the Type column with the PCCS badge column between Enablement and the
+    // action icons — Repository, Format, Enablement, PCCS, and two action-icon columns.
+    grid-template-columns:
+      minmax(180px, 1.5fr)
+      minmax(48px, max-content)
+      minmax(48px, max-content)
+      minmax(48px, max-content)
+      min-content
+      min-content;
+
+    // Collapsible manager-name rows span the first 5 columns (Repository → PCCS); the last
+    // column keeps the row-level edit pen. Empty-state meta cells span all 6 columns.
+    .iq-collapsible-row__header {
+      grid-column: 1 / 6;
+    }
+
+    .nx-cell--meta-info {
+      grid-column: 1 / -1;
+    }
+  }
+
+  tbody,
+  thead,
+  tr {
+    display: contents;
+  }
+
+  .nx-cell--header {
+    height: auto;
+  }
+
+  .nx-cell--meta-info,
+  .iq-collapsible-row__header {
+    grid-column: 1 / 6;
+  }
+
+  .nx-cell--meta-info {
+    align-items: center;
+    justify-content: center;
+    padding-top: 11px;
+    padding-bottom: 12px;
+  }
+
+  .iq-collapsible-row {
+    .nx-cell {
+      margin: 0;
+      background-color: var(--nx-swatch-indigo-95);
+      @include nx-dark-mode-helpers.dark-mode {
+        background-color: var(--nx-swatch-indigo-30);
+      }
+    }
+  }
+
+  .nx-cell {
+    display: flex;
+    vertical-align: middle;
+    white-space: normal;
+    box-sizing: border-box;
+  }
+
+  .iq-repositories-configuration-table-repository,
+  .iq-repositories-configuration-table-repository-manager {
+    @include nx-text-helpers.truncate-ellipsis;
+  }
+}
+
+#repository-page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+
+  .nx-page-title {
+    margin-bottom: var(--nx-spacing-2x);
+    .nx-h1 .nx-icon {
+      vertical-align: -2px;
+      img {
+        height: 26px;
+        vertical-align: baseline;
+      }
+    }
+    .nx-h1 .iq-page-title__repository-name-icon {
+      vertical-align: -4px;
+      margin: 0 var(--nx-spacing-4x) 0 var(--nx-spacing-2x);
+    }
+  }
+
+  .iq-page-title__repository-format-type {
+    font-size: 18px;
+    color: #50504a;
+    margin: -4px 0 var(--nx-spacing-4x);
+  }
+
+  #iq-owner-actions-dropdown {
+    &.repository-dropdown {
+      .nx-dropdown-menu {
+        width: 250px !important;
+        margin-left: -100px;
+
+        .nx-text-link--external {
+          color: var(--nx-color-link);
+        }
+      }
+    }
+    .nx-dropdown-menu {
+      width: 325px !important;
+      margin-left: -175px;
+      max-height: none;
+    }
+  }
+
+  #scrollable-content:nth-last-child(1) {
+    padding-bottom: var(--nx-spacing-20x);
+    margin-bottom: var(--nx-spacing-20x);
+  }
+
+  #namespace-confusion-protection-pill-configuration {
+    .nx-table {
+      display: grid;
+      grid-template-columns: minmax(180px, 1.5fr) minmax(200px, 1.5fr) minmax(134px, 1fr) minmax(85px, max-content);
+    }
+
+    .nx-table.iq-repository-component-name-table-rm-level {
+      grid-template-columns: minmax(180px, 1.5fr) minmax(134px, 1fr) minmax(85px, max-content);
+    }
+
+    .nx-table.iq-repository-component-name-table-repository-level {
+      grid-template-columns: minmax(180px, 1.5fr) minmax(85px, max-content);
+    }
+
+    .nx-table-body,
+    .nx-table-head,
+    .nx-table-row {
+      display: contents;
+    }
+
+    .nx-cell--meta-info {
+      grid-column: 1/-1;
+    }
+
+    .nx-table-head {
+      .nx-cell__sort-btn {
+        display: flex;
+        align-items: center;
+      }
+
+      .nx-table-row--filter-header > .nx-cell--header {
+        height: auto;
+      }
+    }
+  }
+}
+
+
+// FIRE-665 — PCCS badge in the Proxy Repositories view of the Configuration tile
+.iq-repositories-configuration-table__pccs-badge {
+  border-radius: 12px;
+  display: inline-block;
+  font-size: var(--nx-font-size-xs);
+  font-weight: 600;
+  padding: 2px 8px;
+
+  &--on {
+    background-color: var(--nx-swatch-green-90);
+    color: var(--nx-swatch-green-20);
+  }
+
+  &--off {
+    background-color: var(--nx-swatch-grey-90);
+    color: var(--nx-swatch-grey-20);
+  }
+
+  &--na {
+    background-color: var(--nx-swatch-grey-95);
+    color: var(--nx-swatch-grey-30);
+  }
+}

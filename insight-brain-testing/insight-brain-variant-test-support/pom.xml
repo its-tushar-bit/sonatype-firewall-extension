@@ -1,0 +1,158 @@
+<!--
+
+    Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+    Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+    "Sonatype" is a trademark of Sonatype, Inc.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.sonatype.insight.brain</groupId>
+    <artifactId>insight-brain</artifactId>
+    <version>1.208.0-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+  <artifactId>insight-brain-variant-test-support</artifactId>
+
+  <description>
+    Shared support code for the deployment-variant test modules: the JVM-wide server-caching JUnit 5
+    extension base (AbstractSpikeServerExtension), the redirect-free HTTP client (SpikeRestClient) and
+    the reusable Configurator / base-URL seeding (SpikeSupport). It lives in its own module because
+    the IQ and MTIQ variant tests must run in SEPARATE modules — the two apps' Spring @Configuration
+    classes share the com.sonatype.insight.brain.service package and collide when both apps are on one
+    test classpath (the IQ server would component-scan MtiqConfigurationAliases and fail to boot).
+    Keeping the shared machinery here lets both sibling modules reuse it without duplication.
+  </description>
+
+  <properties>
+    <clm.skip>true</clm.skip>
+  </properties>
+
+  <dependencies>
+    <!-- IQ app + its test fixtures (TestCLMServer, InsightBrainServiceFactory, Configurator). -->
+    <!--
+      optional=true: support compiles against these but does NOT leak them transitively. Each sibling
+      module supplies its own IQ flavour (plain insight-brain-service for the IQ module; the shaded
+      insight-brain-service:server via nexus-mtiq-server for the MTIQ module), which avoids putting two
+      copies of the service classes on the MTIQ classpath.
+    -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-service</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-service</artifactId>
+      <type>test-jar</type>
+      <version>${project.version}</version>
+      <optional>true</optional>
+    </dependency>
+    <!--
+      TemporaryEntity, TestDAOFactory and LicenseThreatGroupDataHelper live in the data test-jar; the
+      injected IqTestContext compiles against them. optional=true keeps them off downstream classpaths
+      (each variant module already pulls the data test-jar for its own tests).
+    -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-data</artifactId>
+      <type>test-jar</type>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+      <optional>true</optional>
+    </dependency>
+    <!-- HdsMockResponse (returned by HdsMockServerRule.respondWith) referenced by IqTestContext. -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>hds-mock-server</artifactId>
+      <scope>compile</scope>
+      <optional>true</optional>
+    </dependency>
+    <!-- AbstractHttpRequest/HttpResponse bases of HttpRequest/HttpResponse used by IqTestContext. -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-test</artifactId>
+      <scope>compile</scope>
+      <optional>true</optional>
+    </dependency>
+    <!-- DatabaseRule (base of DatabaseContainerRule, DataStoreProvider) needed to build TemporaryEntity. -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-db</artifactId>
+      <type>test-jar</type>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+      <optional>true</optional>
+    </dependency>
+    <!-- InsightFixtureRule: base rule type in the DatabaseRule hierarchy. -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-common</artifactId>
+      <type>test-jar</type>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+      <optional>true</optional>
+    </dependency>
+    <!--
+      MTIQ app + its test fixtures. MtiqTestContext / AbstractMtiqServerExtension compile against the
+      tenant plumbing (AbstractMultiTenantBaseIntegrationTest helpers, TenantProvisioningService,
+      MultiTenantJwkProvider, MultiTenantDatabaseContainerRule, TestRestTenantUtil, MultiTenantRule,
+      MultiTenantTestInsightBrainServiceFactory, AuthorizationTestHelper). compile+optional so support
+      compiles against them but does NOT leak them transitively (the mtiq variant module supplies its
+      own nexus-mtiq-server flavour; the plain IQ variant module never sees them).
+    -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>nexus-mtiq-server</artifactId>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>nexus-mtiq-server</artifactId>
+      <type>test-jar</type>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+      <optional>true</optional>
+    </dependency>
+    <!-- Tenancy main (Tenant, TenantUtil, TenantThreadLocal) + test-jar (TenantTestHelper). -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-tenancy</artifactId>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-tenancy</artifactId>
+      <type>test-jar</type>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+      <optional>true</optional>
+    </dependency>
+    <!-- Mockito: MtiqTestContext.jwtSetup stubs the MultiTenantJwkProvider bean. -->
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>compile</scope>
+      <optional>true</optional>
+    </dependency>
+    <!-- JUnit 5 extension callbacks implemented by AbstractSpikeServerExtension. -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <!-- TestCLMServer extends the JUnit 4 ExternalResource rule, needed on the compile classpath. -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
+  </dependencies>
+</project>

@@ -1,0 +1,40 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "nuget",
+        "coordinates": {
+          "packageId": "Search.Test",
+          "version": "1.2.3"
+        }
+      },
+      "hash": "1234567890abcdeABCDE",
+      "reference": "CVE-8765-1234",
+      "source": "cve",
+      "score": 4.5,
+      "cwe": "200",
+      "status": "Acknowledged",
+      "matchState": "exact",
+      "proprietary": false
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "artifact",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "test",
+          "version": "1.2"
+        }
+      },
+      "hash": "abcdefFEDCBAabcdefFE",
+      "reference": "sonatype-8765-1234",
+      "source": "cve",
+      "score": 8.7,
+      "cwe": "200",
+      "matchState": "exact",
+      "proprietary": false
+    }
+  ]
+}

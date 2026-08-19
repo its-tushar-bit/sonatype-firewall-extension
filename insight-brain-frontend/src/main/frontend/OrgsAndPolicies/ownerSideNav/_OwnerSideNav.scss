@@ -1,0 +1,382 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+@use '../../scss/variables' as *;
+
+owner-side-nav.nx-viewport-sized__container {
+  display: contents;
+}
+
+.nx-page-sidebar.iq-orgs-and-policies-summary-sidebar {
+  $sidebar-footer-height: 96px;
+  $sidebar-border-focus: 1px solid var(--nx-swatch-indigo-97);
+  $sidebar-item-border: 1px solid transparent;
+  $sidebar-left-spacing: var(--nx-spacing-6x);
+  $sidebar-border-radius: var(--nx-border-radius) 0 0 var(--nx-border-radius);
+  $active-item-focused-color: var(--nx-swatch-indigo-80);
+  $sidebar-border: 1px solid var(--nx-color-global-sidebar-2-border);
+  $sidebar-outline: var(--nx-focus-outline-width) solid var(--nx-swatch-white);
+
+  background-color: var(--nx-swatch-indigo-30);
+  box-sizing: border-box;
+  height: 100%;
+  color: var(--nx-swatch-white);
+  padding: var(--nx-spacing-6x) 0 0 $sidebar-left-spacing;
+
+  @include nx-dark-mode-helpers.dark-mode {
+    color: var(--nx-swatch-indigo-80);
+    background-color: var(--nx-swatch-indigo-20);
+    $sidebar-outline: var(--nx-focus-outline-width) solid var(--nx-swatch-indigo-80);
+    $sidebar-border-focus: 1px solid var(--nx-swatch-indigo-60);
+  }
+
+  .iq-orgs-and-policies-summary-sidebar {
+    &__filtered-header {
+      font-weight: bold;
+      border-bottom: 1px solid var(--nx-swatch-indigo-80);
+      padding-bottom: var(--nx-spacing-2x);
+      margin-top: var(--nx-spacing-6x);
+    }
+
+    &__filter-warning {
+      font-size: 13px;
+      margin: calc(-1 * var(--nx-spacing-2x)) 0 var(--nx-spacing-3x);
+    }
+  }
+
+  .nx-filter-input {
+    margin: 10px 0 var(--nx-spacing-4x);
+    width: calc(100% - var(--nx-spacing-6x));
+  }
+
+  @mixin focusable {
+    border: $sidebar-item-border;
+    border-right: none;
+
+    &:focus {
+      border-right: none;
+      outline: $sidebar-outline;
+    }
+  }
+
+  @mixin clickable {
+    &:hover {
+      background-color: var(--nx-swatch-indigo-50);
+      @include nx-dark-mode-helpers.dark-mode {
+        background-color: var(--nx-swatch-indigo-15);
+        color: var(--nx-swatch-white);
+      }
+    }
+
+    &.active {
+      &:hover {
+        background-color: var(--nx-swatch-indigo-97);
+        @include nx-dark-mode-helpers.dark-mode {
+          background-color: var(--nx-swatch-indigo-35);
+        }
+      }
+    }
+  }
+
+  @mixin active-item {
+    &.active {
+      @include nx-text-helpers.semi-bold;
+      background-color: var(--nx-swatch-indigo-97);
+      color: var(--nx-swatch-grey-30);
+
+      @include nx-dark-mode-helpers.dark-mode {
+        background-color: var(--nx-swatch-indigo-35);
+        color: var(--nx-swatch-indigo-95);
+      }
+
+      &:focus {
+        outline: var(--nx-focus-outline-width) solid var(--nx-color-interactive-border-focus);
+        outline-offset: calc(0px - 1px - var(--nx-focus-outline-offset) - var(--nx-focus-outline-width));
+
+        @include nx-dark-mode-helpers.dark-mode {
+          background-color: var(--nx-swatch-indigo-30);
+          outline: var(--nx-focus-outline-width) solid var(--nx-swatch-indigo-80);
+        }
+      }
+    }
+  }
+
+  .iq-navbar-item {
+    @include nx-text-helpers.semi-bold;
+    @include nx-text-helpers.truncate-ellipsis;
+    @include active-item;
+    color: var(--nx-swatch-white);
+    text-align: left;
+    text-decoration: none;
+    display: block;
+    overflow: hidden;
+    border-radius: $sidebar-border-radius;
+  }
+
+  .iq-orgs-and-policies-summary-sidebar__header {
+    @include nx-container-helpers.container-vertical;
+  }
+
+  .iq-selected-org {
+    @include focusable();
+    padding: calc(var(--nx-spacing-2x) + 1px) 0;
+    margin-top: var(--nx-spacing-2x);
+    border-bottom: 1px solid;
+    border-radius: 0;
+    padding-left: 0;
+    padding-right: var(--nx-spacing-4x);
+    margin-left: var(--nx-spacing-4x);
+
+    &.active {
+      padding-left: var(--nx-spacing-4x);
+      margin-left: 0;
+      border-radius: $sidebar-border-radius;
+      border-bottom-color: transparent;
+    }
+
+    &:not(.active) {
+      &:focus {
+        padding-left: var(--nx-spacing-4x);
+        margin-left: 0;
+        outline: $sidebar-outline;
+        border-radius: $sidebar-border-radius;
+        border-bottom-color: transparent;
+      }
+
+      &:hover {
+        padding-left: var(--nx-spacing-4x);
+        margin-left: 0;
+        background-color: var(--nx-swatch-indigo-20);
+        border-radius: $sidebar-border-radius;
+        border-bottom-color: transparent;
+      }
+    }
+  }
+
+  .iq-orgs-and-policies-summary-sidebar__content {
+    @include nx-container-helpers.container-vertical;
+    overflow-y: auto;
+    padding-top: var(--nx-spacing-6x);
+    padding-left: $sidebar-left-spacing;
+    margin-left: calc($sidebar-left-spacing * -1);
+    width: auto;
+
+    .nx-loading-spinner {
+      margin: var(--nx-spacing-3x) 0 0 calc(-1 * var(--nx-spacing-6x));
+      text-align: center;
+    }
+  }
+
+  .iq-orgs-and-policies-summary-sidebar__filtered-not-found {
+    margin: var(--nx-spacing-3x) 0 0 calc(-1 * var(--nx-spacing-6x));
+    text-align: center;
+  }
+
+  .iq-repositories-link {
+    @include focusable;
+    @include clickable;
+    display: flex;
+    align-items: center;
+    padding: calc(var(--nx-spacing-base) - 1px) calc(var(--nx-spacing-6x) - 1px) calc(var(--nx-spacing-base) - 1px)
+      calc(var(--nx-spacing-8x) + 3px);
+  }
+
+  .nx-collapsible-items {
+    margin: var(--nx-spacing-4x) 0 0 0;
+
+    &__header {
+      position: relative;
+    }
+
+    &__action-content {
+      position: absolute;
+      right: var(--nx-spacing-2x);
+
+      .nx-btn.nx-btn--icon-only {
+        color: var(--nx-swatch-white);
+        outline: none;
+        .nx-icon {
+          color: var(--nx-swatch-white);
+        }
+        &:hover {
+          background-color: var(--nx-swatch-indigo-20);
+        }
+        &:active {
+          background-color: var(--nx-swatch-indigo-20);
+          border: $sidebar-border-focus;
+        }
+        &:focus {
+          background-color: var(--nx-swatch-indigo-20);
+          border: $sidebar-border-focus;
+          outline: none;
+        }
+      }
+
+      .nx-icon-dropdown__toggle.open {
+        background-color: var(--nx-swatch-indigo-20);
+        outline: none;
+
+        @include nx-dark-mode-helpers.dark-mode {
+          background-color: var(--nx-swatch-purple-40);
+          border-color: var(--nx-swatch-purple-80);
+        }
+      }
+
+      .nx-dropdown-menu {
+        max-width: 187px;
+      }
+
+      .nx-dropdown-button {
+        text-align: right;
+
+        &:focus,
+        &:active,
+        &:hover {
+          color: var(--nx-color-text);
+          text-decoration: none;
+        }
+      }
+    }
+  }
+
+  .nx-collapsible-items__trigger {
+    @include focusable;
+    color: var(--nx-swatch-white);
+    padding-right: var(--nx-spacing-4x);
+    padding-top: calc(var(--nx-spacing-base) - 1px);
+    padding-bottom: calc(var(--nx-spacing-base) - 1px);
+    padding-left: calc(var(--nx-spacing-2x) - 1px);
+    border-radius: $sidebar-border-radius;
+
+    @include nx-dark-mode-helpers.dark-mode {
+      color: var(--nx-swatch-indigo-90);
+    }
+
+    &:hover {
+      &:not([disabled]) {
+        background-color: var(--nx-swatch-indigo-20);
+
+        @include nx-dark-mode-helpers.dark-mode {
+          color: var(--nx-swatch-white);
+          background-color: var(--nx-swatch-indigo-15);
+        }
+      }
+    }
+
+    &:active {
+      &:not([disabled]) {
+        &:focus {
+          background-color: var(--nx-swatch-indigo-20);
+          outline: $sidebar-outline;
+        }
+      }
+    }
+  }
+
+  .nx-collapsible-items__child {
+    @include focusable;
+    @include clickable;
+    @include active-item;
+    border-radius: $sidebar-border-radius;
+    display: flex;
+    color: var(--nx-swatch-white);
+    font-size: var(--nx-font-size-s);
+    align-items: first baseline;
+    padding-top: calc(var(--nx-spacing-base) - 1px);
+    padding-bottom: calc(var(--nx-spacing-base) - 1px);
+    padding-left: calc(var(--nx-spacing-2x) + var(--nx-spacing-6x) + var(--nx-spacing-3x) - 1px);
+
+    @include nx-dark-mode-helpers.dark-mode {
+      color: var(--nx-swatch-indigo-80);
+    }
+  }
+
+  .iq-virtual-repository-managers-empty {
+    font-style: italic;
+    color: var(--nx-swatch-indigo-80);
+    cursor: default;
+
+    &:hover {
+      background-color: transparent;
+    }
+
+    @include nx-dark-mode-helpers.dark-mode {
+      color: var(--nx-swatch-indigo-60);
+    }
+
+    &__label {
+      @include nx-text-helpers.truncate-ellipsis;
+    }
+  }
+
+  .iq-owner-name {
+    @include nx-text-helpers.truncate-ellipsis;
+    @include nx-container-helpers.container-horizontal;
+    flex-grow: 1;
+  }
+
+  .iq-children-counter {
+    font-size: var(--nx-font-size-xs);
+  }
+
+  .iq-orgs-and-policies-summary-sidebar__footer {
+    border-top: $sidebar-border;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 0 0 $sidebar-footer-height;
+    margin-top: auto;
+    margin-left: calc($sidebar-left-spacing * -1);
+    width: auto;
+  }
+
+  .iq-tree-view-button {
+    border: $sidebar-border-focus;
+    &:focus {
+      background-color: var(--nx-swatch-indigo-20);
+      outline-color: var(--nx-swatch-indigo-97);
+
+      @include nx-dark-mode-helpers.dark-mode {
+        outline-color: var(--nx-swatch-indigo-60);
+      }
+    }
+
+    &:hover {
+      color: var(--nx-color-text-dark);
+      background-color: var(--nx-swatch-indigo-80);
+
+      @include nx-dark-mode-helpers.dark-mode {
+        color: var(--nx-swatch-indigo-80);
+        background-color: var(--nx-swatch-indigo-15);
+      }
+    }
+
+    &:active {
+      color: var(--nx-color-text-dark);
+      background-color: var(--nx-swatch-indigo-97);
+
+      @include nx-dark-mode-helpers.dark-mode {
+        color: var(--nx-swatch-indigo-80);
+        border: var(--nx-focus-outline-width) solid var(--nx-swatch-indigo-90);
+        background-color: var(--nx-swatch-indigo-20);
+      }
+    }
+  }
+}
+
+.nx-tooltip.MuiTooltip-tooltip {
+  > .iq-child-iq-children-counter {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--nx-spacing-2x);
+    min-width: 154px;
+  }
+  > .iq-application-tooltip-parent {
+    @include nx-text-helpers.regular;
+  }
+}

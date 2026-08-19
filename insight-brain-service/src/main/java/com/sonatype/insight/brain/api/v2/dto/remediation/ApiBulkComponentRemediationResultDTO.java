@@ -1,0 +1,41 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.api.v2.dto.remediation;
+
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+/**
+ * @since 1.205
+ */
+public class ApiBulkComponentRemediationResultDTO
+{
+  public ApiComponentDTOV2 component;
+
+  @JsonInclude(Include.NON_NULL)
+  public ApiComponentRemediationValueDTO remediation;
+
+  @JsonInclude(Include.NON_NULL)
+  public String error;
+
+  public ApiBulkComponentRemediationResultDTO() {
+  }
+
+  public ApiBulkComponentRemediationResultDTO(
+      ApiComponentDTOV2 component,
+      ApiComponentRemediationValueDTO remediation)
+  {
+    this.component = component;
+    this.remediation = remediation;
+  }
+
+  public ApiBulkComponentRemediationResultDTO(ApiComponentDTOV2 component, String error) {
+    this.component = component;
+    this.error = error;
+  }
+}

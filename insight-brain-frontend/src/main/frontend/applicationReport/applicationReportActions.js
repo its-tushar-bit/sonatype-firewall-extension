@@ -1,0 +1,841 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import { map, pick } from 'ramda';
+import axios from 'axios';
+
+import { createReportEntries, createRawDataEntries } from './applicationReportService';
+import {
+  mappedPayloadParamActionCreator,
+  noPayloadActionCreator,
+  payloadParamActionCreator,
+  httpErrorMessageActionCreator,
+} from '../util/reduxUtil';
+import {
+  getDependenciesUrl,
+  getReportBomUrl,
+  getReportDataUrl,
+  getReportLicenseUrl,
+  getReportMetadataUrl,
+  getReportPartialMatchedUrl,
+  getReportPolicyThreatsUrl,
+  getReportReevaluateUrl,
+  getHrcReportReevaluateUrl,
+  getReportReevaluateStatusUrl,
+  getReportSecurityUrl,
+  getReportUnknownJsUrl,
+  getHrcReportBomUrl,
+  getHrcReportDataUrl,
+  getHrcReportMetadataUrl,
+  getHrcReportPolicyThreatsUrl,
+  getHrcReportSecurityUrl,
+  getHrcReportLicenseUrl,
+} from '../util/CLMLocation';
+import {
+  selectRouterCurrentParams,
+  selectIsPrioritiesPageContainer,
+  selectPrioritiesPageContainerName,
+  selectRouterPrevState,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  FIREWALL_CONTAINER_REPOSITORY_RESULTS,
+  FIREWALL_FIREWALLPAGE,
+  FIREWALL_FIREWALLPAGE_CONTAINERS,
+} from 'MainRoot/constants/states/firewall';
+import { selectSelectedReport, selectReportParameters } from './applicationReportSelectors';
+import { ensureAaData, unwrapReportEntry } from './reportEntryUtils';
+import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
+import { OWNER_TYPE_APPLICATION, OWNER_TYPE_HRC } from './ownerTypeConstants';
+
+const isFirewallDashboardState = (stateName = '') =>
+  stateName === FIREWALL_FIREWALLPAGE || stateName.startsWith(`${FIREWALL_FIREWALLPAGE}.`);
+
+const getContainerReportOrigin = (currentOrigin, prevState) => {
+  if (currentOrigin != null) {
+    return currentOrigin;
+  }
+  return isFirewallDashboardState(prevState?.name)
+    ? FIREWALL_FIREWALLPAGE_CONTAINERS
+    : FIREWALL_CONTAINER_REPOSITORY_RESULTS;
+};
+
+/**
+ * Build container report navigation params with optional origin preservation.
+ * Reduces repetition across waiver flow components.
+ */
+export const getContainerReportParams = (publicId, scanId, origin) =>
+  origin ? { publicId, scanId, origin } : { publicId, scanId };
+
+export const LOAD_REPORT_REQUESTED = 'LOAD_REPORT_REQUESTED';
+export const LOAD_REPORT_FULFILLED = 'LOAD_REPORT_FULFILLED';
+export const LOAD_REPORT_FAILED = 'LOAD_REPORT_FAILED';
+export const LOAD_REPORT_UNNECESSARY = 'LOAD_REPORT_UNNECESSARY';
+export const LOAD_REPORT_RAW_DATA_REQUESTED = 'LOAD_REPORT_RAW_DATA_REQUESTED';
+export const LOAD_REPORT_RAW_DATA_FULFILLED = 'LOAD_REPORT_RAW_DATA_FULFILLED';
+export const LOAD_REPORT_RAW_DATA_FAILED = 'LOAD_REPORT_RAW_DATA_FAILED';
+export const LOAD_REPORT_RAW_DATA_UNNECESSARY = 'LOAD_REPORT_RAW_DATA_UNNECESSARY';
+export const LOAD_COMMON_DATA_FULFILLED = 'LOAD_COMMON_DATA_FULFILLED';
+export const LOAD_COMMON_DATA_FAILED = 'LOAD_COMMON_DATA_FAILED';
+export const LOAD_COMMON_DATA_UNNECESSARY = 'LOAD_COMMON_DATA_UNNECESSARY';
+export const LOAD_REPORT_ALL_DATA_REQUESTED = 'LOAD_REPORT_ALL_DATA_REQUESTED';
+export const TOGGLE_AGGREGATE_REPORT_ENTRIES = 'TOGGLE_AGGREGATE_REPORT_ENTRIES';
+export const SET_REPORT_PARAMETERS = 'SET_REPORT_PARAMETERS';
+export const SET_HOSTED_REPO_CONTEXT = 'SET_HOSTED_REPO_CONTEXT';
+export const SELECT_ROOT_ANCESTOR = 'SELECT_ROOT_ANCESTOR';
+export const UNSELECT_ROOT_ANCESTOR = 'UNSELECT_ROOT_ANCESTOR';
+export const REEVALUATE_REPORT_REQUESTED = 'REEVALUATE_REPORT_REQUESTED';
+export const REEVALUATE_REPORT_FULFILLED = 'REEVALUATE_REPORT_FULFILLED';
+export const REEVALUATE_REPORT_FAILED = 'REEVALUATE_REPORT_FAILED';
+export const REEVALUATE_REPORT_CANCELLED = 'REEVALUATE_REPORT_CANCELLED';
+export const GENERATE_VULNERABILITY_ENTRIES = 'GENERATE_VULNERABILITY_ENTRIES';
+export const SET_SORTING_PARAMETERS = 'SET_SORTING_PARAMETERS';
+export const SET_RAW_SORTING_PARAMETERS = 'SET_RAW_SORTING_PARAMETERS';
+export const SELECT_COMPONENT = 'SELECT_COMPONENT';
+export const APPLICATION_REPORT_TOGGLE_FILTER_SIDEBAR = 'APPLICATION_REPORT_TOGGLE_FILTER_SIDEBAR';
+export const OPEN_INNERSOURCE_PRODUCER_REPORT_MODAL = 'OPEN_INNERSOURCE_PRODUCER_REPORT_MODAL';
+export const CLOSE_INNERSOURCE_PRODUCER_REPORT_MODAL = 'CLOSE_INNERSOURCE_PRODUCER_REPORT_MODAL';
+export const OPEN_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL = 'OPEN_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL';
+export const CLOSE_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL = 'CLOSE_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL';
+export const TOGGLE_SHOW_FILTER_POPOVER = 'TOGGLE_SHOW_FILTER_POPOVER';
+export const CLEAR_SELECTED_REPORT = 'CLEAR_SELECTED_REPORT';
+
+export const clearSelectedReport = () => ({ type: CLEAR_SELECTED_REPORT });
+
+// To be used for filters that are done by substring matching, as opposed to matching a discrete set of values
+export const SET_SUBSTRING_FIELD_FILTER = 'SET_SUBSTRING_FIELD_FILTER';
+export const SET_EXACT_VALUE_FILTER = 'SET_EXACT_VALUE_FILTER';
+export const SET_RAW_DATA_SUBSTRING_FIELD_FILTER = 'SET_RAW_DATA_SUBSTRING_FIELD_FILTER';
+export const SET_RAW_DATA_NUMERIC_FIELD_MAX_FILTER = 'SET_RAW_DATA_NUMERIC_FIELD_MAX_FILTER';
+export const SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER = 'SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER';
+export const SET_SORTING = 'SET_SORTING';
+
+// Stash the parent repository context for an HRC report. Populated once when the report
+// mounts from the components list (from prevParams), then read by the report page's back
+// button so "Back to <repoPublicId>" survives the click-into-componentDetails-and-back
+// cycle (where prevParams would otherwise get replaced with component-details params).
+// Clears on non-HRC navigation via SET_REPORT_PARAMETERS.
+export function setHostedRepoContext({ repositoryManagerId, repositoryId, repositoryPublicId }) {
+  return {
+    type: SET_HOSTED_REPO_CONTEXT,
+    payload: { repositoryManagerId, repositoryId, repositoryPublicId },
+  };
+}
+
+export function setReportParameters(
+  ownerId,
+  scanId,
+  isUnknownJs,
+  embeddable,
+  policyViolationId,
+  componentHash,
+  tabId,
+  isNotFiltered,
+  isApplication = true
+) {
+  return {
+    type: SET_REPORT_PARAMETERS,
+    payload: {
+      ownerType: isApplication ? OWNER_TYPE_APPLICATION : OWNER_TYPE_HRC,
+      ownerId,
+      // Keep the legacy `appId` key populated for the application path — existing
+      // consumers (e.g. PrioritiesPage.jsx) still gate their render on
+      // `reportParameters?.appId === publicAppId`. Dropping it silently broke that page.
+      ...(isApplication ? { appId: ownerId, applicationPublicId: ownerId } : { hrcId: ownerId }),
+      scanId,
+      isUnknownJs,
+      embeddable,
+      policyViolationId,
+      componentHash,
+      tabId,
+      isNotFiltered,
+    },
+  };
+}
+
+export function setSortingParameters(key, sortFields, dir) {
+  return {
+    type: SET_SORTING_PARAMETERS,
+    payload: { key, sortFields, dir },
+  };
+}
+
+export function setRawSortingParameters(key, sortFields, dir) {
+  return {
+    type: SET_RAW_SORTING_PARAMETERS,
+    payload: { key, sortFields, dir },
+  };
+}
+
+function getReportParamsFromState(state) {
+  // setReportParameters emits `applicationPublicId` / `hrcId` (not `appId`) as of the HRC work.
+  const { applicationPublicId, scanId, isUnknownJs, ownerType, hrcId } = selectReportParameters(state);
+  const ownerId = applicationPublicId || hrcId;
+
+  if (ownerId && scanId) {
+    return { ownerId, scanId, isUnknownJs, ownerType: ownerType || OWNER_TYPE_APPLICATION };
+  }
+  // Fallback: some tests preload state without router params, so guard against `undefined`.
+  const currentParams = selectRouterCurrentParams(state) || {};
+  return {
+    ownerId: currentParams.publicId || currentParams.hrcId,
+    scanId: currentParams.scanId,
+    isUnknownJs,
+    ownerType: currentParams.hrcId ? OWNER_TYPE_HRC : OWNER_TYPE_APPLICATION,
+  };
+}
+
+/**
+ * Gets the appropriate URL based on owner type (Application vs HRC).
+ */
+function getOwnerAwareUrl(ownerType, ownerId, scanId, appUrlFn, hrcUrlFn) {
+  return ownerType === OWNER_TYPE_HRC ? hrcUrlFn(ownerId, scanId) : appUrlFn(ownerId, scanId);
+}
+
+function buildCommonDataRequests(ownerId, scanId, isUnknownJs, ownerType) {
+  const isHrc = ownerType === OWNER_TYPE_HRC;
+
+  const requests = [
+    axios.get(getOwnerAwareUrl(ownerType, ownerId, scanId, getReportBomUrl, getHrcReportBomUrl)),
+    axios.get(getOwnerAwareUrl(ownerType, ownerId, scanId, getReportMetadataUrl, getHrcReportMetadataUrl)),
+  ];
+
+  // UnknownJS is not applicable for HRC scans
+  if (isUnknownJs && !isHrc) {
+    requests.push(axios.get(getReportUnknownJsUrl(ownerId, scanId)));
+  }
+
+  return requests;
+}
+
+function processCommonDataResults(results, isUnknownJs) {
+  // Normalize bomData / unknownJsData to have an `aaData` array (see ensureAaData below)
+  // for defensive handling of HRC responses that may lack that field.
+  const bomData = ensureAaData(results[0].data);
+  const metadata = results[1].data;
+  const unknownJsData = isUnknownJs ? ensureAaData(results[2]?.data) : undefined;
+
+  return { bomData, metadata, unknownJsData };
+}
+
+function buildReportDataRequests(ownerId, scanId, ownerType) {
+  const isHrc = ownerType === OWNER_TYPE_HRC;
+
+  // HRC scans a single component so partialMatched and dependencies don't apply.
+  // Use a resolved promise with empty data instead of hitting non-existent application endpoints.
+  const emptyResponse = Promise.resolve({ data: undefined });
+
+  return [
+    axios.get(getOwnerAwareUrl(ownerType, ownerId, scanId, getReportPolicyThreatsUrl, getHrcReportPolicyThreatsUrl)),
+    axios.get(getOwnerAwareUrl(ownerType, ownerId, scanId, getReportDataUrl, getHrcReportDataUrl)),
+    isHrc ? emptyResponse : axios.get(getReportPartialMatchedUrl(ownerId, scanId)),
+    isHrc ? emptyResponse : axios.get(getDependenciesUrl(ownerId, scanId)),
+  ];
+}
+
+function processReportDataResults(results, bomData, unknownJsData) {
+  const policyResult = ensureAaData(results[0].data);
+  const dataResult = unwrapReportEntry(results[1].data);
+  const partialMatches = ensureAaData(results[2].data);
+  const dependencies = unwrapReportEntry(results[3].data);
+
+  const allEntries = createReportEntries(policyResult, bomData, unknownJsData, partialMatches, dependencies);
+  const reportVersion = (policyResult && policyResult.version) || null;
+
+  return {
+    allEntries: allEntries.policies,
+    isInnerSourceEnabled: allEntries.isInnerSourceEnabled,
+    reportVersion,
+    dependencies,
+    ...dataResult,
+  };
+}
+
+export function fetchCommonData(forceClearMetadata = false) {
+  return (dispatch, getState) => {
+    const state = getState();
+    const { bomData, unknownJsData, metadata } = state.applicationReport;
+    const { ownerId, scanId, isUnknownJs, ownerType } = getReportParamsFromState(state);
+
+    if (forceClearMetadata || !metadata || !bomData || (!unknownJsData && isUnknownJs)) {
+      const promises = buildCommonDataRequests(ownerId, scanId, isUnknownJs, ownerType);
+
+      return Promise.all(promises)
+        .then((results) => {
+          const processedData = processCommonDataResults(results, isUnknownJs);
+          return dispatch(loadCommonDataFulfilled(processedData));
+        })
+        .catch((error) => {
+          if (error !== 'XC Report') {
+            dispatch(loadCommonDataFailed(error));
+          }
+
+          return Promise.reject(error);
+        });
+    }
+
+    return Promise.resolve(dispatch(loadCommonDataUnnecessary()));
+  };
+}
+
+export function fetchReportData(forceReload = true) {
+  return (dispatch, getState) => {
+    const state = getState();
+    const { bomData, unknownJsData, selectedReport } = state.applicationReport;
+    const { ownerId, scanId, ownerType } = getReportParamsFromState(state);
+
+    if (forceReload || !selectedReport) {
+      const promises = buildReportDataRequests(ownerId, scanId, ownerType);
+
+      return Promise.all(promises)
+        .then((results) => {
+          const processedData = processReportDataResults(results, bomData, unknownJsData);
+          return dispatch(loadReportFulfilled(processedData));
+        })
+        .catch((error) => {
+          dispatch(loadReportFailed(error));
+        });
+    } else {
+      return Promise.resolve(dispatch(loadReportUnnecessary()));
+    }
+  };
+}
+
+export function fetchReportRawData(forceReload = true) {
+  return (dispatch, getState) => {
+    const state = getState();
+    const { bomData, unknownJsData, reportRawData } = state.applicationReport;
+    const { ownerId, scanId, ownerType } = getReportParamsFromState(state);
+
+    if (forceReload || !reportRawData) {
+      const promises = [
+        axios.get(getOwnerAwareUrl(ownerType, ownerId, scanId, getReportSecurityUrl, getHrcReportSecurityUrl)),
+        axios.get(getOwnerAwareUrl(ownerType, ownerId, scanId, getReportLicenseUrl, getHrcReportLicenseUrl)),
+      ];
+
+      return Promise.all(promises)
+        .then((results) => {
+          const securityResult = ensureAaData(results[0].data);
+          const licenseResult = ensureAaData(results[1].data);
+          const allEntries = createRawDataEntries(securityResult, licenseResult, bomData, unknownJsData);
+          return dispatch(loadReportRawDataFulfilled(allEntries));
+        })
+        .catch((error) => {
+          dispatch(loadReportRawDataFailed(error));
+        });
+    } else {
+      return Promise.resolve(dispatch(loadReportRawDataUnnecessary()));
+    }
+  };
+}
+
+export function loadReport(forceClearMetadata = false) {
+  return (dispatch, getState) => {
+    dispatch({
+      type: LOAD_REPORT_REQUESTED,
+    });
+
+    const state = getState();
+    const { bomData, unknownJsData, metadata, selectedReport } = state.applicationReport;
+    const { ownerId, scanId, isUnknownJs, ownerType } = getReportParamsFromState(state);
+
+    const needsCommonData = forceClearMetadata || !metadata || !bomData || (!unknownJsData && isUnknownJs);
+    const needsReportData = forceClearMetadata || !selectedReport;
+
+    if (!needsCommonData && !needsReportData) {
+      return Promise.all([dispatch(loadCommonDataUnnecessary()), dispatch(loadReportUnnecessary())]);
+    }
+    if (!needsCommonData) {
+      dispatch(loadCommonDataUnnecessary());
+    }
+    if (!needsReportData) {
+      dispatch(loadReportUnnecessary());
+    }
+
+    const commonDataPromise = needsCommonData
+      ? Promise.all(buildCommonDataRequests(ownerId, scanId, isUnknownJs, ownerType))
+          .then((results) => ({ success: true, results, isUnknownJs }))
+          .catch((error) => ({ success: false, error }))
+      : Promise.resolve({ success: true, results: null });
+
+    const reportDataPromise = needsReportData
+      ? Promise.all(buildReportDataRequests(ownerId, scanId, ownerType))
+          .then((results) => ({ success: true, results }))
+          .catch((error) => ({ success: false, error }))
+      : Promise.resolve({ success: true, results: null });
+
+    return Promise.all([commonDataPromise, reportDataPromise]).then(([commonDataResult, reportDataResult]) => {
+      const dispatches = [];
+      let fetchedBomData = bomData;
+      let fetchedUnknownJsData = unknownJsData;
+
+      // Handle common data results
+      if (needsCommonData) {
+        if (commonDataResult.success) {
+          try {
+            const processedCommonData = processCommonDataResults(commonDataResult.results, isUnknownJs);
+            fetchedBomData = processedCommonData.bomData;
+            if (isUnknownJs) {
+              fetchedUnknownJsData = processedCommonData.unknownJsData;
+            }
+            dispatches.push(dispatch(loadCommonDataFulfilled(processedCommonData)));
+          } catch (processingError) {
+            // eslint-disable-next-line no-console
+            console.error('Failed to process common data:', processingError);
+            dispatch(loadCommonDataFailed(processingError));
+            dispatch(loadReportFailed(processingError));
+            return Promise.resolve();
+          }
+        } else {
+          const error = commonDataResult.error;
+          if (error !== 'XC Report') {
+            dispatch(loadCommonDataFailed(error));
+          }
+          dispatch(loadReportFailed(error));
+          return Promise.resolve();
+        }
+      }
+
+      // Handle report data results
+      if (needsReportData) {
+        if (reportDataResult.success) {
+          try {
+            const processedReportData = processReportDataResults(
+              reportDataResult.results,
+              fetchedBomData,
+              fetchedUnknownJsData
+            );
+            dispatches.push(dispatch(loadReportFulfilled(processedReportData)));
+          } catch (processingError) {
+            // eslint-disable-next-line no-console
+            console.error('Failed to process report data:', processingError);
+            dispatch(loadReportFailed(processingError));
+            return Promise.resolve();
+          }
+        } else {
+          dispatch(loadReportFailed(reportDataResult.error));
+          return Promise.resolve();
+        }
+      }
+
+      return Promise.all(dispatches);
+    });
+  };
+}
+
+export function loadReportRawData() {
+  return (dispatch) => {
+    dispatch({
+      type: LOAD_REPORT_RAW_DATA_REQUESTED,
+    });
+
+    // Rejected promised from `fetchCommonData` simply mean not to proceed to the next step, but the
+    // error handling has already been done. So just swallow them
+    return dispatch(fetchCommonData())
+      .then(() => dispatch(fetchReportRawData()))
+      .catch(() => {});
+  };
+}
+
+export function loadReportAllData() {
+  return (dispatch) => {
+    dispatch({
+      type: LOAD_REPORT_ALL_DATA_REQUESTED,
+    });
+    return dispatch(fetchCommonData())
+      .then(() => Promise.all(map(dispatch, [fetchReportRawData(false), fetchReportData(false)])))
+      .then(() => dispatch(generateVulnerabilityEntries()))
+      .catch(() => {});
+  };
+}
+
+export function selectComponent(componentIndex) {
+  return (dispatch, getState) => {
+    const { selectedReport } = getState().applicationReport;
+    const component = selectedReport && selectedReport.displayedEntries[componentIndex];
+    return Promise.resolve(dispatch(setSelectedComponent({ component, componentIndex })));
+  };
+}
+
+const loadCommonDataFulfilled = mappedPayloadParamActionCreator(
+  LOAD_COMMON_DATA_FULFILLED,
+  pick(['bomData', 'metadata', 'unknownJsData'])
+);
+
+const loadCommonDataFailed = httpErrorMessageActionCreator(LOAD_COMMON_DATA_FAILED);
+const loadCommonDataUnnecessary = noPayloadActionCreator(LOAD_COMMON_DATA_UNNECESSARY);
+const loadReportFulfilled = payloadParamActionCreator(LOAD_REPORT_FULFILLED);
+const loadReportFailed = httpErrorMessageActionCreator(LOAD_REPORT_FAILED);
+const loadReportUnnecessary = httpErrorMessageActionCreator(LOAD_REPORT_UNNECESSARY);
+const loadReportRawDataFulfilled = payloadParamActionCreator(LOAD_REPORT_RAW_DATA_FULFILLED);
+const loadReportRawDataFailed = httpErrorMessageActionCreator(LOAD_REPORT_RAW_DATA_FAILED);
+const loadReportRawDataUnnecessary = httpErrorMessageActionCreator(LOAD_REPORT_RAW_DATA_UNNECESSARY);
+const generateVulnerabilityEntries = noPayloadActionCreator(GENERATE_VULNERABILITY_ENTRIES);
+const setSelectedComponent = payloadParamActionCreator(SELECT_COMPONENT);
+const toggleFilterSidebar = payloadParamActionCreator(APPLICATION_REPORT_TOGGLE_FILTER_SIDEBAR);
+export const toggleShowFilterPopover = payloadParamActionCreator(TOGGLE_SHOW_FILTER_POPOVER);
+export const setSorting = payloadParamActionCreator(SET_SORTING);
+
+export const toggleAggregateReportEntries = noPayloadActionCreator(TOGGLE_AGGREGATE_REPORT_ENTRIES);
+
+export function setStringFieldFilter(fieldName, filterString) {
+  return {
+    type: SET_SUBSTRING_FIELD_FILTER,
+    payload: { fieldName, filterString },
+  };
+}
+
+export function setRawDataStringFieldFilter(fieldName, filterString) {
+  return {
+    type: SET_RAW_DATA_SUBSTRING_FIELD_FILTER,
+    payload: { fieldName, filterString },
+  };
+}
+
+export function setRawDataNumericMaxFilter(fieldName, filterValue) {
+  return {
+    type: SET_RAW_DATA_NUMERIC_FIELD_MAX_FILTER,
+    payload: { fieldName, filterValue },
+  };
+}
+
+export function setRawDataNumericMinFilter(fieldName, filterValue) {
+  return {
+    type: SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER,
+    payload: { fieldName, filterValue },
+  };
+}
+
+export function setExactValueFilter(fieldName, allowedValues) {
+  return {
+    type: SET_EXACT_VALUE_FILTER,
+    payload: { fieldName, allowedValues },
+  };
+}
+
+export const selectRootAncestor = payloadParamActionCreator(SELECT_ROOT_ANCESTOR);
+export const unselectRootAncestor = noPayloadActionCreator(UNSELECT_ROOT_ANCESTOR);
+
+// Floor applied to the server-supplied polling interval so a value of 0
+// (used to disable the interval in tests) does not spin in a tight loop.
+const REEVALUATE_MIN_POLL_INTERVAL_MS = 1000;
+
+// Safety net so a never-terminating PENDING status (e.g. the node that returned 202 died before
+// finishing) does not poll forever, holding a live promise/dispatch reference. Set comfortably above
+// the worst-case HDS regeneration time observed for a legitimate re-evaluation (~3.4h) so we don't
+// abandon a still-running job; the evaluation continues server-side and its result persists, so the
+// report can be reloaded later regardless. The deadline also bounds the recursive poll chain.
+const REEVALUATE_POLL_TIMEOUT_MS = 5 * 60 * 60 * 1000;
+
+// Tolerate a few consecutive transient poll failures (proxy 5xx, network blips) before giving up,
+// since the server-side job keeps running; a non-transient error (4xx) aborts immediately.
+const REEVALUATE_MAX_TRANSIENT_POLL_ERRORS = 3;
+
+// Sentinel the poll chain rejects with when the re-evaluation is cancelled; reevaluateReport swallows it
+// (the REEVALUATE_REPORT_CANCELLED action was already dispatched) rather than surfacing it as a failure.
+const REEVALUATION_CANCELLED = Symbol('reevaluation-cancelled');
+
+// Identifies the in-flight re-evaluation so a cancellation (user clicks Cancel, or the modal/report unmounts)
+// can stop the recursive poll chain instead of letting it run to the multi-hour deadline and then dispatch a
+// stale REEVALUATE_REPORT_FULFILLED + loadReport into a view the user has navigated away from. Each new
+// reevaluateReport() takes a fresh token; reevaluateReportCancelled() clears it, and the poll chain bails out
+// once the token it captured is no longer the active one.
+let activeReevaluationToken = null;
+
+/**
+ * Polls the asynchronous re-evaluation status endpoint until the work reaches a terminal state.
+ * Resolves on COMPLETED, rejects with the failure reason on FAILED, rejects once the overall poll
+ * deadline is exceeded, rejects if the re-evaluation was cancelled, retries past transient (5xx/network)
+ * poll errors, and otherwise waits the server-supplied interval before polling again.
+ */
+function pollReevaluationStatus(appId, statusId, token) {
+  const statusUrl = getReportReevaluateStatusUrl(appId, statusId);
+  const deadline = Date.now() + REEVALUATE_POLL_TIMEOUT_MS;
+  let transientErrors = 0;
+
+  const scheduleNextPoll = (delayMs) => {
+    if (token !== activeReevaluationToken) {
+      return Promise.reject(REEVALUATION_CANCELLED);
+    }
+    if (Date.now() >= deadline) {
+      return Promise.reject('Timed out waiting for re-evaluation to complete');
+    }
+    return new Promise((resolve) => setTimeout(resolve, delayMs)).then(() => {
+      if (token !== activeReevaluationToken) {
+        return Promise.reject(REEVALUATION_CANCELLED);
+      }
+      return poll();
+    });
+  };
+
+  const poll = () =>
+    axios.get(statusUrl).then(
+      ({ data }) => {
+        transientErrors = 0;
+        if (data?.status === 'COMPLETED') {
+          return data;
+        }
+        if (data?.status === 'FAILED') {
+          return Promise.reject(data.reason || 'Re-evaluation failed');
+        }
+        // Only PENDING means "keep polling". Reject on any other (unrecognised) status so a future server
+        // value we don't handle fails fast instead of silently polling until the multi-hour deadline.
+        if (data?.status !== 'PENDING') {
+          return Promise.reject(`Unexpected re-evaluation status: ${data?.status}`);
+        }
+        const delayMs = Math.max((data?.nextPollingIntervalInSeconds || 0) * 1000, REEVALUATE_MIN_POLL_INTERVAL_MS);
+        return scheduleNextPoll(delayMs);
+      },
+      (error) => {
+        const status = error?.response?.status;
+        const isTransient = status === undefined || status >= 500;
+        transientErrors += 1;
+        if (!isTransient || transientErrors > REEVALUATE_MAX_TRANSIENT_POLL_ERRORS) {
+          return Promise.reject(error);
+        }
+        return scheduleNextPoll(REEVALUATE_MIN_POLL_INTERVAL_MS);
+      }
+    );
+
+  return poll();
+}
+
+export function reevaluateReport(skipAutoWaivers = false) {
+  return (dispatch, getState) => {
+    const state = getState();
+    const reportParameters = selectReportParameters(state);
+    // reportParameters payload uses `applicationPublicId` (not `appId`) and `hrcId`.
+    // Fall back to router params for callers that reach here without a full report load.
+    const routerParams = selectRouterCurrentParams(state) || {};
+    const scanId = reportParameters.scanId || routerParams.scanId;
+    const hrcId = reportParameters.hrcId || routerParams.hrcId;
+    const appId = reportParameters.applicationPublicId || routerParams.publicId;
+
+    dispatch({
+      type: REEVALUATE_REPORT_REQUESTED,
+    });
+
+    // Mint a fresh cancellation token for this run; the poll chain captures it and bails out if it is
+    // superseded (a newer run) or cleared (reevaluateReportCancelled on cancel/unmount).
+    const token = {};
+    activeReevaluationToken = token;
+
+    const params = new URLSearchParams({ async: 'true' });
+    if (skipAutoWaivers) {
+      params.set('skipAutoWaivers', 'true');
+    }
+    // Use HRC reevaluate endpoint added by CLM-44276 when this is an HRC report.
+    const reevaluateUrl = hrcId
+      ? `${getHrcReportReevaluateUrl(hrcId, scanId)}?${params}`
+      : `${getReportReevaluateUrl(appId, scanId)}?${params}`;
+
+    return axios
+      .post(reevaluateUrl)
+      .then(({ data }) => {
+        // A statusId means the re-evaluation runs asynchronously and we poll for its result; its absence
+        // (an empty 200) means it already completed synchronously, so there is nothing to poll.
+        // HRC reevaluate is synchronous and has no poll endpoint, so appId is undefined there — skip polling.
+        if (data && data.statusId && appId) {
+          return pollReevaluationStatus(appId, data.statusId, token);
+        }
+        return undefined;
+      })
+      .then(() => {
+        // Don't reload the report into a view the user may have left after cancelling.
+        if (token !== activeReevaluationToken) {
+          return undefined;
+        }
+        dispatch(reevaluateReportFulfilled());
+        return dispatch(loadReport(true));
+      })
+      .catch((error) => {
+        // A cancelled poll chain already dispatched REEVALUATE_REPORT_CANCELLED; don't surface it as a failure.
+        if (error === REEVALUATION_CANCELLED) {
+          return undefined;
+        }
+        return dispatch(reevaluateReportFailed(error));
+      });
+  };
+}
+
+const reevaluateReportFulfilled = noPayloadActionCreator(REEVALUATE_REPORT_FULFILLED);
+const reevaluateReportFailed = httpErrorMessageActionCreator(REEVALUATE_REPORT_FAILED);
+
+// Clears the active cancellation token so the in-flight poll chain stops, then dispatches the
+// REEVALUATE_REPORT_CANCELLED action that resets the reevaluating UI flag.
+export const reevaluateReportCancelled = () => (dispatch) => {
+  activeReevaluationToken = null;
+  return dispatch({ type: REEVALUATE_REPORT_CANCELLED });
+};
+
+export const openInnerSourceProducerReportModal = noPayloadActionCreator(OPEN_INNERSOURCE_PRODUCER_REPORT_MODAL);
+export const closeInnerSourceProducerReportModal = noPayloadActionCreator(CLOSE_INNERSOURCE_PRODUCER_REPORT_MODAL);
+export const openInnerSourceProducerPermissionsModal = noPayloadActionCreator(
+  OPEN_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL
+);
+export const closeInnerSourceProducerPermissionsModal = noPayloadActionCreator(
+  CLOSE_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL
+);
+
+export function loadReportIfNeeded() {
+  return (dispatch, getState) => {
+    const state = getState();
+    const currentParams = selectRouterCurrentParams(state);
+    const selectedReport = selectSelectedReport(state);
+    const reportParameters = selectReportParameters(state);
+    const isReportInMemory = selectedReport && !!(currentParams?.scanId === reportParameters?.scanId);
+
+    if (isReportInMemory) {
+      // if report is in memory resolve promise with it
+      return Promise.resolve(dispatch(loadReportUnnecessary()));
+    }
+    // if report is not in memory, send request
+    return dispatch(loadReport());
+  };
+}
+
+export const TOGGLE_TREE_PATH = 'DEPENDENCY_TREE_TOGGLE_TREE_PATH';
+export const toggleTreePathAction = payloadParamActionCreator(TOGGLE_TREE_PATH);
+
+export const SET_DEPENDENCY_TREE_ROUTER_PARAMS = 'SET_DEPENDENCY_TREE_ROUTER_PARAMS';
+export const setDependencyTreeRouterParams = payloadParamActionCreator(SET_DEPENDENCY_TREE_ROUTER_PARAMS);
+
+export const RESET_DEPENDENCY_TREE_ROUTER_PARAMS = 'RESET_DEPENDENCY_TREE_ROUTER_PARAMS';
+export const resetDependencyTreeRouterParams = noPayloadActionCreator(RESET_DEPENDENCY_TREE_ROUTER_PARAMS);
+
+export const setDependencyTreeRouterParamsForBackButton = () => {
+  return (dispatch, getState) => {
+    const currentRouterParams = selectRouterCurrentParams(getState());
+    dispatch(setDependencyTreeRouterParams(pick(['publicId', 'scanId'], currentRouterParams)));
+  };
+};
+
+export const SET_DEPENDENCY_TREE_SEARCH_TERM = 'SET_DEPENDENCY_TREE_SEARCH_TERM';
+export const setDependencyTreeSearchTerm = payloadParamActionCreator(SET_DEPENDENCY_TREE_SEARCH_TERM);
+
+export const EXPAND_ALL_DEPENDENCY_TREE_NODES = 'EXPAND_ALL_DEPENDENCY_TREE_NODES';
+export const expandAllDependencyTreeNodes = noPayloadActionCreator(EXPAND_ALL_DEPENDENCY_TREE_NODES);
+
+export const COLLAPSE_ALL_DEPENDENCY_TREE_NODES = 'COLLAPSE_ALL_DEPENDENCY_TREE_NODES';
+export const collapseAllDependencyTreeNodes = noPayloadActionCreator(COLLAPSE_ALL_DEPENDENCY_TREE_NODES);
+
+export const goToDependencyTreePage = (hash) => {
+  return (dispatch, getState) => {
+    const { publicId, scanId } = selectRouterCurrentParams(getState());
+    const isPrioritiesPageContainer = selectIsPrioritiesPageContainer(getState());
+    const prioritiesPageContainerName = selectPrioritiesPageContainerName(getState());
+
+    if (isPrioritiesPageContainer) {
+      dispatch(stateGo(`${prioritiesPageContainerName}.dependencyTree`, { hash, publicId, scanId }));
+    } else {
+      dispatch(stateGo('applicationReport.dependencyTree', { hash, publicId, scanId }));
+    }
+  };
+};
+
+export const goToAddContainerImageWaiverPage = () => {
+  return (dispatch, getState) => {
+    const state = getState();
+    const { publicId, scanId, origin } = selectRouterCurrentParams(state);
+    const prevState = selectRouterPrevState(state);
+    const containerReportOrigin = getContainerReportOrigin(origin, prevState);
+
+    dispatch(stateGo('firewall.addContainerImageWaiver', { publicId, scanId, origin: containerReportOrigin }));
+  };
+};
+
+export const goToBulkWaivePage = () => {
+  return (dispatch, getState) => {
+    const state = getState();
+    const { publicId, scanId, hash } = selectRouterCurrentParams(state);
+    const isPrioritiesPageContainer = selectIsPrioritiesPageContainer(state);
+    const prioritiesPageContainerName = selectPrioritiesPageContainerName(state);
+
+    if (hash) {
+      if (isPrioritiesPageContainer) {
+        dispatch(stateGo(`${prioritiesPageContainerName}.bulkWaive`, { publicId, scanId, hash }));
+      } else {
+        dispatch(stateGo('applicationReport.cdpBulkWaive', { publicId, scanId, hash }));
+      }
+    } else {
+      dispatch(stateGo('applicationReport.bulkWaive', { publicId, scanId }));
+    }
+  };
+};
+
+export const goToComponentDetailsPage = (hash, isContainerImagesEvaluation = false) => {
+  return (dispatch, getState) => {
+    const state = getState();
+    const { publicId, scanId, origin, hrcId } = selectRouterCurrentParams(state);
+    const isPrioritiesPageContainer = selectIsPrioritiesPageContainer(state);
+    const prioritiesPageContainerName = selectPrioritiesPageContainerName(state);
+    const prevState = selectRouterPrevState(state);
+
+    // HRC report route → route to HRC-scoped component details
+    if (hrcId) {
+      dispatch(stateGo('hostedRepositoryComponentReport.componentDetails', { hash, hrcId, scanId }));
+      return;
+    }
+
+    if (isContainerImagesEvaluation) {
+      const containerReportOrigin = getContainerReportOrigin(origin, prevState);
+
+      dispatch(
+        stateGo('firewall.containerComponentDetails.overview', {
+          publicId,
+          scanId,
+          hash,
+          origin: containerReportOrigin,
+        })
+      );
+    } else if (isPrioritiesPageContainer) {
+      dispatch(
+        stateGo(`${prioritiesPageContainerName}.componentDetailsFromReport.overview`, { hash, publicId, scanId })
+      );
+    } else {
+      dispatch(stateGo('applicationReport.componentDetails', { hash, publicId, scanId }));
+    }
+  };
+};
+
+export default function applicationReportActions() {
+  return {
+    setReportParameters,
+    loadReport,
+    loadReportRawData,
+    loadReportAllData,
+    reevaluateReport,
+    reevaluateReportCancelled,
+    toggleAggregateReportEntries,
+    setStringFieldFilter,
+    setExactValueFilter,
+    setRawDataStringFieldFilter,
+    setRawDataNumericMaxFilter,
+    setRawDataNumericMinFilter,
+    setSorting,
+    selectComponent,
+    selectRootAncestor,
+    unselectRootAncestor,
+    setSortingParameters,
+    setRawSortingParameters,
+    toggleFilterSidebar,
+    openInnerSourceProducerReportModal,
+    closeInnerSourceProducerReportModal,
+    openInnerSourceProducerPermissionsModal,
+    closeInnerSourceProducerPermissionsModal,
+    loadReportIfNeeded,
+    toggleTreePathAction,
+    setDependencyTreeRouterParams,
+    resetDependencyTreeRouterParams,
+    setDependencyTreeRouterParamsForBackButton,
+    setDependencyTreeSearchTerm,
+    toggleShowFilterPopover,
+    expandAllDependencyTreeNodes,
+    collapseAllDependencyTreeNodes,
+    goToComponentDetailsPage,
+    goToDependencyTreePage,
+    goToAddContainerImageWaiverPage,
+    goToBulkWaivePage,
+  };
+}

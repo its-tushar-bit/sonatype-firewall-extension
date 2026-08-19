@@ -1,0 +1,81 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+#compare-versions-header {
+  display: flex;
+  justify-content: center;
+}
+
+#compare-versions-table {
+  thead {
+    .nx-cell--header {
+      text-align: center;
+    }
+
+    .nx-cell--header:nth-child(1) {
+      width: 220px;
+    }
+  }
+
+  tbody {
+    .nx-cell:first-of-type:not(.nx-cell--meta-info) {
+      @include nx-text-helpers.semi-bold;
+      text-align: right;
+    }
+    .nx-cell:nth-child(2),
+    .nx-cell:nth-child(3) {
+      border-left-style: solid;
+      border-left-color: var(--nx-color-subsection-border);
+      text-align: center;
+    }
+
+    .nx-cell {
+      .iq-integrity-rating-suspicious {
+        color: var(--nx-swatch-red-40);
+      }
+
+      .iq-hygiene-rating-exemplar {
+        color: var(--nx-swatch-purple-80);
+      }
+
+      .iq-hygiene-rating-laggard {
+        color: var(--nx-swatch-yellow-60);
+      }
+
+      .nx-tag.iq-compare-versions__license-status {
+        margin-top: var(--nx-spacing-2x);
+      }
+
+      // temporary using custom policy threat indicator until we upgrade RSC and use NxSmallThreatCounter
+      .nx-tag.iq-compare-versions__policy-threat-indicator {
+        font-weight: bold;
+        margin-right: 0;
+
+        &.critical {
+          --nx-selectable-color-dark: var(--nx-swatch-red-40);
+          color: var(--nx-swatch-white);
+        }
+
+        &.severe {
+          --nx-selectable-color-dark: var(--nx-swatch-orange-50);
+        }
+
+        &.moderate {
+          --nx-selectable-color-dark: var(--nx-swatch-yellow-60);
+        }
+
+        &.low {
+          --nx-selectable-color-dark: var(--nx-swatch-teal-50);
+        }
+
+        &.none {
+          --nx-selectable-color-dark: var(--nx-swatch-blue-90);
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ant",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ant",
+        "version" : "1.6.4"
+      }
+    },
+    "groupId" : "ant",
+    "artifactId" : "ant",
+    "version" : "1.6.4",
+    "hash" : "66635d8afae2046c58e8",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2012-2098",
+    "reference" : "CVE-2012-2098",
+    "source" : "cve",
+    "score" : 5.0,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-httpclient",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-httpclient",
+        "version" : "3.1"
+      }
+    },
+    "groupId" : "commons-httpclient",
+    "artifactId" : "commons-httpclient",
+    "version" : "3.1",
+    "hash" : "964cd74171f427720480",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2012-5783",
+    "reference" : "CVE-2012-5783",
+    "source" : "cve",
+    "score" : 5.8,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-httpclient",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-httpclient",
+        "version" : "3.1"
+      }
+    },
+    "groupId" : "commons-httpclient",
+    "artifactId" : "commons-httpclient",
+    "version" : "3.1",
+    "hash" : "964cd74171f427720480",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2012-6153",
+    "reference" : "CVE-2012-6153",
+    "source" : "cve",
+    "score" : 4.3,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-httpclient",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-httpclient",
+        "version" : "3.1"
+      }
+    },
+    "groupId" : "commons-httpclient",
+    "artifactId" : "commons-httpclient",
+    "version" : "3.1",
+    "hash" : "964cd74171f427720480",
+    "url" : null,
+    "reference" : "sonatype-2007-0004",
+    "source" : "sonatype",
+    "score" : 7.5,
+    "matchState" : "exact",
+    "proprietary" : false
+  } ]
+}

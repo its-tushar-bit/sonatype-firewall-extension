@@ -1,0 +1,45 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use '../scss/variables' as *;
+
+@use './MenuBar/MenuBar';
+
+.iq-header {
+  display: flex;
+  align-items: center;
+  margin: auto;
+  box-sizing: border-box;
+  padding: $iq-spacing-xl $iq-spacing-xs 0 $iq-spacing-l;
+
+  & > * {
+    flex: 1;
+  }
+
+  .iq-page-title {
+    @include nx-text-helpers.truncate-ellipsis;
+    color: var(--nx-color-text-dark);
+    align-items: center;
+  }
+
+  & > *:nth-child(2) {
+    flex: inherit;
+    justify-self: flex-end;
+  }
+}
+
+.menu-bar .nx-dropdown-menu {
+  z-index: 1500;
+}
+
+.iq-login-button-container,
+.iq-nav-bar--system {
+  position: absolute;
+  right: var(--nx-spacing-6x);
+  top: 20px;
+}

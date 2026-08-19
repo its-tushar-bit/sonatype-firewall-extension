@@ -1,0 +1,53 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+/*
+  #Tabs
+*/
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use './variables' as *;
+
+.iq-tab-bar {
+  background-color: $iq-blue-xlight;
+  height: 42px;
+}
+
+.iq-tab {
+  @include nx-text-helpers.semi-bold;
+
+  box-sizing: border-box;
+  border-bottom: 3px solid $iq-blue-xlight;
+  color: $iq-slate;
+  display: inline-block;
+  font-size: 14px;
+  height: 42px;
+  line-height: 14px;
+  overflow: hidden;
+  padding: 12px $iq-spacing-l 0 $iq-spacing-l;
+  text-transform: uppercase;
+
+  &:hover,
+  &:focus {
+    border-bottom-color: $iq-blue;
+    color: $iq-blue;
+    text-decoration: none;
+
+    .fa.inverse {
+      background-color: $iq-off-black;
+    }
+  }
+
+  &.active {
+    border-bottom-color: $iq-blue;
+    color: $iq-blue;
+    cursor: default;
+  }
+
+  .fa {
+    margin-right: $iq-spacing-xs;
+  }
+}

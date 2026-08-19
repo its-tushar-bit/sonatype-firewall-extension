@@ -1,0 +1,217 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+
+def updateMain = false
+
+pipeline {
+  agent { label InsightConstants.AGENT_LABEL }
+
+  parameters {
+    string(name: 'RELEASE_BRANCH_NAME', defaultValue: 'release-1.XXX.x', description: 'Name of the release branch to create (e.g., release-1.199.x). Build number is appended during aggregate-release.')
+    string(name: 'START_POINT', defaultValue: 'main', description: 'Source branch or commit SHA to create the release branch from')
+    string(name: 'DEFAULT_BRANCH', defaultValue: 'main', description: 'Target branch to bump version on after release branch is created (typically main)')
+    string(name: 'NEXT_VERSION', defaultValue: '1.XXX.0-SNAPSHOT', description: 'Next development version to set on DEFAULT_BRANCH (e.g., 1.200.0-SNAPSHOT). Leave empty to skip version bump.')
+  }
+
+  stages {
+    stage('Pre requirements') {
+      steps {
+        script {
+          // Set updateMain based on NEXT_VERSION parameter
+          updateMain = NEXT_VERSION?.trim()?.length() > 0
+
+          if (!RELEASE_BRANCH_NAME?.trim()) {
+            error 'RELEASE_BRANCH_NAME is required'
+          }
+          if (updateMain && !DEFAULT_BRANCH?.trim()) {
+            error 'DEFAULT_BRANCH is required when NEXT_VERSION is provided'
+          }
+          setBuildDisplayName([Branch: RELEASE_BRANCH_NAME])
+        }
+
+        runSafely 'git config --global push.default simple'
+        runSafely "git config user.email 'sonatype-zion@sonatype.com'"
+        runSafely "git config user.name 'Sonatype Zion'"
+
+        script {
+          // Check if release branch already exists remotely before making any changes
+          sshagent(credentials: [sonatypeZionCredentialsId()]) {
+            def remoteBranchCheck = sh(script: "git ls-remote --heads origin ${RELEASE_BRANCH_NAME}", returnStdout: true).trim()
+            if (!remoteBranchCheck.isEmpty()) {
+              error "Release branch '${RELEASE_BRANCH_NAME}' already exists on remote"
+            }
+          }
+
+          // Check if version update would actually change pom.xml files
+          if (updateMain) {
+            runSafely "git checkout ${DEFAULT_BRANCH}"
+            def currentVersion = null
+            withMaven(jdk: 'OpenJDK 25', maven: 'Maven 3.9.x', mavenSettingsConfig: 'private-settings.xml') {
+              currentVersion = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout | tail -1", returnStdout: true).trim()
+            }
+            echo "Current version on ${DEFAULT_BRANCH}: ${currentVersion}, Next version: ${NEXT_VERSION}"
+            if (currentVersion == NEXT_VERSION) {
+              error "Current version (${currentVersion}) is already set to ${NEXT_VERSION}. No version change needed."
+            }
+          }
+        }
+      }
+    }
+
+    stage('Create release branch') {
+      steps {
+        runSafely "git checkout ${START_POINT}"
+        runSafely "git checkout -b ${RELEASE_BRANCH_NAME} ${START_POINT}"
+      }
+    }
+
+    stage('Set development version') {
+      when {
+        expression { updateMain }
+      }
+      steps {
+        runSafely "git checkout ${DEFAULT_BRANCH}"
+        withMaven(jdk: 'OpenJDK 25', maven: 'Maven 3.9.x', mavenSettingsConfig: 'private-settings.xml') {
+          runSafely "./set-version.sh ${NEXT_VERSION}"
+        }
+
+        script {
+          def pomChanges = sh(script: 'git diff --name-only -- "*.xml" | grep pom.xml || true', returnStdout: true).trim()
+          if (pomChanges.isEmpty()) {
+            error "No pom.xml files were modified. Version may already be set to ${NEXT_VERSION}"
+          }
+          echo "Modified pom.xml files:\n${pomChanges}"
+        }
+
+        gitCommit("Bump version to: ${NEXT_VERSION}")
+      }
+    }
+
+    stage('Update Jira fix versions') {
+      steps {
+        script {
+          // Derive RELEASE_VERSION from RELEASE_BRANCH_NAME
+          // e.g., "release-1.199.0" -> minor version "199"
+          def versionMatch = (RELEASE_BRANCH_NAME =~ /release-(\d+\.(\d+)\.\d+)/)
+          if (!versionMatch) {
+            error "Unable to extract version from RELEASE_BRANCH_NAME: ${RELEASE_BRANCH_NAME}. Expected format: release-X.XXX.X (e.g., release-1.199.0)"
+          }
+          def fullVersion = versionMatch[0][1]  // e.g., "1.199.0"
+          def minorVersion = versionMatch[0][2]  // e.g., "199"
+          def releaseVersion = "selfhosted-${minorVersion}"
+          echo "Derived RELEASE_VERSION: ${releaseVersion} (minor: ${minorVersion}) from RELEASE_BRANCH_NAME: ${RELEASE_BRANCH_NAME}"
+
+          // Create the Jira version (unreleased) before updating issues
+          echo "Creating unreleased Jira version: ${releaseVersion}"
+          releaseJiraVersion('selfhosted', minorVersion, false)
+
+          List<String> issues = []
+          issues.addAll(getIssuesByFixVersion('CLM', 'selfhosted-next'))
+          issues.addAll(getIssuesByFixVersion('INT', 'selfhosted-next'))
+          issues.addAll(getIssuesByFixVersion('FIRE', 'selfhosted-next'))
+
+          replaceFixVersionForIssues(issues, 'selfhosted-next', [releaseVersion])
+        }
+      }
+    }
+
+    stage('Push release branch') {
+      steps {
+        sshagent(credentials: [sonatypeZionCredentialsId()]) {
+          runSafely "git push -u origin ${RELEASE_BRANCH_NAME}"
+        }
+      }
+    }
+
+    stage('Push development version') {
+      when {
+        expression { updateMain }
+      }
+      steps {
+        sshagent(credentials: [sonatypeZionCredentialsId()]) {
+          runSafely "git checkout ${DEFAULT_BRANCH} && git pull --rebase"
+          runSafely "git push -u origin ${DEFAULT_BRANCH}"
+        }
+      }
+    }
+
+    stage('Trigger validation build') {
+      steps {
+        script {
+          echo "Attempting to trigger validation build for release branch: ${RELEASE_BRANCH_NAME}"
+          echo "Note: Jenkins multibranch pipeline needs time to discover the new branch"
+
+          def buildTriggered = false
+          def maxRetries = 5
+          def retryDelaySeconds = 30
+
+          for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+              echo "Attempt ${attempt}/${maxRetries} to trigger build..."
+
+              // Try to trigger the build on the branch
+              build(
+                job: "insight/insight-brain/feature-snapshots/${RELEASE_BRANCH_NAME}",
+                wait: true  // Wait for completion to ensure validation succeeds
+              )
+
+              buildTriggered = true
+              echo "✓ Successfully triggered and completed validation build for ${RELEASE_BRANCH_NAME}"
+              echo "  View build at: https://jenkins.ci.sonatype.dev/job/insight/job/insight-brain/job/feature-snapshots/job/${RELEASE_BRANCH_NAME}/"
+              break
+
+            } catch (Exception e) {
+              // Check if this is a "job not found" error (branch not discovered yet)
+              def isJobNotFound = e.message?.contains('No item named') ||
+                                  e.message?.contains('does not exist')
+
+              if (isJobNotFound && attempt < maxRetries) {
+                echo "  Build trigger failed: ${e.message}"
+                echo "  Waiting ${retryDelaySeconds} seconds before retry ${attempt + 1}..."
+                echo "  (Jenkins may still be scanning the repository to discover the new branch)"
+                sleep(time: retryDelaySeconds, unit: 'SECONDS')
+              } else {
+                // Real failure (build failed, permissions, user cancellation, etc.) - don't retry
+                echo "  Build failed with non-retryable error: ${e.message}"
+                throw e
+              }
+            }
+          }
+
+          if (!buildTriggered) {
+            echo ""
+            echo "⚠ WARNING: Could not automatically trigger validation build"
+            echo ""
+            echo "The new release branch '${RELEASE_BRANCH_NAME}' has been created successfully,"
+            echo "but Jenkins has not yet discovered it in the multibranch pipeline."
+            echo ""
+            echo "Please manually trigger the build:"
+            echo "  1. Go to: https://jenkins.ci.sonatype.dev/job/insight/job/insight-brain/job/feature-snapshots/"
+            echo "  2. Wait for automatic scan so the branch is there"
+            echo "  3. Once discovered, trigger: insight/insight-brain/feature-snapshots/${RELEASE_BRANCH_NAME}"
+            echo ""
+            // Mark as unstable but don't fail
+            currentBuild.result = 'UNSTABLE'
+          }
+        }
+      }
+    }
+  }
+  post {
+    always {
+      cleanWs()
+    }
+  }
+}
+
+private void gitCommit(commitMessage) {
+  sshagent(credentials: [sonatypeZionCredentialsId()]) {
+    runSafely 'git add -u'
+    // Don't perform commit if no changes.
+    runSafely "git diff-index --quiet HEAD || git commit -m \"${commitMessage}\""
+  }
+}

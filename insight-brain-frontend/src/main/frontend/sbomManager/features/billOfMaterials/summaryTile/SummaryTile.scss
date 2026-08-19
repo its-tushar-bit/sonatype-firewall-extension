@@ -1,0 +1,156 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+$component-summary-color-map: (
+  'direct': var(--nx-swatch-blue-40),
+  'transitive': var(--nx-swatch-purple-40),
+  'unspecified': var(--nx-swatch-teal-80),
+);
+
+$vulnerabilities-summary-color-map: (
+  'critical': var(--nx-color-threat-critical),
+  'high': var(--nx-color-threat-severe),
+  'severe': var(--nx-color-threat-severe),
+  'medium': var(--nx-color-threat-moderate),
+  'moderate': var(--nx-color-threat-moderate),
+  'low': var(--nx-color-threat-low),
+);
+
+$-gap-1: var(--nx-spacing-2x);
+$-gap-2: var(--nx-spacing-4x);
+
+$-progress-width: 110px;
+$-progress-height: 10px;
+$-progress-radius: 5px;
+
+.sbom-manager-bill-of-materials-summary-tile {
+  &__summaries {
+    display: flex;
+    gap: var(--nx-spacing-2x);
+    justify-content: flex-start;
+
+    &__divider {
+      width: 1px;
+      height: auto;
+      background-color: var(--nx-color-border);
+    }
+  }
+}
+
+.sbom-manager-summary-chart-and-progress {
+  display: flex;
+  flex-direction: column;
+  gap: $-gap-2;
+  padding: 0 $-gap-2;
+
+  &:first-child {
+    padding-left: 0;
+  }
+
+  h3 {
+    margin: 0;
+  }
+
+  section {
+    display: flex;
+    gap: $-gap-1 $-gap-2;
+  }
+
+  &__progress-bars {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $-gap-1 $-gap-2;
+    max-width: calc(#{$-progress-width * 2} + #{$-gap-2});
+  }
+
+  &--with-policies {
+    .sbom-manager-summary-chart-and-progress__progress-bars {
+      min-width: calc(#{$-progress-width} + #{$-gap-2});
+    }
+  }
+
+  &__progress-bar-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: $-gap-1;
+    min-width: max-content;
+  }
+
+  &__label {
+    font-size: var(--nx-font-size-s);
+    font-weight: 600;
+  }
+
+  @mixin progressStyle() {
+    progress.nx-progress-bar__progress::-webkit-progress-bar {
+      height: $-progress-height;
+      border-radius: $-progress-radius;
+    }
+
+    progress.nx-progress-bar__progress::-moz-progress-bar {
+      height: $-progress-height;
+      border-radius: $-progress-radius;
+      @content;
+    }
+
+    progress.nx-progress-bar__progress::-webkit-progress-value {
+      height: $-progress-height;
+      border-radius: $-progress-radius;
+      @content;
+    }
+  }
+
+  .nx-progress-bar {
+    margin: 0;
+
+    &__progress {
+      width: $-progress-width;
+      height: $-progress-height;
+
+      @include progressStyle();
+    }
+  }
+
+  @each $field, $color in $component-summary-color-map {
+    &__progress-bar--#{$field} {
+      @include progressStyle {
+        background-color: $color;
+      }
+    }
+  }
+
+  @each $field, $color in $vulnerabilities-summary-color-map {
+    &__progress-bar--#{$field} {
+      @include progressStyle {
+        background-color: $color;
+      }
+    }
+  }
+}
+
+.sbom-manager-bill-of-materials-summary-pie-chart {
+  $-size: 80px;
+
+  position: relative;
+  height: $-size;
+  width: $-size;
+  min-width: $-size;
+
+  &__total {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin: 0;
+    transform: translateX(-50%) translateY(-50%);
+  }
+}
+
+@media only screen and (max-width: 1400px) {
+  .sbom-manager-bill-of-materials-summary-tile {
+    &__summaries {
+      gap: 0;
+    }
+  }
+}

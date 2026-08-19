@@ -1,0 +1,12 @@
+--add-opens=java.base/java.lang=ALL-UNNAMED
+--add-opens=java.base/java.util=ALL-UNNAMED
+--add-opens=java.base/java.security=ALL-UNNAMED
+--add-opens=java.base/sun.security.rsa=ALL-UNNAMED
+--add-opens=java.base/sun.security.x509=ALL-UNNAMED
+--add-opens=java.base/sun.security.util=ALL-UNNAMED
+--add-opens=java.xml/com.sun.org.apache.xerces.internal.jaxp.datatype=ALL-UNNAMED
+# JDK 22+ (JEP 472) warns when System::load is called without this flag.
+# BouncyCastle FIPS loads its native library via System.load; the warning escalates
+# to an error in a future release. Scoping to ALL-UNNAMED is equivalent to the
+# pre-JEP-472 behavior.
+--enable-native-access=ALL-UNNAMED

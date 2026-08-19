@@ -1,0 +1,91 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+sast-scan-page {
+  display: contents;
+}
+
+.iq_sast_scan_findings {
+  &__container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  &_header_section {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &_header_actions_section {
+    display: flex;
+    color: var(--nx-color-tertiary-button-text);
+
+    .nx-text-link .nx-icon {
+      margin-left: 0;
+    }
+
+    .nx-text-link .fa-external-link-alt {
+      display: none;
+    }
+  }
+}
+
+.iq_sast_scan_finding {
+  &__title {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+
+    & .nx-h3 {
+      margin: 0 0 0 var(--nx-spacing-6x);
+    }
+  }
+
+  &__summary {
+    display: flex;
+    flex-direction: column;
+    padding-top: var(--nx-spacing-8x);
+    padding-left: 10px;
+  }
+
+  &__details {
+    &.nx-card {
+      max-width: unset;
+      text-align: left;
+      border-radius: 6px;
+      background: var(--nx-indigo-97, #f4f5fb);
+    }
+  }
+
+  &__description {
+    margin: 0px 0px var(--nx-spacing-6x);
+
+    &--only {
+      margin: 0 0 0 0;
+    }
+  }
+
+  &__remediation {
+    margin: 0 0 0 0;
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: row;
+
+    > :first-child {
+      flex: 1;
+    }
+
+    > :last-child {
+      flex: 1;
+    }
+  }
+}

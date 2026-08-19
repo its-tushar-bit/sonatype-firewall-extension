@@ -1,0 +1,22 @@
+{
+  "orgNamePrefix": "pw-bw-sel-org",
+  "appNamePrefix": "pw-bw-sel-app",
+  "appIdPrefix": "pw-bw-sel",
+  "cannedReportClasspathDir": "/canned-reports/transitive-violations-report",
+  "scanId": "pw-bw-sel-scan-01",
+  "policyName": "pw-bw-sel-policy",
+  "policyThreatLevel": 7,
+  "cdpComponentHash": "aaa111bbb222ccc333dd",
+  "noConditionPolicyName": "pw-bw-no-cond-policy",
+  "noResultsFilterText": "zzz-matches-nothing-zzz",
+  "selectedCountZero": "0 violations selected",
+  "selectedCountSingular": "1 violation selected",
+  "selectedCountPlural": "violations selected",
+  "noConditionText": "No condition specified",
+  "constraintColumnHeaderText": "Constraint",
+  "componentColumnHeaderText": "Component",
+  "enterpriseBannerText": "Efficiently manage multiple policy violations",
+  "policyNameFilterPlaceholder": "policy name",
+  "constraintNameFilterPlaceholder": "constraint name",
+  "componentNameFilterPlaceholder": "component name"
+}

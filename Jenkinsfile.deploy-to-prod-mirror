@@ -1,0 +1,295 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+
+/**
+ * Manual entry point for production releases.
+ *
+ * This job deploys to prod-mirror and then triggers regional production deployments.
+ * This is a MANUAL TRIGGER ONLY job - no automated triggers.
+ * An operator must explicitly initiate production releases.
+ *
+ * Parameters:
+ *   IMAGE_TAG - The prod ECR tag to release (must be a prod-internal-verified-* tag)
+ *
+ * Jenkins job path: insight/MTIQ/sca-cloud/deploy-to-prod-mirror
+ *
+ */
+
+// Prod-mirror cell workspace — explicit allowlist
+def PROD_MIRROR_CELL_WORKSPACES = ['sca_aws_staging_cell-prod-mirror']
+def PROD_MIRROR_GLOBAL_WORKSPACE = 'sca_aws_staging_global'
+
+pipeline {
+  agent { label 'zion-small' }
+
+  // NO triggers block - this job is manual trigger only
+
+  parameters {
+    string(name: 'IMAGE_TAG',
+           description: 'The immutable ECR image tag to release — format: {yyyyMMddHHmm}-main-{buildNumber}-{commitHash} (e.g., 202606102003-main-13807-46658300). Must have a prod-internal-verified-* tag applied by deploy-to-prod-internal on ECR.')
+  }
+
+  options {
+    timestamps()
+    buildDiscarder(logRotator(numToKeepStr: '100'))
+    disableConcurrentBuilds()
+    // NOTE: Must be sufficient for mirror deploy + triggering regional jobs
+    timeout(time: 30, unit: 'MINUTES')
+  }
+
+  stages {
+
+    stage('Validate Parameters') {
+      steps {
+        script {
+          if (!params.IMAGE_TAG?.trim()) {
+            error 'IMAGE_TAG parameter is required'
+          }
+          // Validate immutable tag format: {yyyyMMddHHmm}-main-{buildNumber}-{commitHash}
+          if (!(params.IMAGE_TAG ==~ /\d{12}-main-\d+-[a-f0-9]+/)) {
+            error "IMAGE_TAG must be an immutable tag in the format {yyyyMMddHHmm}-main-{buildNumber}-{commitHash} (e.g., 202606102003-main-13807-46658300). Got: ${params.IMAGE_TAG}"
+          }
+          echo "Production release for image tag: ${params.IMAGE_TAG}"
+        }
+      }
+    }
+
+    stage('Validate Image') {
+      steps {
+        script {
+          def ecr = load 'jenkins/ecr-helpers.groovy'
+
+          // Validate image exists in staging ECR (prod-mirror uses staging account)
+          ecr.validateImageExists(
+            ecr.STAGING_ECR_ACCOUNT,
+            ecr.ECR_REPOSITORY,
+            params.IMAGE_TAG
+          )
+
+          // Safety check: verify image has a prod-internal-verified tag in prod ECR
+          // The verified tag is applied by deploy-to-prod-internal in the prod account
+          withAwsRole(credentialsId: ecr.PROD_ECR_ACCOUNT.credentialId, role: ecr.PROD_ECR_ACCOUNT.role,
+                      roleAccount: ecr.PROD_ECR_ACCOUNT.id, region: ecr.ECR_REGION) {
+            withEnv(["REPOSITORY_ARG=${ecr.ECR_REPOSITORY}", "IMAGE_TAG_ARG=${params.IMAGE_TAG}", "REGION_ARG=${ecr.ECR_REGION}"]) {
+              def imageDetail = sh(script: '''
+                aws ecr describe-images \\
+                  --repository-name "$REPOSITORY_ARG" \\
+                  --image-ids "imageTag=$IMAGE_TAG_ARG" \\
+                  --region "$REGION_ARG" \\
+                  --query 'imageDetails[0].imageTags' \\
+                  --output json
+              ''', returnStdout: true).trim()
+
+              def tags = readJSON text: imageDetail
+              if (!tags) {
+                error "FAILED: Image ${params.IMAGE_TAG} was not found in prod ECR (account ${ecr.PROD_ECR_ACCOUNT.id}).\n" +
+                      "The image must exist in prod ECR before it can be promoted via the deployment pipeline.\n" +
+                      "To fix: run push-to-prod to promote the image from staging ECR to prod ECR."
+              }
+              def hasVerifiedTag = tags.any { it.startsWith('prod-internal-verified-') }
+
+              if (!hasVerifiedTag) {
+                error "FAILED: Image ${params.IMAGE_TAG} exists in prod ECR but does not have a prod-internal-verified-* tag.\n" +
+                      "For an image to be promoted to production via the deployment pipeline, it must have a\n" +
+                      "prod-internal-verified-* tag in prod ECR. This tag is applied automatically when the image\n" +
+                      "is successfully deployed to prod-internal by the deploy-to-prod-internal job.\n" +
+                      "To fix: run deploy-to-prod-internal with this image tag. Once it deploys successfully,\n" +
+                      "the verified tag will be applied and this job can proceed."
+              }
+              echo "Verified: Image has prod-internal-verified tag in prod ECR"
+            }
+          }
+        }
+      }
+    }
+
+    stage('Deploy to Prod-Mirror Cell') {
+      steps {
+        script {
+          def tfc = load 'jenkins/tfc-helpers.groovy'
+          tfc.deployCells('prod-mirror', PROD_MIRROR_CELL_WORKSPACES, PROD_MIRROR_GLOBAL_WORKSPACE, params.IMAGE_TAG, [maxDestructions: 4, maxAdditions: 4, maxChanges: 4, gateEnabled: true])
+        }
+      }
+    }
+
+    stage('Update Jira Fix Versions') {
+      steps {
+        script {
+          try {
+            // Use the full immutable image tag as the Jira fix version name so
+            // the deployed artifact and the Jira version line up exactly
+            // (e.g. "202606171554-main-13852-fd709f43").
+            def saasVersion = params.IMAGE_TAG
+
+            echo "Creating Jira Fix Version: ${saasVersion}"
+
+            // Create the Jira fix version in each project
+            def CLM_PROJECT_ID = 10002
+            def INT_PROJECT_ID = 10007
+            def FIRE_PROJECT_ID = 12425
+            jiraCreateFixVersion(saasVersion, 'CLM', CLM_PROJECT_ID)
+            jiraCreateFixVersion(saasVersion, 'INT', INT_PROJECT_ID)
+            jiraCreateFixVersion(saasVersion, 'FIRE', FIRE_PROJECT_ID)
+
+            // Collect issues with saas-next fix version from all projects
+            List<String> issues = []
+            issues.addAll(getIssuesByFixVersion('CLM', 'saas-next'))
+            issues.addAll(getIssuesByFixVersion('INT', 'saas-next'))
+            issues.addAll(getIssuesByFixVersion('FIRE', 'saas-next'))
+
+            // Replace saas-next with the specific version
+            replaceFixVersionForIssues(issues, 'saas-next', [saasVersion])
+
+            echo "Moved saas-next tickets to ${saasVersion}"
+          } catch (Exception e) {
+            echo "WARNING: Jira Fix Version update failed (non-fatal): ${e.message}"
+            echo "WARNING: The deployment succeeded but Jira versions were not updated."
+            echo "WARNING: Please create the saas Fix Version manually and move saas-next tickets."
+            currentBuild.result = 'UNSTABLE'
+          }
+        }
+      }
+    }
+
+    stage('Tag as Production') {
+      steps {
+        script {
+          def ecr = load 'jenkins/ecr-helpers.groovy'
+          def dateStamp = new Date().format('yyyyMMdd-HHmm', TimeZone.getTimeZone('UTC'))
+          def productionTag = "production-${dateStamp}"
+
+          def manifest = ecr.getImageManifest(
+            ecr.STAGING_ECR_ACCOUNT,
+            ecr.ECR_REPOSITORY,
+            params.IMAGE_TAG
+          )
+
+          ecr.putImageManifest(
+            ecr.STAGING_ECR_ACCOUNT,
+            ecr.ECR_REPOSITORY,
+            'production-mirror-latest',
+            manifest
+          )
+
+          ecr.putImageManifest(
+            ecr.STAGING_ECR_ACCOUNT,
+            ecr.ECR_REPOSITORY,
+            productionTag,
+            manifest
+          )
+
+          echo "Tagged image as: production-mirror-latest, ${productionTag}"
+        }
+      }
+    }
+
+    stage('Trigger Regional Prod Jobs') {
+      steps {
+        script {
+          // Trigger all five regional production jobs in parallel
+          parallel([
+            'us-1': {
+              build job: 'insight/MTIQ/sca-cloud/deploy-to-prod-us-1',
+                  parameters: [string(name: 'IMAGE_TAG', value: params.IMAGE_TAG)],
+                  wait: false,
+                  propagate: false
+            },
+            'us-2': {
+              build job: 'insight/MTIQ/sca-cloud/deploy-to-prod-us-2',
+                  parameters: [string(name: 'IMAGE_TAG', value: params.IMAGE_TAG)],
+                  wait: false,
+                  propagate: false
+            },
+            'eu-1': {
+              build job: 'insight/MTIQ/sca-cloud/deploy-to-prod-eu-1',
+                  parameters: [string(name: 'IMAGE_TAG', value: params.IMAGE_TAG)],
+                  wait: false,
+                  propagate: false
+            },
+            'ap-1': {
+              build job: 'insight/MTIQ/sca-cloud/deploy-to-prod-ap-1',
+                  parameters: [string(name: 'IMAGE_TAG', value: params.IMAGE_TAG)],
+                  wait: false,
+                  propagate: false
+            },
+            'fidelity': {
+              build job: 'insight/MTIQ/sca-cloud/deploy-to-prod-fidelity',
+                  parameters: [string(name: 'IMAGE_TAG', value: params.IMAGE_TAG)],
+                  wait: false,
+                  propagate: false
+            }
+          ])
+        }
+      }
+    }
+
+    stage('Check Observe Agent Version Drift') {
+      steps {
+        script {
+          // Informational only: surface (but never auto-mirror) a newer upstream
+          // observe-agent version. Mirroring is deliberately manual via
+          // insight/MTIQ/sca-cloud/update-observe-agent. This check must never fail
+          // or destabilize the production release on its own error — observeAgentDriftInfo
+          // swallows Docker Hub/ECR errors and reports no drift in that case.
+          def ecr = load 'jenkins/ecr-helpers.groovy'
+          def info = ecr.observeAgentDriftInfo(ecr.PROD_ECR_ACCOUNT)
+          if (info.drift) {
+            def updateJobUrl = "${env.JENKINS_URL}job/insight/job/MTIQ/job/sca-cloud/job/update-observe-agent/"
+            def preamble = info.version ?
+                "ℹ New Observe agent version ${info.version} available upstream" :
+                'ℹ A newer Observe agent version is available upstream'
+            currentBuild.result = 'UNSTABLE'
+            currentBuild.description = "${preamble} — " +
+                "review release notes for breaking changes before deciding whether to mirror it via ${updateJobUrl}"
+            echo currentBuild.description
+          } else {
+            echo 'Observe agent ECR :latest is in sync with upstream (or the drift check was inconclusive).'
+          }
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      script {
+        echo "deploy-to-prod-mirror: Production release initiated for ${params.IMAGE_TAG}"
+        notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices',
+                   message: "Production release initiated: ${params.IMAGE_TAG}")
+      }
+    }
+    unstable {
+      script {
+        // The release itself succeeded; the build is UNSTABLE for an informational
+        // reason (observe-agent drift or a non-fatal Jira fix-version update failure).
+        echo "deploy-to-prod-mirror: Production release initiated for ${params.IMAGE_TAG} (build UNSTABLE — see build description)"
+        notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices',
+                   message: "Production release initiated (UNSTABLE): ${params.IMAGE_TAG}. ${currentBuild.description ?: 'See console log.'}")
+      }
+    }
+    failure {
+      script {
+        echo "deploy-to-prod-mirror: FAILED for ${params.IMAGE_TAG}"
+
+        echo "============================================"
+        echo "ROLLBACK INSTRUCTIONS"
+        echo "============================================"
+        echo "1. Identify the previous known-good image tag from prod ECR"
+        echo "2. Re-run this job with the previous tag, or"
+        echo "3. Manually update the TFC workspace variable and apply"
+        echo "============================================"
+
+        notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices',
+                   message: "Production release FAILED: ${params.IMAGE_TAG}. Check logs for rollback instructions.")
+      }
+    }
+    cleanup {
+      sh 'rm -f image-manifest.json || true'
+      deleteDir()
+    }
+  }
+}

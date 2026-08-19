@@ -1,0 +1,39 @@
+{
+  "aaData" : [ {
+    "hash" : "47b6857af4a1cc50875a",
+    "groupId" : "ch.qos.logback",
+    "artifactId" : "logback-access",
+    "version" : "0.6",
+    "declaredLicenses" : [ "LGPL-3.0" ],
+    "observedLicenses" : [ "LGPL" ],
+    "effectiveLicenses" : [ "LGPL" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : "WEAKCOPYLEFT",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1164926586000
+  }, {
+    "hash" : "964cd74171f427720480",
+    "groupId" : "commons-httpclient",
+    "artifactId" : "commons-httpclient",
+    "version" : "3.1",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "Apache", "Apache-2.0" ],
+    "effectiveLicenses" : [ "Apache" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 2,
+      "Moderate" : 1
+    },
+    "effectiveLicenseThreat" : "LIBERAL",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "securityThreatLevel" : 5.8,
+    "catalogDate" : 1187703847000
+  } ]
+}

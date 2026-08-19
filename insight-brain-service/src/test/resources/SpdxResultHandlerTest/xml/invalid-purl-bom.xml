@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<Document>
+  <SPDXID>SPDXRef-DOCUMENT</SPDXID>
+  <spdxVersion>SPDX-2.3</spdxVersion>
+  <creationInfo>
+    <created>2024-09-23T14:28:47Z</created>
+    <creators>Tool: test</creators>
+  </creationInfo>
+  <name>doc name</name>
+  <dataLicense>CC0-1.0</dataLicense>
+  <documentNamespace>test</documentNamespace>
+  <packages>
+    <SPDXID>SPDXRef-test</SPDXID>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:rpm/fonts-filesystem@2.0.5</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>test cpe</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>cpe:2.3:a:red_inc.:fonts-filesystem:2.0.5:*:*:*:*:*:*:*</referenceLocator>
+      <referenceType>http://spdx.org/rdf/references/cpe23Type</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <name>fonts-filesystem</name>
+    <versionInfo>2.0.5</versionInfo>
+  </packages>
+  <relationships>
+    <spdxElementId>SPDXRef-DOCUMENT</spdxElementId>
+    <relationshipType>DESCRIBES</relationshipType>
+    <relatedSpdxElement>SPDXRef-test</relatedSpdxElement>
+  </relationships>
+</Document>

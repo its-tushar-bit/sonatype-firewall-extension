@@ -1,0 +1,59 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-httpclient",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "apache-httpclient",
+        "version" : "3.1"
+      }
+    },
+    "groupId" : "apache-httpclient",
+    "artifactId" : "commons-httpclient",
+    "version" : "3.1",
+    "hash" : "964cd74171f427720480",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "No Sources" ],
+    "effectiveLicenses" : [ "Apache-2.0" ],
+    "securityCounters" : {
+      "Critical" : 1,
+      "Severe" : 2,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "securityThreatLevel" : 7.5,
+    "catalogDate" : 1453427378000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-httpclient",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-httpclient",
+        "version" : "3.1"
+      }
+    },
+    "groupId" : "commons-httpclient",
+    "artifactId" : "commons-httpclient",
+    "version" : "3.1",
+    "hash" : "964cd74171f427720480",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "Apache-2.0", "Apache-2.0 or LGPL-2.0+" ],
+    "effectiveLicenses" : [ "Apache-2.0", "Apache-2.0 or LGPL-2.0+" ],
+    "securityCounters" : {
+      "Critical" : 1,
+      "Severe" : 2,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "securityThreatLevel" : 7.5,
+    "catalogDate" : 1187685847000
+  } ]
+}

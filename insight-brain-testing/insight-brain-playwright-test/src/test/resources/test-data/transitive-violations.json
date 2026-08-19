@@ -1,0 +1,32 @@
+{
+
+  "cannedReportClasspathDir": "/canned-reports/transitive-violations-report",
+  "scanId": "transitive-violations-scan-01",
+
+  "orgNamePrefix": "TransViolOrg",
+  "appNamePrefix": "TransViolApp",
+  "appPublicIdPrefix": "trans-viol-app",
+
+  "policy": {
+    "name": "TransitiveViolPolicy",
+    "threatLevel": 8,
+    "conditionTypeId": "MatchState",
+    "operator": "is",
+    "value": "exact"
+  },
+
+  "directComponentHash": "aaa111bbb222ccc333dd",
+  "directComponentDisplayName": "com.example : direct-parent : 1.0.0",
+  "noTransitiveDepsHash": "mmm333nnn444ooo555pp",
+
+  "transitiveComponentHashes": ["eee555fff666ggg777hh", "iii999jjj000kkk111ll"],
+
+  "innerSourceTagTestId": "component-details-tag",
+  "innerSourceTagText": "InnerSource",
+
+  "transitiveComponentWaiversTitle": "Transitive Component Waivers",
+
+  "waiverComment": "transitive-test-waiver",
+
+  "expectedViolationCount": 2
+}

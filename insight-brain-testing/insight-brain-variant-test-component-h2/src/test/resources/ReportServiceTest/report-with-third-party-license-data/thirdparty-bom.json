@@ -1,0 +1,57 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "debian-9",
+      "coordinates" : {
+        "name" : "glibc",
+        "version" : "2.24-11+deb9u3"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ ],
+    "pathnames" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "37b3ce40791bc2dd8068",
+    "relativePopularity" : null,
+    "createTime" : 1589291885089,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Clair",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : null,
+    "packageUrl" : null
+  }, {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "name" : "altgraph",
+        "version" : "0.10.2"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ ],
+    "pathnames" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "cf085cd08ee27334c573",
+    "relativePopularity" : null,
+    "createTime" : 1589291885089,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "cyclonedx",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : null,
+    "packageUrl" : "pkg:pypi/altgraph@0.10.2"
+  } ]
+}

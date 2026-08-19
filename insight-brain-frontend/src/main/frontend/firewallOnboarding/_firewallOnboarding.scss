@@ -1,0 +1,176 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+
+firewall-onboarding,
+firewall-onboarding-page {
+  display: contents;
+
+  #firewall-onboarding-page {
+    padding: 0;
+  }
+
+  .onboarding-screen-wrapper {
+    padding: 0;
+    gap: 0px;
+    display: grid;
+    grid-template-columns: 272px 1fr;
+    grid-template-areas: 'sidebar content';
+    height: 100%;
+    width: 100%;
+
+    .sidebar {
+      grid-area: sidebar;
+      border-top: none;
+      border-right: 1px solid #ddd;
+      padding-right: 1rem;
+      padding-left: 1rem;
+      background-color: white;
+
+      .step {
+        border: none;
+        display: flex;
+        align-items: center;
+        font-weight: 600;
+
+        &.selected {
+          background-color: var(--nx-color-interactive-background-selected);
+        }
+      }
+    }
+
+    .content {
+      grid-area: content;
+      padding: var(--nx-spacing-6x) var(--nx-spacing-6x);
+      padding-bottom: 0;
+      display: flex;
+      flex-direction: column;
+
+      > .nx-page-title > p.nx-p.firewall-onboarding-page__subTitle {
+        grid-area: description;
+      }
+
+      .nx-tile {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .nx-tile-content {
+        flex: 1;
+
+        &.select-repositories-container {
+          align-items: flex-start;
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+
+          .firewall-repository-list {
+            display: flex;
+            flex-flow: column;
+          }
+        }
+      }
+    }
+
+    .logo-container {
+      display: flex;
+      justify-content: center;
+
+      img {
+        margin-top: var(--nx-spacing-12x);
+      }
+    }
+
+    .actions-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      &__button-group {
+        @include nx-container-helpers.container-horizontal;
+      }
+    }
+  }
+
+  .welcome-screen-wrapper {
+    background: 12% 95% no-repeat url('./firewall-logo-white.png'), 88% 97% no-repeat url('./products-icons.png'),
+      url('./welcome-bg.png') center / cover;
+    display: grid;
+    grid-template-columns: 10% 623px;
+    grid-template-areas: 'margin content';
+    align-items: center;
+    padding: 0;
+    height: 100%;
+    min-height: 600px;
+    width: 100%;
+
+    .nx-page-title {
+      margin: 0 0 var(--nx-spacing-8x) 0;
+
+      .nx-h1 {
+        color: var(--nx-swatch-white);
+        font-size: 60px;
+        line-height: 120%;
+        white-space: unset;
+      }
+    }
+
+    .nx-h2 {
+      color: var(--nx-swatch-white);
+      font-size: 32px;
+      font-weight: bold;
+    }
+
+    .nx-h3 {
+      color: var(--nx-swatch-white);
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: var(--nx-spacing-12x);
+    }
+
+    .welcome-screen-content {
+      grid-area: content;
+    }
+
+    .nx-btn {
+      margin: 0;
+    }
+  }
+
+  #firewall-rules-selector {
+    .nx-list__item {
+      border-top: none;
+      margin-top: var(--nx-spacing-2x);
+      padding: 0;
+    }
+
+    .nx-radio-checkbox,
+    .firewall-rule-checkbox {
+      margin-bottom: 0;
+      margin-right: var(--nx-spacing-2x);
+    }
+
+    .firewall-static-rule-checkbox {
+      color: #328e0b;
+    }
+
+    .firewall-capability-name,
+    .nx-checkbox__content {
+      font-weight: 600;
+    }
+
+    .firewall-rule-description,
+    .firewall-capability-description {
+      margin-top: var(--nx-spacing-2x);
+    }
+
+    .firewall-rule-description {
+      margin-left: var(--nx-spacing-6x);
+    }
+  }
+}

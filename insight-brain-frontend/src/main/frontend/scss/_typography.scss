@@ -1,0 +1,123 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+/*
+  #Typography
+*/
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+// These are deprecated - use the mixins instead
+// will remove from here when all references have been removed
+.bold {
+  @include nx-text-helpers.nx-font-family;
+  font-weight: bold;
+}
+
+.semi-bold {
+  @include nx-text-helpers.nx-font-family;
+  font-weight: 600;
+}
+
+.regular {
+  @include nx-text-helpers.nx-font-family;
+  font-weight: normal;
+}
+
+$h1-font-size: 26px;
+
+h1 {
+  @include nx-text-helpers.bold;
+
+  font-size: $h1-font-size;
+  line-height: 28px;
+  margin-bottom: 24px;
+}
+
+h2 {
+  @include nx-text-helpers.bold;
+
+  font-size: 20px;
+  line-height: 24px;
+  margin-bottom: 16px;
+}
+
+h3 {
+  @include nx-text-helpers.bold;
+
+  font-size: 18px;
+  line-height: 21px;
+  margin-bottom: 8px;
+}
+
+h4 {
+  @include nx-text-helpers.semi-bold;
+
+  font-size: 14px;
+  line-height: 16px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+li {
+  line-height: 24px;
+}
+
+form label {
+  @include nx-text-helpers.semi-bold;
+
+  cursor: default;
+  font-size: 16px;
+}
+
+p {
+  margin-top: 16px;
+}
+
+p + h2,
+ul + h2 {
+  margin-top: 32px;
+}
+
+p + h3,
+p + h4,
+ul + h3,
+ul + h4 {
+  margin-top: 24px;
+}
+
+p + ul,
+ul + p {
+  margin-top: 20px;
+}
+
+// Form typography
+input[type='text'],
+input[type='number'],
+input[type='email'],
+input[type='password'],
+input[type='url'],
+textarea {
+  @include nx-text-helpers.regular;
+
+  font-size: 14px;
+  line-height: 18px;
+  margin-bottom: 0px;
+}
+
+label.checkbox,
+label.radio {
+  @include nx-text-helpers.regular;
+
+  font-size: 14px;
+}
+
+// see CLM-7344 for details on removing this style
+h1 + div > *:first-child,
+h2 + div > *:first-child,
+h3 + div > *:first-child,
+h4 + div > *:first-child {
+  margin-top: 0;
+}

@@ -1,0 +1,63 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
+.sbom-manager-high-priority-vulnerabilities-tile {
+  grid-area: high-priority-vulnerabilities;
+
+  .nx-tile-header {
+    display: block;
+
+    &__title {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+    }
+  }
+
+  &__info-icon {
+    color: var(--nx-color-text-dark);
+  }
+}
+
+.sbom-manager-high-priority-vulnerabilities-tile-list {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+}
+
+.sbom-manager-high-priority-vulnerabilities-tile-list-item {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--nx-spacing-6x);
+  padding: var(--nx-spacing-2x) 0;
+  border-bottom: 1px solid var(--nx-swatch-indigo-90);
+  @include nx-dark-mode-helpers.dark-mode {
+    border-bottom: 1px solid var(--nx-color-border-secondary);
+  }
+  font-size: var(--nx-font-size);
+
+  &__score {
+    display: flex;
+    gap: var(--nx-spacing-2x);
+
+    .nx-threat-indicator {
+      margin-left: 0;
+    }
+  }
+
+  &__severity {
+    $-threat-indicator-size: 14px;
+
+    display: flex;
+    align-items: center;
+    min-width: calc(#{$-threat-indicator-size} + var(--nx-spacing-2x) + 1.5em);
+  }
+
+  &__date {
+    font-size: var(--nx-font-size-xs);
+  }
+}

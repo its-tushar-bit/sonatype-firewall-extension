@@ -1,0 +1,147 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.migration;
+
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
+
+import jakarta.inject.Inject;
+
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.model.MigrationTracker;
+import com.sonatype.insight.brain.variant.AbstractComponentPgTest;
+import com.sonatype.insight.brain.variant.ComponentPgTest;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+
+/**
+ * PostgreSQL-backed async DB migration component tests relocated from {@code SloViolationIndexAsyncDbMigrationTest}
+ * and {@code PostgresSloViolationIndexAsyncDbMigrationTest} (CLM-45235). The H2 coverage stays in the origin
+ * {@code SloViolationIndexAsyncDbMigrationTest}.
+ */
+@ComponentPgTest
+public class PostgresSloViolationIndexAsyncDbMigrationTest
+    extends AbstractComponentPgTest
+{
+  @Inject
+  protected MigrationTrackerDAO migrationTrackerDAO;
+
+  @Inject
+  protected SloViolationIndexAsyncDbMigration underTest;
+
+  @Inject
+  private OperationalDataStore operationalDataStore;
+
+  @BeforeEach
+  public void setup() {
+    migrationTrackerDAO.deleteById(underTest.getMigrationName());
+  }
+
+  @BeforeEach
+  public void setupPostgres() throws Exception {
+    dropIndexIfExists();
+  }
+
+  @Test
+  public void testRunMigration_completesSuccessfully() {
+    underTest.runMigration();
+
+    MigrationTracker tracker = migrationTrackerDAO.getById(underTest.getMigrationName());
+    assertThat(tracker).isNotNull();
+  }
+
+  @Test
+  public void testRunMigration_skipsWhenTrackerExists() {
+    migrationTrackerDAO.insertTracker(underTest.getMigrationName());
+
+    SloViolationIndexAsyncDbMigration spied = spy(underTest);
+    spied.runMigration();
+
+    verify(spied, never()).onStart();
+  }
+
+  @Test
+  public void testRunMigration_createsValidIndex() throws Exception {
+    underTest.runMigration();
+
+    assertThat(isIndexValid()).isTrue();
+  }
+
+  @Test
+  public void testRunMigration_replacesInvalidIndex() throws Exception {
+    createInvalidIndex();
+
+    underTest.runMigration();
+
+    assertThat(isIndexValid()).isTrue();
+  }
+
+  @Test
+  public void testRunMigration_idempotent() throws Exception {
+    underTest.runMigration();
+    assertThat(isIndexValid()).isTrue();
+
+    migrationTrackerDAO.deleteById(underTest.getMigrationName());
+    underTest.runMigration();
+    assertThat(isIndexValid()).isTrue();
+  }
+
+  private boolean isIndexValid() throws Exception {
+    String schema = operationalDataStore.getDatabaseSchema();
+    try (Connection conn = operationalDataStore.getDataSource().getConnection();
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery(
+            "SELECT i.indisvalid FROM pg_index i "
+                + "JOIN pg_class c ON c.oid = i.indexrelid "
+                + "JOIN pg_namespace n ON n.oid = c.relnamespace "
+                + "WHERE c.relname = 'policy_violation_app_stage_updated_idx' "
+                + "AND n.nspname = '" + schema + "'"))
+    {
+      if (rs.next()) {
+        return rs.getBoolean("indisvalid");
+      }
+      return false;
+    }
+  }
+
+  private void createInvalidIndex() throws Exception {
+    String schema = operationalDataStore.getDatabaseSchema();
+    try (Connection conn = operationalDataStore.getDataSource().getConnection();
+        Statement stmt = conn.createStatement())
+    {
+      conn.setAutoCommit(true);
+      stmt.execute(
+          "CREATE INDEX CONCURRENTLY IF NOT EXISTS policy_violation_app_stage_updated_idx "
+              + "ON " + schema + ".policy_violation "
+              + "(owner_id, stage_type_id, "
+              + "GREATEST(COALESCE(open_time, TIMESTAMP '1970-01-01 00:00:00'), "
+              + "COALESCE(waive_time, TIMESTAMP '1970-01-01 00:00:00'), "
+              + "COALESCE(fix_time, TIMESTAMP '1970-01-01 00:00:00'), "
+              + "COALESCE(legacy_violation_time, TIMESTAMP '1970-01-01 00:00:00')), "
+              + "policy_violation_id)");
+      stmt.execute(
+          "UPDATE pg_index SET indisvalid = false WHERE indexrelid = '"
+              + schema + ".policy_violation_app_stage_updated_idx'::regclass");
+    }
+  }
+
+  private void dropIndexIfExists() throws Exception {
+    String schema = operationalDataStore.getDatabaseSchema();
+    try (Connection conn = operationalDataStore.getDataSource().getConnection();
+        Statement stmt = conn.createStatement())
+    {
+      stmt.execute("DROP INDEX IF EXISTS " + schema + ".policy_violation_app_stage_updated_idx");
+    }
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "aaData": [
+    {
+      "artifactId": "spring-web",
+      "classifier": null,
+      "componentIdentifier": {
+        "coordinates": {
+          "artifactId": "spring-web",
+          "extension": "jar",
+          "groupId": "spring-web",
+          "version": "1.0"
+        },
+        "format": "maven"
+      },
+      "declaredLicenses": [
+        "Not Provided"
+      ],
+      "displayName": {
+        "name": "spring-web",
+        "parts": [
+          {
+            "field": "Group",
+            "value": "spring-web"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "spring-web"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "1.0"
+          }
+        ]
+      },
+      "extension": "jar",
+      "groupId": "spring-web",
+      "hash": "714d123d4df81c096bed",
+      "matchedByCoordinates": true,
+      "matchState": "exact",
+      "packageUrl": "pkg:maven/spring-web/spring-web@1.0?type=jar",
+      "proprietary": false,
+      "version": "1.0"
+    },
+    {
+      "artifactId": "activeio",
+      "catalogDate": 1135095471000,
+      "classifier": null,
+      "componentIdentifier": {
+        "coordinates": {
+          "artifactId": "activeio",
+          "extension": "jar",
+          "groupId": "activeio",
+          "version": "1.0"
+        },
+        "format": "maven"
+      },
+      "declaredLicenses": [
+        "Not Declared"
+      ],
+      "displayName": {
+        "name": "activeio",
+        "parts": [
+          {
+            "field": "Group",
+            "value": "activeio"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "activeio"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "1.0"
+          }
+        ]
+      },
+      "effectiveLicenses": [
+        "Not Declared",
+        "Apache-2.0"
+      ],
+      "extension": "jar",
+      "groupId": "activeio",
+      "hash": "ff31c33c120892ac3ff4",
+      "matchedByCoordinates": true,
+      "matchState": "exact",
+      "observedLicenses": [
+        "Apache-2.0"
+      ],
+      "packageUrl": "pkg:maven/activeio/activeio@1.0?type=jar",
+      "proprietary": false,
+      "version": "1.0"
+    }
+  ]
+}

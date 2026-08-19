@@ -1,0 +1,367 @@
+{
+  "dependencyTree": {
+    "componentIdentifier": {
+      "format": "maven",
+      "coordinates": {
+        "artifactId": "insight-scanner",
+        "classifier": "",
+        "extension": "pom",
+        "groupId": "com.sonatype.insight.scan",
+        "version": "2.23.5-SNAPSHOT"
+      },
+      "module": true
+    },
+    "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-scanner@2.23.5-SNAPSHOT?type=pom",
+    "children": [
+      {
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "insight-test-reverse-proxy",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "com.sonatype.insight.scan",
+            "version": "2.23.5-SNAPSHOT"
+          }
+        },
+        "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-test-reverse-proxy@2.23.5-SNAPSHOT?type=jar",
+        "direct": true,
+        "module": true
+      },
+      {
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "insight-client-utils",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "com.sonatype.insight.scan",
+            "version": "2.23.5-SNAPSHOT"
+          }
+        },
+        "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-client-utils@2.23.5-SNAPSHOT?type=jar",
+        "children": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "insight-test-reverse-proxy",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.sonatype.insight.scan",
+                "version": "2.23.5-SNAPSHOT"
+              }
+            },
+            "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-test-reverse-proxy@2.23.5-SNAPSHOT?type=jar",
+            "direct": true
+          }
+        ],
+        "direct": true,
+        "module": true
+      },
+      {
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "insight-archive-utils",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "com.sonatype.insight.scan",
+            "version": "2.23.5-SNAPSHOT"
+          }
+        },
+        "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-archive-utils@2.23.5-SNAPSHOT?type=jar",
+        "children": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "commons-compress",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "org.apache.commons",
+                "version": "1.19"
+              }
+            },
+            "packageUrl": "pkg:maven/org.apache.commons/commons-compress@1.19?type=jar",
+            "direct": true
+          },
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "mockito-core",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "org.mockito",
+                "version": "2.28.2"
+              }
+            },
+            "packageUrl": "pkg:maven/org.mockito/mockito-core@2.28.2?type=jar",
+            "direct": true
+          }
+        ]
+      },
+      {
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "insight-scanner-model",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "com.sonatype.insight.scan",
+            "version": "2.23.5-SNAPSHOT"
+          }
+        },
+        "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-scanner-model@2.23.5-SNAPSHOT?type=jar",
+        "direct": true,
+        "module": true
+      },
+      {
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "insight-scanner-model-io",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "com.sonatype.insight.scan",
+            "version": "2.23.5-SNAPSHOT"
+          }
+        },
+        "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-scanner-model-io@2.23.5-SNAPSHOT?type=jar",
+        "children": [
+          {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "xstream",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.thoughtworks.xstream",
+                "version": "1.4.11.1"
+              }
+          },
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "insight-scanner-model",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.sonatype.insight.scan",
+                "version": "2.23.5-SNAPSHOT"
+              }
+            },
+            "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-scanner-model@2.23.5-SNAPSHOT?type=jar",
+            "direct": true
+          }
+        ],
+        "direct": true,
+        "module": true
+      },
+      {
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "insight-scanner-core",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "com.sonatype.insight.scan",
+            "version": "2.23.5-SNAPSHOT"
+          }
+        },
+        "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-scanner-core@2.23.5-SNAPSHOT?type=jar",
+        "children": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "insight-scanner-model",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.sonatype.insight.scan",
+                "version": "2.23.5-SNAPSHOT"
+              }
+            },
+            "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-scanner-model@2.23.5-SNAPSHOT?type=jar",
+            "direct": true
+          }
+        ],
+        "direct": true,
+        "module": true
+      },
+      {
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "insight-scanner-archive",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "com.sonatype.insight.scan",
+            "version": "2.23.5-SNAPSHOT"
+          }
+        },
+        "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@2.23.5-SNAPSHOT?type=jar",
+        "children": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "mockito-core",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "org.mockito",
+                "version": "2.28.2"
+              }
+            },
+            "packageUrl": "pkg:maven/org.mockito/mockito-core@2.28.2?type=jar",
+            "direct": true
+          },
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "insight-scanner-hashing",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.sonatype.insight.scan",
+                "version": "1.12.0-01"
+              }
+            },
+            "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing@1.12.0-01?type=jar",
+            "children": [
+              {
+                "componentIdentifier": {
+                  "format": "maven",
+                  "coordinates": {
+                    "artifactId": "insight-scanner-hashing-asm60",
+                    "classifier": "",
+                    "extension": "jar",
+                    "groupId": "com.sonatype.insight.scan",
+                    "version": "1.12.0-01"
+                  }
+                },
+                "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing-asm60@1.12.0-01?type=jar"
+              },
+              {
+                "componentIdentifier": {
+                  "format": "maven",
+                  "coordinates": {
+                    "artifactId": "asm",
+                    "classifier": "",
+                    "extension": "jar",
+                    "groupId": "org.ow2.asm",
+                    "version": "7.1"
+                  }
+                },
+                "packageUrl": "pkg:maven/org.ow2.asm/asm@7.1?type=jar"
+              }
+            ],
+            "direct": true
+          },
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "insight-scanner-model-io",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.sonatype.insight.scan",
+                "version": "2.23.5-SNAPSHOT"
+              }
+            },
+            "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-scanner-model-io@2.23.5-SNAPSHOT?type=jar",
+            "direct": true
+          },
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "insight-archive-utils",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.sonatype.insight.scan",
+                "version": "2.23.5-SNAPSHOT"
+              }
+            },
+            "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-archive-utils@2.23.5-SNAPSHOT?type=jar",
+            "children": [
+              {
+                "componentIdentifier": {
+                  "format": "maven",
+                  "coordinates": {
+                    "artifactId": "commons-compress",
+                    "classifier": "",
+                    "extension": "jar",
+                    "groupId": "org.apache.commons",
+                    "version": "1.19"
+                  }
+                },
+                "packageUrl": "pkg:maven/org.apache.commons/commons-compress@2.23.5-SNAPSHOT?type=jar"
+              }
+            ],
+            "direct": true
+          },
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "insight-scanner-model",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.sonatype.insight.scan",
+                "version": "2.23.5-SNAPSHOT"
+              }
+            },
+            "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-scanner-model@2.23.5-SNAPSHOT?type=jar",
+            "direct": true
+          },
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "commons-io",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "commons-io",
+                "version": "2.6"
+              }
+            },
+            "packageUrl": "pkg:maven/commons-io/commons-io@2.6?type=jar",
+            "direct": true
+          },
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "insight-scanner-core",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.sonatype.insight.scan",
+                "version": "2.23.5-SNAPSHOT"
+              }
+            },
+            "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-scanner-core@2.23.5-SNAPSHOT?type=jar",
+            "direct": true
+          }
+        ],
+        "direct": true,
+        "module": true
+      },
+      {
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "insight-module-model",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "com.sonatype.insight.scan",
+            "version": "2.23.5-SNAPSHOT"
+          }
+        },
+        "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-module-model@2.23.5-SNAPSHOT?type=jar",
+        "direct": true,
+        "module": true
+      }
+    ]
+  }
+}

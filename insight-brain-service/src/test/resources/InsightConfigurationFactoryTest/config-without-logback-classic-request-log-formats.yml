@@ -1,0 +1,9 @@
+server:
+  requestLog:
+    type: classic
+    appenders:
+      - type: console
+      - type: file
+        currentLogFilename: ./target/log/request.log
+        archive: false
+      - type: syslog

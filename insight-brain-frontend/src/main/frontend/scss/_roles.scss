@@ -1,0 +1,74 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+// DELETE BELOW WHEN REFACTORING ON ROLES PAGES (LIST AND EDIT) IS DONE - GH
+//Note this is the requested width of the role summary text, plus 22px for the button width and padding
+.group-search-warning > .fa {
+  margin-right: 8px;
+}
+
+// Begin styles from app-security.css
+
+.role {
+  .hover-buttons {
+    margin-top: 6px;
+  }
+
+  .role-footer {
+    border-bottom: 1px solid #e8e8e8;
+    margin-bottom: 5px;
+  }
+}
+
+.member-content {
+  float: left;
+  min-height: 1px;
+  margin-left: 10px;
+  width: 630px;
+
+  double-column-picker {
+    background-color: white;
+    width: 100%;
+  }
+}
+// End styles from app-security.css
+
+// Begin stles from /user/user.css
+.users {
+  max-width: 469px;
+  min-width: 469px;
+
+  form,
+  .accordion {
+    margin: 0px;
+  }
+}
+
+.user-button > i {
+  margin-top: 0px;
+}
+
+.summary-label {
+  padding-left: 5px;
+  padding-right: 10px;
+  text-align: left;
+}
+
+.user-form-label {
+  padding-left: 20px;
+  text-align: left !important;
+}
+
+.user-button-bar {
+  padding-right: 5px;
+  padding-bottom: 5px;
+  text-align: right;
+}
+
+.user-list-loading {
+  margin: 30px;
+  text-align: center;
+}
+// End stles from /user/user.css

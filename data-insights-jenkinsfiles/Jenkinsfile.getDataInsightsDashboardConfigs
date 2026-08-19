@@ -1,0 +1,147 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+// This job allows the Business Intelligence team to view the current dashboard configuration and icons list
+// Some more technical background can be found here https://sonatype.atlassian.net/wiki/spaces/DATA/pages/227410489/Dashboard+Change+Management
+// The job can be ran here: https://jenkins.ci.sonatype.dev/job/insight/job/insight-brain/job/Data%20Insights%20Dashboard%20Configuration/job/Get%20Data%20Insights%20Dashboards%20and%20Icons/
+
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+import groovy.json.JsonSlurper
+
+def fileName = "enterprise-reporting.json"
+def iconsFileName = "icons.zip"
+
+def s3ConfigurationByEnv =  [
+  staging: [
+    account: "993883856687",
+    role: 'jenkins-hds-enterprise-reporting-staging',
+    credentialsId: 'hds-enterprise-reporting-external-id-staging',
+    usEast2Bucket: "hds-staging-enterprise-reporting-us-east-2" // assume east is canonical
+  ],
+
+  production: [
+    account  : "135388973902",
+    role: 'jenkins-hds-enterprise-reporting-production',
+    credentialsId: 'hds-enterprise-reporting-external-id-production',
+    usEast2Bucket: "hds-production-enterprise-reporting-us-east-2" // assume east is canonical
+  ]
+]
+
+pipeline {
+  agent {
+    node {
+      label 'zion-small'
+    }
+  }
+
+  parameters {
+    choice(
+      name: 'environment',
+      description: 'Pick which environment you want to fetch the dashboard listing for:',
+      choices: ['staging', 'production']
+    )
+  }
+
+  stages {
+    stage('Initialize') {
+      steps {
+        script {
+          currentBuild.displayName = "#${currentBuild.number} : ${params.environment}"
+        }
+      }
+    }
+
+    stage('Get IER Dashboard Configurations') {
+      steps {
+        script {
+          echo "running for environment: ${params.environment}"
+
+          def s3Configuration = s3ConfigurationByEnv[params.environment]
+
+          withAwsRole(region: 'us-east-2', role: s3Configuration.role, roleAccount: s3Configuration.account, credentialsId: s3Configuration.credentialsId) {
+            def bucket = s3Configuration.usEast2Bucket
+
+            validateConfigurationFileExists(bucket, fileName)
+
+            def dashboardConfigs = readExistingConfig(bucket, fileName)
+
+            echo "Dashboards current version: ${dashboardConfigs.version}"
+
+            sortDashboardsByPriorityOrder(dashboardConfigs)
+
+            def jsonContent = writeJSON(returnText: true, json: dashboardConfigs, pretty: 2)
+
+            writeFile file: 'sorted_dashboard_configs.json', text: jsonContent
+
+            echo jsonContent
+          }
+        }
+      }
+    }
+    stage('Get IER Icons') {
+      steps {
+        script {
+          echo "running for environment: ${params.environment}"
+          def s3Configuration = s3ConfigurationByEnv[params.environment]
+
+          withAwsRole(region: 'us-east-2', role: s3Configuration.role, roleAccount: s3Configuration.account, credentialsId: s3Configuration.credentialsId) {
+            def bucket = s3Configuration.usEast2Bucket
+
+            def iconsZipContents = readIconZipContents(bucket, iconsFileName)
+
+            echo writeJSON(returnText: true, json: iconsZipContents.keySet(), pretty: 2)
+          }
+        }
+      }
+    }
+    stage('Archive Artifacts') {
+      steps {
+        archiveArtifacts artifacts: 'sorted_dashboard_configs.json', allowEmptyArchive: true
+      }
+    }
+  }
+}
+
+def validateConfigurationFileExists(bucketName, fileName) {
+  sh """
+    aws s3api head-object --bucket ${bucketName} --key ${fileName} > /dev/null 2>&1 || not_exist=true
+    if [ \$not_exist ]; then
+        echo "${fileName} does not exist for bucket ${bucketName}"
+        exit 2
+    fi
+    """
+}
+
+def readExistingConfig(bucket, fileName) {
+  def dashboardConfigJson = getFileContents(bucket, fileName)
+
+  return new JsonSlurper().parseText(dashboardConfigJson)
+}
+
+def sortDashboardsByPriorityOrder(dashboardConfigs) {
+  dashboardConfigs.dashboards = sortByPriorityOrder(dashboardConfigs.dashboards)
+}
+
+def sortByPriorityOrder(dashboardData) {
+  def unsorted = dashboardData.collect({ it.value })
+  return sortMapList(unsorted, 'priorityOrder')
+}
+
+@NonCPS
+def sortMapList(List<Map> mapList, String sortKey) {
+  return mapList.sort { a, b -> a[sortKey] <=> b[sortKey] }
+}
+
+def getFileContents(bucketName, fileName) {
+  return sh(script: "aws s3 cp s3://${bucketName}/${fileName} -", returnStdout: true).trim()
+}
+
+def readIconZipContents(bucketName, iconFileName) {
+  sh "aws s3 cp s3://${bucketName}/${iconFileName} ./${iconFileName}"
+  def zipContents = unzip zipFile: "./${iconFileName}", read: true
+  sh "rm -rf ./${iconFileName}"
+  return zipContents
+}

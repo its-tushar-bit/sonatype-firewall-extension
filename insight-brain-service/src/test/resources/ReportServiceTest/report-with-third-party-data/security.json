@@ -1,0 +1,30 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-httpclient",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "apache-httpclient",
+        "version" : "3.1"
+      }
+    },
+    "groupId" : "apache-httpclient",
+    "artifactId" : "commons-httpclient",
+    "version" : "3.1",
+    "hash" : "964cd74171f427720480",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2012-5783",
+    "reference" : "CVE-2012-5783",
+    "source" : "cve",
+    "score" : 5.8,
+    "cwe" : "20",
+    "cvssVectorString" : "AV:N/AC:M/Au:N/C:P/I:P/A:N",
+    "cvssVectorSource" : "NVD",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "identificationSource" : "Sonatype",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY"
+  } ]
+}

@@ -1,0 +1,28 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-httpclient",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-httpclient",
+        "version" : "3.1"
+      }
+    },
+    "groupId" : "commons-httpclient",
+    "artifactId" : "commons-httpclient",
+    "version" : "3.1",
+    "filenames" : [ "commons-httpclient-3.1.jar" ],
+    "pathnames" : [ "commons-httpclient-3.1.jar" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "964cd74171f427720480",
+    "relativePopularity" : 1.0,
+    "createTime" : 1187685847000,
+    "lastModifiedTime" : 1529687584000,
+    "lastModifiedEntryTime" : 1187449150000,
+    "website" : null
+  } ]
+}

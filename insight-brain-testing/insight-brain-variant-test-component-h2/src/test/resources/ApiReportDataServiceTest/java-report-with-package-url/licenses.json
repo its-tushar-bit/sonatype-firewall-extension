@@ -1,0 +1,1278 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-lang",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-lang",
+        "version" : "2.6"
+      }
+    },
+    "groupId" : "commons-lang",
+    "artifactId" : "commons-lang",
+    "version" : "2.6",
+    "hash" : "0ce1edb914c94ebc388f",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "Apache-2.0" ],
+    "effectiveLicenses" : [ "Apache-2.0" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1462848008000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "commons-lang"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-lang"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.6"
+      } ],
+      "name" : "commons-lang"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jquery",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.webjars",
+        "version" : "3.5.1"
+      }
+    },
+    "groupId" : "org.webjars",
+    "artifactId" : "jquery",
+    "version" : "3.5.1",
+    "hash" : "2392938e374f561c27c5",
+    "declaredLicenses" : [ "MIT", "Non-Standard" ],
+    "observedLicenses" : [ "No Source License" ],
+    "effectiveLicenses" : [ "Non-Standard" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 6,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1588764776000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.webjars"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jquery"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.5.1"
+      } ],
+      "name" : "jquery"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars jquery",
+        "qualifier" : "",
+        "version" : "1.10.2"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "37081687a930b9a4a29c",
+    "declaredLicenses" : [ "MIT", "Non-Standard" ],
+    "observedLicenses" : [ "Not Supported" ],
+    "effectiveLicenses" : [ "Non-Standard" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 3,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 6,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : 6.5,
+    "catalogDate" : 1373979718000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars jquery"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.10.2"
+      } ],
+      "name" : "org.webjars jquery"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "jquery",
+        "qualifier" : "",
+        "version" : "2.1.4"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "37da25aeb3ac361a1964",
+    "declaredLicenses" : [ "MIT" ],
+    "observedLicenses" : [ "Not Supported" ],
+    "effectiveLicenses" : [ "MIT" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 1,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : 6.1,
+    "catalogDate" : 1637357814000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "jquery"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "2.1.4"
+      } ],
+      "name" : "jquery"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xml-resolver",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "xml-resolver",
+        "version" : "1.2"
+      }
+    },
+    "groupId" : "xml-resolver",
+    "artifactId" : "xml-resolver",
+    "version" : "1.2",
+    "hash" : "3d0f97750b3a03e09718",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "Apache-2.0" ],
+    "effectiveLicenses" : [ "Apache-2.0" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1463028498000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "xml-resolver"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "xml-resolver"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.2"
+      } ],
+      "name" : "xml-resolver"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "jquery-timepicker",
+        "qualifier" : "",
+        "version" : "1.3.2"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "459038f2b3a096115f62",
+    "declaredLicenses" : [ "GPL-2.0", "MIT" ],
+    "observedLicenses" : [ "Not Supported" ],
+    "effectiveLicenses" : [ "GPL-2.0" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 9,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1613411596000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "jquery-timepicker"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.3.2"
+      } ],
+      "name" : "jquery-timepicker"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jose4j",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.bitbucket.b_c",
+        "version" : "0.7.6"
+      }
+    },
+    "groupId" : "org.bitbucket.b_c",
+    "artifactId" : "jose4j",
+    "version" : "0.7.6",
+    "hash" : "4685155beaabc2fd6718",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "Apache-2.0" ],
+    "effectiveLicenses" : [ "Apache-2.0" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1611871884000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.bitbucket.b_c"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jose4j"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "0.7.6"
+      } ],
+      "name" : "jose4j"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "edward",
+        "qualifier" : "",
+        "version" : "7.0.8"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "48a5ae0c21acfee7b07a",
+    "declaredLicenses" : [ "MIT" ],
+    "observedLicenses" : [ "Not Supported" ],
+    "effectiveLicenses" : [ "MIT" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1637357814000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "edward"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "7.0.8"
+      } ],
+      "name" : "edward"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jjwt",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.jsonwebtoken",
+        "version" : "0.9.1"
+      }
+    },
+    "groupId" : "io.jsonwebtoken",
+    "artifactId" : "jjwt",
+    "version" : "0.9.1",
+    "hash" : "54d2abfc3e63a28824d3",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "Apache-2.0" ],
+    "effectiveLicenses" : [ "Apache-2.0" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1530831094000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "io.jsonwebtoken"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jjwt"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "0.9.1"
+      } ],
+      "name" : "jjwt"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "asciidoctorj",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.asciidoctor",
+        "version" : "2.4.3"
+      }
+    },
+    "groupId" : "org.asciidoctor",
+    "artifactId" : "asciidoctorj",
+    "version" : "2.4.3",
+    "hash" : "58c98a3ec44d15288a13",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "No Source License" ],
+    "effectiveLicenses" : [ "Apache-2.0" ],
+    "securityCounters" : {
+      "Critical" : 1,
+      "Severe" : 1,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 5,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : 7.8,
+    "catalogDate" : 1612717652000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.asciidoctor"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "asciidoctorj"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.4.3"
+      } ],
+      "name" : "asciidoctorj"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "cglib-nodep",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "cglib",
+        "version" : "2.2"
+      }
+    },
+    "groupId" : "cglib",
+    "artifactId" : "cglib-nodep",
+    "version" : "2.2",
+    "hash" : "59afed7ab65e7ec6585d",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "Apache-2.0", "BSD-3-Clause" ],
+    "effectiveLicenses" : [ "Apache-2.0", "BSD-3-Clause" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1228170512000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "cglib"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "cglib-nodep"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.2"
+      } ],
+      "name" : "cglib-nodep"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xstream",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.thoughtworks.xstream",
+        "version" : "1.4.5"
+      }
+    },
+    "groupId" : "com.thoughtworks.xstream",
+    "artifactId" : "xstream",
+    "version" : "1.4.5",
+    "hash" : "61c0a127b237182fdf2c",
+    "declaredLicenses" : [ "Generic-Liberal-Clause" ],
+    "observedLicenses" : [ "BSD" ],
+    "effectiveLicenses" : [ "BSD", "Generic-Liberal-Clause" ],
+    "securityCounters" : {
+      "Critical" : 14,
+      "Severe" : 1,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : 9.9,
+    "catalogDate" : 1380382358000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.thoughtworks.xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.4.5"
+      } ],
+      "name" : "xstream"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "underscore",
+        "qualifier" : "",
+        "version" : "1.10.2"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "6e27fcb901943b36046d",
+    "declaredLicenses" : [ "MIT" ],
+    "observedLicenses" : [ "Not Supported" ],
+    "effectiveLicenses" : [ "MIT" ],
+    "securityCounters" : {
+      "Critical" : 1,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : 7.2,
+    "catalogDate" : 1323270738045,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "underscore"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.10.2"
+      } ],
+      "name" : "underscore"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "backbone",
+        "qualifier" : "",
+        "version" : "1.4.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "6fc8539282a937aa640b",
+    "declaredLicenses" : [ "MIT" ],
+    "observedLicenses" : [ "Not Supported" ],
+    "effectiveLicenses" : [ "MIT" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1623081710000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "backbone"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.4.0"
+      } ],
+      "name" : "backbone"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "zxcvbn",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.nulab-inc",
+        "version" : "1.4.0"
+      }
+    },
+    "groupId" : "com.nulab-inc",
+    "artifactId" : "zxcvbn",
+    "version" : "1.4.0",
+    "hash" : "7cf830b18fe2d2b13739",
+    "declaredLicenses" : [ "MIT" ],
+    "observedLicenses" : [ "No Source License" ],
+    "effectiveLicenses" : [ "MIT" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 5,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1613695402000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.nulab-inc"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "zxcvbn"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.4.0"
+      } ],
+      "name" : "zxcvbn"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ant",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ant",
+        "version" : "1.6.5"
+      }
+    },
+    "groupId" : "ant",
+    "artifactId" : "ant",
+    "version" : "1.6.5",
+    "hash" : "7d18faf23df1a5c3a436",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "Apache-2.0" ],
+    "effectiveLicenses" : [ "Apache-2.0" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 2,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : 6.5,
+    "catalogDate" : 1132682799000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "ant"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ant"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.6.5"
+      } ],
+      "name" : "ant"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "node-polyglot",
+        "qualifier" : "",
+        "version" : "0.4.3"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "84e9051134ececf6bb16",
+    "declaredLicenses" : [ "BSD" ],
+    "observedLicenses" : [ "Not Supported" ],
+    "effectiveLicenses" : [ "BSD" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1435346276937,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "node-polyglot"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "0.4.3"
+      } ],
+      "name" : "node-polyglot"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "@para-snack/core",
+        "qualifier" : "",
+        "version" : "0.0.8"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "88e355d2bfccae168fd1",
+    "declaredLicenses" : [ "ISC" ],
+    "observedLicenses" : [ "Not Supported" ],
+    "effectiveLicenses" : [ "ISC" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1632152202000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "@para-snack/core"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "0.0.8"
+      } ],
+      "name" : "@para-snack/core"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-exec",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.commons",
+        "version" : "1.3"
+      }
+    },
+    "groupId" : "org.apache.commons",
+    "artifactId" : "commons-exec",
+    "version" : "1.3",
+    "hash" : "8dfb9facd0830a27b1b5",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "Apache-2.0" ],
+    "effectiveLicenses" : [ "Apache-2.0" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1414974434000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.apache.commons"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-exec"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.3"
+      } ],
+      "name" : "commons-exec"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "jquery-form",
+        "qualifier" : "",
+        "version" : "3.50.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "9c06887e03feb6c996ab",
+    "declaredLicenses" : [ "GPL-2.0", "MIT" ],
+    "observedLicenses" : [ "Not Supported" ],
+    "effectiveLicenses" : [ "GPL-2.0" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 1,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 9,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : 6.1,
+    "catalogDate" : 1615591317000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "jquery-form"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "3.50.0"
+      } ],
+      "name" : "jquery-form"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ant-launcher",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ant",
+        "version" : "1.6.5"
+      }
+    },
+    "groupId" : "ant",
+    "artifactId" : "ant-launcher",
+    "version" : "1.6.5",
+    "hash" : "b06fd72d7cabd5ec39ce",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "No Sources" ],
+    "effectiveLicenses" : [ "Apache-2.0" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 5,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1132682802000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "ant"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ant-launcher"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.6.5"
+      } ],
+      "name" : "ant-launcher"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars bootstrap",
+        "qualifier" : "",
+        "version" : "3.1.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "b72e6b076e32fb3a87f6",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "Not Supported" ],
+    "effectiveLicenses" : [ "Apache-2.0" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 4,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : 6.1,
+    "catalogDate" : 1392315408000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars bootstrap"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "3.1.1"
+      } ],
+      "name" : "org.webjars bootstrap"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jaxb-runtime",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.glassfish.jaxb",
+        "version" : "2.3.0"
+      }
+    },
+    "groupId" : "org.glassfish.jaxb",
+    "artifactId" : "jaxb-runtime",
+    "version" : "2.3.0",
+    "hash" : "c50f1a599ff0fcf3944e",
+    "declaredLicenses" : [ "CDDL-1.1", "GPL", "GPL-2.0-with-classpath-exception" ],
+    "observedLicenses" : [ "CDDL-1.1 or GPL-2.0-CPE" ],
+    "effectiveLicenses" : [ "GPL" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 9,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1501687015000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.glassfish.jaxb"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jaxb-runtime"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.3.0"
+      } ],
+      "name" : "jaxb-runtime"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars jquery-ui",
+        "qualifier" : "",
+        "version" : "1.12.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "ccd02828be70182e7a6d",
+    "declaredLicenses" : [ "MIT", "Non-Standard" ],
+    "observedLicenses" : [ "Not Supported" ],
+    "effectiveLicenses" : [ "Non-Standard" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 6,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1613411596000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars jquery-ui"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.12.1"
+      } ],
+      "name" : "org.webjars jquery-ui"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "requirejs-text",
+        "qualifier" : "",
+        "version" : "2.0.12"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "cf2efe48a18919c6b6ee",
+    "declaredLicenses" : [ "BSD-3-Clause", "MIT" ],
+    "observedLicenses" : [ "Not Supported" ],
+    "effectiveLicenses" : [ "BSD-3-Clause", "MIT" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1623081710000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "requirejs-text"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "2.0.12"
+      } ],
+      "name" : "requirejs-text"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.owasp.webgoat webgoat-container",
+        "qualifier" : "",
+        "version" : "7.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "cf589d4746179e58dc8e",
+    "declaredLicenses" : [ "GPL-2.0" ],
+    "observedLicenses" : [ "Not Supported" ],
+    "effectiveLicenses" : [ "GPL-2.0" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 9,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1454353150000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.owasp.webgoat webgoat-container"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "7.0"
+      } ],
+      "name" : "org.owasp.webgoat webgoat-container"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "ace-builds",
+        "qualifier" : "",
+        "version" : "1.4.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "d500dca5e091b0da0d94",
+    "declaredLicenses" : [ "BSD" ],
+    "observedLicenses" : [ "Not Supported" ],
+    "effectiveLicenses" : [ "BSD" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1629488476000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "ace-builds"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.4.0"
+      } ],
+      "name" : "ace-builds"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "bootstrap",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.webjars",
+        "version" : "3.3.7"
+      }
+    },
+    "groupId" : "org.webjars",
+    "artifactId" : "bootstrap",
+    "version" : "3.3.7",
+    "hash" : "d6aeba80236573ed585b",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "No Source License" ],
+    "effectiveLicenses" : [ "Apache-2.0" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 6,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 5,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : 6.1,
+    "catalogDate" : 1469466465000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.webjars"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "bootstrap"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.3.7"
+      } ],
+      "name" : "bootstrap"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "jquery",
+        "qualifier" : "",
+        "version" : "3.4.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "e7c380e22aeaffae68ce",
+    "declaredLicenses" : [ "MIT" ],
+    "observedLicenses" : [ "Not Supported" ],
+    "effectiveLicenses" : [ "MIT" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1637357814000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "jquery"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "3.4.1"
+      } ],
+      "name" : "jquery"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jsoup",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.jsoup",
+        "version" : "1.13.1"
+      }
+    },
+    "groupId" : "org.jsoup",
+    "artifactId" : "jsoup",
+    "version" : "1.13.1",
+    "hash" : "f9577f3732bb7caa4fee",
+    "declaredLicenses" : [ "MIT" ],
+    "observedLicenses" : [ "No Source License" ],
+    "effectiveLicenses" : [ "MIT" ],
+    "securityCounters" : {
+      "Critical" : 1,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 5,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : 7.5,
+    "catalogDate" : 1583025981000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.jsoup"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jsoup"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.13.1"
+      } ],
+      "name" : "jsoup"
+    }
+  } ]
+}

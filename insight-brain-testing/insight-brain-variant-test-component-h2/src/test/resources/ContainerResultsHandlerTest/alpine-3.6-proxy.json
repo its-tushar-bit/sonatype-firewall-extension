@@ -1,0 +1,136 @@
+{
+  "error_message": "",
+  "report": {
+    "image_id": "43773d1dba76c4d537b494a8454558a41729b92aa2ad0feb23521c3e58cd0440",
+    "registry": "",
+    "repository": "alpine",
+    "tag": "3.6",
+    "digest": "sha256:66790a2b79e1ea3e1dabac43990c54aca5d1ddf268d9a5a0285e4167c8b24475",
+    "base_os": "alpine:3.6.5",
+    "cvedb_version": "2.319",
+    "cvedb_create_time": "2021-06-04T17:27:00Z",
+    "layers": [],
+    "vulnerabilities": [],
+    "modules": [
+      {
+        "name": "jar:java_se_runtime_environment",
+        "version": "1.2.3",
+        "source": "jar"
+      },
+      {
+        "name": "Wordpress",
+        "version": "1.2.3",
+        "source": "Wordpress"
+      },
+      {
+        "name": "php:monolog:monolog",
+        "version": "1.2.3",
+        "source": "php"
+      },
+      {
+        "name": "org.springframework:spring-core",
+        "version": "5.3.31",
+        "source": "jar"
+      },
+      {
+        "name": ".NET:Newtonsoft.Json",
+        "version": "13.0.3",
+        "source": ".NET"
+      },
+      {
+        "name": "react",
+        "version": "18.2.0",
+        "source": "npm"
+      },
+      {
+        "name": "python:flask",
+        "version": "3.0.3",
+        "source": "python"
+      },
+      {
+        "name": "ruby:rails",
+        "version": "7.1.3",
+        "source": "ruby"
+      },
+      {
+        "name": "alpine-baselayout",
+        "version": "3.0.4-r0",
+        "source": "alpine:3.6.5"
+      },
+      {
+        "name": "alpine-keys",
+        "version": "2.1-r1",
+        "source": "alpine:3.6.5"
+      },
+      {
+        "name": "zlib",
+        "version": "1.2.11-r0",
+        "source": "alpine:3.6.5"
+      },
+      {
+        "name": "musl",
+        "version": "1.1.16-r15",
+        "source": "alpine:3.6.5"
+      },
+      {
+        "name": "busybox",
+        "version": "1.26.2-r11",
+        "source": "alpine:3.6.5"
+      },
+      {
+        "name": "libressl",
+        "version": "2.5.5-r2",
+        "source": "alpine:3.6.5"
+      },
+      {
+        "name": "apk-tools",
+        "version": "2.7.6-r0",
+        "source": "alpine:3.6.5"
+      },
+      {
+        "name": "pax-utils",
+        "version": "1.2.2-r0",
+        "source": "alpine:3.6.5"
+      },
+      {
+        "name": "libc-dev",
+        "version": "0.7.1-r0",
+        "source": "alpine:3.6.5"
+      }
+    ],
+    "checks": [
+      {
+        "test_number": "I.4.1",
+        "catalog": "image",
+        "type": "image",
+        "profile": "Level 1",
+        "scored": true,
+        "description": "Ensure a user for the container has been created",
+        "remediation": "",
+        "tags": [],
+        "level": "WARN",
+        "message": []
+      },
+      {
+        "test_number": "I.4.6",
+        "catalog": "image",
+        "type": "image",
+        "profile": "Level 1",
+        "scored": false,
+        "description": "Ensure that HEALTHCHECK instructions have been added to container images",
+        "remediation": "",
+        "tags": [],
+        "level": "WARN",
+        "message": []
+      }
+    ],
+    "secrets": [],
+    "setid_perms": [],
+    "envs": [
+      "PATH\u003d/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    ],
+    "cmds": [
+      "/bin/sh"
+    ]
+  }
+}

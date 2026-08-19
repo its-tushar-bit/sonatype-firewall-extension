@@ -1,0 +1,57 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+
+properties([
+    parameters([
+      string(name: 'releaseVersion', defaultValue: '',description: 'The version number for the product, like "1.118.0-01"'),
+    ])
+])
+
+pipeline {
+  agent { label InsightConstants.AGENT_LABEL }
+  options {
+    buildDiscarder(logRotator(numToKeepStr: '10'))
+  }
+  environment {
+    shortVersion = "${params.releaseVersion.split('-')[0]}"
+  }
+  stages {
+    stage('Prepare IQ Server HA Helm Chart') {
+      steps {
+        build(
+          job: 'insight/insight-brain/HA/Main Release Build',
+          parameters: [
+            string(name: 'appVersion', value: env.shortVersion)
+          ]
+        )
+      }
+    }
+    stage('Publish IQ Server Helm Chart') {
+      steps {
+        build(
+          job: 'integrations/cloud/Helm3 Charts/Main Release Build',
+          parameters: [
+              string(name: 'chart', value: 'nexus-iq-server'),
+              string(name: 'appVersion', value: env.shortVersion)
+          ]
+        )
+      }
+    }
+    stage('Create Post IQ Release Jira Issues') {
+      steps {
+        build(
+            job: 'insight/insight-brain/createJiraIssues',
+            parameters: [string(name: 'version', value: params.releaseVersion)])
+      }
+    }
+  }
+  post {
+    failure {
+      notifyChat(currentBuild: currentBuild, env: env, room: 'iq-builds')
+    }
+  }
+}

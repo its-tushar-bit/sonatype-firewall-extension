@@ -1,0 +1,6 @@
+{
+  "orgsPerLevel": 2,
+  "treeDepth": 3,
+  "appsPerOrg": 3,
+  "expectedPageHeading": "Inheritance Hierarchy"
+}

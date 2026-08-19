@@ -1,0 +1,22 @@
+{
+  "groupId" : null,
+  "artifactId" : null,
+  "version" : null,
+  "hash" : "1fbeda8a0725179493e9",
+  "matchState" : "unknown",
+  "declaredLicenses" : [ ],
+  "observedLicenses" : [ ],
+  "overriddenLicenses" : [ ],
+  "catalogDate" : null,
+  "relativePopularity" : 0,
+  "securityVulnerabilities" : [ ],
+  "website" : null,
+  "policyAlerts" : null,
+  "licenseThreatLevel" : null,
+  "licenseThreatGroupNames" : null,
+  "majorRevisionStep" : false,
+  "identificationSource" : null,
+  "identificationSourceComment" : null,
+  "declaredLicenseIds" : [ ],
+  "observedLicenseIds" : [ ]
+}

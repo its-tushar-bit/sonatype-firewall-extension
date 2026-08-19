@@ -1,0 +1,743 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bom serialNumber="urn:uuid:218214e0-8527-4865-9076-521b3b8ee137" version="1" xmlns="http://cyclonedx.org/schema/bom/1.5">
+  <metadata>
+    <timestamp>2024-03-29T18:32:15Z</timestamp>
+    <tools>
+      <tool>
+        <vendor>Sonatype Inc.</vendor>
+        <name>Nexus IQ Server</name>
+        <version>1.175.0-SNAPSHOT</version>
+      </tool>
+    </tools>
+    <component type="application" bom-ref="c9f3c210-670e-41c0-993b-af8a7768f25b">
+      <group>sonatype</group>
+      <name>iq_application_webgoat</name>
+      <version>218214e0852748659076521b3b8ee137</version>
+      <purl>pkg:generic/sonatype/iq_application_webgoat@218214e0852748659076521b3b8ee137</purl>
+    </component>
+    <properties>
+      <property name="Scan ID">218214e0852748659076521b3b8ee137</property>
+    </properties>
+  </metadata>
+  <components>
+    <component type="library" bom-ref="c14811e8-946a-46c1-a0d5-fd7dcc57f264">
+      <group>idb</group>
+      <name>idb</name>
+      <version>3.26</version>
+      <licenses>
+        <license>
+          <name>Not Declared</name>
+        </license>
+        <license>
+          <name>No Source License</name>
+        </license>
+      </licenses>
+      <purl>pkg:maven/idb/idb@3.26?type=jar</purl>
+      <modified>false</modified>
+      <properties>
+        <property name="Sonatype truncated SHA1">2525dfbab54fb3905b91</property>
+        <property name="Match State">exact</property>
+        <property name="Identification Source">Sonatype</property>
+      </properties>
+      <evidence>
+        <occurrences>
+          <occurrence>
+            <location>Unix_WebGoat-5.0.war/WEB-INF/lib/idb.jar</location>
+          </occurrence>
+        </occurrences>
+      </evidence>
+    </component>
+    <component type="library" bom-ref="32dd9982-7edc-4cde-85f6-8946cabca003">
+      <group>log4j</group>
+      <name>log4j</name>
+      <version>1.2.8</version>
+      <licenses>
+        <license>
+          <id>Apache-1.1</id>
+        </license>
+        <license>
+          <name>Non-Standard</name>
+        </license>
+      </licenses>
+      <purl>pkg:maven/log4j/log4j@1.2.8?type=jar</purl>
+      <modified>false</modified>
+      <properties>
+        <property name="Sonatype truncated SHA1">3640dd71069d7986c9a1</property>
+        <property name="Match State">exact</property>
+        <property name="Identification Source">Sonatype</property>
+      </properties>
+      <evidence>
+        <occurrences>
+          <occurrence>
+            <location>Unix_WebGoat-5.0.war/WEB-INF/lib/log4j-1.2.8.jar</location>
+          </occurrence>
+        </occurrences>
+      </evidence>
+    </component>
+    <component type="library" bom-ref="e6a49891-d1d5-4358-8688-b5a03a546f90">
+      <group>commons-collections</group>
+      <name>commons-collections</name>
+      <version>3.1</version>
+      <licenses>
+        <license>
+          <id>Apache-2.0</id>
+        </license>
+        <license>
+          <name>Not Declared</name>
+        </license>
+      </licenses>
+      <purl>pkg:maven/commons-collections/commons-collections@3.1?type=jar</purl>
+      <modified>false</modified>
+      <properties>
+        <property name="Sonatype truncated SHA1">40fb048097caeacdb11d</property>
+        <property name="Match State">exact</property>
+        <property name="Identification Source">Sonatype</property>
+      </properties>
+      <evidence>
+        <occurrences>
+          <occurrence>
+            <location>Unix_WebGoat-5.0.war/WEB-INF/lib/commons-collections-3.1.jar</location>
+          </occurrence>
+        </occurrences>
+      </evidence>
+    </component>
+    <component type="library" bom-ref="333584e5-0101-4a21-8f5b-61b10926cf3c">
+      <group>commons-digester</group>
+      <name>commons-digester</name>
+      <version>1.4.1</version>
+      <licenses>
+        <license>
+          <id>Apache-1.1</id>
+        </license>
+        <license>
+          <name>Not Declared</name>
+        </license>
+      </licenses>
+      <purl>pkg:maven/commons-digester/commons-digester@1.4.1?type=jar</purl>
+      <modified>false</modified>
+      <properties>
+        <property name="Sonatype truncated SHA1">51031e9c43ae47693c99</property>
+        <property name="Match State">exact</property>
+        <property name="Identification Source">Sonatype</property>
+      </properties>
+      <evidence>
+        <occurrences>
+          <occurrence>
+            <location>Unix_WebGoat-5.0.war/WEB-INF/lib/commons-digester.jar</location>
+          </occurrence>
+        </occurrences>
+      </evidence>
+    </component>
+    <component type="library" bom-ref="6e4ac3f8-0e29-4977-811f-7592f0b62548">
+      <group>axis</group>
+      <name>axis-jaxrpc</name>
+      <version>1.2</version>
+      <licenses>
+        <license>
+          <id>Apache-2.0</id>
+        </license>
+        <license>
+          <name>Non-Standard</name>
+        </license>
+      </licenses>
+      <purl>pkg:maven/axis/axis-jaxrpc@1.2?type=jar</purl>
+      <modified>false</modified>
+      <properties>
+        <property name="Sonatype truncated SHA1">56b85e05daa39a9bb410</property>
+        <property name="Match State">exact</property>
+        <property name="Identification Source">Sonatype</property>
+      </properties>
+      <evidence>
+        <occurrences>
+          <occurrence>
+            <location>Unix_WebGoat-5.0.war/WEB-INF/lib/jaxrpc.jar</location>
+          </occurrence>
+        </occurrences>
+      </evidence>
+    </component>
+    <component type="library" bom-ref="85e600ff-6842-4b60-bbc5-56a45e3a357c">
+      <group>commons-discovery</group>
+      <name>commons-discovery</name>
+      <version>0.2</version>
+      <licenses>
+        <license>
+          <id>Apache-1.1</id>
+        </license>
+        <license>
+          <name>Not Declared</name>
+        </license>
+      </licenses>
+      <purl>pkg:maven/commons-discovery/commons-discovery@0.2?type=jar</purl>
+      <modified>false</modified>
+      <properties>
+        <property name="Sonatype truncated SHA1">7773ac7a7248f08ed2b8</property>
+        <property name="Match State">exact</property>
+        <property name="Identification Source">Sonatype</property>
+      </properties>
+      <evidence>
+        <occurrences>
+          <occurrence>
+            <location>Unix_WebGoat-5.0.war/WEB-INF/lib/commons-discovery-0.2.jar</location>
+          </occurrence>
+        </occurrences>
+      </evidence>
+    </component>
+    <component type="library" bom-ref="bbef5b0d-b0c0-41ed-93d8-38dd6ca220c3">
+      <group>axis</group>
+      <name>axis</name>
+      <version>1.2</version>
+      <licenses>
+        <license>
+          <id>Apache-1.1</id>
+        </license>
+        <license>
+          <id>Apache-2.0</id>
+        </license>
+        <license>
+          <name>Not Declared</name>
+        </license>
+      </licenses>
+      <purl>pkg:maven/axis/axis@1.2?type=jar</purl>
+      <modified>false</modified>
+      <properties>
+        <property name="Sonatype truncated SHA1">892c772f7c486b3c09d2</property>
+        <property name="Match State">exact</property>
+        <property name="Identification Source">Sonatype</property>
+      </properties>
+      <evidence>
+        <occurrences>
+          <occurrence>
+            <location>Unix_WebGoat-5.0.war/WEB-INF/lib/axis.jar</location>
+          </occurrence>
+        </occurrences>
+      </evidence>
+    </component>
+    <component type="library" bom-ref="e29f7553-69d9-4909-880a-2fabec476d60">
+      <group>wsdl4j</group>
+      <name>wsdl4j</name>
+      <version>1.5.1</version>
+      <licenses>
+        <license>
+          <name>Non-Standard</name>
+        </license>
+        <license>
+          <id>CPL-1.0</id>
+        </license>
+        <license>
+          <name>No Source License</name>
+        </license>
+      </licenses>
+      <purl>pkg:maven/wsdl4j/wsdl4j@1.5.1?type=jar</purl>
+      <modified>false</modified>
+      <properties>
+        <property name="Sonatype truncated SHA1">bd804633b9c2cf062586</property>
+        <property name="Match State">exact</property>
+        <property name="Identification Source">Sonatype</property>
+      </properties>
+      <evidence>
+        <occurrences>
+          <occurrence>
+            <location>Unix_WebGoat-5.0.war/WEB-INF/lib/wsdl4j-1.5.1.jar</location>
+          </occurrence>
+        </occurrences>
+      </evidence>
+    </component>
+    <component type="library" bom-ref="4007770a-f3f6-4855-99bc-20a143fc0566">
+      <name>org.owasp.webgoat webgoat-container</name>
+      <version>7.0</version>
+      <licenses>
+        <license>
+          <name>Not Supported</name>
+        </license>
+        <license>
+          <id>GPL-2.0</id>
+        </license>
+      </licenses>
+      <purl>pkg:a-name/org.owasp.webgoat%20webgoat-container@7.0</purl>
+      <modified>false</modified>
+      <properties>
+        <property name="Sonatype truncated SHA1">cf589d4746179e58dc8e</property>
+        <property name="Match State">exact</property>
+        <property name="Identification Source">Sonatype</property>
+      </properties>
+      <evidence>
+        <occurrences>
+          <occurrence>
+            <location>Unix_WebGoat-5.0.war/javascript/makeWindow.js</location>
+          </occurrence>
+          <occurrence>
+            <location>Unix_WebGoat-5.0.war/javascript/toggle.js</location>
+          </occurrence>
+        </occurrences>
+      </evidence>
+    </component>
+    <component type="library" bom-ref="676d7090-5b88-451a-b61c-0b13893db403">
+      <group>axis</group>
+      <name>axis-saaj</name>
+      <version>1.2</version>
+      <licenses>
+        <license>
+          <id>Apache-2.0</id>
+        </license>
+        <license>
+          <name>Non-Standard</name>
+        </license>
+      </licenses>
+      <purl>pkg:maven/axis/axis-saaj@1.2?type=jar</purl>
+      <modified>false</modified>
+      <properties>
+        <property name="Sonatype truncated SHA1">e5681df2b55d3e6f4795</property>
+        <property name="Match State">exact</property>
+        <property name="Identification Source">Sonatype</property>
+      </properties>
+      <evidence>
+        <occurrences>
+          <occurrence>
+            <location>Unix_WebGoat-5.0.war/WEB-INF/lib/saaj.jar</location>
+          </occurrence>
+        </occurrences>
+      </evidence>
+    </component>
+    <component type="library" bom-ref="0cd0109c-4389-4c65-b95a-1d3b552d902a">
+      <group>commons-logging</group>
+      <name>commons-logging</name>
+      <version>1.0.4</version>
+      <licenses>
+        <license>
+          <id>Apache-2.0</id>
+        </license>
+        <license>
+          <name>See-License-Clause</name>
+        </license>
+      </licenses>
+      <purl>pkg:maven/commons-logging/commons-logging@1.0.4?type=jar</purl>
+      <modified>false</modified>
+      <properties>
+        <property name="Sonatype truncated SHA1">f029a2aefe2b3e151757</property>
+        <property name="Match State">exact</property>
+        <property name="Identification Source">Sonatype</property>
+      </properties>
+      <evidence>
+        <occurrences>
+          <occurrence>
+            <location>Unix_WebGoat-5.0.war/WEB-INF/lib/commons-logging-1.0.4.jar</location>
+          </occurrence>
+        </occurrences>
+      </evidence>
+    </component>
+    <component type="library" bom-ref="c5950b54-622e-450c-a79d-274070a2c730">
+      <group>axis</group>
+      <name>axis-ant</name>
+      <version>1.2</version>
+      <licenses>
+        <license>
+          <name>Not Declared</name>
+        </license>
+        <license>
+          <name>No Source License</name>
+        </license>
+      </licenses>
+      <purl>pkg:maven/axis/axis-ant@1.2?type=jar</purl>
+      <modified>false</modified>
+      <properties>
+        <property name="Sonatype truncated SHA1">f07ed3d1d32434426a42</property>
+        <property name="Match State">exact</property>
+        <property name="Identification Source">Sonatype</property>
+      </properties>
+      <evidence>
+        <occurrences>
+          <occurrence>
+            <location>Unix_WebGoat-5.0.war/WEB-INF/lib/axis-ant.jar</location>
+          </occurrence>
+        </occurrences>
+      </evidence>
+    </component>
+    <component type="library" bom-ref="b718446c-3afc-43de-9fad-c989f19a60c0">
+      <group>ecs</group>
+      <name>ecs</name>
+      <version>1.4.2</version>
+      <licenses>
+        <license>
+          <id>Apache-1.1</id>
+        </license>
+        <license>
+          <name>No Source License</name>
+        </license>
+      </licenses>
+      <purl>pkg:maven/ecs/ecs@1.4.2?type=jar</purl>
+      <modified>true</modified>
+      <properties>
+        <property name="Sonatype truncated SHA1">39a433a5632ef7103c98</property>
+        <property name="Match State">similar</property>
+        <property name="Identification Source">Sonatype</property>
+      </properties>
+      <evidence>
+        <occurrences>
+          <occurrence>
+            <location>Unix_WebGoat-5.0.war/WEB-INF/lib/ecs-1.4.2.jar</location>
+          </occurrence>
+        </occurrences>
+      </evidence>
+    </component>
+  </components>
+  <externalReferences><reference type="bom"><url>http://localhost:8070/ui/links/application/webgoat/report/218214e0852748659076521b3b8ee137</url><comment>IQ Report</comment></reference></externalReferences>
+  <dependencies>
+    <dependency ref="c9f3c210-670e-41c0-993b-af8a7768f25b">
+      <dependency ref="333584e5-0101-4a21-8f5b-61b10926cf3c"/>
+      <dependency ref="b718446c-3afc-43de-9fad-c989f19a60c0"/>
+      <dependency ref="32dd9982-7edc-4cde-85f6-8946cabca003"/>
+      <dependency ref="85e600ff-6842-4b60-bbc5-56a45e3a357c"/>
+      <dependency ref="c14811e8-946a-46c1-a0d5-fd7dcc57f264"/>
+      <dependency ref="c5950b54-622e-450c-a79d-274070a2c730"/>
+      <dependency ref="e29f7553-69d9-4909-880a-2fabec476d60"/>
+      <dependency ref="676d7090-5b88-451a-b61c-0b13893db403"/>
+      <dependency ref="6e4ac3f8-0e29-4977-811f-7592f0b62548"/>
+      <dependency ref="bbef5b0d-b0c0-41ed-93d8-38dd6ca220c3"/>
+    </dependency>
+    <dependency ref="333584e5-0101-4a21-8f5b-61b10926cf3c">
+      <dependency ref="e6a49891-d1d5-4358-8688-b5a03a546f90"/>
+      <dependency ref="0cd0109c-4389-4c65-b95a-1d3b552d902a"/>
+    </dependency>
+    <dependency ref="e6a49891-d1d5-4358-8688-b5a03a546f90"/>
+    <dependency ref="0cd0109c-4389-4c65-b95a-1d3b552d902a"/>
+    <dependency ref="b718446c-3afc-43de-9fad-c989f19a60c0"/>
+    <dependency ref="32dd9982-7edc-4cde-85f6-8946cabca003"/>
+    <dependency ref="85e600ff-6842-4b60-bbc5-56a45e3a357c">
+      <dependency ref="0cd0109c-4389-4c65-b95a-1d3b552d902a"/>
+    </dependency>
+    <dependency ref="c14811e8-946a-46c1-a0d5-fd7dcc57f264"/>
+    <dependency ref="c5950b54-622e-450c-a79d-274070a2c730"/>
+    <dependency ref="e29f7553-69d9-4909-880a-2fabec476d60"/>
+    <dependency ref="676d7090-5b88-451a-b61c-0b13893db403"/>
+    <dependency ref="6e4ac3f8-0e29-4977-811f-7592f0b62548"/>
+    <dependency ref="bbef5b0d-b0c0-41ed-93d8-38dd6ca220c3"/>
+  </dependencies>
+  <vulnerabilities>
+    <vulnerability>
+      <id>sonatype-2010-0053</id>
+      <source>
+        <name>SONATYPE</name>
+        <url>http://localhost:8070/ui/links/vln/sonatype-2010-0053</url>
+      </source>
+      <ratings>
+        <rating>
+          <source>
+            <name>SONATYPE</name>
+          </source>
+          <score>7.8</score>
+          <severity>critical</severity>
+          <method>other</method>
+          <vector>CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H</vector>
+        </rating>
+      </ratings>
+      <cwes>
+        <cwe>426</cwe>
+      </cwes>
+      <affects>
+        <target>
+          <ref>32dd9982-7edc-4cde-85f6-8946cabca003</ref>
+        </target>
+      </affects>
+    </vulnerability>
+    <vulnerability>
+      <id>CVE-2019-0227</id>
+      <source>
+        <name>NVD</name>
+        <url>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-0227</url>
+      </source>
+      <ratings>
+        <rating>
+          <source>
+            <name>NVD</name>
+          </source>
+          <score>7.5</score>
+          <severity>critical</severity>
+          <method>CVSSv3</method>
+          <vector>CVSS:3.1/AV:A/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H</vector>
+        </rating>
+      </ratings>
+      <cwes>
+        <cwe>918</cwe>
+      </cwes>
+      <analysis>
+        <state>in_triage</state>
+        <justification>code_not_present</justification>
+        <detail>lorem ipsum CVE-2019-0227</detail>
+      </analysis>
+      <affects>
+        <target>
+          <ref>bbef5b0d-b0c0-41ed-93d8-38dd6ca220c3</ref>
+        </target>
+      </affects>
+    </vulnerability>
+    <vulnerability>
+      <id>CVE-2022-23307</id>
+      <source>
+        <name>NVD</name>
+        <url>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-23307</url>
+      </source>
+      <ratings>
+        <rating>
+          <source>
+            <name>NVD</name>
+          </source>
+          <score>8.8</score>
+          <severity>critical</severity>
+          <method>CVSSv3</method>
+          <vector>CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H</vector>
+        </rating>
+      </ratings>
+      <cwes>
+        <cwe>502</cwe>
+      </cwes>
+      <analysis>
+        <state>exploitable</state>
+        <justification>code_not_present</justification>
+        <responses>
+          <response>can_not_fix</response>
+          <response>will_not_fix</response>
+        </responses>
+        <detail>lorem ipsum CVE-2022-23307</detail>
+      </analysis>
+      <affects>
+        <target>
+          <ref>32dd9982-7edc-4cde-85f6-8946cabca003</ref>
+        </target>
+      </affects>
+    </vulnerability>
+    <vulnerability>
+      <id>CVE-2012-5784</id>
+      <source>
+        <name>NVD</name>
+        <url>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2012-5784</url>
+      </source>
+      <ratings>
+        <rating>
+          <source>
+            <name>NVD</name>
+          </source>
+          <score>5.8</score>
+          <severity>high</severity>
+          <method>CVSSv2</method>
+          <vector>AV:N/AC:M/Au:N/C:P/I:P/A:N</vector>
+        </rating>
+      </ratings>
+      <cwes>
+        <cwe>20</cwe>
+      </cwes>
+      <affects>
+        <target>
+          <ref>bbef5b0d-b0c0-41ed-93d8-38dd6ca220c3</ref>
+        </target>
+      </affects>
+    </vulnerability>
+    <vulnerability>
+      <id>CVE-2021-4104</id>
+      <source>
+        <name>NVD</name>
+        <url>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-4104</url>
+      </source>
+      <ratings>
+        <rating>
+          <source>
+            <name>NVD</name>
+          </source>
+          <score>7.5</score>
+          <severity>critical</severity>
+          <method>CVSSv3</method>
+          <vector>CVSS:3.1/AV:N/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:H</vector>
+        </rating>
+      </ratings>
+      <cwes>
+        <cwe>502</cwe>
+      </cwes>
+      <affects>
+        <target>
+          <ref>32dd9982-7edc-4cde-85f6-8946cabca003</ref>
+        </target>
+      </affects>
+    </vulnerability>
+    <vulnerability>
+      <id>CVE-2022-23305</id>
+      <source>
+        <name>NVD</name>
+        <url>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-23305</url>
+      </source>
+      <ratings>
+        <rating>
+          <source>
+            <name>NVD</name>
+          </source>
+          <score>9.8</score>
+          <severity>critical</severity>
+          <method>CVSSv3</method>
+          <vector>CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H</vector>
+        </rating>
+      </ratings>
+      <cwes>
+        <cwe>89</cwe>
+      </cwes>
+      <affects>
+        <target>
+          <ref>32dd9982-7edc-4cde-85f6-8946cabca003</ref>
+        </target>
+      </affects>
+    </vulnerability>
+    <vulnerability>
+      <id>CVE-2023-26464</id>
+      <source>
+        <name>NVD</name>
+        <url>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-26464</url>
+      </source>
+      <ratings>
+        <rating>
+          <source>
+            <name>NVD</name>
+          </source>
+          <score>7.5</score>
+          <severity>critical</severity>
+          <method>CVSSv3</method>
+          <vector>CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H</vector>
+        </rating>
+      </ratings>
+      <cwes>
+        <cwe>400</cwe>
+      </cwes>
+      <affects>
+        <target>
+          <ref>32dd9982-7edc-4cde-85f6-8946cabca003</ref>
+        </target>
+      </affects>
+    </vulnerability>
+    <vulnerability>
+      <id>CVE-2022-23302</id>
+      <source>
+        <name>NVD</name>
+        <url>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-23302</url>
+      </source>
+      <ratings>
+        <rating>
+          <source>
+            <name>NVD</name>
+          </source>
+          <score>8.8</score>
+          <severity>critical</severity>
+          <method>CVSSv3</method>
+          <vector>CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H</vector>
+        </rating>
+      </ratings>
+      <cwes>
+        <cwe>502</cwe>
+      </cwes>
+      <affects>
+        <target>
+          <ref>32dd9982-7edc-4cde-85f6-8946cabca003</ref>
+        </target>
+      </affects>
+    </vulnerability>
+    <vulnerability>
+      <id>CVE-2019-17571</id>
+      <source>
+        <name>NVD</name>
+        <url>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-17571</url>
+      </source>
+      <ratings>
+        <rating>
+          <source>
+            <name>NVD</name>
+          </source>
+          <score>9.8</score>
+          <severity>critical</severity>
+          <method>CVSSv3</method>
+          <vector>CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H</vector>
+        </rating>
+      </ratings>
+      <cwes>
+        <cwe>502</cwe>
+      </cwes>
+      <affects>
+        <target>
+          <ref>32dd9982-7edc-4cde-85f6-8946cabca003</ref>
+        </target>
+      </affects>
+    </vulnerability>
+    <vulnerability>
+      <id>CVE-2014-3596</id>
+      <source>
+        <name>NVD</name>
+        <url>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2014-3596</url>
+      </source>
+      <ratings>
+        <rating>
+          <source>
+            <name>NVD</name>
+          </source>
+          <score>5.8</score>
+          <severity>high</severity>
+          <method>CVSSv2</method>
+          <vector>AV:N/AC:M/Au:N/C:P/I:P/A:N</vector>
+        </rating>
+      </ratings>
+      <cwes>
+        <cwe>297</cwe>
+      </cwes>
+      <affects>
+        <target>
+          <ref>bbef5b0d-b0c0-41ed-93d8-38dd6ca220c3</ref>
+        </target>
+      </affects>
+    </vulnerability>
+    <vulnerability>
+      <id>sonatype-2015-0002</id>
+      <source>
+        <name>SONATYPE</name>
+        <url>http://localhost:8070/ui/links/vln/sonatype-2015-0002</url>
+      </source>
+      <ratings>
+        <rating>
+          <source>
+            <name>SONATYPE</name>
+          </source>
+          <score>9.0</score>
+          <severity>critical</severity>
+          <method>other</method>
+          <vector>CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:C/C:H/I:H/A:H</vector>
+        </rating>
+      </ratings>
+      <cwes>
+        <cwe>502</cwe>
+      </cwes>
+      <affects>
+        <target>
+          <ref>e6a49891-d1d5-4358-8688-b5a03a546f90</ref>
+        </target>
+      </affects>
+    </vulnerability>
+    <vulnerability>
+      <id>CVE-2007-2353</id>
+      <source>
+        <name>NVD</name>
+        <url>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-2353</url>
+      </source>
+      <ratings>
+        <rating>
+          <source>
+            <name>NVD</name>
+          </source>
+          <score>5.0</score>
+          <severity>high</severity>
+          <method>CVSSv2</method>
+          <vector>AV:N/AC:L/Au:N/C:P/I:N/A:N</vector>
+        </rating>
+      </ratings>
+      <cwes>
+        <cwe>200</cwe>
+      </cwes>
+      <affects>
+        <target>
+          <ref>bbef5b0d-b0c0-41ed-93d8-38dd6ca220c3</ref>
+        </target>
+      </affects>
+    </vulnerability>
+  </vulnerabilities>
+</bom>

@@ -1,0 +1,21 @@
+{
+  "aaData" : [ {
+    "hash" : "30a69958223a2c6215e2",
+    "groupId" : "geronimo",
+    "artifactId" : "geronimo-tomcat",
+    "version" : "1.0",
+    "declaredLicenses" : [ "Not Declared" ],
+    "observedLicenses" : [ "Apache-2.0" ],
+    "effectiveLicenses" : [ "Apache-2.0" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : "LIBERAL",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1136511582000
+  } ]
+}

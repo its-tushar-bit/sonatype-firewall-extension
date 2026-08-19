@@ -1,0 +1,257 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.search.catalog;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import jakarta.ws.rs.BadRequestException;
+
+import com.sonatype.insight.brain.search.catalog.CatalogFilterSchema.Kind;
+
+/**
+ * Filters the IQ index cannot honour are recorded as warnings, not rejected: the caller-supplied
+ * catalog filter is valid, it just has no local equivalent.
+ */
+public final class CatalogLocalRequestBuilder
+{
+  // 'severities' has no term-compatible local field (local severity is a numeric CVSS score, and
+  // vulnerabilityStatus is a triage keyword), so it is left unmapped and falls through to a warning.
+  private static final Map<CatalogEntityType, Map<String, String>> LOCAL_FIELD_BY_KEY = Map.of(
+      CatalogEntityType.COMPONENT, Map.of(
+          "ecosystems", "componentFormat",
+          // organizationName is rewritten to parentOrganizationName by the index metric/query layer,
+          // so a match on an org includes its descendants (same semantics as v1 classic search).
+          "organizations", "organizationName",
+          // applicationName / policyEvaluationStage are denormalized on component docs (setOwner /
+          // setPolicyEvaluationStage), so the my-scan estate can be filtered by app and stage.
+          "applications", "applicationName",
+          "stages", "policyEvaluationStage",
+          // Component violation denormalization (componentViolation* fields on NON_VULNERABLE_COMPONENT
+          // docs): a component with no policy violation carries none of these, so any of these filters
+          // narrows to components that have a matching violation.
+          "policyTypes", "componentViolationPolicyType",
+          "violationStates", "componentViolationState",
+          "policyThreatLevel", "componentMaxPolicyThreatLevel"),
+      // SECURITY_VULNERABILITY docs carry org/app/stage, so the local vuln leg is filterable by all
+      // three my-scan triage dimensions.
+      CatalogEntityType.VULNERABILITY, Map.of(
+          "organizations", "organizationName",
+          "applications", "applicationName",
+          "stages", "policyEvaluationStage"));
+
+  private CatalogLocalRequestBuilder() {
+  }
+
+  /**
+   * {@code fieldClauses} are the structured (non-free-text) filter clauses in Lucene {@code field:"value"}
+   * form, mapped onto local index field names. They power whole-corpus facet counts, which count over the
+   * structured filters + item type only (the free-text {@code query} refinement is not reapplied there).
+   */
+  public record LocalQuery(String q, List<String> warnings, List<String> fieldClauses)
+  {
+  }
+
+  public static LocalQuery build(final CatalogEntityType entityType, final Map<String, Object> filters) {
+    // Validate EVERY filter's shape against its schema Kind first (identical to the catalog path), so a
+    // wrong-shaped value is a 400 on both sources regardless of whether the field is locally supported.
+    // Shape validation precedes the supported/unsupported-warn decision below.
+    CatalogRequestBuilder.validateShapes(entityType, filters);
+    final Map<String, Kind> schema = CatalogFilterSchema.forEntityType(entityType);
+    final Map<String, String> localFields = LOCAL_FIELD_BY_KEY.getOrDefault(entityType, Map.of());
+    final List<String> warnings = new ArrayList<>();
+    final List<String> chips = new ArrayList<>();
+    final List<String> fieldClauses = new ArrayList<>();
+    String freeText = "";
+
+    for (Map.Entry<String, Object> entry : filters.entrySet()) {
+      final String key = entry.getKey();
+      final Kind kind = schema.get(key);
+      if (kind == null) {
+        throw new BadRequestException("unknown filter key for entityType " + entityType);
+      }
+      final Object value = entry.getValue();
+      if (value == null) {
+        continue;
+      }
+      if (kind == Kind.TEXT) {
+        freeText = sanitizeBareText(String.valueOf(value));
+        continue;
+      }
+      // A known TERMS filter whose value is not an array is a client type error, not a
+      // locally-unsupported filter: reject it consistently with the catalog path rather than masking
+      // it as "unavailable locally". Static, input-free message (no key/value echoed).
+      if (kind == Kind.TERMS && !(value instanceof List<?>)) {
+        throw new BadRequestException("filter must be an array");
+      }
+      // Cap TERMS value-list size on the local source too (mirrors CatalogRequestBuilder.MAX_TERMS_PER_FILTER):
+      // each value becomes one OR clause, so an unbounded list is a query-fan-out vector. Static message.
+      if (kind == Kind.TERMS && value instanceof List<?> terms
+          && terms.size() > CatalogRequestBuilder.MAX_TERMS_PER_FILTER)
+      {
+        throw new BadRequestException("a filter carries too many values");
+      }
+      // firstSeenWindow is a computed local-only SCALAR (a relative window resolved to an epoch-millis
+      // range on vulnerabilityFirstSeenEpochMs), not a simple field mapping, so it is handled before
+      // the localFields lookup below. Resolved here (there is no HDS on the local source) into a
+      // [now-window, *] range clause, mirroring the catalog publishedWindow token semantics. A
+      // non-triggering vuln has no first-seen field, so the lower-bounded range excludes it (intended).
+      if (kind == Kind.SCALAR && "firstSeenWindow".equals(key)) {
+        final String chip = firstSeenWindowChip(String.valueOf(value));
+        if (chip != null) {
+          chips.add(chip);
+          fieldClauses.add(chip);
+        }
+        continue;
+      }
+      final String field = localFields.get(key);
+      if (field == null) {
+        warnings.add(unavailableLocally(key));
+        continue;
+      }
+      if (kind == Kind.TERMS && value instanceof List<?> list) {
+        final String chip = termsChip(field, list);
+        if (chip != null) {
+          chips.add(chip);
+          fieldClauses.add(chip);
+        }
+      }
+      else if (kind == Kind.RANGE && value instanceof List<?> range) {
+        // Shape (two-element numeric [min, max]) already validated by validateShapes above.
+        final String chip = rangeChip(field, range);
+        if (chip != null) {
+          chips.add(chip);
+          fieldClauses.add(chip);
+        }
+      }
+      else {
+        warnings.add(unavailableLocally(key));
+      }
+    }
+
+    final StringBuilder q = new StringBuilder();
+    if (!freeText.isBlank()) {
+      q.append(freeText.strip());
+    }
+    for (String chip : chips) {
+      if (q.length() > 0) {
+        q.append(' ');
+      }
+      q.append(chip);
+    }
+    return new LocalQuery(q.toString(), warnings, fieldClauses);
+  }
+
+  private static String unavailableLocally(final String key) {
+    return "filter '" + key + "' is not available on the local source and was ignored";
+  }
+
+  /**
+   * Inclusive numeric range clause {@code field:[min TO max]} for an int doc-values field (the local
+   * source's only RANGE filter today is policyThreatLevel -> componentMaxPolicyThreatLevel, an
+   * integer threat level 0-10). A null bound renders as the unbounded {@code *} sentinel. Bounds are
+   * rendered as whole numbers (intValue): the schema Kind is RANGE with numeric bounds, and the
+   * backing field is an IntPoint, so a fractional bound would be truncated by the compiler anyway.
+   * Returns null when both bounds are absent (nothing to constrain). An inverted range (numeric
+   * lo > numeric hi) is a 400: {@code [10 TO 0]} matches nothing, so reject it rather than run a
+   * silently-empty query (mirrors CatalogRequestBuilder.range's min<=max check on the catalog
+   * source). Open-ended bounds ({@code *}) are only compared when both bounds are numeric. Non-finite
+   * bounds (NaN / +-Infinity) are a 400: a NaN would pass the inversion check silently (every
+   * comparison with NaN is false) and then truncate to 0 in the emitted clause, so reject it up front
+   * for parity with the catalog path's Double.isFinite guard.
+   */
+  private static String rangeChip(final String field, final List<?> range) {
+    final Object lo = range.get(0);
+    final Object hi = range.get(1);
+    if (lo == null && hi == null) {
+      return null;
+    }
+    if ((lo instanceof Number loNum && !Double.isFinite(loNum.doubleValue()))
+        || (hi instanceof Number hiNum && !Double.isFinite(hiNum.doubleValue())))
+    {
+      // Static, input-free message: do not echo the bound values.
+      throw new BadRequestException("range filter bounds must be finite numbers");
+    }
+    if (lo instanceof Number loNum && hi instanceof Number hiNum
+        && loNum.doubleValue() > hiNum.doubleValue())
+    {
+      // Static, input-free message: do not echo the bound values.
+      throw new BadRequestException("range filter min must be <= max");
+    }
+    final String min = lo instanceof Number n ? String.valueOf(n.intValue()) : "*";
+    final String max = hi instanceof Number n ? String.valueOf(n.intValue()) : "*";
+    return field + ":[" + min + " TO " + max + "]";
+  }
+
+  /**
+   * Resolves a relative first-seen window token into a lower-bounded epoch-millis range clause
+   * {@code vulnerabilityFirstSeenEpochMs:[start TO *]}, where {@code start = now - window}. Token
+   * semantics mirror the catalog {@code publishedWindow} (30d/90d/1y/2y); {@code all}/{@code any}/
+   * blank means no window (returns null, nothing constrained). An unknown token is a 400 (static,
+   * input-free message), consistent with the other filters rejecting malformed input rather than
+   * running a silently-wrong query. A vuln with no first-seen field is not matched by the
+   * lower-bounded range, so non-triggering vulns are excluded by any window (intended: no
+   * first-detection date exists).
+   */
+  static String firstSeenWindowChip(final String token) {
+    final String normalized = token == null ? "" : token.strip().toLowerCase(Locale.ROOT);
+    final Duration window = switch (normalized) {
+      case "", "all", "any" -> null;
+      case "30d" -> Duration.ofDays(30);
+      case "90d" -> Duration.ofDays(90);
+      case "1y" -> Duration.ofDays(365);
+      case "2y" -> Duration.ofDays(730);
+      default -> throw new BadRequestException("filter 'firstSeenWindow' must be one of all|any|30d|90d|1y|2y");
+    };
+    if (window == null) {
+      return null;
+    }
+    final long start = Instant.now().minus(window).toEpochMilli();
+    return "vulnerabilityFirstSeenEpochMs:[" + start + " TO *]";
+  }
+
+  private static String termsChip(final String field, final List<?> list) {
+    final List<String> clauses = new ArrayList<>();
+    for (Object o : list) {
+      if (o == null) {
+        continue;
+      }
+      final String sanitized = sanitizeTermValue(String.valueOf(o));
+      if (!sanitized.isEmpty()) {
+        clauses.add(field + ":\"" + sanitized + "\"");
+      }
+    }
+    if (clauses.isEmpty()) {
+      return null;
+    }
+    return clauses.size() == 1 ? clauses.get(0) : "(" + String.join(" OR ", clauses) + ")";
+  }
+
+  /**
+   * Strip only the structural characters that could open a field/phrase clause ({@code " : [ ] ( ) { }}).
+   * The remaining tokens (including {@code AND}/{@code OR}/{@code NOT} and {@code + - * ? ~ ^}) are
+   * interpreted by the shared tolerant {@link com.sonatype.insight.brain.search.global.parser.QueryParser}
+   * as the product's own search language, not Lucene query-string syntax; that parser never throws on
+   * user input, so this is a query-shaping step, not injection defense.
+   */
+  private static String sanitizeBareText(final String raw) {
+    if (raw == null) {
+      return "";
+    }
+    return raw.replaceAll("[\":\\[\\](){}]", " ").strip();
+  }
+
+  private static String sanitizeTermValue(final String raw) {
+    if (raw == null) {
+      return "";
+    }
+    return raw.replace("\\", "").replace("\"", "").strip();
+  }
+}

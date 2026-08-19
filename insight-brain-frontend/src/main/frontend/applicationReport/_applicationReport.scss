@@ -1,0 +1,457 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use '../scss/variables' as *;
+
+@use 'rawData/applicationReportRawData';
+@use '../DependencyTree/DependencyTree';
+
+// ReportStatusBar renders Classic global widget classes (scss/_widgets.scss) that the Classic
+// bundle already loads via scss.scss; the Nexus One bundle only loads what this file imports,
+// so widgets must be pulled in explicitly here too.
+@use '../scss/widgets';
+
+$-application-report-policy-threat-level-width: 90px;
+$-application-report-policy-name-width: 225px;
+$-application-report-policy-name-filter-width: $-application-report-policy-threat-level-width +
+  $-application-report-policy-name-width;
+
+$-application-report-vulnerability-security-issue-width: 130px;
+$-application-report-vulnerability-cvss-issue-width: 100px;
+$-application-report-vulnerability-threat-level-width: 62px;
+
+application-report-root,
+application-report,
+application-report-results,
+application-report-vulnerabilities {
+  display: contents;
+}
+
+#application-report {
+  .iq-page-title {
+    margin-right: 12px;
+  }
+
+  .iq-spinner__wrapper {
+    padding: 8px;
+  }
+
+  .iq-form-group legend {
+    border-bottom: 1px solid $iq-grey-4;
+  }
+
+  .iq-tile {
+    margin-top: 0;
+  }
+
+  .iq-page-back-button {
+    margin-bottom: var(--nx-spacing-2x);
+  }
+}
+
+.iq-tile--application-report {
+  margin-bottom: 0;
+}
+
+.iq-tile--application-report-pre-header-row {
+  display: flex;
+  justify-content: flex-end;
+
+  .aggregate-by-component-toggle {
+    margin-right: auto;
+  }
+
+  &.nx-btn-bar {
+    margin-bottom: 0px;
+  }
+
+  .nx-toggle {
+    margin: 10px 0 8px 0;
+  }
+
+  #filter-toggle {
+    margin-left: $iq-spacing-l;
+  }
+}
+
+.iq-dropdown--application-results-options {
+  .iq-dropdown-menu {
+    left: -117px;
+    text-align: initial;
+    width: 185px;
+  }
+}
+
+#application-report-unscannable-components-error {
+  .nx-alert__content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .nx-btn-bar {
+    margin: 0;
+  }
+}
+
+#application-report-policy-type-filter-warning {
+  margin-top: 0;
+}
+
+.iq-cell--application-report-policy-threat-level {
+  width: $-application-report-policy-threat-level-width;
+}
+
+tbody .iq-cell--application-report-policy-threat-level {
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 0;
+}
+
+.iq-cell--application-report-policy-name {
+  width: $-application-report-policy-name-width;
+}
+
+.iq-cell--application-report-component-display {
+  width: calc(100% - #{$-application-report-policy-threat-level-width + $-application-report-policy-name-width});
+  min-width: 0;
+}
+
+tbody .iq-cell--application-report-component-display {
+  padding-left: 4px;
+
+  .iq-component-display {
+    display: inline;
+  }
+
+  .iq-dependency-indicator {
+    margin-right: 8px;
+  }
+}
+
+.iq-cell--application-report-policy-name-filter {
+  width: $-application-report-policy-name-filter-width;
+}
+
+.iq-cell--application-report-component-name-filter {
+  width: calc(100% - #{$-application-report-policy-threat-level-width + $-application-report-policy-name-width});
+}
+
+#application-report-vulnerabilities {
+  .nx-page-main {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .nx-tile {
+    margin-top: 0;
+  }
+
+  .nx-tile,
+  .nx-tile-content {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 1;
+    overflow: hidden;
+  }
+
+  .nx-tile-header {
+    flex: none;
+  }
+
+  .nx-scrollable {
+    max-height: none;
+    flex: 1 auto;
+  }
+}
+
+#application-report-vulnerabilities-table {
+  .iq-vulnerability-printable-link {
+    display: none;
+  }
+}
+
+.iq-cell--vulnerability-policy-threat-level {
+  width: $-application-report-vulnerability-threat-level-width;
+}
+
+.iq-cell--vulnerability-security-code {
+  width: $-application-report-vulnerability-security-issue-width;
+}
+
+.iq-cell--vulnerability-cvss {
+  width: $-application-report-vulnerability-cvss-issue-width;
+}
+
+.iq-vulnerability-refid-link {
+  // do not wrap refids on hyphens
+  white-space: nowrap;
+}
+
+.iq-vulnerability-component-name {
+  max-width: 850px;
+}
+
+.iq-report-filters {
+  $top-nav-height: 72px;
+  $sidebar-width: 344px;
+
+  position: absolute;
+  bottom: 0;
+  right: 0;
+
+  background-color: var(--nx-swatch-white);
+  border: 1px var(--nx-swatch-indigo-95) solid;
+  box-sizing: border-box;
+  height: calc(100% - #{$top-nav-height});
+  width: $sidebar-width;
+  overflow-y: auto;
+  padding: var(--nx-spacing-6x);
+  z-index: $iq-modal-backdrop-z-index; // behind the CIP but above all else
+}
+
+.application-report-filter-header__title {
+  @include nx-container-helpers.container-horizontal;
+  border-bottom: 1px var(--nx-swatch-indigo-95) solid;
+  padding-bottom: var(--nx-spacing-2x);
+  position: relative; // needed for box-shadow to render
+  z-index: 1;
+  display: flex;
+
+  .application-report-filter-header__title-text {
+    flex-grow: 1;
+    margin-top: 6px;
+  }
+}
+
+.iq-threat-indication {
+  display: inline-block;
+  height: 43px;
+  vertical-align: middle;
+  width: 8px;
+}
+
+.iq-threat-number {
+  @include nx-text-helpers.semi-bold;
+
+  font-size: 16px;
+  margin-left: 8px;
+}
+
+.iq-inner-source-transitive-tooltip .tooltip-inner {
+  max-width: 400px;
+  text-align: left;
+}
+
+.iq-app-report {
+  .nx-alert {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  // these grid styles largely copy the nx-tile-header styles, since RSC doesn't yet have
+  // styles for action buttons in the page title area
+  .nx-page-title {
+    align-items: center;
+    display: grid;
+    display: -ms-grid;
+    grid-template-columns: 1fr auto;
+    -ms-grid-columns: 1fr auto;
+
+    .nx-h1 {
+      @include nx-text-helpers.truncate-ellipsis;
+      grid-column-start: 1;
+      grid-column-end: 1;
+      grid-row-start: 1;
+      grid-row-end: 1;
+      -ms-grid-row: 1;
+      -ms-grid-column: 1;
+      margin: 0;
+    }
+
+    .nx-page-title__description {
+      @include nx-text-helpers.semi-bold;
+
+      grid-column-start: 1;
+      grid-column-end: 2;
+      grid-row-start: 2;
+      grid-row-end: 2;
+      -ms-grid-row: 2;
+      -ms-grid-column: 1;
+      -ms-grid-column-span: 2;
+    }
+
+    .iq-page-title__actions {
+      @include nx-container-helpers.container-horizontal;
+
+      float: none;
+      grid-column-start: 2;
+      grid-column-end: 2;
+      grid-row-start: 1;
+      grid-row-end: 1;
+      -ms-grid-row: 1;
+      -ms-grid-column: 2;
+      margin-left: var(--nx-spacing-6x);
+    }
+  }
+
+  .nx-tile {
+    // since parent is a flexbox, margin collapsing won't work
+    margin-top: 0;
+
+    .iq-application-risk-score--container {
+      display: inline-block;
+
+      .iq-application-risk-score--content {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+        line-height: 0;
+
+        .iq-application-risk-score--risk {
+          background-color: var(--nx-swatch-blue-40);
+          border-radius: var(--nx-spacing-4x);
+          color: var(--nx-swatch-white);
+          min-width: var(--nx-spacing-8x);
+          padding: 0 var(--nx-spacing-2x);
+        }
+
+        .iq-application-risk-score--desc {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          font-size: 14px;
+          gap: var(--nx-spacing-base);
+          position: relative;
+          top: 6px;
+
+          .iq-application-risk-score--desc-title {
+            font-weight: bold;
+          }
+
+          .nx-text-link {
+            font-size: 14px;
+            text-decoration: none;
+          }
+        }
+      }
+    }
+  }
+}
+
+.iq-legacy-violations-indicator > .iq-caption {
+  display: inline-flex;
+  align-items: center;
+}
+
+.nx-binary-donut-chart.iq-report-status-bar__coverage-indicator-chart {
+  height: 26px;
+}
+
+.iq-app-report__results-table-tile {
+  $component-cell-max-width: 610px;
+
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex: 1;
+  white-space: nowrap;
+
+  > .nx-tile-content {
+    flex: 1;
+    max-height: none;
+  }
+
+  .iq-app-report__truncate-wrapper {
+    display: flex;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .iq-dependency-indicator {
+    margin-right: 8px;
+  }
+
+  .nx-table-row--filter-header .nx-filter-input {
+    width: 100%;
+  }
+
+  .nx-tile-header__title {
+    overflow: initial;
+  }
+
+  .iq-waiver-indicator {
+    align-items: center;
+    justify-content: flex-start;
+    display: grid;
+    grid-template-columns: auto 130px;
+    text-align: left;
+  }
+
+  .iq-app-report__auto-waiver-tag {
+    margin-top: 3px;
+  }
+}
+
+.iq-app-report__threat-cell {
+  width: 90px;
+}
+
+.iq-app-report__component-name-cell,
+.iq-app-report__policy-name-text {
+  @include nx-text-helpers.truncate-ellipsis;
+  .iq-waiver-indicator {
+    height: var(--nx-spacing-6x);
+  }
+}
+
+.iq-app-report__policy-name-cell {
+  width: 225px;
+}
+
+#iq-reevaluation-options-modal {
+  h4 {
+    text-transform: none;
+  }
+}
+
+.iq-reevaluation-status-modal {
+  &__reevaluation-status-text {
+    @include nx-text-helpers.semi-bold;
+    text-align: center;
+
+    &--reevaluating {
+      .nx-loading-spinner {
+        margin-top: 0;
+        margin-bottom: var(--nx-spacing-4x);
+      }
+    }
+
+    &--complete {
+      color: var(--nx-color-success);
+      border-bottom: var(--nx-border-default);
+      padding-bottom: var(--nx-spacing-6x);
+    }
+  }
+}
+
+#iq-unscanned-components-table {
+  .iq-component-display-text {
+    font-style: normal;
+  }
+  .nx-cell {
+    max-width: 0;
+    overflow-wrap: break-word;
+  }
+}
+
+#iq-report-options-dropdown .iq-developer-priorities-link-from-options-dropdown {
+  display: flex;
+  align-items: center;
+}

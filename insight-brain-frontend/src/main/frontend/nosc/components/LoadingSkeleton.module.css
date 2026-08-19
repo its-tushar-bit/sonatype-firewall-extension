@@ -1,0 +1,33 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@keyframes nosc-skeleton-pulse {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.45;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+.skeleton {
+  height: var(--nosc-skeleton-height, 80px);
+  background-color: var(--gray-3);
+  border-radius: var(--radius-3);
+  animation: nosc-skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+/* Respect users who prefer reduced motion: keep the placeholder, drop the pulse. */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}

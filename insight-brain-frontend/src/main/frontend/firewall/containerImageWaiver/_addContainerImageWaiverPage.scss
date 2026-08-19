@@ -1,0 +1,65 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+.add-firewall-container-image-waiver-page {
+  .add-waiver-threat-indicators {
+    background-color: var(--nx-swatch-grey-97);
+    padding: var(--nx-spacing-4x) var(--nx-spacing-6x);
+    margin-bottom: var(--nx-spacing-6x);
+  }
+
+  .add-waiver-policy {
+    .nx-read-only__data {
+      display: flex;
+      gap: var(--nx-spacing-2x);
+      flex-wrap: wrap;
+    }
+  }
+
+  .add-waiver-expiryTime {
+    .nx-form-select {
+      margin-bottom: 0;
+    }
+  }
+
+  .add-container-image-waiver-form__expiryTime-block {
+    margin-bottom: 0;
+    max-width: calc((2 * var(--nx-width-form-element-normal)) + var(--nx-spacing-6x));
+  }
+
+  .add-container-image-waiver-form__controls-row {
+    align-items: flex-start;
+    display: flex;
+    gap: var(--nx-spacing-6x);
+    flex-wrap: wrap;
+
+    .nx-form-select,
+    .nx-text-input {
+      margin-bottom: 0;
+    }
+  }
+
+  div.add-container-image-waiver-form__date-input {
+    margin-bottom: 0;
+  }
+
+  .add-container-image-waiver-form__expiration-days-diff {
+    font-size: var(--nx-font-size-xs);
+    line-height: var(--nx-spacing-4x);
+    margin-top: var(--nx-spacing-2x);
+  }
+
+  .add-container-image-waiver-form__expiryTime-block .nx-form-select {
+    margin-bottom: 0;
+  }
+
+  .add-waiver-comments {
+    .nx-text-input {
+      width: 100%;
+      max-width: var(--nx-width-text-wrapping);
+    }
+  }
+}

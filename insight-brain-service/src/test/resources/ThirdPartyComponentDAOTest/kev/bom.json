@@ -1,0 +1,94 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "zip",
+        "name" : "numpy",
+        "qualifier" : "",
+        "version" : "1.19.0"
+      }
+    },
+    "packageUrl" : "pkg:pypi/numpy@1.19.0?extension=zip",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "pkg:pypi/numpy@1.19.0?extension=zip" ],
+    "pathnames" : [ "dependency:/scenario1-bom.xml/pkg:pypi\\numpy@1.19.0?extension=zip" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "0b1792c8a828d6a9fb14",
+    "relativePopularity" : null,
+    "createTime" : 1592685465000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  },
+  {
+    "componentIdentifier" : {
+      "format" : "zypi",
+      "coordinates" : {
+        "extension" : "zip",
+        "name" : "pumpy",
+        "qualifier" : "",
+        "version" : "2.19.0"
+      }
+    },
+    "packageUrl" : "pkg:zypi/pumpy@2.19.0?extension=zip",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "pkg:zypi/pumpy@2.19.0?extension=zip" ],
+    "pathnames" : [ "dependency:/scenario1-bom.xml/pkg:zypi\\pumpy@2.19.0?extension=zip" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "1b1792c8a828d6a9fb14",
+    "relativePopularity" : null,
+    "createTime" : 1192685465000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  } ]
+}

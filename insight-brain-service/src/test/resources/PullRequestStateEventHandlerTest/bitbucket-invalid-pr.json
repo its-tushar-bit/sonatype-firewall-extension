@@ -1,0 +1,8 @@
+{
+	"errors": [
+		{
+			"message": "Pull request 12 does not exist in TEST/test-repo.",
+			"exceptionName": "com.atlassian.bitbucket.pull.NoSuchPullRequestException"
+		}
+	]
+}

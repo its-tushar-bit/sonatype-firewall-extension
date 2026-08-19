@@ -1,0 +1,349 @@
+<scan version="2.23">
+<configuration>
+<properties>
+<property name="anonymizeArtifactIds" value="false"/>
+<property name="jreInfo" value="true"/>
+<property name="maxSymlinkDepth" value="5"/>
+<property name="dirExcludes" value="**/.*, **/CVS"/>
+<property name="hashFiles" value="true"/>
+<property name="anonymizePaths" value="false"/>
+<property name="procArch" value="true"/>
+<property name="proprietaryPackages" value=""/>
+<property name="proprietaryRegexes" value=""/>
+<property name="fileIncludes" value=""/>
+<property name="fileSizes" value="false"/>
+<property name="operatingSystem" value="true"/>
+<property name="archiveNames" value="true"/>
+<property name="fileExcludes" value=""/>
+<property name="maxDepth" value="256"/>
+<property name="resourceNames" value="true"/>
+<property name="dirIncludes" value=""/>
+<property name="pomProperties" value="true"/>
+<property name="ipAddresses" value="false"/>
+<property name="nameHashes" value="true"/>
+<property name="hashJavaTypes" value="true"/>
+</properties>
+</configuration>
+<metadata commitHash="1c72a4b3ec2505439e7aaade1ddbc927bfaba89f"/>
+<item path="container:alpine:3.6" contentType="CONTAINER_URI" sha1="652160a23ec80cb0ed43">
+<content>{
+  &quot;error_message&quot;: &quot;&quot;,
+&quot;report&quot;: {
+&quot;image_id&quot;: &quot;43773d1dba76c4d537b494a8454558a41729b92aa2ad0feb23521c3e58cd0440&quot;,
+&quot;registry&quot;: &quot;&quot;,
+&quot;repository&quot;: &quot;alpine&quot;,
+&quot;tag&quot;: &quot;3.6&quot;,
+&quot;digest&quot;: &quot;sha256:66790a2b79e1ea3e1dabac43990c54aca5d1ddf268d9a5a0285e4167c8b24475&quot;,
+&quot;base_os&quot;: &quot;alpine:3.6.5&quot;,
+&quot;cvedb_version&quot;: &quot;2.349&quot;,
+&quot;cvedb_create_time&quot;: &quot;2021-06-27T10:16:55Z&quot;,
+&quot;layers&quot;: [],
+&quot;vulnerabilities&quot;: [
+{
+&quot;name&quot;: &quot;CVE-2021-30139&quot;,
+&quot;score&quot;: 5.0,
+&quot;severity&quot;: &quot;High&quot;,
+&quot;vectors&quot;: &quot;AV:N/AC:L/Au:N/C:N/I:N/A:P&quot;,
+&quot;description&quot;: &quot;In Alpine Linux apk-tools before 2.12.5, the tarball parser allows a buffer overflow and crash.&quot;,
+&quot;package_name&quot;: &quot;apk-tools&quot;,
+&quot;package_version&quot;: &quot;2.7.6-r0&quot;,
+&quot;fixed_version&quot;: &quot;2.12.5-r0&quot;,
+&quot;link&quot;: &quot;https://cve.mitre.org/cgi-bin/cvename.cgi?name\u003dCVE-2021-30139&quot;,
+&quot;score_v3&quot;: 7.5,
+&quot;vectors_v3&quot;: &quot;CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H&quot;,
+&quot;published_timestamp&quot;: 1619021700,
+&quot;last_modified_timestamp&quot;: 1619115660,
+&quot;cves&quot;: [
+&quot;CVE-2021-30139&quot;
+],
+&quot;feed_rating&quot;: &quot;&quot;
+},
+{
+&quot;name&quot;: &quot;CVE-2018-1000500&quot;,
+&quot;score&quot;: 6.8,
+&quot;severity&quot;: &quot;High&quot;,
+&quot;vectors&quot;: &quot;AV:N/AC:M/Au:N/C:P/I:P/A:P&quot;,
+&quot;description&quot;: &quot;Busybox contains a Missing SSL certificate validation vulnerability in The \&quot;busybox wget\&quot; applet that can result in arbitrary code execution. This attack appear to be exploitable via Simply download any file over HTTPS using \&quot;busybox wget https://compromised-domain.com/important-file\&quot;.&quot;,
+&quot;package_name&quot;: &quot;busybox&quot;,
+&quot;package_version&quot;: &quot;1.26.2-r11&quot;,
+&quot;fixed_version&quot;: &quot;1.28.3-r2&quot;,
+&quot;link&quot;: &quot;https://cve.mitre.org/cgi-bin/cvename.cgi?name\u003dCVE-2018-1000500&quot;,
+&quot;score_v3&quot;: 8.1,
+&quot;vectors_v3&quot;: &quot;CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H&quot;,
+&quot;published_timestamp&quot;: 1530030540,
+&quot;last_modified_timestamp&quot;: 1600978500,
+&quot;cves&quot;: [
+&quot;CVE-2018-1000500&quot;
+],
+&quot;feed_rating&quot;: &quot;&quot;
+},
+{
+&quot;name&quot;: &quot;CVE-2018-20679&quot;,
+&quot;score&quot;: 5.0,
+&quot;severity&quot;: &quot;High&quot;,
+&quot;vectors&quot;: &quot;AV:N/AC:L/Au:N/C:P/I:N/A:N&quot;,
+&quot;description&quot;: &quot;An issue was discovered in BusyBox before 1.30.0. An out of bounds read in udhcp components (consumed by the DHCP server, client, and relay) allows a remote attacker to leak sensitive information from the stack by sending a crafted DHCP message. This is related to verification in udhcp_get_option() in networking/udhcp/common.c that 4-byte options are indeed 4 bytes.&quot;,
+&quot;package_name&quot;: &quot;busybox&quot;,
+&quot;package_version&quot;: &quot;1.26.2-r11&quot;,
+&quot;fixed_version&quot;: &quot;1.29.3-r10&quot;,
+&quot;link&quot;: &quot;https://cve.mitre.org/cgi-bin/cvename.cgi?name\u003dCVE-2018-20679&quot;,
+&quot;score_v3&quot;: 7.5,
+&quot;vectors_v3&quot;: &quot;CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N&quot;,
+&quot;published_timestamp&quot;: 1547051340,
+&quot;last_modified_timestamp&quot;: 1567638900,
+&quot;cves&quot;: [
+&quot;CVE-2018-20679&quot;
+],
+&quot;feed_rating&quot;: &quot;&quot;
+},
+{
+&quot;name&quot;: &quot;CVE-2019-5747&quot;,
+&quot;score&quot;: 5.0,
+&quot;severity&quot;: &quot;High&quot;,
+&quot;vectors&quot;: &quot;AV:N/AC:L/Au:N/C:P/I:N/A:N&quot;,
+&quot;description&quot;: &quot;An issue was discovered in BusyBox through 1.30.0. An out of bounds read in udhcp components (consumed by the DHCP server, client, and/or relay) might allow a remote attacker to leak sensitive information from the stack by sending a crafted DHCP message. This is related to assurance of a 4-byte length when decoding DHCP_SUBNET. NOTE: this issue exists because of an incomplete fix for CVE-2018-20679.&quot;,
+&quot;package_name&quot;: &quot;busybox&quot;,
+&quot;package_version&quot;: &quot;1.26.2-r11&quot;,
+&quot;fixed_version&quot;: &quot;1.30.1-r2&quot;,
+&quot;link&quot;: &quot;https://cve.mitre.org/cgi-bin/cvename.cgi?name\u003dCVE-2019-5747&quot;,
+&quot;score_v3&quot;: 7.5,
+&quot;vectors_v3&quot;: &quot;CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N&quot;,
+&quot;published_timestamp&quot;: 1547051340,
+&quot;last_modified_timestamp&quot;: 1567638900,
+&quot;cves&quot;: [
+&quot;CVE-2019-5747&quot;
+],
+&quot;feed_rating&quot;: &quot;&quot;
+},
+{
+&quot;name&quot;: &quot;CVE-2021-28831&quot;,
+&quot;score&quot;: 5.0,
+&quot;severity&quot;: &quot;High&quot;,
+&quot;vectors&quot;: &quot;AV:N/AC:L/Au:N/C:N/I:N/A:P&quot;,
+&quot;description&quot;: &quot;decompress_gunzip.c in BusyBox through 1.32.1 mishandles the error bit on the huft_build result pointer, with a resultant invalid free or segmentation fault, via malformed gzip data.&quot;,
+&quot;package_name&quot;: &quot;busybox&quot;,
+&quot;package_version&quot;: &quot;1.26.2-r11&quot;,
+&quot;fixed_version&quot;: &quot;1.33.0-r5&quot;,
+&quot;link&quot;: &quot;https://cve.mitre.org/cgi-bin/cvename.cgi?name\u003dCVE-2021-28831&quot;,
+&quot;score_v3&quot;: 7.5,
+&quot;vectors_v3&quot;: &quot;CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H&quot;,
+&quot;published_timestamp&quot;: 1616130900,
+&quot;last_modified_timestamp&quot;: 1622024100,
+&quot;cves&quot;: [
+&quot;CVE-2021-28831&quot;
+],
+&quot;feed_rating&quot;: &quot;&quot;
+},
+{
+&quot;name&quot;: &quot;CVE-2019-14697&quot;,
+&quot;score&quot;: 7.5,
+&quot;severity&quot;: &quot;High&quot;,
+&quot;vectors&quot;: &quot;AV:N/AC:L/Au:N/C:P/I:P/A:P&quot;,
+&quot;description&quot;: &quot;musl libc through 1.1.23 has an x87 floating-point stack adjustment imbalance, related to the math/i386/ directory. In some cases, use of this library could introduce out-of-bounds writes that are not present in an application\u0027s source code.&quot;,
+&quot;package_name&quot;: &quot;musl&quot;,
+&quot;package_version&quot;: &quot;1.1.16-r15&quot;,
+&quot;fixed_version&quot;: &quot;1.1.23-r2&quot;,
+&quot;link&quot;: &quot;https://cve.mitre.org/cgi-bin/cvename.cgi?name\u003dCVE-2019-14697&quot;,
+&quot;score_v3&quot;: 9.8,
+&quot;vectors_v3&quot;: &quot;CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H&quot;,
+&quot;published_timestamp&quot;: 1565108100,
+&quot;last_modified_timestamp&quot;: 1584213300,
+&quot;cves&quot;: [
+&quot;CVE-2019-14697&quot;
+],
+&quot;feed_rating&quot;: &quot;&quot;
+},
+{
+&quot;name&quot;: &quot;CVE-2017-15874&quot;,
+&quot;score&quot;: 4.3,
+&quot;severity&quot;: &quot;Medium&quot;,
+&quot;vectors&quot;: &quot;AV:N/AC:M/Au:N/C:N/I:N/A:P&quot;,
+&quot;description&quot;: &quot;archival/libarchive/decompress_unlzma.c in BusyBox 1.27.2 has an Integer Underflow that leads to a read access violation.&quot;,
+&quot;package_name&quot;: &quot;busybox&quot;,
+&quot;package_version&quot;: &quot;1.26.2-r11&quot;,
+&quot;fixed_version&quot;: &quot;1.27.2-r4&quot;,
+&quot;link&quot;: &quot;https://cve.mitre.org/cgi-bin/cvename.cgi?name\u003dCVE-2017-15874&quot;,
+&quot;score_v3&quot;: 5.5,
+&quot;vectors_v3&quot;: &quot;CVSS:3.0/AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H&quot;,
+&quot;published_timestamp&quot;: 1508876940,
+&quot;last_modified_timestamp&quot;: 1509486480,
+&quot;cves&quot;: [
+&quot;CVE-2017-15874&quot;
+],
+&quot;feed_rating&quot;: &quot;&quot;
+},
+{
+&quot;name&quot;: &quot;CVE-2020-28928&quot;,
+&quot;score&quot;: 2.1,
+&quot;severity&quot;: &quot;Medium&quot;,
+&quot;vectors&quot;: &quot;AV:L/AC:L/Au:N/C:N/I:N/A:P&quot;,
+&quot;description&quot;: &quot;In musl libc through 1.2.1, wcsnrtombs mishandles particular combinations of destination buffer size and source character limit, as demonstrated by an invalid write access (buffer overflow).&quot;,
+&quot;package_name&quot;: &quot;musl&quot;,
+&quot;package_version&quot;: &quot;1.1.16-r15&quot;,
+&quot;fixed_version&quot;: &quot;1.2.2_pre2-r0&quot;,
+&quot;link&quot;: &quot;https://cve.mitre.org/cgi-bin/cvename.cgi?name\u003dCVE-2020-28928&quot;,
+&quot;score_v3&quot;: 5.5,
+&quot;vectors_v3&quot;: &quot;CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H&quot;,
+&quot;published_timestamp&quot;: 1606241700,
+&quot;last_modified_timestamp&quot;: 1623180120,
+&quot;cves&quot;: [
+&quot;CVE-2020-28928&quot;
+],
+&quot;feed_rating&quot;: &quot;&quot;
+}
+],
+&quot;modules&quot;: [
+{
+&quot;name&quot;: &quot;alpine-baselayout&quot;,
+&quot;version&quot;: &quot;3.0.4-r0&quot;,
+&quot;source&quot;: &quot;alpine:3.6.5&quot;
+},
+{
+&quot;name&quot;: &quot;alpine-keys&quot;,
+&quot;version&quot;: &quot;2.1-r1&quot;,
+&quot;source&quot;: &quot;alpine:3.6.5&quot;
+},
+{
+&quot;name&quot;: &quot;libressl&quot;,
+&quot;version&quot;: &quot;2.5.5-r2&quot;,
+&quot;source&quot;: &quot;alpine:3.6.5&quot;
+},
+{
+&quot;name&quot;: &quot;zlib&quot;,
+&quot;version&quot;: &quot;1.2.11-r0&quot;,
+&quot;source&quot;: &quot;alpine:3.6.5&quot;
+},
+{
+&quot;name&quot;: &quot;musl&quot;,
+&quot;version&quot;: &quot;1.1.16-r15&quot;,
+&quot;source&quot;: &quot;alpine:3.6.5&quot;,
+&quot;cves&quot;: [
+{
+&quot;name&quot;: &quot;CVE-2019-14697&quot;,
+&quot;status&quot;: &quot;fix exists&quot;
+},
+{
+&quot;name&quot;: &quot;CVE-2020-28928&quot;,
+&quot;status&quot;: &quot;fix exists&quot;
+}
+]
+},
+{
+&quot;name&quot;: &quot;busybox&quot;,
+&quot;version&quot;: &quot;1.26.2-r11&quot;,
+&quot;source&quot;: &quot;alpine:3.6.5&quot;,
+&quot;cves&quot;: [
+{
+&quot;name&quot;: &quot;CVE-2019-5747&quot;,
+&quot;status&quot;: &quot;fix exists&quot;
+},
+{
+&quot;name&quot;: &quot;CVE-2017-15874&quot;,
+&quot;status&quot;: &quot;fix exists&quot;
+},
+{
+&quot;name&quot;: &quot;CVE-2018-20679&quot;,
+&quot;status&quot;: &quot;fix exists&quot;
+},
+{
+&quot;name&quot;: &quot;CVE-2018-1000500&quot;,
+&quot;status&quot;: &quot;fix exists&quot;
+},
+{
+&quot;name&quot;: &quot;CVE-2021-28831&quot;,
+&quot;status&quot;: &quot;fix exists&quot;
+}
+]
+},
+{
+&quot;name&quot;: &quot;apk-tools&quot;,
+&quot;version&quot;: &quot;2.7.6-r0&quot;,
+&quot;source&quot;: &quot;alpine:3.6.5&quot;,
+&quot;cves&quot;: [
+{
+&quot;name&quot;: &quot;CVE-2021-30139&quot;,
+&quot;status&quot;: &quot;fix exists&quot;
+}
+]
+},
+{
+&quot;name&quot;: &quot;pax-utils&quot;,
+&quot;version&quot;: &quot;1.2.2-r0&quot;,
+&quot;source&quot;: &quot;alpine:3.6.5&quot;
+},
+{
+&quot;name&quot;: &quot;libc-dev&quot;,
+&quot;version&quot;: &quot;0.7.1-r0&quot;,
+&quot;source&quot;: &quot;alpine:3.6.5&quot;
+}
+],
+&quot;checks&quot;: [
+{
+&quot;test_number&quot;: &quot;I.4.1&quot;,
+&quot;catalog&quot;: &quot;image&quot;,
+&quot;type&quot;: &quot;image&quot;,
+&quot;profile&quot;: &quot;Level 1&quot;,
+&quot;scored&quot;: true,
+&quot;description&quot;: &quot;Ensure a user for the container has been created&quot;,
+&quot;remediation&quot;: &quot;&quot;,
+&quot;tags&quot;: [],
+&quot;level&quot;: &quot;WARN&quot;,
+&quot;message&quot;: []
+},
+{
+&quot;test_number&quot;: &quot;I.4.6&quot;,
+&quot;catalog&quot;: &quot;image&quot;,
+&quot;type&quot;: &quot;image&quot;,
+&quot;profile&quot;: &quot;Level 1&quot;,
+&quot;scored&quot;: false,
+&quot;description&quot;: &quot;Ensure that HEALTHCHECK instructions have been added to container images&quot;,
+&quot;remediation&quot;: &quot;&quot;,
+&quot;tags&quot;: [],
+&quot;level&quot;: &quot;WARN&quot;,
+&quot;message&quot;: []
+}
+],
+&quot;secrets&quot;: [],
+&quot;setid_perms&quot;: [],
+&quot;envs&quot;: [
+&quot;PATH\u003d/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin&quot;
+],
+&quot;cmds&quot;: [
+&quot;/bin/sh&quot;
+]
+}
+}</content>
+</item>
+<summary>
+<scannerDriver>cli</scannerDriver>
+<scannerVersion>1.119.0-SNAPSHOT</scannerVersion>
+<operatingSystem>Mac OS X</operatingSystem>
+<processorArchitecture>x86_64</processorArchitecture>
+<startTime>2021-06-28T17:45:09+0000</startTime>
+<endTime>2021-06-28T17:46:02+0000</endTime>
+<files>1</files>
+<clientInfo>
+<property name="java.specification.version" value="14"/>
+<property name="java.runtime.version" value="14.0.2+12"/>
+<property name="java.vm.vendor" value="AdoptOpenJDK"/>
+<property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+<property name="java.vendor.url" value="https://adoptopenjdk.net/"/>
+<property name="insight.scannerVersion" value="1.119.0-SNAPSHOT"/>
+<property name="os.name" value="Mac OS X"/>
+<property name="java.vm.specification.version" value="14"/>
+<property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+<property name="java.vendor.version" value="AdoptOpenJDK"/>
+<property name="java.vendor.url.bug" value="https://github.com/AdoptOpenJDK/openjdk-support/issues"/>
+<property name="insight.scannerDriver" value="cli"/>
+<property name="java.version" value="14.0.2"/>
+<property name="os.arch" value="x86_64"/>
+<property name="java.specification.vendor" value="Oracle Corporation"/>
+<property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+<property name="java.vm.compressedOopsMode" value="Zero based"/>
+<property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+<property name="java.specification.name" value="Java Platform API Specification"/>
+<property name="java.vm.info" value="mixed mode, sharing"/>
+<property name="java.vm.version" value="14.0.2+12"/>
+</clientInfo>
+</summary>
+</scan>

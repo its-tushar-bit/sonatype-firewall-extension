@@ -1,0 +1,289 @@
+<!--
+
+    Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+    Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+    "Sonatype" is a trademark of Sonatype, Inc.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.sonatype.insight.brain</groupId>
+    <artifactId>insight-brain</artifactId>
+    <version>1.208.0-SNAPSHOT</version>
+    <!-- Required when this folder is opened alone so Maven / Java LS resolve the reactor and dependencyManagement. -->
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+  <artifactId>insight-brain-variant-test-mtiq-fips</artifactId>
+
+  <description>
+    FIPS-mode MULTI-TENANT integration tests. These extend the same JUnit 4 MultiTenant* base tests as
+    nexus-mtiq-server, but each test class inserts a BouncyCastle FIPS security provider
+    (FipsTestUtil.insertBouncyCastleFipsProvider) and sets FIPS_MODE_ENABLED before running the inherited
+    scenarios. Because a FIPS provider is a JVM-global mutation of java.security.Security, these tests
+    CANNOT share a reused single-JVM context — they would poison every other test in that JVM. So they live
+    here with reuseForks=false, giving each FIPS test class its own JVM (and therefore its own clean
+    security-provider state). This is the MTIQ counterpart of insight-brain-variant-test-fips: the MTIQ app
+    and the plain IQ app both define Spring @Configuration classes in the com.sonatype.insight.brain.service
+    package, so they cannot share a test classpath (the single-tenant IQ server would component-scan the
+    MTIQ beans and fail to boot) — exactly why nexus-mtiq-server / insight-brain-variant-test-mtiq are kept
+    separate from the IQ variant modules. Run:
+    mvn verify -pl insight-brain-variant-test-mtiq-fips -Dskip-functional-test
+  </description>
+
+  <properties>
+    <clm.skip>true</clm.skip>
+  </properties>
+
+  <build>
+    <plugins>
+      <!-- Tests run under Failsafe (integration-test/verify), mirroring the other variant modules. -->
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <skip>false</skip>
+          <includes>
+            <!-- Only the FIPS subclasses run. Every moved class ends in FIPSTest, so this matches exactly
+                 the MTIQ FIPS tests and never the non-FIPS MultiTenant* base classes that arrive on the
+                 classpath via the nexus-mtiq-server test-jar purely as superclasses. -->
+            <include>**/*FIPSTest.*</include>
+          </includes>
+          <trimStackTrace>false</trimStackTrace>
+          <!--
+            reuseForks=false: each FIPS test class runs in its own JVM so the BouncyCastle FIPS provider it
+            installs (a JVM-global java.security.Security mutation) cannot leak into any other test. This is
+            the whole reason these tests are split out of nexus-mtiq-server.
+          -->
+          <reuseForks>false</reuseForks>
+          <forkCount>1</forkCount>
+          <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
+          <forkedProcessExitTimeoutInSeconds>30</forkedProcessExitTimeoutInSeconds>
+          <shutdown>kill</shutdown>
+          <!--
+            @{jacocoVariantArgLine} carries the JaCoCo agent under the coverage profiles
+            (buildsupport-coverage / -sonar-coverage); it is empty otherwise, so normal and
+            one-box/perf runs keep this exact, tuned argLine. Inline add-opens (Spring Boot 4 on
+            JDK 25 needs these) plus a byte-buddy agent for Mockito.
+          -->
+          <argLine>
+            @{jacocoVariantArgLine}
+            --add-opens=java.base/java.lang=ALL-UNNAMED
+            --add-opens=java.base/java.util=ALL-UNNAMED
+            --add-opens=java.base/java.security=ALL-UNNAMED
+            --add-opens=java.base/sun.security.rsa=ALL-UNNAMED
+            --add-opens=java.base/sun.security.x509=ALL-UNNAMED
+            --add-opens=java.base/sun.security.util=ALL-UNNAMED
+            --add-opens=java.xml/com.sun.org.apache.xerces.internal.jaxp.datatype=ALL-UNNAMED
+            --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+            -Xmx3072M
+            -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar
+            -XX:+HeapDumpOnOutOfMemoryError
+            -XX:HeapDumpPath=${project.build.directory}/
+          </argLine>
+          <systemPropertyVariables>
+            <!-- Used by the test MTIQ server to set a per-fork work directory. -->
+            <test.forkId>#${surefire.forkNumber}</test.forkId>
+            <!--
+              The MTIQ bean graph eagerly builds an AWS SecretsManager client; it needs a region to
+              construct (never actually called by these tests). CI provides AWS_REGION; this shim provides
+              one for local runs.
+            -->
+            <aws.region>us-east-1</aws.region>
+          </systemPropertyVariables>
+          <!-- insight-brain-service server jar's kie.conf can conflict with other deps' (mirrors nexus-mtiq-server). -->
+          <classpathDependencyExcludes>
+            <classpathDependencyExclude>org.drools:drools-core</classpathDependencyExclude>
+            <classpathDependencyExclude>org.drools:drools-compiler</classpathDependencyExclude>
+            <classpathDependencyExclude>org.drools:drools-mvel</classpathDependencyExclude>
+            <classpathDependencyExclude>org.kie:kie-internal</classpathDependencyExclude>
+          </classpathDependencyExcludes>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- No artifacts to deploy: this module only runs tests. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <!-- JUnit 5 (Jupiter) engine + Vintage engine on the JUnit Platform, mirroring nexus-mtiq-server. -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.junit.vintage</groupId>
+          <artifactId>junit-vintage-engine</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.vintage</groupId>
+      <artifactId>junit-vintage-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- @ParameterizedTest/@MethodSource support for any base that uses it. -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- JUnit 4 System Rules: EnvironmentVariables rule used by the FIPS tests to toggle FIPS_MODE_ENABLED. -->
+    <dependency>
+      <groupId>com.github.stefanbirkner</groupId>
+      <artifactId>system-rules</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Shared variant-test machinery (AbstractMtiqServerExtension, SpikeRestClient) — kept for parity with
+         insight-brain-variant-test-mtiq in case a base references it. -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-variant-test-support</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- MTIQ app under test + its test fixtures (MultiTenant* base tests, MultiTenantRule,
+         MultiTenantTestInsightBrainServiceFactory, ...). Pulls insight-brain-service (with bc-fips /
+         bcpkix-fips / bctls-fips) transitively. Plain (non-shaded) jar + test-jar. -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>nexus-mtiq-server</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>nexus-mtiq-server</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- IQ test fixtures the launcher needs (TestCLMServer, DatabaseContainerRule,
+         AbstractBaseIntegrationTest). -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-service</artifactId>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Tenancy test helpers (TenantTestHelper). -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-tenancy</artifactId>
+      <classifier>tests</classifier>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- DB/data/common test fixtures (DatabaseRuleAnnotations, H2DiskDatabaseFixture, TemporaryEntity, ...).
+         insight-brain-common test-jar also carries FipsTestUtil and TestFipsEncryptionKeyStore. -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-db</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-data</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-common</artifactId>
+      <type>test-jar</type>
+    </dependency>
+
+    <!-- SpringTestExecutionContext lives here. -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-test</artifactId>
+    </dependency>
+
+    <!-- HDS mock the launcher wires up. -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>hds-mock-server</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- WireMock, used by CrowdMockServerRule and similar @Rule-based mock servers. -->
+    <dependency>
+      <groupId>com.github.tomakehurst</groupId>
+      <artifactId>wiremock-jre8-standalone</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Embedded LDAP (ApacheDS), mirroring nexus-mtiq-server's test deps. -->
+    <dependency>
+      <groupId>org.apache.directory.server</groupId>
+      <artifactId>apacheds-core-integ</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Byte Buddy agent for Mockito (referenced by the failsafe -javaagent). -->
+    <dependency>
+      <groupId>net.bytebuddy</groupId>
+      <artifactId>byte-buddy-agent</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Embedded PostgreSQL (zonky) for the multi-tenant server boot. -->
+    <dependency>
+      <groupId>io.zonky.test</groupId>
+      <artifactId>embedded-postgres</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!--
+      Legacy javax.xml.bind (JAXB 2.x) runtime impl. Mirrors insight-brain-service's runtime dep so any
+      javax-namespace JAXBContext.newInstance in the MTIQ context resolves a provider.
+    -->
+    <dependency>
+      <groupId>com.sun.xml.bind</groupId>
+      <artifactId>jaxb-impl</artifactId>
+      <version>2.3.9</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+</project>

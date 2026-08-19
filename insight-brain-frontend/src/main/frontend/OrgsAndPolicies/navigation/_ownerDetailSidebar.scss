@@ -1,0 +1,130 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
+owner-detail-sidebar {
+  display: contents;
+}
+
+#owner-detail-sidebar {
+  background-color: var(--nx-swatch-indigo-90);
+
+  @include nx-dark-mode-helpers.dark-mode {
+    background-color: var(--nx-swatch-indigo-20);
+  }
+
+  .nx-h3 {
+    @include nx-text-helpers.truncate-ellipsis;
+    padding-right: var(--nx-spacing-6x);
+    margin-bottom: 0;
+  }
+
+  .nx-h4 {
+    text-transform: initial;
+  }
+
+  .nx-collapsible-items--expanded {
+    border-radius: 6px 0px 0px 6px;
+    &.active {
+      background-color: var(--nx-swatch-indigo-97);
+      @include nx-dark-mode-helpers.dark-mode {
+        background-color: var(--nx-swatch-indigo-30);
+      }
+    }
+  }
+
+  .nx-text-link {
+    transition-property: background-color, border;
+    transition-duration: 0.2s;
+    transition-timing-function: ease-out;
+
+    svg {
+      margin-left: 0;
+    }
+
+    &:active,
+    &:focus,
+    &:focus:active {
+      color: inherit;
+    }
+  }
+
+  a.iq-noncollapsible {
+    width: calc(100% + var(--nx-spacing-2x));
+    font-weight: 600;
+    color: var(--nx-color-text-dark);
+    padding: calc(var(--nx-spacing-base)) calc(var(--nx-spacing-2x)) calc(var(--nx-spacing-base))
+      calc(var(--nx-spacing-6x) + var(--nx-spacing-base) + 1px);
+
+    &:not(:last-of-type) {
+      margin-bottom: var(--nx-spacing-4x);
+    }
+
+    &:first-of-type {
+      margin-top: calc(0px - var(--nx-spacing-2x));
+    }
+
+    &.last {
+      margin-bottom: calc(0px - var(--nx-spacing-2x));
+    }
+
+    &.disabled {
+      text-decoration: none;
+    }
+
+    span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    // nx-collapsible-item__child added for specificity
+    &.nx-collapsible-items__child.selected {
+      background-color: var(--nx-color-site-background);
+    }
+
+    &.nx-collapsible-items__child.sbomManager {
+      margin: var(--nx-spacing-6x) calc(0px - var(--nx-spacing-2x));
+    }
+  }
+
+  .label-list-menu .nx-icon {
+    color: var(--nx-selectable-color-dark);
+  }
+
+  .nx-collapsible-items__child.selected,
+  .nx-collapsible-items__child:focus,
+  .nx-collapsible-items__child:hover {
+    border-radius: var(--nx-border-radius) 0 0 var(--nx-border-radius);
+  }
+
+  a.nx-text-link.nx-collapsible-items__child:not(.selected):hover {
+    background-color: white;
+    @include nx-dark-mode-helpers.dark-mode {
+      color: white;
+      background-color: var(--nx-swatch-indigo-15);
+    }
+  }
+
+  a.nx-text-link.nx-collapsible-items__child.selected {
+    @include nx-dark-mode-helpers.dark-mode {
+      background-color: var(--nx-swatch-purple-30);
+    }
+  }
+
+  a.nx-text-link.nx-collapsible-items__child:focus {
+    @include nx-dark-mode-helpers.dark-mode {
+      outline-color: var(--nx-swatch-indigo-80);
+    }
+  }
+
+  a.nx-text-link.nx-collapsible-items__child.disabled:hover {
+    background-color: initial;
+    text-decoration: none;
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "bomFormat" : "CycloneDX",
+  "specVersion" : "1.5",
+  "serialNumber" : "urn:uuid:1270d235-485f-4736-a574-7d4cbac62537",
+  "version" : 1,
+  "metadata" : {
+    "timestamp" : "2025-01-21T23:11:05Z",
+    "tools" : {
+      "components" : [
+        {
+          "type" : "application",
+          "name" : "Sonatype SBOM Manager",
+          "version" : "1.187.0-SNAPSHOT"
+        }
+      ]
+    },
+    "component" : {
+      "type" : "application",
+      "bom-ref" : "ca5cd9b0-4b67-44af-bfeb-d1b7ddd59c4c",
+      "name" : "webgoat",
+      "version" : "v1"
+    }
+  },
+  "components" : [
+    {
+      "type" : "library",
+      "bom-ref" : "a5412683f9dd41e894bb84a61521fa16",
+      "group" : "log4j",
+      "name" : "log4j",
+      "version" : "1.4.196",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "MPL-2.0",
+            "properties" : [
+              {
+                "name" : "sonatype:identification_sources",
+                "value" : "SBOM,Sonatype"
+              }
+            ]
+          }
+        }
+      ],
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "SBOM"
+        },
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "abcdef"
+        }
+      ]
+    }
+  ],
+  "vulnerabilities" : [
+    {
+      "bom-ref" : "sonatype-2010-0053-40d45ce94dfc4429ae6beb3b0807cd9b",
+      "id" : "sonatype-2010-0053",
+      "source" : {
+        "name" : "source",
+        "url" : "l1"
+      },
+      "ratings" : [
+        {
+          "source" : {
+            "name" : "source",
+            "url" : "l1"
+          },
+          "score" : 5.5,
+          "severity" : "medium",
+          "method" : "other",
+          "vector" : "v:1"
+        }
+      ],
+      "cwes" : [
+        1234
+      ],
+      "description" : "DESC sonatype-2010-0053",
+      "affects" : [
+        {
+          "ref" : "a5412683f9dd41e894bb84a61521fa16"
+        }
+      ],
+      "properties" : [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "G,F"
+        }
+      ],
+      "references" : [
+        {
+          "id" : "sonatype-2010-0053",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/sonatype-2010-0053"
+          }
+        }
+      ]
+    }
+  ]
+}

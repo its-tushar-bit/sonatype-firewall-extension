@@ -1,0 +1,64 @@
+{
+  "dependencyGraph" : [],
+  "gavDepths" : {},
+  "componentDepths" : [],
+  "dependencyTree" : {
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "known-parent",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.example",
+          "version" : "1.0.0"
+        }
+      },
+      "packageUrl" : "pkg:maven/com.example/known-parent@1.0.0?type=jar",
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "unknown-middle",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.example",
+            "version" : "2.0.0"
+          }
+        },
+        "packageUrl" : "pkg:maven/com.example/unknown-middle@2.0.0?type=jar",
+        "children" : [ {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "known-child",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "com.example",
+              "version" : "3.0.0"
+            }
+          },
+          "packageUrl" : "pkg:maven/com.example/known-child@3.0.0?type=jar",
+          "children" : [ {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "known-grandchild",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "com.example",
+                "version" : "4.0.0"
+              }
+            },
+            "packageUrl" : "pkg:maven/com.example/known-grandchild@4.0.0?type=jar",
+            "direct" : false
+          } ],
+          "direct" : false
+        } ],
+        "direct" : false
+      } ],
+      "direct" : true
+    } ],
+    "module" : true
+  }
+}

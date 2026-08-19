@@ -1,0 +1,126 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "pecoff",
+      "coordinates" : {
+        "name" : "Apache.NMS.dll",
+        "namespace" : "Apache",
+        "version" : "2.0.0.0"
+      }
+    },
+    "packageUrl" : "pkg:generic/Apache.NMS.dll@2.0.0.0?nexusnamespace=Apache&nexustype=pecoff",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "Apache.NMS.dll" ],
+    "pathnames" : [ "test/net40/Apache.NMS.dll" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "367c5c858d5f3057d93b",
+    "relativePopularity" : null,
+    "createTime" : 1614029087502,
+    "lastModifiedTime" : 1613530090000,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Namespace",
+        "value" : "Apache"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Name",
+        "value" : "Apache.NMS.dll"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "2.0.0.0"
+      } ],
+      "name" : "Apache.NMS.dll"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "pecoff",
+      "coordinates" : {
+        "name" : "Apache.NMS.dll",
+        "namespace" : "Apache",
+        "version" : "2.0.0.0"
+      }
+    },
+    "packageUrl" : "pkg:generic/Apache.NMS.dll@2.0.0.0?nexusnamespace=Apache&nexustype=pecoff",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "Apache.NMS.dll" ],
+    "pathnames" : [ "test/netstandard2.0/Apache.NMS.dll" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "f19ac613238ca6e4ae77",
+    "relativePopularity" : null,
+    "createTime" : 1614029087502,
+    "lastModifiedTime" : 1613530090000,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Namespace",
+        "value" : "Apache"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Name",
+        "value" : "Apache.NMS.dll"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "2.0.0.0"
+      } ],
+      "name" : "Apache.NMS.dll"
+    }
+  } ],
+  "dependencyDataIncluded" : false
+}

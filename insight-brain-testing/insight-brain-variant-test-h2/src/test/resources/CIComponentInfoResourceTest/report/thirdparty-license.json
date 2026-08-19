@@ -1,0 +1,41 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "debian",
+      "coordinates" : {
+        "name" : "apt",
+        "version" : "1.4.8"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "683620ac905c1d32b58c",
+        "declaredLicenses" : [ {
+      "id" : "AFL-1.2",
+      "name" : "Academic Free License v1.2",
+      "url" : "https://www.openhub.net/licenses/AFL-1dot2"
+    }, {
+      "id" : "Apache-2.0",
+      "name" : "Apache License 2.0",
+      "url" : "https://www.apache.org/licenses/LICENSE-2.0"
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "debian",
+      "coordinates" : {
+        "name" : "glibc",
+        "version" : "2.24-11+deb9u3"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "e587ce87ed894c1d5283",
+    "declaredLicenses" : [ {
+      "id" : "Apache-2.0",
+      "name" : "Apache License 2.0",
+      "url" : "https://www.apache.org/licenses/LICENSE-2.0"
+    } ]
+  } ]
+}

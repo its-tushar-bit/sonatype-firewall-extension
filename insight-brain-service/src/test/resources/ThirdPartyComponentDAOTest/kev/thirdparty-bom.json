@@ -1,0 +1,34 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "zypi",
+      "coordinates" : {
+        "extension" : "zip",
+        "name" : "pumpy",
+        "qualifier" : "",
+        "version" : "2.19.0"
+      }
+    },
+    "packageUrl" : "pkg:zypi/pumpy@2.19.0?extension=zip",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ ],
+    "pathnames" : [ ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "1b1792c8a828d6a9fb14",
+    "relativePopularity" : null,
+    "createTime" : 1694626057457,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "scenario1",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : null,
+    "integrityRating" : null
+  } ]
+}

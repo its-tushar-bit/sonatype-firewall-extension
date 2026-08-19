@@ -1,0 +1,121 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+/*
+  #Policy Editor
+*/
+
+@use './variables' as *;
+
+#policy-editor.iq-tile-scroll-container {
+  width: calc(100% - #{$iq-spacing-sm});
+}
+
+// because the form wraps the anchors used by scrollspy we have to zero out padding and margins
+.iq-form--view-edit-policy {
+  margin: 0;
+  padding: 0;
+}
+
+#owner-summary {
+  .iq-tile__actions {
+    margin-top: 0;
+  }
+}
+
+#proprietary-config-editor {
+  p {
+    margin-bottom: 24px;
+    max-width: $iq-paragraph-width-maximum;
+  }
+}
+
+.iq-policy-editor__add-notification,
+.iq-form-row--add-matcher {
+  margin-top: 12px;
+
+  dropdown-selector.no-options {
+    padding-top: 8px;
+  }
+}
+
+.iq-policy-editor__notification-type {
+  width: 90px;
+}
+
+.iq-policy-editor__matcher-type {
+  width: 160px;
+}
+
+#recipient-jira-issue-type {
+  width: 200px;
+}
+
+#policy-edit-actions,
+#policy-edit-notifications {
+  .iq-table {
+    margin-bottom: 21px;
+    table-layout: fixed;
+  }
+
+  .iq-cell--header {
+    text-transform: uppercase;
+  }
+
+  // these two table should line up, but their columns don't have the same semantics so
+  // the alignment is specified in terms of column positions
+  .iq-cell {
+    padding: 0;
+    text-align: center;
+    width: 80px;
+
+    &:first-child {
+      padding-left: 12px;
+      text-align: left;
+      width: auto;
+    }
+
+    &:last-child {
+      width: 34px;
+    }
+  }
+
+  .iq-radio {
+    height: 40px;
+    margin-left: 0;
+    padding-left: 56px;
+
+    .iq-radio__circle::before,
+    .iq-radio__circle::after {
+      top: 10px;
+      left: 32px;
+    }
+
+    i.fa {
+      padding-top: 12px;
+    }
+  }
+}
+
+.iq-cell--continuous-monitoring {
+  font-size: 12px;
+  line-height: inherit;
+  white-space: normal;
+}
+
+.iq-cell--action-name,
+.iq-cell--recipient {
+  > .fa,
+  > svg {
+    margin-top: 2px;
+    margin-right: 8px;
+  }
+
+  > .svg-slate-16px {
+    fill: $iq-slate;
+    height: 16px;
+    width: 16px;
+  }
+}

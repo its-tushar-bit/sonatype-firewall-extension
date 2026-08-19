@@ -1,0 +1,36 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+.user-activity-overview {
+  .user-activity-filters {
+    margin-bottom: 1rem;
+  }
+}
+
+.user-activity-table,
+.user-activity-details-table {
+  overflow-x: auto;
+
+  .nx-table {
+    min-width: 100%;
+  }
+
+  .username-cell,
+  .uri-cell,
+  .user-agent-cell {
+    max-width: 300px;
+    @include nx-text-helpers.truncate-ellipsis;
+  }
+
+  .domain-cell,
+  .type-cell,
+  .error-cell,
+  .method-cell,
+  .ip-address-cell {
+    @include nx-text-helpers.truncate-ellipsis;
+  }
+}

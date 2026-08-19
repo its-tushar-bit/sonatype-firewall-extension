@@ -1,0 +1,96 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "hawk",
+        "qualifier" : "",
+        "version" : "4.0.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "index.js", "server.js" ],
+    "pathnames" : [ "hawkTest.zip/duplicate/index.js", "hawkTest.zip/duplicate/server.js", "hawkTest.zip/index.js", "hawkTest.zip/nested/index/index.js", "hawkTest.zip/nested/server/server.js", "hawkTest.zip/reversed/index.js", "hawkTest.zip/reversed/server.js", "hawkTest.zip/server.js" ],
+    "aggregateFiles" : [ {
+      "hash" : "b688552e098a688d71ed",
+      "pathnames" : [ "hawkTest.zip/duplicate/index.js", "hawkTest.zip/index.js", "hawkTest.zip/nested/index/index.js", "hawkTest.zip/reversed/server.js" ]
+    }, {
+      "hash" : "d19dcac7f0ce105e3369",
+      "pathnames" : [ "hawkTest.zip/duplicate/server.js", "hawkTest.zip/nested/server/server.js", "hawkTest.zip/reversed/index.js", "hawkTest.zip/server.js" ]
+    } ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "a567564b25bb307a55ef",
+    "relativePopularity" : null,
+    "createTime" : 1446768775134,
+    "lastModifiedTime" : 1446768656000,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "hawk"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "4.0.0"
+      } ],
+      "name" : "hawk"
+    }
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "hawkTest.zip" ],
+    "pathnames" : [ "hawkTest.zip" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "ab4e6f3b97ec4831f018",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1607013068000,
+    "lastModifiedEntryTime" : 1446768656000,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Filename",
+        "value" : "hawkTest.zip"
+      } ],
+      "name" : "hawkTest.zip"
+    }
+  } ]
+}

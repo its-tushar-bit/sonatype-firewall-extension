@@ -1,0 +1,86 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+.sbom-manager-bill-of-materials-components-tile {
+  &__display-name {
+    display: inline-block;
+    min-width: 320px;
+    max-width: 350px;
+    text-wrap: wrap;
+    word-break: break-all;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &--direct-dependency {
+      font-weight: bold;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: flex-start;
+  }
+
+  &__info-icon {
+    color: var(--nx-color-text-dark);
+    margin-bottom: 5px;
+  }
+
+  &__release-status-percentage {
+    display: flex;
+    gap: var(--nx-spacing-base);
+    align-items: center;
+  }
+
+  &__release-status-percentage-donut {
+    height: 30px;
+
+    .nx-binary-donut-chart__arc {
+      stroke: var(--nx-swatch-teal-40);
+    }
+  }
+
+  &__licenses {
+    text-wrap: wrap;
+    word-break: break-all;
+  }
+
+  &__overridden-pill {
+    margin-left: var(--nx-spacing-2x);
+    height: 21px;
+  }
+
+  &__pagination-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nx-spacing-2x);
+  }
+
+  &__pagination-wrapper {
+    width: min-content;
+  }
+
+  .nx-btn-bar--pagination {
+    width: min-content;
+    margin: 0;
+  }
+}
+
+.bill-of-materials-components-tile-search {
+  position: relative;
+
+  .nx-text-input__box {
+    padding-left: 36px;
+  }
+
+  .nx-icon {
+    position: absolute;
+    left: var(--nx-spacing-base);
+    top: var(--nx-spacing-3x);
+    z-index: 1;
+  }
+}

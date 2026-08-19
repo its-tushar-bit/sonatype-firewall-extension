@@ -1,0 +1,99 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+firewall-enterprise-reporting-dashboard-page {
+  --looker-iframe-margin: 60px;
+
+  display: contents;
+
+  iframe {
+    height: 100%;
+    width: 100%;
+  }
+
+  .nx-page-title {
+    .nx-h1 {
+      margin-left: var(--looker-iframe-margin);
+    }
+  }
+
+  .nx-alert--error {
+    margin-left: var(--looker-iframe-margin);
+  }
+}
+
+.fw-enterprise-reporting-dashboard {
+  // the skeleton loader for Looker seems to be about 120px, temporarily hard code the
+  // container's height to prevent elements underneath from jumping on the page as Looker
+  // iframe loads
+  &__container {
+    &.loading {
+      height: 120px;
+    }
+  }
+
+  &__filter-tag {
+    display: flex;
+    gap: var(--nx-spacing-2x);
+    align-items: center;
+
+    .nx-h3,
+    .nx-tag {
+      margin: 0;
+      font-size: var(--nx-font-size-xs);
+    }
+  }
+
+  &__navigation-bar {
+    font-size: var(--nx-font-size-xs);
+    margin-left: var(--looker-iframe-margin);
+    margin-bottom: var(--nx-spacing-4x);
+  }
+
+  &__navigation-links {
+    display: flex;
+  }
+
+  &__link-list {
+    display: flex;
+    flex-wrap: wrap;
+    list-style-type: none;
+    margin: 0;
+  }
+
+  &__link-item {
+    &:not(:last-child) {
+      &::after {
+        color: var(--nx-color-text-stark);
+        content: '|';
+        margin: 0 var(--nx-spacing-2x);
+      }
+    }
+  }
+
+  &__type {
+    &.nx-h3 {
+      color: var(--nx-color-text-stark);
+      flex-shrink: 0;
+      font-weight: 600;
+      font-size: var(--nx-font-size-xs);
+      margin: 2px var(--nx-spacing-3x) 0 0;
+    }
+  }
+
+  &__filter-button {
+    &.nx-btn {
+      width: max-content;
+    }
+  }
+}
+
+//Matching the Looker Dashboard margin, which shrinks at 1512px
+@media (max-width: 1512px) {
+  firewall-enterprise-reporting-dashboard-page {
+    --looker-iframe-margin: 20px;
+  }
+}

@@ -1,0 +1,44 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+
+request-waiver-page {
+  display: contents;
+
+  .iq-request-waiver-form__comments .nx-text-input,
+  .iq-request-waiver-form__note-to-reviewer .nx-text-input {
+    box-sizing: border-box;
+    min-height: 200px;
+    width: 100%;
+    max-width: var(--nx-width-text-wrapping);
+  }
+
+  .iq-request-waiver-form__component .nx-icon {
+    color: #4f64ba;
+  }
+
+  .iq-request-waiver-form .nx-read-only__label > :first-child,
+  .iq-request-waiver-form .nx-read-only__data > :first-child {
+    margin-left: 0;
+  }
+
+  div.iq-request-waiver-form__date-input {
+    margin-left: var(--nx-spacing-8x);
+    margin-bottom: 0;
+  }
+
+  .iq-request-waiver-form__expiration-days-diff {
+    font-size: var(--nx-font-size-xs);
+    line-height: var(--nx-spacing-4x);
+    position: absolute;
+    margin-top: var(--nx-spacing-2x);
+  }
+
+  .iq-request-waiver-form__expiryTime-block .nx-form-select {
+    margin-bottom: 0;
+  }
+}

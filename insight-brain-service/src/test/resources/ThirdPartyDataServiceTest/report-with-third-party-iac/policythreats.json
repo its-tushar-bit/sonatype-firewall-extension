@@ -1,0 +1,812 @@
+{
+  "version" : 5,
+  "aaData" : [ {
+    "hash" : "0d8e3bd6ee4e6d50557a",
+    "componentIdentifier" : {
+      "format" : "terraform",
+      "coordinates" : {
+        "name" : "aws_s3_bucket.test01",
+        "plan" : "plan.tfplan",
+        "version" : "current"
+      }
+    },
+    "policyId" : "3d0f45c7a0404a44ac50e259872659b8",
+    "policyName" : "Security-Critical",
+    "policyThreatLevel" : 10,
+    "activeViolations" : [ {
+      "policyId" : "3d0f45c7a0404a44ac50e259872659b8",
+      "policyViolationId" : "403b643adfa84363b236e73d0e872039",
+      "policyName" : "Security-Critical",
+      "policyThreatLevel" : 10,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"b835097e14254b478ba992fae5e88b69\",\"constraintName\":\"Critical risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 9\",\"reason\":\"Found security vulnerability FG-R00099 with severity >= 9 (severity = 9.0)\",\"reference\":{\"value\":\"FG-R00099\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00099\\\",\\\"severity\\\":9.0}}\"}]}]",
+      "actions" : [ {
+        "actionType" : "warn",
+        "actionSummary" : "Build Warning"
+      } ],
+      "constraints" : [ {
+        "constraintId" : "b835097e14254b478ba992fae5e88b69",
+        "constraintName" : "Critical risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 9",
+          "conditionReason" : "Found security vulnerability FG-R00099 with severity >= 9 (severity = 9.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00099",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "3d0f45c7a0404a44ac50e259872659b8",
+      "policyViolationId" : "d18dbf569ca549b693fc0ddbac18a20c",
+      "policyName" : "Security-Critical",
+      "policyThreatLevel" : 10,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"b835097e14254b478ba992fae5e88b69\",\"constraintName\":\"Critical risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 9\",\"reason\":\"Found security vulnerability FG-R00229 with severity >= 9 (severity = 9.0)\",\"reference\":{\"value\":\"FG-R00229\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00229\\\",\\\"severity\\\":9.0}}\"}]}]",
+      "actions" : [ {
+        "actionType" : "warn",
+        "actionSummary" : "Build Warning"
+      } ],
+      "constraints" : [ {
+        "constraintId" : "b835097e14254b478ba992fae5e88b69",
+        "constraintName" : "Critical risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 9",
+          "conditionReason" : "Found security vulnerability FG-R00229 with severity >= 9 (severity = 9.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00229",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "b53f43e81a9c4a8d9b7a32eb1a9aa59e",
+      "policyViolationId" : "cc5fde620dcb4455ab565e5c6a5351c8",
+      "policyName" : "Security-High",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"74d7e1b92b86411a96fd062f91ed0ba3\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability FG-R00100 with severity >= 7 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00100\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00100\\\",\\\"severity\\\":7.0}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 9\",\"reason\":\"Found security vulnerability FG-R00100 with severity < 9 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00100\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00100\\\",\\\"severity\\\":7.0}}\"}]}]",
+      "actions" : [ {
+        "actionType" : "warn",
+        "actionSummary" : "Build Warning"
+      } ],
+      "constraints" : [ {
+        "constraintId" : "74d7e1b92b86411a96fd062f91ed0ba3",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability FG-R00100 with severity >= 7 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00100",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 9",
+          "conditionReason" : "Found security vulnerability FG-R00100 with severity < 9 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00100",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "b53f43e81a9c4a8d9b7a32eb1a9aa59e",
+      "policyViolationId" : "854b1a15fc7545419bf451e4633b2e0a",
+      "policyName" : "Security-High",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"74d7e1b92b86411a96fd062f91ed0ba3\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability FG-R00101 with severity >= 7 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00101\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00101\\\",\\\"severity\\\":7.0}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 9\",\"reason\":\"Found security vulnerability FG-R00101 with severity < 9 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00101\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00101\\\",\\\"severity\\\":7.0}}\"}]}]",
+      "actions" : [ {
+        "actionType" : "warn",
+        "actionSummary" : "Build Warning"
+      } ],
+      "constraints" : [ {
+        "constraintId" : "74d7e1b92b86411a96fd062f91ed0ba3",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability FG-R00101 with severity >= 7 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00101",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 9",
+          "conditionReason" : "Found security vulnerability FG-R00101 with severity < 9 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00101",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "b53f43e81a9c4a8d9b7a32eb1a9aa59e",
+      "policyViolationId" : "e6f9f8177c024831855c022a571049e0",
+      "policyName" : "Security-High",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"74d7e1b92b86411a96fd062f91ed0ba3\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability FG-R00274 with severity >= 7 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00274\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00274\\\",\\\"severity\\\":7.0}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 9\",\"reason\":\"Found security vulnerability FG-R00274 with severity < 9 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00274\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00274\\\",\\\"severity\\\":7.0}}\"}]}]",
+      "actions" : [ {
+        "actionType" : "warn",
+        "actionSummary" : "Build Warning"
+      } ],
+      "constraints" : [ {
+        "constraintId" : "74d7e1b92b86411a96fd062f91ed0ba3",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability FG-R00274 with severity >= 7 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00274",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 9",
+          "conditionReason" : "Found security vulnerability FG-R00274 with severity < 9 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00274",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "b53f43e81a9c4a8d9b7a32eb1a9aa59e",
+      "policyViolationId" : "9fe8899b6f7146e19226ce3b94f902df",
+      "policyName" : "Security-High",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"74d7e1b92b86411a96fd062f91ed0ba3\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability FG-R00275 with severity >= 7 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00275\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00275\\\",\\\"severity\\\":7.0}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 9\",\"reason\":\"Found security vulnerability FG-R00275 with severity < 9 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00275\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00275\\\",\\\"severity\\\":7.0}}\"}]}]",
+      "actions" : [ {
+        "actionType" : "warn",
+        "actionSummary" : "Build Warning"
+      } ],
+      "constraints" : [ {
+        "constraintId" : "74d7e1b92b86411a96fd062f91ed0ba3",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability FG-R00275 with severity >= 7 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00275",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 9",
+          "conditionReason" : "Found security vulnerability FG-R00275 with severity < 9 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00275",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    } ],
+    "waivedViolations" : [ ],
+    "allViolations" : [ {
+      "policyId" : "3d0f45c7a0404a44ac50e259872659b8",
+      "policyViolationId" : "403b643adfa84363b236e73d0e872039",
+      "policyName" : "Security-Critical",
+      "policyThreatLevel" : 10,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"b835097e14254b478ba992fae5e88b69\",\"constraintName\":\"Critical risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 9\",\"reason\":\"Found security vulnerability FG-R00099 with severity >= 9 (severity = 9.0)\",\"reference\":{\"value\":\"FG-R00099\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00099\\\",\\\"severity\\\":9.0}}\"}]}]",
+      "actions" : [ {
+        "actionType" : "warn",
+        "actionSummary" : "Build Warning"
+      } ],
+      "constraints" : [ {
+        "constraintId" : "b835097e14254b478ba992fae5e88b69",
+        "constraintName" : "Critical risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 9",
+          "conditionReason" : "Found security vulnerability FG-R00099 with severity >= 9 (severity = 9.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00099",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "3d0f45c7a0404a44ac50e259872659b8",
+      "policyViolationId" : "d18dbf569ca549b693fc0ddbac18a20c",
+      "policyName" : "Security-Critical",
+      "policyThreatLevel" : 10,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"b835097e14254b478ba992fae5e88b69\",\"constraintName\":\"Critical risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 9\",\"reason\":\"Found security vulnerability FG-R00229 with severity >= 9 (severity = 9.0)\",\"reference\":{\"value\":\"FG-R00229\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00229\\\",\\\"severity\\\":9.0}}\"}]}]",
+      "actions" : [ {
+        "actionType" : "warn",
+        "actionSummary" : "Build Warning"
+      } ],
+      "constraints" : [ {
+        "constraintId" : "b835097e14254b478ba992fae5e88b69",
+        "constraintName" : "Critical risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 9",
+          "conditionReason" : "Found security vulnerability FG-R00229 with severity >= 9 (severity = 9.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00229",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "b53f43e81a9c4a8d9b7a32eb1a9aa59e",
+      "policyViolationId" : "cc5fde620dcb4455ab565e5c6a5351c8",
+      "policyName" : "Security-High",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"74d7e1b92b86411a96fd062f91ed0ba3\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability FG-R00100 with severity >= 7 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00100\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00100\\\",\\\"severity\\\":7.0}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 9\",\"reason\":\"Found security vulnerability FG-R00100 with severity < 9 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00100\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00100\\\",\\\"severity\\\":7.0}}\"}]}]",
+      "actions" : [ {
+        "actionType" : "warn",
+        "actionSummary" : "Build Warning"
+      } ],
+      "constraints" : [ {
+        "constraintId" : "74d7e1b92b86411a96fd062f91ed0ba3",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability FG-R00100 with severity >= 7 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00100",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 9",
+          "conditionReason" : "Found security vulnerability FG-R00100 with severity < 9 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00100",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "b53f43e81a9c4a8d9b7a32eb1a9aa59e",
+      "policyViolationId" : "854b1a15fc7545419bf451e4633b2e0a",
+      "policyName" : "Security-High",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"74d7e1b92b86411a96fd062f91ed0ba3\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability FG-R00101 with severity >= 7 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00101\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00101\\\",\\\"severity\\\":7.0}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 9\",\"reason\":\"Found security vulnerability FG-R00101 with severity < 9 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00101\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00101\\\",\\\"severity\\\":7.0}}\"}]}]",
+      "actions" : [ {
+        "actionType" : "warn",
+        "actionSummary" : "Build Warning"
+      } ],
+      "constraints" : [ {
+        "constraintId" : "74d7e1b92b86411a96fd062f91ed0ba3",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability FG-R00101 with severity >= 7 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00101",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 9",
+          "conditionReason" : "Found security vulnerability FG-R00101 with severity < 9 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00101",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "b53f43e81a9c4a8d9b7a32eb1a9aa59e",
+      "policyViolationId" : "e6f9f8177c024831855c022a571049e0",
+      "policyName" : "Security-High",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"74d7e1b92b86411a96fd062f91ed0ba3\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability FG-R00274 with severity >= 7 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00274\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00274\\\",\\\"severity\\\":7.0}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 9\",\"reason\":\"Found security vulnerability FG-R00274 with severity < 9 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00274\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00274\\\",\\\"severity\\\":7.0}}\"}]}]",
+      "actions" : [ {
+        "actionType" : "warn",
+        "actionSummary" : "Build Warning"
+      } ],
+      "constraints" : [ {
+        "constraintId" : "74d7e1b92b86411a96fd062f91ed0ba3",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability FG-R00274 with severity >= 7 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00274",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 9",
+          "conditionReason" : "Found security vulnerability FG-R00274 with severity < 9 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00274",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "b53f43e81a9c4a8d9b7a32eb1a9aa59e",
+      "policyViolationId" : "9fe8899b6f7146e19226ce3b94f902df",
+      "policyName" : "Security-High",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"74d7e1b92b86411a96fd062f91ed0ba3\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability FG-R00275 with severity >= 7 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00275\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00275\\\",\\\"severity\\\":7.0}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 9\",\"reason\":\"Found security vulnerability FG-R00275 with severity < 9 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00275\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00275\\\",\\\"severity\\\":7.0}}\"}]}]",
+      "actions" : [ {
+        "actionType" : "warn",
+        "actionSummary" : "Build Warning"
+      } ],
+      "constraints" : [ {
+        "constraintId" : "74d7e1b92b86411a96fd062f91ed0ba3",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability FG-R00275 with severity >= 7 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00275",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 9",
+          "conditionReason" : "Found security vulnerability FG-R00275 with severity < 9 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00275",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    } ]
+  }, {
+    "hash" : "0b21d00434253711ca98",
+    "componentIdentifier" : {
+      "format" : "terraform",
+      "coordinates" : {
+        "name" : "aws_s3_bucket.test02",
+        "plan" : "plan.tfplan",
+        "version" : "current"
+      }
+    },
+    "policyId" : "3d0f45c7a0404a44ac50e259872659b8",
+    "policyName" : "Security-Critical",
+    "policyThreatLevel" : 10,
+    "activeViolations" : [ {
+      "policyId" : "3d0f45c7a0404a44ac50e259872659b8",
+      "policyViolationId" : "4232cbf8c081477d8e8eac84d3f446ce",
+      "policyName" : "Security-Critical",
+      "policyThreatLevel" : 10,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"b835097e14254b478ba992fae5e88b69\",\"constraintName\":\"Critical risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 9\",\"reason\":\"Found security vulnerability FG-R00099 with severity >= 9 (severity = 9.0)\",\"reference\":{\"value\":\"FG-R00099\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00099\\\",\\\"severity\\\":9.0}}\"}]}]",
+      "actions" : [ {
+        "actionType" : "warn",
+        "actionSummary" : "Build Warning"
+      } ],
+      "constraints" : [ {
+        "constraintId" : "b835097e14254b478ba992fae5e88b69",
+        "constraintName" : "Critical risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 9",
+          "conditionReason" : "Found security vulnerability FG-R00099 with severity >= 9 (severity = 9.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00099",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "3d0f45c7a0404a44ac50e259872659b8",
+      "policyViolationId" : "d84e04f7c1c14a8188452152f90ce5bd",
+      "policyName" : "Security-Critical",
+      "policyThreatLevel" : 10,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"b835097e14254b478ba992fae5e88b69\",\"constraintName\":\"Critical risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 9\",\"reason\":\"Found security vulnerability FG-R00229 with severity >= 9 (severity = 9.0)\",\"reference\":{\"value\":\"FG-R00229\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00229\\\",\\\"severity\\\":9.0}}\"}]}]",
+      "actions" : [ {
+        "actionType" : "warn",
+        "actionSummary" : "Build Warning"
+      } ],
+      "constraints" : [ {
+        "constraintId" : "b835097e14254b478ba992fae5e88b69",
+        "constraintName" : "Critical risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 9",
+          "conditionReason" : "Found security vulnerability FG-R00229 with severity >= 9 (severity = 9.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00229",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "b53f43e81a9c4a8d9b7a32eb1a9aa59e",
+      "policyViolationId" : "02314aff127e44348bd0d4838c97049c",
+      "policyName" : "Security-High",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"74d7e1b92b86411a96fd062f91ed0ba3\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability FG-R00100 with severity >= 7 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00100\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00100\\\",\\\"severity\\\":7.0}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 9\",\"reason\":\"Found security vulnerability FG-R00100 with severity < 9 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00100\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00100\\\",\\\"severity\\\":7.0}}\"}]}]",
+      "actions" : [ {
+        "actionType" : "warn",
+        "actionSummary" : "Build Warning"
+      } ],
+      "constraints" : [ {
+        "constraintId" : "74d7e1b92b86411a96fd062f91ed0ba3",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability FG-R00100 with severity >= 7 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00100",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 9",
+          "conditionReason" : "Found security vulnerability FG-R00100 with severity < 9 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00100",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "b53f43e81a9c4a8d9b7a32eb1a9aa59e",
+      "policyViolationId" : "7be03327101046a0b2e6a25b9dd8d2c8",
+      "policyName" : "Security-High",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"74d7e1b92b86411a96fd062f91ed0ba3\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability FG-R00101 with severity >= 7 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00101\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00101\\\",\\\"severity\\\":7.0}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 9\",\"reason\":\"Found security vulnerability FG-R00101 with severity < 9 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00101\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00101\\\",\\\"severity\\\":7.0}}\"}]}]",
+      "actions" : [ {
+        "actionType" : "warn",
+        "actionSummary" : "Build Warning"
+      } ],
+      "constraints" : [ {
+        "constraintId" : "74d7e1b92b86411a96fd062f91ed0ba3",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability FG-R00101 with severity >= 7 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00101",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 9",
+          "conditionReason" : "Found security vulnerability FG-R00101 with severity < 9 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00101",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "b53f43e81a9c4a8d9b7a32eb1a9aa59e",
+      "policyViolationId" : "ecf299d2f8e74ca997abd41a882b5984",
+      "policyName" : "Security-High",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"74d7e1b92b86411a96fd062f91ed0ba3\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability FG-R00274 with severity >= 7 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00274\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00274\\\",\\\"severity\\\":7.0}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 9\",\"reason\":\"Found security vulnerability FG-R00274 with severity < 9 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00274\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00274\\\",\\\"severity\\\":7.0}}\"}]}]",
+      "actions" : [ {
+        "actionType" : "warn",
+        "actionSummary" : "Build Warning"
+      } ],
+      "constraints" : [ {
+        "constraintId" : "74d7e1b92b86411a96fd062f91ed0ba3",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability FG-R00274 with severity >= 7 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00274",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 9",
+          "conditionReason" : "Found security vulnerability FG-R00274 with severity < 9 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00274",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "b53f43e81a9c4a8d9b7a32eb1a9aa59e",
+      "policyViolationId" : "f63c6408dfe644a29f48afb236b59ee7",
+      "policyName" : "Security-High",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"74d7e1b92b86411a96fd062f91ed0ba3\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability FG-R00275 with severity >= 7 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00275\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00275\\\",\\\"severity\\\":7.0}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 9\",\"reason\":\"Found security vulnerability FG-R00275 with severity < 9 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00275\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00275\\\",\\\"severity\\\":7.0}}\"}]}]",
+      "actions" : [ {
+        "actionType" : "warn",
+        "actionSummary" : "Build Warning"
+      } ],
+      "constraints" : [ {
+        "constraintId" : "74d7e1b92b86411a96fd062f91ed0ba3",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability FG-R00275 with severity >= 7 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00275",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 9",
+          "conditionReason" : "Found security vulnerability FG-R00275 with severity < 9 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00275",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    } ],
+    "waivedViolations" : [ ],
+    "allViolations" : [ {
+      "policyId" : "3d0f45c7a0404a44ac50e259872659b8",
+      "policyViolationId" : "4232cbf8c081477d8e8eac84d3f446ce",
+      "policyName" : "Security-Critical",
+      "policyThreatLevel" : 10,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"b835097e14254b478ba992fae5e88b69\",\"constraintName\":\"Critical risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 9\",\"reason\":\"Found security vulnerability FG-R00099 with severity >= 9 (severity = 9.0)\",\"reference\":{\"value\":\"FG-R00099\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00099\\\",\\\"severity\\\":9.0}}\"}]}]",
+      "actions" : [ {
+        "actionType" : "warn",
+        "actionSummary" : "Build Warning"
+      } ],
+      "constraints" : [ {
+        "constraintId" : "b835097e14254b478ba992fae5e88b69",
+        "constraintName" : "Critical risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 9",
+          "conditionReason" : "Found security vulnerability FG-R00099 with severity >= 9 (severity = 9.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00099",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "3d0f45c7a0404a44ac50e259872659b8",
+      "policyViolationId" : "d84e04f7c1c14a8188452152f90ce5bd",
+      "policyName" : "Security-Critical",
+      "policyThreatLevel" : 10,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"b835097e14254b478ba992fae5e88b69\",\"constraintName\":\"Critical risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 9\",\"reason\":\"Found security vulnerability FG-R00229 with severity >= 9 (severity = 9.0)\",\"reference\":{\"value\":\"FG-R00229\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00229\\\",\\\"severity\\\":9.0}}\"}]}]",
+      "actions" : [ {
+        "actionType" : "warn",
+        "actionSummary" : "Build Warning"
+      } ],
+      "constraints" : [ {
+        "constraintId" : "b835097e14254b478ba992fae5e88b69",
+        "constraintName" : "Critical risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 9",
+          "conditionReason" : "Found security vulnerability FG-R00229 with severity >= 9 (severity = 9.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00229",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "b53f43e81a9c4a8d9b7a32eb1a9aa59e",
+      "policyViolationId" : "02314aff127e44348bd0d4838c97049c",
+      "policyName" : "Security-High",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"74d7e1b92b86411a96fd062f91ed0ba3\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability FG-R00100 with severity >= 7 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00100\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00100\\\",\\\"severity\\\":7.0}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 9\",\"reason\":\"Found security vulnerability FG-R00100 with severity < 9 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00100\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00100\\\",\\\"severity\\\":7.0}}\"}]}]",
+      "actions" : [ {
+        "actionType" : "warn",
+        "actionSummary" : "Build Warning"
+      } ],
+      "constraints" : [ {
+        "constraintId" : "74d7e1b92b86411a96fd062f91ed0ba3",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability FG-R00100 with severity >= 7 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00100",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 9",
+          "conditionReason" : "Found security vulnerability FG-R00100 with severity < 9 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00100",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "b53f43e81a9c4a8d9b7a32eb1a9aa59e",
+      "policyViolationId" : "7be03327101046a0b2e6a25b9dd8d2c8",
+      "policyName" : "Security-High",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"74d7e1b92b86411a96fd062f91ed0ba3\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability FG-R00101 with severity >= 7 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00101\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00101\\\",\\\"severity\\\":7.0}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 9\",\"reason\":\"Found security vulnerability FG-R00101 with severity < 9 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00101\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00101\\\",\\\"severity\\\":7.0}}\"}]}]",
+      "actions" : [ {
+        "actionType" : "warn",
+        "actionSummary" : "Build Warning"
+      } ],
+      "constraints" : [ {
+        "constraintId" : "74d7e1b92b86411a96fd062f91ed0ba3",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability FG-R00101 with severity >= 7 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00101",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 9",
+          "conditionReason" : "Found security vulnerability FG-R00101 with severity < 9 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00101",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "b53f43e81a9c4a8d9b7a32eb1a9aa59e",
+      "policyViolationId" : "ecf299d2f8e74ca997abd41a882b5984",
+      "policyName" : "Security-High",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"74d7e1b92b86411a96fd062f91ed0ba3\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability FG-R00274 with severity >= 7 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00274\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00274\\\",\\\"severity\\\":7.0}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 9\",\"reason\":\"Found security vulnerability FG-R00274 with severity < 9 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00274\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00274\\\",\\\"severity\\\":7.0}}\"}]}]",
+      "actions" : [ {
+        "actionType" : "warn",
+        "actionSummary" : "Build Warning"
+      } ],
+      "constraints" : [ {
+        "constraintId" : "74d7e1b92b86411a96fd062f91ed0ba3",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability FG-R00274 with severity >= 7 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00274",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 9",
+          "conditionReason" : "Found security vulnerability FG-R00274 with severity < 9 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00274",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "b53f43e81a9c4a8d9b7a32eb1a9aa59e",
+      "policyViolationId" : "f63c6408dfe644a29f48afb236b59ee7",
+      "policyName" : "Security-High",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"74d7e1b92b86411a96fd062f91ed0ba3\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability FG-R00275 with severity >= 7 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00275\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00275\\\",\\\"severity\\\":7.0}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 9\",\"reason\":\"Found security vulnerability FG-R00275 with severity < 9 (severity = 7.0)\",\"reference\":{\"value\":\"FG-R00275\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"FG-R00275\\\",\\\"severity\\\":7.0}}\"}]}]",
+      "actions" : [ {
+        "actionType" : "warn",
+        "actionSummary" : "Build Warning"
+      } ],
+      "constraints" : [ {
+        "constraintId" : "74d7e1b92b86411a96fd062f91ed0ba3",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability FG-R00275 with severity >= 7 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00275",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 9",
+          "conditionReason" : "Found security vulnerability FG-R00275 with severity < 9 (severity = 7.0)",
+          "conditionTriggerReference" : {
+            "value" : "FG-R00275",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    } ]
+  } ]
+}

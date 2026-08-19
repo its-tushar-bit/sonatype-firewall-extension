@@ -1,0 +1,182 @@
+{
+  "policies": [
+    {
+      "id": "policy1",
+      "name": "policy1",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "threatLevel": 1,
+      "legacyViolationAllowed": true,
+      "constraints": [
+        {
+          "id": "07a1317eb3ee40e48129c6eb8e5317ba",
+          "name": "Test components",
+          "operator": "OR",
+          "conditions": [
+            {
+              "conditionTypeId": "Coordinates",
+              "operator": "match",
+              "value": "maven:junit:junit:*"
+            },
+            {
+              "conditionTypeId": "Coordinates",
+              "operator": "match",
+              "value": "maven:ant:ant:*"
+            },
+            {
+              "conditionTypeId": "Coordinates",
+              "operator": "match",
+              "value": "maven:org.apache.ant:ant:*"
+            },
+            {
+              "conditionTypeId": "Coordinates",
+              "operator": "match",
+              "value": "maven:org.seleniumhq.selenium:*:*"
+            },{
+              "conditionTypeId" : "DataSource",
+              "operator" : "has support for",
+              "value" : "identity",
+              "conditionIndex" : 4
+            }
+          ]
+        }
+      ],
+      "actions": {},
+      "notifications": {
+        "userNotifications": [],
+        "roleNotifications": [],
+        "jiraNotifications": []
+      }
+    },
+    {
+      "id": "policy2",
+      "name": "policy2",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "threatLevel": 1,
+      "policyViolationGrandfatheringAllowed": true,
+      "constraints": [
+        {
+          "id": "15397d9327fb4d71a1ff3fd7ac5a1627",
+          "name": "Version is old",
+          "operator": "OR",
+          "conditions": [
+            {
+              "conditionTypeId": "AgeInDays",
+              "operator": "older than",
+              "value": "1825"
+            }
+          ]
+        },
+        {
+          "id": "82341a9aa7ae4c8f9377222835efb6c2",
+          "name": "Version is unpopular",
+          "operator": "OR",
+          "conditions": [
+            {
+              "conditionTypeId": "RelativePopularity",
+              "operator": "<=",
+              "value": "10"
+            }
+          ]
+        }
+      ],
+      "actions": {},
+      "notifications": {
+        "userNotifications": [],
+        "roleNotifications": [],
+        "jiraNotifications": []
+      }
+    }
+  ],
+  "labels": [
+    {
+      "id": "label1",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "label": "label1",
+      "labelLowercase": "architecture-blacklisted",
+      "description": "Components which have been blacklisted from use",
+      "color": "orange"
+    },
+    {
+      "id": "label2",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "label": "label2",
+      "labelLowercase": "architecture-cleanup",
+      "description": "Components which are relics of a build and should not be included in the distribution",
+      "color": "orange"
+    },
+    {
+      "id": "label3",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "label": "label3",
+      "labelLowercase": "architecture-deprecated",
+      "description": "Components we want to discourage from developer use",
+      "color": "orange"
+    }
+  ],
+  "licenseThreatGroups": [
+    {
+      "id": "ltg1",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "name": "ltg1",
+      "nameLowercaseNoWhitespace": "banned",
+      "threatLevel": 10
+    },
+    {
+      "id": "ltg2",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "name": "ltg2",
+      "nameLowercaseNoWhitespace": "copyleft",
+      "threatLevel": 9
+    }
+  ],
+  "licenseThreatGroupLicenses": [
+    {
+      "id": "50fad63fd7d94d409f4a377f1ba18e85",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "ltg1",
+      "licenseId": "Apache-2.0"
+    },
+    {
+      "id": "50fad63fd7d94d409f4a377f1ba18e86",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "ltg2",
+      "licenseId": "MIT"
+    },
+    {
+      "id": "50fad63fd7d94d409f4a377f1ba18e87",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "ltg1",
+      "licenseId": "GPL-3.0"
+    }
+  ],
+  "tags": [
+    {
+      "id": "tag1",
+      "organizationId": "ROOT_ORGANIZATION_ID",
+      "name": "tag1",
+      "nameLowercaseNoWhitespace": "distributed",
+      "description": "Applications that are provided for consumption outside the company",
+      "color": "yellow"
+    },
+    {
+      "id": "tag2",
+      "organizationId": "ROOT_ORGANIZATION_ID",
+      "name": "tag2",
+      "nameLowercaseNoWhitespace": "hosted",
+      "description": "Applications that are hosted such as services or software as a service.",
+      "color": "light-purple"
+    }
+  ],
+  "policyTags": [
+    {
+      "id": "21337f03f0a3412a86ad392bf0d5860d",
+      "policyId": "policy1",
+      "tagId": "tag1"
+    },
+    {
+      "id": "21337f03f0a3412a86ad392bf0d5860d",
+      "policyId": "policy1",
+      "tagId": "tag2"
+    }
+  ]
+}

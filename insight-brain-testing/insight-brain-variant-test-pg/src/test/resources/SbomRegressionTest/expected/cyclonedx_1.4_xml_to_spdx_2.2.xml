@@ -1,0 +1,285 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<Document>
+  <SPDXID>SPDXRef-DOCUMENT</SPDXID>
+  <spdxVersion>SPDX-2.2</spdxVersion>
+  <creationInfo>
+    <created>2025-07-02T09:57:20Z</created>
+    <creators>Tool: Sonatype SBOM Manager - 1.193.0-SNAPSHOT</creators>
+  </creationInfo>
+  <name>SbomRegressionTestApp</name>
+  <dataLicense>CC0-1.0</dataLicense>
+  <hasExtractedLicensingInfos>
+    <licenseId>LicenseRef-Some-random-license</licenseId>
+    <extractedText>Extracted license created by Sonatype SBOM Manager</extractedText>
+    <name>Some random license</name>
+  </hasExtractedLicensingInfos>
+  <documentNamespace>http://localhost:10025/ui/links/sbomManager/management/view/application/SbomRegressionTestApp/bom/9.1.1</documentNamespace>
+  <packages>
+    <SPDXID>SPDXRef-pkg-maven-partner-shaded-library-1.0</SPDXID>
+    <copyrightText>NOASSERTION</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/partner/shaded-library@1.0</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>NOASSERTION</licenseDeclared>
+    <name>Partner Shaded Library</name>
+    <versionInfo>1.0</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-pkg-maven-ossproject-library-2.0</SPDXID>
+    <copyrightText>NOASSERTION</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/ossproject/library@2.0</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>NOASSERTION</licenseDeclared>
+    <name>Some Opensource Library</name>
+    <versionInfo>2.0</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-pkg-maven-acme-library-3.0</SPDXID>
+    <copyrightText>NOASSERTION</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/acme/library@3.0</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>NOASSERTION</licenseDeclared>
+    <name>Acme Library</name>
+    <versionInfo>2.0</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-gnrtd0</SPDXID>
+    <attributionTexts>Evidence license text for: (Apache-2.0)</attributionTexts>
+    <checksums>
+      <algorithm>SHA3-256</algorithm>
+      <checksumValue>7478c7cf41c883a04ee89f1813f687886d53fa86f791fff90690c6221e3853aa</checksumValue>
+    </checksums>
+    <checksums>
+      <algorithm>SHA256</algorithm>
+      <checksumValue>d88bc4e70bfb34d18b5542136639acbb26a8ae2429aa1e47489332fb389cc964</checksumValue>
+    </checksums>
+    <checksums>
+      <algorithm>BLAKE3</algorithm>
+      <checksumValue>26cdc7fb3fd65fc3b621a4ef70bc7d2489d5c19e70c76cf7ec20e538df0047cf</checksumValue>
+    </checksums>
+    <checksums>
+      <algorithm>BLAKE2b-256</algorithm>
+      <checksumValue>d8779633380c050bccf4e733b763ab2abd8ad2db60b517d47fd29bbf76433237</checksumValue>
+    </checksums>
+    <checksums>
+      <algorithm>SHA1</algorithm>
+      <checksumValue>9188560f22e0b73070d2efce670c74af2bdf30af</checksumValue>
+    </checksums>
+    <checksums>
+      <algorithm>MD5</algorithm>
+      <checksumValue>641b6e166f8b33c5e959e2adcc18b1c7</checksumValue>
+    </checksums>
+    <copyrightText>NOASSERTION</copyrightText>
+    <description>Modified version of Apache Catalina</description>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/com.acme/tomcat-catalina@9.0.14?packaging=jar</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>(Apache-2.0)</licenseConcluded>
+    <licenseDeclared>Apache-2.0</licenseDeclared>
+    <name>com.acme:tomcat-catalina</name>
+    <originator>Organization: Acme Inc</originator>
+    <versionInfo>9.0.14</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-gnrtd1</SPDXID>
+    <copyrightText>NOASSERTION</copyrightText>
+    <description>Apache Catalina</description>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?packaging=jar</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>Apache-2.0</licenseDeclared>
+    <name>org.apache.tomcat:tomcat-catalina</name>
+    <originator>Organization: Apache</originator>
+    <versionInfo>9.0.14</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-123</SPDXID>
+    <attributionTexts>Evidence license text for: (GPL-2.0-with-classpath-exception AND EPL-2.0)</attributionTexts>
+    <checksums>
+      <algorithm>MD5</algorithm>
+      <checksumValue>2342c2eaf1feb9a80195dbaddf2ebaa3</checksumValue>
+    </checksums>
+    <checksums>
+      <algorithm>SHA256</algorithm>
+      <checksumValue>708f1f53b41f11f02d12a11b1a38d2905d47b099afc71a0f1124ef8582ec7313</checksumValue>
+    </checksums>
+    <checksums>
+      <algorithm>SHA1</algorithm>
+      <checksumValue>68b78babe00a053f9e35ec6a2d9080f5b90122b0</checksumValue>
+    </checksums>
+    <copyrightText>Copyright Example Inc. All rights reserved.</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://example.org/security</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>All component versions are documented here</comment>
+      <referenceCategory>OTHER</referenceCategory>
+      <referenceLocator>http://example.org/docs</referenceLocator>
+      <referenceType>http://cyclonedx.org/referenctype/documentation</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>cpe:/a:example:myapplication:1.0.0</referenceLocator>
+      <referenceType>cpe22Type</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/com.example/myapplication@1.0.0?packaging=war</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>(GPL-2.0-with-classpath-exception AND EPL-2.0)</licenseConcluded>
+    <licenseDeclared>(GPL-2.0-with-classpath-exception OR EPL-2.0)</licenseDeclared>
+    <name>org.example:mylibrary</name>
+    <originator>Person: Example Super Heros</originator>
+    <supplier>Organization: Example Inc. (support@example.com)</supplier>
+    <versionInfo>1.0.0</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-gnrtd2</SPDXID>
+    <attributionTexts>Copyright 2012 Google Inc. All Rights Reserved.</attributionTexts>
+    <attributionTexts>Copyright (C) 2004,2005 Dave Brosius &lt;dbrosius@users.sourceforge.net></attributionTexts>
+    <attributionTexts>Copyright (C) 2005 William Pugh</attributionTexts>
+    <attributionTexts>Copyright (C) 2004,2005 University of Maryland</attributionTexts>
+    <attributionTexts>Evidence license text for: (Apache-2.0 AND LGPL-2.1-only)</attributionTexts>
+    <checksums>
+      <algorithm>MD5</algorithm>
+      <checksumValue>cfcb0b64aacd2f81c1cd546543de965a</checksumValue>
+    </checksums>
+    <checksums>
+      <algorithm>SHA256</algorithm>
+      <checksumValue>0384db3cec55d86a6898c489fdb75a8e75fe66b26639634983d2f3c3558493d1</checksumValue>
+    </checksums>
+    <checksums>
+      <algorithm>SHA1</algorithm>
+      <checksumValue>7fbeef2346c45d565c3341f037bce4e088af8a52</checksumValue>
+    </checksums>
+    <copyrightText>NOASSERTION</copyrightText>
+    <description>Example Inc, enterprise framework</description>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://example.com/security</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/com.example/myframework@1.0.0?packaging=war</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <homepage>http://example.com/myframework</homepage>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>LicenseRef-Some-random-license</licenseDeclared>
+    <name>com.example:myframework</name>
+    <originator>Person: Example Super Heros</originator>
+    <versionInfo>1.0.0</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-pkg-maven-com.fasterxml.jackson.core-jackson-databind-2.9.4</SPDXID>
+    <copyrightText>NOASSERTION</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: Snyk</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://nvd.nist.gov/vuln/detail/CVE-2019-9997</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: CVE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://www.cve.org/CVERecord?id=CVE-2018-7489</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2018-7489</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2019-9997</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>NOASSERTION</licenseDeclared>
+    <name>com.fasterxml.jackson.core:jackson-databind</name>
+    <versionInfo>2.9.4</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-gnrtd3</SPDXID>
+    <copyrightText>NOASSERTION</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>NOASSERTION</licenseDeclared>
+    <name>Acme Application</name>
+    <originator>Person: Acme Super Heros</originator>
+    <versionInfo>9.1.1</versionInfo>
+  </packages>
+  <relationships>
+    <spdxElementId>SPDXRef-DOCUMENT</spdxElementId>
+    <relationshipType>DESCRIBES</relationshipType>
+    <relatedSpdxElement>SPDXRef-gnrtd3</relatedSpdxElement>
+  </relationships>
+  <relationships>
+    <spdxElementId>SPDXRef-pkg-maven-partner-shaded-library-1.0</spdxElementId>
+    <relationshipType>CONTAINS</relationshipType>
+    <relatedSpdxElement>SPDXRef-pkg-maven-ossproject-library-2.0</relatedSpdxElement>
+    <comment>COMPLETE</comment>
+  </relationships>
+  <relationships>
+    <spdxElementId>SPDXRef-gnrtd0</spdxElementId>
+    <relationshipType>ANCESTOR_OF</relationshipType>
+    <relatedSpdxElement>SPDXRef-gnrtd1</relatedSpdxElement>
+  </relationships>
+</Document>

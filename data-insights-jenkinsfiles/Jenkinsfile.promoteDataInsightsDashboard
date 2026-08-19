@@ -1,0 +1,198 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+// This job allows the Business Intelligence team to publish Data Insights dashboards to production
+// Some more technical background can be found here https://sonatype.atlassian.net/wiki/spaces/DATA/pages/227410489/Dashboard+Change+Management
+// The job can be ran here https://jenkins.ci.sonatype.dev/job/insight/job/insight-brain/job/Data%20Insights%20Dashboard%20Configuration/job/Promote%20Dashboard%20to%20Production/
+
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+import groovy.json.JsonSlurper
+
+def iconsZipFileName = 'icons.zip'
+def configFileName = 'enterprise-reporting.json'
+
+def s3ConfigurationStaging =  [
+  account: "993883856687",
+  role: 'jenkins-hds-enterprise-reporting-staging',
+  credentialsId: 'hds-enterprise-reporting-external-id-staging',
+  bucketName: "hds-staging-enterprise-reporting-us-east-2" // assume east is canonical
+]
+
+
+def s3ConfigurationProd = [
+  account  : "135388973902",
+  role: 'jenkins-hds-enterprise-reporting-production',
+  credentialsId: 'hds-enterprise-reporting-external-id-production',
+  usEast2Bucket: "hds-production-enterprise-reporting-us-east-2",
+  usWest2Bucket: "hds-production-enterprise-reporting-us-west-2"
+]
+
+def selectedDashboardValue
+
+pipeline {
+  agent {
+    node {
+      label 'zion-small'
+    }
+  }
+
+  parameters {
+    string(
+        name: 'dashboardId',
+        description: ' The primary identifier used to determine which dashboard is published.',
+        trim: true,
+        defaultValue: ''
+    )
+  }
+
+  stages {
+    // prod and staging each require different roles so we will assume a staging role, copy resource down
+    // then assume a prod role to push back up to prod
+    stage('Downloading staging data') {
+      steps {
+        script {
+          withAwsRole(region: 'us-east-2', role: s3ConfigurationStaging.role, roleAccount: s3ConfigurationStaging.account, credentialsId: s3ConfigurationStaging.credentialsId) {
+              validateFieldHasValue(params, 'dashboardId')
+
+              clean(iconsZipFileName)
+
+              def bucketName = s3ConfigurationStaging.bucketName
+
+              echo "getting icons file '${iconsZipFileName}' from staging"
+              getFileFromS3(bucketName, iconsZipFileName)
+
+              def stagingConfig = readExistingConfig(bucketName, configFileName)
+              def stagingDashboards = stagingConfig.dashboards
+
+              def selectedDashboardId = params.dashboardId
+
+              if (!stagingDashboards.containsKey(selectedDashboardId)) {
+                def existingDashboardKeys = stagingDashboards.keySet().toList()
+                error("'${selectedDashboardId}' does not exist, please choose a valid identifier:\n" +
+                    "${existingDashboardKeys}")
+              }
+
+              echo "selected dashboard id: '${selectedDashboardId}'"
+
+              // setting global value to persist across the stages
+              selectedDashboardValue = stagingDashboards[selectedDashboardId]
+
+              echo "got dashboard configuration from staging: ${selectedDashboardValue}"
+          }
+        }
+      }
+    }
+
+    stage('Update the production icons.zip file') {
+      steps{
+        script {
+          withAwsRole(region: 'us-east-2', role: s3ConfigurationProd.role, roleAccount: s3ConfigurationProd.account, credentialsId: s3ConfigurationProd.credentialsId) {
+            def eastBucketName = s3ConfigurationProd.usEast2Bucket
+            def westBucketName = s3ConfigurationProd.usWest2Bucket
+
+            uploadFile(eastBucketName, iconsZipFileName)
+            uploadFile(westBucketName, iconsZipFileName)
+          }
+        }
+      }
+    }
+
+    stage('Promote dashboard configuration entry to production') {
+      steps {
+        script {
+          withAwsRole(region: 'us-east-2', role: s3ConfigurationProd.role, roleAccount: s3ConfigurationProd.account, credentialsId: s3ConfigurationProd.credentialsId) {
+            def eastBucketName = s3ConfigurationProd.usEast2Bucket
+            def westBucketName = s3ConfigurationProd.usWest2Bucket
+
+            echo 'ensuring production config file exists'
+            createConfigurationFileIfNotExists(eastBucketName, configFileName)
+
+            def prodConfig = readExistingConfig(eastBucketName, configFileName)
+
+            // update the selected entry
+            prodConfig.dashboards[selectedDashboardValue.dashboardId] = selectedDashboardValue
+
+            // bump the version
+            prodConfig.version = prodConfig.version.toInteger() + 1
+
+            echo "The updated production configuration will be:"
+            echo writeJSON(returnText: true, json: prodConfig, pretty: 2)
+            saveConfigToBucket(eastBucketName, configFileName, prodConfig)
+
+            echo "Copying the configuration file to the west bucket"
+            copyFromEastBucketToWestBucket(s3ConfigurationProd, configFileName)
+          }
+        }
+      }
+    }
+  }
+}
+
+def getFileFromS3(bucketName, fileName) {
+  sh "aws s3 cp s3://${bucketName}/${fileName} ./${fileName}"
+}
+
+def clean(iconsZipFileName) {
+  echo 'cleaning up files from previous runs'
+  sh "rm -rf ${iconsZipFileName}"
+}
+
+def readExistingConfig(bucketForStagingEast, fileName) {
+  def dashboardConfigJson = getFileContents(bucketForStagingEast, fileName)
+
+  echo "existing configuration: ${dashboardConfigJson}"
+
+  return new JsonSlurper().parseText(dashboardConfigJson)
+}
+
+def getFileContents(bucketName, fileName) {
+  return sh(script: "aws s3 cp s3://${bucketName}/${fileName} -", returnStdout: true).trim()
+}
+
+def createConfigurationFileIfNotExists(bucketName, fileName) {
+  def base_file_template = '{ \\"version\\": 1, \\"dashboards\\": {} }'
+
+  sh """
+    aws s3api head-object --bucket ${bucketName} --key ${fileName} > /dev/null 2>&1 || not_exist=true
+    if [ \$not_exist ]; then
+        echo "${fileName} does not exist and will be created for bucket ${bucketName}"
+
+        echo ${base_file_template} | aws s3 cp - s3://${bucketName}/${fileName}
+    else
+        echo "${fileName} exists ✔️"
+    fi
+    """
+}
+
+def saveConfigToBucket(bucketName, fileName, config) {
+  def configJson = groovy.json.JsonOutput.toJson(config)
+
+  sh """
+cat <<EOF | aws s3 cp - s3://${bucketName}/${fileName}
+${configJson}
+EOF
+  """
+}
+
+def copyFromEastBucketToWestBucket(s3Configuration, fileName) {
+  def bucketForStagingEast = s3Configuration.usEast2Bucket
+  def bucketForStagingWest = s3Configuration.usWest2Bucket
+
+  echo "copying s3://${bucketForStagingEast}/${fileName} to s3://${bucketForStagingWest}/${fileName}"
+
+  sh "aws s3 cp s3://${bucketForStagingEast}/${fileName} s3://${bucketForStagingWest}/${fileName}"
+}
+
+def uploadFile(bucketName, fileName) {
+ echo "uploading '${fileName}' to bucket '${bucketName}'"
+ sh "aws s3 cp ${fileName} s3://${bucketName}/${fileName}"
+}
+
+def validateFieldHasValue(params, fieldName) {
+  if (params[fieldName].length() == 0) {
+    error "'${fieldName}' is a required field"
+  }
+}

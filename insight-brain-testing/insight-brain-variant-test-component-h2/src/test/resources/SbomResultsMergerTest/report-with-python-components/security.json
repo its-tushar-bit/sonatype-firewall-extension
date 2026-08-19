@@ -1,0 +1,300 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "tar.gz",
+        "name" : "pip",
+        "qualifier" : "",
+        "version" : "24.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "093080a1a4bbd2750543",
+    "url" : "new.link1",
+    "reference" : "CVE-2018-20225",
+    "source" : "cve",
+    "score" : 7.8,
+    "cwe" : "348",
+    "cvssVectorString" : "new vectorString1",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2018-20225" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "pip"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "24.0"
+      }, {
+        "value" : " (."
+      }, {
+        "field" : "Extension",
+        "value" : "tar.gz"
+      }, {
+        "value" : ")"
+      } ],
+      "name" : "pip"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "tar.gz",
+        "name" : "pip",
+        "qualifier" : "",
+        "version" : "24.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "093080a1a4bbd2750543",
+    "url" : "new.url2",
+    "reference" : "CVE-2023-45803",
+    "source" : "cve",
+    "score" : 4.2,
+    "cwe" : "200",
+    "cvssVectorString" : "new vectorString2",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2023-45803" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "pip"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "24.0"
+      }, {
+        "value" : " (."
+      }, {
+        "field" : "Extension",
+        "value" : "tar.gz"
+      }, {
+        "value" : ")"
+      } ],
+      "name" : "pip"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "tar.gz",
+        "name" : "pip",
+        "qualifier" : "",
+        "version" : "24.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "093080a1a4bbd2750543",
+    "url" : "new.link3",
+    "reference" : "CVE-2024-3651",
+    "source" : "cve",
+    "score" : 6.2,
+    "cwe" : "400",
+    "cvssVectorString" : "new vectorString3",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2024-3651" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "pip"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "24.0"
+      }, {
+        "value" : " (."
+      }, {
+        "field" : "Extension",
+        "value" : "tar.gz"
+      }, {
+        "value" : ")"
+      } ],
+      "name" : "pip"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "whl",
+        "name" : "pip",
+        "qualifier" : "py3-none-any",
+        "version" : "24.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "e44313ae1e6af3c2bd3b",
+    "url" : "new.link1",
+    "reference" : "CVE-2018-20225",
+    "source" : "cve",
+    "score" : 7.8,
+    "cwe" : "348",
+    "cvssVectorString" : "new vectorString1",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2018-20225" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "pip"
+      }, {
+        "value" : " ("
+      }, {
+        "field" : "Qualifier",
+        "value" : "py3-none-any"
+      }, {
+        "value" : ")"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "24.0"
+      }, {
+        "value" : " (."
+      }, {
+        "field" : "Extension",
+        "value" : "whl"
+      }, {
+        "value" : ")"
+      } ],
+      "name" : "pip"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "whl",
+        "name" : "pip",
+        "qualifier" : "py3-none-any",
+        "version" : "24.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "e44313ae1e6af3c2bd3b",
+    "url" : "new.link2",
+    "reference" : "CVE-2023-45803",
+    "source" : "cve",
+    "score" : 4.2,
+    "cwe" : "200",
+    "cvssVectorString" : "new vectorString2",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2023-45803" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "pip"
+      }, {
+        "value" : " ("
+      }, {
+        "field" : "Qualifier",
+        "value" : "py3-none-any"
+      }, {
+        "value" : ")"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "24.0"
+      }, {
+        "value" : " (."
+      }, {
+        "field" : "Extension",
+        "value" : "whl"
+      }, {
+        "value" : ")"
+      } ],
+      "name" : "pip"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "whl",
+        "name" : "pip",
+        "qualifier" : "py3-none-any",
+        "version" : "24.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "e44313ae1e6af3c2bd3b",
+    "url" : "new.link3",
+    "reference" : "CVE-2024-3651",
+    "source" : "cve",
+    "score" : 6.2,
+    "cwe" : "400",
+    "cvssVectorString" : "new vectorString3",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2024-3651" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "pip"
+      }, {
+        "value" : " ("
+      }, {
+        "field" : "Qualifier",
+        "value" : "py3-none-any"
+      }, {
+        "value" : ")"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "24.0"
+      }, {
+        "value" : " (."
+      }, {
+        "field" : "Extension",
+        "value" : "whl"
+      }, {
+        "value" : ")"
+      } ],
+      "name" : "pip"
+    }
+  } ]
+}

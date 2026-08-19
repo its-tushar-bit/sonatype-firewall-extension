@@ -1,0 +1,118 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '~@sonatype/react-shared-components/scss-shared/nx-table-helpers';
+
+scm-onboarding {
+  display: contents;
+}
+
+#scm-onboarding-container {
+  .scm-org-selection {
+    align-items: start;
+    margin-bottom: 20px;
+    display: flex;
+  }
+  #scm-imported-donut-chart {
+    margin-right: 10px;
+    margin-bottom: -12px;
+    height: 48px;
+    width: 48px;
+  }
+
+  .iq-scmonboarding-stats {
+    margin-left: auto;
+    display: flex;
+
+    #iq-scmonbording-stats-repocount {
+      margin-right: 48px;
+    }
+  }
+
+  .iq-scmonboarding-stats-highlight {
+    font-size: 32px;
+    height: 48px;
+    font-weight: bold;
+    margin-right: 12px;
+  }
+
+  .iq-scmonboarding-overflow-tooltip-cell {
+    max-width: 1px;
+    min-width: 200px;
+
+    .nx-filter-input {
+      width: auto;
+      max-width: 250px;
+    }
+
+    .nx-text-input__input {
+      width: 100%;
+    }
+  }
+
+  #scm-repo-to-import-count {
+    font-weight: bold;
+  }
+
+  // possible bug in RSC, dropdown is showing below table header
+  #iq-scm-target-organization {
+    z-index: 1;
+  }
+}
+
+.scm-import-details {
+  list-style: none;
+  padding: 0;
+  margin-left: 0;
+
+  .scm-import-detail-success:before {
+    padding-left: 22px;
+    padding-top: 16px;
+    content: '\f058'; /* FontAwesome Unicode: check-circle */
+    font-family: FontAwesome;
+    display: inline-block;
+    margin-left: -22px; /* same as padding-left */
+    width: 22px; /* same as padding-left */
+    color: var(--nx-swatch-green-30);
+  }
+
+  .scm-import-detail-error:before {
+    padding-left: 22px;
+    padding-top: 16px;
+    content: '\f06a'; /* FontAwesome Unicode: exclamation-circle */
+    font-family: FontAwesome;
+    display: inline-block;
+    margin-left: -22px; /* same as padding-left */
+    width: 22px; /* same as padding-left */
+    color: var(--nx-swatch-red-45);
+  }
+
+  .scm-import-error-detail-list {
+    list-style-type: disc;
+  }
+
+  .scm-import-error-detail-item {
+    margin-left: 12px;
+    margin-top: 5px;
+  }
+}
+
+.iq-scmonboarding-title.nx-page-title {
+  .nx-h1 {
+    max-width: none;
+  }
+}
+
+.iq-scmonboarding__filter-cell {
+  min-width: 260px;
+}
+
+.iq-scmonboarding__select-all-cell {
+  min-width: 110px;
+}
+
+.onboarding-repo-table {
+  height: nx-table-helpers.pagination-table-height(15, 1);
+}

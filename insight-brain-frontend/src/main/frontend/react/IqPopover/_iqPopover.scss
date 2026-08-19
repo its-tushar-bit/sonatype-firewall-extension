@@ -1,0 +1,106 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
+@use '../../scss/variables' as *;
+
+//POSITIONING and LAYOUT
+//TODO: consider moving this somewhere else
+.iq-popover {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  top: 0;
+  z-index: 1070;
+}
+
+.nx-viewport-sized > .iq-popover,
+.nx-viewport-sized__container > .iq-popover {
+  width: auto;
+}
+//End positioning and layout styles
+
+.iq-popover {
+  background-color: var(--nx-color-component-background);
+  border-left: 1px var(--nx-color-global-sidebar-2-border) solid;
+  box-sizing: border-box;
+}
+
+.iq-popover--small {
+  width: 344px;
+}
+
+.iq-popover--medium {
+  width: 520px;
+}
+
+.iq-popover--large {
+  width: 848px;
+}
+
+.iq-popover--extra-large {
+  width: 1016px;
+}
+
+.iq-popover__content {
+  overflow-y: auto;
+  padding: var(--nx-spacing-6x);
+
+  .iq-popover__header + & {
+    padding-top: 0;
+  }
+  &:not(:last-child) {
+    padding-bottom: 0;
+  }
+}
+
+.iq-popover__divider {
+  margin: var(--nx-spacing-3x) auto;
+  border: 0 none;
+  box-shadow: none;
+  border-top: 1px $iq-grey-4 solid;
+
+  @include nx-dark-mode-helpers.dark-mode {
+    border-top: 1px var(--nx-swatch-indigo-40) solid;
+  }
+}
+
+.iq-popover__header,
+.iq-popover__footer {
+  @include nx-container-helpers.container-vertical;
+  padding: var(--nx-spacing-6x);
+}
+
+.iq-popover__header {
+  padding-bottom: 0;
+
+  .iq-popover__divider {
+    margin: var(--nx-spacing-2x) auto 0 auto;
+  }
+}
+
+.iq-popover__footer {
+  padding-top: 0;
+}
+
+.iq-popover-header__title {
+  @include nx-container-helpers.container-horizontal;
+
+  align-items: start;
+  display: flex;
+  justify-content: space-between;
+
+  .iq-popover-header__title-text {
+    flex: 1;
+  }
+
+  .iq-popover-header__close-btn {
+    margin-left: auto;
+    margin-right: 0;
+  }
+}

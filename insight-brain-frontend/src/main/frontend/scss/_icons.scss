@@ -1,0 +1,460 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use 'sass:list';
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+
+@use './variables' as *;
+
+/*
+  Global icon variables
+*/
+$icon-font-color: #1d1d1b;
+$icon-font-size-large: 24px;
+$icon-font-size-medium: 18px;
+$icon-font-size-small: 12px;
+$icon-font-size-extra-small: 10px;
+
+$font-families: ('sonatype-icons', 'sonatype-glyphicons');
+
+/*
+  Global icon styles
+*/
+@each $font-family in $font-families {
+  .#{$font-family}.medium:before {
+    font-size: $icon-font-size-medium !important;
+  }
+  .#{$font-family}.small:before {
+    font-size: $icon-font-size-small !important;
+  }
+  .#{$font-family}.extra-small:before {
+    font-size: $icon-font-size-extra-small !important;
+  }
+}
+
+/*
+  Mixins
+*/
+@mixin icon-font {
+  color: $icon-font-color;
+  font-size: $icon-font-size-large;
+  font-style: normal;
+  font-variant: normal;
+  font-weight: normal;
+  line-height: 30px;
+  text-transform: none;
+  *zoom: 1;
+
+  // Better Font Rendering
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@mixin icon-colours($property) {
+  &.white {
+    #{$property}: $iq-grey-2;
+  }
+
+  &.grey,
+  &.slate {
+    #{$property}: $iq-slate;
+  }
+
+  &.black {
+    #{$property}: $iq-off-black;
+  }
+
+  &.green {
+    #{$property}: $iq-dark-green;
+  }
+
+  &.yellow {
+    #{$property}: $iq-yellow;
+  }
+
+  &.orange {
+    #{$property}: $iq-orange;
+  }
+
+  &.red {
+    #{$property}: $iq-dark-red;
+  }
+
+  &.blue {
+    #{$property}: $iq-dark-blue;
+  }
+
+  @each $color-name, $pickable-color in $pickable-colors {
+    &.#{$color-name} {
+      #{$property}: $pickable-color;
+    }
+  }
+}
+
+/*
+  The sonatype icon font
+*/
+$sonatype-icon-font-name: 'sonatype-icons';
+$sonatype-icon-font-path: '../fonts/sonatype-icons';
+
+@font-face {
+  font-family: $sonatype-icon-font-name;
+  src: url('#{$sonatype-icon-font-path}.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.sonatype-icons:before,
+.iq-sonatype-icons:before {
+  @include icon-font();
+
+  font-family: $sonatype-icon-font-name;
+}
+
+/*
+  The sonatype glyphicon font
+*/
+$sonatype-glyphicon-font-name: 'Glyphicons';
+
+.sonatype-glyphicons:before,
+.iq-sonatype-glyphicons:before {
+  @include icon-font();
+
+  font-family: $sonatype-glyphicon-font-name;
+}
+
+//build out the icons
+$icon-map: (sonatype-icons, double-chevron-right, e600), (sonatype-icons, double-chevron-left, e601),
+  (sonatype-icons, application, e008), (sonatype-icons, policy, e60d), (sonatype-icons, policy-threat-level, e611),
+  (sonatype-icons, tag, e60c), (sonatype-glyphicons, stage-type, e083);
+
+@each $icon-type, $icon-class, $icon-color in $icon-map {
+  .#{$icon-type}.#{$icon-class}:before {
+    content: '"#{$icon-color}"';
+  }
+}
+
+/*
+  # Icons
+  ## Sizes
+  ## Styles
+*/
+.fa {
+  &.inverse {
+    background-color: $iq-slate;
+    color: $iq-off-white;
+  }
+
+  &.size-26px {
+    font-size: 26px;
+
+    &.inverse {
+      font-size: 20px;
+      line-height: 26px;
+      height: 26px;
+      text-align: center;
+      width: 26px;
+
+      &::before {
+        vertical-align: 2px;
+      }
+    }
+  }
+
+  &.size-22px {
+    font-size: 22px;
+    line-height: 22px;
+  }
+
+  &.size-20px {
+    font-size: 20px;
+    line-height: 20px;
+
+    &.inverse {
+      font-size: 90%;
+      padding: 2px;
+    }
+
+    &.size-fw {
+      width: 20px;
+      text-align: center;
+    }
+  }
+
+  &.size-18px {
+    font-size: 18px;
+    line-height: 18px;
+
+    &.inverse {
+      font-size: 90%;
+      padding: 2px;
+    }
+
+    &.size-fw {
+      width: 18px;
+      text-align: center;
+    }
+  }
+
+  &.size-16px {
+    font-size: 16px;
+    line-height: 16px;
+
+    &.size-fw {
+      width: 16px;
+      text-align: center;
+    }
+  }
+
+  &.size-14px {
+    font-size: 14px;
+    line-height: 14px;
+  }
+
+  &.size-12px {
+    font-size: 12px;
+    line-height: 12px;
+  }
+
+  &.size-10px {
+    font-size: 10px;
+    line-height: 10px;
+    margin-top: -4px;
+    vertical-align: middle;
+  }
+
+  &.outline {
+    // A single shadow is too light. We layer it multiple times to simulate a text stroke/outline
+    text-shadow: $iq-slate 0 0 1px, $iq-slate 0 0 1px, $iq-slate 0 0 1px, $iq-slate 0 0 1px, $iq-slate 0 0 1px,
+      $iq-slate 0 0 1px;
+  }
+
+  &.fail {
+    color: $iq-dark-red;
+  }
+
+  &.warn {
+    color: $iq-orange;
+  }
+}
+
+/*
+  ## Label Colors
+  Colors for organization or application labels
+*/
+.fa {
+  @include icon-colours(color);
+}
+
+.hexagon {
+  @include icon-colours(fill);
+
+  height: 14px;
+  width: 12px;
+
+  &.outline {
+    > path {
+      fill: none;
+      stroke: $iq-slate;
+      stroke-width: 12px;
+    }
+  }
+
+  &.size-20px {
+    height: 20px;
+    width: 17px;
+
+    &.size-fw {
+      width: 20px;
+    }
+  }
+
+  &.size-16px {
+    height: 16px;
+    width: 14px;
+
+    &.size-fw {
+      width: 16px;
+    }
+  }
+}
+
+.hexagon--list-item {
+  margin-right: 8px;
+  vertical-align: bottom;
+}
+
+/*
+  ## License Threat Group Colors
+  Colors for license threat group icons
+*/
+.fa-book {
+  @each $threat in $threat-levels {
+    @each $threatLevel in nth($threat, 4) {
+      &.threat-level-#{$threatLevel} {
+        color: nth($threat, 3);
+      }
+    }
+  }
+}
+
+.fa-university.policy-threat-level-background {
+  color: var(--nx-swatch-white);
+  text-align: center;
+
+  &.size-16px {
+    font-size: 11px;
+    height: 16px;
+    line-height: 16px;
+    width: 16px;
+  }
+
+  @each $threat in $policy-threat-levels {
+    @each $threatLevel in list.nth($threat, 4) {
+      &.threat-level-#{$threatLevel} {
+        background-color: list.nth($threat, 3);
+      }
+    }
+  }
+}
+
+.fa-info-circle {
+  color: $iq-dark-blue;
+}
+
+.fa.loading-spinner {
+  margin-right: 8px;
+}
+
+.tree-view-item:not(.selected) {
+  .proprietary-components-icon {
+    span:before,
+    span:after {
+      color: $iq-grey-2;
+    }
+  }
+}
+
+.fa-stack.iq-move-to-top {
+  .fa:first-child {
+    font-size: 1.7em;
+    top: -3px;
+  }
+  .fa:last-child {
+    top: 2px;
+  }
+}
+
+.fa-stack.iq-move-to-bottom {
+  .fa:first-child {
+    font-size: 1.7em;
+    top: 6px;
+  }
+  .fa:last-child {
+    top: -2px;
+  }
+}
+
+// This icon requires the use of size-xx class. Currently only size-16 and size-20 are supported.
+.proprietary-components-icon {
+  display: inline-block;
+  white-space: nowrap;
+
+  &:before {
+    content: '\f1b2'; // fa-cube
+    display: inline-block;
+  }
+
+  // stack using absolute positioning
+  &:after {
+    content: '\f023'; // fa-lock
+    position: absolute;
+  }
+
+  // for filling in the shackle on the lock
+  span:before {
+    color: var(--nx-swatch-white);
+    content: '\f111'; // fa-circle
+    position: absolute;
+  }
+
+  span:after {
+    color: var(--nx-swatch-white);
+    content: '\f023'; // fa-lock
+    position: absolute;
+  }
+
+  &.size-20px {
+    &:after {
+      font-size: 16px;
+      margin-top: -2px;
+      margin-left: -8px;
+    }
+
+    span:before {
+      font-size: 8px;
+      margin-top: -5px;
+      margin-left: -6px;
+    }
+
+    span:after {
+      font-size: 18px;
+      margin-top: -2px;
+      margin-left: -9px;
+    }
+  }
+
+  &.size-16px {
+    &:after {
+      font-size: 12px;
+      margin-top: -2px;
+      margin-left: -6px;
+    }
+
+    span:before {
+      font-size: 6px;
+      margin-top: -5px;
+      margin-left: -4px;
+    }
+
+    span:after {
+      font-size: 14px;
+      margin-top: -2px;
+      margin-left: -7px;
+    }
+  }
+}
+
+// Begin styles from management.css
+.icon-reset-pw {
+  background-image: url('../img/icon_reset_pw.png') !important;
+  background-position: 0px 0px;
+  background-size: 14px 14px;
+}
+// End styles from management.css
+
+// Begin CSS from insight.css
+.emptyIconGlyph {
+  display: inline-block;
+  height: 14px;
+  width: 14px;
+}
+// End CSS from insight.css
+
+.iq-inverse-icon-wrapper {
+  @include nx-container-helpers.container-horizontal;
+
+  background-color: currentColor;
+
+  margin: 0 8px;
+  padding: 0 2px;
+
+  + .nx-icon,
+  + .iq-inverse-icon-wrapper {
+    margin-left: 0;
+  }
+}

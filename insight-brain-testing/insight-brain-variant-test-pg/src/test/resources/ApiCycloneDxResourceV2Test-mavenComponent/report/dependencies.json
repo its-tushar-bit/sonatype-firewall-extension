@@ -1,0 +1,75 @@
+{
+  "dependencyGraph" : [],
+  "gavDepths" : {},
+  "componentDepths" : [],
+  "dependencyTree" : {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "insight-scanner",
+        "classifier" : "",
+        "extension" : "pom",
+        "groupId" : "com.sonatype.insight.scan",
+        "version" : "2.36.19-SNAPSHOT"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.sonatype.insight.scan/insight-scanner@2.36.19-SNAPSHOT?type=pom",
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "insight-test-networking",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.sonatype.insight.scan",
+          "version" : "2.36.19-SNAPSHOT"
+        }
+      },
+      "packageUrl" : "pkg:maven/com.sonatype.insight.scan/insight-test-networking@2.36.19-SNAPSHOT?type=jar",
+      "direct" : true,
+      "module" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "insight-test-reverse-proxy",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.sonatype.insight.scan",
+          "version" : "2.36.19-SNAPSHOT"
+        }
+      },
+      "packageUrl" : "pkg:maven/com.sonatype.insight.scan/insight-test-reverse-proxy@2.36.19-SNAPSHOT?type=jar",
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "jcl-over-slf4j",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.slf4j",
+            "version" : "1.7.36"
+          }
+        },
+        "packageUrl" : "pkg:maven/org.slf4j/jcl-over-slf4j@1.7.36?type=jar",
+        "direct" : true
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "slf4j-api",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.slf4j",
+            "version" : "1.7.36"
+          }
+        },
+        "packageUrl" : "pkg:maven/org.slf4j/slf4j-api@1.7.36?type=jar",
+        "direct" : true
+      } ],
+      "direct" : true,
+      "module" : true
+    } ],
+    "module" : true
+  }
+}

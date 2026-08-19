@@ -1,0 +1,109 @@
+<scan version="2.32.1-01">
+  <configuration>
+    <properties>
+      <property name="archiveNames" value="true"/>
+      <property name="anonymizeArtifactIds" value="false"/>
+      <property name="fileExcludes" value=""/>
+      <property name="anonymizePaths" value="false"/>
+      <property name="maxDepth" value="256"/>
+      <property name="operatingSystem" value="true"/>
+      <property name="hashFiles" value="true"/>
+      <property name="fileIncludes" value=""/>
+      <property name="procArch" value="true"/>
+      <property name="maxSymlinkDepth" value="5"/>
+      <property name="jreInfo" value="true"/>
+      <property name="proprietaryPackages" value=""/>
+      <property name="pomProperties" value="true"/>
+      <property name="fileSizes" value="false"/>
+      <property name="nameHashes" value="true"/>
+      <property name="dirExcludes" value="**/.*, **/CVS"/>
+      <property name="hashJavaTypes" value="true"/>
+      <property name="ipAddresses" value="false"/>
+      <property name="dirIncludes" value=""/>
+      <property name="proprietaryRegexes" value=""/>
+      <property name="resourceNames" value="true"/>
+    </properties>
+  </configuration>
+  <item contentType="SBOM" lastModified="1571788783929" sha1="80d8ce5924b4b67314bf" path="scan-multiformat-bom.xml">
+    <content><![CDATA[{
+  "bomFormat" : "CycloneDX",
+  "specVersion" : "1.7",
+  "version" : 1,
+  "metadata" : {
+    "timestamp" : "2021-12-03T12:18:22Z",
+    "component" : {
+      "type" : "application",
+      "bom-ref" : "acme-app",
+      "name" : "Acme Application",
+      "version" : "9.1.1",
+      "purl" : "pkg:maven/org.acme/acme-app@9.1.1?type=jar"
+    }
+  },
+  "components" : [
+    {
+      "type" : "framework",
+      "group" : "org.acme",
+      "name" : "genericdep",
+      "version" : "1.0.0",
+      "purl" : "pkg:generic/org.acme/genericdep@1.0.0?nexustype=rar",
+      "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:generic/org.acme/genericdep@1.0.0?nexustype=rar"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "e6b505313c45b62ba66193f0af94c37cc8d79f70"
+        }
+      ]
+    },
+    {
+      "type" : "library",
+      "name" : "pydep",
+      "version" : "3.1.0",
+      "purl" : "pkg:pypi/pydep@3.1.0?extension=tgz&qualifier=cp27_win",
+      "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:pypi/pydep@3.1.0?extension=tgz&qualifier=cp27_win"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "00f74a8bd3d1a25e3412712bd730546a74d6f9fd"
+        }
+      ]
+    },
+    {
+      "type" : "library",
+      "name" : "crandep",
+      "version" : "3.0.0",
+      "purl" : "pkg:cran/crandep@3.0.0",
+      "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:cran/crandep@3.0.0"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "fd33db069c4f1e0a7a04e038cb67589489473e94"
+        }
+      ]
+    }
+  ]
+}
+]]></content>
+  </item>
+  <project id="pkg:maven/org.acme/acme-app@9.1.1?type=jar" kind="sbom" path="scan-multiformat-bom.json">
+    <dependencies>
+      <dep direct="true" id="pkg:generic/org.acme/genericdep@1.0.0?nexustype=rar">
+        <dep id="pkg:pypi/pydep@3.1.0?extension=tgz&amp;qualifier=cp27_win"/>
+      </dep>
+      <dep direct="true" id="pkg:cran/crandep@3.0.0"/>
+      <dep id="pkg:pypi/pydep@3.1.0?extension=tgz&amp;qualifier=cp27_win"/>
+    </dependencies>
+  </project>
+  <summary>
+    <startTime>2021-11-28T23:59:43+0000</startTime>
+    <endTime>2021-11-28T23:59:43+0000</endTime>
+  </summary>
+</scan>

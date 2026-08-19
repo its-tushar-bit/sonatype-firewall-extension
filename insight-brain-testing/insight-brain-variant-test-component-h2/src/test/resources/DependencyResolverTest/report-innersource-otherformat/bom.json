@@ -1,0 +1,188 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "tar.gz",
+        "name" : "Django",
+        "qualifier" : "",
+        "version" : "1.6"
+      }
+    },
+    "packageUrl" : "pkg:pypi/django@1.6?extension=tar.gz",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "pkg:pypi/django@1.6?extension=tar.gz" ],
+    "pathnames" : [ "dependency:/pkg:pypi\\django@1.6?extension=tar.gz" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "adf539ecb45bed3f1032",
+    "relativePopularity" : null,
+    "createTime" : 1383750089000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "Django"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.6"
+      }, {
+        "value" : " (."
+      }, {
+        "field" : "Extension",
+        "value" : "tar.gz"
+      }, {
+        "value" : ")"
+      } ],
+      "name" : "Django"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "tar.gz",
+        "name" : "bdist_mpkg",
+        "qualifier" : "",
+        "version" : "0.5.0"
+      }
+    },
+    "packageUrl" : "pkg:pypi/bdist-mpkg@0.5.0?extension=tar.gz",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "pkg:pypi/bdist-mpkg@0.5.0?extension=tar.gz" ],
+    "pathnames" : [ "dependency:/pkg:pypi\\bdist-mpkg@0.5.0?extension=tar.gz" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "aee367d0e7703053abaf",
+    "relativePopularity" : null,
+    "createTime" : 1377318736000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "bdist_mpkg"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "0.5.0"
+      }, {
+        "value" : " (."
+      }, {
+        "field" : "Extension",
+        "value" : "tar.gz"
+      }, {
+        "value" : ")"
+      } ],
+      "name" : "bdist_mpkg"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "zip",
+        "name" : "pypi-app",
+        "version" : "9.1.1"
+      }
+    },
+    "packageUrl" : "pkg:pypi/pypi-app@9.1.1?extension=zip",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "pkg:pypi/pypi-app@9.1.1?extension=zip" ],
+    "pathnames" : [ "dependency:/pkg:pypi\\pypi-app@9.1.1?extension=zip" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "38b223900892e2bb9c5c",
+    "relativePopularity" : null,
+    "createTime" : 1639480053712,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "pypi-consumer",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "pypi-app"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "9.1.1"
+      }, {
+        "value" : " (."
+      }, {
+        "field" : "Extension",
+        "value" : "zip"
+      }, {
+        "value" : ")"
+      } ],
+      "name" : "pypi-app"
+    }
+  } ]
+}

@@ -1,0 +1,33 @@
+{
+  "firstCatalog" : 1318693980000,
+  "lastCatalog" : 1415806417843,
+  "popularity" : [ {
+    "artifactId" : "servlets-default",
+    "catalogDates" : [ ],
+    "currentVersionIndex" : -1,
+    "groupId" : "tomcat",
+    "popularity" : [ ],
+    "version" : "5.5.4"
+  }, {
+    "artifactId" : "catalina-host-manager",
+    "catalogDates" : [ ],
+    "currentVersionIndex" : -1,
+    "groupId" : "tomcat",
+    "popularity" : [ ],
+    "version" : "5.5.23"
+  }, {
+    "artifactId" : "tomcat-util",
+    "catalogDates" : [ 1318693980000, 1321372380000, 1323964380000 ],
+    "currentVersionIndex" : 2,
+    "groupId" : "tomcat",
+    "popularity" : [ 30, 25, 35 ],
+    "version" : "5.5.23"
+  }, {
+    "artifactId" : "dojo-js",
+    "catalogDates" : [ 1355586780000 ],
+    "currentVersionIndex" : 0,
+    "groupId" : "org.dojotoolkit",
+    "popularity" : [ 35 ],
+    "version" : "1.9.1"
+  } ]
+}

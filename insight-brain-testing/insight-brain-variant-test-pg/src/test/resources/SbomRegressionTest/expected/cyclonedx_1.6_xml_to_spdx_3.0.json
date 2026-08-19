@@ -1,0 +1,66 @@
+{
+  "@context" : "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph" : [ {
+    "@id" : "_:creationInfo_0",
+    "type" : "CreationInfo",
+    "specVersion" : "3.0.1",
+    "createdBy" : [ "http://localhost:10019/ui/links/sbomManager/management/view/application/SbomRegressionTestApp/bom/1.0.0/agent/sonatype-sbom-manager" ],
+    "created" : "2026-05-10T18:55:54Z"
+  }, {
+    "spdxId" : "http://localhost:10019/ui/links/sbomManager/management/view/application/SbomRegressionTestApp/bom/1.0.0",
+    "type" : "SpdxDocument",
+    "rootElement" : [ "http://localhost:10019/ui/links/sbomManager/management/view/application/SbomRegressionTestApp/bom/1.0.0/package/a7575066-77a0-4c31-8731-f2e48f964bf6" ],
+    "name" : "SbomRegressionTestApp",
+    "creationInfo" : "_:creationInfo_0"
+  }, {
+    "spdxId" : "http://localhost:10019/ui/links/sbomManager/management/view/application/SbomRegressionTestApp/bom/1.0.0/vulnerability/CVE-2018-7489",
+    "type" : "security_Vulnerability",
+    "description" : "FasterXML jackson-databind before 2.7.9.3, 2.8.x before 2.8.11.1 and 2.9.x before 2.9.5 allows unauthenticated remote code execution because of an incomplete fix for the CVE-2017-7525 deserialization flaw.",
+    "externalIdentifier" : [ {
+      "type" : "ExternalIdentifier",
+      "identifier" : "CVE-2018-7489",
+      "externalIdentifierType" : "cve"
+    } ],
+    "name" : "CVE-2018-7489",
+    "creationInfo" : "_:creationInfo_0"
+  }, {
+    "spdxId" : "http://localhost:10019/ui/links/sbomManager/management/view/application/SbomRegressionTestApp/bom/1.0.0/vex/1",
+    "type" : "security_VexAffectedVulnAssessmentRelationship",
+    "to" : [ "http://localhost:10019/ui/links/sbomManager/management/view/application/SbomRegressionTestApp/bom/1.0.0/package/9ad53197-058c-43cb-9c03-4bf49a64c284" ],
+    "from" : "http://localhost:10019/ui/links/sbomManager/management/view/application/SbomRegressionTestApp/bom/1.0.0/vulnerability/CVE-2018-7489",
+    "creationInfo" : "_:creationInfo_0"
+  }, {
+    "spdxId" : "http://localhost:10019/ui/links/sbomManager/management/view/application/SbomRegressionTestApp/bom/1.0.0/relationship/declaredLicense/9ad53197-058c-43cb-9c03-4bf49a64c284",
+    "type" : "Relationship",
+    "relationshipType" : "hasDeclaredLicense",
+    "to" : [ "http://localhost:10019/ui/links/sbomManager/management/view/application/SbomRegressionTestApp/bom/1.0.0/license/9ad53197-058c-43cb-9c03-4bf49a64c284" ],
+    "from" : "http://localhost:10019/ui/links/sbomManager/management/view/application/SbomRegressionTestApp/bom/1.0.0/package/9ad53197-058c-43cb-9c03-4bf49a64c284",
+    "creationInfo" : "_:creationInfo_0"
+  }, {
+    "spdxId" : "http://localhost:10019/ui/links/sbomManager/management/view/application/SbomRegressionTestApp/bom/1.0.0/license/9ad53197-058c-43cb-9c03-4bf49a64c284",
+    "type" : "simplelicensing_LicenseExpression",
+    "simplelicensing_licenseExpression" : "Apache-2.0",
+    "creationInfo" : "_:creationInfo_0"
+  }, {
+    "spdxId" : "http://localhost:10019/ui/links/sbomManager/management/view/application/SbomRegressionTestApp/bom/1.0.0/package/a8dc7580-8074-4706-8580-97d5ffad9a1a",
+    "type" : "software_Package",
+    "software_packageVersion" : "3.0",
+    "name" : "library",
+    "software_packageUrl" : "pkg:maven/acme/library@3.0?type=jar",
+    "creationInfo" : "_:creationInfo_0"
+  }, {
+    "spdxId" : "http://localhost:10019/ui/links/sbomManager/management/view/application/SbomRegressionTestApp/bom/1.0.0/package/9ad53197-058c-43cb-9c03-4bf49a64c284",
+    "type" : "software_Package",
+    "software_packageVersion" : "1.0.0",
+    "name" : "library",
+    "software_packageUrl" : "pkg:maven/acme/library@1.0.0?type=jar",
+    "creationInfo" : "_:creationInfo_0"
+  }, {
+    "spdxId" : "http://localhost:10019/ui/links/sbomManager/management/view/application/SbomRegressionTestApp/bom/1.0.0/package/a7575066-77a0-4c31-8731-f2e48f964bf6",
+    "type" : "software_Package",
+    "software_packageVersion" : "1.0",
+    "name" : "shaded-library",
+    "software_packageUrl" : "pkg:maven/partner/shaded-library@1.0?type=jar",
+    "creationInfo" : "_:creationInfo_0"
+  } ]
+}

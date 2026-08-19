@@ -1,0 +1,95 @@
+<scan version="2.32.1-01">
+  <configuration>
+    <properties>
+      <property name="archiveNames" value="true"/>
+      <property name="anonymizeArtifactIds" value="false"/>
+      <property name="fileExcludes" value=""/>
+      <property name="anonymizePaths" value="false"/>
+      <property name="maxDepth" value="256"/>
+      <property name="operatingSystem" value="true"/>
+      <property name="hashFiles" value="true"/>
+      <property name="fileIncludes" value=""/>
+      <property name="procArch" value="true"/>
+      <property name="maxSymlinkDepth" value="5"/>
+      <property name="jreInfo" value="true"/>
+      <property name="proprietaryPackages" value=""/>
+      <property name="pomProperties" value="true"/>
+      <property name="fileSizes" value="false"/>
+      <property name="nameHashes" value="true"/>
+      <property name="dirExcludes" value="**/.*, **/CVS"/>
+      <property name="hashJavaTypes" value="true"/>
+      <property name="ipAddresses" value="false"/>
+      <property name="dirIncludes" value=""/>
+      <property name="proprietaryRegexes" value=""/>
+      <property name="resourceNames" value="true"/>
+    </properties>
+  </configuration>
+  <item contentType="SBOM" lastModified="1571788783929" sha1="80d8ce5924b4b67314bf" path="scan-cyclic-bom.json">
+    <content><![CDATA[{
+  "bomFormat" : "CycloneDX",
+  "specVersion" : "1.7",
+  "version" : 1,
+  "metadata" : {
+    "timestamp" : "2021-12-03T12:18:22Z",
+    "component" : {
+      "type" : "application",
+      "bom-ref" : "a-app",
+      "name" : "a",
+      "version" : "1.0",
+      "purl" : "pkg:npm/a@1.0"
+    }
+  },
+  "components" : [
+    {
+      "type" : "framework",
+      "bom-ref" : "pkg:npm/b@1.0",
+      "name" : "b",
+      "version" : "1.0",
+      "purl" : "pkg:npm/b@1.0",
+      "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:npm/b@1.0"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "e6d47e4c601271ca0d6979e34d4766f9c4424dc1"
+        }
+      ]
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "pkg:npm/c@1.0",
+      "name" : "c",
+      "version" : "1.0",
+      "purl" : "pkg:npm/c@1.0",
+      "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:npm/c@1.0"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "1e0abe74c8ecc912cedd016ae87854af64cd87ff"
+        }
+      ]
+    }
+  ]
+}
+]]></content>
+  </item>
+  <project path="scan-cyclic-bom.xml" id="pkg:npm/a@1.0" kind="sbom">
+    <dependencies>
+      <dep id="pkg:npm/b@1.0" direct="true">
+        <dep id="pkg:npm/c@1.0"/>
+      </dep>
+      <dep id="pkg:npm/c@1.0" direct="true">
+        <dep id="pkg:npm/b@1.0"/>
+      </dep>
+    </dependencies>
+  </project>
+  <summary>
+    <startTime>2021-11-28T23:59:43+0000</startTime>
+    <endTime>2021-11-28T23:59:43+0000</endTime>
+  </summary>
+</scan>

@@ -1,0 +1,69 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ant",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ant",
+        "version" : "1.6.4"
+      }
+    },
+    "groupId" : "ant",
+    "artifactId" : "ant",
+    "version" : "1.6.4",
+    "filenames" : [ "ant-1.6.4.jar" ],
+    "pathnames" : [ "test.zip/ant-1.6.4.jar" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "66635d8afae2046c58e8",
+    "relativePopularity" : 0.0,
+    "createTime" : 1131470641000,
+    "lastModifiedTime" : 1452699046000,
+    "lastModifiedEntryTime" : 1116527818000,
+    "website" : null
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-httpclient",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-httpclient",
+        "version" : "3.1"
+      }
+    },
+    "groupId" : "commons-httpclient",
+    "artifactId" : "commons-httpclient",
+    "version" : "3.1",
+    "filenames" : [ "commons-httpclient-3.1.jar" ],
+    "pathnames" : [ "test.zip/commons-httpclient-3.1.jar" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "964cd74171f427720480",
+    "relativePopularity" : 1.0,
+    "createTime" : 1187685847000,
+    "lastModifiedTime" : 1334088090000,
+    "lastModifiedEntryTime" : 1187449150000,
+    "website" : null
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "test.zip" ],
+    "pathnames" : [ "test.zip" ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "4e1c9e216d5ee34cb3c2",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1527701122000,
+    "lastModifiedEntryTime" : 1452699046000,
+    "website" : null
+  } ]
+}

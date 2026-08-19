@@ -1,0 +1,507 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bom serialNumber="urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79" version="1" xmlns="http://cyclonedx.org/schema/bom/1.6">
+  <metadata>
+    <timestamp>2025-01-22T20:31:00Z</timestamp>
+    <tools>
+      <components>
+        <component type="application">
+          <name>Sonatype SBOM Manager</name>
+          <version>1.187.0-SNAPSHOT</version>
+        </component>
+      </components>
+    </tools>
+    <component type="application" bom-ref="2676a89a-50dc-407d-85ce-b11fe8987cce">
+      <name>DUMMY-PUBLIC-ID-9bd16ff7df8a4422b8bbdc37f73c1e8e</name>
+      <version>9.1.1</version>
+    </component>
+  </metadata>
+  <components>
+    <component type="library" bom-ref="pkg:npm/acme/component@1.0.0">
+      <publisher>Acme Inc</publisher>
+      <group>com.acme</group>
+      <name>tomcat-catalina</name>
+      <version>9.0.14</version>
+      <hashes>
+        <hash alg="MD5">641b6e166f8b33c5e959e2adcc18b1c7</hash>
+        <hash alg="SHA-1">9188560f22e0b73070d2efce670c74af2bdf30af</hash>
+        <hash alg="SHA-256">d88bc4e70bfb34d18b5542136639acbb26a8ae2429aa1e47489332fb389cc964</hash>
+        <hash alg="SHA-384">d4835048a0f57c74b8fb617d5366ab81376fc92bebe9a93bf24ba7f9da6c9aeeb6179f5d1361f6533211b15f3224cbad</hash>
+        <hash alg="SHA-512">74a51ff45e4c11df9ba1f0094282c80489649cb157a75fa337992d2d4592a5a1b8cb4525de8db0ae25233553924d76c36e093ea7fa9df4e5b8b07fd2e074efd6</hash>
+        <hash alg="SHA3-256">7478c7cf41c883a04ee89f1813f687886d53fa86f791fff90690c6221e3853aa</hash>
+        <hash alg="SHA3-384">a1eea7229716487ad2ebe96b2f997a8408f32f14047994fbcc99b49012cf86c96dbd518e5d57a61b0e57dd37dd0b48f5</hash>
+        <hash alg="SHA3-512">7d584825bc1767dfabe7e82b45ccb7a1119b145fa17e76b885e71429c706cef0a3171bc6575b968eec5da56a7966c02fec5402fcee55097ac01d40c550de9d20</hash>
+        <hash alg="BLAKE2b-256">d8779633380c050bccf4e733b763ab2abd8ad2db60b517d47fd29bbf76433237</hash>
+        <hash alg="BLAKE2b-384">e728ba56c2da995a559a178116c594e8bee4894a79ceb4399d8f479e5563cb1942b85936f646d14170717c576b14db7a</hash>
+        <hash alg="BLAKE2b-512">f8ce8d612a6c85c96cf7cebc230f6ddef26e6cedcfbc4a41c766033cc08c6ba097d1470948226807fb2d88d2a2b6fc0ff5e5440e93a603086fdd568bafcd1a9d</hash>
+        <hash alg="BLAKE3">26cdc7fb3fd65fc3b621a4ef70bc7d2489d5c19e70c76cf7ec20e538df0047cf</hash>
+      </hashes>
+      <licenses>
+        <license bom-ref="69930016-623f-4d97-828c-2f9ec102b100">
+          <id>EPL-2.0</id>
+          <properties>
+            <property name="sonatype:identification_sources">SBOM</property>
+          </properties>
+        </license>
+      </licenses>
+      <purl>pkg:npm/acme/component@1.0.0</purl>
+      <swid tagId="swidgen-242eb18a-503e-ca37-393b-cf156ef09691_9.1.1" name="Acme Application" version="9.1.1"/>
+      <pedigree>
+        <ancestors>
+          <component type="library">
+            <publisher>Acme Inc</publisher>
+            <group>com.acme</group>
+            <name>tomcat-catalina</name>
+            <version>9.0.14</version>
+          </component>
+          <component type="library">
+            <publisher>Acme Inc</publisher>
+            <group>com.acme</group>
+            <name>tomcat-catalina</name>
+            <version>9.0.14</version>
+          </component>
+        </ancestors>
+        <commits>
+          <commit>
+            <uid>7638417db6d59f3c431d3e1f261cc637155684cd</uid>
+            <url>https://location/to/7638417db6d59f3c431d3e1f261cc637155684cd</url>
+            <author>
+              <timestamp>2018-11-13T20:20:39Z</timestamp>
+              <name>me</name>
+              <email>me@acme.org</email>
+            </author>
+          </commit>
+        </commits>
+        <patches>
+          <patch type="unofficial">
+            <diff>
+              <text content-type="text/plain" encoding="base64">blah</text>
+              <url>uri/to/changes.diff</url>
+            </diff>
+            <resolves>
+              <issue type="enhancement">
+                <id>JIRA-17240</id>
+                <description>Great new feature that does something</description>
+                <source>
+                  <name>Acme Org</name>
+                  <url>https://issues.acme.org/17240</url>
+                </source>
+              </issue>
+            </resolves>
+          </patch>
+          <patch type="backport">
+            <diff>
+              <text content-type="text/plain" encoding="base64">blah</text>
+              <url>uri/to/changes.diff</url>
+            </diff>
+            <resolves>
+              <issue type="security">
+                <id>CVE-2019-9997</id>
+                <name>CVE-2019-9997</name>
+                <description>blah blah</description>
+                <source>
+                  <name>NVD</name>
+                  <url>https://nvd.nist.gov/vuln/detail/CVE-2019-9997</url>
+                </source>
+                <references>
+                  <url>http://some/other/site-1</url>
+                  <url>http://some/other/site-2</url>
+                </references>
+              </issue>
+              <issue type="defect">
+                <id>JIRA-874319</id>
+                <description>Enable to do something</description>
+                <source>
+                  <name>Example Org</name>
+                  <url>https://issues.example.org/874319</url>
+                </source>
+                <references>
+                  <url>http://some/other/site-1</url>
+                  <url>http://some/other/site-2</url>
+                </references>
+              </issue>
+            </resolves>
+          </patch>
+        </patches>
+      </pedigree>
+      <externalReferences>
+        <reference type="advisories">
+          <url>https://example.org/security/feed/csaf</url>
+          <comment>Security advisories from the vendor</comment>
+        </reference>
+        <reference type="bom">
+          <url>https://example.org/support/sbom/portal-server/1.0.0</url>
+          <comment>An external SBOM that describes what this component includes</comment>
+          <hashes>
+            <hash alg="SHA-256">708f1f53b41f11f02d12a11b1a38d2905d47b099afc71a0f1124ef8582ec7313</hash>
+          </hashes>
+        </reference>
+        <reference type="documentation">
+          <url>https://example.org/support/documentation/portal-server/1.0.0</url>
+          <comment>Vendor provided documentation for the product</comment>
+        </reference>
+      </externalReferences>
+      <properties>
+        <property name="sonatype:identification_sources">SBOM</property>
+        <property name="sonatype:truncated_sha1">9188560f22e0b73070d2</property>
+        <property name="sonatype:original_purl">pkg:npm/acme/component@1.0.0</property>
+      </properties>
+      <evidence>
+        <licenses>
+          <license>
+            <id>Apache-2.0</id>
+            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+          </license>
+          <license>
+            <id>LGPL-2.1-only</id>
+            <url>https://opensource.org/licenses/LGPL-2.1</url>
+          </license>
+        </licenses>
+        <copyright>
+          <text>Copyright 2012 Google Inc. All Rights Reserved.</text>
+          <text>Copyright (C) 2004,2005 Dave Brosius &lt;dbrosius@users.sourceforge.net></text>
+          <text>Copyright (C) 2005 William Pugh</text>
+          <text>Copyright (C) 2004,2005 University of Maryland</text>
+        </copyright>
+      </evidence>
+    </component>
+    <component type="library">
+      <supplier>
+        <name>Example, Inc.</name>
+        <url>https://example.com</url>
+        <url>https://example.net</url>
+        <contact>
+          <name>Example Support AMER Distribution</name>
+          <email>support@example.com</email>
+          <phone>800-555-1212</phone>
+        </contact>
+        <contact>
+          <name>Example Support APAC</name>
+          <email>support@apac.example.com</email>
+        </contact>
+      </supplier>
+      <author>Example Super Heros</author>
+      <group>org.example</group>
+      <name>mylibrary</name>
+      <version>1.0.0</version>
+      <properties>
+        <property name="sonatype:identification_sources">SBOM</property>
+        <property name="sonatype:truncated_sha1">4ad5e066bb7c27c3f2cf</property>
+      </properties>
+      <releaseNotes>
+        <type>major</type>
+        <title>My new release</title>
+        <featuredImage>https://example.com/featured_image.png</featuredImage>
+        <socialImage>https://example.com/social_image.png</socialImage>
+        <description>The main description of your release</description>
+        <timestamp>2021-09-17T00:51:18Z</timestamp>
+        <aliases>
+          <alias>Project Orion</alias>
+        </aliases>
+        <tags>
+          <tag>CMS</tag>
+          <tag>SEO</tag>
+          <tag>wysiwyg</tag>
+        </tags>
+        <notes>
+          <note>
+            <locale>en-US</locale>
+            <text content-type="text/html" encoding="base64">PGgxPk15IG5ldyByZWxlYXNlPGgxPgo8cD5SZWxlYXNlIG5vdGVzIGhlcmU8L3A+</text>
+          </note>
+          <note>
+            <locale>es</locale>
+            <text content-type="text/html" encoding="base64">PGgxPk15IG5ldyByZWxlYXNlPGgxPgo8cD5Ob3RhcyBkZSBsYSB2ZXJzacOzbiBhcXXDrTwvcD4=</text>
+          </note>
+        </notes>
+      </releaseNotes>
+    </component>
+    <component type="application">
+      <name>application-a</name>
+      <version>1.0</version>
+      <properties>
+        <property name="sonatype:identification_sources">SBOM</property>
+        <property name="sonatype:truncated_sha1">da966c270954a36ffa91</property>
+      </properties>
+    </component>
+    <component type="library">
+      <name>library-a</name>
+      <version>1.0</version>
+      <properties>
+        <property name="sonatype:identification_sources">SBOM</property>
+        <property name="sonatype:truncated_sha1">6b38ac7ec780278b6942</property>
+      </properties>
+    </component>
+    <component type="framework">
+      <name>framework-a</name>
+      <version>1.0</version>
+      <properties>
+        <property name="sonatype:identification_sources">SBOM</property>
+        <property name="sonatype:truncated_sha1">ff049ba699e563f11252</property>
+      </properties>
+    </component>
+    <component type="container">
+      <name>container-a</name>
+      <version>1.0</version>
+      <properties>
+        <property name="sonatype:identification_sources">SBOM</property>
+        <property name="sonatype:truncated_sha1">e5c3151eb003a02cc8d9</property>
+      </properties>
+    </component>
+    <component type="operating-system">
+      <name>operating-system-a</name>
+      <version>1.0</version>
+      <properties>
+        <property name="sonatype:identification_sources">SBOM</property>
+        <property name="sonatype:truncated_sha1">d436122a1b89239ff669</property>
+      </properties>
+    </component>
+    <component type="firmware">
+      <name>firmware-a</name>
+      <version>1.0</version>
+      <properties>
+        <property name="sonatype:identification_sources">SBOM</property>
+        <property name="sonatype:truncated_sha1">51ff1fa2299f92dea368</property>
+      </properties>
+    </component>
+    <component type="device">
+      <name>device-a</name>
+      <version>1.0</version>
+      <properties>
+        <property name="sonatype:identification_sources">SBOM</property>
+        <property name="sonatype:truncated_sha1">517220b40ff9d2736a89</property>
+      </properties>
+    </component>
+    <component type="file">
+      <name>file-a</name>
+      <version>1.0</version>
+      <properties>
+        <property name="sonatype:identification_sources">SBOM</property>
+        <property name="sonatype:truncated_sha1">d2bc050380d26b0783b9</property>
+      </properties>
+    </component>
+    <component type="library" bom-ref="pkg:maven/partner/shaded-library@1.0">
+      <name>Partner Shaded Library</name>
+      <version>1.0</version>
+      <purl>pkg:maven/partner/shaded-library@1.0</purl>
+      <properties>
+        <property name="sonatype:identification_sources">SBOM</property>
+        <property name="sonatype:truncated_sha1">bea74eb2b5af290ae9b7</property>
+        <property name="sonatype:original_purl">pkg:maven/partner/shaded-library@1.0</property>
+      </properties>
+      <components>
+        <component type="library" bom-ref="pkg:maven/ossproject/library@2.0">
+          <name>Some Opensource Library</name>
+          <version>2.0</version>
+          <purl>pkg:maven/ossproject/library@2.0</purl>
+        </component>
+      </components>
+    </component>
+    <component type="library" bom-ref="pkg:maven/acme/library@3.0">
+      <name>Acme Library</name>
+      <version>3.0</version>
+      <purl>pkg:maven/acme/library@3.0</purl>
+      <properties>
+        <property name="sonatype:identification_sources">SBOM</property>
+        <property name="sonatype:truncated_sha1">a9f7d008c44d7c8a6796</property>
+        <property name="sonatype:original_purl">pkg:maven/acme/library@3.0</property>
+      </properties>
+    </component>
+    <component type="library" bom-ref="pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4">
+      <group>com.fasterxml.jackson.core</group>
+      <name>jackson-databind</name>
+      <version>2.9.4</version>
+      <purl>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4</purl>
+      <properties>
+        <property name="sonatype:identification_sources">SBOM</property>
+        <property name="sonatype:truncated_sha1">230e09fd610400a07572</property>
+        <property name="sonatype:original_purl">pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4</property>
+      </properties>
+    </component>
+  </components>
+  <services>
+    <service bom-ref="b2a46a4b-8367-4bae-9820-95557cfe03a8">
+      <provider>
+        <name>Partner Org</name>
+        <url>https://partner.org</url>
+        <contact>
+          <name>Support</name>
+          <email>support@partner.org</email>
+          <phone>800-555-1212</phone>
+        </contact>
+      </provider>
+      <group>org.partner</group>
+      <name>Stock ticker service</name>
+      <version>2020-Q2</version>
+      <description>Provides real-time stock information</description>
+      <endpoints>
+        <endpoint>https://partner.org/api/v1/lookup</endpoint>
+        <endpoint>https://partner.org/api/v1/stock</endpoint>
+      </endpoints>
+      <authenticated>true</authenticated>
+      <x-trust-boundary>true</x-trust-boundary>
+      <data>
+        <classification flow="inbound">PII</classification>
+        <classification flow="outbound">PIFI</classification>
+        <classification flow="bi-directional">pubic</classification>
+        <classification flow="unknown">partner-data</classification>
+      </data>
+      <licenses>
+        <license>
+          <name>Partner license</name>
+        </license>
+      </licenses>
+      <externalReferences>
+        <reference type="website">
+          <url>http://partner.org</url>
+        </reference>
+        <reference type="documentation">
+          <url>http://api.partner.org/swagger</url>
+        </reference>
+      </externalReferences>
+    </service>
+  </services>
+  <dependencies>
+    <dependency ref="acme-application-1.0">
+      <dependency ref="pkg:maven/partner/shaded-library@1.0"/>
+      <dependency ref="pkg:maven/acme/library@3.0"/>
+    </dependency>
+  </dependencies>
+  <compositions>
+    <composition>
+      <aggregate>complete</aggregate>
+      <assemblies>
+        <assembly ref="pkg:maven/partner/shaded-library@1.0"/>
+      </assemblies>
+      <dependencies>
+        <dependency ref="acme-application-1.0"/>
+      </dependencies>
+    </composition>
+    <composition>
+      <aggregate>unknown</aggregate>
+      <assemblies>
+        <assembly ref="pkg:maven/acme/library@3.0"/>
+      </assemblies>
+    </composition>
+  </compositions>
+  <vulnerabilities>
+    <vulnerability bom-ref="6eee14da-8f42-4cc4-bb65-203235f02415">
+      <id>SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111</id>
+      <source>
+        <name>Snyk</name>
+        <url>https://snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111</url>
+      </source>
+      <references>
+        <reference>
+          <id>CVE-2018-7489</id>
+          <source>
+            <name>NVD</name>
+            <url>https://nvd.nist.gov/vuln/detail/CVE-2019-9997</url>
+          </source>
+        </reference>
+        <reference>
+          <id>CVE-2018-7489</id>
+          <source>
+            <name>CVE</name>
+            <url>https://www.cve.org/CVERecord?id=CVE-2018-7489</url>
+          </source>
+        </reference>
+        <reference>
+          <id>SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111</url>
+          </source>
+        </reference>
+      </references>
+      <ratings>
+        <rating>
+          <source>
+            <name>Snyk</name>
+            <url>https://snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111</url>
+          </source>
+          <score>9.8</score>
+          <severity>critical</severity>
+          <method>CVSSv3</method>
+          <vector>AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H</vector>
+        </rating>
+      </ratings>
+      <cwes>
+        <cwe>184</cwe>
+        <cwe>502</cwe>
+      </cwes>
+      <description>FasterXML jackson-databind before 2.7.9.3, 2.8.x before 2.8.11.1 and 2.9.x before 2.9.5 allows unauthenticated remote code execution because of an incomplete fix for the CVE-2017-7525 deserialization flaw. This is exploitable by sending maliciously crafted JSON input to the readValue method of the ObjectMapper, bypassing a blacklist that is ineffective if the c3p0 libraries are available in the classpath.</description>
+      <recommendation>Upgrade com.fasterxml.jackson.core:jackson-databind to version 2.6.7.5, 2.8.11.1, 2.9.5 or higher.</recommendation>
+      <advisories>
+        <advisory>
+          <title>GitHub Commit</title>
+          <url>https://github.com/FasterXML/jackson-databind/commit/6799f8f10cc78e9af6d443ed6982d00a13f2e7d2</url>
+        </advisory>
+        <advisory>
+          <title>GitHub Issue</title>
+          <url>https://github.com/FasterXML/jackson-databind/issues/1931</url>
+        </advisory>
+      </advisories>
+      <created>2021-01-01T00:00:00Z</created>
+      <published>2021-01-01T00:00:00Z</published>
+      <updated>2021-01-01T00:00:00Z</updated>
+      <credits>
+        <organizations>
+          <organization>
+            <name>Acme, Inc.</name>
+            <url>https://example.com</url>
+          </organization>
+        </organizations>
+        <individuals>
+          <individual>
+            <name>Jane Doe</name>
+            <email>jane.doe@example.com</email>
+          </individual>
+        </individuals>
+      </credits>
+      <tools>
+        <tool>
+          <vendor>Snyk</vendor>
+          <name>Snyk CLI (Linux)</name>
+          <version>1.729.0</version>
+          <hashes>
+            <hash alg="SHA-256">2eaf8c62831a1658c95d41fdc683cd177c147733c64a93e59cb2362829e45b7d</hash>
+          </hashes>
+        </tool>
+      </tools>
+      <analysis>
+        <state>not_affected</state>
+        <justification>code_not_reachable</justification>
+        <responses>
+          <response>will_not_fix</response>
+          <response>update</response>
+        </responses>
+        <detail>An optional explanation of why the application is not affected by the vulnerable component.</detail>
+      </analysis>
+      <affects>
+        <target>
+          <ref>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4</ref>
+          <versions>
+            <version>
+              <range>vers:semver/&lt;2.6.7.5</range>
+              <status>affected</status>
+            </version>
+            <version>
+              <range>vers:semver/2.7.0|&lt;2.8.11.1</range>
+              <status>affected</status>
+            </version>
+            <version>
+              <range>vers:semver/2.9.0|&lt;2.9.5</range>
+              <status>affected</status>
+            </version>
+          </versions>
+        </target>
+      </affects>
+      <properties>
+        <property name="Foo">Bar</property>
+        <property name="Foo">You</property>
+        <property name="Foo">Two</property>
+        <property name="Bar">Foo</property>
+        <property name="sonatype:identification_sources">SBOM</property>
+      </properties>
+    </vulnerability>
+  </vulnerabilities>
+</bom>

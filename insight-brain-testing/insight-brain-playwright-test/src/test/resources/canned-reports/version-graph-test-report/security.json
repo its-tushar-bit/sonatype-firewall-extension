@@ -1,0 +1,400 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "postgresql",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.postgresql",
+        "version" : "42.2.2"
+      }
+    },
+    "groupId" : "org.postgresql",
+    "artifactId" : "postgresql",
+    "version" : "42.2.2",
+    "hash" : "7ebd60d15eec1f9e796d",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-10936",
+    "reference" : "CVE-2018-10936",
+    "source" : "cve",
+    "score" : 8.1,
+    "cwe" : "297",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2018-10936" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.postgresql"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "postgresql"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "42.2.2"
+      } ],
+      "name" : "postgresql"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "postgresql",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.postgresql",
+        "version" : "42.2.2"
+      }
+    },
+    "groupId" : "org.postgresql",
+    "artifactId" : "postgresql",
+    "version" : "42.2.2",
+    "hash" : "7ebd60d15eec1f9e796d",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-13692",
+    "reference" : "CVE-2020-13692",
+    "source" : "cve",
+    "score" : 7.7,
+    "cwe" : "611",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:L/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-13692" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.postgresql"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "postgresql"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "42.2.2"
+      } ],
+      "name" : "postgresql"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "postgresql",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.postgresql",
+        "version" : "42.2.2"
+      }
+    },
+    "groupId" : "org.postgresql",
+    "artifactId" : "postgresql",
+    "version" : "42.2.2",
+    "hash" : "7ebd60d15eec1f9e796d",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-21724",
+    "reference" : "CVE-2022-21724",
+    "source" : "cve",
+    "score" : 9.8,
+    "cwe" : "665",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2022-21724" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.postgresql"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "postgresql"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "42.2.2"
+      } ],
+      "name" : "postgresql"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "postgresql",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.postgresql",
+        "version" : "42.2.2"
+      }
+    },
+    "groupId" : "org.postgresql",
+    "artifactId" : "postgresql",
+    "version" : "42.2.2",
+    "hash" : "7ebd60d15eec1f9e796d",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-26520",
+    "reference" : "CVE-2022-26520",
+    "source" : "cve",
+    "score" : 9.8,
+    "cwe" : "20",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data", "operational" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2022-26520" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.postgresql"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "postgresql"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "42.2.2"
+      } ],
+      "name" : "postgresql"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "postgresql",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.postgresql",
+        "version" : "42.2.2"
+      }
+    },
+    "groupId" : "org.postgresql",
+    "artifactId" : "postgresql",
+    "version" : "42.2.2",
+    "hash" : "7ebd60d15eec1f9e796d",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-41946",
+    "reference" : "CVE-2022-41946",
+    "source" : "cve",
+    "score" : 5.5,
+    "cwe" : "200",
+    "cvssVectorString" : "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data", "operational" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2022-41946" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.postgresql"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "postgresql"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "42.2.2"
+      } ],
+      "name" : "postgresql"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "postgresql",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.postgresql",
+        "version" : "42.2.2"
+      }
+    },
+    "groupId" : "org.postgresql",
+    "artifactId" : "postgresql",
+    "version" : "42.2.2",
+    "hash" : "7ebd60d15eec1f9e796d",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-1597",
+    "reference" : "CVE-2024-1597",
+    "source" : "cve",
+    "score" : 10.0,
+    "cwe" : "89",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "configuration", "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2024-1597" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.postgresql"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "postgresql"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "42.2.2"
+      } ],
+      "name" : "postgresql"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "postgresql",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.postgresql",
+        "version" : "42.2.2"
+      }
+    },
+    "groupId" : "org.postgresql",
+    "artifactId" : "postgresql",
+    "version" : "42.2.2",
+    "hash" : "7ebd60d15eec1f9e796d",
+    "url" : null,
+    "reference" : "sonatype-2022-4402",
+    "source" : "sonatype",
+    "score" : 7.1,
+    "cwe" : "89",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:L/UI:R/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ "CVE-2022-31197" ],
+    "vulnIds" : [ "sonatype-2022-4402", "CVE-2022-31197" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.postgresql"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "postgresql"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "42.2.2"
+      } ],
+      "name" : "postgresql"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "debug",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.webjars.npm",
+        "version" : "3.0.0"
+      }
+    },
+    "groupId" : "org.webjars.npm",
+    "artifactId" : "debug",
+    "version" : "3.0.0",
+    "hash" : "c4bcd12f8fa577009fbd",
+    "url" : null,
+    "reference" : "sonatype-2017-0519",
+    "source" : "sonatype",
+    "score" : 7.5,
+    "cwe" : "400",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "similar",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "sonatype-2017-0519" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.webjars.npm"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "debug"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.0.0"
+      } ],
+      "name" : "debug"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "debug",
+        "version" : "3.0.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "3dd9bcf103185593d87e",
+    "url" : null,
+    "reference" : "sonatype-2017-0519",
+    "source" : "sonatype",
+    "score" : 7.5,
+    "cwe" : "400",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "sonatype-2017-0519" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "debug"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "3.0.0"
+      } ],
+      "name" : "debug : 3.0.0"
+    }
+  } ]
+}

@@ -1,0 +1,142 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.sourcecontrol;
+
+import java.util.Locale;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+
+import com.sonatype.insight.brain.service.githubapp.GitHubAppSelectionService;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
+import com.sonatype.insight.brain.git.GitApiFactory;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.githubapp.GitHubApp;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.nexus.git.utils.api.GitApi;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Utility methods for working with repository ssh and http urls.
+ */
+@Named
+public class SourceControlRepositoryUtils
+{
+  private static final Logger log = LoggerFactory.getLogger(SourceControlRepositoryUtils.class);
+
+  private static final Pattern SSH_URL_PATTERN = Pattern.compile("git@(.+):(.+)", Pattern.CASE_INSENSITIVE);
+
+  private static final Set<String> DIRECT_DERIVATION_SSH_HOSTS = Set.of("github.com", "gitlab.com", "bitbucket.org");
+
+  private static final String AZURE_SSH_HOST = "ssh.dev.azure.com";
+
+  private final SourceControlDAO sourceControlDAO;
+
+  private final GitApiFactory gitApiFactory;
+
+  private final SourceControlUtils sourceControlUtils;
+
+  private final GitHubAppSelectionService gitHubAppSelectionService;
+
+  @Inject
+  public SourceControlRepositoryUtils(
+      SourceControlDAO sourceControlDAO,
+      GitApiFactory gitApiFactory,
+      SourceControlUtils sourceControlUtils,
+      GitHubAppSelectionService gitHubAppSelectionService)
+  {
+    this.sourceControlDAO = sourceControlDAO;
+    this.gitApiFactory = gitApiFactory;
+    this.sourceControlUtils = sourceControlUtils;
+    this.gitHubAppSelectionService = gitHubAppSelectionService;
+  }
+
+  /**
+   * Supports only cloud providers - not supposed to work for on-premises hosts.
+   */
+  public String getRepositoryHttpUrlFromSshUrl(String sshUrl) {
+    if (sshUrl == null) {
+      return null;
+    }
+
+    Matcher matcher = SSH_URL_PATTERN.matcher(sshUrl);
+    if (!matcher.matches()) {
+      return null;
+    }
+
+    // git@[sshHost]:[sshTarget]
+    // Compare the SSH host against known SCM providers using an exact, case-insensitive match. A substring match
+    // would let a spoofed host such as "github.com.attacker.example" (or one carrying shell metacharacters) derive a
+    // URL that is later handed to native git, enabling OS command injection (CWE-78).
+    String sshHost = matcher.group(1).toLowerCase(Locale.ROOT);
+    String sshTarget = matcher.group(2);
+    String derivedUrl;
+    if (DIRECT_DERIVATION_SSH_HOSTS.contains(sshHost)) {
+      derivedUrl = sshHost.concat("/").concat(sshTarget);
+    }
+    else if (AZURE_SSH_HOST.equals(sshHost)) {
+      // remove ssh. from host (ssh.dev.azure.com)
+      sshHost = sshHost.substring("ssh.".length());
+      // remove api version from target (v3/username/project/repository)
+      sshTarget = sshTarget.substring(sshTarget.indexOf("/") + 1);
+
+      // The Azure target must contain an organization/repository separator; without it there is no URL to derive.
+      if (sshTarget.lastIndexOf("/") < 0) {
+        return null;
+      }
+
+      String organization = sshTarget.substring(0, sshTarget.lastIndexOf("/"));
+      String repository = sshTarget.substring(sshTarget.lastIndexOf("/"));
+      derivedUrl = sshHost.concat("/").concat(organization).concat("/_git").concat(repository);
+    }
+    else {
+      return null;
+    }
+
+    derivedUrl = "https://".concat(derivedUrl);
+    return derivedUrl;
+  }
+
+  public boolean isRepositoryReachable(Application application, String repositoryUrl) {
+    SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlInApplication(application.getId());
+
+    GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo();
+    gitRepositoryInfo.repositoryUrl = repositoryUrl;
+    gitRepositoryInfo.normalizedRepositoryUrl = SourceControl.normalizeRepositoryUrl(repositoryUrl);
+    gitRepositoryInfo.username = sourceControl.getUsername();
+    gitRepositoryInfo.token = sourceControl.getToken();
+    gitRepositoryInfo.provider = sourceControl.getProvider();
+    gitRepositoryInfo.authenticationType = sourceControl.getAuthenticationType();
+
+    if (sourceControl.getAuthenticationType() == SourceControl.AuthenticationType.GITHUB_APP) {
+      GitHubApp gitHubApp = gitHubAppSelectionService.select(application.getId());
+      if (gitHubApp != null) {
+        gitRepositoryInfo.authOwnerId = gitHubApp.getOwnerId();
+        gitRepositoryInfo.githubAppId = gitHubApp.getId();
+      }
+      else {
+        gitRepositoryInfo.authOwnerId = sourceControl.getOwnerId();
+      }
+    }
+    else {
+      gitRepositoryInfo.authOwnerId = sourceControl.getOwnerId();
+    }
+
+    try {
+      GitApi gitApi = gitApiFactory.createGitApi(gitRepositoryInfo);
+      if (!gitApi.getHeadCommitsForAllBranches(gitRepositoryInfo.repositoryUrl).isEmpty()) {
+        return true;
+      }
+    }
+    catch (Exception ignored) {
+      // not reachable
+    }
+    return false;
+  }
+}

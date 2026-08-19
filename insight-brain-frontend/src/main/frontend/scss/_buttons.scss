@@ -1,0 +1,149 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+/*
+  ##Buttons
+*/
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use './variables' as *;
+
+.btn {
+  @include nx-text-helpers.semi-bold;
+
+  background-color: $iq-grey-1;
+  border: 1px solid $iq-grey-4;
+  border-radius: 4px;
+  color: $iq-slate;
+  cursor: pointer;
+  display: inline-block;
+  font-size: 14px;
+  padding: 5px 12px;
+  text-align: center;
+  vertical-align: middle;
+
+  &:not(.btn-icon-only) > .fa {
+    margin-right: 8px;
+  }
+
+  &.disabled,
+  &[disabled] {
+    background-color: $iq-grey-1;
+    border-color: $iq-grey-2;
+    cursor: not-allowed;
+    color: $iq-grey-4;
+  }
+
+  &:hover:not(.disabled):not([disabled]),
+  &:focus:not(.disabled):not([disabled]) {
+    border-color: $iq-slate;
+  }
+
+  &.dropdown-toggle:hover {
+    color: #575757;
+  }
+
+  &:active:not(.disabled):not([disabled]) {
+    background-color: $iq-grey-2;
+    border-color: $iq-slate;
+  }
+
+  &.btn-primary {
+    background-color: #2476c3;
+    border-color: transparent;
+    color: $iq-off-white;
+
+    &.disabled,
+    &[disabled] {
+      background-color: $iq-light-blue;
+    }
+
+    &:hover:not(.disabled):not([disabled]),
+    &:focus:not(.disabled):not([disabled]) {
+      border-color: #0046b1;
+      color: $iq-off-white;
+    }
+
+    &:active:not(.disabled):not([disabled]) {
+      background: #0046b1;
+    }
+  }
+
+  &.btn-tertiary {
+    background-color: transparent;
+    border-color: transparent;
+    color: $iq-slate;
+
+    &.disabled,
+    &[disabled] {
+      color: $iq-grey-4;
+    }
+
+    &:hover:not(.disabled):not([disabled]),
+    &:focus:not(.disabled):not([disabled]) {
+      border-color: $iq-grey-4;
+    }
+
+    &:active:not(.disabled):not([disabled]) {
+      background-color: transparent;
+      border-color: $iq-slate;
+    }
+  }
+
+  &.btn-error {
+    background-color: $iq-fail-color;
+    color: $iq-off-white;
+    border-color: $iq-fail-color;
+
+    &.disabled,
+    &[disabled] {
+      background-color: $iq-fail-color-disabled;
+    }
+
+    &:hover:not(.disabled):not([disabled]),
+    &:focus:not(.disabled):not([disabled]) {
+      border-color: $iq-fail-color-active;
+    }
+
+    &:active:not(.disabled):not([disabled]) {
+      background-color: $iq-fail-color-active;
+    }
+  }
+
+  &.btn-icon-only {
+    height: 32px;
+    padding: 0;
+    width: 32px;
+
+    .fa {
+      margin: 0;
+    }
+  }
+
+  .input-append & {
+    padding: 4px 12px;
+  }
+}
+
+/*
+  ##Form Actions
+*/
+.btn-primary.disabled,
+.btn-primary[disabled] {
+  color: $iq-off-white;
+  background-color: $iq-light-blue;
+  text-shadow: none;
+}
+
+// mini buttons (only used in legacy UI pages)
+#ldapName,
+#proprietary-component-form,
+.accordion-group.users {
+  .btn-mini {
+    border-radius: 4px;
+    font-size: 11px;
+    padding: 1px 6px;
+  }
+}

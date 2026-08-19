@@ -1,0 +1,7 @@
+[
+  {
+  "groupId" : "tomcat",
+  "artifactId" : "tomcat-util",
+  "version" : "5.5.23"
+  }
+]

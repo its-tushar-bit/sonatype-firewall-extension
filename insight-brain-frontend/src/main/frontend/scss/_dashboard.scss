@@ -1,0 +1,57 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use './variables' as *;
+
+$iq-cell-chevron-width: 21px;
+
+// pass down the flexing from the page skeleton all the way to the scroll box around the table
+dashboard-results-container,
+violations,
+components,
+applications,
+waivers {
+  display: contents;
+}
+
+// Consider moving this styles to common file since it's used outside of dashboard
+.iq-cell--chevron {
+  border-left: none;
+  color: $iq-slate;
+  padding: $iq-spacing-xs $iq-spacing-sm;
+  text-align: right;
+  text-overflow: clip;
+  width: $iq-cell-chevron-width;
+  max-width: $iq-cell-chevron-width;
+
+  .iq-table-row:hover & {
+    color: $iq-off-black;
+  }
+}
+
+.iq-dashboard-form-mask {
+  top: 48px; // height of table headers
+  right: 0;
+  height: auto;
+  padding: $iq-spacing-md;
+  z-index: calc(var(--nx-z-index-drawer) - 10);
+
+  .nx-alert {
+    display: inline-flex;
+  }
+}
+
+#needs-acknowledgement {
+  display: inline-flex;
+}
+
+.nx-btn.export-dashboard-results-btn {
+  margin: 0;
+
+  .nx-icon {
+    margin-right: var(--nx-spacing-2x);
+  }
+}

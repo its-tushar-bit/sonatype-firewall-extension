@@ -1,0 +1,88 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+
+/**
+ * Merge Queue Pipeline
+ *
+ * Lightweight pipeline for GitHub merge queue branches (gh-readonly-queue/*).
+ * Only compiles the project to validate that the merge commit builds successfully.
+ * No tests, no artifact publishing, no Docker images, no policy evaluation.
+ */
+
+properties([
+    disableConcurrentBuilds(abortPrevious: true)
+])
+
+pipeline {
+  agent {
+    label 'iq'
+  }
+
+  options {
+    timestamps()
+    buildDiscarder(logRotator(
+        numToKeepStr: '10'
+    ))
+    timeout(time: 30, unit: 'MINUTES')
+  }
+
+  stages {
+    stage('Initialize') {
+      steps {
+        script {
+          echo "Merge Queue Pipeline"
+          echo "  Branch: ${env.BRANCH_NAME ?: gitBranch(env)}"
+          echo "  Compile-only build for merge queue validation"
+        }
+      }
+    }
+
+    stage('Compile') {
+      steps {
+        script {
+          // test-compile is AFTER compile so both phases will run
+          mvn getMavenCompileConfig(), 'test-compile'
+        }
+      }
+    }
+  }
+
+  post {
+    always {
+      echo 'Merge queue pipeline completed'
+    }
+  }
+}
+
+// =============================================================================
+// Helper Functions
+// =============================================================================
+
+Map getMavenCompileConfig() {
+  def opts = []
+
+  opts << "--no-transfer-progress"
+  opts << "-T 0.75C"
+  opts << "-D build.number=${env.BUILD_NUMBER}"
+
+  // Skip everything except compilation
+  opts << "-DskipTests"
+  opts << "-Dspotless.apply.skip=true"
+  opts << "-Dspotless.check.skip=true"
+  opts << "-Dsource.skip=true"
+  opts << "-Dmaven.javadoc.skip=true"
+  opts << "-Dshade.skip=true"
+  opts << "-DskipAssembly=true"
+  opts << "-D skip-functional-test"
+
+  return mavenCommon(
+      javaVersion: 'OpenJDK 25',
+      mavenVersion: 'Maven 3.9.x',
+      useEventSpy: false,
+      mavenOptions: opts.join(' ')
+  )
+}

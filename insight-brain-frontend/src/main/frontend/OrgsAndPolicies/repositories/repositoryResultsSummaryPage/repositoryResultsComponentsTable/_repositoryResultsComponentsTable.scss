@@ -1,0 +1,87 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '~@sonatype/react-shared-components/scss-shared/nx-table-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+#iq-repository-summary-table {
+  height: nx-table-helpers.pagination-table-height(12, 1);
+
+  .iq-repository-column--policy-type {
+    width: 200px;
+  }
+
+  .iq-repository-column--threat {
+    width: 90px;
+  }
+
+  .iq-repository-column--evaluation-date {
+    width: 125px;
+  }
+
+  .iq-repository-column--quarantine-date {
+    width: 125px;
+  }
+
+  .iq-repository-threat-cell,
+  .iq-repository-waived-cell {
+    @include nx-text-helpers.semi-bold;
+  }
+
+  .iq-repository-threat-cell {
+    padding-left: 25px;
+  }
+
+  .iq-repository-waived-cell {
+    color: #00962c;
+    padding-right: 0;
+    width: 82px;
+    white-space: nowrap;
+
+    svg {
+      margin-right: 0;
+    }
+  }
+
+  .iq-repository-chevron-cell {
+    padding-right: 24px;
+
+    .nx-cell__row-btn {
+      padding: 0;
+    }
+  }
+
+  .iq-repository-component-cell {
+    max-width: 380px;
+  }
+
+  .iq-repository-filter--policy .nx-text-input {
+    width: 200px;
+
+    .nx-text-input__input {
+      width: 150px;
+    }
+  }
+
+  .iq-repository-component-cell--text {
+    @include nx-text-helpers.truncate-ellipsis;
+  }
+
+  .iq-repository-filter--component {
+    .nx-filter-input {
+      width: 100%;
+    }
+  }
+}
+
+#repository-report-button-bar {
+  justify-content: space-between;
+}
+
+#repository-report-action-buttons{
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+}

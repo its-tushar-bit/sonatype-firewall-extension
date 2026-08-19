@@ -1,0 +1,206 @@
+{
+  "version": 3,
+  "aaData": [
+    {
+      "hash": "aaa111bbb222ccc333dd",
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "direct-parent",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.example",
+          "version": "1.0.0"
+        }
+      },
+      "policyId": "pw-bw-policy-001",
+      "policyName": "pw-bw-policy",
+      "policyThreatLevel": 7,
+      "activeViolations": [
+        {
+          "policyId": "pw-bw-policy-001",
+          "policyName": "pw-bw-policy",
+          "policyThreatLevel": 7,
+          "waived": false,
+          "grandfathered": false,
+          "constraintFactsJson": "[{\"constraintId\":\"pw-bw-constraint-001\",\"constraintName\":\"pw-bw-constraint\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"MatchState\",\"conditionIndex\":0,\"summary\":\"Match State is 'Exact'\",\"reason\":\"Component is exactly identified.\",\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"value\\\":\\\"exact\\\"}}\"}]}]",
+          "actions": [],
+          "constraints": [
+            {
+              "constraintId": "pw-bw-constraint-001",
+              "constraintName": "pw-bw-constraint",
+              "constraintOperator": "AND",
+              "conditions": [
+                {
+                  "conditionType": "MatchState",
+                  "conditionSummary": "Match State is 'Exact'",
+                  "conditionReason": "Component is exactly identified."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "waivedViolations": [],
+      "allViolations": [
+        {
+          "policyId": "pw-bw-policy-001",
+          "policyName": "pw-bw-policy",
+          "policyThreatLevel": 7,
+          "waived": false,
+          "grandfathered": false,
+          "constraintFactsJson": "[{\"constraintId\":\"pw-bw-constraint-001\",\"constraintName\":\"pw-bw-constraint\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"MatchState\",\"conditionIndex\":0,\"summary\":\"Match State is 'Exact'\",\"reason\":\"Component is exactly identified.\",\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"value\\\":\\\"exact\\\"}}\"}]}]",
+          "actions": [],
+          "constraints": [
+            {
+              "constraintId": "pw-bw-constraint-001",
+              "constraintName": "pw-bw-constraint",
+              "constraintOperator": "AND",
+              "conditions": [
+                {
+                  "conditionType": "MatchState",
+                  "conditionSummary": "Match State is 'Exact'",
+                  "conditionReason": "Component is exactly identified."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "hash": "eee555fff666ggg777hh",
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "transitive-dep-a",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.transitive",
+          "version": "2.0.0"
+        }
+      },
+      "policyId": "pw-bw-policy-001",
+      "policyName": "pw-bw-policy",
+      "policyThreatLevel": 7,
+      "activeViolations": [
+        {
+          "policyId": "pw-bw-policy-001",
+          "policyName": "pw-bw-policy",
+          "policyThreatLevel": 7,
+          "waived": false,
+          "grandfathered": false,
+          "constraintFactsJson": "[{\"constraintId\":\"pw-bw-constraint-001\",\"constraintName\":\"pw-bw-constraint\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"MatchState\",\"conditionIndex\":0,\"summary\":\"Match State is 'Exact'\",\"reason\":\"Component is exactly identified.\",\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"value\\\":\\\"exact\\\"}}\"}]}]",
+          "actions": [],
+          "constraints": [
+            {
+              "constraintId": "pw-bw-constraint-001",
+              "constraintName": "pw-bw-constraint",
+              "constraintOperator": "AND",
+              "conditions": [
+                {
+                  "conditionType": "MatchState",
+                  "conditionSummary": "Match State is 'Exact'",
+                  "conditionReason": "Component is exactly identified."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "waivedViolations": [],
+      "allViolations": [
+        {
+          "policyId": "pw-bw-policy-001",
+          "policyName": "pw-bw-policy",
+          "policyThreatLevel": 7,
+          "waived": false,
+          "grandfathered": false,
+          "constraintFactsJson": "[{\"constraintId\":\"pw-bw-constraint-001\",\"constraintName\":\"pw-bw-constraint\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"MatchState\",\"conditionIndex\":0,\"summary\":\"Match State is 'Exact'\",\"reason\":\"Component is exactly identified.\",\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"value\\\":\\\"exact\\\"}}\"}]}]",
+          "actions": [],
+          "constraints": [
+            {
+              "constraintId": "pw-bw-constraint-001",
+              "constraintName": "pw-bw-constraint",
+              "constraintOperator": "AND",
+              "conditions": [
+                {
+                  "conditionType": "MatchState",
+                  "conditionSummary": "Match State is 'Exact'",
+                  "conditionReason": "Component is exactly identified."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "hash": "iii999jjj000kkk111ll",
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "transitive-dep-b",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.transitive",
+          "version": "3.0.0"
+        }
+      },
+      "policyId": "pw-bw-policy-001",
+      "policyName": "pw-bw-policy",
+      "policyThreatLevel": 7,
+      "activeViolations": [
+        {
+          "policyId": "pw-bw-policy-001",
+          "policyName": "pw-bw-policy",
+          "policyThreatLevel": 7,
+          "waived": false,
+          "grandfathered": false,
+          "constraintFactsJson": "[{\"constraintId\":\"pw-bw-constraint-001\",\"constraintName\":\"pw-bw-constraint\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"MatchState\",\"conditionIndex\":0,\"summary\":\"Match State is 'Exact'\",\"reason\":\"Component is exactly identified.\",\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"value\\\":\\\"exact\\\"}}\"}]}]",
+          "actions": [],
+          "constraints": [
+            {
+              "constraintId": "pw-bw-constraint-001",
+              "constraintName": "pw-bw-constraint",
+              "constraintOperator": "AND",
+              "conditions": [
+                {
+                  "conditionType": "MatchState",
+                  "conditionSummary": "Match State is 'Exact'",
+                  "conditionReason": "Component is exactly identified."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "waivedViolations": [],
+      "allViolations": [
+        {
+          "policyId": "pw-bw-policy-001",
+          "policyName": "pw-bw-policy",
+          "policyThreatLevel": 7,
+          "waived": false,
+          "grandfathered": false,
+          "constraintFactsJson": "[{\"constraintId\":\"pw-bw-constraint-001\",\"constraintName\":\"pw-bw-constraint\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"MatchState\",\"conditionIndex\":0,\"summary\":\"Match State is 'Exact'\",\"reason\":\"Component is exactly identified.\",\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"value\\\":\\\"exact\\\"}}\"}]}]",
+          "actions": [],
+          "constraints": [
+            {
+              "constraintId": "pw-bw-constraint-001",
+              "constraintName": "pw-bw-constraint",
+              "constraintOperator": "AND",
+              "conditions": [
+                {
+                  "conditionType": "MatchState",
+                  "conditionSummary": "Match State is 'Exact'",
+                  "conditionReason": "Component is exactly identified."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

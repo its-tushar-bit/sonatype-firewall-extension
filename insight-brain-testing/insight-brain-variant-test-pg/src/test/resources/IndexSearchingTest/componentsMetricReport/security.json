@@ -1,0 +1,84 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "artifactA",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "test",
+          "version": "1.0"
+        }
+      },
+      "hash": "hashCompA00000000000",
+      "reference": "CVE-9000-0001",
+      "source": "cve",
+      "score": 7.5,
+      "cwe": "200",
+      "status": "Open",
+      "matchState": "exact",
+      "proprietary": false
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "artifactA",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "test",
+          "version": "1.0"
+        }
+      },
+      "hash": "hashCompA00000000000",
+      "reference": "CVE-9000-0002",
+      "source": "cve",
+      "score": 5.0,
+      "cwe": "200",
+      "status": "Open",
+      "matchState": "exact",
+      "proprietary": false
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "artifactB",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "test",
+          "version": "1.0"
+        }
+      },
+      "hash": "hashCompB00000000000",
+      "reference": "CVE-9000-0003",
+      "source": "cve",
+      "score": 9.0,
+      "cwe": "200",
+      "status": "Open",
+      "matchState": "exact",
+      "proprietary": false
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "artifactC",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "test",
+          "version": "1.0"
+        }
+      },
+      "hash": "hashCompC00000000000",
+      "reference": "CVE-9000-0004",
+      "source": "cve",
+      "score": 3.0,
+      "cwe": "200",
+      "status": "Open",
+      "matchState": "exact",
+      "proprietary": false
+    }
+  ]
+}

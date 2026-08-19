@@ -1,0 +1,6 @@
+schema.sql
+
+license.sql
+multi_license.sql
+multi_license_license.sql
+component_category.sql

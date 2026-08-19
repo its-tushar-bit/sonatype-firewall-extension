@@ -1,0 +1,21 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '../scss/variables' as *;
+
+@use './successMetrics/charts';
+@use './successMetrics/successMetricsReportList';
+@use './successMetrics/successMetricsReport/applicationCountsChart/applicationCountsChart';
+@use './successMetrics/successMetricsReport/mttrChart/mttrChart';
+@use './successMetrics/successMetricsReport/componentCountsChart/componentCountsChart';
+@use './successMetrics/successMetricsReport/violationsByCategoryChart/violationsByCategoryChart';
+@use './successMetrics/addSuccessMetricsReport/add-success-metrics-report';
+
+#labs {
+  .iq-back-button {
+    margin: 0 $iq-spacing-sm;
+  }
+}

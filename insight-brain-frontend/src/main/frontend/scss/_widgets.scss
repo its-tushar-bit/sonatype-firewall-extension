@@ -1,0 +1,1125 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+/*
+  #Widgets
+*/
+@use 'sass:list';
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use './variables' as *;
+
+@use 'iq-alerts';
+@use 'iq-dropdowns';
+@use 'iq-loader';
+@use 'iq-modals';
+@use 'iq-tables';
+@use 'iq-tree-view';
+@use 'iq-grid';
+@use 'iq-list';
+@use 'iq-buttons';
+@use 'iq-indicator-row';
+@use 'iq-threat-indicators';
+@use 'iq-coverage-indicator';
+@use 'iq-legacy-violations-indicator';
+@use 'iq-quarantine-indicator';
+@use 'iq-dependency-indicators';
+@use 'iq-counter';
+@use 'iq-text-indicators.scss';
+@use 'iq-threat-bar';
+@use 'iq-pagination';
+@use 'iq-tabs';
+
+/*
+  ##Twisty Container
+*/
+.twisty-container {
+  cursor: pointer;
+  display: inline-block;
+
+  .twisty {
+    content: '';
+    display: inline-block;
+    -webkit-font-smoothing: antialiased;
+    vertical-align: text-top;
+    width: 0;
+
+    &.empty {
+      height: 16px;
+      width: 16px;
+    }
+
+    &.collapse {
+      border-top: 5px solid $iq-slate;
+      border-right: 5px solid transparent;
+      border-left: 5px solid transparent;
+      margin: 6px 3px;
+    }
+
+    &.expand {
+      border-top: 5px solid transparent;
+      border-bottom: 5px solid transparent;
+      border-left: 5px solid $iq-slate;
+      margin: 3px 8px 3px 3px;
+    }
+  }
+}
+
+/*
+  ##Tooltips
+*/
+.tooltip {
+  // prevent tooltips from picking up nowrap styles from parent elements, which they are incompatible with
+  white-space: normal;
+  z-index: 1080;
+}
+
+.tooltip.top-left {
+  // missing in our version of bootstrap
+  margin-top: -3px;
+  padding: 5px 0;
+}
+
+.tooltip.top,
+.tooltip.top-left {
+  padding-top: 0px;
+  padding-bottom: 2px;
+}
+
+.tooltip-arrow {
+  .tooltip.top &,
+  .tooltip.top-left & {
+    border-top-color: $iq-off-black;
+  }
+
+  .tooltip.top-left & {
+    // missing in our version of bootstrap
+    border-width: 5px 5px 0;
+    bottom: 0;
+  }
+
+  .tooltip.bottom & {
+    border-bottom-color: $iq-off-black;
+  }
+
+  .tooltip.right & {
+    border-right-color: $iq-off-black;
+  }
+
+  .tooltip.left & {
+    border-left-color: $iq-off-black;
+  }
+
+  &::after {
+    border: 5px solid transparent;
+    content: '';
+    display: block;
+    height: 0;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 0;
+
+    .tooltip.top &,
+    .tooltip.bottom &,
+    .tooltip.top-left & {
+      margin-left: -5px;
+      left: 50%;
+    }
+
+    .tooltip.top &,
+    .tooltip.top-left & {
+      border-top-color: $iq-slate;
+      border-bottom-width: 0;
+      margin-top: -6px;
+    }
+
+    .tooltip.bottom & {
+      border-top-width: 0;
+      border-bottom-color: $iq-slate;
+      margin-top: 1px;
+    }
+
+    .tooltip.right &,
+    .tooltip.left & {
+      margin-top: -5px;
+      top: 50%;
+    }
+
+    .tooltip.right & {
+      border-right-color: $iq-slate;
+      border-left-width: 0;
+      margin-left: 1px;
+    }
+
+    .tooltip.left & {
+      border-right-width: 0;
+      border-left-color: $iq-slate;
+      right: 1px;
+    }
+  }
+}
+
+.tooltip.in {
+  opacity: 1;
+
+  .modal & {
+    z-index: $iq-tooltip-z-index + $iq-modal-z-index;
+  }
+}
+
+.tooltip-inner {
+  background-color: $iq-slate;
+  border: 1px solid $iq-off-black;
+  border-radius: 0;
+  color: $iq-off-white;
+}
+
+.entity-item-tooltip .tooltip-inner {
+  word-wrap: break-word;
+}
+
+/*
+  ## Flexbox Implementation
+
+  This is used in place of flexbox in order to support older browsers. Used to align content to the right when it fits,
+  while aligning left when it falls to the next line.
+
+  Source: http://jsfiddle.net/rasmusfl0e/ao989zs7/ via https://css-tricks.com/useful-flexbox-technique-alignment-shifting-wrapping/#comment-1595296
+*/
+.flexbox-container {
+  line-height: 0;
+  text-align: justify;
+
+  span {
+    display: inline-block;
+    line-height: normal;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  &::after {
+    content: '';
+    display: inline-block;
+    vertical-align: top;
+    width: 100%;
+  }
+}
+
+/*
+  ## Select List Item
+*/
+.large-select-list-item {
+  border-bottom: 1px solid $iq-grey-2;
+  cursor: pointer;
+  font-size: 13px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 2px;
+
+  .large-select-list-item-icon {
+    float: left;
+
+    i {
+      margin-top: 2px;
+      margin-right: 3px;
+      margin-left: 3px;
+    }
+  }
+
+  &:hover {
+    background-color: $iq-grey-4;
+  }
+
+  .large-select-list-item-content {
+    margin-left: 24px;
+
+    .large-select-list-item-detail {
+      font-size: 11px;
+    }
+  }
+}
+
+.iq-owner-icon-preview {
+  margin-top: 16px;
+}
+
+.iq-form-row {
+  &.iq-form-row--owner-editor {
+    margin-bottom: 0;
+
+    .iq-form-group {
+      width: 254px;
+    }
+  }
+}
+
+/*
+  ##Owner Editor modal
+*/
+@mixin owner-icon-template($size) {
+  float: left;
+  height: $size;
+  margin-right: 12px;
+  width: $size;
+  vertical-align: top;
+}
+
+.iq-owner-icon {
+  @include owner-icon-template(20px);
+}
+
+.iq-owner-icon-large {
+  @include owner-icon-template(26px);
+}
+
+.iq-owner-icon-tiny {
+  @include owner-icon-template(16px);
+}
+
+/*
+  #Color Picker
+*/
+
+.color-picker-row {
+  font-size: 0;
+  line-height: 0;
+
+  div {
+    border: 1px solid $iq-off-black;
+    cursor: pointer;
+    display: inline-block;
+    height: 32px;
+    position: relative;
+    width: 32px;
+
+    @each $color-name, $pickable-color in $pickable-colors {
+      &.#{$color-name} {
+        background-color: $pickable-color;
+      }
+    }
+
+    &:not(:first-child) {
+      margin-left: -1px;
+    }
+
+    &.selected {
+      border: 1px solid $iq-off-white;
+      z-index: 1;
+    }
+
+    .modal & {
+      z-index: $iq-color-picker-zindex;
+
+      &.selected {
+        z-index: $iq-color-picker-zindex + 1;
+      }
+    }
+  }
+
+  &:not(:first-child) {
+    div {
+      margin-top: -1px;
+    }
+  }
+}
+
+/*
+  #Association Editor
+*/
+.iq-association-editor {
+  margin: 0;
+  max-width: max-content;
+
+  .nx-legend {
+    column-span: all;
+  }
+
+  .nx-radio-checkbox .nx-icon {
+    margin-right: 0;
+    fill: var(--nx-selectable-color-dark, currentColor);
+  }
+
+  iq-radio,
+  iq-checkbox {
+    // tells browser not to split the height of a single li across columns
+    break-inside: avoid-column;
+    page-break-inside: avoid; // for Firefox
+  }
+
+  .iq-checkbox__label,
+  .iq-radio {
+    @include nx-text-helpers.truncate-ellipsis;
+  }
+
+  .iq-radio {
+    margin-bottom: 0;
+  }
+
+  .iq-checkbox__box::before {
+    margin-top: 0;
+  }
+
+  .hexagon {
+    vertical-align: -0.125em;
+    height: 1em;
+  }
+
+  .fa {
+    padding-top: 2px;
+    vertical-align: top;
+  }
+}
+
+.iq-association-editor--full-width {
+  max-width: none;
+}
+
+.iq-association-editor--multi-column {
+  column-count: 2;
+}
+
+.iq-association-editor__description {
+  margin-left: 8px;
+}
+
+/*
+  ## Double Column Picker
+*/
+double-column-picker {
+  display: inline-block;
+  width: 620px;
+
+  &.wide {
+    width: 660px;
+  }
+
+  .double-column-picker {
+    width: inherit;
+
+    table {
+      border: 1px solid $iq-grey-4;
+      table-layout: fixed;
+      width: inherit;
+
+      &.disabled {
+        border: 1px solid $iq-grey-3;
+
+        .title {
+          color: $iq-grey-4;
+        }
+      }
+
+      .filter-row {
+        border-bottom: 1px solid $iq-grey-4;
+        height: 32px;
+
+        .td-container {
+          position: relative;
+
+          > .fa {
+            position: absolute;
+            top: 8px;
+            left: 4px;
+          }
+
+          > input {
+            border: none;
+            height: 32px;
+            padding-left: 26px;
+            width: calc(100% - 26px);
+          }
+        }
+      }
+
+      .info-row {
+        border-bottom: 1px solid $iq-grey-2;
+
+        td {
+          vertical-align: top;
+          width: 49.5%;
+
+          &:first-child {
+            border-right: 1px dotted $iq-grey-3;
+          }
+
+          .td-container {
+            margin: 8px 0 8px 6px;
+
+            .title {
+              @include nx-text-helpers.semi-bold;
+
+              margin-bottom: 2px;
+            }
+
+            .tools {
+              .iq-checkbox__label {
+                display: inline-block;
+                margin: 0;
+                padding: 0;
+                vertical-align: bottom;
+              }
+            }
+          }
+        }
+      }
+
+      .list-row {
+        $list-item-height: 22px;
+
+        td {
+          vertical-align: top;
+          width: 49.5%;
+
+          &:first-child {
+            border-right: 1px dotted $iq-grey-3;
+          }
+
+          .td-container {
+            height: 10 * $list-item-height;
+            overflow-x: hidden;
+            overflow-y: scroll;
+            padding-top: 9px;
+
+            .iq-checkbox__label {
+              height: $list-item-height;
+              margin: 0;
+              padding-right: 8px;
+              padding-left: 6px;
+
+              .iq-checkbox__box::before {
+                margin-right: 8px;
+              }
+
+              span {
+                &:not(.iq-checkbox__box) {
+                  display: block;
+                  overflow-x: hidden;
+                  text-overflow: ellipsis;
+                  white-space: nowrap;
+
+                  .fa {
+                    color: $iq-slate;
+                    margin-right: 8px;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/*
+  ## LTG Threat Level Selector
+*/
+.threat-level-selector {
+  display: block;
+
+  &.open .selected-threat-level {
+    opacity: 0.6;
+  }
+
+  a {
+    width: 30px;
+    display: inline-block;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    position: relative;
+    vertical-align: top;
+
+    &.selected-threat-level {
+      border-top: 1px solid $iq-grey-4;
+      border-bottom: 1px solid $iq-grey-4;
+      border-left: 1px solid $iq-grey-4;
+
+      &.disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+        text-decoration: none;
+      }
+    }
+    &.caret-button {
+      border: 1px solid $iq-grey-4;
+
+      .caret {
+        border-top: 6px solid $iq-grey-4;
+        border-right: 5px solid transparent;
+        border-left: 5px solid transparent;
+        margin-top: 13px;
+        margin-left: 0;
+      }
+
+      &.disabled {
+        border: 1px solid $iq-grey-3;
+        cursor: not-allowed;
+
+        .caret {
+          border-top: 6px solid $iq-grey-3;
+        }
+      }
+    }
+  }
+
+  &:hover .selected-threat-level {
+    text-decoration: none; //clears bootstrap style
+  }
+
+  &:not(.open) {
+    .selected-threat-level:hover + .caret-button:not(.disabled) {
+      .caret {
+        border-top: 6px solid $iq-slate;
+      }
+    }
+    .caret-button:not(.disabled):hover .caret {
+      border-top: 6px solid $iq-slate;
+    }
+  }
+
+  .threat-level-background {
+    @include nx-text-helpers.semi-bold;
+
+    color: var(--nx-swatch-white);
+
+    @each $threat in $policy-threat-levels {
+      @each $threatLevel in list.nth($threat, 4) {
+        &.policy-threat-level-#{$threatLevel} {
+          background-color: list.nth($threat, 3);
+        }
+      }
+    }
+
+    @each $threat in $threat-levels {
+      @each $threatLevel in list.nth($threat, 4) {
+        &.ltg-threat-level-#{$threatLevel} {
+          background-color: list.nth($threat, 3);
+        }
+      }
+    }
+  }
+
+  .dropdown-menu {
+    background-color: $iq-off-white;
+    border: 1px solid $iq-off-white;
+    border-radius: 0;
+    box-shadow: -4px 4px 10px 0 $iq-slate;
+    margin: 0;
+    padding: 0;
+    min-width: 30px;
+
+    li {
+      margin-top: 1px;
+    }
+
+    a {
+      height: 30px;
+      line-height: 30px;
+      padding: 0;
+      text-align: center;
+      width: 30px;
+
+      &:hover {
+        background-image: none; //clears bootstrap style
+        opacity: 0.75;
+      }
+    }
+  }
+}
+
+/*
+  ## Sort Column
+*/
+.sort-col {
+  color: $iq-slate;
+  position: relative;
+
+  &:hover,
+  &:active,
+  &:visited,
+  &:link,
+  &:focus {
+    color: $iq-slate;
+    text-decoration: none;
+  }
+
+  .header-text {
+    margin-left: 16px;
+  }
+
+  .fa-caret-up {
+    line-height: 7px;
+    position: absolute;
+    top: 1px;
+  }
+  .fa-caret-down {
+    line-height: 7px;
+    position: absolute;
+    top: 8px;
+  }
+
+  .fa {
+    color: $iq-grey-4;
+
+    &.up,
+    &.down {
+      color: $iq-slate;
+    }
+  }
+}
+
+/*
+  ## Greedy Table
+
+The use of 1% column widths is a result of a partial implementation of a supporting responsive column widths in tables
+which includes the need to support a "greedy" column that will take up the rest of the room.
+The concept of 'optimized column groups' in a table consists of determining the widest column in the group and then
+applying that width to all the other columns in the group. While this was a 'nice to have' for the policy list at this
+time, we still need to be able to figure out the appropriate width to fit the content. This is done by applying a 1%
+width (with white-space: nowrap) to the the columns in question. While we could come up with some static widths to make
+this happen for this particular solution, the thought process is to create a more generic solution that can handle
+dynamic content which will allow for an easier transition when responsive tables are fully implemented.
+
+See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
+*/
+.greedy-table {
+  thead tr {
+    th {
+      background-color: $iq-grey-1;
+      color: $iq-slate;
+      text-align: left;
+
+      &.selected-column {
+        background-color: $iq-grey-2;
+      }
+    }
+  }
+
+  tbody {
+    &::before {
+      content: ''; // to give room for the first row's top border
+    }
+
+    tr {
+      border-top: 1px solid transparent;
+
+      &:not(:first-child) {
+        border-top-color: $iq-grey-1;
+      }
+      &:last-child {
+        border-bottom: 1px solid $iq-grey-1;
+      }
+
+      &.clickable {
+        &:hover,
+        &:active {
+          cursor: pointer;
+
+          > .fa-chevron-right {
+            color: $iq-off-black;
+          }
+        }
+
+        &:active,
+        &:focus {
+          outline: 0;
+        }
+
+        &:hover {
+          border-top-color: $iq-grey-4;
+
+          &:last-child {
+            border-bottom-color: $iq-grey-4;
+          }
+
+          + tr {
+            border-top-color: $iq-grey-4;
+          }
+        }
+
+        &:active {
+          background: $iq-grey-1;
+          border-top-color: $iq-slate;
+
+          &:last-child {
+            border-bottom-color: $iq-slate;
+          }
+
+          + tr {
+            border-top-color: $iq-slate;
+          }
+        }
+      }
+    }
+  }
+
+  tr {
+    height: 40px;
+    line-height: 40px;
+
+    th,
+    td {
+      font-size: 14px;
+      padding: 0 12px 0 12px;
+
+      &:not(.greedy-column) {
+        white-space: nowrap;
+        width: 1%; // see note in living styleguide
+      }
+    }
+
+    td {
+      &:first-child {
+        @include nx-text-helpers.semi-bold;
+      }
+
+      > .fa {
+        margin-right: 8px;
+      }
+
+      &.chevron-column {
+        padding-left: 24px;
+
+        > .fa-chevron-right {
+          color: $iq-slate;
+          font-size: 12px;
+        }
+      }
+    }
+  }
+}
+
+/*
+  #Root Organization Migrate Banner
+*/
+.dashboard-body-container root-organization-migrate {
+  margin: 0;
+}
+
+#root-organization-migrate-modal iq-radio {
+  font-size: 14px;
+  line-height: 22px;
+}
+
+#root-organization-migrate-modal .sonatype-glyphicons.root-org::before {
+  margin-right: 5px;
+  padding-bottom: 3px;
+  vertical-align: middle;
+}
+
+#migrate-organization-wrapper {
+  margin-left: 48px;
+}
+
+// Begin from multi-select.css
+/*
+ #Multi-select dropdown styles
+*/
+.dropdown-menu.multiselect-container > li:hover {
+  background-color: #e0e0e0;
+  background-image: none;
+  color: black;
+}
+
+.multi-dropdown {
+  button div {
+    display: inline-block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+    max-width: 190px;
+  }
+
+  .dropdown-scroll {
+    max-height: 300px;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  li {
+    border-top: 1px solid #f4f4f4;
+    overflow: hidden;
+    padding: 0px !important;
+    max-width: 250px;
+
+    &.selected {
+      background: #2476fc;
+      border-top: 1px solid #5c9aff;
+      color: white;
+    }
+  }
+
+  .checkbox {
+    display: inline-block;
+    margin-bottom: 0px;
+    padding-left: 0px;
+    width: 100%;
+
+    input {
+      margin-top: 8px;
+      margin-left: 5px;
+    }
+
+    &.has-owner {
+      line-height: 16px;
+
+      input {
+        margin-top: 14px;
+      }
+
+      .multi-dropdown-item-color {
+        height: 39px;
+        width: 39px;
+      }
+    }
+  }
+}
+
+.multi-dropdown-item {
+  overflow-x: hidden;
+  text-overflow: ellipsis;
+
+  &.name {
+    display: inline-block;
+    margin-top: 3px;
+    margin-left: 7px;
+  }
+
+  &.owner {
+    color: #444444;
+    font-size: 11px;
+    font-style: italic;
+    margin-left: 25px;
+  }
+
+  &.color {
+    margin-right: 80px;
+    max-width: 120px;
+  }
+
+  &.no-color {
+    margin-right: 20px;
+    max-width: 200px;
+  }
+}
+
+.multi-dropdown-item-color {
+  background-color: #f4f4f4;
+  border: solid 1px #e0e0e0 !important;
+  border-radius: 6px;
+  height: 24px;
+  margin-top: 1px;
+  position: absolute;
+  right: 2px;
+  width: 30px;
+
+  &.yellowLabel {
+    background-color: $iq-yellow;
+  }
+
+  &.orangeLabel {
+    background-color: $iq-orange;
+  }
+
+  &.light-redLabel {
+    background-color: $iq-light-red;
+  }
+
+  &.dark-redLabel {
+    background-color: $iq-dark-red;
+  }
+
+  &.light-greenLabel {
+    background-color: $iq-light-green;
+  }
+
+  &.dark-greenLabel {
+    background-color: $iq-dark-green;
+  }
+
+  &.light-purpleLabel {
+    background-color: $iq-light-purple;
+  }
+
+  &.dark-purpleLabel {
+    background-color: $iq-dark-purple;
+  }
+
+  &.light-blueLabel {
+    background-color: $iq-light-blue;
+  }
+
+  &.dark-blueLabel {
+    background-color: $iq-dark-blue;
+  }
+}
+// End from multi-select.css
+
+// Begin styles from management.css
+.policies,
+.licenseGroups,
+.roles {
+  .accordion-heading .accordion-toggle {
+    padding: 5px;
+  }
+}
+
+/*
+ #Accordion
+*/
+.accordion-inner {
+  border: none;
+  padding: 20px 15px;
+}
+
+.accordion-heading {
+  input {
+    margin: 0px;
+  }
+
+  a {
+    color: black;
+    text-decoration: none;
+  }
+}
+
+.accordion-group {
+  border: 1px solid transparent;
+
+  &:hover {
+    border: 1px solid rgba(0, 0, 0, 0.1);
+
+    .hover-buttons {
+      opacity: 1;
+    }
+
+    .btn-mini {
+      border: 1px solid #ccc;
+    }
+  }
+
+  .hover-buttons {
+    opacity: 0.2;
+  }
+
+  .btn-mini {
+    border: 1px solid transparent;
+  }
+}
+
+.slide {
+  height: 0px;
+  -webkit-transition: height 0.15s linear;
+  -moz-transition: height 0.15s linear;
+  -o-transition: height 0.15s linear;
+  transition: height 0.15s linear;
+
+  &.in {
+    height: auto;
+  }
+}
+
+/*
+  #Triangular tabs used by app/org
+*/
+.tri-pane {
+  height: 30px;
+  list-style-type: none;
+  margin-bottom: 0px;
+  margin-left: 0px;
+  padding-right: 12px; // Ensures underline is full width with the above margin
+  width: 100%;
+  min-width: 500px;
+
+  &::after,
+  &::before {
+    display: table;
+    clear: both;
+    content: '';
+    line-height: 0;
+  }
+
+  li {
+    float: left;
+    line-height: 3px;
+    list-style-image: none;
+    list-style-position: outside;
+    list-style-type: none;
+    margin: 0 15px -1px 20px;
+
+    &:first-child {
+      margin-left: 25px;
+    }
+  }
+
+  a {
+    @include nx-text-helpers.bold;
+
+    color: #36424e;
+    display: block;
+    font-size: 14.5px;
+    line-height: 20px;
+    padding: 0 12px 8px;
+    text-decoration: none;
+    text-shadow: 0px 1px 0px white;
+    text-transform: uppercase;
+  }
+
+  .active::after {
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid $iq-grey-4;
+    border-left: 8px solid transparent;
+    color: $iq-grey-4;
+    content: '';
+    display: block;
+    -webkit-font-smoothing: antialiased;
+    margin: -5px auto 0;
+    width: 0;
+  }
+
+  &.underline {
+    margin-bottom: 10px;
+  }
+
+  &.left {
+    margin-left: 0px;
+
+    li:first-child {
+      margin-left: 0px;
+
+      a {
+        padding-left: 0px;
+      }
+    }
+  }
+}
+// End styles from management.css
+
+.iq-caption {
+  display: inline-block;
+  height: 26px;
+  margin-left: 10px;
+  vertical-align: top;
+}
+
+.iq-caption__text {
+  display: block;
+  font-size: 14px;
+  line-height: 12px;
+  margin: 0 0 2px 0;
+  padding: 0;
+  text-transform: uppercase;
+}
+
+.iq-caption__sub-text {
+  display: block;
+  font-size: 14px;
+  line-height: 14px;
+  margin: 0;
+  padding: 0;
+}

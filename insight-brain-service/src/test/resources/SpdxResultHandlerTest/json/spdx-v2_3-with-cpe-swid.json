@@ -1,0 +1,76 @@
+{
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "spdxVersion": "SPDX-2.3",
+  "creationInfo": {
+    "created": "2023-08-01T16:19:55Z",
+    "creators": [
+      "Tool: Sonatype IQ Server - 1.165.0-01"
+    ]
+  },
+  "name": "doc name",
+  "dataLicense": "CC0-1.0",
+  "documentNamespace": "http://localhost:8070/ui/links/application/scm-test-01/report/76b10b862e7b42009f2415097620928c",
+  "packages": [
+    {
+      "SPDXID": "SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.13.2",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "comment": "source: NVD",
+          "referenceCategory": "SECURITY",
+          "referenceLocator": "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-45046",
+          "referenceType": "advisory"
+        },
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:maven/org.apache.logging.log4j/log4j-core@2.13.2?type=jar",
+          "referenceType": "purl"
+        },
+        {
+          "comment": "source: SONATYPE",
+          "referenceCategory": "SECURITY",
+          "referenceLocator": "http://localhost:8070/ui/links/vln/sonatype-2021-4560",
+          "referenceType": "advisory"
+        },
+        {
+          "comment": "test cpe",
+          "referenceCategory": "SECURITY",
+          "referenceLocator": "cpe:2.3:a:pivotal_software:spring_framework:4.1.0:*:*:*:*:*:*:*",
+          "referenceType": "cpe23Type"
+        },
+        {
+          "comment": "test swid",
+          "referenceCategory": "SECURITY",
+          "referenceLocator": "swid:gen-242eb18a-503e-ca37-393b-cf156ef09691_9.1.1",
+          "referenceType": "http://spdx.org/rdf/references/swid"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "Apache-2.0",
+      "licenseDeclared": "Apache-2.0",
+      "name": "org.apache.logging.log4j:log4j-core",
+      "versionInfo": "2.13.2"
+    },
+    {
+      "SPDXID": "SPDXRef-generic-sonatype-iq-application-SCM-Test",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "sonatype:iq_application_SCM Test 1",
+      "versionInfo": "76b10b862e7b42009f2415097620928c"
+    }
+  ],
+  "relationships": [
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-generic-sonatype-iq-application-SCM-Test"
+    },
+    {
+      "spdxElementId": "SPDXRef-generic-sonatype-iq-application-SCM-Test",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.13.2"
+    }
+  ]
+}

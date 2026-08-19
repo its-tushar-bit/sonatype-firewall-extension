@@ -1,0 +1,82 @@
+{
+  "dependencyGraph" : [ {
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "log4j-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.apache.logging.log4j",
+          "version" : "2.6.1"
+        }
+      },
+      "directDependency" : true
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "log4j-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.logging.log4j",
+        "version" : "2.6.1"
+      }
+    },
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "log4j-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.logging.log4j",
+        "version" : "2.6.1"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "log4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.apache.logging.log4j",
+          "version" : "2.6.1"
+        }
+      }
+    } ],
+    "directDependency" : true
+  } ],
+  "gavDepths" : {
+    "org.apache.logging.log4j:log4j-core:2.6.1" : [ 1 ],
+    "org.apache.logging.log4j:log4j-api:2.6.1" : [ 2 ]
+  },
+  "componentDepths" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "log4j-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.logging.log4j",
+        "version" : "2.6.1"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "log4j-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.logging.log4j",
+        "version" : "2.6.1"
+      }
+    },
+    "depths" : [ 2 ]
+  } ]
+}

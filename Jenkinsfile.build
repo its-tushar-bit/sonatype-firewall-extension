@@ -1,0 +1,378 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@Library(['private-pipeline-library', 'jenkins-shared']) _
+
+/*
+ * Jenkinsfile.build — simplified primary build pipeline for insight-brain.
+ *
+ * Adapted from the nexus-internal Jenkinsfile.build model: a single Build & Test
+ * phase followed by the organization-required gates (license check, spotless,
+ * IQ policy evaluation, notifications).
+ *
+ * SCOPE OF TEST EXECUTION
+ *
+ * Single-agent pipeline. Compile once, then run tests as independent `mvn`
+ * invocations (own JVM / forks) on the same workspace — no workspace zip,
+ * no cross-agent fan-out. Regex slices match Jenkinsfile.main#getParallelTests
+ * so a test class lands in the same partition on both pipelines.
+ *
+ * Stages:
+ *   Build & Test              — compile + package (tests skipped)
+ *   Unit + Integration Tests  — 9 alphabetical partitions + MTIQ + Jest + JaCoCo
+ *   Playwright Sanity Tests   — -Psanity @Category(SanityTest)
+ *   Playwright Regr Tests     — -Pregression @Category(RegressionTest), 3 sequential partitions
+ *
+ * See runUnitTestPartitions() for the exact regex slices.
+ */
+
+// moby/buildkit v0.31.2. Pinned by digest because Firewall quarantines every moby/buildkit tag; a digest
+// ref is not tag-quarantined.
+buildkitImageDigest = 'sha256:2f5adac4ecd194d9f8c10b7b5d7bceb5186853db1b26e5abd3a657af0b7e26ec'
+
+// Abort any in-flight build on the same non-main branch when a new one arrives.
+def buildProperties = []
+if (!currentBuild.fullProjectName.endsWith('/main')) {
+  buildProperties << disableConcurrentBuilds(abortPrevious: true)
+}
+buildProperties << parameters([
+    booleanParam(name: 'skipPlaywrightTests', defaultValue: false,
+        description: 'Skip: Playwright Functional Tests (insight-brain-playwright-test)'),
+    booleanParam(name: 'skipPlaywrightRegressionTests', defaultValue: false,
+        description: 'Skip: Playwright Regression Tests (-Pregression). Runs on every build unless checked. ' +
+            'This pipeline is single-agent, so the suite runs sequentially after the sanity suite.'),
+    choice(name: 'playwrightTraceMode', choices: ['on-failure', 'always', 'off'],
+        description: 'Playwright trace: on-failure (routine CI); always when debugging flakes; off to disable.')
+])
+properties(buildProperties)
+
+mavenSnapshotPipeline(
+    agentLabel: 'iq-large',
+    deployBranch: 'main',
+    deployCondition: { false },
+    javaVersion: 'OpenJDK 25',
+    mavenVersion: 'Maven 3.9.x',
+    useEventSpy: false,
+    mavenOptions: buildOptions(),
+    // buildsupport-sonar-coverage: JaCoCo instrumentation + report.
+    // jdks: downloads target-platform JDKs for jreleaser's jlink assembly.
+    mavenProfiles: ['buildsupport-sonar-coverage', 'jdks'],
+    useInstall4J: false,
+    useSpotless: true,
+    runFeatureBranchPolicyEvaluations: true,
+    performSonarAnalysis: false,
+    // Every glob must match at least one file (allowEmptyResults: false).
+    testResults: [
+        '**/target/surefire-reports/*.xml',
+        '**/target/failsafe-reports/*.xml',
+        '**/target/jest-reports/*.xml'
+    ],
+    snapshotBuildAndTest: { Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo,
+                            boolean useInstall4J ->
+      try {
+        withSonatypeDockerRegistry() {
+          withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/",
+                   "TESTCONTAINERS_RYUK_DISABLED=true"]) {
+            buildAndTest(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
+
+            stage('Unit + Integration Tests') {
+              runUnitTestPartitions()
+              runJacocoReport()
+            }
+
+            if (!params.skipPlaywrightTests) {
+              stage('Playwright Sanity Tests') {
+                runPlaywrightSuite('sanity', '.*Test.class')
+              }
+            }
+
+            if (playwrightRegressionEnabled()) {
+              stage('Playwright Regression Tests') {
+                runPlaywrightRegressionPartitions()
+              }
+            }
+          }
+        }
+      }
+      finally {
+        capturePlaywrightArtifacts()
+      }
+    },
+    postBuildAndTest: {
+      catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE',
+          message: 'Failed to publish JaCoCo coverage reports.') {
+        recordCoverage(
+            tools: [[parser: 'JACOCO', pattern: '**/target/site/jacoco/jacoco.xml']],
+            sourceCodeRetention: 'NEVER'
+        )
+      }
+
+      if (isDeployBranch(env, 'main')) {
+        pushMtiqDockerImage()
+      }
+    },
+    iqPolicyEvaluation: { stage ->
+      if (env.BRANCH_NAME?.startsWith('gh-readonly-queue')) {
+        return
+      }
+
+      def reachabilityConfig = [
+          javaAnalysis: [
+              enable           : true,
+              includes         : [
+                  [pattern: 'nexus-iq-server/target/insight-brain-service-*.jar']
+              ],
+              entrypointStrategy: 'JAVA_MAIN',
+              namespaces       : [
+                  [namespace: 'com.sonatype.insight']
+              ]
+          ],
+          jsAnalysis  : [
+              enable          : true,
+              node            : [
+                  executable: "${env.WORKSPACE}/insight-brain-frontend/node/node"
+              ],
+              projectDirectory: 'insight-brain-frontend',
+              sourceFiles     : [
+                  [pattern: 'src/main/**']
+              ],
+              excludeFiles    : [
+                  [pattern: 'src/test/**']
+              ]
+          ]
+      ]
+
+      nexusPolicyEvaluation(
+          iqStage: stage,
+          iqApplication: 'insight-brain',
+          iqScanPatterns: [[scanPattern: 'insight-brain-frontend/target/webpack-modules']],
+          iqModuleExcludes: [
+              [moduleExclude: '**/test/**'],
+              [moduleExclude: '**/test-classes/**/module.xml']
+          ],
+          failBuildOnNetworkError: true,
+          reachability: reachabilityConfig,
+          unstableBuildOnScanningWarnings: false
+      )
+    },
+    onUnstable: {
+      if (shouldNotify()) {
+        notifyChat(currentBuild: currentBuild, env: env, room: 'iq-builds')
+      }
+    },
+    onFailure: {
+      if (shouldNotify()) {
+        notifyChat(currentBuild: currentBuild, env: env, room: 'iq-builds')
+      }
+    },
+    onSuccess: {
+      if (shouldNotify() &&
+          currentBuild?.previousBuild?.result =~ /FAILURE|UNSTABLE/) {
+        notifyChat(currentBuild: currentBuild, env: env, room: 'iq-builds')
+      }
+    }
+)
+
+/**
+ * Build + push the MTIQ multi-arch Docker image to Sonatype private registry.
+ * Requires the `jdks` profile to have run first (populates target/jdks/).
+ */
+void pushMtiqDockerImage() {
+  String iqVersion = getMavenProjectVersion('.')
+  String imageVersion = mtiqImageVersion()
+  echo "Building MTIQ Docker image: iqVersion='${iqVersion}' imageVersion='${imageVersion}'"
+
+  mvn jreleaserConfig(), ' -pl :nexus-mtiq-server jreleaser:assemble'
+
+  dir('nexus-mtiq-server') {
+    withSonatypeDockerRegistry() {
+      sh "docker buildx create --use --driver-opt image=${sonatypeDockerRegistryId()}/moby/buildkit@${buildkitImageDigest}"
+      sh """docker buildx build --platform=linux/amd64,linux/arm64 \\
+            --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} \\
+            --build-arg IQ_SERVER_VERSION=${iqVersion} \\
+            --push \\
+            --tag ${sonatypeDockerRegistryId()}/mtiq/server:${imageVersion} ."""
+    }
+  }
+}
+
+/** MTIQ image tag: {yyyyMMddHHmm}-{buildNumber}-{gitShort8}. */
+private String mtiqImageVersion() {
+  String dateSection = new Date().format('yyyyMMddHHmm', TimeZone.getTimeZone('UTC'))
+  String buildNumSection = env.BUILD_NUMBER
+  String gitShortHashSection = env.GIT_COMMIT.take(8)
+  return "${dateSection}-${buildNumSection}-${gitShortHashSection}"
+}
+
+/** mavenCommon config for jreleaser:assemble. */
+private Map<String, ?> jreleaserConfig() {
+  return mavenCommon(
+      javaVersion: 'OpenJDK 25',
+      mavenVersion: 'Maven 3.9.x',
+      useEventSpy: false
+  )
+}
+
+/** Whether the Playwright regression suite runs. Unset (first build of a branch) means run. */
+private boolean playwrightRegressionEnabled() {
+  return params.skipPlaywrightRegressionTests != true
+}
+
+/**
+ * Run Playwright partitions sequentially. Regex slices match Jenkinsfile.main#getParallelTests.
+ * As with runUnitTestPartitions(), a failing partition aborts the ones after it.
+ */
+private void runPlaywrightRegressionPartitions() {
+  runPlaywrightSuite('regression', '.*/[A-L].*Test.class')
+  runPlaywrightSuite('regression', '.*/[M-P].*Test.class')
+  runPlaywrightSuite('regression', '.*/[Q-Z].*Test.class')
+}
+
+/**
+ * Run one Playwright partition under the 'sanity' (@Category(SanityTest)) or 'regression'
+ * (@Category(RegressionTest)) profile. 90m timeout matches the per-shard bound in the distributed
+ * pipelines, so one slow partition fails on its own rather than consuming the whole build budget.
+ */
+private void runPlaywrightSuite(String profile, String regex) {
+  echo "Running partition: Playwright ${profile} (regex ${regex})"
+  String args = "-pl com.sonatype.insight.brain:insight-brain-playwright-test"
+  args += " -P${profile}"
+  args += " -Dit.test='%regex[${regex}]'"
+  args += " -Dplaywright.trace=${params.playwrightTraceMode ?: 'on-failure'}"
+  args += " -DdetectTestEntityLeaks"
+  args += " -Dfailsafe.rerunFailingTestsCount=2 -Dfailsafe.failOnFlakeCount=5"
+  args += " --threads 4 --no-transfer-progress"
+  args += ' -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn'
+  args += " verify"
+  timeout(time: 90, unit: 'MINUTES') {
+    mvn playwrightMavenConfig(), args
+  }
+}
+
+/** mavenCommon config for the Playwright invocation. */
+private Map<String, ?> playwrightMavenConfig() {
+  return mavenCommon(
+      javaVersion: 'OpenJDK 25',
+      mavenVersion: 'Maven 3.9.x',
+      useEventSpy: false
+  )
+}
+
+/**
+ * Run test partitions sequentially. Each partition is its own `mvn` process
+ * for JVM-level isolation. Regex slices match Jenkinsfile.main#getParallelTests.
+ */
+private void runUnitTestPartitions() {
+  runUnitTestPartition('Unit and Integration Tests A',     '.*/[A].*Test.class')
+  runUnitTestPartition('Unit and Integration Tests B',     '.*/[B].*Test.class')
+  runUnitTestPartition('Unit and Integration Tests D-G',   '.*/[D-G].*Test.class')
+  runUnitTestPartition('Unit and Integration Tests H-K',   '.*/[H-K].*Test.class')
+  runUnitTestPartition('Unit and Integration Tests L-N',   '.*/[L-N].*Test.class')
+  runUnitTestPartition('Unit and Integration Tests O-P',   '.*/[O-P].*Test.class')
+  runUnitTestPartition('Unit and Integration Tests R+T',   '.*/[RT].*Test.class')
+  runUnitTestPartition('Unit and Integration Tests S',     '.*/[S].*Test.class')
+  runUnitTestPartition('Unit and Integration Tests C+U-Z', '.*/[CU-Z].*Test.class')
+  runMtiqUnitTests()
+  runFrontendTests()
+}
+
+/** Run a single unit/integration partition. jacoco:report is deferred to runJacocoReport(). */
+private void runUnitTestPartition(String stageName, String regex) {
+  echo "Running partition: ${stageName} (regex ${regex})"
+  String args = "-pl '!nexus-mtiq-server,!insight-brain-frontend,!com.sonatype.insight.brain:insight-brain-playwright-test'"
+  args += " -Dtest=%regex[${regex}]"
+  args += " -Dit.test=%regex[${regex}]"
+  args += " -DdetectTestEntityLeaks"
+  args += " -Dfailsafe.rerunFailingTestsCount=2 -Dfailsafe.failOnFlakeCount=5"
+  args += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
+  args += " --threads 4 --no-transfer-progress"
+  args += ' -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn'
+  args += ' jacoco:prepare-agent surefire:test failsafe:integration-test failsafe:verify'
+  mvn testPartitionMavenConfig(), args
+}
+
+/** MTIQ unit/integration partition. 90m timeout matches Jenkinsfile.main. */
+private void runMtiqUnitTests() {
+  echo 'Running partition: MTIQ Unit and Integration Tests'
+  String args = '-pl com.sonatype.insight.brain:nexus-mtiq-server'
+  args += ' -DdetectTestEntityLeaks'
+  args += ' -Dfailsafe.rerunFailingTestsCount=2 -Dfailsafe.failOnFlakeCount=5'
+  args += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
+  args += ' --threads 4 --no-transfer-progress'
+  args += ' -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn'
+  args += ' jacoco:prepare-agent initialize surefire:test failsafe:integration-test failsafe:verify'
+  timeout(time: 90, unit: 'MINUTES') {
+    mvn testPartitionMavenConfig(), args
+  }
+}
+
+/** Frontend Jest tests. Single thread to prevent Jest parallelization timeouts. */
+private void runFrontendTests() {
+  echo 'Running partition: Frontend Tests (Jest)'
+  String args = "-pl com.sonatype.insight.brain:insight-brain-frontend"
+  args += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
+  args += ' --threads 1 --no-transfer-progress'
+  args += ' -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn'
+  args += ' com.github.eirslett:frontend-maven-plugin:yarn@jest'
+  mvn testPartitionMavenConfig(), args
+}
+
+/**
+ * Generate per-module jacoco.xml after all partitions. Must run once at the
+ * end: jacoco.exec accumulates across forks, but jacoco:report overwrites
+ * the XML — running it per-partition would keep only the last slice's coverage.
+ */
+private void runJacocoReport() {
+  echo 'Aggregating JaCoCo coverage across all partitions'
+  String args = "-pl '!com.sonatype.insight.brain:insight-brain-playwright-test'"
+  args += ' --no-transfer-progress'
+  args += ' -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn'
+  args += ' jacoco:report'
+  mvn testPartitionMavenConfig(), args
+}
+
+/** mavenCommon config for test partition invocations. */
+private Map<String, ?> testPartitionMavenConfig() {
+  return mavenCommon(
+      javaVersion: 'OpenJDK 25',
+      mavenVersion: 'Maven 3.9.x',
+      useEventSpy: false
+  )
+}
+
+private String buildOptions() {
+  def opts = []
+
+  def excludedModules = [
+      'com.sonatype.insight.brain:insight-brain-playwright-test'
+  ]
+  opts << "-pl '${excludedModules.collect { "!${it}" }.join(',')}'"
+
+  // Tests run in per-partition mvn invocations (see runUnitTestPartitions).
+  opts << '-DskipTests'
+  opts << '-DskipITs'
+
+  opts << "-D build.number=${env.BUILD_NUMBER}"
+  opts << '--threads 4'
+  opts << '--no-transfer-progress'
+  opts << '-Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn'
+  return opts.join(' ')
+}
+
+private boolean shouldNotify() {
+  return false
+}
+
+/** Archive Playwright failure artifacts (screenshots, traces, diagnostics, heap dumps). */
+private void capturePlaywrightArtifacts() {
+  archiveArtifacts(artifacts: 'insight-brain-testing/insight-brain-playwright-test/target/playwright-screenshots/**',
+                   allowEmptyArchive: true)
+  archiveArtifacts(artifacts: 'insight-brain-testing/insight-brain-playwright-test/target/playwright-traces/**',
+                   allowEmptyArchive: true)
+  archiveArtifacts(artifacts: 'insight-brain-testing/insight-brain-playwright-test/target/playwright-diagnostics/**',
+                   allowEmptyArchive: true)
+  archiveArtifacts(artifacts: 'insight-brain-testing/insight-brain-playwright-test/target/*.hprof',
+                   allowEmptyArchive: true)
+}

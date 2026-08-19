@@ -1,0 +1,211 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+// NOTE: These styles are only fleshed-out enough to get specific pages, which we want to be printable, to work.
+// Currently the only such page is the application report vulnerabilities list
+
+@use './variables' as *;
+
+@media print {
+  * {
+    // prevent chrome bug that causes spurious attempts to redownload fonts and then text disappearing because
+    // the font wasn't done downloading when it generated the print preview
+    font-family: sans-serif !important;
+  }
+
+  .nx-html,
+  .nx-body {
+    height: auto !important;
+    overflow-y: initial !important;
+    position: static;
+  }
+
+  body {
+    background-color: var(--nx-swatch-white);
+  }
+
+  .nx-page {
+    // At least some browsers (including chrome) seem to automatically scale the body such that it fits on the page.
+    // This means that as the body width increases, the printed page content zooms out. The body min-width increase
+    // to 1366px caused that zoom to occur to an extent greater than is desired (text became too small).
+    // At the same time, removing the min-width entirely causes the content to render a bit too large, with
+    // most component identifiers on the vulnerability list page getting cut off. Therefore we specify 1024px here
+    // to maintain the scaling that was in effect when we first implemented print styles
+    min-width: 1024px !important;
+  }
+
+  .iq-scrollable {
+    max-height: unset;
+  }
+
+  .maximized-container {
+    height: auto !important;
+  }
+
+  .iq-logo {
+    display: none;
+  }
+
+  .iq-logo--print {
+    display: inline-block;
+  }
+
+  .iq-title__version {
+    border-color: $iq-off-black;
+    white-space: nowrap;
+  }
+
+  main-header,
+  application-report-root,
+  application-report-vulnerabilities,
+  ui-view,
+  .nx-page,
+  .nx-page-main,
+  .nx-page-content,
+  .nx-tile {
+    border: none !important;
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  #global-sidebar-buttons,
+  .iq-sys-prefs-back-button,
+  .iq-alert,
+  .nx-back-button {
+    display: none !important;
+  }
+
+  .nx-cell--header {
+    border-left-style: none !important;
+  }
+
+  .nx-global-sidebar,
+  .nx-global-sidebar__header {
+    padding: 0 !important;
+  }
+
+  .nx-global-header {
+    display: none !important;
+  }
+
+  .iq-nav-bar--system,
+  .nx-global-sidebar__toggle,
+  .nx-global-sidebar__product-name {
+    border: none !important;
+    padding: 0 !important;
+    display: none !important;
+  }
+
+  .iq-sidebar-nav-footer {
+    flex-direction: row !important;
+    align-items: start !important;
+    padding: 0 0 0 46px !important;
+    margin: 0 !important;
+    white-space: nowrap;
+    margin-bottom: 24px !important;
+  }
+
+  .nx-global-sidebar__release {
+    height: auto !important;
+    margin: 0 !important;
+    order: 2;
+
+    &::before {
+      content: ' | ';
+      white-space: pre;
+    }
+  }
+
+  .nx-global-sidebar__created-by {
+    order: 1;
+  }
+
+  .iq-sidebar-nav-footer__created,
+  .nx-global-sidebar__header,
+  .nx-global-sidebar.closed,
+  .nx-global-sidebar__expanded-content {
+    margin: 0 !important;
+    display: inline-block !important;
+    visibility: visible !important;
+    overflow: unset !important;
+  }
+
+  .nx-global-sidebar__logo {
+    height: 46px !important;
+    filter: invert(1);
+    max-width: none !important;
+  }
+
+  #application-report-vulnerabilities {
+    .nx-page-main {
+      padding: 0;
+    }
+
+    .nx-tile {
+      margin-left: 0;
+      margin-right: 0;
+    }
+
+    .nx-tile-content {
+      display: block;
+      padding: 0 !important;
+    }
+
+    .nx-tile-header {
+      padding: 0 !important;
+    }
+  }
+
+  #application-report-vulnerabilities-table {
+    // override bootstrap css for printed <a> tags
+    a {
+      color: $iq-link-color !important;
+      text-decoration: none;
+
+      &::after {
+        content: normal;
+      }
+    }
+
+    // include PDF friendly vulnerability link
+    $cell-padding-top: 8px;
+    $cell-padding-bottom: 10px;
+    $main-line-height: 24px;
+    $link-line-height: 12px;
+    $row-height: $cell-padding-top + $main-line-height + $link-line-height + $cell-padding-bottom;
+    tbody {
+      .nx-cell {
+        height: $main-line-height + $link-line-height;
+        line-height: $main-line-height;
+        padding-top: $cell-padding-top;
+        padding-bottom: $cell-padding-bottom;
+        vertical-align: top;
+      }
+
+      .iq-vulnerability-printable-link {
+        display: block;
+        line-height: $link-line-height;
+        font-size: $link-line-height;
+        white-space: nowrap;
+
+        // effectively, don't consider this link when computing column widths
+        width: 1px;
+      }
+
+      .iq-vulnerability-component-name {
+        max-width: 500px;
+      }
+
+      .nx-icon {
+        display: none;
+      }
+    }
+  }
+}
+
+@page {
+  margin: 0.75in 0.25in;
+}

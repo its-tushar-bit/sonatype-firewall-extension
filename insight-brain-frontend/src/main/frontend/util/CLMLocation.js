@@ -1,0 +1,2219 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import {
+  adjust,
+  always,
+  chain,
+  compose,
+  filter as ramdaFilter,
+  ifElse,
+  is,
+  isNil,
+  join,
+  map,
+  not,
+  pick,
+  reject,
+  toPairs,
+} from 'ramda';
+
+import { BASE_URL, toURIParams, uriTemplate } from './urlUtil';
+import { isNilOrEmpty } from './jsUtil';
+
+/**
+ * Generates the url to fetch the vulnerability details of a given refId.
+ *
+ * @param {string} refId refId of the vulnerability whose details are wanted
+ * @param {object} componentIdentifier the coordinates of the component where the vulnerability was found.
+ * This parameter is _optional_ but providing it will yield results in the scope of the given component.
+ * @param {object} extraQueryParameters optional. A set of query parameters to add.
+ * It is an object of shape `{identificationSource, ownerId, ownerType, scanId}`. Depending on the
+ * value for `identificationSource` it will save one request to HDS and instead will search directly in
+ * the third-party vulnerabilities table.
+ */
+export function getVulnerabilityJsonDetailUrl(refId, componentIdentifier, extraQueryParameters = {}) {
+  const urlWithPath = uriTemplate`/api/v2/vulnerabilities/${refId}`;
+
+  const params = toURIParams({
+    componentIdentifier: componentIdentifier && JSON.stringify(componentIdentifier),
+    ...extraQueryParameters,
+  });
+
+  if (params.length > 0) {
+    return `${urlWithPath}?${params}`;
+  }
+
+  return urlWithPath;
+}
+
+export const getEnterpriseReportingBaseUrl = () => uriTemplate`/rest/enterpriseReporting/getBaseUrl`;
+
+export const getEnterpriseReportingDashboardsUrl = () => uriTemplate`/rest/enterpriseReporting/dashboards`;
+
+export const getEnterpriseReportingAcquireEmbedSessionUrl = (dashboardId, embedDomain) =>
+  uriTemplate`/rest/enterpriseReporting/acquireEmbedSession?dashboardId=${dashboardId}&embedDomain=${encodeURIComponent(
+    embedDomain
+  )}`;
+
+export const getEnterpriseReportingGenerateEmbedTokensUrl = () =>
+  uriTemplate`/rest/enterpriseReporting/generateEmbedTokens`;
+
+export const getEnterpriseReportingIconUrl = (iconName) =>
+  uriTemplate`/rest/enterpriseReporting/dashboard/icons/${iconName}`;
+
+export const getEnterpriseReportingSelectedDashboardUrl = (dashboardId) => {
+  return uriTemplate`/ui/links/enterpriseReporting/${dashboardId}`;
+};
+
+export const getEnterpriseReportingFilters = () => uriTemplate`/rest/enterpriseReporting/filters`;
+
+export const getDeleteEnterpriseReportingFilter = (filterId) =>
+  uriTemplate`/rest/enterpriseReporting/filters/${filterId}`;
+
+export const getDefaultEnterpriseReportingFilter = () => uriTemplate`/rest/enterpriseReporting/filters/default`;
+
+export const getAssignDefaultEnterpriseReportingFilter = (filterId) =>
+  uriTemplate`/rest/enterpriseReporting/filters/default/${filterId}`;
+
+export const getIqVersion = () => {
+  return uriTemplate`/rest/product/version`;
+};
+
+export function getRoleForNewUrl() {
+  return uriTemplate`/api/v2/roles/new`;
+}
+
+export function getAutomaticSourceControlConfigurationUrl() {
+  return uriTemplate`/rest/config/automaticScmConfiguration`;
+}
+
+export function getZScalerConfigUrl() {
+  return uriTemplate`/api/v2/config/zscaler`;
+}
+
+export function getZScalerTestConfigUrl() {
+  return uriTemplate`/api/v2/config/zscaler/testConfig`;
+}
+
+export function getZscalerConfigLimitsUrl() {
+  return uriTemplate`/api/v2/config/zscaler/zscalerLimits`;
+}
+
+export function getMailConfigUrl() {
+  return uriTemplate`/api/v2/config/mail`;
+}
+
+export function getTestMailUrl(mailRecipient) {
+  return uriTemplate`/api/v2/config/mail/test/${mailRecipient}`;
+}
+
+export function getViolationDetailsUrl(constituentViolationId) {
+  return uriTemplate`/api/v2/policyViolations/crossStage/?constituentId=${constituentViolationId}`;
+}
+
+export function getProxyConfigUrl() {
+  return uriTemplate`/api/v2/config/httpProxyServer`;
+}
+
+export function getDashboardSavedFilters() {
+  return uriTemplate`/rest/dashboard/filters/named`;
+}
+
+export function getLegalDashboardSavedFilters() {
+  return uriTemplate`/rest/userFilter/named?type=ADVANCED_LEGAL_PACK_DASHBOARD`;
+}
+
+export function getNewestRisksUrl() {
+  return uriTemplate`/rest/dashboard/policy/newestRisks`;
+}
+
+/**
+ * Aggregate KPI metrics for the Nexus One preview dashboard landing (CLM-40905).
+ * POST with an optional `{ organizationIds, applicationIds, stageIds, tagIds }` scope body;
+ * an empty body returns the default RBAC-scoped view.
+ */
+export function getDashboardMetricsUrl() {
+  return uriTemplate`/rest/dashboard/metrics`;
+}
+
+/** Martha V1 evaluation card list. POST with pagination + optional filters. */
+export function getApplicationsListUrl() {
+  return uriTemplate`/rest/dashboard/applications/list`;
+}
+
+/**
+ * Nexus One Components portfolio list (Martha V1 / CLM-43210). POST with
+ * `{ page, pageSize, search?, includeFacets, organizationIds? }`; gated by PREVIEW_NEXUS_ONE_UI.
+ * My Scan Data uses this hybrid index+SQL path; Sonatype Catalog stays on {@link getSearchCatalogUrl}.
+ */
+export function getComponentsListUrl() {
+  return uriTemplate`/rest/dashboard/components/list`;
+}
+
+/**
+ * Public API component details (HDS-backed). POST body
+ * `{ components: [{ hash }] }` (or componentIdentifier / packageUrl).
+ * Used by estate Component Detail Overview / Legal (CLM-43961).
+ */
+export function getApiV2ComponentDetailsUrl() {
+  return uriTemplate`/api/v2/components/details`;
+}
+
+/**
+ * Estate component where-used applications (CLM-43959). POST
+ * `{ componentHash, page, pageSize }`.
+ */
+export function getComponentUsageApplicationsUrl() {
+  return uriTemplate`/rest/dashboard/components/usage/applications`;
+}
+
+/**
+ * Estate component where-used organizations (CLM-43959). POST
+ * `{ componentHash, page, pageSize }`.
+ */
+export function getComponentUsageOrganizationsUrl() {
+  return uriTemplate`/rest/dashboard/components/usage/organizations`;
+}
+
+/**
+ * Estate component report usage for the selected application (CLM-44658). POST
+ * `{ componentHash, applicationId, page, pageSize }`.
+ */
+export function getComponentUsageReportsUrl() {
+  return uriTemplate`/rest/dashboard/components/usage/reports`;
+}
+
+export function getNewestRisksExportUrl() {
+  return uriTemplate`/rest/dashboard/export/newestRisks`;
+}
+
+/**
+ * Nexus One Violations card list (Martha V1, CLM-42254). POST with
+ * `{ page, pageSize, search?, includeFacets, orderBy }`; gated by PREVIEW_NEXUS_ONE_UI.
+ */
+export function getViolationsListUrl() {
+  return uriTemplate`/rest/dashboard/violations/list`;
+}
+
+/**
+ * Nexus One Legal findings list (CLM-43207). POST with
+ * `{ page, pageSize, search?, includeFacets, orderBy, … }`; index LEGAL_VIOLATION.
+ * Gated by PREVIEW_NEXUS_ONE_UI.
+ */
+export function getLegalListUrl() {
+  return uriTemplate`/rest/dashboard/legal/list`;
+}
+
+/**
+ * Ana shared catalog list (CLM-41642 / CLM-42214). POST
+ * `{ entityType, source: local|catalog, filters?, page?, pageSize?, searchAfter?, includeFacets? }`.
+ * Gated by PREVIEW_NEXUS_ONE_UI (404 when off).
+ */
+export function getSearchCatalogUrl() {
+  return uriTemplate`/rest/search/catalog`;
+}
+
+/**
+ * Ana IQ-index left-nav list POST endpoint (CLM-43203 / CLM-43204).
+ *
+ * Body: `{ entityType, filters?, page?, pageSize?, sort?, searchAfter?, includeFacets? }` where
+ * `entityType` is one of {APPLICATION, VIOLATION, POLICY, WAIVER}. Pagination is cursor-based:
+ * page 1 must omit `searchAfter`; page > 1 must carry a `searchAfter` cursor returned by the
+ * prior response. Gated by PREVIEW_NEXUS_ONE_UI (404 when off) and requires read on at least one context.
+ */
+export function getIndexQueryUrl() {
+  return uriTemplate`/rest/search/index-query`;
+}
+
+/**
+ * Nexus One Vulnerabilities card list (Martha V1, CLM-42216). POST with
+ * `{ tab, page, pageSize, search?, includeFacets, orderBy }`; gated by PREVIEW_NEXUS_ONE_UI.
+ */
+export function getVulnerabilitiesListUrl() {
+  return uriTemplate`/rest/dashboard/vulnerabilities/list`;
+}
+
+/**
+ * Distinct My Scan Data applications affected by a vulnerability (Applications tab).
+ * GET `/rest/dashboard/vulnerabilities/{vulnerabilityId}/applications`.
+ * Optional {@code page}/{@code pageSize} (0-based page index; default page size 25).
+ */
+export function getVulnerabilityAffectedApplicationsUrl(vulnerabilityId, { page, pageSize } = {}) {
+  const base = uriTemplate`/rest/dashboard/vulnerabilities/${vulnerabilityId}/applications`;
+  const params = toURIParams({ page, pageSize });
+  return params.length > 0 ? `${base}?${params}` : base;
+}
+
+/**
+ * Distinct My Scan Data components impacted by a vulnerability (Components Impacted tab).
+ * GET `/rest/dashboard/vulnerabilities/{vulnerabilityId}/components`.
+ * Optional {@code page}/{@code pageSize} (0-based page index; default page size 25).
+ */
+export function getVulnerabilityImpactedComponentsUrl(vulnerabilityId, { page, pageSize } = {}) {
+  const base = uriTemplate`/rest/dashboard/vulnerabilities/${vulnerabilityId}/components`;
+  const params = toURIParams({ page, pageSize });
+  return params.length > 0 ? `${base}?${params}` : base;
+}
+
+/**
+ * Nexus One Vulnerabilities blast-radius CSV export (Martha V1, CLM-42216).
+ * Multipart form POST with hidden {@code filter} JSON; My Scan Data only.
+ */
+export function getVulnerabilitiesExportUrl() {
+  return uriTemplate`/rest/dashboard/vulnerabilities/export`;
+}
+
+/**
+ * Retrieve the list of application risk in the most recent stage.  Supports filters
+ * @since 1.11
+ */
+export function getApplicationRisksUrl() {
+  return uriTemplate`/rest/dashboard/policy/applicationRisks`;
+}
+
+export function getApplicationRisksExportUrl() {
+  return uriTemplate`/rest/dashboard/export/applicationRisks`;
+}
+
+/**
+ * Retrieve the list of components with violations in the most recent stage.  Supports filters
+ * @since 1.11
+ */
+export function getComponentRisksUrl() {
+  return uriTemplate`/rest/dashboard/policy/componentRisks`;
+}
+
+export function getComponentRisksExportUrl() {
+  return uriTemplate`/rest/dashboard/export/componentRisks`;
+}
+
+/**
+ * Retrieve the list of waivers.  Supports filters
+ * @since 1.45
+ */
+export function getWaiversUrl() {
+  return uriTemplate`/rest/dashboard/policy/policyWaivers`;
+}
+
+export function getWaiversAndAutoWaiversUrl() {
+  return uriTemplate`/rest/dashboard/policy/policyWaivers?includeAutoWaivers=true`;
+}
+
+export function getWaiversExportUrl() {
+  return uriTemplate`/rest/dashboard/export/policyWaivers`;
+}
+
+export function getWaiversAndAutoWaiversExportUrl() {
+  return uriTemplate`/rest/dashboard/export/policyWaivers?includeAutoWaivers=true`;
+}
+
+export function getWaiverRequestsUrl() {
+  return uriTemplate`/rest/dashboard/policy/policyWaiverRequests`;
+}
+
+export function getWaiverRequestsExportUrl() {
+  return uriTemplate`/rest/dashboard/export/policyWaiverRequests`;
+}
+
+export function getApplicationsUrl() {
+  return uriTemplate`/rest/application`;
+}
+
+export function getApplicationCategoriesUrl(applicationPublicId) {
+  return uriTemplate`/rest/appliedTag/application/${applicationPublicId}`;
+}
+
+export function getApplicableOrganizationCategories(applicationPublicId) {
+  return uriTemplate`/api/v2/applicationCategories/application/${applicationPublicId}/applicable`;
+}
+
+export function getApplicationUrl(applicationPublicId) {
+  return uriTemplate`/rest/application/${applicationPublicId}`;
+}
+
+export function getApplicationLegalReviewerUrl(applicationPublicId) {
+  return uriTemplate`/rest/application/legalReviewer/${applicationPublicId}`;
+}
+
+export function getDashboardStageUrl() {
+  return uriTemplate`/rest/policy/stages?context=dashboard`;
+}
+
+export function getOrganizationsUrl() {
+  return uriTemplate`/rest/organization`;
+}
+
+export function getNLevelOrgUrl() {
+  return uriTemplate`/api/v2/organizations`;
+}
+
+export function getOrganizationUrl(id) {
+  return uriTemplate`/rest/organization/${id}`;
+}
+
+export function getAllLicensesUrl() {
+  return uriTemplate`/rest/license`;
+}
+
+export function getLicenseGroupsUrl(ownerType, ownerId) {
+  return uriTemplate`/rest/licenseThreatGroup/${ownerType}/${ownerId}`;
+}
+
+export function getApplicableLicenseGroupsUrl(ownerType, ownerId) {
+  return uriTemplate`/rest/licenseThreatGroup/${ownerType}/${ownerId}/applicable`;
+}
+
+export function getDeleteLicenseGroupUrl(ownerType, ownerId, licenseThreatGroupId) {
+  return uriTemplate`/rest/licenseThreatGroup/${ownerType}/${ownerId}/${licenseThreatGroupId}`;
+}
+
+export function getLicenseGroupLicensesUrl(ownerType, ownerId, licenseThreatGroupId) {
+  return uriTemplate`/rest/licenseThreatGroupLicense/${ownerType}/${ownerId}/${licenseThreatGroupId}`;
+}
+
+export function getIsHdsReachable() {
+  return uriTemplate`/rest/hdsPing`;
+}
+
+export function getTelemetryUrl() {
+  return uriTemplate`/rest/environment/stats`;
+}
+
+export function getTelemetryStatusUrl() {
+  return uriTemplate`/rest/telemetry/status`;
+}
+
+export function getScmOrganizationsUrl() {
+  return uriTemplate`/rest/onboarding/organizations`;
+}
+
+function getSummaryUrl() {
+  return uriTemplate`/rest/application/services/summary`;
+}
+
+export function getApplicationSummaryUrl(applicationPublicId) {
+  return `${getSummaryUrl()}/${encodeURIComponent(applicationPublicId)}`;
+}
+
+export function getApplicationTagsUrl() {
+  return uriTemplate`/api/v2/applicationCategories/application`;
+}
+
+export function getDashboardFilters() {
+  return uriTemplate`/rest/dashboard/filters/active`;
+}
+
+export function getLegalDashboardFilters() {
+  return uriTemplate`/rest/userFilter/active?type=ADVANCED_LEGAL_PACK_DASHBOARD`;
+}
+
+export function getActionStageUrl() {
+  return uriTemplate`/rest/policy/stages?context=lifecycle`;
+}
+
+export function getCliStageUrl() {
+  return uriTemplate`/rest/policy/stages`;
+}
+
+export function getSbomStageUrl() {
+  return uriTemplate`/rest/policy/stages?context=sbom`;
+}
+
+export function getAdvancedSearchConfigUrl() {
+  return uriTemplate`/rest/search/advanced/status`;
+}
+
+export function getAdvancedSearchIndexUrl() {
+  return uriTemplate`/api/v2/search/advanced/index`;
+}
+
+export function getAdvancedSearchUrl(query, page, isShowAllComponents, isSbomManager, searchAfter) {
+  const params = toURIParams({
+    query,
+    page,
+    allComponents: isShowAllComponents,
+    mode: isSbomManager ? 'sbomManager' : null,
+    searchAfter: searchAfter?.join(),
+  });
+  return uriTemplate`/api/v2/search/advanced?` + params;
+}
+
+export function getAdvancedSearchCsvExportUrl(query, isShowAllComponents, isSbomManager) {
+  const params = toURIParams({
+    query,
+    allComponents: isShowAllComponents,
+    mode: isSbomManager ? 'sbomManager' : null,
+  });
+  return uriTemplate`/api/v2/search/advanced/export/csv?` + params;
+}
+
+export function getScmRepositoriesUrl(organizationId, defaultHostUrl) {
+  return uriTemplate`/rest/onboarding/loadRepositories?\
+orgId=${organizationId}&defaultHostUrl=${defaultHostUrl}`;
+}
+
+export function getScmDefaultHostUrl(organizationId, provider) {
+  return uriTemplate`/rest/onboarding/defaultHostUrl?orgId=${organizationId}&provider=${provider}`;
+}
+
+export function getImportRepositoriesUrl(organizationId) {
+  return uriTemplate`/rest/onboarding/importRepositories/${organizationId}`;
+}
+
+export function getValidateScmConfigUrl(scmProvider, scmHostUrl) {
+  return uriTemplate`/rest/onboarding/validate/${scmProvider}?scmHostUrl=${scmHostUrl}`;
+}
+
+export function getValidateScmConfigButtonUrl(ownerType, ownerId) {
+  return uriTemplate`/api/v2/compositeSourceControlConfigValidator/${ownerType}/${ownerId}`;
+}
+
+export function getCompositeSourceControlUrl(ownerType, ownerId) {
+  return uriTemplate`/api/v2/compositeSourceControl/${ownerType}/${ownerId}`;
+}
+
+export const getRepositoryInfoUrl = (repositoryId) => uriTemplate`/rest/repositories/${repositoryId}`;
+
+export const getRepositoryManagerUrl = (managerId, managerName) =>
+  uriTemplate`/rest/repositories/repositoryManager/${managerId}/${managerName}`;
+
+export const getRepositoryEvaluateUrl = (repositoryId) => uriTemplate`/rest/repositories/${repositoryId}/evaluate`;
+
+export const getRepositoryComponentsUrl = (ownerType, ownerId) =>
+  uriTemplate`/api/experimental/repositories/${ownerType}/${ownerId}/results/details`;
+
+export function getSourceControlMetricsUrl(ownerType, ownerId) {
+  return uriTemplate`/api/v2/sourceControlMetrics/${ownerType}/${ownerId}`;
+}
+
+export function getSourceControlUrl(ownerType, ownerId) {
+  return uriTemplate`/api/v2/sourceControl/${ownerType}/${ownerId}`;
+}
+
+export function getRelayWebhookUrl() {
+  return '/api/v2/sourceControl/relayWebhookUrl';
+}
+
+export function getRelayWebhookSecret() {
+  return '/api/v2/sourceControl/relayWebhookSecret';
+}
+
+export function getCreatePullRequestUrl() {
+  return uriTemplate`/rest/sourceControl/pullRequest`;
+}
+
+export function getPullRequestStatusUrl(id) {
+  return uriTemplate`/rest/sourceControl/pullRequest/${id}`;
+}
+
+export function getDashboardDeleteFilterUrl(filterName) {
+  return uriTemplate`/rest/dashboard/filters/named/delete?filterName=${filterName}`;
+}
+
+export function getLegalDashboardDeleteFilterUrl(filterName) {
+  return uriTemplate`/rest/userFilter/?name=${filterName}&type=ADVANCED_LEGAL_PACK_DASHBOARD`;
+}
+
+export function getApplicableWaiversUrl(policyViolationId) {
+  return uriTemplate`/api/v2/policyViolations/${policyViolationId}/applicableWaivers`;
+}
+
+export function getApplicableAutoWaiverUrl(policyViolationId) {
+  return uriTemplate`/api/v2/policyViolations/${policyViolationId}/applicableAutoWaiver`;
+}
+
+export function getSimilarWaiversUrl(policyViolationId) {
+  return uriTemplate`/api/v2/policyViolations/${policyViolationId}/similarWaivers`;
+}
+
+export function getApplicationReportsUrl(applicationId) {
+  return uriTemplate`/api/v2/reports/applications/${applicationId}`;
+}
+
+// CLM-39709 / P1-F7c: raw scan-report payload for the Preview Application
+// Detail page to list scanned components, violations, and waivers without
+// dropping into Classic chrome.
+export function getApplicationReportRawUrl(publicId, scanId) {
+  return uriTemplate`/api/v2/applications/${publicId}/reports/${scanId}/raw`;
+}
+
+function getBaseReportUrl(applicationPublicId, scanId) {
+  return uriTemplate`/rest/report/${applicationPublicId}/${scanId}`;
+}
+
+const getBrowseReportUrl = (fileName) => (applicationPublicId, scanId) =>
+  `${getBaseReportUrl(applicationPublicId, scanId)}/browseReport/${fileName}`;
+
+export function getReportMetadataUrl(applicationPublicId, scanId) {
+  return `${getBaseReportUrl(applicationPublicId, scanId)}/metadata`;
+}
+
+export function getFirewallConfigurationUrl() {
+  return uriTemplate`/api/v2/firewall/releaseQuarantine/configuration`;
+}
+
+export function getFirewallTileMetricsUrl() {
+  return uriTemplate`/api/v2/firewall/metrics/embedded`;
+}
+
+export function getFirewallReleaseQuarantineSummaryUrl() {
+  return uriTemplate`/api/v2/firewall/releaseQuarantine/summary`;
+}
+
+export function getRetentionPoliciesUrl(orgId) {
+  return uriTemplate`/api/v2/dataRetentionPolicies/organizations/${encodeURIComponent(orgId)}`;
+}
+
+export function getParentRetentionPoliciesUrl(orgId) {
+  return uriTemplate`/api/v2/dataRetentionPolicies/organizations/${encodeURIComponent(orgId)}/parent`;
+}
+
+export function getWaiverExpirationNotificationConfigUrl(ownerType, ownerId) {
+  return uriTemplate`/api/v2/waiverExpirationNotificationConfig/${encodeURIComponent(ownerType)}/${encodeURIComponent(
+    ownerId
+  )}`;
+}
+
+export function getReevaluateComponentUrl(repositoryId, hash) {
+  return uriTemplate`/rest/repositories/${repositoryId}/evaluate/${hash}`;
+}
+
+export function getSuccessMetricsStageIdUrl() {
+  return uriTemplate`/api/v2/config?property=successMetricsStageId`;
+}
+
+export const getComponentLicensesUrl = ({
+  clientType,
+  ownerType,
+  ownerId,
+  componentIdentifier,
+  identificationSource,
+  scanId,
+}) => {
+  const params = toURIParams({
+    componentIdentifier,
+    identificationSource,
+    scanId,
+  });
+  return uriTemplate`/rest/${clientType}/componentDetails/${ownerType}/${ownerId}/licenses?` + params;
+};
+
+export const getComponentMultiLicensesUrl = ({
+  clientType,
+  ownerType,
+  ownerId,
+  componentIdentifier,
+  identificationSource,
+  scanId,
+}) => {
+  const params = toURIParams({
+    componentIdentifier,
+    identificationSource,
+    scanId,
+  });
+  return uriTemplate`/rest/${clientType}/componentDetails/${ownerType}/${ownerId}/multiLicenses?` + params;
+};
+
+export const getComponentMultiLicensesLegalReviewerUrl = ({
+  clientType,
+  ownerType,
+  ownerId,
+  componentIdentifier,
+  identificationSource,
+  scanId,
+}) => {
+  const params = toURIParams({
+    componentIdentifier,
+    identificationSource,
+    scanId,
+  });
+  return (
+    uriTemplate`/rest/${clientType}/componentDetails/${ownerType}/${ownerId}/multiLicenses/legalReviewer?` + params
+  );
+};
+
+export function getSuccessMetricsConfigUrl() {
+  return uriTemplate`/rest/successMetrics`;
+}
+
+export function getSystemNoticeUrl() {
+  return uriTemplate`/rest/config/systemNotice`;
+}
+
+export function getSystemNoticeFetchUrl() {
+  return `${getSystemNoticeUrl()}/fetch`;
+}
+
+export function getAnnouncementBannerFetchUrl() {
+  return uriTemplate`/rest/config/announcementBanner/fetch`;
+}
+
+export function getRoleListUrl() {
+  return uriTemplate`/api/v2/roles`;
+}
+
+export function getAutomaticApplicationsConfigurationUrl() {
+  return uriTemplate`/rest/config/automaticApplications`;
+}
+
+export function getLdapConfigUrl(ldapId) {
+  return ldapId ? uriTemplate`/rest/config/ldap/${ldapId}` : uriTemplate`/rest/config/ldap`;
+}
+
+export function getLdapConnectionConfig(ldapId) {
+  return `${getLdapConfigUrl(ldapId)}/connection`;
+}
+
+export function getLdapConnectionTest(ldapId) {
+  return `${getLdapConfigUrl(ldapId)}/testConnection`;
+}
+
+export function getLdapLoginTest(ldapId) {
+  return `${getLdapConfigUrl(ldapId)}/testLogin`;
+}
+
+export function getLdapUserMappingConfig(ldapId) {
+  return `${getLdapConfigUrl(ldapId)}/userMapping`;
+}
+
+export function getLdapUserMappingTest(ldapId) {
+  return `${getLdapConfigUrl(ldapId)}/testUserMapping`;
+}
+
+export function getLdapPriority() {
+  return uriTemplate`/rest/config/ldap/priority`;
+}
+
+/**
+ * @since 1.20.0
+ */
+export function getOwnerListUrl() {
+  return uriTemplate`/rest/sidebar`;
+}
+
+export function getRepositoriesUrl() {
+  return uriTemplate`/rest/repositories`;
+}
+
+export function getFirewallReleaseQuarantineListUrl(page, pageSize, sortBy, sortAsc) {
+  let params = toURIParams({
+    page: page,
+    pageSize: pageSize,
+    sortBy: sortBy,
+    asc: sortAsc,
+  });
+
+  params = params.length === 0 ? '' : '?' + params;
+
+  return uriTemplate`/api/v2/firewall/components/autoReleasedFromQuarantine` + params;
+}
+
+export function getFirewallQuarantineListUrl(
+  page,
+  pageSize,
+  sortBy,
+  sortAsc,
+  policyIds,
+  componentName,
+  repositoryPublicId,
+  quarantineTime
+) {
+  let params = toURIParams({
+    page: page,
+    pageSize: pageSize,
+    sortBy: sortBy,
+    asc: sortAsc,
+    policyId: policyIds,
+    componentName: componentName,
+    repositoryPublicId: repositoryPublicId,
+    quarantineTime: quarantineTime,
+  });
+
+  params = params.length === 0 ? '' : '?' + params;
+
+  return uriTemplate`/api/v2/firewall/components/quarantined` + params;
+}
+
+export function getFirewallContainerQuarantineListUrl(page, pageSize) {
+  let params = toURIParams({
+    page: page,
+    pageSize: pageSize,
+  });
+
+  params = params.length === 0 ? '' : '?' + params;
+
+  return uriTemplate`/api/v2/firewall/container-image/policyViolations/quarantined` + params;
+}
+
+export function getFirewallContainerWaiverListUrl(page, pageSize) {
+  let params = toURIParams({
+    page: page,
+    pageSize: pageSize,
+  });
+
+  params = params.length === 0 ? '' : '?' + params;
+
+  return uriTemplate`/api/v2/firewall/container-image/policyWaiver` + params;
+}
+
+export function getFirewallQuarantineSummaryUrl() {
+  return uriTemplate`/api/v2/firewall/quarantine/summary`;
+}
+
+export function getRepositoryViolationsUrl(repositoryId) {
+  return uriTemplate`/api/v2/firewall/repositories/${repositoryId}/violations`;
+}
+
+export function getProductFeaturesUrl() {
+  return uriTemplate`/rest/product/features`;
+}
+
+// CLM-39545 / P1-F4: feature-flag toggle endpoint. POST enables a flag,
+// DELETE disables it. Used by the Preview-UI Settings page.
+export function getConfigFeatureUrl(featureName) {
+  return uriTemplate`/api/v2/config/features/${featureName}`;
+}
+
+// CLM-39702: License Threat Group counts endpoint. Used by the Legal
+// Obligations tile (frontend integration in Epic 4 — Dashboard).
+export function getLicenseThreatGroupCountsUrl(ownerType, ownerId) {
+  return uriTemplate`/rest/licenseThreatGroup/${ownerType}/${ownerId}/counts`;
+}
+
+/**
+ * CLM-39604 (P1.5-D-2): tenant-cached, ALP-aware aggregate that powers the
+ * Preview Dashboard Legal Obligations tile.
+ *
+ * Returns one of four discriminated payloads:
+ *   { variant: 'ALP', groups: [...] }
+ *   { variant: 'TOP_LEGAL_VIOLATIONS', violations: [...] }
+ *   { permissionDenied: true }
+ *   { empty: true }
+ */
+export function getDashboardLegalObligationsUrl() {
+  return uriTemplate`/rest/dashboard/legalObligations`;
+}
+
+// Global Search typeahead. Backed by GET /rest/search/suggest.
+// `source` selects the tenant IQ index ('local', default) or the shared catalog ('catalog').
+export function getGlobalSearchSuggestUrl(query, source) {
+  const params = toURIParams({
+    q: query,
+    source: source ?? undefined,
+  });
+  return uriTemplate`/rest/search/suggest?` + params;
+}
+
+// Global Search full results. Backed by GET /rest/search/results.
+// `tab` is required (ALL | APPLICATION | COMPONENT | VULNERABILITY | VIOLATION | WAIVER).
+// `searchAfter` is the opaque deep-pagination cursor; omit it for shallow pages.
+export function getGlobalSearchResultsUrl({
+  q,
+  tab,
+  page,
+  pageSize,
+  searchAfter,
+  source,
+  includeFacets,
+  includeTabCounts,
+} = {}) {
+  const params = toURIParams({
+    q,
+    tab,
+    page: page ?? undefined,
+    pageSize: pageSize ?? undefined,
+    searchAfter: searchAfter ?? undefined,
+    source: source ?? undefined,
+    includeFacets: includeFacets ? true : undefined,
+    includeTabCounts: includeTabCounts ? true : undefined,
+  });
+  return uriTemplate`/rest/search/results?` + params;
+}
+
+export function getEnableUnauthenticatedPages() {
+  return uriTemplate`/rest/product/features/enableUnauthenticatedPages`;
+}
+
+export function getEnableSsoOnly() {
+  return uriTemplate`/rest/product/features/enableSsoOnly`;
+}
+
+export function getOAuth2Enabled() {
+  return uriTemplate`/rest/product/features/oauth2Enabled`;
+}
+
+export function getQuarantinedComponentViewAnonymousAccessEnabledState() {
+  return uriTemplate`/api/v2/firewall/quarantinedComponentView/configuration/anonymousAccess/`;
+}
+
+/*
+ * @since 1.18.0
+ */
+export function getPermissionContextTestUrl(ownerType, ownerId) {
+  if (ownerType === 'repository_container') {
+    return uriTemplate`/rest/user/permissions/repository_container`;
+  }
+  return uriTemplate`/rest/user/permissions/${ownerType}` + (ownerId ? `/${ownerId}` : '');
+}
+
+export const getReportBomUrl = getBrowseReportUrl('bom.json');
+
+export const getReportUnknownJsUrl = getBrowseReportUrl('unknownjs.json');
+
+export const getExpandedCoverageEmbeddableUrl = getBrowseReportUrl('index.html');
+
+export const getReportPolicyThreatsUrl = getBrowseReportUrl('policythreats.json');
+
+export const getReportDataUrl = getBrowseReportUrl('data.json');
+
+export const getReportPartialMatchedUrl = getBrowseReportUrl('partialmatched.json');
+
+export const getDependenciesUrl = getBrowseReportUrl('dependencies.json');
+
+export const getReportSecurityUrl = getBrowseReportUrl('security.json');
+
+export const getReportLicenseUrl = getBrowseReportUrl('licenses.json');
+
+export function getReportReevaluateUrl(applicationPublicId, scanId) {
+  return `${getBaseReportUrl(applicationPublicId, scanId)}/reevaluatePolicy`;
+}
+
+// HRC reevaluate endpoint added by CLM-44276:
+// /rest/report/hostedRepositoryComponent/{hrcId}/{scanId}/reevaluatePolicy
+export function getHrcReportReevaluateUrl(hrcId, scanId) {
+  return uriTemplate`/rest/report/hostedRepositoryComponent/${hrcId}/${scanId}/reevaluatePolicy`;
+}
+
+export function getReportReevaluateStatusUrl(applicationPublicId, statusId) {
+  // No scanId in the path (the backend lookup never uses one); the backend still scopes the status
+  // row to the application, looking it up by (applicationId, statusId).
+  return uriTemplate`/rest/report/${applicationPublicId}/reevaluatePolicy/status/${statusId}`;
+}
+
+/**
+ * @param waiverScope {string} application|organization
+ * @param ownerId {string}
+ * @param policyViolationId {string}
+ */
+export function deleteWaiverUrl(waiverScope, ownerId, waiverId) {
+  return uriTemplate`/api/v2/policyWaivers/${waiverScope}/${ownerId}/${waiverId}/`;
+}
+
+export function renewWaiverUrl() {
+  return uriTemplate`/api/v2/firewall/waivers/renew`;
+}
+
+export function redirectTo(url) {
+  window.location = url;
+}
+
+export function assign(url) {
+  window.location.assign(url);
+}
+
+export function getDownloadPdfUrl(applicationPublicId, scanId) {
+  return uriTemplate`/rest/report/${applicationPublicId}/${scanId}/printReport`;
+}
+
+export function getSbomDownloadPdfUrl(applicationPublicId, sbomVersion) {
+  return uriTemplate`/rest/report/${applicationPublicId}/sbom/${sbomVersion}/printReport`;
+}
+
+export function getExportCycloneDxUrl(applicationId, scanId) {
+  return uriTemplate`/ui/links/cycloneDx/${applicationId}/reports/${scanId}`;
+}
+
+export function getExportSpdxUrl(applicationId, scanId) {
+  return uriTemplate`/ui/links/spdx/${applicationId}/reports/${scanId}`;
+}
+
+// ============================================================================
+// HRC Report URLs
+// ============================================================================
+
+/**
+ * Base URL for HRC report REST endpoints.
+ */
+function getBaseHrcReportUrl(hrcId, scanId) {
+  return uriTemplate`/rest/report/hostedRepositoryComponent/${hrcId}/${scanId}`;
+}
+
+/**
+ * HRC report metadata endpoint.
+ */
+export function getHrcReportMetadataUrl(hrcId, scanId) {
+  return `${getBaseHrcReportUrl(hrcId, scanId)}/metadata`;
+}
+
+/**
+ * HRC report history endpoint. Mirrors {@link getApplicationReportHistoryUrl}:
+ * bakes stageId and limit into the builder (properly URL-encoded), and defaults
+ * limit=20 because the server has no cap and callers should state what they can afford.
+ */
+export function getHrcReportHistoryUrl(hrcId, stageId, limit = 20) {
+  return uriTemplate`/api/v2/reports/hostedRepositoryComponent/${hrcId}/history?stage=${stageId}&limit=${limit}`;
+}
+
+/**
+ * HRC browse report URL builder.
+ */
+const getHrcBrowseReportUrl = (fileName) => (hrcId, scanId) =>
+  `${getBaseHrcReportUrl(hrcId, scanId)}/browseReport/${fileName}`;
+
+export const getHrcReportBomUrl = getHrcBrowseReportUrl('bom.json');
+export const getHrcReportPolicyThreatsUrl = getHrcBrowseReportUrl('policythreats.json');
+export const getHrcReportSecurityUrl = getHrcBrowseReportUrl('security.json');
+export const getHrcReportLicenseUrl = getHrcBrowseReportUrl('licenses.json');
+// Report data (equivalent of getReportDataUrl) via browseReport for HRC
+export const getHrcReportDataUrl = getHrcBrowseReportUrl('data.json');
+
+/**
+ * HRC print report URL for PDF download.
+ */
+export function getHrcDownloadPdfUrl(hrcId, scanId) {
+  return `${getBaseHrcReportUrl(hrcId, scanId)}/printReport`;
+}
+
+/**
+ * HRC CycloneDX SBOM export URL.
+ */
+export function getHrcExportCycloneDxUrl(hrcId, scanId) {
+  return uriTemplate`/ui/links/cycloneDx/hostedRepositoryComponent/${hrcId}/reports/${scanId}`;
+}
+
+/**
+ * HRC SPDX SBOM export URL.
+ */
+export function getHrcExportSpdxUrl(hrcId, scanId) {
+  return uriTemplate`/ui/links/spdx/hostedRepositoryComponent/${hrcId}/reports/${scanId}`;
+}
+
+/**
+ * @param waiverScope {string} application|organization
+ * @param ownerId {string}
+ * @param policyViolationId {string}
+ */
+export function getAddPolicyViolationWaiverUrl(waiverScope, ownerId, policyViolationId) {
+  return uriTemplate`/api/v2/policyWaivers/${waiverScope}/${ownerId}/${policyViolationId}`;
+}
+
+export function getBulkWaiverUrl(ownerType, ownerId) {
+  return uriTemplate`/api/v2/policyWaivers/${ownerType}/${ownerId}`;
+}
+
+/**
+ * @param {string} ownerType
+ * @param {string} ownerId
+ * @param {string} policyId
+ * @returns {string}
+ */
+export function getOwnerContextHierarchyUrl(ownerType, ownerId, policyId) {
+  return uriTemplate`/rest/policyWaiver/${ownerType}/${ownerId}/applicable/context/${policyId}`;
+}
+
+/**
+ * Get detailed information for a single waiver
+ * @param ownerType {string} application|organization
+ * @param ownerId {string}
+ * @param waiverId {string}
+ * @returns {object}
+ */
+export function getWaiverDetailsUrl(ownerType, ownerId, policyWaiverId) {
+  return uriTemplate`/api/v2/policyWaivers/${ownerType}/${ownerId}/${policyWaiverId}`;
+}
+
+export function getFirewallWaiverDetailsUrl(ownerType, ownerId, policyWaiverId) {
+  return uriTemplate`/api/v2/firewall/policyWaivers/${ownerType}/${ownerId}/${policyWaiverId}`;
+}
+
+export function getPolicyWaiverReasonsUrl() {
+  return uriTemplate`/api/v2/policyWaiverReasons`;
+}
+
+export function userTokenUrl() {
+  return uriTemplate`/api/v2/userTokens/currentUser`;
+}
+
+export function checkUserTokenExistenceUrl() {
+  return `${userTokenUrl()}/hasToken`;
+}
+
+export function userTokenCreateTimeUrl() {
+  return `${userTokenUrl()}/createTime`;
+}
+
+export function getLicenseLegalApplicationReportUrl(applicationId) {
+  return uriTemplate`/api/v2/licenseLegalMetadata/application/${applicationId}`;
+}
+
+export function getLicenseLegalComponentUrl(orgOrApp, ownerId, hash) {
+  return uriTemplate`/api/v2/licenseLegalMetadata/${orgOrApp}/${ownerId}/component?hash=${hash}`;
+}
+
+export function getLicenseLegalComponentByComponentIdentifierUrl(
+  componentIdentifier,
+  orgOrApp = 'organization',
+  ownerId = 'ROOT_ORGANIZATION_ID'
+) {
+  return uriTemplate`/api/v2/licenseLegalMetadata/${orgOrApp}/${ownerId}/component?componentIdentifier=${componentIdentifier}`;
+}
+
+export function getLegalDashboardApplicationsUrl() {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/dashboard/applications`;
+}
+
+export function getLegalDashboardComponentsUrl() {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/dashboard/components`;
+}
+
+export function getLegalDashboardApplicationUrl(applicationPublicId) {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/dashboard/application/${applicationPublicId}`;
+}
+
+export function getOwnerHierarchyUrl(ownerType, ownerId) {
+  return uriTemplate`/rest/owner/${ownerType}/${ownerId}/hierarchy`;
+}
+
+export function getOwnerHierarchyLegalReviewerUrl(ownerType, ownerId) {
+  return uriTemplate`/rest/owner/${ownerType}/${ownerId}/hierarchy/legalReviewer`;
+}
+
+export function getOwnerDetailsUrl(ownerType, ownerId, isRepositories) {
+  return isRepositories
+    ? uriTemplate`/rest/sidebar/repository_container/details`
+    : uriTemplate`/rest/sidebar/${ownerType}/${ownerId}/details`;
+}
+
+export function getComponentDisplayNameByIdentifierUrl(componentIdentifier) {
+  return uriTemplate`/rest/componentDetails/nameByIdentifier?componentIdentifier=${componentIdentifier}`;
+}
+
+export function getSaveComponentObligationAttributionUrl(orgOrApp, ownerId) {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/obligation/attribution`;
+}
+
+export function getComponentObligationAttributionUrl(orgOrApp, ownerId, componentIdentifier, obligationName) {
+  if (obligationName) {
+    return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/obligation/attribution
+      ?componentIdentifier=${JSON.stringify(componentIdentifier)}&obligationName=${obligationName}`;
+  }
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/obligation/attribution
+    ?componentIdentifier=${JSON.stringify(componentIdentifier)}`;
+}
+
+export function getDeleteComponentObligationAttributionUrl(componentObligationAttributionId) {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/component/obligation/attribution/\
+${componentObligationAttributionId}`;
+}
+
+export function getSaveComponentOriginalSourcesOverrideUrl(orgOrApp, ownerId) {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/sourceLink`;
+}
+
+export function getSaveComponentCopyrightOverrideUrl(orgOrApp, ownerId) {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/copyright`;
+}
+
+export function getComponentCopyrightOverrideUrl(orgOrApp, ownerId, componentIdentifier) {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/copyright\
+?componentIdentifier=${JSON.stringify(componentIdentifier)}`;
+}
+
+export function getSaveComponentObligationUrl(orgOrApp, ownerId) {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/obligation`;
+}
+
+export function getSaveComponentObligationsUrl(orgOrApp, ownerId) {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/obligations`;
+}
+
+export function getComponentObligationUrl(orgOrApp, ownerId, componentIdentifier, obligationName) {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/obligation
+    ?componentIdentifier=${JSON.stringify(componentIdentifier)}&obligationName=${obligationName}`;
+}
+
+export function getDeleteComponentObligationsUrl(componentObligationIds) {
+  const queryParams = componentObligationIds.join('&componentObligationId=');
+  return uriTemplate`/api/experimental/licenseLegalMetadata/component/obligation?componentObligationId=` + queryParams;
+}
+
+export function getSaveLegalFileUrl(orgOrApp, ownerId) {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/legalFile`;
+}
+
+export function getLegalFileUrl(orgOrApp, ownerId, componentIdentifier, legalFileType) {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/legalFile
+    ?componentIdentifier=${JSON.stringify(componentIdentifier)}&legalFileType=${legalFileType}`;
+}
+
+function getVulnerabilityCustomDataUrl(ownerType, ownerId) {
+  return uriTemplate`/api/experimental/vulnerability/customData/${ownerType}/${ownerId}`;
+}
+
+function getVulnerabilityCustomDataFieldUrl(field, ownerType, ownerId) {
+  return `${getVulnerabilityCustomDataUrl(ownerType, ownerId)}/${field}`;
+}
+
+function getVulnerabilityCustomDataFieldIdUrl(field, ownerType, ownerId, id) {
+  return `${getVulnerabilityCustomDataUrl(ownerType, ownerId)}/${field}/${id}`;
+}
+
+function getVulnerabilityCustomDataFieldRefIdUrl(field, ownerType, ownerId, refId, componentIdentifier) {
+  const componentIdentifierParam = componentIdentifier ? `?componentIdentifier=${componentIdentifier}` : '';
+  return `${getVulnerabilityCustomDataFieldUrl(field, ownerType, ownerId)}/refId/${refId}${componentIdentifierParam}`;
+}
+
+export function getVulnerabilityCustomRemediationRefIdUrl(ownerType, ownerId, refId, componentIdentifier) {
+  return getVulnerabilityCustomDataFieldRefIdUrl('remediation', ownerType, ownerId, refId, componentIdentifier);
+}
+
+export function getVulnerabilityCustomRemediationUrl(ownerType, ownerId) {
+  return getVulnerabilityCustomDataFieldUrl('remediation', ownerType, ownerId);
+}
+
+export function getVulnerabilityCustomRemediationIdUrl(ownerType, ownerId, id) {
+  return `${getVulnerabilityCustomDataFieldIdUrl('remediation', ownerType, ownerId, id)}`;
+}
+
+export function getVulnerabilityCustomCweRefIdUrl(ownerType, ownerId, refId, componentIdentifier) {
+  return getVulnerabilityCustomDataFieldRefIdUrl('cwe', ownerType, ownerId, refId, componentIdentifier);
+}
+
+export function getVulnerabilityCustomCweUrl(ownerType, ownerId) {
+  return getVulnerabilityCustomDataFieldUrl('cwe', ownerType, ownerId);
+}
+
+export function getVulnerabilityCustomCweIdUrl(ownerType, ownerId, id) {
+  return `${getVulnerabilityCustomDataFieldIdUrl('cwe', ownerType, ownerId, id)}`;
+}
+
+export function getVulnerabilityCustomCvssVectorRefIdUrl(ownerType, ownerId, refId, componentIdentifier) {
+  return getVulnerabilityCustomDataFieldRefIdUrl('cvss/vector', ownerType, ownerId, refId, componentIdentifier);
+}
+
+export function getVulnerabilityCustomCvssVectorUrl(ownerType, ownerId) {
+  return getVulnerabilityCustomDataFieldUrl('cvss/vector', ownerType, ownerId);
+}
+
+export function getVulnerabilityCustomCvssVectorIdUrl(ownerType, ownerId, id) {
+  return `${getVulnerabilityCustomDataFieldIdUrl('cvss/vector', ownerType, ownerId, id)}`;
+}
+
+export function getVulnerabilityCustomCvssSeverityRefIdUrl(ownerType, ownerId, refId, componentIdentifier) {
+  return getVulnerabilityCustomDataFieldRefIdUrl('cvss/severity', ownerType, ownerId, refId, componentIdentifier);
+}
+
+export function getVulnerabilityCustomCvssSeverityUrl(ownerType, ownerId) {
+  return getVulnerabilityCustomDataFieldUrl('cvss/severity', ownerType, ownerId);
+}
+
+export function getVulnerabilityCustomCvssSeverityIdUrl(ownerType, ownerId, id) {
+  return `${getVulnerabilityCustomDataFieldIdUrl('cvss/severity', ownerType, ownerId, id)}`;
+}
+
+export function getPoliciesUrl() {
+  return uriTemplate`/api/v2/policies`;
+}
+
+export function getPoliciesWithProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodeUrl() {
+  return uriTemplate`/rest/policy/repository_container/REPOSITORY_CONTAINER_ID/withProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCode`;
+}
+
+export function getPolicyMonitoringUrl(ownerType, ownerId, stageTypeId) {
+  if (stageTypeId) {
+    return uriTemplate`/rest/policyMonitoring/${ownerType}/${ownerId}?stageTypeId=${stageTypeId}`;
+  }
+  return uriTemplate`/rest/policyMonitoring/${ownerType}/${ownerId}`;
+}
+
+export function getApplicablePolicyMonitoringUrl(ownerType, ownerId) {
+  return getPolicyMonitoringUrl(ownerType, ownerId) + '/applicable';
+}
+
+export function getCopyrightFilePathsUrl(
+  orgOrApp,
+  ownerId,
+  componentHash,
+  componentIdentifier,
+  copyrightHash,
+  pageStart,
+  pageLength
+) {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/${componentHash}/copyright\
+/${copyrightHash}/filePaths?\
+componentIdentifier=${JSON.stringify(componentIdentifier)}&pageStart=${pageStart}&pageLength=${pageLength}`;
+}
+
+export function getCopyrightContextUrl(orgOrApp, ownerId, componentHash, componentIdentifier, copyrightHash, filePath) {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/${componentHash}/copyright\
+/${copyrightHash}/context?componentIdentifier=${JSON.stringify(componentIdentifier)}&filePath=${filePath}`;
+}
+
+export function getCopyrightFileCountUrl(orgOrApp, ownerId, componentHash, componentIdentifier) {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/${componentHash}/copyright\
+/fileCount?componentIdentifier=${JSON.stringify(componentIdentifier)}`;
+}
+
+export function getNotificationUrl() {
+  return uriTemplate`/rest/product/notifications`;
+}
+
+export function getNotificationViewedUrl() {
+  return uriTemplate`/rest/product/notifications/viewed`;
+}
+
+export function getReportAuditLogUrl(appPublicId, reportId, component) {
+  const keyJson = JSON.stringify(pick(['hash', 'componentIdentifier'], component));
+
+  return uriTemplate`/rest/report/${appPublicId}/${reportId}/auditLog/licenses.json+security.json
+      ?key=${keyJson}`;
+}
+
+// HRC audit log endpoint added by CLM-44276:
+// /rest/report/hostedRepositoryComponent/{hrcId}/{scanId}/auditLog/{path}
+export function getHrcReportAuditLogUrl(hrcId, reportId, component) {
+  const keyJson = JSON.stringify(pick(['hash', 'componentIdentifier'], component));
+
+  return uriTemplate`/rest/report/hostedRepositoryComponent/${hrcId}/${reportId}/auditLog/licenses.json+security.json
+      ?key=${keyJson}`;
+}
+
+export function getWebhookEventTypesUrl(context) {
+  const baseUrl = uriTemplate`/rest/config/webhook/eventTypes`;
+  return context ? `${baseUrl}?context=${context}` : baseUrl;
+}
+
+export function getListPolicyWaiverRequestsUrl(ownerType, ownerId, repositoryFormat) {
+  const base = uriTemplate`/api/v2/policyWaiverRequests/${ownerType}/${ownerId}`;
+  return repositoryFormat ? `${base}?repositoryFormat=${encodeURIComponent(repositoryFormat)}` : base;
+}
+
+export function getCreatePolicyWaiverRequestUrl(ownerType, ownerId, policyViolationId) {
+  return uriTemplate`/api/v2/policyWaiverRequests/${ownerType}/${ownerId}/policyViolation/${policyViolationId}`;
+}
+
+export function getViewOrUpdatePolicyWaiverRequestUrl(ownerType, ownerId, policyWaiverRequestId) {
+  return uriTemplate`/api/v2/policyWaiverRequests/${ownerType}/${ownerId}/${policyWaiverRequestId}`;
+}
+
+export function getReviewPolicyWaiverRequestUrl(ownerType, ownerId, policyWaiverRequestId) {
+  return uriTemplate`/api/v2/policyWaiverRequests/${ownerType}/${ownerId}/review/${policyWaiverRequestId}`;
+}
+
+export function getIsJiraEnabledUrl() {
+  return uriTemplate`/rest/jira/enabled`;
+}
+
+export function getJiraProjectsUrl() {
+  return uriTemplate`/rest/jira/project`;
+}
+
+export function getWebhooksUrl() {
+  return uriTemplate`/rest/config/webhook`;
+}
+
+export function getWaiverRequestWebhooksCountUrl() {
+  return uriTemplate`/rest/config/webhook/waiverRequestCount`;
+}
+
+export function deleteWebhooksUrl(webhookId) {
+  return uriTemplate`/rest/config/webhook/${webhookId}`;
+}
+
+export function getTransitiveViolationsUrl(ownerType, ownerId, scanId, hash) {
+  return uriTemplate`/api/v2/policyViolations/transitive/${ownerType}/${ownerId}/${scanId}?hash=${hash}`;
+}
+
+export function getWaiveTransitiveViolationsUrl(ownerId, scanId, hash) {
+  return uriTemplate`/api/v2/policyWaivers/transitive/application/${ownerId}/${scanId}?hash=${hash}`;
+}
+
+export function getLatestReportUrl(applicationId, stageTypeId) {
+  return uriTemplate`/ui/links/application/${applicationId}/latestReport/${stageTypeId}`;
+}
+
+export function getLatestReportInformation(applicationPublicId, stageTypeId) {
+  return uriTemplate`/rest/application/${applicationPublicId}/${stageTypeId}/latestReportInformation`;
+}
+
+// HRC latest report info endpoint added by CLM-44276:
+// /rest/report/hostedRepositoryComponent/{hrcId}/{stageTypeId}/latestReportInformation
+export function getHrcLatestReportInformation(hrcId, stageTypeId) {
+  return uriTemplate`/rest/report/hostedRepositoryComponent/${hrcId}/${stageTypeId}/latestReportInformation`;
+}
+
+export function getRoleByIdUrl(roleId) {
+  return uriTemplate`/api/v2/roles/${roleId}`;
+}
+
+export function getUserUrl() {
+  return uriTemplate`/rest/user`;
+}
+
+export function getMultiTenantUserUrl() {
+  return uriTemplate`/rest/mtiqUser`;
+}
+
+export function getSessionUrl() {
+  return uriTemplate`/rest/user/session`;
+}
+
+export function getUserActivityUrl() {
+  return uriTemplate`/api/v2/userActivity`;
+}
+
+export function getUserActivityExportUrl() {
+  return uriTemplate`/api/v2/userActivity/export`;
+}
+
+export function getUserActivityFilterOptionsUrl() {
+  return uriTemplate`/api/v2/userActivity/filterOptions`;
+}
+
+export function getComponentLabels(ownerId, componentHash, ownerType = 'application') {
+  return uriTemplate`/rest/label/component/${ownerType}/${ownerId}/${componentHash}`;
+}
+
+export function removeLabel(ownerType, ownerId, componentHash, labelId) {
+  return uriTemplate`/rest/label/component/${ownerType}/${ownerId}/${componentHash}/${labelId}`;
+}
+
+export function setProprietaryMatchers(ownerId) {
+  return uriTemplate`/rest/proprietary/application/${ownerId}/add`;
+}
+
+export function getApplicableLabelsUrl(ownerType, ownerId) {
+  return uriTemplate`/api/v2/labels/${ownerType}/${ownerId}/applicable`;
+}
+
+export function getLabelsUrl(ownerType, ownerId) {
+  return uriTemplate`/api/v2/labels/${ownerType}/${ownerId}`;
+}
+
+export function getDeleteLabelsUrl(ownerType, ownerId, labelId) {
+  return uriTemplate`/api/v2/labels/${ownerType}/${ownerId}/${encodeURIComponent(labelId)}`;
+}
+
+export function getProprietaryConfigUrl(ownerType, ownerId) {
+  return uriTemplate`/rest/proprietary/${ownerType}/${ownerId}`;
+}
+
+export function getApplicableLabelScopesUrl(ownerType, ownerId, labelId) {
+  return uriTemplate`/api/v2/labels/${ownerType}/${ownerId}/applicable/context/${labelId}`;
+}
+
+export function getSaveLabelScopeUrl(scopeType, scopeId, componentHash) {
+  return uriTemplate`/rest/label/component/${scopeType}/${scopeId}/${componentHash}`;
+}
+
+export function getUserByIdUrl(userId) {
+  return uriTemplate`/rest/user/${userId}`;
+}
+
+export function getMultiTenantUserByIdUrl(userId) {
+  return uriTemplate`/rest/mtiqUser/${userId}`;
+}
+
+export function getFindUsersUrl(query) {
+  return uriTemplate`/rest/user/global/global/query?q=${query}`;
+}
+
+export function getRoleMappingUrl(roleId) {
+  return uriTemplate`/api/v2/roleMemberships/global/role/${roleId}/members`;
+}
+
+export function getRoleMappingsForRepositories() {
+  return uriTemplate`/api/v2/roleMemberships/repository_container/roles`;
+}
+
+export function getRoleMappingForCurrentOwnerUrl(ownerType, ownerId) {
+  if (ownerType === 'global' || ownerType === 'repository_container') {
+    return uriTemplate`/api/v2/roleMemberships/${ownerType}/roles`;
+  }
+  return uriTemplate`/api/v2/roleMemberships/${ownerType}/${ownerId}/roles`;
+}
+
+export function getAccessPageRolesUrl(ownerType, ownerId) {
+  return uriTemplate`/api/v2/roleMemberships/${ownerType}/${ownerId}/roles`;
+}
+
+export function getRepositoryContainerRoleMappingUrl() {
+  return uriTemplate`/api/v2/roleMemberships/repository_container/roles`;
+}
+
+export function getUsersRepositoryRoleMappingUrl(query) {
+  return uriTemplate`/rest/user/repository_container/query?q=${query}`;
+}
+
+export function getUsersRoleMappingUrl(ownerType, ownerId, query, groups = true) {
+  const params = { q: query, groups };
+
+  return uriTemplate`/rest/user/${ownerType}/${ownerId}/query?` + toURIParams(params);
+}
+
+export function getCreateOrDeleteAccessUrl(ownerType, ownerId, roleId) {
+  return uriTemplate`/api/v2/roleMemberships/${ownerType}/${ownerId}/role/${roleId}/members`;
+}
+
+export function getCreateOrDeleteAccessRepositoryUrl(roleId) {
+  return uriTemplate`/api/v2/roleMemberships/repository_container/role/${roleId}/members`;
+}
+
+export function getSuccessMetricsReportsUrl() {
+  return uriTemplate`/rest/successMetrics/report`;
+}
+
+export function getRequestWaiverUrl(policyViolationId) {
+  return uriTemplate`/api/v2/policyWaiver/${policyViolationId}/application`;
+}
+
+export function getLicenseOverrideUrl(ownerType, ownerId, componentIdentifier) {
+  if (componentIdentifier) {
+    /**
+     * `componentIdentifier` is already a stringified json, but it still needs encoding
+     * `uriTemplate` handles that encoding for us.
+     */
+    return uriTemplate`/api/v2/licenseOverrides/${ownerType}/${ownerId}?componentIdentifier=${componentIdentifier}`;
+  }
+
+  return uriTemplate`/api/v2/licenseOverrides/${ownerType}/${ownerId}`;
+}
+
+export function getLicenseOverrideLegalReviewerUrl(ownerType, ownerId, componentIdentifier) {
+  if (componentIdentifier) {
+    /**
+     * `componentIdentifier` is already a stringified json, but it still needs encoding
+     * `uriTemplate` handles that encoding for us.
+     */
+    return uriTemplate`/api/v2/licenseOverrides/${ownerType}/${ownerId}/legalReviewer?componentIdentifier=${componentIdentifier}`;
+  }
+
+  return uriTemplate`/api/v2/licenseOverrides/${ownerType}/${ownerId}/legalReviewer`;
+}
+
+export function getBaseLicenseOverrideUrl(ownerType, ownerId) {
+  return uriTemplate`/api/v2/licenseOverrides/${ownerType}/${ownerId}`;
+}
+
+export function getDeleteLicenseOverrideUrl(ownerType, ownerId, licenseOverrideId) {
+  return uriTemplate`/api/v2/licenseOverrides/${ownerType}/${ownerId}/${licenseOverrideId}`;
+}
+
+export function getLicensesWithSyntheticFilterUrl() {
+  return uriTemplate`/rest/license?filterSynthetic=true`;
+}
+
+export function getUserResetPasswordByIdUrl(userId) {
+  return uriTemplate`/rest/user/${userId}/reset`;
+}
+
+export function getComponentWaivers(ownerType, ownerId, hash) {
+  return uriTemplate`/rest/policyWaiver/${ownerType}/${ownerId}/component/${hash}`;
+}
+
+export function getRobotUrl(isApp, hashcode) {
+  return uriTemplate`/rest/${isApp ? 'application' : 'organization'}/services/generateIcon/${hashcode}`;
+}
+
+export function getAddIconUrl(ownerType, ownerId) {
+  if (ownerType === 'repository_manager') {
+    return uriTemplate`/rest/repositories/icon/repositoryManager/${encodeURIComponent(ownerId)}`;
+  }
+
+  return uriTemplate`/rest/${ownerType}/icon/${encodeURIComponent(ownerId)}`;
+}
+
+export function getImportSbomUrl(applicationId) {
+  return uriTemplate`/rest/sbom/detect/${applicationId}`;
+}
+
+export function getCommitImportedSbomUrl(applicationId, applicationVersion, applicationVersionOverride) {
+  let url = uriTemplate`/rest/sbom/commit/${applicationId}/${applicationVersion}`;
+  if (applicationVersionOverride) {
+    const queryParams = toURIParams({ applicationVersionOverride });
+    url += `?${queryParams}`;
+  }
+  return url;
+}
+
+export function getSbomPolicyViolationReportUrl(
+  applicationPublicId,
+  sbomVersion,
+  componentRef,
+  fileCoordinateId,
+  hash
+) {
+  let params = toURIParams({
+    componentRef,
+    fileCoordinateId,
+    hash,
+  });
+
+  params = params.length === 0 ? '' : '?' + params;
+  return uriTemplate`/rest/report/${applicationPublicId}/sbom/${sbomVersion}/sbomPolicyViolationReport` + params;
+}
+
+export const getPolicyEvaluationTimestampUrl = (repositoryId, componentIdentifier) =>
+  uriTemplate`/rest/repositories/${repositoryId}/policyEvaluationTimestamps?componentIdentifier=${componentIdentifier}`;
+
+export const getVulnerabilitiesUrl = ({
+  clientType,
+  ownerType,
+  ownerId,
+  componentIdentifier,
+  hash,
+  identificationSource,
+  scanId,
+}) => {
+  const params = toURIParams({
+    componentIdentifier,
+    hash,
+    identificationSource,
+    scanId,
+  });
+  return uriTemplate`/rest/${clientType}/componentDetails/${ownerType}/${ownerId}/vulnerabilities?` + params;
+};
+
+export const getComponentPolicyViolationsUrl = (pathname, repositoryId) => {
+  const firstPart = uriTemplate`/rest/repositories/${repositoryId}/policyViolations/`;
+  // Don't url encode forward slashes in pathname, see CLM-26938
+  const lastPart = encodeURIComponent(pathname).replaceAll('%2F', '/');
+  return firstPart + lastPart;
+};
+
+export function getAttributionReportUrl(applicationPublicId, stageTypeId) {
+  return uriTemplate`/api/v2/licenseLegalMetadata/application/${applicationPublicId}/stage/${stageTypeId}/report`;
+}
+
+export function getAttributionReportTemplatesUrl() {
+  return uriTemplate`/api/v2/licenseLegalMetadata/report-template`;
+}
+
+export function getAttributionReportTemplateUrl(templateId) {
+  return uriTemplate`/api/v2/licenseLegalMetadata/report-template/${templateId}`;
+}
+
+export function getAttributionReportMultiApplicationUrl() {
+  return uriTemplate`/rest/legal/attribution/multiApplication/activeUserFilter/report`;
+}
+
+export const getSuccessMetricsChartDataUrl = (successMetricsReportId) =>
+  uriTemplate`/rest/successMetrics/report/${encodeURIComponent(successMetricsReportId)}/chartData`;
+
+export const getSuccessMetricsComponentCountsUrl = (successMetricsReportId) =>
+  uriTemplate`/rest/successMetrics/report/${encodeURIComponent(successMetricsReportId)}/componentCounts`;
+
+export const getSuccessMetricsReportUrl = (successMetricsId) =>
+  uriTemplate`/rest/successMetrics/report/${successMetricsId}`;
+
+export function getLicenseSummaryUrl() {
+  return uriTemplate`/rest/product/license/validate`;
+}
+
+export function getLicenseDetailsUrl() {
+  return uriTemplate`/rest/product/license`;
+}
+
+export function getLicenseUploadUrl() {
+  return uriTemplate`/api/v2/product/license`;
+}
+
+export const getInnerSourceComponentLatestVersionUrl = (componentIdentifier) =>
+  uriTemplate`/rest/innerSource/component/latestVersion?componentIdentifier=${JSON.stringify(componentIdentifier)}`;
+
+export function getClaimComponentUrl(hash) {
+  const base = uriTemplate`/rest/component/identified`;
+
+  return hash ? `${base}/${encodeURIComponent(hash)}` : base;
+}
+
+export function getQuarantinedComponentOverviewUrl(token) {
+  return uriTemplate`/rest/repositories/quarantinedComponent/${token}/overview`;
+}
+
+export function getQuarantinedComponentPolicyViolationsUrl(token) {
+  return uriTemplate`/rest/repositories/quarantinedComponent/${token}/policyViolations`;
+}
+
+export function getQuarantinedComponentOtherVersionsUrl(token, page, pageSize, sortAsc) {
+  let params = toURIParams({
+    page: page,
+    pageSize: pageSize,
+    asc: sortAsc,
+  });
+
+  params = params.length === 0 ? '' : '?' + params;
+
+  return uriTemplate`/rest/repositories/quarantinedComponent/${token}/otherVersions` + params;
+}
+
+export function getQuarantinedComponentRemediationUrl(token) {
+  return uriTemplate`/rest/repositories/quarantinedComponent/${token}/remediation`;
+}
+
+export function getQuarantinedComponentDetailsUrl(token, version) {
+  const params = toURIParams({ version });
+
+  return uriTemplate`/rest/repositories/quarantinedComponent/${token}/details?` + params;
+}
+
+export const getVulnerabilityOverrideUrl = (ownerType, ownerId, hash, vulnerability) => {
+  if (hash && vulnerability) {
+    const { source, refId } = vulnerability;
+    return uriTemplate`/rest/securityVulnerabilityOverride/${ownerType}/${ownerId}/${hash}/${source}/${refId}`;
+  }
+  return uriTemplate`/rest/securityVulnerabilityOverride/${ownerType}/${ownerId}`;
+};
+
+export const getRepositoryConnectionUrl = (ownerType, ownerId, repositoryConnectionId, inherit) => {
+  if (repositoryConnectionId) {
+    return uriTemplate`/api/v2/config/repositoryConnection/${ownerType}/${ownerId}/${repositoryConnectionId}`;
+  }
+  if (compose(not, isNil)(inherit)) {
+    return uriTemplate`/api/v2/config/repositoryConnection/${ownerType}/${ownerId}?inherit=${inherit}`;
+  }
+  return uriTemplate`/api/v2/config/repositoryConnection/${ownerType}/${ownerId}`;
+};
+
+export const getTestRepositoryConnectionUrl = (ownerType, ownerId, repositoryConnectionId) => {
+  return getRepositoryConnectionUrl(ownerType, ownerId, repositoryConnectionId) + '/test';
+};
+
+export const getArtifactoryConnectionUrl = (ownerType, ownerId, artifactoryConnectionId, inherit) => {
+  if (artifactoryConnectionId) {
+    return uriTemplate`/api/v2/config/artifactoryConnection/${ownerType}/${ownerId}/${artifactoryConnectionId}`;
+  }
+  if (compose(not, isNil)(inherit)) {
+    return uriTemplate`/api/v2/config/artifactoryConnection/${ownerType}/${ownerId}?inherit=${inherit}`;
+  }
+  return uriTemplate`/api/v2/config/artifactoryConnection/${ownerType}/${ownerId}`;
+};
+
+export const getTestArtifactoryConnectionUrl = (ownerType, ownerId, artifactoryConnectionId) => {
+  return getArtifactoryConnectionUrl(ownerType, ownerId, artifactoryConnectionId) + '/test';
+};
+
+export const getSamlConfigurationUrl = () => {
+  return uriTemplate`/api/v2/config/saml`;
+};
+
+export const getSamlMetadataUrl = () => {
+  return uriTemplate`/api/v2/config/saml/metadata`;
+};
+
+export const getOidcConfigurationUrl = () => {
+  return uriTemplate`/api/v2/config/oidc`;
+};
+
+export const getOrganizationAppliedTagUrl = (organizationId) => {
+  return getCategoriesUrl('organization', organizationId) + '/applied';
+};
+
+export const getCategoriesUrl = (ownerType, ownerId) => {
+  return uriTemplate`/api/v2/applicationCategories/${ownerType}/${ownerId}`;
+};
+
+export const getApplicableCategoriesUrl = (ownerType, ownerId) => {
+  const getApplicableParam = ownerType === 'organization' ? '/applicable' : '';
+
+  return getCategoriesUrl(ownerType, ownerId) + getApplicableParam;
+};
+
+export const getDeleteCategoriesUrl = (ownerType, ownerId, categoryId) => {
+  return getCategoriesUrl(ownerType, ownerId) + `/${categoryId}`;
+};
+
+export const getOrganizationPolicyTagUrl = (organizationId) => {
+  return getCategoriesUrl('organization', organizationId) + '/policy';
+};
+
+export const getApplicationSummariesUrl = (nameFilter, order, page, pageSize) => {
+  const params = toURIParams({
+    nameFilter,
+    order,
+    page,
+    pageSize,
+  });
+
+  return `${getSummaryUrl()}?` + params;
+};
+
+export const getConditionTypeUrl = () => uriTemplate`/rest/policy/conditionType`;
+export const getConditionValueTypeUrl = (ownerType, ownerId) =>
+  uriTemplate`/rest/conditionValueType/${ownerType}/${ownerId}`;
+
+export const getPolicyUrl = (ownerType, ownerId) => {
+  return uriTemplate`/rest/policy/${ownerType}/${ownerId}`;
+};
+
+export const getPolicyNotificationsUrl = (ownerType, ownerId) => {
+  return uriTemplate`/rest/policy/${ownerType}/${ownerId}/notifications`;
+};
+
+export const getPolicyCRUDUrl = (ownerType, ownerId, policyId) => {
+  return getPolicyUrl(ownerType, ownerId) + `/${policyId}`;
+};
+
+export const getPolicyOverridesUrl = (ownerType, ownerId, policyId) => {
+  return getPolicyCRUDUrl(ownerType, ownerId, policyId) + '/overrides';
+};
+
+export const getApplicablePolicies = (ownerType, ownerId) => {
+  return getPolicyUrl(ownerType, ownerId) + '/applicable';
+};
+
+export const getPolicyTagUrl = (policyId, ownerType, ownerId) => {
+  return uriTemplate`/rest/appliedTag/policy/${policyId}/${ownerType}/${ownerId}`;
+};
+
+export const getCrowdConfigurationUrl = () => {
+  return uriTemplate`/api/v2/config/crowd`;
+};
+
+export const getCrowdConfigurationTestUrl = () => {
+  return uriTemplate`/api/v2/config/crowd/test`;
+};
+
+export const getDestinationOrganizationsUrl = (ownerId, isApp) => {
+  return uriTemplate`/rest/move/${isApp ? 'application' : 'organization'}/${ownerId}/destinations`;
+};
+
+export const getBundleUploadUrl = (applicationPublicId, stageId, sendNotifications) => {
+  return uriTemplate`/rest/scan/${applicationPublicId}?stageId=${stageId}&sendNotifications=${sendNotifications}${
+    !window.FormData ? '&noFormData=true' : ''
+  }`;
+};
+
+export const getEvaluationStatusUrl = (applicationPublicId, ticketId) =>
+  uriTemplate`/rest/scan/${applicationPublicId}/${ticketId}`;
+
+export const getApplicationReportUrl = (applicationPublicId, scanId) =>
+  `#/applicationReport/${applicationPublicId}/${scanId}/policy`;
+
+export const getMoveApplicationUrl = (applicationId, organizationId) =>
+  uriTemplate`/api/v2/applications/${applicationId}/move/organization/${organizationId}`;
+
+export const getMoveOrganizationUrl = (organizationId, destinationId) =>
+  uriTemplate`/api/v2/organizations/${organizationId}/move/destination/${destinationId}?failEarlyOnError=true`;
+
+export const getMoveOrganizationCSVErrorsUrl = (organizationId, destinationId) =>
+  uriTemplate`/rest/organization/${organizationId}/move/destination/${destinationId}/export`;
+
+export const getComponentRiskDetailsUrl = (hash) => {
+  return uriTemplate`/rest/componentDetails/applications?hash=${hash}`;
+};
+
+export const getComponentNameUrl = (hash) => {
+  return uriTemplate`/rest/componentDetails/name?hash=${hash}`;
+};
+
+export const getAuditReportSummary = function (repositoryId) {
+  return uriTemplate`/rest/repositories/${encodeURIComponent(repositoryId)}/report/summary`;
+};
+
+export const getLegacyViolationURL = (ownerType, ownerId) =>
+  uriTemplate`/api/v2/config/legacyViolations/${ownerType}/${ownerId}`;
+
+export const getApplicableAutoWaiversURL = (ownerType, ownerId) => {
+  return uriTemplate`/api/v2/autoPolicyWaivers/v2/${ownerType}/${ownerId}/applicableAutoWaivers`;
+};
+
+export const getAutoWaiversConfigurationURL = (ownerType, ownerId) => {
+  return uriTemplate`/api/v2/autoPolicyWaivers/${ownerType}/${ownerId}/status`;
+};
+
+export const getAutoWaiversConfigurationURLnoStatus = (ownerType, ownerId) => {
+  return uriTemplate`/api/v2/autoPolicyWaivers/${ownerType}/${ownerId}`;
+};
+
+export const getAutoWaiversConfigurationURLWaiver = (ownerType, ownerId, waiverId) => {
+  return uriTemplate`/api/v2/autoPolicyWaivers/${ownerType}/${ownerId}/${waiverId}`;
+};
+
+export const getAutoWaiverExclusionsUrl = (ownerType, ownerId) => {
+  return uriTemplate`/api/v2/autoPolicyWaiverExclusions/${ownerType}/${ownerId}`;
+};
+
+export const getAutoWaiverExclusionsByAutoWaiverIdUrl = (ownerType, ownerId, autoWaiverId) => {
+  return uriTemplate`/api/v2/autoPolicyWaiverExclusions/${ownerType}/${ownerId}/${autoWaiverId}`;
+};
+
+export const getAutoWaiverExclusionsByExclusionIdUrl = (
+  ownerType,
+  ownerId,
+  autoWaiverId,
+  autoPolicyWaiverExclusionId
+) => {
+  return uriTemplate`/api/v2/autoPolicyWaiverExclusions/${ownerType}/${ownerId}/${autoWaiverId}/${autoPolicyWaiverExclusionId}`;
+};
+
+export const getNotificationWebhooksUrl = (ownerType, ownerId, eventType) => {
+  const base = uriTemplate`/rest/config/webhook/policy/${ownerType}/${ownerId ? `${ownerId}` : ''}`;
+  return eventType ? `${base}?eventType=${encodeURIComponent(eventType)}` : base;
+};
+
+export const getRevokeLegacyViolationUrl = (applicationPublicId) =>
+  uriTemplate`/api/v2/legacyViolations/application/${applicationPublicId}/revoke`;
+
+export const getEndpointsUrl = (apiType) => uriTemplate`/api/v2/endpoints/${apiType}`;
+
+export const getLegacyViolationModalUrl = (appId) => uriTemplate`/api/v2/legacyViolations/application/${appId}/grant`;
+
+export const getImportPoliciesUrl = (appId) => uriTemplate`/rest/policy/organization/${appId}/import`;
+
+export const getRepositoryPolicyViolationUrl = (repositoryId, repositoryPolicyId) =>
+  uriTemplate`/rest/repositories/${repositoryId}/policyViolation/${repositoryPolicyId}`;
+
+export const getUnconfiguredRepositoriesManager = () => uriTemplate`/rest/repositories/repositoryManager/unconfigured`;
+
+export const getRepositoryListUrl = (repositoryManagerId) =>
+  uriTemplate`/rest/repositories/repositoryManager/${repositoryManagerId}/repositories`;
+
+export const getSupportedRepositoriesFormat = () => uriTemplate`/rest/integration/repositories/evaluate/ignorePatterns`;
+
+export const getRepositoryManagerById = (repositoryManagerId) =>
+  uriTemplate`/api/v2/firewall/repositoryManagers/${repositoryManagerId}`;
+
+export const getRepositoryManagersUrl = () => `/api/v2/firewall/repositoryManagers`;
+
+export const getVirtualRepositoryManagersUrl = () => `/api/v2/firewall/virtualManagers`;
+
+export const getAddRepositoryUrl = (repositoryManagerId) =>
+  uriTemplate`/api/v2/firewall/repositoryManagers/${repositoryManagerId}/repositories`;
+
+export const getVirtualProxyRepositoryUrl = (repositoryManagerId, repositoryId) =>
+  uriTemplate`/api/v2/firewall/repositoryManagers/${repositoryManagerId}/repositories/${repositoryId}`;
+
+export const getRepositoryContainer = () => uriTemplate`/api/v2/firewall/repositoryContainer`;
+
+export const getConfigureRepositoriesUrl = (repositoryManagerId) =>
+  uriTemplate`/rest/repositories/repositoryManager/${repositoryManagerId}/configureRepositories`;
+
+export const getConfigureFirewallOnboardingUrl = () => uriTemplate`/rest/repositories/configureFirewallOnboarding`;
+
+export const getRepositoryComponentNameUrl = (ownerType, ownerId) =>
+  uriTemplate`/rest/repositories/${ownerType}/${ownerId}/proprietaryComponentNamePatterns`;
+
+export const getAppIntegrationsAndRisk = () => uriTemplate`/rest/integrations/statuses`;
+
+export const getConfigurationUrl = () => {
+  return uriTemplate`/api/v2/config`;
+};
+
+export const getUserTokenConfigurationUrl = () => {
+  return uriTemplate`/api/v2/config/userTokens`;
+};
+
+export const getRepositoryComponentNamePatternUpdateUrl = () =>
+  uriTemplate`/rest/repositories/proprietaryComponentNamePatterns/update`;
+
+export const getSourceControlRateLimitsUrl = (ownerType, ownerId) =>
+  uriTemplate`/api/experimental/sourceControl/${ownerType}/${ownerId}/rateLimits`;
+
+export const getSastScanUrl = (applicationPublicId, sastScanId) =>
+  uriTemplate`/api/experimental/application/${applicationPublicId}/sastScan/${sastScanId}`;
+
+export const getIdeIntegratedUserCount = () => uriTemplate`/api/v2/scan/applications/ideUser/overview`;
+
+export const getPolicyViolationUiLink = (violationId) => {
+  return uriTemplate`/ui/links/policyViolation/${violationId}`;
+};
+
+export const getDeveloperDashboardGraphsData = () => uriTemplate`/rest/integrations/stats/usage-over-time`;
+
+export const getSbomsByApplicationUrl = (applicationId, page, pageSize, sortBy, asc) => {
+  const rawParams = {
+    page,
+    pageSize,
+    sortBy,
+    asc,
+  };
+  return uriTemplate`/api/v2/sbom/applications/${applicationId}?` + toURIParams(rawParams);
+};
+
+export const getDownloadSbomFileUrl = (applicationId, applicationVersion, state = 'original', specification) => {
+  const params = compose(toURIParams, reject(isNil))({ state, specification });
+  const query = params ? '/?' + params : '';
+  return uriTemplate`/api/v2/sbom/applications/${applicationId}/versions/${applicationVersion}` + query;
+};
+
+export const getDeleteSbomByApplicationIdAndVersionUrl = (applicationId, applicationVersion) =>
+  uriTemplate`/api/v2/sbom/applications/${applicationId}/versions/${applicationVersion}`;
+
+export const getBillOfMaterialsComponentsUrl = (
+  applicationId,
+  sbomVersion,
+  page,
+  pageSize,
+  sortBy,
+  asc,
+  vulnerabilityThreatLevels,
+  dependencyTypes,
+  filter
+) => {
+  const rawParams = {
+    page,
+    pageSize,
+    sortBy,
+    asc,
+    filter,
+  };
+
+  const listParams = {
+    vulnerabilityThreatLevels,
+    dependencyTypes,
+  };
+
+  const queryTerms = compose(
+    map(join('=')),
+    map(adjust(1, encodeURIComponent)),
+    toPairs,
+    reject(isNilOrEmpty)
+  )(rawParams);
+  const isStringArray = ifElse(is(Array), ramdaFilter(is(String)), always([]));
+  const listQueryTerms = compose(
+    reject(isNilOrEmpty),
+    chain(([key, values]) => map((v) => `${key}=${encodeURIComponent(v)}`, isStringArray(values))),
+    toPairs,
+    reject(isNilOrEmpty)
+  )(listParams);
+
+  const composedParams = join('&', [...queryTerms, ...listQueryTerms]);
+  const queryParams = composedParams ? '?' + composedParams : '';
+
+  return uriTemplate`/api/v2/sbom/applications/${applicationId}/versions/${sbomVersion}/components` + queryParams;
+};
+
+export const getSbomApplicationsUrl = (page, pageSize, sortBy, asc, applicationName) => {
+  const rawParams = {
+    page,
+    pageSize,
+    sortBy,
+    asc,
+    applicationName,
+  };
+  return uriTemplate`/rest/sbom/applications?` + toURIParams(rawParams);
+};
+
+export const getSbomComponentDetailsUrl = (applicationId, sbomVersion, componentHash) =>
+  uriTemplate`/rest/sbom/applications/${applicationId}/versions/${sbomVersion}/components/${componentHash}`;
+
+export const getSbomComponentDependencyTreeUrl = (componentHash) =>
+  uriTemplate`/api/v2/sbom/components/${componentHash}`;
+
+export const getAllApplicationSbomVersions = (applicationId) =>
+  uriTemplate`/api/v2/sbom/applications/${applicationId}/versions`;
+
+export const getSbomVulnerabilityDetailsUrl = (applicationId, sbomVersion, refId, componentHash) =>
+  uriTemplate`/api/v2/sbom/applications/${applicationId}/versions/${sbomVersion}/vulnerability/${refId}?componentHash=${componentHash}`;
+
+export const getSbomVulnerabilityAnnotationUrl = (applicationId, version, refId) =>
+  uriTemplate`/api/v2/sbom/applications/${applicationId}/versions/${version}/vulnerability/${refId}/analysis`;
+
+export const getSbomMetadataUrl = (applicationId, version) =>
+  uriTemplate`/rest/sbom/applications/${applicationId}/versions/${version}/sbomMetadata`;
+
+export const getSbomSummaryUrl = (applicationId, version) =>
+  uriTemplate`/rest/sbom/applications/${applicationId}/versions/${version}/summary`;
+
+export const getPrioritiesPageTableData = (applicationId, scanId) =>
+  uriTemplate`/rest/developer/priorities/${applicationId}/${scanId}`;
+
+export const getTotalSbomsAnalyzedUrl = () => uriTemplate`/rest/sbom/dashboard/sbomsAnalyzed`;
+
+export const getSbomsHistoryUrl = () => uriTemplate`/rest/sbom/dashboard/sbomsHistoryMetrics`;
+
+export const getSbomsHighPriorityVulnerabilitiesUrl = () =>
+  uriTemplate`/rest/sbom/dashboard/highPriorityVulnerabilities`;
+
+export const getSbomReleaseStatusUrl = () => uriTemplate`/rest/sbom/dashboard/sbomReleaseStatus`;
+
+export const getRecentlyImportedSbomsUrl = () => uriTemplate`/rest/sbom/dashboard/recentlyImportedSboms`;
+
+export const getSbomVulnerabibilityAnalysisReferenceData = () =>
+  uriTemplate`/rest/sbom/vulnerabilityAnalysis/referenceData`;
+
+export const getVulnerabilitesByThreatLevelUrl = () => uriTemplate`/rest/sbom/dashboard/vulnerabilitiesByThreatLevel`;
+
+export const getLicensedSolutionsUrl = () => uriTemplate`/api/v2/solutions/licensed?allowRelativeUrls=true`;
+
+export const getOwnerDetailsByTypeAndInternalId = (ownerType, ownerId) =>
+  uriTemplate`/rest/owner/${ownerType}/${ownerId}/details`;
+
+// The endpoint reads two report files per returned row and does not cap `limit` server-side, so
+// callers state the page size they can afford rather than inheriting the server's default of 100.
+export const getApplicationReportHistoryUrl = (applicationId, stageId, limit = 20) =>
+  uriTemplate`/api/v2/reports/applications/${applicationId}/history?stage=${stageId}&limit=${limit}`;
+
+export const getRoiConfigurationUrl = (currencyType) => {
+  const currencyPath = currencyType ? `/currencyType/${currencyType}` : '';
+  return uriTemplate`/rest/roiConfiguration` + currencyPath;
+};
+
+export const getRoiConfigurationRestoreDefaultsUrl = (currencyType) =>
+  uriTemplate`/rest/roiConfiguration/defaultValues/currencyType/${currencyType}`;
+
+export const getContainerRepositoryResultsUrl = (repositoryId) =>
+  uriTemplate`/api/v2/firewall/container-images/repositories/repository/${repositoryId}/results/image-details`;
+
+export const getContainerRepositoryReportSummaryUrl = (repositoryId) =>
+  uriTemplate`/rest/firewall/container-images/repositories/${repositoryId}/report/containerImageReportSummary`;
+
+export const getSessionLogoutUrl = () => {
+  return uriTemplate`/rest/user/session/logout`;
+};
+
+export const getCpeConfigurationUrl = (ownerType, ownerId) =>
+  uriTemplate`/api/v2/${ownerType}/${ownerId}/configuration/publicSource/cpe`;
+
+export function getActiveViolationsWithActionFailUrl(containerImageId, stageId) {
+  return uriTemplate`/rest/policy/violations/active/${containerImageId}/stages/${stageId}/action/fail`;
+}
+
+export function getAddContainerImagePolicyWaiverUrl(containerImageId) {
+  return uriTemplate`/api/v2/firewall/container-image/${containerImageId}/policyWaiver`;
+}
+
+export function getCreateContainerImageWaiverRequestUrl(containerImageId) {
+  return uriTemplate`/api/v2/firewall/container-image/${containerImageId}/policyWaiverRequest`;
+}
+
+export function getDeleteContainerImagePolicyWaiverUrl(containerImageId) {
+  return uriTemplate`/api/v2/firewall/container-image/${containerImageId}/policyWaiver`;
+}
+
+export function getContainerImageAllRepositoriesWaiversUrl() {
+  return uriTemplate`/api/v2/policyWaivers/repository_container/REPOSITORY_CONTAINER_ID`;
+}
+
+export function getFirewallBulkWaiverUrl(ownerType, ownerId) {
+  return uriTemplate`/api/v2/firewall/repositories/${ownerType}/${ownerId}/waivers/bulk`;
+}
+
+export const getFipsStatusUrl = () => uriTemplate`/rest/security/fipsMode`;
+
+export function getShouldDisplayDefaultPasswordWarning() {
+  return uriTemplate`/rest/user/shouldDisplayDefaultPasswordWarning`;
+}
+
+export function getChangeMyPasswordUrl() {
+  return uriTemplate`/rest/user/password`;
+}
+
+export function getAbsoluteUrl(url) {
+  return uriTemplate`/${url}`;
+}
+
+export const getComponentDetailsUrl = ({
+  clientType,
+  ownerType,
+  ownerId,
+  componentIdentifier,
+  hash,
+  matchState,
+  proprietary,
+  pathname,
+  identificationSource,
+  scanId,
+  dependencyType,
+}) => {
+  const params = toURIParams({
+    componentIdentifier,
+    hash,
+    matchState,
+    proprietary,
+    pathname,
+    identificationSource,
+    scanId,
+    dependencyType,
+  });
+  return uriTemplate`/rest/${clientType}/componentDetails/${ownerType}/${encodeURIComponent(ownerId)}?` + params;
+};
+
+export const getVersionGraphUrl = ({
+  clientType,
+  ownerType,
+  ownerId,
+  componentIdentifier,
+  hash,
+  matchState,
+  proprietary,
+  pathname,
+  identificationSource,
+  scanId,
+  stageId,
+  dependencyType,
+}) => {
+  const params = toURIParams({
+    componentIdentifier,
+    hash,
+    matchState,
+    proprietary,
+    pathname,
+    identificationSource,
+    scanId,
+    stageId,
+    dependencyType,
+  });
+  return (
+    uriTemplate`/rest/${clientType}/componentDetails/${ownerType}/${encodeURIComponent(ownerId)}/allVersions?` + params
+  );
+};
+
+export function getApplicationNamesUrl() {
+  return uriTemplate`/rest/application/services/names`;
+}
+
+function getUserTelemetryPrefix() {
+  const isRM = BASE_URL.includes('rest/healthcheck/clm');
+
+  // use the RM proxy endpoint if we are in RM.  The normal one will get blocked
+  return isRM ? uriTemplate`/rest/rm/user-telemetry` : uriTemplate`/rest/user-telemetry`;
+}
+
+export const getUserTelemetryConfig = () => `${getUserTelemetryPrefix()}/config`;
+export const getUserTelemetryJavascript = () => `${getUserTelemetryPrefix()}/javascript`;
+export const getUserTelemetryProxy = () => `${getUserTelemetryPrefix()}/events`;
+export const getReact2ShellReportDownloadUrl = (cveIds) => {
+  const cveIdParams = cveIds.map((id) => `cveId=${encodeURIComponent(id)}`).join('&');
+  return uriTemplate`/api/v2/componentSearch/downloadComponentSearchReport` + `?${cveIdParams}`;
+};
+
+export const getReact2ShellReportDataUrl = (
+  cveIds,
+  pageNumber = 1,
+  pageSize = 50,
+  sortBy = null,
+  sortOrder = 'asc'
+) => {
+  const cveIdParams = cveIds.map((id) => `cveId=${encodeURIComponent(id)}`).join('&');
+  const otherParams = toURIParams({
+    pageNumber,
+    pageSize,
+    sortBy,
+    sortOrder,
+  });
+  return uriTemplate`/api/v2/componentSearch/cveAffectedComponents` + `?${cveIdParams}&${otherParams}`;
+};
+export const getApplicationReportDeepLinkUrl = (applicationId, scanId) =>
+  uriTemplate`/ui/links/application/${applicationId}/report/${scanId}`;
+
+export function getGitHubAppManifestUrl(ownerId, organizationName) {
+  const baseUrl = uriTemplate`/api/v2/githubApp/manifest?ownerId=${ownerId}`;
+  return organizationName ? `${baseUrl}&organizationName=${encodeURIComponent(organizationName)}` : baseUrl;
+}
+
+export function getReachabilityEvidenceUrl(applicationPublicId, reportId, vulnerabilityId) {
+  return uriTemplate`/api/v2/applications/${applicationPublicId}/reports/${reportId}/vulnerabilities/${vulnerabilityId}/reachability-evidence`;
+}
+
+export function getGitHubAppsListUrl(ownerId) {
+  return uriTemplate`/api/v2/githubApp?ownerId=${ownerId}`;
+}
+
+export function getGitHubAppDeleteUrl(githubAppId, ownerId) {
+  return uriTemplate`/api/v2/githubApp/${githubAppId}?ownerId=${ownerId}`;
+}

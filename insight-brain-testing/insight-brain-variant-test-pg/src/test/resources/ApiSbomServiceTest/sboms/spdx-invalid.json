@@ -1,0 +1,24 @@
+{
+	"spdxVersion": "SPDX-2.3",
+	"SPDXID": "SPDXRef-DOCUMENT",
+	"name": "DummySPDXFile",
+	"documentNamespace": "http://spdx.org/spdxdocs/DummySPDXFile",
+	"documentDescribes": [
+		"SPDXRef-Package1"
+	],
+	"packages": [
+		{
+			"name": "DummyComponent1",
+			"SPDXID": "SPDXRef-Package1",
+			"downloadLocation": "http://some-download-1"
+		},
+		{
+			"name": "DummyComponent2",
+			"SPDXID": "SPDXRef-Package2"
+		},
+		{
+			"name": "DummyComponent3",
+			"SPDXID": "SPDXRef-Package3"
+		}
+	]
+}

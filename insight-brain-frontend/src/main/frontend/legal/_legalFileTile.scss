@@ -1,0 +1,87 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+.legal-file-section-header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.legal-file-path {
+  font-weight: bold;
+  // Truncate with ellipsis from the left
+  direction: rtl;
+  @include nx-text-helpers.truncate-ellipsis;
+}
+.legal-file-content {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 6;
+  overflow: hidden;
+  white-space: pre-wrap;
+}
+.legal-file-override-table {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: var(--nx-spacing-6x);
+
+  thead th {
+    text-align: left;
+    margin-bottom: var(--nx-spacing-4x);
+    padding: 0;
+  }
+
+  thead,
+  tbody,
+  tr {
+    display: contents;
+  }
+
+  td {
+    padding: 0;
+  }
+
+  .nx-toggle {
+    margin: 0 auto;
+    width: max-content;
+  }
+
+  .no-legal-texts-found {
+    margin-bottom: 32px;
+  }
+}
+
+// TODO use a better classname for this element, it shouldn't be a .nx-tile__actions
+.legal-file .nx-tile__actions {
+  flex: none;
+}
+
+.nx-btn-bar.nx-btn-bar--left {
+  justify-content: left;
+  margin-top: 0;
+  margin-bottom: var(--nx-spacing-8x);
+}
+
+.legal-modal-scope-selection-group {
+  margin-top: var(--nx-spacing-6x);
+}
+
+.nx-scrollable.nx-scrollable--edit-license-modal-licenses {
+  height: 70px;
+}
+
+.edit-license-modal-border {
+  border: solid 1px #d1d6f0;
+  border-radius: 6px;
+  padding: var(--nx-spacing-4x);
+}
+
+.nx-text-input.legal-modal-override-input-content {
+  width: 100%;
+  margin-bottom: var(--nx-spacing-6x);
+}

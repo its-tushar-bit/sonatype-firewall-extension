@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bom serialNumber="urn:uuid:a140fd3c-3ded-4bb0-a640-dc31e2904dc9" version="1"
+     xmlns="http://cyclonedx.org/schema/bom/1.5">
+  <metadata>
+    <timestamp>2024-02-29T23:41:22Z</timestamp>
+    <tools>
+      <components>
+        <component type="application">
+          <name>Tool</name>
+          <version>1.0-RELEASE</version>
+        </component>
+      </components>
+    </tools>
+    <authors>
+      <author>
+        <name>John Doe</name>
+        <email>john.doe@example.com</email>
+        <phone>1-800-111-1111</phone>
+      </author>
+    </authors>
+    <component type="application" bom-ref="08dd5978-577c-46a6-8bae-4f3d1a243b43">
+      <group>sonatype</group>
+      <name>iq_application_vuln</name>
+      <version>a140fd3c3ded4bb0a640dc31e2904dc9</version>
+      <purl>pkg:generic/sonatype/iq_application_vuln@a140fd3c3ded4bb0a640dc31e2904dc9</purl>
+    </component>
+    <manufacture>
+      <name>manufacturer</name>
+      <url>example.com</url>
+      <url>example2.com</url>
+      <url>example3.com</url>
+    </manufacture>
+    <supplier>
+      <name>supplier</name>
+      <url>example.com</url>
+      <url>example2.com</url>
+      <url>example3.com</url>
+    </supplier>
+    <properties>
+      <property name="Scan ID">a140fd3c3ded4bb0a640dc31e2904dc9</property>
+    </properties>
+  </metadata>
+</bom>

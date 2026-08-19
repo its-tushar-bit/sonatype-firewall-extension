@@ -1,0 +1,51 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+
+@use './ComponentDetailsHeader/ComponentDetailsHeader';
+@use './ComponentDetailsFooter/ComponentDetailsFooter';
+@use './auditLog/auditLog';
+@use './ViolationsTableTile/policyViolations';
+@use './overview/Overview';
+@use './overview/riskRemediation/RiskRemediation';
+@use './overview/VersionGraphExplorer/VersionGraphExplorer';
+@use './VulnerabilitiesTableTile/vulnerabilities';
+@use './ComponentDetailsLegalTab/ComponentDetailsLegalTab.scss';
+
+.nx-page-main.iq-component-details-page {
+  padding: 0;
+}
+
+.iq-component-details-page__content {
+  padding: var(--nx-spacing-6x);
+  z-index: 1;
+}
+
+component-details {
+  display: contents;
+}
+
+.nx-alert.iq-component-details-unknown-component-alert {
+  max-width: max-content;
+
+  .nx-alert__content {
+    @include nx-container-helpers.container-horizontal;
+  }
+}
+
+.policy-violation-details-popover {
+  &.nx-drawer {
+    width: 740px;
+
+    & .nx-drawer-content {
+      padding: var(--nx-spacing-base);
+    }
+  }
+  &-title {
+    margin-right: var(--nx-spacing-4x);
+  }
+}

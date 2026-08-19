@@ -1,0 +1,228 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+// This job allows the Business Intelligence team to publish Data Insights dashboards to production
+// Some more technical background can be found here https://sonatype.atlassian.net/wiki/spaces/DATA/pages/227410489/Dashboard+Change+Management
+// The job can be ran here https://jenkins.ci.sonatype.dev/job/insight/job/insight-brain/job/Data%20Insights%20Dashboard%20Configuration/job/Delete%20Data%20Insights%20Dashboard/
+
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+import groovy.json.JsonSlurper
+
+def configFileName = 'enterprise-reporting.json'
+def helper // will be loaded in the pipeline
+
+def s3ConfigurationByEnv = [
+  staging: [
+    account: "993883856687",
+    role: 'jenkins-hds-enterprise-reporting-staging',
+    credentialsId: 'hds-enterprise-reporting-external-id-staging',
+    usEast2Bucket: "hds-staging-enterprise-reporting-us-east-2",
+    usWest2Bucket: "hds-staging-enterprise-reporting-us-west-2"
+  ],
+
+  production: [
+    account  : "135388973902",
+    role: 'jenkins-hds-enterprise-reporting-production',
+    credentialsId: 'hds-enterprise-reporting-external-id-production',
+    usEast2Bucket: "hds-production-enterprise-reporting-us-east-2",
+    usWest2Bucket: "hds-production-enterprise-reporting-us-west-2"
+  ]
+]
+
+pipeline {
+  agent {
+    node {
+      label 'zion-small'
+    }
+  }
+
+  parameters {
+    choice(
+      name: 'environment',
+      description: 'Pick which environment you want to update.',
+      choices: ['staging', 'production']
+    )
+
+    string(
+        name: 'dashboardId',
+        description: 'If provided, delete the dashboard entry associated with this dashboardId.',
+        trim: true,
+        defaultValue: ''
+    )
+
+    string(
+        name: 'groupId',
+        description: 'If provided, delete the associated entry from dashboardGroups and update dashboards to clear out any groupId references that match.',
+        trim: true,
+        defaultValue: ''
+    )
+  }
+
+  stages {
+    stage('Initialize') {
+      steps {
+        script {
+          // Load helper functions
+          helper = load 'data-insights-jenkinsfiles/helper.groovy'
+
+          echo "running for environment: ${params.environment}"
+          def s3Configuration = s3ConfigurationByEnv[params.environment]
+
+          withAwsRole(region: 'us-east-2', role: s3Configuration.role, roleAccount: s3Configuration.account, credentialsId: s3Configuration.credentialsId) {
+              // Validate that at least one of dashboardId or groupId is provided
+              validateAtLeastOneField(params, ['dashboardId', 'groupId'])
+
+              // Rename the build using the format "build# : delete <dashboardId or groupId here>"
+              def displayValue = params.dashboardId
+              if (params.groupId && params.groupId.trim().length() > 0) {
+                  displayValue = params.groupId
+              }
+              def username = currentBuild.getBuildCauses()[0].userId ?: "unknown"
+              currentBuild.displayName = "#${currentBuild.number} : delete ${displayValue} -> ${params.environment} by ${username}"
+
+              // Store these variables in env so they can be accessed in other stages
+              env.bucketName = s3Configuration.usEast2Bucket
+              env.s3ConfigRole = s3Configuration.role
+              env.s3ConfigAccount = s3Configuration.account
+              env.s3ConfigCredentialsId = s3Configuration.credentialsId
+
+              // Read the existing configuration once
+              def existingConfig = readExistingConfig(env.bucketName, configFileName)
+
+              // Store the config as a JSON string to pass between stages
+              env.existingConfigJson = writeJSON(returnText: true, json: existingConfig)
+          }
+        }
+      }
+    }
+
+    stage('Delete dashboard') {
+      when {
+        expression { return params.dashboardId && params.dashboardId.trim().length() > 0 }
+      }
+      steps {
+        script {
+          withAwsRole(region: 'us-east-2', role: env.s3ConfigRole, roleAccount: env.s3ConfigAccount, credentialsId: env.s3ConfigCredentialsId) {
+              def existingConfig = readJSON text: env.existingConfigJson
+              def existingDashboards = existingConfig.dashboards
+              def selectedDashboardId = params.dashboardId
+
+              if (!existingDashboards.containsKey(selectedDashboardId)) {
+                def existingDashboardKeys = existingDashboards.keySet().toList()
+                error("'${selectedDashboardId}' does not exist, please choose a valid identifier:\n" +
+                    "${existingDashboardKeys}")
+              }
+
+              echo "selected dashboard '${selectedDashboardId}' will be removed"
+
+              // unset the key
+              existingDashboards.remove(selectedDashboardId)
+
+              // Update the stored config
+              env.existingConfigJson = writeJSON(returnText: true, json: existingConfig)
+          }
+        }
+      }
+    }
+
+    stage('Delete dashboard group') {
+      when {
+        expression { return params.groupId && params.groupId.trim().length() > 0 }
+      }
+      steps {
+        script {
+          withAwsRole(region: 'us-east-2', role: env.s3ConfigRole, roleAccount: env.s3ConfigAccount, credentialsId: env.s3ConfigCredentialsId) {
+              def existingConfig = readJSON text: env.existingConfigJson
+              def existingDashboards = existingConfig.dashboards
+              def selectedGroupId = params.groupId
+
+              echo "groupId '${selectedGroupId}' was provided"
+
+              // Ensure dashboardGroups map exists
+              if (!existingConfig.dashboardGroups) existingConfig.dashboardGroups = [:]
+
+              // Delete the associated entry from dashboardGroups
+              if (existingConfig.dashboardGroups.containsKey(selectedGroupId)) {
+                  echo "removing dashboard group '${selectedGroupId}'"
+                  existingConfig.dashboardGroups.remove(selectedGroupId)
+              } else {
+                  echo "dashboard group '${selectedGroupId}' does not exist, nothing to remove"
+              }
+
+              // Update dashboards to clear out any groupId references that match
+              existingDashboards.each { dashboardId, dashboard ->
+                  if (dashboard.groupId == selectedGroupId) {
+                      echo "clearing groupId reference from dashboard '${dashboardId}'"
+                      dashboard.groupId = ''
+                  }
+              }
+
+              // Update the stored config
+              env.existingConfigJson = writeJSON(returnText: true, json: existingConfig)
+          }
+        }
+      }
+    }
+
+    stage('Save configuration') {
+      steps {
+        script {
+          withAwsRole(region: 'us-east-2', role: env.s3ConfigRole, roleAccount: env.s3ConfigAccount, credentialsId: env.s3ConfigCredentialsId) {
+              def existingConfig = readJSON text: env.existingConfigJson
+              def s3Configuration = s3ConfigurationByEnv[params.environment]
+
+              // bump the version
+              existingConfig.version = existingConfig.version + 1
+
+              echo 'the updated config will be: '
+              echo writeJSON(returnText: true, json: existingConfig, pretty: 2)
+
+              echo 'persisting to both buckets'
+              def configJson = writeJSON(returnText: true, json: existingConfig)
+
+              // Save to East bucket
+              helper.saveToBucket(s3Configuration.usEast2Bucket, configFileName, configJson)
+
+              // Save to West bucket
+              helper.saveToBucket(s3Configuration.usWest2Bucket, configFileName, configJson)
+          }
+        }
+      }
+    }
+  }
+}
+
+def readExistingConfig(bucketForStagingEast, fileName) {
+  def dashboardConfigJson = getFileContents(bucketForStagingEast, fileName)
+
+  echo "existing configuration: ${dashboardConfigJson}"
+
+  return new JsonSlurper().parseText(dashboardConfigJson)
+}
+
+def getFileContents(bucketName, fileName) {
+  return sh(script: "aws s3 cp s3://${bucketName}/${fileName} -", returnStdout: true).trim()
+}
+
+
+def validateFieldHasValue(params, fieldName) {
+  if (params[fieldName].length() == 0) {
+    error "'${fieldName}' is a required field"
+  }
+}
+
+def validateAtLeastOneField(params, fieldNames) {
+  def hasValue = false
+  fieldNames.each { fieldName ->
+    if (params[fieldName] && params[fieldName].trim().length() > 0) {
+      hasValue = true
+    }
+  }
+
+  if (!hasValue) {
+    error "At least one of the following fields must be provided: ${fieldNames.join(', ')}"
+  }
+}

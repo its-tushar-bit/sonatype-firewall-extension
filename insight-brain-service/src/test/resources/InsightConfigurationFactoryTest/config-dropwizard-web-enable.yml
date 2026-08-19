@@ -1,0 +1,5 @@
+web:
+  hsts:
+    enabled: true
+    maxAge: 90 days
+    includeSubDomains: false

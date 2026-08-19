@@ -1,0 +1,78 @@
+{
+  "dependencyGraph" : [ {
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "ant",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "ant",
+          "version" : "1.6.4"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "commons-httpclient",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "commons-httpclient",
+          "version" : "3.1"
+        }
+      }
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ant",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ant",
+        "version" : "1.6.4"
+      }
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-httpclient",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-httpclient",
+        "version" : "3.1"
+      }
+    }
+  } ],
+  "gavDepths" : {
+    "commons-httpclient:commons-httpclient:3.1" : [ 1 ],
+    "ant:ant:1.6.4" : [ 1 ]
+  },
+  "componentDepths" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ant",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ant",
+        "version" : "1.6.4"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-httpclient",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-httpclient",
+        "version" : "3.1"
+      }
+    },
+    "depths" : [ 1 ]
+  } ]
+}

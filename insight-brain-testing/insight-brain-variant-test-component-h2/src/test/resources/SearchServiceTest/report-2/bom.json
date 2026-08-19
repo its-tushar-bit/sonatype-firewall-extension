@@ -1,0 +1,4713 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "guava",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.google.guava",
+        "version" : "30.1-jre"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.google.guava/guava@30.1-jre?type=jar",
+    "groupId" : "com.google.guava",
+    "artifactId" : "guava",
+    "version" : "30.1-jre",
+    "filenames" : [ "guava-30.1-jre.jar" ], "displayName": { "parts": [ { "value": "guava-30.1-jre.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/guava-30.1-jre.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "00d0c3ce2311c9e36e73",
+    "relativePopularity" : 0.95,
+    "createTime" : 1607961949000,
+    "lastModifiedTime" : 1607961910000,
+    "lastModifiedEntryTime" : 1607961910000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-boot-actuator-autoconfigure",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.boot",
+        "version" : "2.4.3"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.springframework.boot/spring-boot-actuator-autoconfigure@2.4.3?type=jar",
+    "groupId" : "org.springframework.boot",
+    "artifactId" : "spring-boot-actuator-autoconfigure",
+    "version" : "2.4.3",
+    "filenames" : [ "spring-boot-actuator-autoconfigure-2.4.3.jar" ], "displayName": { "parts": [ { "value": "spring-boot-actuator-autoconfigure-2.4.3.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/spring-boot-actuator-autoconfigure-2.4.3.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "02f5f728f5f9e6d9b4af",
+    "relativePopularity" : 0.63,
+    "createTime" : 1613660832000,
+    "lastModifiedTime" : 1613675200000,
+    "lastModifiedEntryTime" : 1613675310000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 1,
+      "label" : "Exemplar"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-security-web",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.security",
+        "version" : "5.4.5"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.springframework.security/spring-security-web@5.4.5?type=jar",
+    "groupId" : "org.springframework.security",
+    "artifactId" : "spring-security-web",
+    "version" : "5.4.5",
+    "filenames" : [ "spring-security-web-5.4.5.jar" ], "displayName": { "parts": [ { "value": "spring-security-web-5.4.5.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/spring-security-web-5.4.5.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "0450d209579c49b4e537",
+    "relativePopularity" : 0.26,
+    "createTime" : 1613601575000,
+    "lastModifiedTime" : 1613619350000,
+    "lastModifiedEntryTime" : 1613619360000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 167,
+      "path" : "Security/Authentication and Authorization"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "txw2",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.glassfish.jaxb",
+        "version" : "2.3.3"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.glassfish.jaxb/txw2@2.3.3?type=jar",
+    "groupId" : "org.glassfish.jaxb",
+    "artifactId" : "txw2",
+    "version" : "2.3.3",
+    "filenames" : [ "txw2-2.3.3.jar" ], "displayName": { "parts": [ { "value": "txw2-2.3.3.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/txw2-2.3.3.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "12f70b0ea4fc1ad45315",
+    "relativePopularity" : 0.38,
+    "createTime" : 1586281876000,
+    "lastModifiedTime" : 1586295888000,
+    "lastModifiedEntryTime" : 1586295928000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "lombok",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.projectlombok",
+        "version" : "1.18.20"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.projectlombok/lombok@1.18.20?type=jar",
+    "groupId" : "org.projectlombok",
+    "artifactId" : "lombok",
+    "version" : "1.18.20",
+    "filenames" : [ "lombok-1.18.20.jar" ], "displayName": { "parts": [ { "value": "lombok-1.18.20.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/lombok-1.18.20.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "18bcea7d5df4d49227b4",
+    "relativePopularity" : 1.0,
+    "createTime" : 1617319574000,
+    "lastModifiedTime" : 1616414368000,
+    "lastModifiedEntryTime" : 1617341078000,
+    "website" : "http://projectlombok.org",
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 148,
+      "path" : "Misc"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-boot-actuator",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.boot",
+        "version" : "2.4.3"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.springframework.boot/spring-boot-actuator@2.4.3?type=jar",
+    "groupId" : "org.springframework.boot",
+    "artifactId" : "spring-boot-actuator",
+    "version" : "2.4.3",
+    "filenames" : [ "spring-boot-actuator-2.4.3.jar" ], "displayName": { "parts": [ { "value": "spring-boot-actuator-2.4.3.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/spring-boot-actuator-2.4.3.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "1a5f125bbcb97200ba7f",
+    "relativePopularity" : 0.63,
+    "createTime" : 1613660840000,
+    "lastModifiedTime" : 1613675200000,
+    "lastModifiedEntryTime" : 1613675258000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 139,
+      "path" : "Monitoring and Management/Configuration Management"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-tx",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.springframework/spring-tx@5.3.4?type=jar",
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-tx",
+    "version" : "5.3.4",
+    "filenames" : [ "spring-tx-5.3.4.jar" ], "displayName": { "parts": [ { "value": "spring-tx-5.3.4.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/spring-tx-5.3.4.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "1c4ab5fa203c54f9d7f8",
+    "relativePopularity" : 0.15,
+    "createTime" : 1613474188000,
+    "lastModifiedTime" : 1613490364000,
+    "lastModifiedEntryTime" : 1613490364000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 49,
+      "path" : "Data Management/Database Access/Transaction Managers"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "bootstrap",
+        "qualifier" : "",
+        "version" : "3.3.7"
+      }
+    },
+    "packageUrl" : "pkg:a-name/bootstrap@3.3.7",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "affix.js", "alert.js", "bootstrap.js", "bootstrap.min.js", "carousel.js", "collapse.js", "dropdown.js", "modal.js", "scrollspy.js", "tooltip.js" ],
+    "displayName": { "parts": [ { "value": "affix.js" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/bootstrap-3.3.7.jar/META-INF/resources/webjars/bootstrap/3.3.7/js/affix.js", "webwolf-8.2.2.jar/BOOT-INF/lib/bootstrap-3.3.7.jar/META-INF/resources/webjars/bootstrap/3.3.7/js/alert.js", "webwolf-8.2.2.jar/BOOT-INF/lib/bootstrap-3.3.7.jar/META-INF/resources/webjars/bootstrap/3.3.7/js/bootstrap.js", "webwolf-8.2.2.jar/BOOT-INF/lib/bootstrap-3.3.7.jar/META-INF/resources/webjars/bootstrap/3.3.7/js/bootstrap.min.js", "webwolf-8.2.2.jar/BOOT-INF/lib/bootstrap-3.3.7.jar/META-INF/resources/webjars/bootstrap/3.3.7/js/carousel.js", "webwolf-8.2.2.jar/BOOT-INF/lib/bootstrap-3.3.7.jar/META-INF/resources/webjars/bootstrap/3.3.7/js/collapse.js", "webwolf-8.2.2.jar/BOOT-INF/lib/bootstrap-3.3.7.jar/META-INF/resources/webjars/bootstrap/3.3.7/js/dropdown.js", "webwolf-8.2.2.jar/BOOT-INF/lib/bootstrap-3.3.7.jar/META-INF/resources/webjars/bootstrap/3.3.7/js/modal.js", "webwolf-8.2.2.jar/BOOT-INF/lib/bootstrap-3.3.7.jar/META-INF/resources/webjars/bootstrap/3.3.7/js/scrollspy.js", "webwolf-8.2.2.jar/BOOT-INF/lib/bootstrap-3.3.7.jar/META-INF/resources/webjars/bootstrap/3.3.7/js/tooltip.js" ],
+    "aggregateFiles" : [ {
+      "hash" : "af4e2d534ec083a0c82a",
+      "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/bootstrap-3.3.7.jar/META-INF/resources/webjars/bootstrap/3.3.7/js/affix.js" ]
+    }, {
+      "hash" : "e598af469474cd1dd5ef",
+      "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/bootstrap-3.3.7.jar/META-INF/resources/webjars/bootstrap/3.3.7/js/alert.js" ]
+    }, {
+      "hash" : "3b965a36a6b08854ad6e",
+      "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/bootstrap-3.3.7.jar/META-INF/resources/webjars/bootstrap/3.3.7/js/bootstrap.js" ]
+    }, {
+      "hash" : "430a443d74830fe9be26",
+      "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/bootstrap-3.3.7.jar/META-INF/resources/webjars/bootstrap/3.3.7/js/bootstrap.min.js" ]
+    }, {
+      "hash" : "b06d0508cf5404d04eb5",
+      "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/bootstrap-3.3.7.jar/META-INF/resources/webjars/bootstrap/3.3.7/js/carousel.js" ]
+    }, {
+      "hash" : "4c86892032fda4dc2f86",
+      "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/bootstrap-3.3.7.jar/META-INF/resources/webjars/bootstrap/3.3.7/js/collapse.js" ]
+    }, {
+      "hash" : "80d704acca3c569c474a",
+      "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/bootstrap-3.3.7.jar/META-INF/resources/webjars/bootstrap/3.3.7/js/dropdown.js" ]
+    }, {
+      "hash" : "d06196b87b04342f1ee6",
+      "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/bootstrap-3.3.7.jar/META-INF/resources/webjars/bootstrap/3.3.7/js/modal.js" ]
+    }, {
+      "hash" : "1ff99a7881cebe145efb",
+      "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/bootstrap-3.3.7.jar/META-INF/resources/webjars/bootstrap/3.3.7/js/scrollspy.js" ]
+    }, {
+      "hash" : "0fa79f55fc4e136f7202",
+      "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/bootstrap-3.3.7.jar/META-INF/resources/webjars/bootstrap/3.3.7/js/tooltip.js" ]
+    } ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "1cae69f6ec6b9d3a8e1a",
+    "relativePopularity" : null,
+    "createTime" : 1469462982771,
+    "lastModifiedTime" : 1469454716000,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "failureaccess",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.google.guava",
+        "version" : "1.0.1"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.google.guava/failureaccess@1.0.1?type=jar",
+    "groupId" : "com.google.guava",
+    "artifactId" : "failureaccess",
+    "version" : "1.0.1",
+    "filenames" : [ "failureaccess-1.0.1.jar" ], "displayName": { "parts": [ { "value": "failureaccess-1.0.1.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/failureaccess-1.0.1.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "1dcf1de382a0bf95a3d8",
+    "relativePopularity" : 1.0,
+    "createTime" : 1542650246000,
+    "lastModifiedTime" : 1542650232000,
+    "lastModifiedEntryTime" : 1542650232000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jquery",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.webjars",
+        "version" : "3.5.1"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.webjars/jquery@3.5.1?type=jar",
+    "groupId" : "org.webjars",
+    "artifactId" : "jquery",
+    "version" : "3.5.1",
+    "filenames" : [ "jquery-3.5.1.jar" ], "displayName": { "parts": [ { "value": "jquery-3.5.1.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jquery-3.5.1.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "2392938e374f561c27c5",
+    "relativePopularity" : 1.0,
+    "createTime" : 1588764776000,
+    "lastModifiedTime" : 1588757554000,
+    "lastModifiedEntryTime" : 1588757556000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 110,
+      "path" : "Web Frameworks"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jsr305",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.google.code.findbugs",
+        "version" : "3.0.2"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.google.code.findbugs/jsr305@3.0.2?type=jar",
+    "groupId" : "com.google.code.findbugs",
+    "artifactId" : "jsr305",
+    "version" : "3.0.2",
+    "filenames" : [ "jsr305-3.0.2.jar" ], "displayName": { "parts": [ { "value": "jsr305-3.0.2.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jsr305-3.0.2.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "25ea2e8b0c338a877313",
+    "relativePopularity" : 1.0,
+    "createTime" : 1491037601000,
+    "lastModifiedTime" : 1490972132000,
+    "lastModifiedEntryTime" : 1490972132000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "wildfly-client-config",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.wildfly.client",
+        "version" : "1.0.1.Final"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.wildfly.client/wildfly-client-config@1.0.1.Final?type=jar",
+    "groupId" : "org.wildfly.client",
+    "artifactId" : "wildfly-client-config",
+    "version" : "1.0.1.Final",
+    "filenames" : [ "wildfly-client-config-1.0.1.Final.jar" ], "displayName": { "parts": [ { "value": "wildfly-client-config-1.0.1.Final.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/wildfly-client-config-1.0.1.Final.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "2a803b23c40a0de0f03a",
+    "relativePopularity" : 1.0,
+    "createTime" : 1535117261000,
+    "lastModifiedTime" : 1535135254000,
+    "lastModifiedEntryTime" : 1535135256000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-annotations",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.11.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.11.4?type=jar",
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-annotations",
+    "version" : "2.11.4",
+    "filenames" : [ "jackson-annotations-2.11.4.jar" ], "displayName": { "parts": [ { "value": "jackson-annotations-2.11.4.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jackson-annotations-2.11.4.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "2c3f5c079330f3a01726",
+    "relativePopularity" : 0.54,
+    "createTime" : 1607731583000,
+    "lastModifiedTime" : 1607749554000,
+    "lastModifiedEntryTime" : 1607749560000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "undertow-websockets-jsr",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.undertow",
+        "version" : "2.2.4.Final"
+      }
+    },
+    "packageUrl" : "pkg:maven/io.undertow/undertow-websockets-jsr@2.2.4.Final?type=jar",
+    "groupId" : "io.undertow",
+    "artifactId" : "undertow-websockets-jsr",
+    "version" : "2.2.4.Final",
+    "filenames" : [ "undertow-websockets-jsr-2.2.4.Final.jar" ], "displayName": { "parts": [ { "value": "undertow-websockets-jsr-2.2.4.Final.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/undertow-websockets-jsr-2.2.4.Final.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "2e4b1ca599fe7bd78e4c",
+    "relativePopularity" : 0.14,
+    "createTime" : 1612381181000,
+    "lastModifiedTime" : 1612387922000,
+    "lastModifiedEntryTime" : 1612388378000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 4,
+      "label" : "Laggard"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "checker-qual",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.checkerframework",
+        "version" : "3.5.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.checkerframework/checker-qual@3.5.0?type=jar",
+    "groupId" : "org.checkerframework",
+    "artifactId" : "checker-qual",
+    "version" : "3.5.0",
+    "filenames" : [ "checker-qual-3.5.0.jar" ], "displayName": { "parts": [ { "value": "checker-qual-3.5.0.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/checker-qual-3.5.0.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "2f50520c8abea66fbd8d",
+    "relativePopularity" : 1.0,
+    "createTime" : 1593637728000,
+    "lastModifiedTime" : 1593623884000,
+    "lastModifiedEntryTime" : 1593625014000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 129,
+      "path" : "Programming Language Utilites/Annotations"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-boot-autoconfigure",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.boot",
+        "version" : "2.4.3"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.springframework.boot/spring-boot-autoconfigure@2.4.3?type=jar",
+    "groupId" : "org.springframework.boot",
+    "artifactId" : "spring-boot-autoconfigure",
+    "version" : "2.4.3",
+    "filenames" : [ "spring-boot-autoconfigure-2.4.3.jar" ], "displayName": { "parts": [ { "value": "spring-boot-autoconfigure-2.4.3.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/spring-boot-autoconfigure-2.4.3.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "2f8e1e682e55f70c8ea5",
+    "relativePopularity" : 0.34,
+    "createTime" : 1613660822000,
+    "lastModifiedTime" : 1613675200000,
+    "lastModifiedEntryTime" : 1613675288000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 1,
+      "label" : "Exemplar"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "snakeyaml",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.yaml",
+        "version" : "1.27"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.yaml/snakeyaml@1.27?type=jar",
+    "groupId" : "org.yaml",
+    "artifactId" : "snakeyaml",
+    "version" : "1.27",
+    "filenames" : [ "snakeyaml-1.27.jar" ], "displayName": { "parts": [ { "value": "snakeyaml-1.27.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/snakeyaml-1.27.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "359d62567480b07a679d",
+    "relativePopularity" : 0.97,
+    "createTime" : 1599836050000,
+    "lastModifiedTime" : 1599850366000,
+    "lastModifiedEntryTime" : 1599850366000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "thymeleaf-extras-java8time",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.thymeleaf.extras",
+        "version" : "3.0.4.RELEASE"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.thymeleaf.extras/thymeleaf-extras-java8time@3.0.4.RELEASE?type=jar",
+    "groupId" : "org.thymeleaf.extras",
+    "artifactId" : "thymeleaf-extras-java8time",
+    "version" : "3.0.4.RELEASE",
+    "filenames" : [ "thymeleaf-extras-java8time-3.0.4.RELEASE.jar" ], "displayName": { "parts": [ { "value": "thymeleaf-extras-java8time-3.0.4.RELEASE.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/thymeleaf-extras-java8time-3.0.4.RELEASE.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "36e7175ddce36c486fff",
+    "relativePopularity" : 1.0,
+    "createTime" : 1553766052000,
+    "lastModifiedTime" : 1553783864000,
+    "lastModifiedEntryTime" : 1553783864000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 33,
+      "path" : "Data Processors/Templating"
+    } ],
+    "hygieneRating" : {
+      "id" : 4,
+      "label" : "Laggard"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-security-config",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.security",
+        "version" : "5.4.5"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.springframework.security/spring-security-config@5.4.5?type=jar",
+    "groupId" : "org.springframework.security",
+    "artifactId" : "spring-security-config",
+    "version" : "5.4.5",
+    "filenames" : [ "spring-security-config-5.4.5.jar" ], "displayName": { "parts": [ { "value": "spring-security-config-5.4.5.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/spring-security-config-5.4.5.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "3835ea09e7bb914249fe",
+    "relativePopularity" : 0.25,
+    "createTime" : 1613601397000,
+    "lastModifiedTime" : 1613619382000,
+    "lastModifiedEntryTime" : 1613619384000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 167,
+      "path" : "Security/Authentication and Authorization"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "classmate",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml",
+        "version" : "1.5.1"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.fasterxml/classmate@1.5.1?type=jar",
+    "groupId" : "com.fasterxml",
+    "artifactId" : "classmate",
+    "version" : "1.5.1",
+    "filenames" : [ "classmate-1.5.1.jar" ], "displayName": { "parts": [ { "value": "classmate-1.5.1.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/classmate-1.5.1.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "3fe0bed568c62df5e89f",
+    "relativePopularity" : 1.0,
+    "createTime" : 1571525227000,
+    "lastModifiedTime" : 1571539590000,
+    "lastModifiedEntryTime" : 1571539600000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jboss-logging",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.jboss.logging",
+        "version" : "3.4.1.Final"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.jboss.logging/jboss-logging@3.4.1.Final?type=jar",
+    "groupId" : "org.jboss.logging",
+    "artifactId" : "jboss-logging",
+    "version" : "3.4.1.Final",
+    "filenames" : [ "jboss-logging-3.4.1.Final.jar" ], "displayName": { "parts": [ { "value": "jboss-logging-3.4.1.Final.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jboss-logging-3.4.1.Final.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "40fd4d696c55793e996d",
+    "relativePopularity" : 1.0,
+    "createTime" : 1565190503000,
+    "lastModifiedTime" : 1565179696000,
+    "lastModifiedEntryTime" : 1565179698000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "istack-commons-runtime",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.sun.istack",
+        "version" : "3.0.11"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.sun.istack/istack-commons-runtime@3.0.11?type=jar",
+    "groupId" : "com.sun.istack",
+    "artifactId" : "istack-commons-runtime",
+    "version" : "3.0.11",
+    "filenames" : [ "istack-commons-runtime-3.0.11.jar" ], "displayName": { "parts": [ { "value": "istack-commons-runtime-3.0.11.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/istack-commons-runtime-3.0.11.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "4293b5f4e4e89d598f62",
+    "relativePopularity" : 0.38,
+    "createTime" : 1584458853000,
+    "lastModifiedTime" : 1584473174000,
+    "lastModifiedEntryTime" : 1584473176000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-expression",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.springframework/spring-expression@5.3.4?type=jar",
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-expression",
+    "version" : "5.3.4",
+    "filenames" : [ "spring-expression-5.3.4.jar" ], "displayName": { "parts": [ { "value": "spring-expression-5.3.4.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/spring-expression-5.3.4.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "42b71fa955e43a864715",
+    "relativePopularity" : 0.31,
+    "createTime" : 1613474176000,
+    "lastModifiedTime" : 1613490338000,
+    "lastModifiedEntryTime" : 1613490338000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 75,
+      "path" : "Expression Language"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-module-parameter-names",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.module",
+        "version" : "2.11.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.fasterxml.jackson.module/jackson-module-parameter-names@2.11.4?type=jar",
+    "groupId" : "com.fasterxml.jackson.module",
+    "artifactId" : "jackson-module-parameter-names",
+    "version" : "2.11.4",
+    "filenames" : [ "jackson-module-parameter-names-2.11.4.jar" ], "displayName": { "parts": [ { "value": "jackson-module-parameter-names-2.11.4.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jackson-module-parameter-names-2.11.4.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "432e050d79f2282a66c3",
+    "relativePopularity" : 1.0,
+    "createTime" : 1607734281000,
+    "lastModifiedTime" : 1607752238000,
+    "lastModifiedEntryTime" : 1607752238000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 28,
+      "path" : "Data Processors/Format/JSON"
+    } ],
+    "hygieneRating" : {
+      "id" : 1,
+      "label" : "Exemplar"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jose4j",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.bitbucket.b_c",
+        "version" : "0.7.6"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.bitbucket.b_c/jose4j@0.7.6?type=jar",
+    "groupId" : "org.bitbucket.b_c",
+    "artifactId" : "jose4j",
+    "version" : "0.7.6",
+    "filenames" : [ "jose4j-0.7.6.jar" ], "displayName": { "parts": [ { "value": "jose4j-0.7.6.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jose4j-0.7.6.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "4685155beaabc2fd6718",
+    "relativePopularity" : 0.1,
+    "createTime" : 1611871884000,
+    "lastModifiedTime" : 1611864632000,
+    "lastModifiedEntryTime" : 1611864644000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 28,
+      "path" : "Data Processors/Format/JSON"
+    } ],
+    "hygieneRating" : {
+      "id" : 4,
+      "label" : "Laggard"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.springframework/spring-core@5.3.4?type=jar",
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-core",
+    "version" : "5.3.4",
+    "filenames" : [ "spring-core-5.3.4.jar" ], "displayName": { "parts": [ { "value": "spring-core-5.3.4.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/spring-core-5.3.4.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "46c1f8abd9e02a292c42",
+    "relativePopularity" : 0.23,
+    "createTime" : 1613474190000,
+    "lastModifiedTime" : 318229200000,
+    "lastModifiedEntryTime" : 318229200000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 68,
+      "path" : "Dependency Injection and Aspect-Oriented"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jakarta.xml.bind-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "jakarta.xml.bind",
+        "version" : "2.3.3"
+      }
+    },
+    "packageUrl" : "pkg:maven/jakarta.xml.bind/jakarta.xml.bind-api@2.3.3?type=jar",
+    "groupId" : "jakarta.xml.bind",
+    "artifactId" : "jakarta.xml.bind-api",
+    "version" : "2.3.3",
+    "filenames" : [ "jakarta.xml.bind-api-2.3.3.jar" ], "displayName": { "parts": [ { "value": "jakarta.xml.bind-api-2.3.3.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jakarta.xml.bind-api-2.3.3.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "48e3b9cfc10752fba352",
+    "relativePopularity" : 1.0,
+    "createTime" : 1580117728000,
+    "lastModifiedTime" : 1580135678000,
+    "lastModifiedEntryTime" : 1580135710000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jboss-websocket-api_1.1_spec",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.jboss.spec.javax.websocket",
+        "version" : "2.0.0.Final"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.jboss.spec.javax.websocket/jboss-websocket-api_1.1_spec@2.0.0.Final?type=jar",
+    "groupId" : "org.jboss.spec.javax.websocket",
+    "artifactId" : "jboss-websocket-api_1.1_spec",
+    "version" : "2.0.0.Final",
+    "filenames" : [ "jboss-websocket-api_1.1_spec-2.0.0.Final.jar" ], "displayName": { "parts": [ { "value": "jboss-websocket-api_1.1_spec-2.0.0.Final.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jboss-websocket-api_1.1_spec-2.0.0.Final.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "4a1f6158985b825d5b13",
+    "relativePopularity" : 1.0,
+    "createTime" : 1568230379000,
+    "lastModifiedTime" : 1566943124000,
+    "lastModifiedEntryTime" : 1568244776000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-data-commons",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.data",
+        "version" : "2.4.5"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.springframework.data/spring-data-commons@2.4.5?type=jar",
+    "groupId" : "org.springframework.data",
+    "artifactId" : "spring-data-commons",
+    "version" : "2.4.5",
+    "filenames" : [ "spring-data-commons-2.4.5.jar" ], "displayName": { "parts": [ { "value": "spring-data-commons-2.4.5.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/spring-data-commons-2.4.5.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "571945cb8debeb12815c",
+    "relativePopularity" : 0.17,
+    "createTime" : 1613642591000,
+    "lastModifiedTime" : 1613664076000,
+    "lastModifiedEntryTime" : 1613664096000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 43,
+      "path" : "Data Management/Database Access"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.11.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.11.4?type=jar",
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-core",
+    "version" : "2.11.4",
+    "filenames" : [ "jackson-core-2.11.4.jar" ], "displayName": { "parts": [ { "value": "jackson-core-2.11.4.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jackson-core-2.11.4.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "593f7b18bab07a76767f",
+    "relativePopularity" : 0.56,
+    "createTime" : 1607731869000,
+    "lastModifiedTime" : 1607749822000,
+    "lastModifiedEntryTime" : 1607749836000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jakarta.annotation-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "jakarta.annotation",
+        "version" : "1.3.5"
+      }
+    },
+    "packageUrl" : "pkg:maven/jakarta.annotation/jakarta.annotation-api@1.3.5?type=jar",
+    "groupId" : "jakarta.annotation",
+    "artifactId" : "jakarta.annotation-api",
+    "version" : "1.3.5",
+    "filenames" : [ "jakarta.annotation-api-1.3.5.jar" ], "displayName": { "parts": [ { "value": "jakarta.annotation-api-1.3.5.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jakarta.annotation-api-1.3.5.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "59eb84ee0d616332ff44",
+    "relativePopularity" : 1.0,
+    "createTime" : 1564744165000,
+    "lastModifiedTime" : 1564758532000,
+    "lastModifiedEntryTime" : 1564758540000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.11.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.11.4?type=jar",
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-databind",
+    "version" : "2.11.4",
+    "filenames" : [ "jackson-databind-2.11.4.jar" ], "displayName": { "parts": [ { "value": "jackson-databind-2.11.4.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jackson-databind-2.11.4.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "5d9f3d441f99d721b957",
+    "relativePopularity" : 0.58,
+    "createTime" : 1607733405000,
+    "lastModifiedTime" : 1607751368000,
+    "lastModifiedEntryTime" : 1607751374000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jakarta.validation-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "jakarta.validation",
+        "version" : "2.0.2"
+      }
+    },
+    "packageUrl" : "pkg:maven/jakarta.validation/jakarta.validation-api@2.0.2?type=jar",
+    "groupId" : "jakarta.validation",
+    "artifactId" : "jakarta.validation-api",
+    "version" : "2.0.2",
+    "filenames" : [ "jakarta.validation-api-2.0.2.jar" ], "displayName": { "parts": [ { "value": "jakarta.validation-api-2.0.2.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jakarta.validation-api-2.0.2.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "5eacc6522521f7eacb08",
+    "relativePopularity" : 1.0,
+    "createTime" : 1565473573000,
+    "lastModifiedTime" : 1565487882000,
+    "lastModifiedEntryTime" : 1565487918000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-lang3",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.commons",
+        "version" : "3.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.apache.commons/commons-lang3@3.4?type=jar",
+    "groupId" : "org.apache.commons",
+    "artifactId" : "commons-lang3",
+    "version" : "3.4",
+    "filenames" : [ "commons-lang3-3.4.jar" ], "displayName": { "parts": [ { "value": "commons-lang3-3.4.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/commons-lang3-3.4.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "5fe28b9518e58819180a",
+    "relativePopularity" : 0.58,
+    "createTime" : 1428064266000,
+    "lastModifiedTime" : 1428085824000,
+    "lastModifiedEntryTime" : 1428085848000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "HdrHistogram",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.hdrhistogram",
+        "version" : "2.1.12"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.hdrhistogram/HdrHistogram@2.1.12?type=jar",
+    "groupId" : "org.hdrhistogram",
+    "artifactId" : "HdrHistogram",
+    "version" : "2.1.12",
+    "filenames" : [ "HdrHistogram-2.1.12.jar" ], "displayName": { "parts": [ { "value": "HdrHistogram-2.1.12.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/HdrHistogram-2.1.12.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "6eb7552156e0d517ae80",
+    "relativePopularity" : 1.0,
+    "createTime" : 1575980578000,
+    "lastModifiedTime" : 1576038148000,
+    "lastModifiedEntryTime" : 1576038148000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-data-jpa",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.data",
+        "version" : "2.4.5"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.springframework.data/spring-data-jpa@2.4.5?type=jar",
+    "groupId" : "org.springframework.data",
+    "artifactId" : "spring-data-jpa",
+    "version" : "2.4.5",
+    "filenames" : [ "spring-data-jpa-2.4.5.jar" ], "displayName": { "parts": [ { "value": "spring-data-jpa-2.4.5.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/spring-data-jpa-2.4.5.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "73596ed30853bf9338fd",
+    "relativePopularity" : 0.16,
+    "createTime" : 1613642726000,
+    "lastModifiedTime" : 1613664222000,
+    "lastModifiedEntryTime" : 1613664256000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 48,
+      "path" : "Data Management/Database Access/Persistence"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jakarta.activation",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.sun.activation",
+        "version" : "1.2.2"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.sun.activation/jakarta.activation@1.2.2?type=jar",
+    "groupId" : "com.sun.activation",
+    "artifactId" : "jakarta.activation",
+    "version" : "1.2.2",
+    "filenames" : [ "jakarta.activation-1.2.2.jar" ], "displayName": { "parts": [ { "value": "jakarta.activation-1.2.2.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jakarta.activation-1.2.2.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "74548703f9851017ce2f",
+    "relativePopularity" : 1.0,
+    "createTime" : 1582223854000,
+    "lastModifiedTime" : 1582241828000,
+    "lastModifiedEntryTime" : 1582241832000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "LatencyUtils",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.latencyutils",
+        "version" : "2.0.3"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.latencyutils/LatencyUtils@2.0.3?type=jar",
+    "groupId" : "org.latencyutils",
+    "artifactId" : "LatencyUtils",
+    "version" : "2.0.3",
+    "filenames" : [ "LatencyUtils-2.0.3.jar" ], "displayName": { "parts": [ { "value": "LatencyUtils-2.0.3.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/LatencyUtils-2.0.3.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "769c0b82cb2421c82563",
+    "relativePopularity" : 1.0,
+    "createTime" : 1450211308000,
+    "lastModifiedTime" : 1450200280000,
+    "lastModifiedEntryTime" : 1450200300000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "undertow-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.undertow",
+        "version" : "2.2.4.Final"
+      }
+    },
+    "packageUrl" : "pkg:maven/io.undertow/undertow-core@2.2.4.Final?type=jar",
+    "groupId" : "io.undertow",
+    "artifactId" : "undertow-core",
+    "version" : "2.2.4.Final",
+    "filenames" : [ "undertow-core-2.2.4.Final.jar" ], "displayName": { "parts": [ { "value": "undertow-core-2.2.4.Final.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/undertow-core-2.2.4.Final.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "78650b4029dd9280c476",
+    "relativePopularity" : 0.69,
+    "createTime" : 1612380973000,
+    "lastModifiedTime" : 1612388006000,
+    "lastModifiedEntryTime" : 1612388164000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "unbescape",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.unbescape",
+        "version" : "1.1.6.RELEASE"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.unbescape/unbescape@1.1.6.RELEASE?type=jar",
+    "groupId" : "org.unbescape",
+    "artifactId" : "unbescape",
+    "version" : "1.1.6.RELEASE",
+    "filenames" : [ "unbescape-1.1.6.RELEASE.jar" ], "displayName": { "parts": [ { "value": "unbescape-1.1.6.RELEASE.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/unbescape-1.1.6.RELEASE.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "7b90360afb2b860e09e8",
+    "relativePopularity" : 1.0,
+    "createTime" : 1522429553000,
+    "lastModifiedTime" : 1522443864000,
+    "lastModifiedEntryTime" : 1522443864000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 89,
+      "path" : "Programming Language Utilites"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "logback-classic",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ch.qos.logback",
+        "version" : "1.2.3"
+      }
+    },
+    "packageUrl" : "pkg:maven/ch.qos.logback/logback-classic@1.2.3?type=jar",
+    "groupId" : "ch.qos.logback",
+    "artifactId" : "logback-classic",
+    "version" : "1.2.3",
+    "filenames" : [ "logback-classic-1.2.3.jar" ], "displayName": { "parts": [ { "value": "logback-classic-1.2.3.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/logback-classic-1.2.3.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "7c4f3c474fb2c041d802",
+    "relativePopularity" : 1.0,
+    "createTime" : 1491775596000,
+    "lastModifiedTime" : 1491006012000,
+    "lastModifiedEntryTime" : 1491010060000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-io",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-io",
+        "version" : "2.6"
+      }
+    },
+    "packageUrl" : "pkg:maven/commons-io/commons-io@2.6?type=jar",
+    "groupId" : "commons-io",
+    "artifactId" : "commons-io",
+    "version" : "2.6",
+    "filenames" : [ "commons-io-2.6.jar" ], "displayName": { "parts": [ { "value": "commons-io-2.6.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/commons-io-2.6.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "815893df5f31da2ece40",
+    "relativePopularity" : 0.84,
+    "createTime" : 1519358738000,
+    "lastModifiedTime" : 1508083098000,
+    "lastModifiedEntryTime" : 1508083230000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "antlr",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "antlr",
+        "version" : "2.7.7"
+      }
+    },
+    "packageUrl" : "pkg:maven/antlr/antlr@2.7.7?type=jar",
+    "groupId" : "antlr",
+    "artifactId" : "antlr",
+    "version" : "2.7.7",
+    "filenames" : [ "antlr-2.7.7.jar" ], "displayName": { "parts": [ { "value": "antlr-2.7.7.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/antlr-2.7.7.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "83cd2cd674a217ade95a",
+    "relativePopularity" : 1.0,
+    "createTime" : 1168669719000,
+    "lastModifiedTime" : 1157555704000,
+    "lastModifiedEntryTime" : 1157555704000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "javax.activation-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "javax.activation",
+        "version" : "1.2.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/javax.activation/javax.activation-api@1.2.0?type=jar",
+    "groupId" : "javax.activation",
+    "artifactId" : "javax.activation-api",
+    "version" : "1.2.0",
+    "filenames" : [ "javax.activation-api-1.2.0.jar" ], "displayName": { "parts": [ { "value": "javax.activation-api-1.2.0.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/javax.activation-api-1.2.0.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "85262acf3ca9816f9537",
+    "relativePopularity" : 1.0,
+    "createTime" : 1533661562000,
+    "lastModifiedTime" : 1504722230000,
+    "lastModifiedEntryTime" : 1504722238000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 110,
+      "path" : "Web Frameworks"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jaxb-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "javax.xml.bind",
+        "version" : "2.3.1"
+      }
+    },
+    "packageUrl" : "pkg:maven/javax.xml.bind/jaxb-api@2.3.1?type=jar",
+    "groupId" : "javax.xml.bind",
+    "artifactId" : "jaxb-api",
+    "version" : "2.3.1",
+    "filenames" : [ "jaxb-api-2.3.1.jar" ], "displayName": { "parts": [ { "value": "jaxb-api-2.3.1.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jaxb-api-2.3.1.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "8531ad5ac454cc2deb9d",
+    "relativePopularity" : 1.0,
+    "createTime" : 1540922793000,
+    "lastModifiedTime" : 1536748124000,
+    "lastModifiedEntryTime" : 1580135684000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "logback-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ch.qos.logback",
+        "version" : "1.2.3"
+      }
+    },
+    "packageUrl" : "pkg:maven/ch.qos.logback/logback-core@1.2.3?type=jar",
+    "groupId" : "ch.qos.logback",
+    "artifactId" : "logback-core",
+    "version" : "1.2.3",
+    "filenames" : [ "logback-core-1.2.3.jar" ], "displayName": { "parts": [ { "value": "logback-core-1.2.3.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/logback-core-1.2.3.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "864344400c3d4d92dfeb",
+    "relativePopularity" : 1.0,
+    "createTime" : 1495573556000,
+    "lastModifiedTime" : 1491005998000,
+    "lastModifiedEntryTime" : 1491006010000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "thymeleaf-extras-springsecurity5",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.thymeleaf.extras",
+        "version" : "3.0.4.RELEASE"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.thymeleaf.extras/thymeleaf-extras-springsecurity5@3.0.4.RELEASE?type=jar",
+    "groupId" : "org.thymeleaf.extras",
+    "artifactId" : "thymeleaf-extras-springsecurity5",
+    "version" : "3.0.4.RELEASE",
+    "filenames" : [ "thymeleaf-extras-springsecurity5-3.0.4.RELEASE.jar" ], "displayName": { "parts": [ { "value": "thymeleaf-extras-springsecurity5-3.0.4.RELEASE.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/thymeleaf-extras-springsecurity5-3.0.4.RELEASE.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "88bb10bf73ce285208dd",
+    "relativePopularity" : 1.0,
+    "createTime" : 1540773143000,
+    "lastModifiedTime" : 1540787532000,
+    "lastModifiedEntryTime" : 1540787532000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "hibernate-validator",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.hibernate.validator",
+        "version" : "6.1.7.Final"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.hibernate.validator/hibernate-validator@6.1.7.Final?type=jar",
+    "groupId" : "org.hibernate.validator",
+    "artifactId" : "hibernate-validator",
+    "version" : "6.1.7.Final",
+    "filenames" : [ "hibernate-validator-6.1.7.Final.jar" ], "displayName": { "parts": [ { "value": "hibernate-validator-6.1.7.Final.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/hibernate-validator-6.1.7.Final.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "8d10290c5b23b7d061c7",
+    "relativePopularity" : 0.65,
+    "createTime" : 1608133355000,
+    "lastModifiedTime" : 1608151346000,
+    "lastModifiedEntryTime" : 1608151352000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 4,
+      "label" : "Laggard"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-webmvc",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.springframework/spring-webmvc@5.3.4?type=jar",
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-webmvc",
+    "version" : "5.3.4",
+    "filenames" : [ "spring-webmvc-5.3.4.jar" ], "displayName": { "parts": [ { "value": "spring-webmvc-5.3.4.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/spring-webmvc-5.3.4.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "8dd52fbe8eafcc7c8099",
+    "relativePopularity" : 0.28,
+    "createTime" : 1613474206000,
+    "lastModifiedTime" : 1613490390000,
+    "lastModifiedEntryTime" : 1613490390000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 110,
+      "path" : "Web Frameworks"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-exec",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.commons",
+        "version" : "1.3"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.apache.commons/commons-exec@1.3?type=jar",
+    "groupId" : "org.apache.commons",
+    "artifactId" : "commons-exec",
+    "version" : "1.3",
+    "filenames" : [ "commons-exec-1.3.jar" ], "displayName": { "parts": [ { "value": "commons-exec-1.3.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/commons-exec-1.3.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "8dfb9facd0830a27b1b5",
+    "relativePopularity" : 1.0,
+    "createTime" : 1414974434000,
+    "lastModifiedTime" : 1414972320000,
+    "lastModifiedEntryTime" : 1414972456000,
+    "website" : "http://commons.apache.org/proper/commons-exec/",
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 89,
+      "path" : "Programming Language Utilites"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-boot-jarmode-layertools",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.boot",
+        "version" : "2.4.3"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.springframework.boot/spring-boot-jarmode-layertools@2.4.3?type=jar",
+    "groupId" : "org.springframework.boot",
+    "artifactId" : "spring-boot-jarmode-layertools",
+    "version" : "2.4.3",
+    "filenames" : [ "spring-boot-jarmode-layertools-2.4.3.jar" ], "displayName": { "parts": [ { "value": "spring-boot-jarmode-layertools-2.4.3.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/spring-boot-jarmode-layertools-2.4.3.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "similar",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "8e8ce65ac17553f7aabe",
+    "relativePopularity" : 0.2,
+    "createTime" : 1613660821000,
+    "lastModifiedTime" : 318229200000,
+    "lastModifiedEntryTime" : 318229200000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 1,
+      "label" : "Exemplar"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "wildfly-common",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.wildfly.common",
+        "version" : "1.5.2.Final"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.wildfly.common/wildfly-common@1.5.2.Final?type=jar",
+    "groupId" : "org.wildfly.common",
+    "artifactId" : "wildfly-common",
+    "version" : "1.5.2.Final",
+    "filenames" : [ "wildfly-common-1.5.2.Final.jar" ], "displayName": { "parts": [ { "value": "wildfly-common-1.5.2.Final.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/wildfly-common-1.5.2.Final.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "8eba40cfe86bcfcc2235",
+    "relativePopularity" : 1.0,
+    "createTime" : 1561580116000,
+    "lastModifiedTime" : 1561576500000,
+    "lastModifiedEntryTime" : 1561576504000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jakarta.persistence-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "jakarta.persistence",
+        "version" : "2.2.3"
+      }
+    },
+    "packageUrl" : "pkg:maven/jakarta.persistence/jakarta.persistence-api@2.2.3?type=jar",
+    "groupId" : "jakarta.persistence",
+    "artifactId" : "jakarta.persistence-api",
+    "version" : "2.2.3",
+    "filenames" : [ "jakarta.persistence-api-2.2.3.jar" ], "displayName": { "parts": [ { "value": "jakarta.persistence-api-2.2.3.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jakarta.persistence-api-2.2.3.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "8f6ea5daedc614f07a36",
+    "relativePopularity" : 1.0,
+    "createTime" : 1564765318000,
+    "lastModifiedTime" : 1564779586000,
+    "lastModifiedEntryTime" : 1564779684000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xnio-nio",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.jboss.xnio",
+        "version" : "3.8.0.Final"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.jboss.xnio/xnio-nio@3.8.0.Final?type=jar",
+    "groupId" : "org.jboss.xnio",
+    "artifactId" : "xnio-nio",
+    "version" : "3.8.0.Final",
+    "filenames" : [ "xnio-nio-3.8.0.Final.jar" ], "displayName": { "parts": [ { "value": "xnio-nio-3.8.0.Final.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/xnio-nio-3.8.0.Final.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "90c57dcf7f8c846b4da3",
+    "relativePopularity" : 1.0,
+    "createTime" : 1584606015000,
+    "lastModifiedTime" : 1584609584000,
+    "lastModifiedEntryTime" : 1584609614000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-security-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.security",
+        "version" : "5.4.5"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.springframework.security/spring-security-core@5.4.5?type=jar",
+    "groupId" : "org.springframework.security",
+    "artifactId" : "spring-security-core",
+    "version" : "5.4.5",
+    "filenames" : [ "spring-security-core-5.4.5.jar" ], "displayName": { "parts": [ { "value": "spring-security-core-5.4.5.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/spring-security-core-5.4.5.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "90f805783a261f5cdfaf",
+    "relativePopularity" : 0.26,
+    "createTime" : 1613601412000,
+    "lastModifiedTime" : 1613619306000,
+    "lastModifiedEntryTime" : 1613619360000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 167,
+      "path" : "Security/Authentication and Authorization"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "log4j-to-slf4j",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.logging.log4j",
+        "version" : "2.13.3"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.apache.logging.log4j/log4j-to-slf4j@2.13.3?type=jar",
+    "groupId" : "org.apache.logging.log4j",
+    "artifactId" : "log4j-to-slf4j",
+    "version" : "2.13.3",
+    "filenames" : [ "log4j-to-slf4j-2.13.3.jar" ], "displayName": { "parts": [ { "value": "log4j-to-slf4j-2.13.3.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/log4j-to-slf4j-2.13.3.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "966f6fd1af4959d6b12b",
+    "relativePopularity" : 0.91,
+    "createTime" : 1589137810000,
+    "lastModifiedTime" : 1589127004000,
+    "lastModifiedEntryTime" : 1589127006000,
+    "website" : "http://logging.apache.org/log4j/2.x/log4j-to-slf4j/",
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 81,
+      "path" : "Logging/Bridges"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jakarta.activation-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "jakarta.activation",
+        "version" : "1.2.2"
+      }
+    },
+    "packageUrl" : "pkg:maven/jakarta.activation/jakarta.activation-api@1.2.2?type=jar",
+    "groupId" : "jakarta.activation",
+    "artifactId" : "jakarta.activation-api",
+    "version" : "1.2.2",
+    "filenames" : [ "jakarta.activation-api-1.2.2.jar" ], "displayName": { "parts": [ { "value": "jakarta.activation-api-1.2.2.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jakarta.activation-api-1.2.2.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "99f53adba383cb1bf7c3",
+    "relativePopularity" : 1.0,
+    "createTime" : 1582223866000,
+    "lastModifiedTime" : 1582241850000,
+    "lastModifiedEntryTime" : 1582241850000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jboss-threads",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.jboss.threads",
+        "version" : "3.1.0.Final"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.jboss.threads/jboss-threads@3.1.0.Final?type=jar",
+    "groupId" : "org.jboss.threads",
+    "artifactId" : "jboss-threads",
+    "version" : "3.1.0.Final",
+    "filenames" : [ "jboss-threads-3.1.0.Final.jar" ], "displayName": { "parts": [ { "value": "jboss-threads-3.1.0.Final.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jboss-threads-3.1.0.Final.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "9b260c0302f637a84a52",
+    "relativePopularity" : 1.0,
+    "createTime" : 1584982750000,
+    "lastModifiedTime" : 1584979132000,
+    "lastModifiedEntryTime" : 1584979142000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 4,
+      "label" : "Laggard"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "postgresql",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.postgresql",
+        "version" : "42.2.18"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.postgresql/postgresql@42.2.18?type=jar",
+    "groupId" : "org.postgresql",
+    "artifactId" : "postgresql",
+    "version" : "42.2.18",
+    "filenames" : [ "postgresql-42.2.18.jar" ], "displayName": { "parts": [ { "value": "postgresql-42.2.18.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/postgresql-42.2.18.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "a0a9c1d43c7727eeaf1b",
+    "relativePopularity" : 0.85,
+    "createTime" : 1602767499000,
+    "lastModifiedTime" : 318229200000,
+    "lastModifiedEntryTime" : 318229200000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "dom4j",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.dom4j",
+        "version" : "2.1.3"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.dom4j/dom4j@2.1.3?type=jar",
+    "groupId" : "org.dom4j",
+    "artifactId" : "dom4j",
+    "version" : "2.1.3",
+    "filenames" : [ "dom4j-2.1.3.jar" ], "displayName": { "parts": [ { "value": "dom4j-2.1.3.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/dom4j-2.1.3.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "a75914155a9f58089631",
+    "relativePopularity" : 1.0,
+    "createTime" : 1586686509000,
+    "lastModifiedTime" : 1586707540000,
+    "lastModifiedEntryTime" : 1586707540000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "attoparser",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.attoparser",
+        "version" : "2.0.5.RELEASE"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.attoparser/attoparser@2.0.5.RELEASE?type=jar",
+    "groupId" : "org.attoparser",
+    "artifactId" : "attoparser",
+    "version" : "2.0.5.RELEASE",
+    "filenames" : [ "attoparser-2.0.5.RELEASE.jar" ], "displayName": { "parts": [ { "value": "attoparser-2.0.5.RELEASE.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/attoparser-2.0.5.RELEASE.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "a93ad36df9560de3a531",
+    "relativePopularity" : 1.0,
+    "createTime" : 1522402486000,
+    "lastModifiedTime" : 1522416724000,
+    "lastModifiedEntryTime" : 1522416724000,
+    "website" : "http://www.attoparser.org",
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 25,
+      "path" : "Data Processors"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "HikariCP",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.zaxxer",
+        "version" : "3.4.5"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.zaxxer/HikariCP@3.4.5?type=jar",
+    "groupId" : "com.zaxxer",
+    "artifactId" : "HikariCP",
+    "version" : "3.4.5",
+    "filenames" : [ "HikariCP-3.4.5.jar" ], "displayName": { "parts": [ { "value": "HikariCP-3.4.5.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/HikariCP-3.4.5.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "aa1a2c00aae8e4ba8308",
+    "relativePopularity" : 0.85,
+    "createTime" : 1588952378000,
+    "lastModifiedTime" : 1588966678000,
+    "lastModifiedEntryTime" : 1588966678000,
+    "website" : "https://github.com/brettwooldridge/HikariCP",
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 43,
+      "path" : "Data Management/Database Access"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "thymeleaf-spring5",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.thymeleaf",
+        "version" : "3.0.12.RELEASE"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.thymeleaf/thymeleaf-spring5@3.0.12.RELEASE?type=jar",
+    "groupId" : "org.thymeleaf",
+    "artifactId" : "thymeleaf-spring5",
+    "version" : "3.0.12.RELEASE",
+    "filenames" : [ "thymeleaf-spring5-3.0.12.RELEASE.jar" ], "displayName": { "parts": [ { "value": "thymeleaf-spring5-3.0.12.RELEASE.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/thymeleaf-spring5-3.0.12.RELEASE.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "aa640b214411978a23cb",
+    "relativePopularity" : 1.0,
+    "createTime" : 1608511041000,
+    "lastModifiedTime" : 1608529022000,
+    "lastModifiedEntryTime" : 1608529026000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 34,
+      "path" : "Data Processors/Templating/Markdown"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-beans",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.springframework/spring-beans@5.3.4?type=jar",
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-beans",
+    "version" : "5.3.4",
+    "filenames" : [ "spring-beans-5.3.4.jar" ], "displayName": { "parts": [ { "value": "spring-beans-5.3.4.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/spring-beans-5.3.4.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "ac6c5ea0ba82f555405f",
+    "relativePopularity" : 0.26,
+    "createTime" : 1613474193000,
+    "lastModifiedTime" : 1613490346000,
+    "lastModifiedEntryTime" : 1613490350000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 68,
+      "path" : "Dependency Injection and Aspect-Oriented"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "hsqldb",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.hsqldb",
+        "version" : "2.5.1"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.hsqldb/hsqldb@2.5.1?type=jar",
+    "groupId" : "org.hsqldb",
+    "artifactId" : "hsqldb",
+    "version" : "2.5.1",
+    "filenames" : [ "hsqldb-2.5.1.jar" ], "displayName": { "parts": [ { "value": "hsqldb-2.5.1.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/hsqldb-2.5.1.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "b1f720a63a8756867895",
+    "relativePopularity" : 0.8,
+    "createTime" : 1593384583000,
+    "lastModifiedTime" : 1593380758000,
+    "lastModifiedEntryTime" : 1593380762000,
+    "website" : "http://hsqldb.org",
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 41,
+      "path" : "Data Management/Database/RDBMS Databases"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jboss-annotations-api_1.3_spec",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.jboss.spec.javax.annotation",
+        "version" : "2.0.1.Final"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.jboss.spec.javax.annotation/jboss-annotations-api_1.3_spec@2.0.1.Final?type=jar",
+    "groupId" : "org.jboss.spec.javax.annotation",
+    "artifactId" : "jboss-annotations-api_1.3_spec",
+    "version" : "2.0.1.Final",
+    "filenames" : [ "jboss-annotations-api_1.3_spec-2.0.1.Final.jar" ], "displayName": { "parts": [ { "value": "jboss-annotations-api_1.3_spec-2.0.1.Final.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jboss-annotations-api_1.3_spec-2.0.1.Final.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "b3744f492ce9a65d1197",
+    "relativePopularity" : 1.0,
+    "createTime" : 1568202924000,
+    "lastModifiedTime" : 1568220916000,
+    "lastModifiedEntryTime" : 1568220918000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "listenablefuture",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.google.guava",
+        "version" : "9999.0-empty-to-avoid-conflict-with-guava"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.google.guava/listenablefuture@9999.0-empty-to-avoid-conflict-with-guava?type=jar",
+    "groupId" : "com.google.guava",
+    "artifactId" : "listenablefuture",
+    "version" : "9999.0-empty-to-avoid-conflict-with-guava",
+    "filenames" : [ "listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar" ], "displayName": { "parts": [ { "value": "listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "b421526c5f297295adef",
+    "relativePopularity" : 1.0,
+    "createTime" : 1536694843000,
+    "lastModifiedTime" : 315561600000,
+    "lastModifiedEntryTime" : 1536694836000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "slf4j-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.slf4j",
+        "version" : "1.7.30"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.slf4j/slf4j-api@1.7.30?type=jar",
+    "groupId" : "org.slf4j",
+    "artifactId" : "slf4j-api",
+    "version" : "1.7.30",
+    "filenames" : [ "slf4j-api-1.7.30.jar" ], "displayName": { "parts": [ { "value": "slf4j-api-1.7.30.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/slf4j-api-1.7.30.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "b5a4b6d16ab13e34a88f",
+    "relativePopularity" : 1.0,
+    "createTime" : 1576530216000,
+    "lastModifiedTime" : 1576551812000,
+    "lastModifiedEntryTime" : 1576551812000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-aop",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.springframework/spring-aop@5.3.4?type=jar",
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-aop",
+    "version" : "5.3.4",
+    "filenames" : [ "spring-aop-5.3.4.jar" ], "displayName": { "parts": [ { "value": "spring-aop-5.3.4.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/spring-aop-5.3.4.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "b7180a6427ab524bc1cb",
+    "relativePopularity" : 0.29,
+    "createTime" : 1613474182000,
+    "lastModifiedTime" : 1613490352000,
+    "lastModifiedEntryTime" : 1613490352000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 68,
+      "path" : "Dependency Injection and Aspect-Oriented"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "jquery",
+        "qualifier" : "",
+        "version" : "3.5.1"
+      }
+    },
+    "packageUrl" : "pkg:a-name/jquery@3.5.1",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "jquery.js", "jquery.min.js", "jquery.slim.js", "jquery.slim.min.js" ],
+    "displayName": { "parts": [ { "value": "jquery.slim.js" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jquery-3.5.1.jar/META-INF/resources/webjars/jquery/3.5.1/jquery.js", "webwolf-8.2.2.jar/BOOT-INF/lib/jquery-3.5.1.jar/META-INF/resources/webjars/jquery/3.5.1/jquery.min.js", "webwolf-8.2.2.jar/BOOT-INF/lib/jquery-3.5.1.jar/META-INF/resources/webjars/jquery/3.5.1/jquery.slim.js", "webwolf-8.2.2.jar/BOOT-INF/lib/jquery-3.5.1.jar/META-INF/resources/webjars/jquery/3.5.1/jquery.slim.min.js" ],
+    "aggregateFiles" : [ {
+      "hash" : "c8e1c8b386dc5b7a9184",
+      "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jquery-3.5.1.jar/META-INF/resources/webjars/jquery/3.5.1/jquery.min.js" ]
+    }, {
+      "hash" : "ad16c4a132ad2a03b495",
+      "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jquery-3.5.1.jar/META-INF/resources/webjars/jquery/3.5.1/jquery.js" ]
+    }, {
+      "hash" : "32d26b5ed44f2e53d63b",
+      "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jquery-3.5.1.jar/META-INF/resources/webjars/jquery/3.5.1/jquery.slim.js" ]
+    }, {
+      "hash" : "cf8d9821552d51bb50ce",
+      "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jquery-3.5.1.jar/META-INF/resources/webjars/jquery/3.5.1/jquery.slim.min.js" ]
+    } ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "b74544933574d4a7a2b7",
+    "relativePopularity" : null,
+    "createTime" : 1588632608819,
+    "lastModifiedTime" : 1588757556000,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jakarta.servlet-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "jakarta.servlet",
+        "version" : "4.0.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/jakarta.servlet/jakarta.servlet-api@4.0.4?type=jar",
+    "groupId" : "jakarta.servlet",
+    "artifactId" : "jakarta.servlet-api",
+    "version" : "4.0.4",
+    "filenames" : [ "jakarta.servlet-api-4.0.4.jar" ], "displayName": { "parts": [ { "value": "jakarta.servlet-api-4.0.4.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jakarta.servlet-api-4.0.4.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "b8a1142e04838fe54194",
+    "relativePopularity" : 1.0,
+    "createTime" : 1592488715000,
+    "lastModifiedTime" : 1592503040000,
+    "lastModifiedEntryTime" : 1592503074000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "j2objc-annotations",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.google.j2objc",
+        "version" : "1.3"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.google.j2objc/j2objc-annotations@1.3?type=jar",
+    "groupId" : "com.google.j2objc",
+    "artifactId" : "j2objc-annotations",
+    "version" : "1.3",
+    "filenames" : [ "j2objc-annotations-1.3.jar" ], "displayName": { "parts": [ { "value": "j2objc-annotations-1.3.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/j2objc-annotations-1.3.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "ba035118bc8bac37d7ef",
+    "relativePopularity" : 1.0,
+    "createTime" : 1484780994000,
+    "lastModifiedTime" : 1484770192000,
+    "lastModifiedEntryTime" : 1484770192000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 129,
+      "path" : "Programming Language Utilites/Annotations"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "hibernate-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.hibernate",
+        "version" : "5.4.28.Final"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.hibernate/hibernate-core@5.4.28.Final?type=jar",
+    "groupId" : "org.hibernate",
+    "artifactId" : "hibernate-core",
+    "version" : "5.4.28.Final",
+    "filenames" : [ "hibernate-core-5.4.28.Final.jar" ], "displayName": { "parts": [ { "value": "hibernate-core-5.4.28.Final.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/hibernate-core-5.4.28.Final.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "c096dbb27f83655ec252",
+    "relativePopularity" : 0.1,
+    "createTime" : 1612878229000,
+    "lastModifiedTime" : 1612894132000,
+    "lastModifiedEntryTime" : 1612894132000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jakarta.transaction-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "jakarta.transaction",
+        "version" : "1.3.3"
+      }
+    },
+    "packageUrl" : "pkg:maven/jakarta.transaction/jakarta.transaction-api@1.3.3?type=jar",
+    "groupId" : "jakarta.transaction",
+    "artifactId" : "jakarta.transaction-api",
+    "version" : "1.3.3",
+    "filenames" : [ "jakarta.transaction-api-1.3.3.jar" ], "displayName": { "parts": [ { "value": "jakarta.transaction-api-1.3.3.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jakarta.transaction-api-1.3.3.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "c4179d48720a1e872021",
+    "relativePopularity" : 1.0,
+    "createTime" : 1564784203000,
+    "lastModifiedTime" : 1564798494000,
+    "lastModifiedEntryTime" : 1564798556000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jaxb-runtime",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.glassfish.jaxb",
+        "version" : "2.3.3"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.glassfish.jaxb/jaxb-runtime@2.3.3?type=jar",
+    "groupId" : "org.glassfish.jaxb",
+    "artifactId" : "jaxb-runtime",
+    "version" : "2.3.3",
+    "filenames" : [ "jaxb-runtime-2.3.3.jar" ], "displayName": { "parts": [ { "value": "jaxb-runtime-2.3.3.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jaxb-runtime-2.3.3.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "c46b68a6e3a2d84ba4eb",
+    "relativePopularity" : 0.39,
+    "createTime" : 1586281874000,
+    "lastModifiedTime" : 1586295928000,
+    "lastModifiedEntryTime" : 1586295940000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "byte-buddy",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.bytebuddy",
+        "version" : "1.10.20"
+      }
+    },
+    "packageUrl" : "pkg:maven/net.bytebuddy/byte-buddy@1.10.20?type=jar",
+    "groupId" : "net.bytebuddy",
+    "artifactId" : "byte-buddy",
+    "version" : "1.10.20",
+    "filenames" : [ "byte-buddy-1.10.20.jar" ], "displayName": { "parts": [ { "value": "byte-buddy-1.10.20.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/byte-buddy-1.10.20.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "c5d2d12c75c5d52f8df3",
+    "relativePopularity" : 0.23,
+    "createTime" : 1612339541000,
+    "lastModifiedTime" : 1612318798000,
+    "lastModifiedEntryTime" : 1612318944000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-jcl",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.springframework/spring-jcl@5.3.4?type=jar",
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-jcl",
+    "version" : "5.3.4",
+    "filenames" : [ "spring-jcl-5.3.4.jar" ], "displayName": { "parts": [ { "value": "spring-jcl-5.3.4.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/spring-jcl-5.3.4.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "ca012eb4e9e57f767aa9",
+    "relativePopularity" : 0.36,
+    "createTime" : 1613474191000,
+    "lastModifiedTime" : 1613490300000,
+    "lastModifiedEntryTime" : 1613490300000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-datatype-jsr310",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.datatype",
+        "version" : "2.11.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.fasterxml.jackson.datatype/jackson-datatype-jsr310@2.11.4?type=jar",
+    "groupId" : "com.fasterxml.jackson.datatype",
+    "artifactId" : "jackson-datatype-jsr310",
+    "version" : "2.11.4",
+    "filenames" : [ "jackson-datatype-jsr310-2.11.4.jar" ], "displayName": { "parts": [ { "value": "jackson-datatype-jsr310-2.11.4.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jackson-datatype-jsr310-2.11.4.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "ce6fc76bba06623720e5",
+    "relativePopularity" : 0.89,
+    "createTime" : 1607734279000,
+    "lastModifiedTime" : 1607752232000,
+    "lastModifiedEntryTime" : 1607752250000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 1,
+      "label" : "Exemplar"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jandex",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.jboss",
+        "version" : "2.2.3.Final"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.jboss/jandex@2.2.3.Final?type=jar",
+    "groupId" : "org.jboss",
+    "artifactId" : "jandex",
+    "version" : "2.2.3.Final",
+    "filenames" : [ "jandex-2.2.3.Final.jar" ], "displayName": { "parts": [ { "value": "jandex-2.2.3.Final.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jandex-2.2.3.Final.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "d3865101f0666b635866",
+    "relativePopularity" : 1.0,
+    "createTime" : 1611350106000,
+    "lastModifiedTime" : 1611346502000,
+    "lastModifiedEntryTime" : 1611346502000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jul-to-slf4j",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.slf4j",
+        "version" : "1.7.30"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.slf4j/jul-to-slf4j@1.7.30?type=jar",
+    "groupId" : "org.slf4j",
+    "artifactId" : "jul-to-slf4j",
+    "version" : "1.7.30",
+    "filenames" : [ "jul-to-slf4j-1.7.30.jar" ], "displayName": { "parts": [ { "value": "jul-to-slf4j-1.7.30.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jul-to-slf4j-1.7.30.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "d58bebff8cbf70ff52b5",
+    "relativePopularity" : 1.0,
+    "createTime" : 1576530337000,
+    "lastModifiedTime" : 1576551618000,
+    "lastModifiedEntryTime" : 1576551620000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "bootstrap",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.webjars",
+        "version" : "3.3.7"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.webjars/bootstrap@3.3.7?type=jar",
+    "groupId" : "org.webjars",
+    "artifactId" : "bootstrap",
+    "version" : "3.3.7",
+    "filenames" : [ "bootstrap-3.3.7.jar" ], "displayName": { "parts": [ { "value": "bootstrap-3.3.7.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/bootstrap-3.3.7.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "d6aeba80236573ed585b",
+    "relativePopularity" : 0.78,
+    "createTime" : 1469466465000,
+    "lastModifiedTime" : 1469459250000,
+    "lastModifiedEntryTime" : 1469459250000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 83,
+      "path" : "GUI"
+    } ],
+    "hygieneRating" : {
+      "id" : 4,
+      "label" : "Laggard"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-web",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.springframework/spring-web@5.3.4?type=jar",
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-web",
+    "version" : "5.3.4",
+    "filenames" : [ "spring-web-5.3.4.jar" ], "displayName": { "parts": [ { "value": "spring-web-5.3.4.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/spring-web-5.3.4.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "d93829e24a50ed22e781",
+    "relativePopularity" : 0.23,
+    "createTime" : 1613474180000,
+    "lastModifiedTime" : 1613490374000,
+    "lastModifiedEntryTime" : 1613490374000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 110,
+      "path" : "Web Frameworks"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jakarta.el",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.glassfish",
+        "version" : "3.0.3"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.glassfish/jakarta.el@3.0.3?type=jar",
+    "groupId" : "org.glassfish",
+    "artifactId" : "jakarta.el",
+    "version" : "3.0.3",
+    "filenames" : [ "jakarta.el-3.0.3.jar" ], "displayName": { "parts": [ { "value": "jakarta.el-3.0.3.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jakarta.el-3.0.3.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "dab46ee1ee23f7197c13",
+    "relativePopularity" : 1.0,
+    "createTime" : 1566817207000,
+    "lastModifiedTime" : 1566831510000,
+    "lastModifiedEntryTime" : 1566831566000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "error_prone_annotations",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.google.errorprone",
+        "version" : "2.3.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.google.errorprone/error_prone_annotations@2.3.4?type=jar",
+    "groupId" : "com.google.errorprone",
+    "artifactId" : "error_prone_annotations",
+    "version" : "2.3.4",
+    "filenames" : [ "error_prone_annotations-2.3.4.jar" ], "displayName": { "parts": [ { "value": "error_prone_annotations-2.3.4.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/error_prone_annotations-2.3.4.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "dac170e4594de319655f",
+    "relativePopularity" : 1.0,
+    "createTime" : 1575313318000,
+    "lastModifiedTime" : 1575302512000,
+    "lastModifiedEntryTime" : 1575302512000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 129,
+      "path" : "Programming Language Utilites/Annotations"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-aspects",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.springframework/spring-aspects@5.3.4?type=jar",
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-aspects",
+    "version" : "5.3.4",
+    "filenames" : [ "spring-aspects-5.3.4.jar" ], "displayName": { "parts": [ { "value": "spring-aspects-5.3.4.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/spring-aspects-5.3.4.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "ddbef9615d0c71c44e48",
+    "relativePopularity" : 0.16,
+    "createTime" : 1613474181000,
+    "lastModifiedTime" : 1613490388000,
+    "lastModifiedEntryTime" : 1613490388000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 68,
+      "path" : "Dependency Injection and Aspect-Oriented"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "thymeleaf",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.thymeleaf",
+        "version" : "3.0.12.RELEASE"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.thymeleaf/thymeleaf@3.0.12.RELEASE?type=jar",
+    "groupId" : "org.thymeleaf",
+    "artifactId" : "thymeleaf",
+    "version" : "3.0.12.RELEASE",
+    "filenames" : [ "thymeleaf-3.0.12.RELEASE.jar" ], "displayName": { "parts": [ { "value": "thymeleaf-3.0.12.RELEASE.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/thymeleaf-3.0.12.RELEASE.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "de1865b0d58590a50c33",
+    "relativePopularity" : 1.0,
+    "createTime" : 1608510434000,
+    "lastModifiedTime" : 1608528400000,
+    "lastModifiedEntryTime" : 1608528400000,
+    "website" : "http://www.thymeleaf.org",
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 33,
+      "path" : "Data Processors/Templating"
+    } ],
+    "hygieneRating" : {
+      "id" : 4,
+      "label" : "Laggard"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-boot",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.boot",
+        "version" : "2.4.3"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.springframework.boot/spring-boot@2.4.3?type=jar",
+    "groupId" : "org.springframework.boot",
+    "artifactId" : "spring-boot",
+    "version" : "2.4.3",
+    "filenames" : [ "spring-boot-2.4.3.jar" ], "displayName": { "parts": [ { "value": "spring-boot-2.4.3.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/spring-boot-2.4.3.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "de2bd17a8eb9bc3dfa62",
+    "relativePopularity" : 0.32,
+    "createTime" : 1613660828000,
+    "lastModifiedTime" : 1613675242000,
+    "lastModifiedEntryTime" : 1613675242000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 1,
+      "label" : "Exemplar"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-jdbc",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.springframework/spring-jdbc@5.3.4?type=jar",
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-jdbc",
+    "version" : "5.3.4",
+    "filenames" : [ "spring-jdbc-5.3.4.jar" ], "displayName": { "parts": [ { "value": "spring-jdbc-5.3.4.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/spring-jdbc-5.3.4.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "df5dccc508ae9f75f17f",
+    "relativePopularity" : 0.14,
+    "createTime" : 1613474188000,
+    "lastModifiedTime" : 1613490366000,
+    "lastModifiedEntryTime" : 1613490366000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 43,
+      "path" : "Data Management/Database Access"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-datatype-jdk8",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.datatype",
+        "version" : "2.11.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.fasterxml.jackson.datatype/jackson-datatype-jdk8@2.11.4?type=jar",
+    "groupId" : "com.fasterxml.jackson.datatype",
+    "artifactId" : "jackson-datatype-jdk8",
+    "version" : "2.11.4",
+    "filenames" : [ "jackson-datatype-jdk8-2.11.4.jar" ], "displayName": { "parts": [ { "value": "jackson-datatype-jdk8-2.11.4.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/jackson-datatype-jdk8-2.11.4.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "e1540dea3c6c681ea4e3",
+    "relativePopularity" : 0.83,
+    "createTime" : 1607734282000,
+    "lastModifiedTime" : 1607752244000,
+    "lastModifiedEntryTime" : 1607752244000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 1,
+      "label" : "Exemplar"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xnio-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.jboss.xnio",
+        "version" : "3.8.0.Final"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.jboss.xnio/xnio-api@3.8.0.Final?type=jar",
+    "groupId" : "org.jboss.xnio",
+    "artifactId" : "xnio-api",
+    "version" : "3.8.0.Final",
+    "filenames" : [ "xnio-api-3.8.0.Final.jar" ], "displayName": { "parts": [ { "value": "xnio-api-3.8.0.Final.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/xnio-api-3.8.0.Final.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "e2c29acf42ac6f42c34f",
+    "relativePopularity" : 1.0,
+    "createTime" : 1584605972000,
+    "lastModifiedTime" : 1584609518000,
+    "lastModifiedEntryTime" : 1584609566000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 4,
+      "label" : "Laggard"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "hibernate-commons-annotations",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.hibernate.common",
+        "version" : "5.1.2.Final"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.hibernate.common/hibernate-commons-annotations@5.1.2.Final?type=jar",
+    "groupId" : "org.hibernate.common",
+    "artifactId" : "hibernate-commons-annotations",
+    "version" : "5.1.2.Final",
+    "filenames" : [ "hibernate-commons-annotations-5.1.2.Final.jar" ], "displayName": { "parts": [ { "value": "hibernate-commons-annotations-5.1.2.Final.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/hibernate-commons-annotations-5.1.2.Final.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "e59ffdbc6ad09eeb3350",
+    "relativePopularity" : 1.0,
+    "createTime" : 1604074374000,
+    "lastModifiedTime" : 1604088406000,
+    "lastModifiedEntryTime" : 1604088406000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 4,
+      "label" : "Laggard"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "undertow-servlet",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.undertow",
+        "version" : "2.2.4.Final"
+      }
+    },
+    "packageUrl" : "pkg:maven/io.undertow/undertow-servlet@2.2.4.Final?type=jar",
+    "groupId" : "io.undertow",
+    "artifactId" : "undertow-servlet",
+    "version" : "2.2.4.Final",
+    "filenames" : [ "undertow-servlet-2.2.4.Final.jar" ], "displayName": { "parts": [ { "value": "undertow-servlet-2.2.4.Final.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/undertow-servlet-2.2.4.Final.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "e8e9cf5672a053889d92",
+    "relativePopularity" : 0.13,
+    "createTime" : 1612381144000,
+    "lastModifiedTime" : 1612387772000,
+    "lastModifiedEntryTime" : 1612388340000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "log4j-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.logging.log4j",
+        "version" : "2.13.3"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.apache.logging.log4j/log4j-api@2.13.3?type=jar",
+    "groupId" : "org.apache.logging.log4j",
+    "artifactId" : "log4j-api",
+    "version" : "2.13.3",
+    "filenames" : [ "log4j-api-2.13.3.jar" ], "displayName": { "parts": [ { "value": "log4j-api-2.13.3.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/log4j-api-2.13.3.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "ec1508160b93d274b1ad",
+    "relativePopularity" : 0.79,
+    "createTime" : 1589137703000,
+    "lastModifiedTime" : 1589126876000,
+    "lastModifiedEntryTime" : 1589126886000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "aspectjweaver",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.aspectj",
+        "version" : "1.9.6"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.aspectj/aspectjweaver@1.9.6?type=jar",
+    "groupId" : "org.aspectj",
+    "artifactId" : "aspectjweaver",
+    "version" : "1.9.6",
+    "filenames" : [ "aspectjweaver-1.9.6.jar" ], "displayName": { "parts": [ { "value": "aspectjweaver-1.9.6.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/aspectjweaver-1.9.6.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "ee3b73aa16df35179255",
+    "relativePopularity" : 0.96,
+    "createTime" : 1595445886000,
+    "lastModifiedTime" : 1595352626000,
+    "lastModifiedEntryTime" : 1595352646000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 68,
+      "path" : "Dependency Injection and Aspect-Oriented"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "javassist",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.javassist",
+        "version" : "3.27.0-GA"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.javassist/javassist@3.27.0-GA?type=jar",
+    "groupId" : "org.javassist",
+    "artifactId" : "javassist",
+    "version" : "3.27.0-GA",
+    "filenames" : [ "javassist-3.27.0-GA.jar" ], "displayName": { "parts": [ { "value": "javassist-3.27.0-GA.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/javassist-3.27.0-GA.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "f63e6aa899e15eca8fda",
+    "relativePopularity" : 1.0,
+    "createTime" : 1584624912000,
+    "lastModifiedTime" : 1584639238000,
+    "lastModifiedEntryTime" : 1584639238000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "micrometer-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.micrometer",
+        "version" : "1.6.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/io.micrometer/micrometer-core@1.6.4?type=jar",
+    "groupId" : "io.micrometer",
+    "artifactId" : "micrometer-core",
+    "version" : "1.6.4",
+    "filenames" : [ "micrometer-core-1.6.4.jar" ], "displayName": { "parts": [ { "value": "micrometer-core-1.6.4.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/micrometer-core-1.6.4.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "f91b9be9301947483ee3",
+    "relativePopularity" : 0.72,
+    "createTime" : 1613562436000,
+    "lastModifiedTime" : 1613575206000,
+    "lastModifiedEntryTime" : 1613575344000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-orm",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.springframework/spring-orm@5.3.4?type=jar",
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-orm",
+    "version" : "5.3.4",
+    "filenames" : [ "spring-orm-5.3.4.jar" ], "displayName": { "parts": [ { "value": "spring-orm-5.3.4.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/spring-orm-5.3.4.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "fa4d4d624be8303ab75a",
+    "relativePopularity" : 0.15,
+    "createTime" : 1613474193000,
+    "lastModifiedTime" : 1613490380000,
+    "lastModifiedEntryTime" : 1613490380000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 47,
+      "path" : "Data Management/Database Access/ORM Framework"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-context",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.springframework/spring-context@5.3.4?type=jar",
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-context",
+    "version" : "5.3.4",
+    "filenames" : [ "spring-context-5.3.4.jar" ], "displayName": { "parts": [ { "value": "spring-context-5.3.4.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar/BOOT-INF/lib/spring-context-5.3.4.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "fbeadeb0e4d272599a93",
+    "relativePopularity" : 0.29,
+    "createTime" : 1613474174000,
+    "lastModifiedTime" : 1613490362000,
+    "lastModifiedEntryTime" : 1613490362000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 68,
+      "path" : "Dependency Injection and Aspect-Oriented"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "webwolf-8.2.2.jar" ], "displayName": { "parts": [ { "value": "webwolf-8.2.2.jar" } ] },
+    "pathnames" : [ "webwolf-8.2.2.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "8a7ba0a274bf61f85dc8",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1674840914000,
+    "lastModifiedEntryTime" : 1630860290000,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : null
+  } ]
+}

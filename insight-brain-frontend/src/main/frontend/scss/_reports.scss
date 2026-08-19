@@ -1,0 +1,47 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+#report-title-left {
+  float: left;
+
+  .last-eval {
+    color: grey;
+    font-size: 12px;
+  }
+}
+
+#report-title-right {
+  float: right;
+  text-align: right;
+
+  .re-eval-alert {
+    display: inline;
+    padding: 2px 5px;
+    vertical-align: middle;
+  }
+}
+
+// Begin styles from /application/application.css
+.report__title {
+  @include nx-text-helpers.bold;
+
+  margin: 10px auto;
+}
+// end styles from /application/application.css
+
+// Begin styles from management.css
+.marginless-alert .alert {
+  margin-bottom: 0px;
+}
+// End styles from management.css
+
+// Begin CSS from insight.css
+.no-hover-underline:hover {
+  text-decoration: none;
+}
+// End CSS from insight.css

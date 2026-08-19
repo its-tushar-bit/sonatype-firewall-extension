@@ -1,0 +1,123 @@
+<scan version="2.21">
+<configuration>
+  <properties>
+    <property name="anonymizeArtifactIds" value="false"/>
+    <property name="jreInfo" value="true"/>
+    <property name="maxSymlinkDepth" value="5"/>
+    <property name="dirExcludes" value="**/.*, **/CVS"/>
+    <property name="hashFiles" value="true"/>
+    <property name="anonymizePaths" value="false"/>
+    <property name="procArch" value="true"/>
+    <property name="proprietaryPackages" value=""/>
+    <property name="proprietaryRegexes" value=""/>
+    <property name="fileIncludes" value=""/>
+    <property name="fileSizes" value="false"/>
+    <property name="thirdPartyScanningEnabled" value="true"/>
+    <property name="operatingSystem" value="true"/>
+    <property name="archiveNames" value="true"/>
+    <property name="fileExcludes" value=""/>
+    <property name="maxDepth" value="256"/>
+    <property name="resourceNames" value="true"/>
+    <property name="dirIncludes" value=""/>
+    <property name="pomProperties" value="true"/>
+    <property name="ipAddresses" value="false"/>
+    <property name="nameHashes" value="true"/>
+    <property name="hashJavaTypes" value="true"/>
+  </properties>
+</configuration>
+<item path="path1/iq-scan-sbom.xml" contentType="SBOM" lastModified="1565180731371" sha1="30a7c753d9515c185d85">
+  <content>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;bom xmlns=&quot;http://cyclonedx.org/schema/bom/1.1&quot; serialNumber=&quot;urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79&quot; version=&quot;1&quot;&gt;
+  &lt;components&gt;
+    &lt;component type=&quot;library&quot;&gt;
+      &lt;publisher&gt;Apache&lt;/publisher&gt;
+      &lt;group&gt;org.apache.tomcat&lt;/group&gt;
+      &lt;name&gt;tomcat-catalina&lt;/name&gt;
+      &lt;version&gt;9.0.14&lt;/version&gt;
+      &lt;hashes&gt;
+        &lt;hash alg=&quot;MD5&quot;&gt;3942447fac867ae5cdb3229b658f4d48&lt;/hash&gt;
+        &lt;hash alg=&quot;SHA-1&quot;&gt;e6b1000b94e835ffd37f4c6dcbdad43f4b48a02a&lt;/hash&gt;
+        &lt;hash alg=&quot;SHA-256&quot;&gt;f498a8ff2dd007e29c2074f5e4b01a9a01775c3ff3aeaf6906ea503bc5791b7b&lt;/hash&gt;
+        &lt;hash alg=&quot;SHA-512&quot;&gt;e8f33e424f3f4ed6db76a482fde1a5298970e442c531729119e37991884bdffab4f9426b7ee11fccd074eeda0634d71697d6f88a460dce0ac8d627a29f7d1282&lt;/hash&gt;
+      &lt;/hashes&gt;
+      &lt;licenses&gt;
+        &lt;license&gt;
+          &lt;id&gt;Apache-2.0&lt;/id&gt;
+        &lt;/license&gt;
+      &lt;/licenses&gt;
+      &lt;purl&gt;pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar&lt;/purl&gt;
+    &lt;/component&gt;
+    &lt;component type=&quot;library&quot; bom-ref=&quot;pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9&quot;&gt;
+      &lt;group&gt;com.fasterxml.jackson.core&lt;/group&gt;
+      &lt;name&gt;jackson-databind&lt;/name&gt;
+      &lt;version&gt;2.9.9&lt;/version&gt;
+      &lt;purl&gt;pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar&lt;/purl&gt;
+    &lt;/component&gt;
+  &lt;/components&gt;
+&lt;/bom&gt;</content>
+</item>
+<item path="path2/iq-scan-sbom.xml" contentType="SBOM" lastModified="1565180731371" sha1="30a7c753d9515c185d85">
+  <content>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;bom xmlns=&quot;http://cyclonedx.org/schema/bom/1.1&quot; serialNumber=&quot;urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79&quot; version=&quot;1&quot;&gt;
+  &lt;components&gt;
+    &lt;component type=&quot;library&quot;&gt;
+      &lt;publisher&gt;Apache&lt;/publisher&gt;
+      &lt;group&gt;org.apache.tomcat&lt;/group&gt;
+      &lt;name&gt;tomcat-catalina&lt;/name&gt;
+      &lt;version&gt;9.0.14&lt;/version&gt;
+      &lt;hashes&gt;
+        &lt;hash alg=&quot;MD5&quot;&gt;3942447fac867ae5cdb3229b658f4d48&lt;/hash&gt;
+        &lt;hash alg=&quot;SHA-1&quot;&gt;e6b1000b94e835ffd37f4c6dcbdad43f4b48a02a&lt;/hash&gt;
+        &lt;hash alg=&quot;SHA-256&quot;&gt;f498a8ff2dd007e29c2074f5e4b01a9a01775c3ff3aeaf6906ea503bc5791b7b&lt;/hash&gt;
+        &lt;hash alg=&quot;SHA-512&quot;&gt;e8f33e424f3f4ed6db76a482fde1a5298970e442c531729119e37991884bdffab4f9426b7ee11fccd074eeda0634d71697d6f88a460dce0ac8d627a29f7d1282&lt;/hash&gt;
+      &lt;/hashes&gt;
+      &lt;licenses&gt;
+        &lt;license&gt;
+          &lt;id&gt;Apache-2.0&lt;/id&gt;
+        &lt;/license&gt;
+      &lt;/licenses&gt;
+      &lt;purl&gt;pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar&lt;/purl&gt;
+    &lt;/component&gt;
+    &lt;component type=&quot;library&quot; bom-ref=&quot;pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9&quot;&gt;
+      &lt;group&gt;com.fasterxml.jackson.core&lt;/group&gt;
+      &lt;name&gt;jackson-databind&lt;/name&gt;
+      &lt;version&gt;2.9.9&lt;/version&gt;
+      &lt;purl&gt;pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar&lt;/purl&gt;
+    &lt;/component&gt;
+  &lt;/components&gt;
+&lt;/bom&gt;</content>
+</item>
+<summary>
+  <scannerDriver>cli</scannerDriver>
+  <scannerVersion>1.70.0-SNAPSHOT</scannerVersion>
+  <operatingSystem>Mac OS X</operatingSystem>
+  <processorArchitecture>x86_64</processorArchitecture>
+  <startTime>2019-08-07T17:29:54+0000</startTime>
+  <endTime>2019-08-07T17:29:54+0000</endTime>
+  <directories>1</directories>
+  <files>1</files>
+  <clientInfo>
+    <property name="java.specification.version" value="10"/>
+    <property name="java.runtime.version" value="10.0.1+10"/>
+    <property name="java.vm.vendor" value="&quot;Oracle Corporation&quot;"/>
+    <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
+    <property name="java.vendor.url" value="http://java.oracle.com/"/>
+    <property name="insight.scannerVersion" value="1.70.0-SNAPSHOT"/>
+    <property name="os.name" value="Mac OS X"/>
+    <property name="java.vm.specification.version" value="10"/>
+    <property name="java.vm.name" value="Java HotSpot(TM) 64-Bit Server VM"/>
+    <property name="java.vendor.version" value="18.3"/>
+    <property name="java.vendor.url.bug" value="http://bugreport.java.com/bugreport/"/>
+    <property name="insight.scannerDriver" value="cli"/>
+    <property name="java.version" value="10.0.1"/>
+    <property name="os.arch" value="x86_64"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.vm.info" value="mixed mode"/>
+    <property name="java.vm.version" value="10.0.1+10"/>
+  </clientInfo>
+</summary>
+</scan>

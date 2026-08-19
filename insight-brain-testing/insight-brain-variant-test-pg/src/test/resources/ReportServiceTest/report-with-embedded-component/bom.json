@@ -1,0 +1,67 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-httpclient",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "apache-httpclient",
+        "version" : "3.1"
+      }
+    },
+    "filenames" : [ "commons-httpclient-3.1.jar" ],
+    "pathnames" : [ "test/commons-httpclient-3.1.jar" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "aaaa00000000000aaaaa",
+    "relativePopularity" : 0.0,
+    "identificationSource" : "Sonatype"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-lang",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-lang",
+        "version" : "2.6"
+      }
+    },
+    "filenames" : [ "app-uber.jar" ],
+    "pathnames" : [ "test/app-uber.jar" ],
+    "matchState" : "embedded",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "bbbb00000000000bbbbb",
+    "relativePopularity" : 0.0,
+    "identificationSource" : "Sonatype"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "guava",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.google.guava",
+        "version" : "30.0-jre"
+      }
+    },
+    "filenames" : [ "guava-30.0-jre.jar" ],
+    "pathnames" : [ "test/guava-30.0-jre.jar" ],
+    "matchState" : "similar",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "dddd00000000000ddddd",
+    "relativePopularity" : 0.0,
+    "identificationSource" : "Sonatype"
+  }, {
+    "filenames" : [ "unknown-lib.jar" ],
+    "pathnames" : [ "test/unknown-lib.jar" ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "cccc00000000000ccccc"
+  } ]
+}

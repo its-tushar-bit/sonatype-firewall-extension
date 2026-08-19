@@ -1,0 +1,1488 @@
+{
+  "licenseThreatGroups": [
+    {
+      "id": "8887544b246c4df8a33ef00dbf1122b6",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "name": "Banned",
+      "nameLowercaseNoWhitespace": "banned",
+      "threatLevel": 10
+    },
+    {
+      "id": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "name": "Copyleft",
+      "nameLowercaseNoWhitespace": "copyleft",
+      "threatLevel": 9
+    },
+    {
+      "id": "88dd5debf3af4a2b947fc52d2ead9902",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "name": "Liberal",
+      "nameLowercaseNoWhitespace": "liberal",
+      "threatLevel": 0
+    },
+    {
+      "id": "f8d270d2a70e4c579515b2e810031b55",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "name": "Non Standard",
+      "nameLowercaseNoWhitespace": "nonstandard",
+      "threatLevel": 6
+    },
+    {
+      "id": "4b59d0231ccb4af482fe8ac26c376e38",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "name": "Sonatype Special Licenses",
+      "nameLowercaseNoWhitespace": "sonatypespeciallicenses",
+      "threatLevel": 5
+    },
+    {
+      "id": "6314ae56747f4fe38404a27840570779",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "name": "Weak Copyleft",
+      "nameLowercaseNoWhitespace": "weakcopyleft",
+      "threatLevel": 2
+    }
+  ],
+  "licenseThreatGroupLicenses": [
+    {
+      "id": "f23a136d0efe4e0d9c37ccc2d0dc0522",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "AAL"
+    },
+    {
+      "id": "c5074f691fc147d293071ad0157da8f7",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "AFL-1.2"
+    },
+    {
+      "id": "7d300ff5ade0471781acba5c3995d544",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "AFL-2.0"
+    },
+    {
+      "id": "41f9b33d30af4d3f86bb1051ae47aa34",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "AFL-2.1"
+    },
+    {
+      "id": "74ff84e256c9445e8a17da4e586756f5",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "AFL-3.0"
+    },
+    {
+      "id": "712eea77f20742b1b29e2bdc4d2f631c",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "AFL-UNSPECIFIED"
+    },
+    {
+      "id": "dd260bb6bb654e44b849b82b5203f441",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "8887544b246c4df8a33ef00dbf1122b6",
+      "licenseId": "AGPL-1.0"
+    },
+    {
+      "id": "f1051ded8eb14019a1a455f80d5a1750",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "8887544b246c4df8a33ef00dbf1122b6",
+      "licenseId": "AGPL-3.0"
+    },
+    {
+      "id": "3f572d9324d64f62a645f119dceed5c5",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "8887544b246c4df8a33ef00dbf1122b6",
+      "licenseId": "AGPL-UNSPECIFIED"
+    },
+    {
+      "id": "0a395a094dc94d2cae33de218b5d8a96",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "ANTLR-PD"
+    },
+    {
+      "id": "d646718c561d4f45bb8d6f8c0a0560d9",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "licenseId": "APL-1.0"
+    },
+    {
+      "id": "e8002b18e2c44bf8960f4932e31e47f0",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "APSL-1.0"
+    },
+    {
+      "id": "83aaa0ffe8344cb2b4f25ba22428dcb7",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "APSL-1.1"
+    },
+    {
+      "id": "320578164719440dba4995a5bd473818",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "APSL-1.2"
+    },
+    {
+      "id": "3a5be52f679b474caf4d696e660bed39",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "APSL-2.0"
+    },
+    {
+      "id": "7198fdb221e84aa9b7715e4155f41553",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "ATT"
+    },
+    {
+      "id": "5d941ca2617443cfac9efa5b093b3713",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Adobe"
+    },
+    {
+      "id": "18b7f376a4594189898da09708671708",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Adobe-AFM"
+    },
+    {
+      "id": "c51829a94be54b45b2e70c4d04856406",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Adobe-EULA"
+    },
+    {
+      "id": "f0605445815e4b598b7aa0a4ed83e12f",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Amazon"
+    },
+    {
+      "id": "92e2e855ee5e4d2fa1716bd5ec52e2cf",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "Android-SDK"
+    },
+    {
+      "id": "6df65093291840f0bd22c35a0d307c13",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "Apache-1.0"
+    },
+    {
+      "id": "14d92e954a8441bb95638e0e7d2e7a28",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "Apache-1.1"
+    },
+    {
+      "id": "97f3e59743464b729a8361c3b69c00c8",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "Apache-2.0"
+    },
+    {
+      "id": "6d7ed78e6a9e4424bfe6a7dd7b9f86d5",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "Apache-UNSPECIFIED"
+    },
+    {
+      "id": "e85893ea0df8498daf4137378bca28bc",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "Artistic-1.0"
+    },
+    {
+      "id": "04ed6f31d0854fa68b3999e5efe67083",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "Artistic-2.0"
+    },
+    {
+      "id": "d8eab59f55ba4c479a7b7468af3d53ff",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "Artistic-UNSPECIFIED"
+    },
+    {
+      "id": "d1d71f1002f140ac905aea0a32fc7c11",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "BSD-2-Clause"
+    },
+    {
+      "id": "49c662e9f4d947659cc3f5c8d091f03b",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "BSD-3-Clause"
+    },
+    {
+      "id": "443f01481f3f42fa94759fee6b9f7604",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "BSD-4-Clause"
+    },
+    {
+      "id": "0b245b070e5943519d1cf59f8e725c26",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "BSD-UNSPECIFIED"
+    },
+    {
+      "id": "22155b92b5f741488a5e5bf272135b78",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "BSL-1.0"
+    },
+    {
+      "id": "26b28fdc170f4a499bc0ec77186c3aa7",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Beerware"
+    },
+    {
+      "id": "c4583060773d484bb3f9165553f31e39",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "BigTribe-IP"
+    },
+    {
+      "id": "74de336295914df5afe8d23cbc524e5f",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "BigTribe-IP-NoRedistribution"
+    },
+    {
+      "id": "5748fc29b0f849f180dcefe97f96507c",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "CATOSL-1.1"
+    },
+    {
+      "id": "ff682dec6859416eab4f3ad8a1fd36ae",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "CC-BY-1.0"
+    },
+    {
+      "id": "aa0cd30c8e884da0a112be351c99dc4c",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "CC-BY-2.0"
+    },
+    {
+      "id": "e8a30419564a448393da70a78114752a",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "CC-BY-2.5"
+    },
+    {
+      "id": "e807501904274266a6ee5097ed4b12c0",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "CC-BY-3.0"
+    },
+    {
+      "id": "1d7044a531b14f8790ad1bf194060867",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "CC-BY-4.0"
+    },
+    {
+      "id": "5c77e4b227e4489382a36e1a8588b1af",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CC-BY-NC-1.0"
+    },
+    {
+      "id": "29d5cf873ffe4a82a86505cab2cec06d",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CC-BY-NC-2.0"
+    },
+    {
+      "id": "248081b8bace4acd8176f483af202d2e",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CC-BY-NC-2.5"
+    },
+    {
+      "id": "c34e23fd83a8440cad5abc4965ef4b06",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CC-BY-NC-3.0"
+    },
+    {
+      "id": "4a6977259d4a45f0b924229b8bb57ca7",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CC-BY-NC-ND-1.0"
+    },
+    {
+      "id": "8b36f4fb59954d21900aeefab9429b80",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CC-BY-NC-ND-2.0"
+    },
+    {
+      "id": "102610a79207481a99266b5eeacac074",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CC-BY-NC-ND-2.5"
+    },
+    {
+      "id": "fed7e836076c47b7a437c8660068ac65",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CC-BY-NC-ND-3.0"
+    },
+    {
+      "id": "291306d07c76472d85a42e1d7d77bdc3",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CC-BY-NC-SA-1.0"
+    },
+    {
+      "id": "cd833e6dc92e4e89a6a1bbecd442651b",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CC-BY-NC-SA-2.0"
+    },
+    {
+      "id": "7062c28545114b3d8c1121aef61a7f5c",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CC-BY-NC-SA-2.5"
+    },
+    {
+      "id": "1fc8b164d8894135a83b33b69c2ed47a",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CC-BY-NC-SA-3.0"
+    },
+    {
+      "id": "a41ddad98a6146868be0dd9df7144cf7",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CC-BY-ND-1.0"
+    },
+    {
+      "id": "d657dea8d6a2402ea85e39a7d07d1447",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CC-BY-ND-2.0"
+    },
+    {
+      "id": "8584bb7e49974b84960e63e816228bdc",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CC-BY-ND-2.5"
+    },
+    {
+      "id": "7c9b423fac494e749455ffaede9fe38a",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CC-BY-ND-3.0"
+    },
+    {
+      "id": "e567672f0056458c9bed2794b2609f68",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CC-BY-SA-1.0"
+    },
+    {
+      "id": "e281b9eed73d42d4b142f8cba111322a",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CC-BY-SA-2.0"
+    },
+    {
+      "id": "d51a5d9b0b2e4cf28b57f77bbc703f86",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CC-BY-SA-2.5"
+    },
+    {
+      "id": "add400b099c740d9ac38f55513b3766a",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CC-BY-SA-3.0"
+    },
+    {
+      "id": "c8eb045b67c542eca5a3cd340e7bd2e4",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CC-BY-SA-4.0"
+    },
+    {
+      "id": "f4ddcc3807464a9f80d2713110141297",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CC-BY-SA-UNSPECIFIED"
+    },
+    {
+      "id": "60c10feaa98e4bddab5098805152b866",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CC-BY-UNSPECIFIED"
+    },
+    {
+      "id": "dfddfdf4b9374800868eb6038d33c0a2",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "CC0-1.0"
+    },
+    {
+      "id": "45ef73372bf245baa497d278d41d6275",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CDDL-1.0"
+    },
+    {
+      "id": "379dab101d9f42799076756a98921509",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CDDL-1.1"
+    },
+    {
+      "id": "57b6c48442724f689681408ef16ecbac",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CDDL-UNSPECIFIED"
+    },
+    {
+      "id": "928b4f4ff90940698ac3847e5c1e6d52",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CECILL-1.0"
+    },
+    {
+      "id": "354c15bfc88a4d61806058fb0a1ee8c1",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CECILL-1.1"
+    },
+    {
+      "id": "246b42b48ae74037b88ab32413179988",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CECILL-2.0"
+    },
+    {
+      "id": "94f54b4d22b94382b0d10b2c06b2cbb9",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CECILL-B"
+    },
+    {
+      "id": "30dc3719e7b64a0187bf2e04f3551cdf",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CECILL-C"
+    },
+    {
+      "id": "7ca7def1aa59418aa1f3366c822025a7",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CECILL-UNSPECIFIED"
+    },
+    {
+      "id": "af3d30b1a7aa41a7893183b1aeae30ca",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "CIP4-1.0"
+    },
+    {
+      "id": "0056bcada3ea489cbc3e63369ab7d6ed",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "CIP4-2.0"
+    },
+    {
+      "id": "ac88e57267d142728870811c9f9e69ff",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "CodeSmith-Generator"
+    },
+    {
+      "id": "887a277372d64baf87c16ab80e41e99f",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CPAL-1.0"
+    },
+    {
+      "id": "09a99d14182f4f4e8091a1a35f4248f9",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CPL-1.0"
+    },
+    {
+      "id": "ed30a6a34e44462d857cc167db8f2050",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "CPOL-1.02"
+    },
+    {
+      "id": "8f83e9e537a14bd5bf4ea08e2b906d48",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "CUA-OPL-1.0"
+    },
+    {
+      "id": "eef0776afa5e4b129b27dc2f523fb331",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "ClArtistic"
+    },
+    {
+      "id": "d70fd5d1ecec47108c922510e166fb47",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "CuteSoft.net"
+    },
+    {
+      "id": "f03e9e66a1f040dda80a5725e4361c12",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "DOCBOOK"
+    },
+    {
+      "id": "3f6ca8edde60468e86d09d8ad3d233e5",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Dyade"
+    },
+    {
+      "id": "56a85b501d6e440e96551004e6fb74d1",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "ECL-1.0"
+    },
+    {
+      "id": "085265c06f2a42929ad3c064f631baf2",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "ECL-2.0"
+    },
+    {
+      "id": "2b0c2f80d0364b7bbdcc4f74b1516f28",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "ECL-UNSPECIFIED"
+    },
+    {
+      "id": "8731dadf9eb24262895afa5fbae47199",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "edtFTPj"
+    },
+    {
+      "id": "4c71d36150cc4ea09e1a0fb780281ec5",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "EFL-1.0"
+    },
+    {
+      "id": "3c19b5102b304194a7843e6d83107fe6",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "EFL-2.0"
+    },
+    {
+      "id": "31986be2e4e342668c0cff1daca07f27",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "EPL-1.0"
+    },
+    {
+      "id": "538cae9d17864558b8a64e4b6b0dc721",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "EPL-UNSPECIFIED"
+    },
+    {
+      "id": "0bc0c28d196d4a8898bd612256364c74",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "EUDatagrid"
+    },
+    {
+      "id": "55ad8005f72444fc87398b2d63b008f0",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "licenseId": "EUPL-1.0"
+    },
+    {
+      "id": "bf6ab078259447e08c8090acd030e05d",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "licenseId": "EUPL-1.1"
+    },
+    {
+      "id": "3032ec27e74046b4b97d42aad830fa5f",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "Entessa"
+    },
+    {
+      "id": "645dde237110449ab550dc095c992401",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "ErlPL-1.1"
+    },
+    {
+      "id": "2a8323e900d74d21a26bcffd4a7586dd",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "Fair"
+    },
+    {
+      "id": "3aa10cddbdd24dcab7db2b4ee4585513",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "licenseId": "Frameworx-1.0"
+    },
+    {
+      "id": "a55196338cca4753a9910a57db0b8bbf",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "GFDL-1.1"
+    },
+    {
+      "id": "9f1c7be0fab44483999c332612d2f489",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "GFDL-1.2"
+    },
+    {
+      "id": "34262d35d705459294995640e5c564b8",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "GFDL-1.3"
+    },
+    {
+      "id": "a6967f4580c84cf78aa34f0aaa2efa63",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "GFDL-UNSPECIFIED"
+    },
+    {
+      "id": "9e8275abc85a4b489999c2c825ad2006",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "licenseId": "GPL-1.0"
+    },
+    {
+      "id": "2cab7ba3e82349b9ab261ddd2e9bdc8c",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "licenseId": "GPL-2.0"
+    },
+    {
+      "id": "b4a241767ef0443cbb2275f0ca44ffba",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "licenseId": "GPL-2.0-with-GCC-exception"
+    },
+    {
+      "id": "fc230d86c8d44b3db704780b78167f48",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "licenseId": "GPL-2.0-with-autoconf-exception"
+    },
+    {
+      "id": "811864c64d234400ab5e3011a0689fa1",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "licenseId": "GPL-2.0-with-bison-exception"
+    },
+    {
+      "id": "e0d2698b9dfa4ec496625080086869f1",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "licenseId": "GPL-2.0-with-classpath-exception"
+    },
+    {
+      "id": "9fe18702febf4c0a9d26b5c8efaf0e5b",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "licenseId": "GPL-2.0-with-font-exception"
+    },
+    {
+      "id": "9d710770e9124316af7effd2d5583944",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "licenseId": "GPL-3.0"
+    },
+    {
+      "id": "cc990d9e06b9483da0c2d041211c7f2d",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "licenseId": "GPL-3.0-with-GCC-exception"
+    },
+    {
+      "id": "72fa6cde133240a1886fce3b341f3743",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "licenseId": "GPL-3.0-with-autoconf-exception"
+    },
+    {
+      "id": "0079c208955844c5875796692924e515",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "licenseId": "GPL-3.0-with-classpath-exception"
+    },
+    {
+      "id": "487910a2c70a46daa24ab2a72d0542b9",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "licenseId": "GPL-UNSPECIFIED"
+    },
+    {
+      "id": "68bf70fe48004261b4e5d036db21cc77",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "licenseId": "GPL-UNSPECIFIED-with-classpath-exception"
+    },
+    {
+      "id": "bc33f9e4472b4223bc62bd69c799f106",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "HP-DEC"
+    },
+    {
+      "id": "19ddd477f04745f78ba912d2d8ec3fe5",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "HPND"
+    },
+    {
+      "id": "67653d3643414a89b15ab402e3d78f6f",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "IBM-JDBC"
+    },
+    {
+      "id": "08541367fd06474d80324a17b8c17bfc",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "IBM-JDBC-RTA"
+    },
+    {
+      "id": "b9d22590d48b452e9ad3f6d4d7e7fb8a",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "IETF"
+    },
+    {
+      "id": "211d58c5b5db48c3ada8dea3e6084cd4",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "IETF-style"
+    },
+    {
+      "id": "e75a0dabfce249d59cbeae2f6aa502e5",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "IPA"
+    },
+    {
+      "id": "c271db00eeb242f4960f2c709162f9bc",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "licenseId": "IPL-1.0"
+    },
+    {
+      "id": "d756fa9393854c40ad937b0dd2c46505",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "IPTC"
+    },
+    {
+      "id": "d537dba64be0448b9440ff2eed8f9cae",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "ISC"
+    },
+    {
+      "id": "709c770d4de941db8351c0faf9916e0b",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "ISO-8879"
+    },
+    {
+      "id": "6b94b1a432ab44aea813dcb020d94eb9",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "ImageMagick"
+    },
+    {
+      "id": "33eb282691fb4b3bb9f4162dc7fad7ff",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "InfoSeek"
+    },
+    {
+      "id": "6edfe95135e6471e858c4b261345b3ba",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "InitialDevelopersPL-1.0"
+    },
+    {
+      "id": "fbad17136be346e0a2509f271a7952b7",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "InterbasePL-1.0"
+    },
+    {
+      "id": "e7cb9ecf34ce437eb024f68246c3438a",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "JA-SIG-Collaborative"
+    },
+    {
+      "id": "9ce16cbcb3e744c09a9a92090180c48c",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "JPEG"
+    },
+    {
+      "id": "a045006eb0e144178e3715fda57445fb",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "JSIP"
+    },
+    {
+      "id": "4cf4d1d9f13d4edeb3b43b6a191ccc96",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "JSON"
+    },
+    {
+      "id": "8342ebb40806416baa0abae26b2f20ab",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Java-Multi-Corp"
+    },
+    {
+      "id": "4b4f7d1da7fd4a3faef9beac33d477d6",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Java-WSDL-Policy"
+    },
+    {
+      "id": "f811bda5246b4fe78e1a777713274453",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Java-WSDL-Schema"
+    },
+    {
+      "id": "85e3851b14f04e8dae7aed18f9052eb2",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "LGPL-2.0"
+    },
+    {
+      "id": "e654fdd0b597428c92e8eeb21a7bca51",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "LGPL-2.1"
+    },
+    {
+      "id": "a54a4c0650a54a04af4b5e34ec1f713a",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "LGPL-3.0"
+    },
+    {
+      "id": "edb88de8f8ce4043a6ba014006f87cb2",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "LGPL-UNSPECIFIED"
+    },
+    {
+      "id": "46098926b7e64acdbc9eb9957f03f651",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "Libpng"
+    },
+    {
+      "id": "b4a0ecbf7f7f4d8888c26ce4d3bca10e",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MIT"
+    },
+    {
+      "id": "fde6c2721c1842de99427410fe60cec7",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "MPL-1.0"
+    },
+    {
+      "id": "dea12ef2bf484f02a991b932a93fe93b",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "MPL-1.1"
+    },
+    {
+      "id": "575aa9a1cba34d9b8ba12851c4bda548",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "MPL-2.0"
+    },
+    {
+      "id": "059d214214ec48e699b06f786f8c3447",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "MPL-UNSPECIFIED"
+    },
+    {
+      "id": "3cc565931e074b96ace7f80e4098fbf6",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-ADAL"
+    },
+    {
+      "id": "1f249b6f1d1141bba2a280f8255e93dc",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "MS-IP"
+    },
+    {
+      "id": "49acc1281ec747f7828393ce16e3cdfd",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-PL"
+    },
+    {
+      "id": "09548b03d79847d49b22996f223464f1",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-.NET-Compiler-Platform-Redist-Preview"
+    },
+    {
+      "id": "a00fae0faf5642d58fa471a3bf281e78",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-.NET-Library"
+    },
+    {
+      "id": "5f80d80d3a85431b8ac4e83d6748f56f",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-.NET-Library-JS"
+    },
+    {
+      "id": "61e4a7abb5784fee9063ba2c812a3e01",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-ASP.NET-MVC-3-Tools-Update"
+    },
+    {
+      "id": "ba822b89f6324c249ee8f21fd6c3b0b8",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-ASP.NET-MVC-4"
+    },
+    {
+      "id": "5b8a31f5eb9a41c1ac2aa25142acc20c",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-ASP.NET-MVC-4-Beta"
+    },
+    {
+      "id": "08ac06c565cb4ded9acec756dc341508",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-ASP.NET-MVC-4-Extensions-Pre-Release"
+    },
+    {
+      "id": "c98660a1f1e54d2885f5a66a6a4aaff5",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-ASP.NET-MVC-4-Pre-Release"
+    },
+    {
+      "id": "f13eb3e379984ea4a788afc84ffc505f",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-ASP.NET-SignalR-Client-Libraries"
+    },
+    {
+      "id": "7b086dfb40764620895b8f9f73ee32f2",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-ASP.NET-Tools"
+    },
+    {
+      "id": "3f870959d67147c0bdaf1f07f0e29788",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-ASP.NET-Universal-Providers"
+    },
+    {
+      "id": "db989d7558d14ebd928e168aef864330",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-ASP.NET-WOF"
+    },
+    {
+      "id": "bdbfc356b500492391c9249e0a3bb263",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-ASP.NET-WOF-Pre-Release"
+    },
+    {
+      "id": "3815ebc5de7344d4b1b85660a9ee0b08",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-ASP.NET-Web-Pages"
+    },
+    {
+      "id": "8ced290e89a64280aafe6ff3d70849ef",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-ASP.NET-Web-Pages-2"
+    },
+    {
+      "id": "1f299125ccd14a4e965c2ba07c2c0533",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-ASP.NET-Web-Pages-2-Pre-Release"
+    },
+    {
+      "id": "6ef570c510c243369876930114cb9e88",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-MSN-WEBGREASE"
+    },
+    {
+      "id": "c6325318a1264317a202e578a419723b",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-Roslyn-CTP-EULA"
+    },
+    {
+      "id": "dbe18a9592854e399335a25e05010466",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-RxJS-.NET-Libraries"
+    },
+    {
+      "id": "6050d028680a4513914a8ab787469631",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "NPOSL-3.0"
+    },
+    {
+      "id": "a10c25fb8a9845b2be4502e03a538fe8",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "4b59d0231ccb4af482fe8ac26c376e38",
+      "licenseId": "No-Source-License"
+    },
+    {
+      "id": "c5df4b9a61154b86b53be6620824f536",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "4b59d0231ccb4af482fe8ac26c376e38",
+      "licenseId": "No-Sources"
+    },
+    {
+      "id": "b993b166d7d5467b8987e431aaf1a35d",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "4b59d0231ccb4af482fe8ac26c376e38",
+      "licenseId": "Not-Declared"
+    },
+    {
+      "id": "fce681d397694f2d86a32196fb22c9f4",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "OASIS"
+    },
+    {
+      "id": "06a340e0f1164410ac5e568e937b8ade",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "OFL-1.1"
+    },
+    {
+      "id": "0b821d55f6f4457db3f5879c8c96074c",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "OPL-1.0"
+    },
+    {
+      "id": "53cb2ab5d73744ae9a40ef483c5d5692",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Oracle-OTN-Distribution"
+    },
+    {
+      "id": "90c5830e20b84d588ebd725d6c56b3e3",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Oracle-OTN"
+    },
+    {
+      "id": "a88adcc384b24a2eae0066afcfc9b54c",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "OSD"
+    },
+    {
+      "id": "cc8414da42f44607b457f0c6f09300f2",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "licenseId": "OSL-1.0"
+    },
+    {
+      "id": "03f59d738e47486580db91ee4f69117e",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "licenseId": "OSL-2.0"
+    },
+    {
+      "id": "f218db26d1c4492a90c7aabaef7ff23f",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "licenseId": "OSL-2.1"
+    },
+    {
+      "id": "ee52c0825ffa48b28e2907db53a7f1ae",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "licenseId": "OSL-3.0"
+    },
+    {
+      "id": "c5d54433618e4ccf94b718376eef576d",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "licenseId": "OSL-UNSPECIFIED"
+    },
+    {
+      "id": "e6e1838e19684a559f686cd101aacb80",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "PDDL-1.0"
+    },
+    {
+      "id": "2835ec010a664e88bc1e291c948f98ca",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "PHP-3.01"
+    },
+    {
+      "id": "4eee86201d584142833749df64c58907",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "PHP-UNSPECIFIED"
+    },
+    {
+      "id": "c07a6a6f34df463398c389da9a4878a9",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "PUBLIC-DOMAIN"
+    },
+    {
+      "id": "324bcedfd5944aa598cfdb13add506fd",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "Python-2.0"
+    },
+    {
+      "id": "4fe5c338eaff4b4f97fed115612b23ed",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "Python-UNSPECIFIED"
+    },
+    {
+      "id": "e85d0672fc3f4743ba2e7c3c9def3826",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "QuanticastTOS"
+    },
+    {
+      "id": "69f55530bee545d6a3f36b4a364e890a",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "RHeCos-1.1"
+    },
+    {
+      "id": "a86900853d8b45549562d67fac621deb",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "licenseId": "RPL-1.1"
+    },
+    {
+      "id": "cb26f80d307f482fba6e1e9b80a67acf",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "licenseId": "RPL-1.5"
+    },
+    {
+      "id": "16722915ba794025a1116be79a4dacd4",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "RSA-Security"
+    },
+    {
+      "id": "4d1024072ff5405e96f1c6a161d2fc95",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Rebex-EULA-1.4"
+    },
+    {
+      "id": "826d8882286f4191bfd2952aa71fb093",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "RedHat"
+    },
+    {
+      "id": "0bb46e303fe446f3ba0d739aec8f4a1c",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "licenseId": "Ruby"
+    },
+    {
+      "id": "3ed8c4ef411e4f6e9a8756d268319414",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "ServiceStack-License-Agreement"
+    },
+    {
+      "id": "81d42b0fc4764024b4a420c49135f90b",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "SISSL-1.1"
+    },
+    {
+      "id": "7d39946b30914d9186ba31398d2184dc",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "SISSL-1.2"
+    },
+    {
+      "id": "3ab825cc450e44358ea74d8558646ceb",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "SMLNJ"
+    },
+    {
+      "id": "d456b5efa7c042c484a5a02049108284",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "SPL-1.0"
+    },
+    {
+      "id": "487f548547494e7397abd363faab9954",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "licenseId": "Sleepycat"
+    },
+    {
+      "id": "16c2f2d41beb4b51b115ee8cbcc90681",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "Spice-1.1"
+    },
+    {
+      "id": "e7f66457ac8644d39d21f78afac05b53",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Sun"
+    },
+    {
+      "id": "8e5eb2c4182041159d32584186908818",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Sun-BCLA"
+    },
+    {
+      "id": "8e0aa499d8d4493ea90decb38825690a",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "Sun-Doug-Lea-JDK-Classes"
+    },
+    {
+      "id": "3ef2012c7d744fd39a8629990effbf39",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Sun-EULA"
+    },
+    {
+      "id": "1e299f856e974de58be4906d52c7852f",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Sun-IP"
+    },
+    {
+      "id": "7e7306dd4156423f8484187f64dd2f60",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Sun-Non-commercial"
+    },
+    {
+      "id": "4bddda38dbdf4a70af1d7d461e2fdfca",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Sun-Restricted"
+    },
+    {
+      "id": "fae619572f92407181e8b49bc16ee940",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Sun-TM"
+    },
+    {
+      "id": "07bb0b25f48d48f98f356ac21233afb6",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Telerik-JustMock-Free-Edition"
+    },
+    {
+      "id": "09037da3c20a4fcba12524b73279815a",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Telerik-UI-for-ASP.NET-MVC"
+    },
+    {
+      "id": "d88fa829211240d9bbf6a640a79bbef9",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Telerik-UI-for-FiddlerCore-Embedded-Engine"
+    },
+    {
+      "id": "0711e3afa5344bcda28153d037f6a0c2",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "UNKNOWN"
+    },
+    {
+      "id": "94c470c4307942dd8f1479ffeb4d4eae",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "4b59d0231ccb4af482fe8ac26c376e38",
+      "licenseId": "UNSPECIFIED"
+    },
+    {
+      "id": "4d658afe19734c06a8c70e42ceace243",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "USGovernmentRights"
+    },
+    {
+      "id": "7cd377d3126d47e6ab7bed0a2d705700",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Unicode"
+    },
+    {
+      "id": "b6bb2c89f4f943798e620c363aa8c0a1",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "W3C"
+    },
+    {
+      "id": "6475822344c944a8b743c3af6a62b6b7",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "WS-Addressing-200403"
+    },
+    {
+      "id": "01c7d0206d5e4fb3affe44c64b22a406",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "WS-Addressing-200408"
+    },
+    {
+      "id": "b4b2a5e4a26d492aa7cccba3029d77a8",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "WS-I"
+    },
+    {
+      "id": "5d2f5480d0ad42bfbc03b159f3b3c4bd",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "WTFPL"
+    },
+    {
+      "id": "4cc79bae21214bbfbfb7af9dc5bb8098",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "WebFX-Commercial"
+    },
+    {
+      "id": "ab1a2a19906948018cbb56adc2406727",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "WebFX-NonCommercial"
+    },
+    {
+      "id": "66c8e5f61d04460db179206407123f72",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "WernerRandelshofer"
+    },
+    {
+      "id": "360ca75ad6864fa28576f5e71bfc9385",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "X11"
+    },
+    {
+      "id": "af6216c966ae4398a8b978b6057252a1",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Xerox"
+    },
+    {
+      "id": "0d85844bd03d432f9fb72e6deb44169e",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "ZPL-1.1"
+    },
+    {
+      "id": "5f99f72d2c494b089347ec1a538a3c7d",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "ZPL-2.0"
+    },
+    {
+      "id": "60a2ffcbe6d844ee9f03a27abac53d09",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "ZPL-2.1"
+    },
+    {
+      "id": "95712423fdb0408083818e34eb85651d",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "ZPL-UNSPECIFIED"
+    },
+    {
+      "id": "7d341e9cc44d4eb6bca7c58511be7fca",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "Zlib"
+    },
+    {
+      "id": "0bd7b72d73c241d5a1341250a2f8307f",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "licenseId": "eCos-2.0"
+    },
+    {
+      "id": "4d42a9907adc425996a351655555b1fd",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
+      "licenseId": "gSOAP-1.3b"
+    }
+  ]
+}

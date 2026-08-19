@@ -1,0 +1,369 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2020-04-13T20:20:39+00:00",
+    "tools": {
+      "components": [
+        {
+          "type": "application",
+          "bom-ref": "d936d824-5df8-45c8-b592-0ed5bb96af01",
+          "group": "Awesome Vendor",
+          "name": "Awesome Tool",
+          "version": "9.1.2",
+          "hashes": [
+            {
+              "alg": "SHA-1",
+              "content": "25ed8e31b995bb927966616df2a42b979a2717f0"
+            },
+            {
+              "alg": "SHA-256",
+              "content": "a74f733635a19aefb1f73e5947cef59cd7440c6952ef0f03d09d974274cbd6df"
+            }
+          ]
+        }
+      ]
+    },
+    "authors": [
+      {
+        "name": "Samantha Wright",
+        "email": "samantha.wright@example.com",
+        "phone": "800-555-1212"
+      }
+    ],
+    "component": {
+      "type": "application",
+      "bom-ref": "acme-application-1.0",
+      "author": "Acme Super Heros",
+      "name": "Acme Application",
+      "version": "1.0.0",
+      "swid": {
+        "tagId": "swidgen-242eb18a-503e-ca37-393b-cf156ef09789_1.0.0",
+        "name": "Acme Application",
+        "version": "1.0.0",
+        "text": {
+          "contentType": "text/xml",
+          "encoding": "base64",
+          "content": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiID8+CjxTb2Z0d2FyZUlkZW50aXR5IHhtbDpsYW5nPSJFTiIgbmFtZT0iQWNtZSBBcHBsaWNhdGlvbiIgdmVyc2lvbj0iMS4wLjAiIAogdmVyc2lvblNjaGVtZT0ibXVsdGlwYXJ0bnVtZXJpYyIgCiB0YWdJZD0ic3dpZGdlbi0yNDJlYjE4YS01MDNlLWNhMzctMzkzYi1jZjE1NmVmMDk3ODlfMS4wLjAiIAogeG1sbnM9Imh0dHA6Ly9zdGFuZGFyZHMuaXNvLm9yZy9pc28vMTk3NzAvLTIvMjAxNS9zY2hlbWEueHNkIj4gCiB4bWxuczp4c2k9Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZW1hLWluc3RhbmNlIiAKIHhzaTpzY2hlbWFMb2NhdGlvbj0iaHR0cDovL3N0YW5kYXJkcy5pc28ub3JnL2lzby8xOTc3MC8tMi8yMDE1LWN1cnJlbnQvc2NoZW1hLnhzZCBzY2hlbWEueHNkIiA+CiAgPE1ldGEgZ2VuZXJhdG9yPSJTV0lEIFRhZyBPbmxpbmUgR2VuZXJhdG9yIHYwLjIiIC8+IAogIDxFbnRpdHkgbmFtZT0iQWNtZSwgSW5jLiIgcmVnaWQ9ImFjbWUuY29tIiByb2xlPSJ0YWdDcmVhdG9yIiAvPiAKPC9Tb2Z0d2FyZUlkZW50aXR5Pg=="
+        }
+      }
+    },
+    "manufacture": {
+      "name": "Acme, Inc.",
+      "url": [
+        "https://example.com"
+      ],
+      "contact": [
+        {
+          "name": "Acme Professional Services",
+          "email": "professional.services@example.com"
+        }
+      ]
+    },
+    "supplier": {
+      "name": "Acme, Inc.",
+      "url": [
+        "https://example.com"
+      ],
+      "contact": [
+        {
+          "name": "Acme Distribution",
+          "email": "distribution@example.com"
+        }
+      ]
+    },
+    "properties": [
+      {
+        "name": "Foo",
+        "value": "You"
+      },
+      {
+        "name": "Foo",
+        "value": "Two"
+      },
+      {
+        "name": "Bar",
+        "value": "Foo"
+      }
+    ]
+  },
+  "components": [
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/partner/shaded-library@1.0",
+      "name": "Partner Shaded Library",
+      "version": "1.0",
+      "purl": "pkg:maven/partner/shaded-library@1.0",
+      "components": [
+        {
+          "type": "library",
+          "bom-ref": "pkg:maven/ossproject/library@2.0",
+          "name": "Some Opensource Library",
+          "version": "2.0",
+          "purl": "pkg:maven/ossproject/library@2.0"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/acme/library@3.0",
+      "name": "Acme Library",
+      "version": "3.0",
+      "purl": "pkg:maven/acme/library@3.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "123",
+      "name": "ACME Library",
+      "version": "1.0.0",
+      "description": "A library with a lot of dependencies.",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-1",
+          "content": "aad4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
+        },
+        {
+          "alg": "SHA-256",
+          "content": "bbd4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/acme/library@1.0.0",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://acme.example.com/"
+        }
+      ],
+      "properties": [
+        {
+          "name": "Foo",
+          "value": "You"
+        },
+        {
+          "name": "Foo",
+          "value": "Two"
+        },
+        {
+          "name": "Bar",
+          "value": "Foo"
+        }
+      ]
+    },
+    {
+      "type": "framework",
+      "bom-ref": "a99aa6ef-5901-485a-8bee-c6270b411ff1",
+      "supplier": {
+        "name": "Spring",
+        "url": [
+          "https://spring.io"
+        ]
+      },
+      "author": "Pivotal",
+      "publisher": "Pivotal",
+      "group": "org.springframework",
+      "name": "spring-web",
+      "version": "5.0.4.RELEASE",
+      "description": "Spring Web",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-1",
+          "content": "aad4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
+        },
+        {
+          "alg": "SHA-256",
+          "content": "bbd4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0",
+            "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+          }
+        }
+      ],
+      "copyright": "Copyright 2019 Spring.io",
+      "cpe": "cpe:2.3:a:pivotal_software:spring_framework:5.0.4:*:*:*:*:*:*:*",
+      "purl": "pkg:maven/org.springframework/spring-web@5.0.4.RELEASE?type=jar",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://spring.io"
+        }
+      ],
+      "properties": [
+        {
+          "name": "Foo",
+          "value": "You"
+        },
+        {
+          "name": "Foo",
+          "value": "Two"
+        },
+        {
+          "name": "Bar",
+          "value": "Foo"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4",
+      "supplier": {
+        "name": "FasterXML",
+        "url": [
+          "http://fasterxml.com"
+        ]
+      },
+      "author": "Tatu Saloranta",
+      "publisher": "FasterXML",
+      "group": "com.fasterxml.jackson.core",
+      "name": "jackson-databind",
+      "version": "2.9.4",
+      "description": "General data-binding functionality for Jackson: works on core streaming API",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-1",
+          "content": "aad4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
+        },
+        {
+          "alg": "SHA-256",
+          "content": "bbd4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0",
+            "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+          }
+        }
+      ],
+      "copyright": "Copyright 2019 FasterXML",
+      "cpe": "cpe:2.3:a:fasterxml:jackson-databind:2.9.4:*:*:*:*:*:*:*",
+      "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://github.com/FasterXML/jackson"
+        }
+      ],
+      "properties": [
+        {
+          "name": "Foo",
+          "value": "You"
+        },
+        {
+          "name": "Foo",
+          "value": "Two"
+        },
+        {
+          "name": "Bar",
+          "value": "Foo"
+        }
+      ]
+    }
+  ],
+  "services": [
+    {
+      "bom-ref": "b2a46a4b-8367-4bae-9820-95557cfe03a8",
+      "provider": {
+        "name": "Partner Org",
+        "url": [
+          "https://partner.example.com"
+        ]
+      },
+      "group": "com.example",
+      "name": "Stock ticker service",
+      "version": "2020-Q2",
+      "description": "Provides real-time stock information",
+      "endpoints": [
+        "https://partner.example.com/stocks",
+        "https://partner.example.com/stocks/nyse"
+      ],
+      "authenticated": true,
+      "x-trust-boundary": true,
+      "data": [
+        {
+          "classification": "pii",
+          "flow": "bi-directional"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0",
+            "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+          }
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://partner.example.com"
+        }
+      ],
+      "properties": [
+        {
+          "name": "Foo",
+          "value": "You"
+        },
+        {
+          "name": "Foo",
+          "value": "Two"
+        },
+        {
+          "name": "Bar",
+          "value": "Foo"
+        }
+      ]
+    }
+  ],
+  "vulnerabilities": [
+    {
+      "id": "CVE-2018-7489",
+      "source": {
+        "name": "NVD",
+        "url": "https://nvd.nist.gov/vuln/detail/CVE-2018-7489"
+      },
+      "ratings": [
+        {
+          "source": {
+            "name": "NVD"
+          },
+          "score": 9.8,
+          "severity": "critical",
+          "method": "CVSSv3",
+          "vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+        }
+      ],
+      "cwes": [502],
+      "description": "FasterXML jackson-databind before 2.7.9.3, 2.8.x before 2.8.11.1 and 2.9.x before 2.9.5 allows unauthenticated remote code execution because of an incomplete fix for the CVE-2017-7525 deserialization flaw.",
+      "detail": "This vulnerability impacts the jackson-databind component. When the default typing feature is enabled (either globally or for a specific type) it is possible for a user to provide an Object that can be deserialized into a BadAttributeValueExpException object.",
+      "recommendation": "Upgrade to version 2.9.5 or later",
+      "affects": [
+        {
+          "ref": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4"
+        }
+      ],
+      "properties": [
+        {
+          "name": "sonatype:identification_sources",
+          "value": "Sonatype"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,444 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+       "format" : "maven",
+       "coordinates" : {
+          "artifactId" : "jetty",
+          "groupId" : "org.mortbay.jetty",
+          "version" : "6.1.15",
+          "extension" : "jar",
+          "classifier" : ""
+       }
+    },
+    "groupId" : "org.mortbay.jetty",
+    "artifactId" : "jetty",
+    "version" : "6.1.15",
+    "hash" : "494308fc2d433720c778",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2006-6969",
+    "reference" : "CVE-2006-6969",
+    "source" : "cve",
+    "score" : 6.8,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "componentIdentifier" : {
+       "format" : "maven",
+       "coordinates" : {
+          "artifactId" : "jetty",
+          "groupId" : "org.mortbay.jetty",
+          "version" : "6.1.15",
+          "extension" : "jar",
+          "classifier" : ""
+       }
+    },
+    "groupId" : "org.mortbay.jetty",
+    "artifactId" : "jetty",
+    "version" : "6.1.15",
+    "hash" : "494308fc2d433720c778",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-5614",
+    "reference" : "CVE-2007-5614",
+    "source" : "cve",
+    "score" : 7.5,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "componentIdentifier" : {
+       "format" : "maven",
+       "coordinates" : {
+          "artifactId" : "jetty",
+          "groupId" : "org.mortbay.jetty",
+          "version" : "6.1.15",
+          "extension" : "jar",
+          "classifier" : ""
+       }
+    },
+    "groupId" : "org.mortbay.jetty",
+    "artifactId" : "jetty",
+    "version" : "6.1.15",
+    "hash" : "494308fc2d433720c778",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-5615",
+    "reference" : "CVE-2007-5615",
+    "source" : "cve",
+    "score" : 5.0,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "componentIdentifier" : {
+       "format" : "maven",
+       "coordinates" : {
+          "artifactId" : "jetty",
+          "groupId" : "org.mortbay.jetty",
+          "version" : "6.1.15",
+          "extension" : "jar",
+          "classifier" : ""
+       }
+    },
+    "groupId" : "org.mortbay.jetty",
+    "artifactId" : "jetty",
+    "version" : "6.1.15",
+    "hash" : "494308fc2d433720c778",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2009-1523",
+    "reference" : "CVE-2009-1523",
+    "source" : "cve",
+    "score" : 5.0,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "componentIdentifier" : {
+       "format" : "maven",
+       "coordinates" : {
+          "artifactId" : "jetty",
+          "groupId" : "org.mortbay.jetty",
+          "version" : "6.1.15",
+          "extension" : "jar",
+          "classifier" : ""
+       }
+    },
+    "groupId" : "org.mortbay.jetty",
+    "artifactId" : "jetty",
+    "version" : "6.1.15",
+    "hash" : "494308fc2d433720c778",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2009-1524",
+    "reference" : "CVE-2009-1524",
+    "source" : "cve",
+    "score" : 4.3,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "componentIdentifier" : {
+       "format" : "maven",
+       "coordinates" : {
+          "artifactId" : "jetty",
+          "groupId" : "org.mortbay.jetty",
+          "version" : "6.1.15",
+          "extension" : "jar",
+          "classifier" : ""
+       }
+    },
+    "groupId" : "org.mortbay.jetty",
+    "artifactId" : "jetty",
+    "version" : "6.1.15",
+    "hash" : "494308fc2d433720c778",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2011-4461",
+    "reference" : "CVE-2011-4461",
+    "source" : "cve",
+    "score" : 5.0,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "componentIdentifier" : {
+       "format" : "maven",
+       "coordinates" : {
+          "artifactId" : "jetty",
+          "groupId" : "org.mortbay.jetty",
+          "version" : "6.1.15",
+          "extension" : "jar",
+          "classifier" : ""
+       }
+    },
+    "groupId" : "org.mortbay.jetty",
+    "artifactId" : "jetty",
+    "version" : "6.1.15",
+    "hash" : "494308fc2d433720c778",
+    "url" : "http://osvdb.org/33108",
+    "reference" : "33108",
+    "source" : "osvdb",
+    "score" : 6.8,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "componentIdentifier" : {
+       "format" : "maven",
+       "coordinates" : {
+          "artifactId" : "jetty",
+          "groupId" : "org.mortbay.jetty",
+          "version" : "6.1.15",
+          "extension" : "jar",
+          "classifier" : ""
+       }
+    },
+    "groupId" : "org.mortbay.jetty",
+    "artifactId" : "jetty",
+    "version" : "6.1.15",
+    "hash" : "494308fc2d433720c778",
+    "url" : "http://osvdb.org/42495",
+    "reference" : "42495",
+    "source" : "osvdb",
+    "score" : 5.0,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "componentIdentifier" : {
+       "format" : "maven",
+       "coordinates" : {
+          "artifactId" : "jetty",
+          "groupId" : "org.mortbay.jetty",
+          "version" : "6.1.15",
+          "extension" : "jar",
+          "classifier" : ""
+       }
+    },
+    "groupId" : "org.mortbay.jetty",
+    "artifactId" : "jetty",
+    "version" : "6.1.15",
+    "hash" : "494308fc2d433720c778",
+    "url" : "http://osvdb.org/42496",
+    "reference" : "42496",
+    "source" : "osvdb",
+    "score" : 7.5,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "componentIdentifier" : {
+       "format" : "maven",
+       "coordinates" : {
+          "artifactId" : "jetty",
+          "groupId" : "org.mortbay.jetty",
+          "version" : "6.1.15",
+          "extension" : "jar",
+          "classifier" : ""
+       }
+    },
+    "groupId" : "org.mortbay.jetty",
+    "artifactId" : "jetty",
+    "version" : "6.1.15",
+    "hash" : "494308fc2d433720c778",
+    "url" : "http://osvdb.org/54186",
+    "reference" : "54186",
+    "source" : "osvdb",
+    "score" : 5.0,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "componentIdentifier" : {
+       "format" : "maven",
+       "coordinates" : {
+          "artifactId" : "jetty",
+          "groupId" : "org.mortbay.jetty",
+          "version" : "6.1.15",
+          "extension" : "jar",
+          "classifier" : ""
+       }
+    },
+    "groupId" : "org.mortbay.jetty",
+    "artifactId" : "jetty",
+    "version" : "6.1.15",
+    "hash" : "494308fc2d433720c778",
+    "url" : "http://osvdb.org/54187",
+    "reference" : "54187",
+    "source" : "osvdb",
+    "score" : 4.3,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "componentIdentifier" : {
+       "format" : "maven",
+       "coordinates" : {
+          "artifactId" : "jetty",
+          "groupId" : "org.mortbay.jetty",
+          "version" : "6.1.15",
+          "extension" : "jar",
+          "classifier" : ""
+       }
+    },
+    "groupId" : "org.mortbay.jetty",
+    "artifactId" : "jetty",
+    "version" : "6.1.15",
+    "hash" : "494308fc2d433720c778",
+    "url" : "http://osvdb.org/78117",
+    "reference" : "78117",
+    "source" : "osvdb",
+    "score" : 5.0,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "componentIdentifier" : {
+       "format" : "maven",
+       "coordinates" : {
+          "artifactId" : "geronimo-security",
+          "groupId" : "org.apache.geronimo.framework",
+          "version" : "2.1",
+          "extension" : "jar",
+          "classifier" : ""
+       }
+    },
+    "groupId" : "org.apache.geronimo.framework",
+    "artifactId" : "geronimo-security",
+    "version" : "2.1",
+    "hash" : "848d7549ef7ec13ce546",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2008-5518",
+    "reference" : "CVE-2008-5518",
+    "source" : "cve",
+    "score" : 9.4,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "componentIdentifier" : {
+       "format" : "maven",
+       "coordinates" : {
+          "artifactId" : "geronimo-security",
+          "groupId" : "org.apache.geronimo.framework",
+          "version" : "2.1",
+          "extension" : "jar",
+          "classifier" : ""
+       }
+    },
+    "groupId" : "org.apache.geronimo.framework",
+    "artifactId" : "geronimo-security",
+    "version" : "2.1",
+    "hash" : "848d7549ef7ec13ce546",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2009-0038",
+    "reference" : "CVE-2009-0038",
+    "source" : "cve",
+    "score" : 4.3,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "componentIdentifier" : {
+       "format" : "maven",
+       "coordinates" : {
+          "artifactId" : "geronimo-security",
+          "groupId" : "org.apache.geronimo.framework",
+          "version" : "2.1",
+          "extension" : "jar",
+          "classifier" : ""
+       }
+    },
+    "groupId" : "org.apache.geronimo.framework",
+    "artifactId" : "geronimo-security",
+    "version" : "2.1",
+    "hash" : "848d7549ef7ec13ce546",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2009-0039",
+    "reference" : "CVE-2009-0039",
+    "source" : "cve",
+    "score" : 6.8,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "componentIdentifier" : {
+       "format" : "maven",
+       "coordinates" : {
+          "artifactId" : "geronimo-security",
+          "groupId" : "org.apache.geronimo.framework",
+          "version" : "2.1",
+          "extension" : "jar",
+          "classifier" : ""
+       }
+    },
+    "groupId" : "org.apache.geronimo.framework",
+    "artifactId" : "geronimo-security",
+    "version" : "2.1",
+    "hash" : "848d7549ef7ec13ce546",
+    "url" : "http://osvdb.org/53927",
+    "reference" : "53927",
+    "source" : "osvdb",
+    "score" : 9.4,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "componentIdentifier" : {
+       "format" : "maven",
+       "coordinates" : {
+          "artifactId" : "geronimo-security",
+          "groupId" : "org.apache.geronimo.framework",
+          "version" : "2.1",
+          "extension" : "jar",
+          "classifier" : ""
+       }
+    },
+    "groupId" : "org.apache.geronimo.framework",
+    "artifactId" : "geronimo-security",
+    "version" : "2.1",
+    "hash" : "848d7549ef7ec13ce546",
+    "url" : "http://osvdb.org/53928",
+    "reference" : "53928",
+    "source" : "osvdb",
+    "score" : 9.4,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "componentIdentifier" : {
+       "format" : "maven",
+       "coordinates" : {
+          "artifactId" : "geronimo-security",
+          "groupId" : "org.apache.geronimo.framework",
+          "version" : "2.1",
+          "extension" : "jar",
+          "classifier" : ""
+       }
+    },
+    "groupId" : "org.apache.geronimo.framework",
+    "artifactId" : "geronimo-security",
+    "version" : "2.1",
+    "hash" : "848d7549ef7ec13ce546",
+    "url" : "http://osvdb.org/53929",
+    "reference" : "53929",
+    "source" : "osvdb",
+    "score" : 9.4,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "componentIdentifier" : {
+       "format" : "maven",
+       "coordinates" : {
+          "artifactId" : "geronimo-security",
+          "groupId" : "org.apache.geronimo.framework",
+          "version" : "2.1",
+          "extension" : "jar",
+          "classifier" : ""
+       }
+    },
+    "groupId" : "org.apache.geronimo.framework",
+    "artifactId" : "geronimo-security",
+    "version" : "2.1",
+    "hash" : "848d7549ef7ec13ce546",
+    "url" : "http://osvdb.org/53930",
+    "reference" : "53930",
+    "source" : "osvdb",
+    "score" : 4.3,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "componentIdentifier" : {
+       "format" : "maven",
+       "coordinates" : {
+          "artifactId" : "geronimo-security",
+          "groupId" : "org.apache.geronimo.framework",
+          "version" : "2.1",
+          "extension" : "jar",
+          "classifier" : ""
+       }
+    },
+    "groupId" : "org.apache.geronimo.framework",
+    "artifactId" : "geronimo-security",
+    "version" : "2.1",
+    "hash" : "848d7549ef7ec13ce546",
+    "url" : "http://osvdb.org/53931",
+    "reference" : "53931",
+    "source" : "osvdb",
+    "score" : 4.3,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "componentIdentifier" : {
+       "format" : "maven",
+       "coordinates" : {
+          "artifactId" : "geronimo-security",
+          "groupId" : "org.apache.geronimo.framework",
+          "version" : "2.1",
+          "extension" : "jar",
+          "classifier" : ""
+       }
+    },
+    "groupId" : "org.apache.geronimo.framework",
+    "artifactId" : "geronimo-security",
+    "version" : "2.1",
+    "hash" : "848d7549ef7ec13ce546",
+    "url" : "http://osvdb.org/53932",
+    "reference" : "53932",
+    "source" : "osvdb",
+    "score" : 6.8,
+    "matchState" : "exact",
+    "proprietary" : false
+  } ]
+}

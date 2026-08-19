@@ -1,0 +1,44 @@
+{
+  "referencePoliciesResource": "/reference-policies-v3.json",
+  "cannedReportClasspathDir": "/canned-reports/large-report",
+  "scanId": "e16caf35769f4b3186a7e416d34c2797",
+  "parentOrgName": "Parent Organization",
+  "orgName": "Test Organization",
+  "applicationName": "ApplicationReportTest",
+  "applicationInternalName": "ApplicationReportTest",
+  "expectedReportTitle": "ApplicationReportTest Build Report",
+  "securityComponentHash": "1e48256a2341047e7d72",
+  "legalComponentHash": "fa78f54738ccf77379d1",
+  "claimComponentHash": "f0776db1593e215146d2",
+  "expectedTabCount": 6,
+  "expectedVulnerabilityRowCount": 3,
+  "componentHdsStubs": [
+    {
+      "uri": "rest/ci/componentDetails",
+      "resourcePath": "/componentDetails/javancssComponentDetails-29.50.json"
+    },
+    {
+      "uri": "rest/ci/componentDetails/list",
+      "resourcePath": "/componentDetails/javancssComponentDetailsList.json"
+    }
+  ],
+  "vulnerabilityDetailsFixtureResource": "/vulnerabilityDetails/vulnerabilityDetails_CVE-1234-56789.json",
+  "legalHdsStubs": [
+    {
+      "uri": "/rest/license/metadata",
+      "resourcePath": "/legal/legalLicenseMetadataHdsResponse.json"
+    },
+    {
+      "uri": "/rest/legal/comment",
+      "resourcePath": "/legal/legalCommentHdsResponse.json"
+    },
+    {
+      "uri": "/rest/legal/file",
+      "resourcePath": "/legal/ApplicationAttributionReportTest-legalFileHdsResponse.json"
+    },
+    {
+      "uri": "/rest/legal/source-link",
+      "rawResponse": "[]"
+    }
+  ]
+}

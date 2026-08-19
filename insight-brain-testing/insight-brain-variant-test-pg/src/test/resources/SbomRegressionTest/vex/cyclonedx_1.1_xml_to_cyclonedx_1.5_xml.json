@@ -1,0 +1,18 @@
+{
+  "aaData": [
+    {
+      "refId": "CVE-2022-42004",
+      "vex": {
+        "componentLocator": {
+          "packageUrl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"
+        },
+        "vulnerabilityAnalysis": {
+          "state": "exploitable",
+          "justification": "code_not_present",
+          "response": "can_not_fix",
+          "detail": ""
+        }
+      }
+    }
+  ]
+}

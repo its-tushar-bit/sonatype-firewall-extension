@@ -1,0 +1,39 @@
+# Dropwizard config for the embedded MTIQ server (TestCLMServer / AbstractMtiqUiTest).
+# hdsUrl and HTTP ports are overridden at runtime by TestInsightBrainServiceRule
+# (HDS mock URL, PortAllocator ports, or webpack-dev-server fixed ports).
+#
+# Unlike the single-tenant config-test.yml, this file intentionally omits the "server"
+# connector block: the MTIQ Spring test service (SpringMultiTenantTestInsightBrainService)
+# does not re-apply the runtime port override that the single-tenant service does, so a
+# hardcoded applicationConnectors port here would win over the PortAllocator-assigned port
+# and the reverse proxy would target the wrong port (connection refused in the browser).
+
+hdsUrl: "http://localhost:8090"
+
+sonatypeWork: ./target/sonatype-work/clm-server
+
+showRootOrganization: true
+
+importReferencePoliciesFromHDS: false
+
+logging:
+  level: INFO
+  loggers:
+    "com.sonatype": DEBUG
+    "com.sonatype.insight.audit":
+      appenders:
+        - type: console
+        - type: file
+          currentLogFilename: ./target/log/audit.log
+          archivedLogFilenamePattern: ./target/log/audit-%d.log.gz
+          archivedFileCount: 50
+    "com.sonatype.insight.test.reverseproxy.jetty": INFO
+    "org.apache.directory": ERROR
+    # flip to DEBUG ad hoc when debugging auth headers
+    "org.apache.http.headers": INFO
+    "org.eclipse.jetty.server.HttpChannel": INFO
+    "com.sonatype.insight.brain.concurrent.PerpetualLockManager": TRACE
+    "com.sonatype.insight.brain.security.FIPSModeDetector": TRACE
+  appenders:
+    - type: console
+      logFormat: "%date %-5level [%thread] %logger - %msg%n"

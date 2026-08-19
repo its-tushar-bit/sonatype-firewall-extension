@@ -1,0 +1,22 @@
+<scan version="2.24">
+  <configuration>
+    <properties>
+      <property name="archiveNames" value="true"/>
+      <property name="hashFiles" value="true"/>
+    </properties>
+  </configuration>
+  <item path="bad-1.spdx.json" contentType="SPDX" lastModified="1690994395752" sha1="baaaad000000000000000000">
+    <content>{
+  &quot;spdxVersion&quot;: &quot;SPDX-2.2&quot;,
+  &quot;SPDXID&quot;: &quot;SPDXRef-DOCUMENT&quot;,
+  &quot;name&quot;: &quot;bad-1&quot;
+}</content>
+  </item>
+  <item path="bad-2.spdx.json" contentType="SPDX" lastModified="1690994395752" sha1="baaaad000000000000000001">
+    <content>{
+  &quot;spdxVersion&quot;: &quot;SPDX-2.2&quot;,
+  &quot;SPDXID&quot;: &quot;SPDXRef-DOCUMENT&quot;,
+  &quot;name&quot;: &quot;bad-2&quot;
+}</content>
+  </item>
+</scan>

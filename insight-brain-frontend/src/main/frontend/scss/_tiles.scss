@@ -1,0 +1,644 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use 'sass:list';
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use './variables' as *;
+@use './typography';
+
+$-tile-background-color: $iq-off-white;
+
+$-tile-scroll-container-z-index: 0;
+
+$-tile-header-height: 24px; // Minimum height
+$-tile-header-height-actions: 43px; // Height with sub-title and/or right actions
+
+// Because there's no sidebar tiles are centered and limited to 1024px in width (minus some space for the scrollbar)
+$-tile-sys-prefs-width: 1024px - 17px;
+
+/*
+  #Name-spaced Tile System
+*/
+
+// Base Tiles
+
+.iq-tile {
+  background-color: $-tile-background-color;
+  margin: $iq-spacing-xs $iq-spacing-sm $iq-spacing-md $iq-spacing-sm;
+  padding: $iq-spacing-md;
+
+  &.iq-alert {
+    background-color: $iq-warn-color-bg;
+    border: 1px solid $iq-warn-color;
+    color: $iq-warn-color;
+
+    > .iq-tile-header {
+      margin-top: $iq-spacing-xs;
+    }
+
+    .iq-tile-header__icon.fa {
+      font-size: 23px;
+    }
+
+    .iq-tile-header + .iq-tile-content {
+      padding-top: 0;
+    }
+  }
+
+  &.iq-alert--error {
+    background-color: $iq-fail-color-bg;
+    border-color: $iq-fail-color;
+    color: $iq-fail-color;
+  }
+
+  &.iq-alert--info {
+    background-color: $iq-off-white;
+    border-color: $iq-dark-blue;
+    color: $iq-off-black;
+  }
+}
+
+.iq-tile--summary {
+  border: none;
+  margin-top: 0;
+  padding-top: 0;
+  position: relative;
+}
+
+.iq-tile--title-only {
+  background-color: $iq-content-background;
+  padding-bottom: 0;
+}
+
+.iq-tile--grid-tile {
+  .iq-tile-header {
+    margin-bottom: 0;
+  }
+
+  .iq-tile-footer {
+    margin-top: 0;
+  }
+}
+
+.iq-tile-scroll-container {
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-top: $iq-spacing-xs;
+  position: relative; //required for scrollspy
+  width: calc(100% - #{$iq-spacing-md});
+  z-index: $-tile-scroll-container-z-index;
+
+  .iq-tile {
+    margin: 0 $iq-spacing-sm $iq-spacing-md 0;
+  }
+}
+
+// used when a <form> is the first element in an iq-tile
+.iq-tile--form-tile {
+  .iq-tile-header {
+    margin-bottom: 6px;
+  }
+}
+
+// Tile headers
+
+.iq-tile-header {
+  min-height: $-tile-header-height;
+  margin: 0 0 15px 0;
+  overflow: hidden;
+
+  .iq-tile__actions {
+    margin-top: 1px;
+  }
+}
+
+.iq-tile-header__title {
+  align-items: center;
+
+  // necessary to constrain the width of the h1/h2 so its ellipsis truncation works correctly
+  display: flex;
+
+  h1,
+  h2 {
+    @include nx-text-helpers.truncate-ellipsis;
+
+    display: inline-block;
+    margin: 0;
+  }
+
+  h1 {
+    font-size: 26px;
+    margin-left: -1px; // Magic number b/c H1 has mysterious 1px to the left
+    padding: 0;
+
+    .iq-tile-header__description {
+      @include nx-text-helpers.regular;
+
+      font-weight: normal;
+    }
+  }
+}
+
+.iq-tile-header__icon {
+  display: inline-block;
+  font-size: 30px;
+  flex: none;
+  margin-right: 8px;
+
+  img {
+    display: block;
+    max-height: 25px; // magic number for default globe graphic
+    width: auto;
+  }
+
+  &.fa-university,
+  &.fa-database {
+    font-size: 22px;
+  }
+
+  &.fa.outline {
+    color: $-tile-background-color;
+  }
+  &.fa-tag {
+    padding-left: 2px;
+  }
+
+  // Application reports title icon
+  &.fa-file-text-o {
+    font-size: 26px;
+  }
+}
+
+.iq-tile-header__title--no-actions {
+  min-height: $-tile-header-height;
+}
+
+.iq-tile-header__subtitle {
+  margin: $iq-spacing-xs 0 0 0;
+  padding: 0 0 2px 0;
+  max-width: $iq-paragraph-width-maximum;
+}
+
+.iq-tile-header--hrule {
+  border: 0 solid $iq-grey-4;
+  border-bottom-width: 1px;
+  margin-bottom: 20px;
+  padding-bottom: 5px;
+}
+
+.iq-tile__actions,
+.iq-page-title__actions {
+  float: right;
+  margin-top: 0;
+
+  .btn {
+    margin-right: 8px;
+
+    &:last-of-type {
+      margin-right: 0;
+    }
+  }
+
+  .iq-dropdown-menu {
+    right: 0;
+    left: auto;
+  }
+}
+
+.iq-tile-content {
+  clear: both;
+
+  > :last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  // for pages with tab systems inside iq-content
+  .well:last-child {
+    padding-bottom: 19px;
+  }
+}
+
+.iq-tile__section-header {
+  @include nx-text-helpers.semi-bold;
+
+  border-bottom: 1px solid $iq-grey-4;
+  font-size: 14px;
+  margin-bottom: 20px;
+  padding-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.iq-tile__section-header--simple {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.iq-tile-footer {
+  border: 0 solid $iq-grey-4;
+  border-top-width: 1px;
+  margin-top: 20px;
+  padding-bottom: 4px;
+  padding-left: 4px;
+  padding-top: 12px;
+}
+
+// Summary Tile
+
+.iq-tile--top-tile {
+  background-color: $iq-content-background;
+  margin: 0;
+  padding: $iq-spacing-md $iq-spacing-xs;
+  position: relative;
+  z-index: $-tile-scroll-container-z-index + 1;
+
+  .iq-tile-header {
+    margin-top: $iq-spacing-xs;
+    margin-bottom: $iq-spacing-md;
+  }
+}
+
+// Dashboard Top Tile
+
+.iq-tile--dashboard {
+  border-bottom: none;
+  box-shadow: none;
+  margin-left: 0;
+  margin-right: 0;
+  padding-right: $iq-spacing-xs;
+  padding-left: $iq-spacing-xs;
+  padding-bottom: 0;
+}
+
+// System Preference Tiles
+.iq-tile--sys-prefs {
+  box-sizing: border-box;
+  margin-right: auto;
+  margin-left: auto;
+  width: $-tile-sys-prefs-width;
+}
+
+.iq-sys-prefs-back-button {
+  border: none;
+  background: none;
+  box-sizing: border-box;
+  margin-right: auto;
+  margin-left: auto;
+  width: $-tile-sys-prefs-width;
+
+  .iq-back-button {
+    margin-left: 0;
+  }
+}
+
+/*
+  #Tile System
+*/
+
+.tile-container {
+  float: left;
+  width: 100%;
+}
+
+.summary-tile-container {
+  $shadow-spread: 6px;
+  $container-padding: 8px;
+
+  position: relative;
+  z-index: $-tile-scroll-container-z-index + 1;
+
+  &::after {
+    box-shadow: 0px 0px $shadow-spread 5px $iq-grey-1;
+    content: '';
+    display: block;
+    height: 0;
+    position: absolute;
+    bottom: 0;
+    left: #{$shadow-spread + $container-padding};
+    width: calc(100% - #{2 * ($shadow-spread + $container-padding)});
+    z-index: -1;
+  }
+}
+
+.tile-scroll-container {
+  margin: 0 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-top: 8px;
+  position: relative; //required for scrollspy
+  width: calc(100% - 16px);
+  z-index: $-tile-scroll-container-z-index;
+}
+
+.tile {
+  background-color: white;
+  border: 1px solid $iq-grey-2;
+  margin-bottom: 8px;
+  padding: 8px;
+
+  h2 {
+    line-height: 20px;
+    margin-top: 4px;
+    margin-bottom: 0;
+
+    > .hexagon {
+      margin-right: 8px;
+      vertical-align: bottom;
+    }
+
+    > .fa {
+      margin-right: 8px;
+      vertical-align: bottom;
+
+      &.slate {
+        color: $iq-slate;
+      }
+
+      &.outline {
+        color: var(--nx-swatch-white);
+      }
+    }
+  }
+
+  .sub-header {
+    line-height: 14px;
+    margin-top: 2px;
+  }
+
+  &.summary-tile {
+    margin: 8px 8px 0px 8px;
+
+    .tile-header {
+      @include nx-text-helpers.bold;
+
+      font-size: typography.$h1-font-size;
+      line-height: 1;
+      overflow: hidden;
+      padding: 4px 16px 8px 0px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      .minor-text {
+        @include nx-text-helpers.regular;
+      }
+
+      // Application / Organization Icon
+      img {
+        height: 26px;
+        vertical-align: bottom;
+        width: 26px;
+      }
+    }
+
+    h2 {
+      padding-bottom: 8px;
+    }
+
+    .sub-header {
+      font-size: 12px;
+      font-weight: bold;
+      margin-bottom: 8px;
+      > .fa {
+        margin-right: 8px;
+        vertical-align: top;
+      }
+    }
+
+    .nav.nav-pills {
+      background-color: $iq-grey-2;
+      margin-bottom: 0px;
+      padding: 8px;
+
+      a {
+        border-radius: 4px;
+        color: inherit;
+        display: inline-block;
+        padding: 8px 12px;
+        text-align: center;
+        min-width: 100px;
+
+        &:hover,
+        &:focus {
+          border: 1px solid $iq-grey-4;
+          color: inherit;
+          padding: 7px 11px;
+        }
+      }
+
+      li:not(:last-child) {
+        margin-right: 8px;
+      }
+
+      li.active > a {
+        background-color: $iq-off-white;
+      }
+    }
+  }
+
+  .simple-list {
+    h4.subsection-header {
+      border-bottom: 1px solid $iq-grey-3;
+      margin: 0;
+      margin-bottom: -1px; // overlap the bottom border of this header with the top border of the following list element
+      padding-top: 20px;
+      padding-bottom: 8px;
+      position: relative;
+
+      > .btn {
+        position: absolute;
+        right: 0;
+        bottom: 8px;
+        text-transform: none;
+      }
+    }
+
+    div.subsection-divider {
+      border-bottom: 1px solid $iq-grey-3;
+      padding-top: 20px;
+    }
+
+    div.empty-list {
+      border-bottom: 1px solid $iq-grey-1;
+      height: 40px;
+      line-height: 34px;
+      text-align: center;
+    }
+
+    ul {
+      list-style: none;
+      margin: 0;
+
+      li {
+        padding-left: 8px;
+        position: relative;
+
+        &.with-subtitle {
+          min-height: 52px;
+        }
+
+        &.simple {
+          min-height: 40px;
+        }
+
+        .threat-legend {
+          display: inline-block;
+          float: left;
+          min-height: inherit;
+          margin: 0px 8px 0px -8px;
+          width: 8px;
+
+          @each $threat in $threat-levels {
+            @each $threatLevel in list.nth($threat, 4) {
+              &.threat-level-#{$threatLevel} {
+                background-color: list.nth($threat, 3);
+              }
+            }
+          }
+        }
+
+        .title {
+          @include nx-text-helpers.semi-bold;
+
+          font-size: 14px;
+          line-height: 14px;
+          margin-right: 42px;
+          padding-top: 10px;
+
+          > .hexagon {
+            margin-right: 6px;
+            vertical-align: bottom;
+          }
+
+          > .fa {
+            margin-right: 4px;
+            vertical-align: bottom;
+          }
+        }
+
+        .single-row-text {
+          line-height: 40px;
+          padding-top: 0px;
+        }
+
+        .threat-group-title {
+          @include nx-text-helpers.semi-bold;
+
+          font-size: 14px;
+          line-height: 40px;
+          margin-right: 42px;
+          vertical-align: middle;
+        }
+
+        .subtitle {
+          font-size: 14px;
+          line-height: 14px;
+          margin-right: 42px;
+          overflow: hidden;
+          padding-top: 4px;
+          padding-bottom: 12px;
+          text-overflow: ellipsis;
+        }
+
+        > .fa-chevron-right {
+          position: absolute;
+          right: 12px;
+          top: calc(50% - 6.5px);
+        }
+      }
+    }
+
+    table {
+      position: relative;
+    }
+
+    li,
+    tr {
+      border-top: 1px solid transparent;
+
+      &:not(.iq-table-row) {
+        &:not(:first-child) {
+          border-top-color: $iq-grey-1;
+        }
+        &:last-child {
+          border-bottom: 1px solid $iq-grey-1;
+        }
+      }
+
+      &.clickable {
+        .fa-chevron-right {
+          color: $iq-slate;
+          font-size: 12px;
+          vertical-align: middle;
+          width: 7px;
+        }
+
+        &:hover,
+        &:active {
+          cursor: pointer;
+
+          .fa-chevron-right {
+            color: $iq-off-black;
+          }
+        }
+
+        &:active,
+        &:focus {
+          outline: 0;
+        }
+
+        &:hover {
+          border-top-color: $iq-grey-4;
+
+          &:last-child {
+            border-bottom-color: $iq-grey-4;
+          }
+
+          + li,
+          + tr {
+            border-top-color: $iq-grey-4;
+          }
+        }
+
+        &:active {
+          background: $iq-grey-1;
+          border-top-color: $iq-slate;
+
+          &:last-child {
+            border-bottom-color: $iq-slate;
+          }
+
+          + li,
+          + tr {
+            border-top-color: $iq-slate;
+          }
+        }
+      }
+    }
+
+    .repository-configuration-list {
+      .fa-check-circle {
+        color: $iq-valid-color;
+      }
+
+      .fa-times-circle {
+        color: $iq-grey-4;
+      }
+
+      .fa {
+        margin-right: 8px;
+      }
+
+      .repository-configuration-list__manager-id,
+      .repository-configuration-list__enabled {
+        width: 1px;
+        white-space: nowrap;
+      }
+    }
+  }
+}

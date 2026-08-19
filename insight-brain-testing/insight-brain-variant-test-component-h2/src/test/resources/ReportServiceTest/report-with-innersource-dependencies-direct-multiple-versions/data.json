@@ -1,0 +1,31 @@
+{
+  "liberalLicenseCount" : 104,
+  "globals" : {
+    "earliestReleaseDate" : 1122888180,
+    "dataVersion" : null,
+    "exceededRowLimit" : false,
+    "scanErrorCount" : 0,
+    "currentDate" : 1750802763287,
+    "hideFilename" : true
+  },
+  "branchName" : "bump-innersource-dependencies-32b675",
+  "copyleftLicenseCount" : 0,
+  "knownArtifactCount" : 144,
+  "weakcopyleftLicenseCount" : 5,
+  "commitHash" : "3ad06d03ac19266beefa52a48f4063dddce9ec38",
+  "partiallyMatchedComponentCount" : 0,
+  "notProvidedLicenseCount" : 0,
+  "scanLabel" : null,
+  "exactlyMatchedComponentCount" : 144,
+  "nonStandardLicenseCount" : 0,
+  "totalArtifactCount" : 146,
+  "securityCounts" : [ 0, 1, 0, 0, 0, 1, 0, 0, 1, 0 ],
+  "insecureArtifactCount" : 2,
+  "effectiveLicenseCounts" : [ 92, 0, 5, 0, 0, 12, 0, 0, 0, 0, 0 ],
+  "securityPunchCard" : [ [ 0, 0, 0 ], [ 1, 1, 1 ] ],
+  "licensePunchCard" : [ [ 0, 1, 2 ], [ 0, 5, 2 ], [ 0, 2, 1 ], [ 0, 2, 0 ], [ 0, 2, 0 ] ],
+  "policyCounts" : [ 1, 6, 9, 1, 0, 0, 0, 0, 0, 0, 0 ],
+  "policyComponentCount" : 10,
+  "grandfatheredPolicyViolationCount" : 0,
+  "legacyViolationCount" : 0
+}

@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "maxApplications": 100,
+  "maxSboms": 50,
+  "features": [
+    "ADVANCED_LEGAL_PACK",
+    "ADVANCED_RECOMMENDATION_STRATEGIES",
+    "AUTOMATION",
+    "BREAKING_CHANGE",
+    "CI_INTEGRATION",
+    "CLI_INTEGRATION",
+    "DASHBOARD",
+    "ENFORCEMENT",
+    "EXTERNAL_DATABASE",
+    "FIREWALL",
+    "FIREWALL_FOR_ARTIFACTORY",
+    "HYGIENE",
+    "RELEASE_INTEGRITY",
+    "IDE_INTEGRATION",
+    "NODE_CLUSTERING",
+    "NOTIFICATIONS",
+    "POLICY_GRANDFATHERING",
+    "POLICY_MONITORING",
+    "POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS",
+    "POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES",
+    "QUALITY",
+    "RM_STAGING_INTEGRATION",
+    "WEBHOOKS_FOR_APPLICATIONS",
+    "WEBHOOKS_FOR_REPOSITORIES"
+  ],
+  "stageIds": [
+    "build",
+    "develop",
+    "operate",
+    "proxy",
+    "release",
+    "stage-release"
+  ],
+  "signature": "FWONXGGcU5wxalHyrW5n/qzmX6RxNjNF+5qX84fRNXcKZSoLM7QtLU0r7FEs43GazO9zA0KB6ze0UeTMo/x94Vt+Xox8zJ4gQoF7xq4VqhCG2SkrGlMFJQb0SdUoojjS2p9h/PtMKSWkqm1OeftYYyB+gwqC864CrXyW5yAL9Is9pXcYCqLfY5LJtzOcaZnVMXW+kjnf2w0feAShEtlBF7YwIdje2LyMviv3FW2vW06NS+0CEmR2Ij1AWBpc+7I5hsYvhGIYhtzZMWTqZe2Skf6Rf0/iFmm6FMLts+o62k39C2V+88u7c0CYrY61VP+N5aJMN8EaCuER2TKoSsXcLg==",
+  "signatureKeyAlias": "licensing-key-test"
+}

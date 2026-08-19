@@ -1,0 +1,101 @@
+[
+  {
+    "waitDelta": null,
+    "simpleMatch": true,
+    "matchState": "exact",
+    "componentIdentifier": {
+      "format": "maven",
+      "coordinates": {
+        "artifactId": "lib-a",
+        "classifier": "",
+        "extension": "jar",
+        "groupId": "dup",
+        "version": "1.0"
+      }
+    },
+    "groupId": "dup",
+    "artifactId": "lib-a",
+    "version": "1.0",
+    "classifier": "",
+    "securityVulnerabilities": [
+      {
+        "refId": "cve-aaaa-0001",
+        "severity": 4.0,
+        "source": "cve",
+        "summary": "First vulnerability of lib-a",
+        "status": null,
+        "url": null,
+        "vulnerabilityCategories": []
+      },
+      {
+        "refId": "cve-aaaa-0002",
+        "severity": 6.0,
+        "source": "cve",
+        "summary": "Second vulnerability of lib-a",
+        "status": null,
+        "url": null,
+        "vulnerabilityCategories": []
+      }
+    ],
+    "hash": "eeeeeeeeeeeeeeeeeeee",
+    "observedLicenseIds": [
+      "No-Sources"
+    ],
+    "declaredLicenseIds": [
+      "Not-Declared"
+    ],
+    "catalogDate": null,
+    "relativePopularity": null,
+    "identificationSource": "Sonatype",
+    "componentCategories": null,
+    "hygieneRating": null,
+    "integrityRating": null,
+    "securityIssues": 2,
+    "securityThreat": 6.0
+  },
+  {
+    "waitDelta": null,
+    "simpleMatch": true,
+    "matchState": "exact",
+    "componentIdentifier": {
+      "format": "maven",
+      "coordinates": {
+        "artifactId": "lib-b",
+        "classifier": "",
+        "extension": "jar",
+        "groupId": "dup",
+        "version": "1.0"
+      }
+    },
+    "groupId": "dup",
+    "artifactId": "lib-b",
+    "version": "1.0",
+    "classifier": "",
+    "securityVulnerabilities": [
+      {
+        "refId": "cve-bbbb-0001",
+        "severity": 8.0,
+        "source": "cve",
+        "summary": "Only vulnerability of lib-b",
+        "status": null,
+        "url": null,
+        "vulnerabilityCategories": []
+      }
+    ],
+    "hash": "eeeeeeeeeeeeeeeeeeee",
+    "observedLicenseIds": [
+      "No-Sources"
+    ],
+    "declaredLicenseIds": [
+      "Not-Declared"
+    ],
+    "catalogDate": null,
+    "relativePopularity": null,
+    "identificationSource": "Sonatype",
+    "componentCategories": null,
+    "hygieneRating": null,
+    "integrityRating": null,
+    "securityIssues": 1,
+    "securityThreat": 8.0
+  }
+]

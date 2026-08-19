@@ -1,0 +1,59 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+.sbom-manager-cdp-vulnerabilities-tile {
+  .sbom-verified-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .sbom-verified-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+  }
+
+  .sbom-verified-icon {
+    color: var(--nx-swatch-green-30);
+  }
+
+  .sbom-unverified-icon {
+    color: var(--nx-swatch-orange-50);
+  }
+
+  .delete-annotation {
+    color: var(--nx-swatch-red-40);
+  }
+
+  .nx-table {
+    overflow-y: visible;
+  }
+
+  .nx-table-container__footer {
+    z-index: auto;
+  }
+
+  &__intriage-status.nx-status-indicator::before {
+    background-color: var(--nx-swatch-orange-60);
+    border-color: var(--nx-swatch-orange-25);
+  }
+
+  &__intriage-status.nx-status-indicator {
+    background-color: var(--nx-swatch-orange-95);
+    border-color: var(--nx-swatch-orange-30);
+  }
+
+  &__copy-status {
+    opacity: 60%;
+  }
+
+  &__justification-copy {
+    opacity: 60%;
+  }
+}

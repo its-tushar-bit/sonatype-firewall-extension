@@ -1,0 +1,247 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
+.swagger-ui.swagger-ui .info .title small {
+  display: none;
+}
+
+// swagger-ui .wrapper max-width, used to align the Authorize button with wrapper-constrained content
+$swagger-wrapper-max-width: 1460px;
+
+.swagger-ui.swagger-ui > div:has(> .information-container) {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.swagger-ui.swagger-ui .information-container {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.swagger-ui.swagger-ui .info {
+  margin: 0;
+}
+
+.swagger-ui.swagger-ui .scheme-container {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: end;
+  align-self: start;
+  width: auto;
+  margin-right: max(0px, calc((100% - #{$swagger-wrapper-max-width}) / 2));
+  padding: 0;
+  box-shadow: none;
+  background: none;
+}
+
+api-page {
+  display: contents;
+
+  .information-container {
+    display: none;
+  }
+}
+
+#api-page {
+  @include nx-dark-mode-helpers.dark-mode {
+    background: var(--nx-color-component-background);
+
+    svg {
+      fill: var(--nx-color-text);
+    }
+
+    .swagger-ui {
+      color: var(--nx-color-text-stark);
+
+      .opblock-tag {
+        border-bottom: 1px solid var(--nx-color-border-secondary);
+        color: var(--nx-color-text-stark);
+      }
+
+      .info {
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        .title {
+          color: var(--nx-color-text-stark);
+        }
+        li,
+        p,
+        table,
+        .base-url {
+          color: var(--nx-color-text);
+        }
+      }
+
+      a,
+      .opblock-tag small,
+      table thead tr td,
+      table thead tr th {
+        color: var(--nx-color-text);
+      }
+
+      // form controls default to a white background in swagger-ui
+      input[type='text'],
+      input[type='password'],
+      input[type='email'],
+      input[type='search'],
+      input[type='file'],
+      textarea,
+      select {
+        background-color: var(--nx-color-component-background);
+        border-color: var(--nx-color-border-secondary);
+        color: var(--nx-color-text);
+
+        // preserve the invalid-field indicator: swagger's own dark invalid rule
+        // keys off its html.dark-mode class (unused here) and the rule above
+        // would otherwise hide the red border, so restore it here
+        &.invalid {
+          border-color: var(--nx-color-validation-invalid);
+        }
+      }
+
+      // section header bars (Parameters, Responses) keep a near-white
+      // background with dark heading text
+      .opblock-section-header {
+        background-color: var(--nx-color-component-background);
+        border-color: var(--nx-color-border-secondary);
+
+        h4,
+        > label {
+          color: var(--nx-color-text-stark);
+        }
+      }
+
+      // inline code (e.g. "Accept" in the media type controls) defaults to a
+      // near-white background with bright red text. The syntax-highlighted
+      // example value block (pre code) is left untouched.
+      .response-control-media-type__accept-message code,
+      .markdown code,
+      .renderedMarkdown code,
+      .modal-ux code {
+        background-color: var(--nx-color-code-background);
+        border-color: var(--nx-color-code-border);
+        color: var(--nx-color-code-text);
+      }
+
+      // these buttons default to dark text, invisible on the dark page: Clear,
+      // the default "Try it out" (the active "Cancel" keeps its semantic red),
+      // the modal's Close (btn-done), and the array "Add/remove item" buttons
+      .btn.btn-clear,
+      .btn.try-out__btn:not(.cancel),
+      .btn.btn-done,
+      .btn.btn-sm {
+        color: var(--nx-color-text);
+      }
+
+      // swagger's interactive controls fall back to the browser's native focus
+      // ring, which renders as a white glow in dark mode. Match RSC: no ring on
+      // pointer focus, a subtle branded outline only for keyboard focus.
+      .btn,
+      .authorization__btn,
+      .opblock-summary-control,
+      .tablinks,
+      .expand-operation,
+      .opblock-control-arrow {
+        &:focus {
+          outline: none;
+        }
+
+        &:focus-visible {
+          outline: var(--nx-focus-outline-width) solid var(--nx-color-interactive-border-focus);
+        }
+      }
+
+      // an IQ-global `.btn:active` rule paints a light-grey background that, with
+      // swagger's `transition: all .3s`, glows toward white on click in dark
+      // mode; use the subtle dark "pressed" colour instead
+      .btn:active {
+        background-color: var(--nx-color-interactive-background-active);
+      }
+
+      // the authorization modal renders on a white background with dark text
+      .dialog-ux .modal-ux {
+        background-color: var(--nx-color-component-background);
+        border-color: var(--nx-color-border-secondary);
+      }
+
+      .modal-ux-header h3,
+      .modal-ux-content h4 {
+        color: var(--nx-color-text-stark);
+      }
+
+      .modal-ux-content label,
+      .modal-ux-content p {
+        color: var(--nx-color-text);
+      }
+
+      // swagger text colours that fail contrast on the dark background: the
+      // media-type "Accept" hint (dark green) and the schema model's type
+      // ("string") and format ("($int32)") labels (dark purple/grey)
+      .response-control-media-type__accept-message,
+      .prop-type,
+      .prop-format {
+        color: var(--nx-color-text);
+      }
+
+      // a deprecated operation's method badge defaults to a light grey
+      // background with white text, leaving the method label invisible
+      .opblock-deprecated .opblock-summary-method {
+        background-color: var(--nx-color-border-secondary);
+      }
+
+      // rendered markdown (operation and tag descriptions): most text inherits
+      // the container colour; swagger forces pre blocks to #000 specifically
+      .markdown,
+      .renderedMarkdown {
+        color: var(--nx-color-text);
+
+        pre {
+          color: var(--nx-color-text);
+        }
+      }
+
+      .opblock {
+        .model-box {
+          .model-title,
+          .model,
+          .model .model-toggle {
+            color: var(--nx-color-text);
+          }
+        }
+
+        .opblock-summary-operation-id,
+        .opblock-summary-path,
+        .opblock-summary-path__deprecated,
+        .opblock-summary-description,
+        .description-wrapper,
+        .opblock-external-docs-wrapper,
+        .opblock-title_normal,
+        .parameter__name:not(.opblock-title),
+        .parameter__type,
+        .parameter__in,
+        .parameter__empty_value_toggle,
+        .response-col_status,
+        p,
+        td,
+        .tablinks,
+        li {
+          color: var(--nx-color-text);
+        }
+
+        .responses-inner {
+          h4,
+          h5 {
+            color: var(--nx-color-text);
+          }
+        }
+      }
+    }
+  }
+}

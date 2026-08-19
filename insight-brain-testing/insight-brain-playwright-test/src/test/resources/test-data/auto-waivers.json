@@ -1,0 +1,27 @@
+{
+  "pageHeading": "Automated Waivers",
+  "pageSubtitle": "Limit disruptions by deprioritizing low-threat violations until a remediation path is available.",
+  "tableSectionHeading": "Configured Auto-Waivers",
+  "emptyTableMessage": "No automations to display",
+  "newAutoWaiverButtonText": "New Auto-Waiver",
+  "newAutoWaiverModalHeading": "New Auto-Waiver",
+  "validationErrorNoneSelected": "Either 'Upgrade Path is not available' or 'Vulnerability is not reachable' is required",
+  "upgradePathCheckboxLabel": "No newer, non-violating component version is available",
+  "reachabilityCheckboxLabel": "Application does not execute any calls to the vulnerable method",
+  "maxConfigurationsTooltip": "Max. configurations reached",
+  "inheritedGroupHeaderPrefix": "Inherited from ",
+  "editInheritedTooltip": "Cannot edit an inherited auto-waiver",
+  "deleteInheritedTooltip": "Cannot delete an inherited auto-waiver",
+  "deleteModalWarningText": "You are about to permanently delete an auto-waiver",
+  "deleteModalUndoneText": "This action cannot be undone.",
+  "previewButtonText": "Preview Add Auto Waiver",
+  "maxLocalAutoWaivers": 3,
+
+  "editModalHeadingPattern": "Edit.*Auto-Waiver",
+  "enterpriseBannerText": "Automatically apply waivers to low-risk, non-reachable or known issues so teams can stay unblocked.",
+  "previewRowScope": "Not Reachable; No Path Forward",
+  "detailsHeading": "Auto-Waiver Details",
+  "noPathForwardScope": "No Path Forward",
+  "notReachableScope": "Not Reachable",
+  "defaultThreatLevel": 7
+}

@@ -1,0 +1,44 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ant",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ant",
+        "version" : "1.6.4"
+      }
+    },
+    "groupId" : "ant",
+    "artifactId" : "ant",
+    "version" : "1.6.4",
+    "filenames" : [ "ant-1.6.4.jar" ],
+    "pathnames" : [ "test.zip/ant-1.6.4.jar" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "66635d8afae2046c58e8",
+    "relativePopularity" : 0.0,
+    "createTime" : 1131470641000,
+    "lastModifiedTime" : 1452699046000,
+    "lastModifiedEntryTime" : 1116527818000,
+    "website" : null
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "test.zip" ],
+    "pathnames" : [ "test.zip" ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "52b95ffa5fb85421a005",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1527701316000,
+    "lastModifiedEntryTime" : 1452699046000,
+    "website" : null
+  } ]
+}

@@ -1,0 +1,339 @@
+{
+  "SPDXID" : "SPDXRef-DOCUMENT",
+  "spdxVersion" : "SPDX-2.3",
+  "creationInfo" : {
+    "created" : "2025-08-08T10:04:34Z",
+    "creators" : [ "Tool: Sonatype SBOM Manager - 1.194.0-SNAPSHOT" ]
+  },
+  "name" : "SbomRegressionTestApp",
+  "dataLicense" : "CC0-1.0",
+  "documentNamespace" : "http://localhost:10095/ui/links/sbomManager/management/view/application/SbomRegressionTestApp/bom/9.1.1",
+  "packages" : [ {
+    "SPDXID" : "SPDXRef-a99aa6ef-5901-485a-8bee-c6270b411ff1",
+    "attributionTexts" : [ "Copyright 2012 Google Inc. All Rights Reserved.", "Copyright (C) 2004,2005 Dave Brosius <dbrosius@users.sourceforge.net>", "Copyright (C) 2005 William Pugh", "Copyright (C) 2004,2005 University of Maryland", "Evidence license text for: (Apache-2.0 AND LGPL-2.1-only)", "Evidence license text for: (EPL-2.0)" ],
+    "checksums" : [ {
+      "algorithm" : "SHA256",
+      "checksumValue" : "d88bc4e70bfb34d18b5542136639acbb26a8ae2429aa1e47489332fb389cc964"
+    }, {
+      "algorithm" : "SHA3-384",
+      "checksumValue" : "a1eea7229716487ad2ebe96b2f997a8408f32f14047994fbcc99b49012cf86c96dbd518e5d57a61b0e57dd37dd0b48f5"
+    }, {
+      "algorithm" : "SHA3-256",
+      "checksumValue" : "7478c7cf41c883a04ee89f1813f687886d53fa86f791fff90690c6221e3853aa"
+    }, {
+      "algorithm" : "BLAKE2b-256",
+      "checksumValue" : "d8779633380c050bccf4e733b763ab2abd8ad2db60b517d47fd29bbf76433237"
+    }, {
+      "algorithm" : "SHA3-512",
+      "checksumValue" : "7d584825bc1767dfabe7e82b45ccb7a1119b145fa17e76b885e71429c706cef0a3171bc6575b968eec5da56a7966c02fec5402fcee55097ac01d40c550de9d20"
+    }, {
+      "algorithm" : "BLAKE2b-512",
+      "checksumValue" : "f8ce8d612a6c85c96cf7cebc230f6ddef26e6cedcfbc4a41c766033cc08c6ba097d1470948226807fb2d88d2a2b6fc0ff5e5440e93a603086fdd568bafcd1a9d"
+    }, {
+      "algorithm" : "BLAKE2b-384",
+      "checksumValue" : "e728ba56c2da995a559a178116c594e8bee4894a79ceb4399d8f479e5563cb1942b85936f646d14170717c576b14db7a"
+    }, {
+      "algorithm" : "SHA384",
+      "checksumValue" : "d4835048a0f57c74b8fb617d5366ab81376fc92bebe9a93bf24ba7f9da6c9aeeb6179f5d1361f6533211b15f3224cbad"
+    }, {
+      "algorithm" : "SHA1",
+      "checksumValue" : "9188560f22e0b73070d2efce670c74af2bdf30af"
+    }, {
+      "algorithm" : "BLAKE3",
+      "checksumValue" : "26cdc7fb3fd65fc3b621a4ef70bc7d2489d5c19e70c76cf7ec20e538df0047cf"
+    }, {
+      "algorithm" : "SHA512",
+      "checksumValue" : "74a51ff45e4c11df9ba1f0094282c80489649cb157a75fa337992d2d4592a5a1b8cb4525de8db0ae25233553924d76c36e093ea7fa9df4e5b8b07fd2e074efd6"
+    }, {
+      "algorithm" : "MD5",
+      "checksumValue" : "641b6e166f8b33c5e959e2adcc18b1c7"
+    } ],
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "comment" : "An external SBOM that describes what this component includes",
+      "referenceCategory" : "OTHER",
+      "referenceLocator" : "https://example.org/support/sbom/portal-server/1.0.0",
+      "referenceType" : "http://cyclonedx.org/referenctype/bom"
+    }, {
+      "comment" : "Security advisories from the vendor",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://example.org/security/feed/csaf",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: NVD",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-40155",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "Vendor provided documentation for the product",
+      "referenceCategory" : "OTHER",
+      "referenceLocator" : "https://example.org/support/documentation/portal-server/1.0.0",
+      "referenceType" : "http://cyclonedx.org/referenctype/documentation"
+    }, {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:npm/acme/component@1.0.0",
+      "referenceType" : "purl"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2022-40155",
+      "referenceType" : "advisory"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "(EPL-2.0)",
+    "licenseDeclared" : "(EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0)",
+    "name" : "com.acme:tomcat-catalina",
+    "originator" : "Organization: Acme Inc",
+    "primaryPackagePurpose" : "LIBRARY",
+    "versionInfo" : "9.0.14"
+  }, {
+    "SPDXID" : "SPDXRef-gnrtd0",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "com.acme:tomcat-catalina",
+    "originator" : "Organization: Acme Inc",
+    "primaryPackagePurpose" : "LIBRARY",
+    "versionInfo" : "9.0.14"
+  }, {
+    "SPDXID" : "SPDXRef-gnrtd1",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "com.acme:tomcat-catalina",
+    "originator" : "Organization: Acme Inc",
+    "primaryPackagePurpose" : "LIBRARY",
+    "versionInfo" : "9.0.14"
+  }, {
+    "SPDXID" : "SPDXRef-gnrtd2",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "org.example:mylibrary",
+    "originator" : "Person: Example Super Heros",
+    "primaryPackagePurpose" : "LIBRARY",
+    "supplier" : "Organization: Example, Inc. (support@example.com)",
+    "versionInfo" : "1.0.0"
+  }, {
+    "SPDXID" : "SPDXRef-gnrtd3",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "application-a",
+    "primaryPackagePurpose" : "APPLICATION",
+    "versionInfo" : "1.0"
+  }, {
+    "SPDXID" : "SPDXRef-gnrtd4",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "library-a",
+    "primaryPackagePurpose" : "LIBRARY",
+    "versionInfo" : "1.0"
+  }, {
+    "SPDXID" : "SPDXRef-gnrtd5",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "framework-a",
+    "primaryPackagePurpose" : "FRAMEWORK",
+    "versionInfo" : "1.0"
+  }, {
+    "SPDXID" : "SPDXRef-gnrtd6",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "container-a",
+    "primaryPackagePurpose" : "CONTAINER",
+    "versionInfo" : "1.0"
+  }, {
+    "SPDXID" : "SPDXRef-gnrtd7",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "operating-system-a",
+    "primaryPackagePurpose" : "OPERATING_SYSTEM",
+    "versionInfo" : "1.0"
+  }, {
+    "SPDXID" : "SPDXRef-gnrtd8",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "firmware-a",
+    "primaryPackagePurpose" : "FIRMWARE",
+    "versionInfo" : "1.0"
+  }, {
+    "SPDXID" : "SPDXRef-gnrtd9",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "device-a",
+    "primaryPackagePurpose" : "DEVICE",
+    "versionInfo" : "1.0"
+  }, {
+    "SPDXID" : "SPDXRef-pkg-maven-partner-shaded-library-1.0",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/partner/shaded-library@1.0",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "Partner Shaded Library",
+    "primaryPackagePurpose" : "LIBRARY",
+    "versionInfo" : "1.0"
+  }, {
+    "SPDXID" : "SPDXRef-pkg-maven-ossproject-library-2.0",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/ossproject/library@2.0",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "Some Opensource Library",
+    "primaryPackagePurpose" : "LIBRARY",
+    "versionInfo" : "2.0"
+  }, {
+    "SPDXID" : "SPDXRef-pkg-maven-acme-library-3.0",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/acme/library@3.0",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "Acme Library",
+    "primaryPackagePurpose" : "LIBRARY",
+    "versionInfo" : "3.0"
+  }, {
+    "SPDXID" : "SPDXRef-pkg-maven-com.fasterxml.jackson.core-jackson-databind-2.9.4",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "comment" : "source: Snyk",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111",
+      "referenceType" : "advisory"
+    }, {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4",
+      "referenceType" : "purl"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: NVD",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://nvd.nist.gov/vuln/detail/CVE-2019-9997",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2018-7489",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2019-9997",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: CVE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://www.cve.org/CVERecord?id=CVE-2018-7489",
+      "referenceType" : "advisory"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "com.fasterxml.jackson.core:jackson-databind",
+    "primaryPackagePurpose" : "LIBRARY",
+    "versionInfo" : "2.9.4"
+  }, {
+    "SPDXID" : "SPDXRef-acme-application-1.0",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "Acme Application",
+    "originator" : "Person: Acme Super Heros",
+    "primaryPackagePurpose" : "APPLICATION",
+    "versionInfo" : "9.1.1"
+  } ],
+  "files" : [ {
+    "SPDXID" : "SPDXRef-gnrtd10",
+    "checksums" : [ {
+      "algorithm" : "SHA1",
+      "checksumValue" : "0000000000000000000000000000000000000000"
+    } ],
+    "copyrightText" : "NOASSERTION",
+    "fileName" : "file-a",
+    "licenseConcluded" : "NOASSERTION"
+  } ],
+  "relationships" : [ {
+    "spdxElementId" : "SPDXRef-DOCUMENT",
+    "relationshipType" : "DESCRIBES",
+    "relatedSpdxElement" : "SPDXRef-acme-application-1.0"
+  }, {
+    "spdxElementId" : "SPDXRef-a99aa6ef-5901-485a-8bee-c6270b411ff1",
+    "relationshipType" : "ANCESTOR_OF",
+    "relatedSpdxElement" : "SPDXRef-gnrtd1"
+  }, {
+    "spdxElementId" : "SPDXRef-a99aa6ef-5901-485a-8bee-c6270b411ff1",
+    "relationshipType" : "ANCESTOR_OF",
+    "relatedSpdxElement" : "SPDXRef-gnrtd0"
+  }, {
+    "spdxElementId" : "SPDXRef-pkg-maven-partner-shaded-library-1.0",
+    "relationshipType" : "CONTAINS",
+    "relatedSpdxElement" : "SPDXRef-pkg-maven-ossproject-library-2.0",
+    "comment" : "COMPLETE"
+  }, {
+    "spdxElementId" : "SPDXRef-acme-application-1.0",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-pkg-maven-com.fasterxml.jackson.core-jackson-databind-2.9.4",
+    "comment" : "COMPLETE"
+  }, {
+    "spdxElementId" : "SPDXRef-acme-application-1.0",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-pkg-maven-acme-library-3.0",
+    "comment" : "COMPLETE"
+  }, {
+    "spdxElementId" : "SPDXRef-acme-application-1.0",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-pkg-maven-partner-shaded-library-1.0",
+    "comment" : "COMPLETE"
+  } ]
+}

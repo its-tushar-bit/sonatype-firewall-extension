@@ -1,0 +1,71 @@
+dn: ou=users,dc=company,dc=com
+objectclass: top
+objectclass: organizationalUnit
+ou: users
+description: Container for user entries
+
+dn: ou=groups,dc=company,dc=com
+objectclass: top
+objectclass: organizationalUnit
+ou: groups
+description: Container for group entries
+
+dn: uid=testuser2,ou=users,dc=company,dc=com
+uid: testuser2
+givenName: John Doe
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+sn: User
+cn: Test User2
+userPassword: {md5}rQ8H83Kkz8RJZFwzDwk0fg==
+mail: test.user2@company.com
+departmentNumber: testUsers
+departmentNumber: primaryUsers
+
+dn: uid=testuser3,ou=users,dc=company,dc=com
+uid: testuser3
+givenName: Jannet Ray
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+sn: User
+cn: Test User3
+userPassword: {md5}rQ8H83Kkz8RJZFwzDwk0fg==
+mail: test.user3@company.com
+departmentNumber: testUsers
+departmentNumber: primaryUsers
+
+dn: uid=Beta,ou=users,dc=company,dc=com
+uid: Beta
+givenName: Beta User
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+sn: Beta
+cn: Beta User
+userPassword: {md5}rQ8H83Kkz8RJZFwzDwk0fg==
+mail: beta.user@company.com
+departmentNumber: testUsers
+departmentNumber: primaryUsers
+
+dn: cn=Alpha,ou=groups,dc=company,dc=com
+cn: Alpha
+objectClass: top
+objectClass: groupOfNames
+member: uid=testuser2
+
+dn: cn=Beta,ou=groups,dc=company,dc=com
+cn: Beta
+objectClass: top
+objectClass: groupOfNames
+member: uid=Beta
+
+dn: cn=Alpha2,ou=groups,dc=company,dc=com
+cn: Alpha2
+objectClass: top
+objectClass: groupOfNames
+member: uid=testuser2

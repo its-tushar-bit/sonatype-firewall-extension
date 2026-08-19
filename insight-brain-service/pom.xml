@@ -1,0 +1,1296 @@
+<!--
+
+    Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+    Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+    "Sonatype" is a trademark of Sonatype, Inc.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.sonatype.insight.brain</groupId>
+    <artifactId>insight-brain</artifactId>
+    <version>1.208.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>insight-brain-service</artifactId>
+  <name>Insight Brain Service</name>
+
+  <properties>
+    <freemarker.version>2.3.32</freemarker.version>
+    <truezipVersion>7.8.0-01</truezipVersion>
+    <lucene.version>9.12.3</lucene.version>
+    <semver4j.version>5.3.0</semver4j.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk18on</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bc-fips</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcpkix-fips</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bctls-fips</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <!-- Logback is provided by spring-boot-starter-logging with the correct version -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-logging</artifactId>
+    </dependency>
+
+    <!-- Codahale Metrics - compatible with Spring Boot, used for @Timed annotations -->
+    <dependency>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-annotation</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-healthchecks</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-jvm</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-jakarta-servlets</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-jersey3</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-logback</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-jetty12</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>jakarta.inject</groupId>
+      <artifactId>jakarta.inject-api</artifactId>
+    </dependency>
+
+    <!-- Spring Boot Dependencies -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-tomcat</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jetty</artifactId>
+    </dependency>
+    <!-- Spring Security starter excluded - this application uses Apache Shiro for auth -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-quartz</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jersey</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-tomcat</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <!-- SAML2 SP support (OpenSAML5). Note: this brings Spring Security core/web/crypto
+         transitively, but Apache Shiro remains the application's primary auth framework;
+         the SAML2 stack is used only for the SAML authentication engine (CLM-42790). -->
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-saml2-service-provider</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.aspectj</groupId>
+      <artifactId>aspectjweaver</artifactId>
+      <version>${aspectj.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.aspectj</groupId>
+      <artifactId>aspectjrt</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.directory.api</groupId>
+      <artifactId>api-ldap-model</artifactId>
+      <exclusions>
+        <exclusion>
+          <!-- unused and avoids CLM-13317 -->
+          <groupId>org.apache.mina</groupId>
+          <artifactId>mina-core</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-collections4</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-text</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-csv</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-core</artifactId>
+      <version>${lucene.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-queryparser</artifactId>
+      <version>${lucene.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-suggest</artifactId>
+      <version>${lucene.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-backward-codecs</artifactId>
+      <version>${lucene.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-facet</artifactId>
+      <version>${lucene.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-data</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-guide</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-data</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-db</artifactId>
+      <type>test-jar</type>
+    </dependency>
+
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-core</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-policy</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-policy</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-json-store</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-common</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-common</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-event</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-frontend</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.scan</groupId>
+      <artifactId>insight-archive-utils</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.scan</groupId>
+      <artifactId>insight-scanner-model</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.scan</groupId>
+      <artifactId>insight-scanner-model-io</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.scan</groupId>
+      <artifactId>insight-scanner-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.scan</groupId>
+      <artifactId>insight-client-utils</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.scan</groupId>
+      <artifactId>insight-scanner-archive</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.portal</groupId>
+      <artifactId>insight-telemetry-model</artifactId>
+    </dependency>
+     <dependency>
+      <groupId>com.sonatype.insight.portal</groupId>
+      <artifactId>insight-common-model</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.portal</groupId>
+      <artifactId>insight-vulnerability-model</artifactId>
+      <exclusions>
+        <exclusion>
+          <!-- unneeded cruft -->
+          <groupId>com.sonatype.data.commons</groupId>
+          <artifactId>vulnerability-renderer</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.nexus.iq</groupId>
+      <artifactId>nexus-dependency-management</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-tenancy</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-tenancy</artifactId>
+      <scope>test</scope>
+      <classifier>tests</classifier>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.goodies.truezip</groupId>
+      <artifactId>truezip-file</artifactId>
+      <version>${truezipVersion}</version>
+      <exclusions>
+        <exclusion>
+          <!-- unneeded cruft that should have been declared optional by truezip -->
+          <groupId>com.google.code.findbugs</groupId>
+          <artifactId>annotations</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-guava</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-joda</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.module</groupId>
+      <artifactId>jackson-module-parameter-names</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jdk8</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jsr310</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-csv</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.dropwizard</groupId>
+      <artifactId>dropwizard-jackson</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.dropwizard</groupId>
+      <artifactId>dropwizard-json-logging</artifactId>
+      <version>${dropwizard-jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.dropwizard</groupId>
+      <artifactId>dropwizard-request-logging</artifactId>
+      <version>${dropwizard-jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback.access</groupId>
+      <artifactId>logback-access-jetty12</artifactId>
+      <version>2.0.6</version>
+    </dependency>
+    <!-- The following are transitive Jackson dependencies that we explicitly declare to ensure a consistent set -->
+    <!-- of Jackson dependencies is seen by external consumers of insight-brain-service that depend on it for    -->
+    <!-- e.g. integration tests, since our dependency management for transitive dependencies does not apply when -->
+    <!-- this project itself is consumed as a dependency.                                                       -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-yaml</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.jakarta.rs</groupId>
+      <artifactId>jackson-jakarta-rs-json-provider</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.yaml</groupId>
+      <artifactId>snakeyaml</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-email2-jakarta</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.freemarker</groupId>
+      <artifactId>freemarker</artifactId>
+      <version>${freemarker.version}</version>
+    </dependency>
+
+    <!-- Dependencies for drools -->
+    <dependency>
+      <groupId>org.kie</groupId>
+      <artifactId>kie-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.drools</groupId>
+      <artifactId>drools-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.drools</groupId>
+      <artifactId>drools-compiler</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.drools</groupId>
+      <artifactId>drools-mvel</artifactId>
+    </dependency>
+
+    <!-- Not all of the following are direct dependencies but are still declared as such to workaround that our -->
+    <!-- dependency management is not applied when depending on this module itself (cf. MNG-5761) -->
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-http</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-io</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-security</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-server</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty.ee11</groupId>
+      <artifactId>jetty-ee11-servlet</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-util</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.annotation</groupId>
+      <artifactId>jakarta.annotation-api</artifactId>
+      <version>3.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.mail</groupId>
+      <artifactId>jakarta.mail-api</artifactId>
+    </dependency>
+    <!-- Angus Mail - Jakarta Mail implementation with multipart MIME handlers -->
+    <dependency>
+      <groupId>org.eclipse.angus</groupId>
+      <artifactId>angus-mail</artifactId>
+    </dependency>
+    <!-- Angus Activation - Jakarta Activation implementation -->
+    <dependency>
+      <groupId>org.eclipse.angus</groupId>
+      <artifactId>angus-activation</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.platform</groupId>
+      <artifactId>jakarta.jakartaee-api</artifactId>
+      <version>11.0.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-utils</artifactId>
+    </dependency>
+    <!-- Version 2.1.0 fails to decrypt strings encrypted with 2.0 -->
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-cipher</artifactId>
+      <version>2.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jsoup</groupId>
+      <artifactId>jsoup</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-artifact</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.quartz-scheduler</groupId>
+      <artifactId>quartz</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>io.opentelemetry.instrumentation</groupId>
+      <artifactId>opentelemetry-instrumentation-annotations</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-sdk-testing</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+      <exclusions>
+        <!--
+          CLM-43729 JUnit 5 migration: junit-jupiter (api + engine + params) is no longer excluded, so it
+          flows in transitively and puts this module on the JUnit Platform with BOTH engines. Vintage is
+          excluded here and re-declared explicitly below so its presence is pinned and obvious; it runs the
+          not-yet-migrated org.junit.Test (JUnit 4) classes until they are all Jupiter.
+        -->
+        <exclusion>
+          <groupId>org.junit.vintage</groupId>
+          <artifactId>junit-vintage-engine</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.vintage</groupId>
+      <artifactId>junit-vintage-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- @ExtendWith(MockitoExtension.class) replacement for @RunWith(MockitoJUnitRunner.class) on migrated tests. -->
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.tngtech.archunit</groupId>
+      <artifactId>archunit-junit4</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.bytebuddy</groupId>
+      <artifactId>byte-buddy</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.bytebuddy</groupId>
+      <artifactId>byte-buddy-agent</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.icegreen</groupId>
+      <artifactId>greenmail-junit4</artifactId>
+      <scope>test</scope>
+    </dependency>
+        <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>hds-mock-server</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.scan</groupId>
+      <artifactId>insight-test-networking</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.portal</groupId>
+      <artifactId>insight-scan-report-model</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.portal</groupId>
+      <artifactId>insight-license-dto-model</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.portal</groupId>
+      <artifactId>insight-reference-policies</artifactId>
+      <version>${hds.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.scan</groupId>
+      <artifactId>insight-test-reverse-proxy</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.clm</groupId>
+      <artifactId>com.sonatype.clm.dto.model</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.licensing</groupId>
+      <artifactId>license-bundle</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.shiro</groupId>
+      <artifactId>shiro-core</artifactId>
+      <classifier>jakarta</classifier>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.shiro</groupId>
+      <artifactId>shiro-web</artifactId>
+      <classifier>jakarta</classifier>
+    </dependency>
+
+    <dependency>
+      <groupId>com.sonatype.insight.portal</groupId>
+      <artifactId>insight-license-model</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.directory.server</groupId>
+      <artifactId>apacheds-core-integ</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-math3</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.ws.rs</groupId>
+      <artifactId>jakarta.ws.rs-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-multipart</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.ext</groupId>
+      <artifactId>jersey-bean-validation</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpmime</artifactId>
+      <version>${httpcomponents.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.github.oshi</groupId>
+      <artifactId>oshi-core</artifactId>
+      <version>6.6.4</version>
+      <exclusions>
+        <!-- Avoid Component-Unknown policy violation on jnidispatch.dll -->
+        <exclusion>
+          <groupId>net.java.dev.jna</groupId>
+          <artifactId>jna</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tika</groupId>
+      <artifactId>tika-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.nexus</groupId>
+      <artifactId>nexus-scm-client</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.xmlunit</groupId>
+      <artifactId>xmlunit-assertj</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.javacrumbs.json-unit</groupId>
+      <artifactId>json-unit-assertj</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.nexus</groupId>
+      <artifactId>nexus-git-utils</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.skyscreamer</groupId>
+      <artifactId>jsonassert</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.thymeleaf</groupId>
+      <artifactId>thymeleaf</artifactId>
+      <version>3.1.5.RELEASE</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.pdfbox</groupId>
+      <artifactId>pdfbox</artifactId>
+      <version>2.0.24</version>
+    </dependency>
+    <!-- Breaking changes in 0.7.0 -->
+    <dependency>
+      <groupId>com.github.vandeseer</groupId>
+      <artifactId>easytable</artifactId>
+      <version>0.6.6</version>
+    </dependency>
+    <dependency>
+      <groupId>com.github.ralfstuckert.pdfbox-layout</groupId>
+      <artifactId>pdfbox2-layout</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>de.rototor.pdfbox</groupId>
+      <artifactId>graphics2d</artifactId>
+      <version>3.0.3</version>
+    </dependency>
+    <!-- Breaking changes in >=3.8.0 -->
+    <dependency>
+      <groupId>org.knowm.xchart</groupId>
+      <artifactId>xchart</artifactId>
+      <version>3.7.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>de.erichseifert.vectorgraphics2d</groupId>
+          <artifactId>VectorGraphics2D</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.github.stefanbirkner</groupId>
+      <artifactId>system-rules</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.tomakehurst</groupId>
+      <artifactId>wiremock-jre8-standalone</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.atlassian.crowd.client</groupId>
+      <artifactId>atlassian-crowd-rest-client</artifactId>
+      <version>1.4</version>
+    </dependency>
+    <!-- Required for Atlassian Crowd client which uses javax.xml.bind (pre-Jakarta) -->
+    <dependency>
+      <groupId>javax.xml.bind</groupId>
+      <artifactId>jaxb-api</artifactId>
+      <version>2.3.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.xml.bind</groupId>
+      <artifactId>jaxb-impl</artifactId>
+      <version>2.3.9</version>
+      <scope>runtime</scope>
+    </dependency>
+    <!-- Required for Swagger which uses jakarta.xml.bind (Jakarta EE) -->
+    <dependency>
+      <groupId>jakarta.xml.bind</groupId>
+      <artifactId>jakarta.xml.bind-api</artifactId>
+      <version>4.0.2</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.xml.bind</groupId>
+      <artifactId>jaxb-core</artifactId>
+      <version>3.0.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jaxb</groupId>
+      <artifactId>jaxb-runtime</artifactId>
+      <version>3.0.2</version>
+    </dependency>
+    <dependency>
+      <groupId>io.swagger.core.v3</groupId>
+      <artifactId>swagger-jaxrs2-jakarta</artifactId>
+      <version>2.2.35</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.github.seancfoley</groupId>
+      <artifactId>ipaddress</artifactId>
+      <version>5.4.0</version>
+    </dependency>
+
+    <!-- OAuth library -->
+    <dependency>
+      <groupId>com.nimbusds</groupId>
+      <artifactId>oauth2-oidc-sdk</artifactId>
+      <version>11.23.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>s3</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>s3-transfer-manager</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>aws-crt-client</artifactId>
+    </dependency>
+    <!-- Required for the default credentials chain to resolve EKS IRSA web-identity tokens via STS AssumeRoleWithWebIdentity -->
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>sts</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.opensearch.client</groupId>
+      <artifactId>opensearch-java</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents.client5</groupId>
+      <artifactId>httpclient5</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.asynchttpclient</groupId>
+      <artifactId>async-http-client</artifactId>
+      <version>3.0.11</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.zonky.test</groupId>
+      <artifactId>embedded-postgres</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.opensearch</groupId>
+      <artifactId>opensearch-testcontainers</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.semver4j</groupId>
+      <artifactId>semver4j</artifactId>
+      <version>${semver4j.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!-- Spring Boot Maven Plugin for running the application -->
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <version>${spring-boot.version}</version>
+        <configuration>
+          <mainClass>com.sonatype.insight.brain.spring.InsightBrainSpringApplication</mainClass>
+        </configuration>
+      </plugin>
+      <!-- We run the tests using maven-failsafe-plugin because we want to use the artifact jar, not the classes. -->
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <skip>false</skip>
+          <includes>
+            <include>**/*Test.*</include>
+          </includes>
+          <trimStackTrace>false</trimStackTrace>
+          <reuseForks>true</reuseForks>
+          <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
+          <!--
+            forkCount=0.5C shards this module's tests across forks. It boots Spring Boot application
+            contexts in 18+ tests, so each fork's real footprint (heap + metaspace + H2 + native) is
+            large; 0.5C x -Xmx2000m fits the c6i.2xlarge agents (8 vCPU / 16 GB) because the module
+            runs SOLO on its own CI agent (the 'Service Tests' stage) with no competing reactor.
+            Treat 0.5C as the heap ceiling here: higher fork counts caused OS memory pressure and
+            agent SSH flapping under reactor parallelism (CLM-39214).
+          -->
+          <forkCount>0.5C</forkCount>
+          <!-- Heap-dump-on-OOM flags come from the root argLine (dumps to target/, which always exists). -->
+          <argLine>@{argLine} -Xmx2000m -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar</argLine>
+          <systemPropertyVariables>
+            <!-- Used by the test IQ server to set the work directory (to not use the same work dir across all forks). -->
+            <test.forkId>#${surefire.forkNumber}</test.forkId>
+            <!-- Use cached SPDX license info from JAR to avoid network calls during tests -->
+            <org.spdx.useJARLicenseInfoOnly>true</org.spdx.useJARLicenseInfoOnly>
+            <!-- Shiro 2.2.0 sets session cookie as Secure by default; disable for HTTP-based tests -->
+            <org.apache.shiro.cookie.secure.disabled>true</org.apache.shiro.cookie.secure.disabled>
+          </systemPropertyVariables>
+        </configuration>
+        <executions>
+          <!-- Run integration tests. -->
+          <execution>
+            <id>standard-integration-tests</id>
+            <goals>
+              <goal>integration-test</goal>
+            </goals>
+            <configuration>
+            </configuration>
+          </execution>
+          <!-- Verify all results -->
+          <execution>
+            <id>verify-all</id>
+            <goals>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-fips-jars</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.bouncycastle</groupId>
+                  <artifactId>bc-fips</artifactId>
+                  <outputDirectory>${project.build.directory}/fips-lib</outputDirectory>
+                  <destFileName>bc-fips.jar</destFileName>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.bouncycastle</groupId>
+                  <artifactId>bcpkix-fips</artifactId>
+                  <outputDirectory>${project.build.directory}/fips-lib</outputDirectory>
+                  <destFileName>bcpkix-fips.jar</destFileName>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.bouncycastle</groupId>
+                  <artifactId>bctls-fips</artifactId>
+                  <outputDirectory>${project.build.directory}/fips-lib</outputDirectory>
+                  <destFileName>bctls-fips.jar</destFileName>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <dependencies>
+          <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+            <version>${spring-boot.version}</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
+              <shadedArtifactAttached>true</shadedArtifactAttached>
+              <shadedClassifierName>server</shadedClassifierName>
+              <artifactSet>
+                <excludes>
+                  <exclude>org.bouncycastle:bc-fips</exclude>
+                  <exclude>org.bouncycastle:bcpkix-fips</exclude>
+                  <exclude>org.bouncycastle:bctls-fips</exclude>
+                </excludes>
+              </artifactSet>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                    <!--
+                     Strip embedded pom.xml files but keep the tiny (3-line) pom.properties.
+
+                     The pom.xml exclusion covers two concerns that motivated the historical
+                     META-INF/maven/** blanket exclusion (f24533b755f, 2013):
+                       - our own insight-brain-service pom.xml contains internal structure
+                         and dependency detail that we don't want copied verbatim into a
+                         distributed uber JAR
+                       - transitive third-party pom.xml copies are large redundant boilerplate
+
+                     The kept META-INF/maven/<g>/<a>/pom.properties files (groupId/artifactId/
+                     version, ~150 bytes each) are used by Sonatype IQ's uber-jar constituent
+                     matcher (HDS-3645) as authoritative version tiebreakers when hash-matching
+                     bundled bytecode against the artifact index. Stripping them causes
+                     bytecode-similar older versions of shaded libraries (e.g. Jersey, HK2) to
+                     appear as ghost matches in policy scans.
+                     -->
+                    <exclude>META-INF/maven/**/pom.xml</exclude>
+                    <exclude>module-info.class</exclude>
+                    <!--
+                     Versioned module-info.class files from multi-release dependency jars. None of
+                     our current deps ship one, but once this jar is marked Multi-Release: true
+                     (see CLM-39482) the JVM and jlink will both honor META-INF/versions/<N>/ at
+                     runtime and at module-descriptor derivation time. A future MR-JAR dependency
+                     that ships its own versioned module-info would then be picked up as the
+                     descriptor for our whole uber jar, which would be wrong and silent. Strip
+                     them pre-emptively so the shaded jar stays a plain automatic module.
+                     -->
+                    <exclude>META-INF/versions/*/module-info.class</exclude>
+                    <!--
+                     Malformed service file from xpp3_min:1.1.4c (2007, abandoned): a single line
+                     listing two comma-separated class names violates the ServiceLoader spec, and
+                     jlink rejects it with InvalidModuleDescriptorException when deriving an
+                     automatic module from this shaded jar. ServiceLoader at runtime tolerates
+                     it; jlink does not. XStream's own mxparser fork (on the classpath) provides
+                     a correctly-formed replacement, so nothing real is lost by stripping this.
+                     -->
+                    <exclude>META-INF/services/org.xmlpull.v1.XmlPullParserFactory</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>*:org.eclipse.sisu.inject</artifact>
+                </filter>
+                <filter>
+                  <artifact>*:h2</artifact>
+                  <excludes>
+                    <!-- using patched version from insight-brain-db instead, cf. CLM-13616 -->
+                    <exclude>org/h2/value/ValueTimestamp.class</exclude>
+                    <!-- using patched version from insight-brain-db instead, cf. CLM-15176 -->
+                    <exclude>org/h2/engine/Session.class</exclude>
+                    <!-- Exclude classes vulnerable to CVE-2018-14335.  See CLM-10571 -->
+                    <exclude>org/h2/tools/Console*</exclude>
+                    <exclude>org/h2/tools/Backup*</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>*:pdfbox2-layout</artifact>
+                  <excludes>
+                    <exclude>rst/pdfbox/layout/text/TextLine.class</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>com.fasterxml.jackson.core:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/versions/19/**</exclude>
+                    <exclude>META-INF/versions/21/**</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <mainClass>com.sonatype.insight.brain.spring.InsightBrainSpringApplication</mainClass>
+                  <manifestEntries>
+                    <!--
+                     Required so the JVM honors META-INF/versions/<N>/ at class-load time.
+                     Lucene (and other modern libs) ship their JDK 19+/21+ mmap implementations
+                     there; without this flag the JVM treats the uber jar as non-MR and throws
+                     ClassNotFoundException for e.g. MemorySegmentIndexInputProvider on JDK 25.
+                     shade strips the input jars' manifests, so we must re-assert it. (CLM-39482)
+                     -->
+                    <Multi-Release>true</Multi-Release>
+                  </manifestEntries>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/spring/org.springframework.boot.actuate.autoconfigure.web.ManagementContextConfiguration.imports</resource>
+                </transformer>
+                <transformer implementation="org.springframework.boot.maven.PropertiesMergingResourceTransformer">
+                  <resource>META-INF/spring.factories</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/spring-autoconfigure-metadata.properties</resource>
+                </transformer>
+                <transformer implementation="org.springframework.boot.maven.PropertiesMergingResourceTransformer">
+                  <resource>META-INF/spring/aot.factories</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/spring.handlers</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/spring.schemas</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/NOTICE</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/NOTICE.txt</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/LICENSE</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/LICENSE.txt</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/insight/configuration.properties</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/kie.conf</resource>
+                </transformer>
+                <!-- Include FIPS JARs as embedded resources -->
+                <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                  <resource>lib/bc-fips.jar</resource>
+                  <file>${project.build.directory}/fips-lib/bc-fips.jar</file>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                  <resource>lib/bcpkix-fips.jar</resource>
+                  <file>${project.build.directory}/fips-lib/bcpkix-fips.jar</file>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                  <resource>lib/bctls-fips.jar</resource>
+                  <file>${project.build.directory}/fips-lib/bctls-fips.jar</file>
+                </transformer>
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+            <configuration>
+              <includes>
+                <include>**/PortAllocator*</include>
+                <include>**/AbstractBaseIntegrationTest*</include>
+                <include>**/RelayClientDeferredCloseDisabler*</include>
+                <include>**/HdsMockServerRule*</include>
+                <include>**/DefaultTestInsightBrainService*</include>
+                <include>**/MultiTenantBrainServiceTestService*</include>
+                <include>**/*InsightBrainServiceFactory*</include>
+                <include>**/TestInsightBrainService*</include>
+                <include>**/TestInsightBrainServiceRule*</include>
+                <include>**/TestCLMServer*</include>
+                <include>**/AbstractResourceTest*</include>
+                <include>**/TestLicenseFingerprinter*</include>
+                <include>**/TestProductLicense*</include>
+                <include>**/TestProductLicenseManager*</include>
+                <include>**/MockProductLicenseManager*</include>
+                <include>**/TestProductLicenseDetailsCache/*.json</include>
+                <include>**/PolicyEvaluationHelper*</include>
+                <include>**/TestHelperModule*</include>
+                <include>**/TestQuartzJobStoreTx*</include>
+                <include>**/TestTaskScheduler*</include>
+                <include>**/QuartzJobSchedulingServiceRule**</include>
+                <include>**/productlicense/license.lic</include>
+                <include>**/SlowMoFilter*</include>
+                <include>**/RestRequestFilter*</include>
+                <include>**/TemporaryEntity*</include>
+                <include>**/HttpRequest*</include>
+                <include>**/HttpResponse*</include>
+                <include>**/ReportHelper*</include>
+                <include>**/ScanHelper*</include>
+                <include>**/Zipper*</include>
+                <include>**/EmbeddedLdapServer*</include>
+                <include>**/TestLdapServer*</include>
+                <include>**/NetworkingHelper*</include>
+                <include>**/SslSettings*</include>
+                <include>**/ReportTestUtils*</include>
+                <include>**/CrowdMockServerRule*</include>
+                <include>**/ArtifactoryMockServerRule*</include>
+                <include>**/AbstractAuditTest*</include>
+                <include>**/AbstractResourceAuthzTest*</include>
+                <!-- Base test classes that stay here but are extended by the relocated
+                     @PostgresTest DB/DAO tests in insight-brain-variant-test-db-pg (CLM-45228). -->
+                <include>**/AbstractNewDbOperationalCheckTest*</include>
+                <include>**/AbstractExistingDbOperationalCheckTest*</include>
+                <include>**/AbstractNewDbConnectionAdminHealthCheckEndpointTest*</include>
+                <include>**/AbstractExistingDbConnectionAdminHealthCheckEndpointTest*</include>
+                <include>**/AbstractComponentTest*</include>
+                <include>**/BrainInjectedTest*</include>
+                <include>**/AuditTestSupport*</include>
+                <include>**/TestAuditSession*</include>
+                <include>**/MockCleaner*</include>
+                <include>**/MockHtmlEmail*</include>
+                <include>**/*Test*</include>
+                <include>**/git/render/*Helper*</include>
+                <include>**/utils/ExistingFilesHelper*</include>
+                <include>**/sbom/export/*Assert*</include>
+                <include>**/DashboardMetricsSqlColdEvidenceSupport*</include>
+                <include>**/DashboardMetricsSqlPlanEvidenceSupport*</include>
+                <include>**/utils/RandomGenerator*</include>
+                <include>**/DatabaseContainerRule*</include>
+                <include>**/H2InMemoryDatabaseConfigProvider*</include>
+                <include>**/JWTGenerator*</include>
+                <include>**/FunctionUtils*</include>
+                <include>**/VulnerabilitySignatureAnalysisDTOHelper*</include>
+                <include>**/ZScalerMockServerRule*</include>
+                <include>**/*SearchIndexFixture*</include>
+                <include>**/SearchIndexRule*</include>
+                <include>**/SearchIndexType*</include>
+                <!-- Test helpers/support consumed by the relocated component tests in
+                     insight-brain-variant-test-component-h2 (CLM-43720). Exported here so that module's tests,
+                     which depend on the insight-brain-service test-jar, can resolve them. -->
+                <include>**/MockReportDownloader*</include>
+                <include>**/utils/TemplateHelper*</include>
+                <include>**/sbom/export/IgnoreXmlListOrderMatcher*</include>
+                <include>**/PolicyViolationLogDTOAssert*</include>
+                <include>**/ComponentEvaluationV2Helper*</include>
+                <include>**/PolicyAssertUtils*</include>
+                <include>**/com/sonatype/insight/brain/Assert*</include>
+                <include>**/organization/IconUtils*</include>
+                <include>**/RisksFilterDTOBuilder*</include>
+                <include>**/DashboardMetricsTestSupport*</include>
+                <include>**/HttpHelper*</include>
+                <!-- Reuse-safe WireMock/external-service mock extensions (CLM-45582), consumed by the
+                     variant test modules that depend on this test-jar. -->
+                <include>**/testsupport/wiremock/**</include>
+              </includes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>dev.aspectj</groupId>
+        <artifactId>aspectj-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default</id>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>disable-test-compile</id>
+            <goals>
+              <goal>test-compile</goal>
+            </goals>
+            <phase>none</phase>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+
+  </build>
+
+  <profiles>
+    <profile>
+      <id>idea</id>
+      <properties>
+      </properties>
+    </profile>
+    <profile>
+      <id>test-only-properties</id>
+      <activation>
+        <property>
+          <name>!build.number</name>
+        </property>
+      </activation>
+      <properties>
+        <build.number>build-number</build.number>
+      </properties>
+    </profile>
+  </profiles>
+</project>

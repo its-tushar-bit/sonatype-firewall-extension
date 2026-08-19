@@ -1,0 +1,295 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+/*
+  ##Organization Tree View
+*/
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use '../../scss/variables' as *;
+@use '../../scss/typography' as *;
+
+$child-row-left-padding: 40px;
+
+.iq-owner-tree-view {
+  padding: 0;
+
+  h4 {
+    margin-left: $iq-spacing-xs;
+  }
+
+  .iq-tree-view {
+    padding: 0;
+    min-width: 0;
+  }
+
+  .iq-tree-view__twisty {
+    margin-right: 0;
+  }
+
+  .iq-tree-view__twisty-icon {
+    margin-top: 3px;
+  }
+
+  .iq-tree-view__child {
+    height: auto;
+    width: auto;
+
+    &:hover,
+    &:focus {
+      color: $iq-slate;
+      text-decoration: none;
+    }
+  }
+
+  .iq-tree-view__children {
+    margin-bottom: 0;
+  }
+
+  .iq-tree-view__trigger {
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    &.selected,
+    &.child-selected {
+      .iq-tree-view__twisty-icon.collapse {
+        border-left-color: $iq-grey-4;
+      }
+    }
+    &.selected {
+      .iq-tree-view__text {
+        color: $iq-blue;
+      }
+    }
+  }
+
+  .iq-tree-view__text {
+    display: inline; // so that text-overflow works
+    line-height: 16px;
+  }
+
+  .iq-spinner__wrapper {
+    margin-left: $iq-spacing-xs;
+  }
+}
+
+.iq-owner-tree-view__header {
+  @extend h3;
+  @include nx-text-helpers.truncate-ellipsis;
+  @include nx-text-helpers.semi-bold;
+
+  color: $iq-slate;
+  line-height: var(--nx-line-height);
+  margin: 0 0 $iq-spacing-sm 0;
+
+  a {
+    &:hover,
+    &:focus {
+      text-decoration: none;
+    }
+
+    > .fa {
+      margin-right: 6px;
+    }
+  }
+}
+
+.iq-owner-tree-view__filter {
+  display: block;
+  margin: 0 0 $iq-spacing-sm 0;
+
+  input {
+    width: calc(100% - 35px);
+  }
+}
+
+.iq-owner-tree-view__row {
+  background-clip: padding-box;
+  border-top: none;
+  border-bottom: none;
+  border-left: none;
+  border-right: 16px solid transparent;
+  border-radius: 0 16px 16px 0;
+  color: $iq-slate;
+  display: block;
+  height: auto;
+  line-height: 16px;
+  padding: 9px $iq-spacing-xs;
+  text-decoration: none;
+
+  .fa-border {
+    border-color: $iq-slate;
+  }
+
+  &.selected {
+    background-color: $iq-blue-light;
+    border-right: 16px solid $iq-blue-light;
+    color: $iq-blue;
+    cursor: default;
+
+    .iq-tree-view__text {
+      color: $iq-blue;
+    }
+
+    .fa-border {
+      border-color: $iq-blue;
+    }
+  }
+
+  &.disabled {
+    cursor: default;
+
+    &.iq-owner-tree-view__row--child,
+    .iq-tree-view__text {
+      color: $iq-grey-4;
+    }
+
+    .iq-owner-tree-view__icon {
+      color: $iq-grey-4;
+    }
+
+    .iq-owner-tree-view__icon.inverse {
+      background-color: $iq-grey-4;
+      color: $iq-off-white;
+    }
+  }
+}
+
+.iq-owner-tree-view__import-applications,
+.iq-owner-tree-view__new-organization,
+.iq-owner-tree-view__new-application {
+  background-color: $iq-off-white;
+  border-right: 16px solid $iq-grey-1;
+
+  .iq-link__import-applications,
+  .iq-btn--text-only {
+    padding-left: 34px;
+    text-align: left;
+    width: 100%;
+
+    &:hover,
+    &:active,
+    &:focus {
+      background-color: $iq-off-white;
+      color: $iq-link-color-active;
+      text-decoration: none;
+    }
+  }
+}
+
+#owner-tree-view-owner-rows {
+  margin-top: $iq-spacing-xs;
+
+  .iq-owner-tree-view__row--organization:first-of-type {
+    margin-top: $iq-spacing-sm;
+  }
+
+  .iq-owner-tree-view__import-applications,
+  .iq-owner-tree-view__new-application {
+    .iq-link__import-applications,
+    .iq-btn--text-only {
+      padding-left: 52px;
+    }
+  }
+
+  .iq-owner-tree-view__row--child {
+    border-right: 16px solid $iq-grey-1;
+    padding-left: $child-row-left-padding;
+
+    &.selected {
+      background: $iq-blue-light;
+      border-right-color: $iq-blue-light;
+      cursor: default;
+    }
+  }
+}
+
+.iq-owner-tree-view__row.child-selected {
+  background-color: $iq-off-white;
+  border-right-color: $iq-grey-1;
+}
+
+.iq-owner-tree-view__row {
+  &.child-selected {
+    background-color: $iq-off-white;
+    border-right-color: $iq-grey-1;
+  }
+
+  &.selected:not(#owner-tree-view-root-org-row),
+  &.child-selected {
+    // we use ~ to match all of the siblings of a parent to change their backgrounds
+    // https://developer.mozilla.org/en-US/docs/Web/CSS/General_sibling_combinator
+    ~ .iq-tree-view__children {
+      .iq-owner-tree-view__row--child {
+        background-color: $iq-off-white;
+
+        &.selected {
+          background: $iq-blue-light;
+        }
+      }
+    }
+  }
+}
+
+.iq-owner-tree-view__icon {
+  margin-right: $iq-spacing-xs;
+  margin-left: $iq-spacing-xs;
+  vertical-align: bottom;
+
+  &.fa-globe {
+    margin-left: 0;
+  }
+
+  &:not(.fa):not(.hexagon) {
+    margin-right: 0;
+  }
+}
+
+.iq-owner-tree-view__icon--14px {
+  font-size: 14px;
+  line-height: 14px;
+  vertical-align: top;
+}
+
+.iq-owner-tree-view__icon--12px {
+  font-size: 12px;
+  height: 12px;
+  line-height: 9px;
+  text-align: center;
+  width: 10px;
+
+  &::before {
+    vertical-align: -2px;
+  }
+}
+
+.iq-owner-tree-view__row--repositories {
+  margin-top: $iq-spacing-xxs;
+  padding-left: 10px;
+  width: auto;
+}
+
+.iq-owner-tree-view--detail {
+  .iq-spinner__wrapper {
+    margin-top: $iq-spacing-sm;
+  }
+}
+
+.iq-owner-tree-view__min-filter-message {
+  margin-left: $iq-spacing-xs;
+}
+
+#owner-editing-detail-tree-view {
+  .iq-owner-tree-view__row--child {
+    padding-left: $child-row-left-padding;
+  }
+}
+
+#source-control-tree-view-group {
+  .iq-owner-tree-view__row {
+    padding-left: $iq-spacing-l;
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "whl",
+        "name" : "orange",
+        "qualifier" : "py2.py3-none-any",
+        "version" : "1.0.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "093080a1a4bbd2750541",
+    "effectiveLicenses" : [ "MIT", "Apache-2.0" ]
+  },
+  {
+    "componentIdentifier" :  {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "Microsoft.Identity.Client.Extensions.Msal",
+        "version" : "2.23.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "c795e78734c2860bb627",
+    "declaredLicenses" : [ "GPL-2.0" ]
+  }]
+}

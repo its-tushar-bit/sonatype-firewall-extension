@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<bom xmlns="http://cyclonedx.org/schema/bom/1.5" version="1">
+  <metadata>
+    <timestamp>2025-07-01T20:49:59Z</timestamp>
+    <tools>
+      <components>
+        <component type="application">
+          <name>Sonatype SBOM Manager</name>
+          <version>1.193.0-SNAPSHOT</version>
+        </component>
+      </components>
+    </tools>
+    <component type="application" bom-ref="15fc0fe3-5abf-4464-a197-8a8a838d530c">
+      <name>DUMMY-PUBLIC-ID-ba70f8c5cfdd48378a4dafab50aa764e</name>
+      <version>1.0.1</version>
+    </component>
+  </metadata>
+  <components>
+    <component type="library" bom-ref="e4ea175dcdab369a32a59e5977a8a2f6c0047820">
+      <group>org.apache.logging.log4j</group>
+      <name>log4j-core</name>
+      <version>2.13.2</version>
+      <licenses>
+        <license bom-ref="0750954c-6d6f-47d0-ac13-1c13c1c84d53">
+          <id>Apache-2.0</id>
+        </license>
+      </licenses>
+      <purl>pkg:maven/org.apache.logging.log4j/log4j-core@2.13.2?type=jar</purl>
+    </component>
+    <component type="library" bom-ref="da83d3971bd00a068715210af7ae418b3fef1819">
+      <group>junit</group>
+      <name>junit</name>
+      <version>4.12</version>
+      <licenses>
+        <license bom-ref="64cafed5-17ad-4a71-84ef-78db948dfbe2">
+          <id>EPL-1.0</id>
+        </license>
+      </licenses>
+      <purl>pkg:maven/junit/junit@4.12?type=jar</purl>
+    </component>
+    <component type="application" bom-ref="473cbbff5cc120e810c1a32cfa9925859f40ce8f">
+      <group>sonatype</group>
+      <name>iq_application_SCM_Test</name>
+      <purl>pkg:generic/sonatype/iq_application_SCM_Test</purl>
+    </component>
+    <component type="library" bom-ref="7ae27c3edb8c038436ae11c8ae2bb2d11087923f">
+      <group>org.hamcrest</group>
+      <name>hamcrest-core</name>
+      <version>1.3</version>
+      <licenses>
+        <license bom-ref="d0ac1b28-f10e-41c0-a093-25ddd406e43d">
+          <id>BSD-3-Clause</id>
+        </license>
+        <license bom-ref="b8bb3f73-fa3e-46d7-ab89-80d93f2c3187">
+          <id>BSD-2-Clause</id>
+        </license>
+      </licenses>
+      <purl>pkg:maven/org.hamcrest/hamcrest-core@1.3?type=jar</purl>
+    </component>
+    <component type="library" bom-ref="54eb26493a58d052fd2adabf1ab68b33969d9a56">
+      <group>org.apache.logging.log4j</group>
+      <name>log4j-api</name>
+      <version>2.13.2</version>
+      <licenses>
+        <license bom-ref="6f235dd2-524a-4bba-9b87-8486ab5504f1">
+          <id>Apache-2.0</id>
+        </license>
+      </licenses>
+      <purl>pkg:maven/org.apache.logging.log4j/log4j-api@2.13.2?type=jar</purl>
+    </component>
+    <component type="library" bom-ref="8ef8444bb82551413612a2c5e7c03aa4362e6022">
+      <group>org.yaml</group>
+      <name>snakeyaml</name>
+      <version>1.29</version>
+      <licenses>
+        <license bom-ref="4ecd3476-db7b-4414-9862-964ee192e735">
+          <id>Apache-2.0</id>
+        </license>
+      </licenses>
+      <purl>pkg:maven/org.yaml/snakeyaml@1.29?type=jar</purl>
+    </component>
+  </components>
+  <dependencies>
+    <dependency ref="15fc0fe3-5abf-4464-a197-8a8a838d530c">
+      <dependency ref="e4ea175dcdab369a32a59e5977a8a2f6c0047820"/>
+      <dependency ref="8ef8444bb82551413612a2c5e7c03aa4362e6022"/>
+      <dependency ref="da83d3971bd00a068715210af7ae418b3fef1819"/>
+    </dependency>
+    <dependency ref="e4ea175dcdab369a32a59e5977a8a2f6c0047820">
+      <dependency ref="54eb26493a58d052fd2adabf1ab68b33969d9a56"/>
+    </dependency>
+    <dependency ref="da83d3971bd00a068715210af7ae418b3fef1819">
+      <dependency ref="7ae27c3edb8c038436ae11c8ae2bb2d11087923f"/>
+    </dependency>
+  </dependencies>
+  <vulnerabilities>
+    <vulnerability>
+      <id>sonatype-2021-4560</id>
+      <references>
+        <reference>
+          <id>sonatype-2021-4560</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/sonatype-2021-4560</url>
+          </source>
+        </reference>
+      </references>
+      <affects>
+        <target>
+          <ref>e4ea175dcdab369a32a59e5977a8a2f6c0047820</ref>
+        </target>
+      </affects>
+    </vulnerability>
+    <vulnerability>
+      <id>CVE-2021-45046</id>
+      <references>
+        <reference>
+          <id>CVE-2021-45046</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/CVE-2021-45046</url>
+          </source>
+        </reference>
+      </references>
+      <affects>
+        <target>
+          <ref>e4ea175dcdab369a32a59e5977a8a2f6c0047820</ref>
+        </target>
+      </affects>
+    </vulnerability>
+    <vulnerability>
+      <id>CVE-2021-45105</id>
+      <references>
+        <reference>
+          <id>CVE-2021-45105</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/CVE-2021-45105</url>
+          </source>
+        </reference>
+      </references>
+      <affects>
+        <target>
+          <ref>e4ea175dcdab369a32a59e5977a8a2f6c0047820</ref>
+        </target>
+      </affects>
+    </vulnerability>
+    <vulnerability>
+      <id>CVE-2021-44228</id>
+      <references>
+        <reference>
+          <id>CVE-2021-44228</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/CVE-2021-44228</url>
+          </source>
+        </reference>
+      </references>
+      <affects>
+        <target>
+          <ref>e4ea175dcdab369a32a59e5977a8a2f6c0047820</ref>
+        </target>
+      </affects>
+    </vulnerability>
+    <vulnerability>
+      <id>CVE-2021-44832</id>
+      <references>
+        <reference>
+          <id>CVE-2021-44832</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/CVE-2021-44832</url>
+          </source>
+        </reference>
+      </references>
+      <affects>
+        <target>
+          <ref>e4ea175dcdab369a32a59e5977a8a2f6c0047820</ref>
+        </target>
+      </affects>
+    </vulnerability>
+    <vulnerability>
+      <id>CVE-2020-15250</id>
+      <references>
+        <reference>
+          <id>CVE-2020-15250</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/CVE-2020-15250</url>
+          </source>
+        </reference>
+      </references>
+      <affects>
+        <target>
+          <ref>da83d3971bd00a068715210af7ae418b3fef1819</ref>
+        </target>
+      </affects>
+    </vulnerability>
+    <vulnerability>
+      <id>CVE-2022-25857</id>
+      <references>
+        <reference>
+          <id>CVE-2022-25857</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-25857</url>
+          </source>
+        </reference>
+      </references>
+      <affects>
+        <target>
+          <ref>8ef8444bb82551413612a2c5e7c03aa4362e6022</ref>
+        </target>
+      </affects>
+    </vulnerability>
+    <vulnerability>
+      <id>CVE-2022-38749</id>
+      <references>
+        <reference>
+          <id>CVE-2022-38749</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-38749</url>
+          </source>
+        </reference>
+      </references>
+      <affects>
+        <target>
+          <ref>8ef8444bb82551413612a2c5e7c03aa4362e6022</ref>
+        </target>
+      </affects>
+    </vulnerability>
+    <vulnerability>
+      <id>CVE-2022-41854</id>
+      <references>
+        <reference>
+          <id>CVE-2022-41854</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-41854</url>
+          </source>
+        </reference>
+      </references>
+      <affects>
+        <target>
+          <ref>8ef8444bb82551413612a2c5e7c03aa4362e6022</ref>
+        </target>
+      </affects>
+    </vulnerability>
+    <vulnerability>
+      <id>CVE-2022-1471</id>
+      <references>
+        <reference>
+          <id>CVE-2022-1471</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-1471</url>
+          </source>
+        </reference>
+      </references>
+      <affects>
+        <target>
+          <ref>8ef8444bb82551413612a2c5e7c03aa4362e6022</ref>
+        </target>
+      </affects>
+    </vulnerability>
+    <vulnerability>
+      <id>CVE-2022-38752</id>
+      <references>
+        <reference>
+          <id>CVE-2022-38752</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-38752</url>
+          </source>
+        </reference>
+      </references>
+      <affects>
+        <target>
+          <ref>8ef8444bb82551413612a2c5e7c03aa4362e6022</ref>
+        </target>
+      </affects>
+    </vulnerability>
+    <vulnerability>
+      <id>CVE-2022-38751</id>
+      <references>
+        <reference>
+          <id>CVE-2022-38751</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-38751</url>
+          </source>
+        </reference>
+      </references>
+      <affects>
+        <target>
+          <ref>8ef8444bb82551413612a2c5e7c03aa4362e6022</ref>
+        </target>
+      </affects>
+    </vulnerability>
+    <vulnerability>
+      <id>CVE-2022-38750</id>
+      <references>
+        <reference>
+          <id>CVE-2022-38750</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-38750</url>
+          </source>
+        </reference>
+      </references>
+      <affects>
+        <target>
+          <ref>8ef8444bb82551413612a2c5e7c03aa4362e6022</ref>
+        </target>
+      </affects>
+    </vulnerability>
+  </vulnerabilities>
+</bom>

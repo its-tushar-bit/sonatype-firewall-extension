@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+    Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+    "Sonatype" is a trademark of Sonatype, Inc.
+
+-->
+<license>
+  <subject>CLM</subject>
+  <keystore>
+    <alias>Nexus</alias>
+    <path>license-signing-keystore.p12</path>
+    <!-- These must be filled in. See readme -->
+    <password></password>
+    <keyPassword></keyPassword>
+  </keystore>
+  <validUntil>2050/12/31</validUntil>
+  <evaluation>false</evaluation>
+  <licensedUsers>0</licensedUsers>
+  <products>
+  </products>
+  <features>
+    <feature>
+      <id>SonatypeCLM</id>
+    </feature>
+    <feature>
+      <id>Firewall</id>
+    </feature>
+  </features>
+  <contact>
+    <name>name</name>
+    <company>company</company>
+    <country>us</country>
+    <email>email@it.example.com</email>
+    <phone>phone</phone>
+  </contact>
+  <properties>
+    <property>
+      <key>licensingModel</key>
+      <value>app-based</value>
+    </property>
+    <property>
+      <key>clm.licenseVersion</key>
+      <value>1</value>
+    </property>
+    <property>
+      <key>clm.products</key>
+      <value>RiskAndRemediation</value>
+    </property>
+    <property>
+      <key>clm.allowedClmStages</key>
+      <value>Procure,Develop,Build,StageRelease,Release</value>
+    </property>
+    <property>
+      <key>clm.maxActiveApplications</key>
+      <value>3</value>
+    </property>
+    <property>
+      <key>clm.maxUsers</key>
+      <value>5</value>
+    </property>
+    <property>
+      <key>clm.maxFirewallUsers</key>
+      <value>7</value>
+    </property>
+  </properties>
+</license>

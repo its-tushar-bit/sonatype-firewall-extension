@@ -1,0 +1,95 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+
+/**
+ * Standalone pipeline for deploying MTIQ images to staging cells.
+ *
+ * Triggered automatically from push-to-staging after successful ECR promotion.
+ * Validates the image exists in staging ECR, then deploys via Terraform Cloud.
+ *
+ * Parameters:
+ *   IMAGE_TAG - The ECR tag to deploy (e.g., 202604161432-main-142-a1b2c3d4)
+ *
+ * Jenkins job path: insight/MTIQ/sca-cloud/deploy-to-staging
+ */
+
+// Staging cell workspaces — explicit allowlist
+def STAGING_CELL_WORKSPACES = ['sca_aws_staging_cell-prod-internal-mirror']
+def STAGING_GLOBAL_WORKSPACE = 'sca_aws_staging_global'
+
+pipeline {
+  agent { label 'zion-small' }
+
+  parameters {
+    string(name: 'IMAGE_TAG', description: 'The ECR tag to deploy (e.g., 202604161432-main-142-a1b2c3d4)')
+  }
+
+  options {
+    timestamps()
+    buildDiscarder(logRotator(numToKeepStr: '20'))
+    disableConcurrentBuilds()
+    // Currently 1 workspace → 15 min is sufficient. Increase if workspaces are added.
+    timeout(time: 20, unit: 'MINUTES')
+  }
+
+  stages {
+    stage('Validate Parameters') {
+      steps {
+        script {
+          if (!params.IMAGE_TAG?.trim()) {
+            error 'IMAGE_TAG parameter is required'
+          }
+          echo "Deploying image tag: ${params.IMAGE_TAG}"
+        }
+      }
+    }
+
+    stage('Validate Image in Staging ECR') {
+      steps {
+        script {
+          def ecr = load 'jenkins/ecr-helpers.groovy'
+          ecr.validateImageExists(ecr.STAGING_ECR_ACCOUNT, ecr.ECR_REPOSITORY, params.IMAGE_TAG)
+          env.RESOLVED_IMAGE_TAG = params.IMAGE_TAG
+        }
+      }
+    }
+
+    stage('Deploy to Staging Cells') {
+      steps {
+        script {
+          def tfc = load 'jenkins/tfc-helpers.groovy'
+          tfc.deployCells('staging', STAGING_CELL_WORKSPACES, STAGING_GLOBAL_WORKSPACE, env.RESOLVED_IMAGE_TAG, [maxDestructions: 4, maxAdditions: 4, maxChanges: 4])
+        }
+      }
+    }
+
+    stage('Trigger test-staging') {
+      steps {
+        script {
+          def tagToPass = env.RESOLVED_IMAGE_TAG ?: params.IMAGE_TAG
+          build job: 'insight/MTIQ/sca-cloud/test-staging',
+              parameters: [string(name: 'IMAGE_TAG', value: tagToPass)],
+              wait: false,
+              propagate: false
+        }
+      }
+    }
+  }
+
+  post {
+    failure {
+      script {
+        def tag = env.RESOLVED_IMAGE_TAG ?: params.IMAGE_TAG
+        notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices',
+                   message: "Staging deployment FAILED for tag: ${tag}")
+      }
+    }
+    cleanup {
+      deleteDir()
+    }
+  }
+}

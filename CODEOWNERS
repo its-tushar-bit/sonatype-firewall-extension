@@ -1,0 +1,5 @@
+# Code owners is a way to automatically assign members or teams to pull request reviewers for specific areas of the code base.
+# Read more about that here; https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/about-code-owners
+
+# This assigns the iq-tech-leads group to any ADR that comes in automatically.
+/doc/adr/* @sonatype/iq-tech-leads

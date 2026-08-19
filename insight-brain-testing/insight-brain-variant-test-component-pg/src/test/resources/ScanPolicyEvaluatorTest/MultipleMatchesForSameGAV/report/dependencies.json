@@ -1,0 +1,25 @@
+{
+  "dependencyGraph" : {
+    "null" : [ "tomcat:tomcat-util:5.0.28" ],
+    "tomcat:tomcat-util:5.0.28" : [ ]
+  },
+  "securityIssuesByDepth" : {
+    "1" : {
+      "Severe" : 6,
+      "Critical" : 0,
+      "Moderate" : 0
+    }
+  },
+  "gavDepths" : {
+    "tomcat:tomcat-util:5.0.28" : [ 1 ]
+  },
+  "licenseThreatsByDepth" : {
+    "1" : {
+      "NON-STANDARD" : 0,
+      "LIBERAL" : 0,
+      "WEAKCOPYLEFT" : 0,
+      "COPYLEFT" : 0,
+      "NOT-PROVIDED" : 1
+    }
+  }
+}

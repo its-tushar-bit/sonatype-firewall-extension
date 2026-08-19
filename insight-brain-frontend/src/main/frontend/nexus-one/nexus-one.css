@@ -1,0 +1,126 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/*
+ * Popper overlay layer for the Nexus One shell. The content region, TopNav
+ * chrome, and NoticeStrip are React inline styles (set via the CSSOM, which
+ * can't reliably consume var()), so their z-indexes are named constants in
+ * previewShellLayout.ts (SHELL_THEME_Z_INDEX, TOP_NAV_WRAPPER_Z_INDEX,
+ * NOTICE_STRIP_Z_INDEX) instead of this CSS var. This token sits above all
+ * three and is consumed by the popper rule below.
+ *
+ * Full shell z-index ladder (low to high): classic mount base 1, shell
+ * Theme 100, TopNav wrapper 1000, NoticeStrip 1010, poppers/dialogs
+ * (--nexus-one-z-popper) 1100, toasts 1120. The NoticeStrip sits above
+ * TopNav but below poppers/dialogs so open menus and modals still paint over it.
+ */
+:root {
+  --nexus-one-z-popper: 1100;
+}
+
+/*
+ * Lift Radix overlays above the shell content/chrome — without !important.
+ *
+ * Radix popper copies the *content* node's computed z-index onto its portaled
+ * [data-radix-popper-content-wrapper] (@radix-ui/react-popper dist/index.js:176
+ * reads getComputedStyle(content).zIndex, :188 writes it). Every Radix Themes
+ * popper content composes .rt-PopperContent and tooltips compose
+ * .rt-TooltipContent, and neither sets a z-index by default — so the wrapper
+ * resolves to `auto` and open overlays paint BEHIND the content region
+ * (z-index:100) and become un-clickable. Giving the content node a real
+ * z-index makes Radix write it onto the wrapper for us: one rule lifts every
+ * overlay (menus + tooltips) at once, no per-node tagging, and no !important
+ * because the content node has no competing inline style to beat.
+ *
+ * This leans on Radix's copy-content-z-index-onto-wrapper behavior, so re-test
+ * the TopNav overlays when bumping Radix. Verified with @radix-ui/themes 3.3.0.
+ */
+.rt-PopperContent,
+.rt-TooltipContent {
+  z-index: var(--nexus-one-z-popper);
+}
+
+/*
+ * Dialog overlays also portal to document.body. Radix Themes leaves
+ * .rt-BaseDialogOverlay at z-index:auto (only the inner content is z-index:1
+ * within the overlay). That paints the entire dialog BEHIND
+ * NexusOneShellLayout's Theme (z-index:100) and TopNav (z-index:1000), so
+ * Edit / Delete / New Auto-Waiver (and other NOSC Dialogs) appear to do
+ * nothing — the handlers fire, but the modal is hidden under the page.
+ */
+.rt-BaseDialogOverlay,
+.rt-DialogOverlay {
+  z-index: var(--nexus-one-z-popper);
+}
+
+/*
+ * Mutation feedback toasts (ported to document.body). Sit above dialogs +
+ * shell chrome. Soft Callouts are ~10% opacity and read as "no toast" —
+ * force an opaque panel + border so success/error is unmistakable.
+ */
+.nosc-toast-host {
+  position: fixed;
+  /* --nosc-notice-strip-height (nosc/shell/previewShellLayout.ts) is a unitless
+   * pixel count published by NoticeStrip's ResizeObserver; 0 when no notice is
+   * visible. */
+  top: calc(var(--space-4) + 56px + var(--nosc-notice-strip-height, 0) * 1px);
+  right: var(--space-4);
+  z-index: calc(var(--nexus-one-z-popper) + 20);
+  width: min(380px, calc(100vw - 2 * var(--space-4)));
+  pointer-events: none;
+}
+
+.nosc-toast-item {
+  pointer-events: auto;
+  position: relative;
+  padding-right: var(--space-6);
+  box-shadow: var(--shadow-5);
+  border: 1px solid var(--accent-a6);
+  background-color: var(--color-panel-solid);
+}
+
+.nosc-toast-dismiss {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+}
+
+/*
+ * NxModal doesn't portal to document.body — its `.nx-modal-backdrop` relies on
+ * z-index alone to cover the page. `position: fixed` always creates a new
+ * stacking context (even at z-index:auto), so .nosc-classic-mount (itself
+ * `position: fixed`) traps the backdrop's z-index at .nosc-classic-mount's own
+ * rank among LeftNav/TopNav — leaving LeftNav clickable through the "modal".
+ * Base rank matches PAGE_CONTENT_Z_INDEX (previewShellLayout.ts); set here
+ * (not inline) so :has() below can override it without !important.
+ */
+.nosc-classic-mount {
+  z-index: 1;
+}
+
+/* While a modal is open inside the mount, lift it above LeftNav/TopNav. */
+.nosc-classic-mount:has(.nx-modal-backdrop) {
+  z-index: calc(var(--nexus-one-z-popper) + 1);
+}
+
+/*
+ * Embedded Classic pages render inside .nosc-classic-mount, a fixed,
+ * vertically-scrolling wrapper whose scrollbar narrows the content region by
+ * ~15px versus Classic. That extra loss tips the React2Shell Impact Summary
+ * table, which opts into overflow-x: auto, into showing a horizontal scrollbar
+ * it never shows in Classic. Fall back to RSC's default clip-to-fit inside the
+ * mount so the embedded table matches Classic. Remove this rule to restore the
+ * horizontal scroll.
+ */
+.nosc-classic-mount .iq-react2shell-page .nx-table-container {
+  overflow-x: hidden;
+}

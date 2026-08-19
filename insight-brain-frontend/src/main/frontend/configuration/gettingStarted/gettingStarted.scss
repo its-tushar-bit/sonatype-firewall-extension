@@ -1,0 +1,58 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '../../scss/variables' as *;
+
+getting-started {
+  display: contents;
+}
+
+.iq-icon--getting-started-reference {
+  background-color: $iq-off-black;
+  display: inline-block;
+
+  height: 18px;
+  width: 18px;
+
+  padding: 1px;
+
+  // .medium necessary only to increase specificity
+  &.medium::before {
+    color: $iq-off-white;
+    line-height: 1;
+  }
+}
+
+.iq-grid-col__getting-started-header {
+  h3 {
+    margin-bottom: 0;
+  }
+
+  p {
+    margin-top: 0;
+    margin-bottom: 15px;
+  }
+
+  .fa {
+    margin-right: 8px;
+  }
+}
+
+// custom style for a specific subsection title with reference icon in subtitle
+#add-applications-manually-header {
+  h4 {
+    margin-bottom: 0;
+  }
+
+  p {
+    margin-top: 0;
+    margin-bottom: 4px;
+  }
+}
+
+#hds-unreachable-warning getting-started-doc-link .fa {
+  margin-right: 0; // remove the 8px margin from external doc link
+}

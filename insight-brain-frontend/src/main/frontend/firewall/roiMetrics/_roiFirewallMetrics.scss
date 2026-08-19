@@ -1,0 +1,49 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-table-helpers';
+
+#roi-firewall-metrics__tile {
+  margin: var(--nx-spacing-6x) 0 var(--nx-spacing-6x) 0;
+}
+
+.roi-firewall-metrics-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-spacing-2x);
+  color: var(--nx-color-text-dark);
+
+  &__header {
+    h2 {
+      font-size: var(--nx-font-size);
+      line-height: 24px;
+      margin: 0;
+    }
+  }
+  &__value {
+    font-size: var(--nx-font-size-xs);
+
+    span {
+      font-size: var(--nx-font-size-heading-2);
+      font-weight: 500;
+      margin-right: var(--nx-spacing-2x);
+    }
+  }
+}
+
+.roi-firewall-metrics__total {
+  font-size: var(--nx-font-size-xs);
+  margin: var(--nx-spacing-2x) 0;
+  text-align: right;
+
+  span {
+    font-size: var(--nx-font-size-heading-2);
+    font-weight: 500;
+    margin-left: var(--nx-spacing-2x);
+  }
+}

@@ -1,0 +1,1748 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.report;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Provider;
+
+import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.clm.dto.model.component.AnalysisType;
+import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
+import com.sonatype.insight.brain.cpematching.CpeMatchingConfigurationService;
+import com.sonatype.insight.brain.dashboard.ApplicationRiskScoreDTO;
+import com.sonatype.insight.brain.dashboard.H2ApplicationRiskService;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
+import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
+import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceVersionDAO;
+import com.sonatype.insight.brain.innersource.InnerSourceCleanupPendingService;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.HostedRepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
+import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
+import com.sonatype.insight.brain.repository.hosted.HostedRepositoryComponentResolver;
+import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
+import com.sonatype.insight.brain.git.RemediationVersionDTO;
+import com.sonatype.insight.brain.git.pullrequestcreationservice.AutomatedPullRequestCreationService;
+import com.sonatype.insight.brain.hds.HdsClientAnalytics;
+import com.sonatype.insight.brain.hds.ScanUploadService;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
+import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.innersource.InnerSourceApplication;
+import com.sonatype.insight.brain.model.innersource.InnerSourceVersion;
+import com.sonatype.insight.brain.model.license.License;
+import com.sonatype.insight.brain.model.license.LicenseOverride;
+import com.sonatype.insight.brain.model.license.MultiLicense;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.organization.ReportMetadataDTO;
+import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
+import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
+import com.sonatype.insight.brain.report.LifecycleReport.ReportType;
+import com.sonatype.insight.brain.sbom.SbomSpecification;
+import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
+import com.sonatype.insight.brain.scan.ScanContext;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
+import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.telemetry.CpeResultsTelemetry;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyDataService;
+import com.sonatype.insight.brain.utils.JacksonNodeUtils;
+import com.sonatype.insight.dependency.DependencyNode;
+import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.scan.model.ClientScanType;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ContainerNode;
+import com.fasterxml.jackson.databind.node.NullNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
+import org.apache.commons.collections4.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.*;
+
+@Named
+public class ReportService
+{
+  private static final Logger log = LoggerFactory.getLogger(ReportService.class);
+
+  private static final String EXACTLY_MATCHED_COMPONENT_COUNT = "exactlyMatchedComponentCount";
+
+  private static final String KNOWN_ARTIFACT_COUNT = "knownArtifactCount";
+
+  private static final String CHILDREN_NODE = "children";
+
+  private static final String DIRECT_DEPENDENCY_NODE = "directDependency";
+
+  private final PolicyEvaluationDAO policyEvaluationDAO;
+
+  private final Configuration configuration;
+
+  private final ApplicationDAO applicationDAO;
+
+  private final OrganizationDAO organizationDAO;
+
+  private final ThirdPartyDataService thirdPartyDataService;
+
+  private final TelemetrySender telemetrySender;
+
+  private final TelemetryUtils telemetryUtils;
+
+  private final RepositoryMatcher repositoryMatcher;
+
+  private final H2ApplicationRiskService applicationRiskService;
+
+  private final ProductLicense productLicense;
+
+  private final SbomMetadataUtils sbomMetadataUtils;
+
+  private final LicenseDAO licenseDAO;
+
+  private final ComponentLoaderFactory componentLoaderFactory;
+
+  private final ThirdPartyComponentDAO thirdPartyComponentDAO;
+
+  private final LicenseThreatGroupDAO licenseThreatGroupDAO;
+
+  private final HashComponentIdentifierDAO hashComponentIdentifierDAO;
+
+  private final LicenseOverrideDAO licenseOverrideDAO;
+
+  private final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO;
+
+  private final MultiLicenseDAO multiLicenseDAO;
+
+  private final InnerSourceApplicationDAO innerSourceApplicationDAO;
+
+  private final InnerSourceVersionDAO innerSourceVersionDAO;
+
+  private final ProprietaryConfigService proprietaryConfigService;
+
+  private final ReportDataStore reportDataStore;
+
+  private final ScanUploadService scanUploadService;
+
+  private final AutomatedPullRequestCreationService automatedPullRequestCreationService;
+
+  private final CpeMatchingConfigurationService cpeMatchingConfigurationService;
+
+  private final ScanPersistenceService scanPersistenceService;
+
+  private final RepositoryDAO repositoryDAO;
+
+  private final PolicyDAO policyDAO;
+
+  private final LifecycleReportPersistenceService lifecycleReportPersistenceService;
+
+  private final InnerSourceCleanupPendingService innerSourceCleanupPendingService;
+
+  private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+
+  private final HostedRepositoryComponentDAO hostedRepositoryComponentDAO;
+
+  private final HostedRepositoryComponentResolver resolver;
+
+  private final Provider<ScanPolicyEvaluator> scanPolicyEvaluatorProvider;
+
+  @Inject
+  public ReportService(
+      final PolicyEvaluationDAO policyEvaluationDAO,
+      final Configuration configuration,
+      final ApplicationDAO applicationDAO,
+      final OrganizationDAO organizationDAO,
+      final ThirdPartyDataService thirdPartyDataService,
+      final TelemetrySender telemetrySender,
+      final TelemetryUtils telemetryUtils,
+      final RepositoryMatcher repositoryMatcher,
+      final H2ApplicationRiskService applicationRiskService,
+      final ProductLicense productLicense,
+      final SbomMetadataUtils sbomMetadataUtils,
+      final LicenseDAO licenseDAO,
+      final ComponentLoaderFactory componentLoaderFactory,
+      final ThirdPartyComponentDAO thirdPartyComponentDAO,
+      final LicenseThreatGroupDAO licenseThreatGroupDAO,
+      final HashComponentIdentifierDAO hashComponentIdentifierDAO,
+      final LicenseOverrideDAO licenseOverrideDAO,
+      final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO,
+      final MultiLicenseDAO multiLicenseDAO,
+      final InnerSourceApplicationDAO innerSourceApplicationDAO,
+      final InnerSourceVersionDAO innerSourceVersionDAO,
+      final ProprietaryConfigService proprietaryConfigService,
+      final ReportDataStore reportDataStore,
+      final ScanUploadService scanUploadService,
+      final AutomatedPullRequestCreationService automatedPullRequestCreationService,
+      final CpeMatchingConfigurationService cpeMatchingConfigurationService,
+      final ScanPersistenceService scanPersistenceService,
+      final RepositoryDAO repositoryDAO,
+      final PolicyDAO policyDAO,
+      final LifecycleReportPersistenceService lifecycleReportPersistenceService,
+      final InnerSourceCleanupPendingService innerSourceCleanupPendingService,
+      final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
+      final HostedRepositoryComponentDAO hostedRepositoryComponentDAO,
+      final HostedRepositoryComponentResolver resolver,
+      final Provider<ScanPolicyEvaluator> scanPolicyEvaluatorProvider)
+  {
+    this.policyEvaluationDAO = policyEvaluationDAO;
+    this.configuration = configuration;
+    this.applicationDAO = applicationDAO;
+    this.organizationDAO = organizationDAO;
+    this.thirdPartyDataService = thirdPartyDataService;
+    this.telemetrySender = telemetrySender;
+    this.telemetryUtils = telemetryUtils;
+    this.repositoryMatcher = repositoryMatcher;
+    this.applicationRiskService = applicationRiskService;
+    this.productLicense = productLicense;
+    this.sbomMetadataUtils = sbomMetadataUtils;
+    this.licenseDAO = licenseDAO;
+    this.componentLoaderFactory = componentLoaderFactory;
+    this.thirdPartyComponentDAO = thirdPartyComponentDAO;
+    this.licenseThreatGroupDAO = licenseThreatGroupDAO;
+    this.hashComponentIdentifierDAO = hashComponentIdentifierDAO;
+    this.licenseOverrideDAO = licenseOverrideDAO;
+    this.securityVulnerabilityOverrideDAO = securityVulnerabilityOverrideDAO;
+    this.multiLicenseDAO = multiLicenseDAO;
+    this.innerSourceApplicationDAO = innerSourceApplicationDAO;
+    this.innerSourceVersionDAO = innerSourceVersionDAO;
+    this.proprietaryConfigService = proprietaryConfigService;
+    this.reportDataStore = reportDataStore;
+    this.scanUploadService = scanUploadService;
+    this.automatedPullRequestCreationService = automatedPullRequestCreationService;
+    this.cpeMatchingConfigurationService = cpeMatchingConfigurationService;
+    this.scanPersistenceService = scanPersistenceService;
+    this.repositoryDAO = repositoryDAO;
+    this.policyDAO = policyDAO;
+    this.lifecycleReportPersistenceService = lifecycleReportPersistenceService;
+    this.innerSourceCleanupPendingService = innerSourceCleanupPendingService;
+    this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
+    this.hostedRepositoryComponentDAO = hostedRepositoryComponentDAO;
+    this.resolver = resolver;
+    this.scanPolicyEvaluatorProvider = scanPolicyEvaluatorProvider;
+  }
+
+  @WithSpan
+  public LifecycleReport fetchReport(
+      final Owner owner,
+      final String scanId,
+      final String stageTypeId) throws IOException
+  {
+    return fetchReport(owner, scanId, stageTypeId, null);
+  }
+
+  @WithSpan
+  public LifecycleReport fetchReport(
+      final Owner owner,
+      final String scanId,
+      final String stageTypeId,
+      final Map<String, ReportEntry> preservedThirdPartyEntries) throws IOException
+  {
+    LifecycleReport applicationReport = materializeReportFromHds(owner, scanId, preservedThirdPartyEntries);
+    CpeResultsTelemetry cpeResultsTelemetry = new CpeResultsTelemetry();
+    applyChanges(owner, scanId, applicationReport, stageTypeId, cpeResultsTelemetry, repositoryMatcher, telemetrySender,
+        telemetryUtils, configuration);
+    thirdPartyDataService.mergeSonatypeDataWithSbomDataWithIndexing(scanId, applicationReport, cpeResultsTelemetry);
+    sendCpeResultMetricsTelemetry(owner, cpeResultsTelemetry);
+    return applicationReport;
+  }
+
+  private LifecycleReport materializeReportFromHds(
+      final Owner owner,
+      final String scanId,
+      final Map<String, ReportEntry> preservedThirdPartyEntries) throws IOException
+  {
+    return reportDataStore.downloadReport(owner, scanId,
+        (sid, report, appId) -> processThirdPartyDataWithFallback(sid, report, appId, preservedThirdPartyEntries));
+  }
+
+  // visible for testing
+  void includeThirdPartyData(
+      final LifecycleReport applicationReport,
+      final ThirdPartyApplicationReportDTO dto) throws IOException
+  {
+    if (dto != null) {
+      applicationReport.appendToReport(dto);
+    }
+  }
+
+  @VisibleForTesting
+  void processThirdPartyData(
+      final String scanId,
+      final LifecycleReport tempLifecycleReport,
+      final String appId) throws IOException
+  {
+    ThirdPartyApplicationReportDTO thirdPartyApplicationReportDTO = thirdPartyDataService.getScanData(scanId);
+    ThirdPartyApplicationReportDTO thirdPartyApplicationReportForInfrastructureAsCodeDTO =
+        thirdPartyDataService.loadThirdPartyInfrastructureAsCodeData(tempLifecycleReport, appId);
+    if (thirdPartyApplicationReportDTO != null) {
+      thirdPartyApplicationReportDTO.billOfMaterials
+          .addAll(thirdPartyApplicationReportForInfrastructureAsCodeDTO.billOfMaterials);
+      thirdPartyApplicationReportDTO.securityRows
+          .addAll(thirdPartyApplicationReportForInfrastructureAsCodeDTO.securityRows);
+      includeThirdPartyData(tempLifecycleReport, thirdPartyApplicationReportDTO);
+      thirdPartyDataService.indexVulnerabilities(scanId);
+
+      if (!productLicense.hasFeature(LicensedFeature.SBOM_MANAGER) ||
+          !sbomMetadataUtils.hasSbomMetadata(scanId) ||
+          sbomMetadataUtils.hasMaxActiveSbomLimitBeenReached())
+      {
+        thirdPartyDataService.deleteByScanId(scanId);
+      }
+    }
+  }
+
+  private void processThirdPartyDataWithFallback(
+      final String scanId,
+      final LifecycleReport tempLifecycleReport,
+      final String appId,
+      final Map<String, ReportEntry> preservedThirdPartyEntries) throws IOException
+  {
+    if (preservedThirdPartyEntries != null &&
+        preservedThirdPartyEntries.values().stream().anyMatch(Objects::nonNull))
+    {
+      for (String entryName : List.of(
+          THIRD_PARTY_BOM_JSON.getName(),
+          THIRD_PARTY_SECURITY_JSON.getName(),
+          THIRD_PARTY_LICENSE_JSON.getName()))
+      {
+        ReportEntry preserved = preservedThirdPartyEntries.get(entryName);
+        if (preserved != null) {
+          tempLifecycleReport.putEntry(entryName, preserved.buf);
+        }
+      }
+    }
+    else {
+      processThirdPartyData(scanId, tempLifecycleReport, appId);
+    }
+  }
+
+  private void auditBrowseReport(final String scanId, final String name) {
+    if (name.endsWith(".json")) {
+      AuditData.get().setReportId(scanId);
+    }
+    else {
+      AuditData.get().setEvent(null);
+    }
+  }
+
+  /**
+   * Re-evaluate a hosted-repository component. Called from
+   * {@link HostedRepositoryComponentReportResource#reevaluatePolicy}, its only caller — the
+   * Application-scoped {@code ReportResource} evaluates Applications only. Runs synchronously on
+   * the caller's request thread.
+   * <p>
+   * Looks up the existing {@link PolicyEvaluation} row for {@code scanId} to recover the
+   * {@link HostedRepositoryComponent} owner and stage, re-uploads the stored scan to HDS under
+   * the same canonical {@code scanId}, re-runs {@link ScanPolicyEvaluator} against the refreshed
+   * report, and re-pins {@code owner_component_id} on the HRC. A pin miss is logged and swallowed
+   * by {@link HostedRepositoryComponentResolver#pinOwnerComponent} — it does not fail the
+   * re-evaluation.
+   *
+   * @param ownerId the {@link HostedRepositoryComponent} id owning the existing policy evaluation
+   *          for {@code scanId}.
+   */
+  public void reevaluateHostedComponent(final String ownerId, final String scanId) throws IOException {
+    PolicyEvaluation pe = policyEvaluationDAO.getLastByOwnerIdAndScanId(ownerId, scanId);
+    if (pe == null) {
+      throw new NotFoundException(
+          "Policy evaluation for scan " + scanId + " does not exist on the server.");
+    }
+
+    HostedRepositoryComponent hrc = hostedRepositoryComponentDAO.getById(pe.getOwnerId());
+    if (hrc == null) {
+      throw new NotFoundException(
+          "Scan " + scanId + " does not have an underlying hosted-repository component; cannot re-evaluate.");
+    }
+
+    reUploadScanToHds(hrc, scanId, null);
+
+    scanPolicyEvaluatorProvider.get()
+        .evaluate(
+            hrc, scanId, new Stage(pe.getStageTypeId()),
+            ScanTriggerType.HOSTED_REPOSITORY_SCANNING, ClientScanType.SONATYPE, false);
+
+    resolver.pinOwnerComponent(hrc, scanId, pe.getStageTypeId());
+  }
+
+  @Authorize(permission = Permission.READ)
+  public ReportEntry processBrowseReport(
+      @AuthzContext(Key.OWNER) final Owner owner,
+      final String scanId,
+      final String path)
+  {
+    final String name = toEntryName(path);
+    auditBrowseReport(scanId, name);
+    LifecycleReport report = getReportNoAuth(owner, scanId);
+    ReportEntry reportEntry = null;
+    try {
+      if (SECURITY_JSON.getName().equals(name)) {
+        reportEntry = loadCombinedSecurityData(report);
+      }
+      else {
+        reportEntry = report.getEntry(name);
+      }
+    }
+    catch (final Exception e) {
+      log.warn("Problem embedding report: " + e.getMessage(), e);
+    }
+    return reportEntry;
+  }
+
+  private String toEntryName(final String path) {
+    if (null == path || path.isEmpty()) {
+      return INDEX_HTML.getName();
+    }
+    boolean seenSlash = true;
+    StringBuilder buf = null;
+    for (int i = 0, len = path.length(); i < len; i++) {
+      final char c = path.charAt(i);
+      final boolean isSlash = '/' == c;
+      if (seenSlash && isSlash) {
+        if (buf == null) {
+          buf = new StringBuilder(path.subSequence(0, i));
+        }
+      }
+      else if (buf != null) {
+        buf.append(c);
+      }
+      seenSlash = isSlash;
+    }
+    if (seenSlash && buf != null) {
+      buf.append(INDEX_HTML.getName());
+    }
+    return buf != null ? buf.toString() : path;
+  }
+
+  private ReportEntry loadCombinedSecurityData(LifecycleReport applicationReport) throws IOException {
+    Map<String, ReportEntry> entries = applicationReport.getEntries(List.of(
+        SECURITY_JSON.getName(),
+        THIRD_PARTY_SECURITY_JSON.getName()));
+    ReportEntry securityReportEntry = entries.get(SECURITY_JSON.getName());
+    ReportEntry thirdPartyReportEntry = entries.get(THIRD_PARTY_SECURITY_JSON.getName());
+    if (securityReportEntry != null && thirdPartyReportEntry != null) {
+      ContainerNode<?> thirdPartySecurityNode = JsonUtils.parse(thirdPartyReportEntry.buf);
+      ContainerNode<?> securityNode = JsonUtils.parse(securityReportEntry.buf);
+      ArrayNode thirdPartySecurityRootNode = (ArrayNode) thirdPartySecurityNode.get("aaData");
+      ArrayNode securityRootNode = (ArrayNode) securityNode.get("aaData");
+      securityRootNode.addAll(thirdPartySecurityRootNode);
+
+      return new ReportEntry(SECURITY_JSON.getName(), securityReportEntry.time, JsonUtils.generate(securityNode));
+    }
+    return securityReportEntry;
+  }
+
+  @WithSpan
+  public LifecycleReport getReport(final String appId, final String scanId) {
+    return getReportNoAuth(applicationDAO.getByIdNotNull(appId), scanId);
+  }
+
+  /**
+   * Returns the stored report for an {@link Owner} without an authorization check.
+   * <p>
+   * For internal evaluation paths that already hold a resolved owner, including background monitoring
+   * threads that carry no user subject and so cannot satisfy the {@code @Authorize} on
+   * {@link #getReport(Owner, String)}. Unlike {@link #getReport(String, String)} this accepts a
+   * hosted-repository component, which owns its scans after the CLM-43710 ownership cutover.
+   */
+  @WithSpan
+  public LifecycleReport getReportForOwnerNoAuth(final Owner owner, final String scanId) {
+    return getReportNoAuth(owner, scanId);
+  }
+
+  /**
+   * Returns the application's stored report only if it already exists, without the {@link #getReport} recovery path.
+   * <p>
+   * {@link #getReport} re-fetches the application by id and, when the report is missing on disk, issues per-application
+   * {@code policy_evaluation} and {@code proxy_repository_component} lookups and may trigger an HDS re-download.
+   * Running that
+   * per matched application reintroduced an N+1 in the bulk component search dependency-data path (CLM-41473). This
+   * method is the best-effort, read-only alternative for callers that enrich a result when a report happens to be
+   * present and otherwise skip it: it issues no DB queries and performs no recovery -- only a single report existence
+   * check (a filesystem stat, or one object-store lookup in S3-backed deployments) per call.
+   * <p>
+   * The existence check is inherently subject to a time-of-check/time-of-use race: the report may be removed (e.g. by
+   * a data-retention purge) between this method returning a non-null report and a caller reading its entries. Callers
+   * must tolerate a subsequently-unreadable report -- {@code ApiSearchServiceV2.loadComponentsByHash} does so by
+   * catching the failure and treating it as absent dependency data.
+   *
+   * @return the existing report, or {@code null} if no report is stored for the given application and scan.
+   */
+  @WithSpan
+  public LifecycleReport getReportIfPresent(final Application app, final String scanId) {
+    Objects.requireNonNull(app, "app must not be null");
+    Objects.requireNonNull(scanId, "scanId must not be null");
+    LifecycleReport applicationReport = reportDataStore.getLifecycleReport(app, scanId);
+    try {
+      return applicationReport.exists() ? applicationReport : null;
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  @WithSpan
+  public LifecycleReport getReport(final Owner owner, final String scanId) {
+    return getReportNoAuth(owner, scanId);
+  }
+
+  private LifecycleReport getReportNoAuth(final Owner owner, final String scanId) {
+    LifecycleReport report = reportDataStore.getLifecycleReport(owner, scanId);
+    boolean exists;
+    try {
+      exists = report.exists();
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+    if (exists) {
+      return report;
+    }
+    PolicyEvaluation lastEval = policyEvaluationDAO.getLastByOwnerIdAndScanId(owner.getId(), scanId);
+    if (lastEval != null) {
+      throw new NotFoundException("The report for owner ID " + owner.getId() + " and scan ID " + scanId
+          + " does not exist. Usually this means the report was deemed obsolete"
+          + " according to the data retention policies and hence purged to the trash.");
+    }
+    throw new NotFoundException("Could not find a report with ID " + scanId);
+  }
+
+  @Authorize(permission = Permission.READ)
+  public ReportMetadataDTO getReportMetadata(
+      @AuthzContext(Key.OWNER) final Owner owner,
+      final String scanId) throws IOException
+  {
+    return getReportMetadataNoAuth(owner, scanId);
+  }
+
+  public ReportMetadataDTO getReportMetadataNoAuth(final Owner owner, final String scanId) throws IOException {
+    if (owner.getType() == OwnerType.APPLICATION) {
+      return getReportMetadataNoAuth(owner.getPublicId(), scanId);
+    }
+    return buildOwnerMetadata(owner, scanId);
+  }
+
+  private ReportMetadataDTO buildOwnerMetadata(final Owner owner, final String scanId) throws IOException {
+    ReportMetadataDTO metadata = new ReportMetadataDTO();
+    LifecycleReport lifecycleReport = getReportNoAuth(owner, scanId);
+    lifecycleReport.getEntries(List.of(
+        DATA_JSON.getName(),
+        TEMPLATE_PROPERTIES.getName(),
+        SUMMARY_JSON.getName()));
+
+    PolicyEvaluation evaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(owner.getId(), scanId);
+    if (evaluation == null) {
+      return metadata;
+    }
+    metadata.setReportTime(evaluation.getTime());
+    metadata.setReportTitle(StageTypes.getById(evaluation.getStageTypeId()).getName() + " Report");
+    metadata.setStageId(evaluation.getStageTypeId());
+    metadata.setCommitHash(evaluation.getCommitHash());
+    metadata.setInitiator(evaluation.getInitiator());
+    metadata.setScanTriggerType(evaluation.getScanTriggerType().getDisplayName());
+    metadata.setReevaluation(evaluation.isReevaluation());
+    metadata.setForMonitoring(evaluation.isForMonitoring());
+    metadata.setBranchName(evaluation.getBranchName());
+
+    applyOwnerAggregatorTotalRisk(metadata, owner, evaluation);
+
+    setContainerScannerMode(lifecycleReport.getEntry(SUMMARY_JSON.getName()), metadata);
+    return metadata;
+  }
+
+  public ReportMetadataDTO getReportMetadataNoAuth(
+      final String applicationPublicId,
+      final String scanId) throws IOException
+  {
+    Application application = getApplicationWithOrganizationInformation(applicationPublicId);
+
+    ReportMetadataDTO metadata = new ReportMetadataDTO();
+    metadata.setApplication(application);
+
+    LifecycleReport applicationReport = getReportNoAuth(application, scanId);
+    Map<String, ReportEntry> entries = applicationReport.getEntries(List.of(
+        DATA_JSON.getName(),
+        TEMPLATE_PROPERTIES.getName(),
+        SUMMARY_JSON.getName()));
+    ContainerNode<?> data = JsonUtils.parse(entries.get(DATA_JSON.getName()).buf);
+    boolean expandedCoverage = data.path("globals").path("expandedCoverage").booleanValue();
+    if (expandedCoverage) {
+      throw new BadRequestException(
+          "Expanded Coverage (XC) is no longer supported. " +
+              "We have incorporated support for all languages that were maintained in XC in Lifecycle");
+    }
+    PolicyEvaluation evaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(application.getId(),
+        scanId);
+    if (evaluation == null) {
+      return metadata;
+    }
+
+    metadata.setReportTime(evaluation.getTime());
+    metadata.setReportTitle(StageTypes.getById(evaluation.getStageTypeId()).getName() + " Report");
+    metadata.setStageId(evaluation.getStageTypeId());
+    metadata.setCommitHash(evaluation.getCommitHash());
+    metadata.setInitiator(evaluation.getInitiator());
+    metadata.setScanTriggerType(evaluation.getScanTriggerType().getDisplayName());
+    metadata.setReevaluation(evaluation.isReevaluation());
+    metadata.setForMonitoring(evaluation.isForMonitoring());
+    metadata.setBranchName(evaluation.getBranchName());
+
+    applyOwnerAggregatorTotalRisk(metadata, application, evaluation);
+
+    // For NVS where a scanLabel is set for the application name and the stage name doesn't matter
+    if (entries.get(TEMPLATE_PROPERTIES.getName()) != null) {
+      JsonNode scanLabelNode = data.path("scanLabel");
+      if (scanLabelNode.isTextual()) {
+        metadata.getApplication().setName(scanLabelNode.asText());
+        metadata.setReportTitle("Report");
+      }
+    }
+
+    setContainerScannerMode(entries.get(SUMMARY_JSON.getName()), metadata);
+
+    return metadata;
+  }
+
+  // visible for testing
+  void setContainerScannerMode(ReportEntry reportSummary, ReportMetadataDTO metadata) throws IOException {
+    if (reportSummary == null) {
+      return;
+    }
+
+    ContainerNode<?> summaryNode = JsonUtils.parse(reportSummary.buf);
+    if (summaryNode == null) {
+      return;
+    }
+
+    JsonNode containerScanningModeNode = summaryNode.get("containerScanningMode");
+    if (containerScanningModeNode == null) {
+      return;
+    }
+
+    metadata.setContainerScanningMode(containerScanningModeNode.asText());
+  }
+
+  private int finalExtractTotalRiskOrDefault(final ApplicationRiskScoreDTO applicationRiskScoreDTO) {
+    if (applicationRiskScoreDTO == null) {
+      return -1;
+    }
+    else if (applicationRiskScoreDTO.totalApplicationRisk == null) {
+      return -1;
+    }
+    else {
+      return applicationRiskScoreDTO.totalApplicationRisk.totalRisk;
+    }
+  }
+
+  private void applyOwnerAggregatorTotalRisk(
+      final ReportMetadataDTO metadata,
+      final Owner owner,
+      final PolicyEvaluation evaluation)
+  {
+    if (!productLicense.hasFeature(LicensedFeature.DEVELOPER_DASHBOARD)) {
+      return;
+    }
+    try {
+      final ApplicationRiskScoreDTO riskDTO = applicationRiskService.getRiskForOwner(owner,
+          Collections.singleton(StageTypes.getById(evaluation.getStageTypeId())));
+      metadata.setTotalRisk(finalExtractTotalRiskOrDefault(riskDTO));
+    }
+    catch (Exception e) {
+      log.debug("Owner risk aggregator failed for ownerId={} scanId={}: {}",
+          owner.getId(), evaluation.getScanId(), e.getMessage());
+    }
+  }
+
+  private Application getApplicationWithOrganizationInformation(final String applicationPublicId) {
+    Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    Organization organization = organizationDAO.getByIdNotNull(application.getOrganizationId());
+    application.setOrganization(organization);
+    return application;
+  }
+
+  public ReportEntry getBomForPolicyEvaluation(PolicyEvaluation policyEvaluation) throws IOException {
+    if (policyEvaluation == null) {
+      return null;
+    }
+    LifecycleReport applicationReport = getReport(policyEvaluation.getOwnerId(), policyEvaluation.getScanId());
+
+    return applicationReport.getEntry(BOM_JSON.getName());
+  }
+
+  public PolicyThreats getPolicyThreats(
+      final String applicationPublicId,
+      final String scanId)
+  {
+    final Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    return getPolicyThreatsInternal(application, scanId, String.format(
+        "Report policy threats entry is missing for the requested application [%s] and scan ID [%s]",
+        applicationPublicId, scanId));
+  }
+
+  public PolicyThreats getPolicyThreats(final Owner owner, final String scanId) {
+    return getPolicyThreatsInternal(owner, scanId, String.format(
+        "Report policy threats entry is missing for the requested owner [%s] and scan ID [%s]",
+        owner.getId(), scanId));
+  }
+
+  private PolicyThreats getPolicyThreatsInternal(
+      final Owner owner,
+      final String scanId,
+      final String notFoundMessage)
+  {
+    final LifecycleReport report = getReportNoAuth(owner, scanId);
+
+    try {
+      final ReportEntry reportEntry = report.getEntry(POLICY_THREATS.getName());
+
+      if (reportEntry == null) {
+        throw new NotFoundException(notFoundMessage);
+      }
+
+      return JsonUtils.parse(reportEntry.buf, PolicyThreats.class);
+    }
+    catch (final IOException e) {
+      throw new NotFoundException(e.getMessage());
+    }
+  }
+
+  public BaseReportEntity getVulnerabilitySignatureJson(final String applicationId, final String scanId) {
+    return reportDataStore.getVulnerabilitySignatureJson(applicationId, scanId);
+  }
+
+  private void applyChanges(
+      final Owner owner,
+      final String scanId,
+      final LifecycleReport applicationReport,
+      final String stageTypeId,
+      final CpeResultsTelemetry cpeResultsTelemetry,
+      final RepositoryMatcher repositoryMatcher,
+      final TelemetrySender telemetrySender,
+      final TelemetryUtils telemetryUtils,
+      final Configuration configuration) throws IOException
+  {
+    long start = System.currentTimeMillis();
+
+    final ReportType reportType = applicationReport.getType();
+
+    if (LifecycleReport.ReportType.ERROR.equals(reportType)) {
+      return;
+    }
+
+    applicationReport.embedOwnerPublicId();
+
+    applyComponentRelatedChanges(owner, scanId, applicationReport, stageTypeId, cpeResultsTelemetry,
+        repositoryMatcher, telemetrySender, telemetryUtils);
+
+    // these data items have already had changes applied as part of applyComponentRelatedChanges above
+    final ContainerNode<?> security = JsonUtils.parse(applicationReport.getEntry(SECURITY_JSON.getName()).buf);
+    final ContainerNode<?> licenses = JsonUtils.parse(applicationReport.getEntry(LICENSES_JSON.getName()).buf);
+    final ContainerNode<?> partialMatched =
+        JsonUtils.parse(applicationReport.getEntry(PARTIAL_MATCHED_JSON.getName()).buf);
+
+    Map<ComponentIdentifier, Set<Integer>> depthsByIdentifier =
+        parseDependencyDepths(JsonUtils.parse(applicationReport.getEntry(DEPENDENCIES_JSON.getName()).buf));
+
+    final ObjectNode data = JsonUtils.parse(applicationReport.getEntry(DATA_JSON.getName()).buf);
+    final int[] securityCounts = getSecurityCounts(data);
+    final int[] licenseCounts = new int[11];
+
+    int insecureArtifactCount = 0;
+    boolean isALPObservedLicenseEnabled = configuration.isALPObservedLicenseDetectionEnabled();
+
+    final ArrayList<int[]> securityPunchCard = new ArrayList<>();
+    final ArrayList<int[]> licensePunchCard = new ArrayList<>();
+
+    Set<ComponentIdentifier> components = new HashSet<>();
+    for (final JsonNode row : security.get("aaData")) {
+      final String status = row.path("status").asText();
+      if (!SecurityVulnerabilityOverrideStatus.NOT_APPLICABLE.getName().equals(status)) {
+        double severity = row.path("score").asDouble();
+        updateSecurityCounts(severity, securityCounts);
+
+        ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(row);
+        if (components.add(componentIdentifier)) {
+          insecureArtifactCount++;
+        }
+
+        final int counter = severity < 4 ? 2 : severity < 7 ? 1 : 0;
+        updatePunchCard(securityPunchCard, componentIdentifier, depthsByIdentifier, counter);
+      }
+    }
+
+    License notSupportedLicense = licenseDAO.getById(License.NOT_SUPPORTED_ID);
+
+    ComponentLoader componentLoader = componentLoaderFactory.createComponentLoader(owner);
+    for (JsonNode licenseJsonNode : licenses.get("aaData")) {
+      ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(licenseJsonNode);
+
+      hideObservedLicenses(componentIdentifier,
+          (ObjectNode) licenseJsonNode,
+          isALPObservedLicenseEnabled,
+          notSupportedLicense);
+
+      final Component component = componentLoader.getComponent(licenseJsonNode);
+      ObjectNode licenseNode = (ObjectNode) licenseJsonNode;
+      Integer threatLevel = component.getLicenseThreatLevel();
+      licenseNode.put("effectiveLicenseThreat", threatLevel);
+      if (component.isLicenseOverridden()) {
+        licenseNode.put("overriddenLicenseThreat", threatLevel);
+      }
+
+      if (threatLevel != null) {
+        threatLevel = Math.min(10, Math.max(0, threatLevel));
+        licenseCounts[threatLevel]++;
+        if (threatLevel > 0) {
+          // Punch card expects 0 to be the highest threat with 2 being the lowest
+          final int threatDepth = threatLevel < 4 ? 2 : threatLevel < 8 ? 1 : 0;
+          updatePunchCard(licensePunchCard, component.getComponentIdentifier(), depthsByIdentifier, threatDepth);
+        }
+      }
+    }
+
+    for (JsonNode licenseJsonNode : partialMatched.get("aaData")) {
+      final ArrayNode matchedComponentNodes = (ArrayNode) licenseJsonNode.get("matchDetails");
+      for (JsonNode matchedComponentJsonNode : matchedComponentNodes) {
+        ObjectNode matchedComponentNode = (ObjectNode) matchedComponentJsonNode;
+
+        final Component matchedComponent = componentLoader.getComponent(matchedComponentJsonNode);
+        matchedComponentNode.put("effectiveLicenseThreat", matchedComponent.getLicenseThreatLevel());
+        if (matchedComponent.isLicenseOverridden()) {
+          matchedComponentNode.put("overriddenLicenseThreat", matchedComponent.getLicenseThreatLevel());
+        }
+      }
+    }
+
+    applicationReport.saveReportEntry(LICENSES_JSON.getName(), licenses);
+    applicationReport.saveReportEntry(PARTIAL_MATCHED_JSON.getName(), partialMatched);
+    writeLicenseThreatsToReportFile(owner, applicationReport);
+
+    JacksonNodeUtils.fill(data.putArray("securityCounts"), securityCounts);
+    data.put("insecureArtifactCount", insecureArtifactCount);
+    JacksonNodeUtils.fill(data.putArray("effectiveLicenseCounts"), licenseCounts);
+    JacksonNodeUtils.fill(data.putArray("securityPunchCard"), securityPunchCard);
+    JacksonNodeUtils.fill(data.putArray("licensePunchCard"), licensePunchCard);
+
+    applicationReport.saveReportEntry(DATA_JSON.getName(), data);
+
+    log.debug("Applied changes to report in {} ms", System.currentTimeMillis() - start);
+  }
+
+  /**
+   * Applies changes to component data (bom/license/security/partialmatched/dependencies) including claiming components
+   */
+  private void applyComponentRelatedChanges(
+      final Owner owner,
+      final String scanId,
+      final LifecycleReport applicationReport,
+      final String stageTypeId,
+      final CpeResultsTelemetry cpeResultsTelemetry,
+      final RepositoryMatcher repositoryMatcher,
+      final TelemetrySender telemetrySender,
+      final TelemetryUtils telemetryUtils) throws IOException
+  {
+    long start = System.currentTimeMillis();
+
+    // Load all required report entries in parallel for improved performance
+    Map<String, ContainerNode<?>> entries = applicationReport.loadReportEntries(List.of(
+        BOM_JSON.getName(),
+        DATA_JSON.getName(),
+        SUMMARY_JSON.getName(),
+        LICENSES_JSON.getName(),
+        SECURITY_JSON.getName(),
+        DEPENDENCIES_JSON.getName(),
+        PARTIAL_MATCHED_JSON.getName()));
+
+    ContainerNode<?> bomJsonData = entries.get(BOM_JSON.getName());
+    ContainerNode<?> dataJson = entries.get(DATA_JSON.getName());
+    ContainerNode<?> summaryJsonData = entries.get(SUMMARY_JSON.getName());
+
+    Map<String, HashComponentIdentifier> claimedComponentsByHash =
+        applyClaimedComponents(bomJsonData, dataJson, summaryJsonData, cpeResultsTelemetry);
+
+    // must start from un-edited data
+    ContainerNode<?> licensesJsonData = entries.get(LICENSES_JSON.getName());
+    ContainerNode<?> securityJsonData = entries.get(SECURITY_JSON.getName());
+    ContainerNode<?> dependenciesJsonData = entries.get(DEPENDENCIES_JSON.getName());
+    thirdPartyComponentDAO.updateReport(bomJsonData, licensesJsonData, securityJsonData, dataJson, summaryJsonData,
+        applicationReport);
+
+    Set<ComponentIdentifier> componentIdentifiers = fixBomComponentIdentifiers(bomJsonData);
+
+    // now apply any data edits (e.g. modified flag)
+    augmentDependenciesGraph(dependenciesJsonData);
+    applicationReport.saveReportEntry(DEPENDENCIES_JSON.getName(), dependenciesJsonData);
+
+    innerSourceCleanupPendingService.cleanupRecordsIfPending(owner.getId(), scanId);
+
+    if (owner instanceof Application application) {
+      DependencyResolver
+          .getInstance(dependenciesJsonData, bomJsonData, dataJson, summaryJsonData, stageTypeId, owner,
+              telemetrySender, telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO,
+              proprietaryConfigService)
+          .resolve();
+
+      triggerInnerSourceAutomatedRemediation(application, scanId, stageTypeId, dependenciesJsonData);
+    }
+
+    componentIdentifiers.addAll(
+        repositoryMatcher.match(owner, bomJsonData, dataJson, summaryJsonData, licensesJsonData,
+            securityJsonData));
+
+    fixComponentIdentifiers(licensesJsonData, componentIdentifiers);
+    Set<ComponentIdentifier> componentIdentifiersWithLicenseOverrides = applyLicenseOverrides(licensesJsonData,
+        owner);
+    ArrayNode licensesAaData = (ArrayNode) licensesJsonData.get("aaData");
+    componentIdentifiersWithLicenseOverrides
+        .addAll(addLicenseOverridesForClaimedComponents(licensesAaData, claimedComponentsByHash.values(), owner));
+    applicationReport.saveReportEntry(LICENSES_JSON.getName(), licensesJsonData);
+
+    applicationReport.saveReportEntry(DATA_JSON.getName(), dataJson);
+    applicationReport.saveReportEntry(SUMMARY_JSON.getName(), summaryJsonData);
+
+    augmentModified(componentIdentifiersWithLicenseOverrides, bomJsonData);
+    applicationReport.saveReportEntry(BOM_JSON.getName(), bomJsonData);
+
+    fixComponentIdentifiers(securityJsonData, componentIdentifiers);
+    applySecurityVulnerabilityOverrides(securityJsonData, owner, cpeResultsTelemetry);
+    applicationReport.saveReportEntry(SECURITY_JSON.getName(), securityJsonData);
+
+    // must start from un-edited data
+    ContainerNode<?> partialmatchedJsonData = entries.get(PARTIAL_MATCHED_JSON.getName());
+    removeClaimedComponentsFromPartialMatched(partialmatchedJsonData, claimedComponentsByHash);
+    applicationReport.saveReportEntry(PARTIAL_MATCHED_JSON.getName(), partialmatchedJsonData);
+
+    log.debug("applyComponentRelatedChanges finished  in {} ms", System.currentTimeMillis() - start);
+  }
+
+  private void triggerInnerSourceAutomatedRemediation(
+      final Application application,
+      final String scanId,
+      final String stageTypeId,
+      final JsonNode dependenciesJsonData)
+  {
+    try {
+      if (dependenciesJsonData == null) {
+        return;
+      }
+
+      JsonNode dependencyTreeNode = dependenciesJsonData.path("dependencyTree");
+      if (dependencyTreeNode.isMissingNode()) {
+        return;
+      }
+
+      DependencyNode tree = JsonUtils.asPojo(dependencyTreeNode, DependencyNode.class);
+      if (tree == null) {
+        return;
+      }
+
+      Set<ComponentIdentifier> directDeps = extractDirectDependencies(tree);
+      Map<String, Set<ComponentIdentifier>> directInnerSourceDeps = getInnerSourceComponents(directDeps);
+      if (directInnerSourceDeps.isEmpty()) {
+        return;
+      }
+
+      for (Entry<String, Set<ComponentIdentifier>> entry : directInnerSourceDeps.entrySet()) {
+        String innerSourceApplicationId = entry.getKey();
+        Set<ComponentIdentifier> innerSourceComponents = entry.getValue();
+
+        if (CollectionUtils.isEmpty(innerSourceComponents)) {
+          continue;
+        }
+
+        ComponentIdentifier innerSourceComponentWithHighestVersion;
+        if (innerSourceComponents.size() > 1) {
+          innerSourceComponentWithHighestVersion = innerSourceComponents.stream()
+              .max(Comparator.comparing(componentIdentifier -> InnerSourceUtils.createCompositeComparableVersion(
+                  componentIdentifier.get(ComponentIdentifier.VERSION), componentIdentifier.getFormat())))
+              .orElse(null);
+          log.debug("Found {} versions of the same InnerSource component {}.", innerSourceComponents.size(),
+              innerSourceComponentWithHighestVersion.createAlternativeVersion(null));
+        }
+        else {
+          innerSourceComponentWithHighestVersion = innerSourceComponents.iterator().next();
+        }
+
+        if (innerSourceComponentWithHighestVersion == null) {
+          continue;
+        }
+
+        InnerSourceVersion latestVersion = innerSourceVersionDAO.getByInnerSourceApplicationIdAndStage(
+            innerSourceApplicationId,
+            StageTypes.RELEASE.getId());
+
+        if (latestVersion == null ||
+            !InnerSourceUtils.isValidAutomatedVersionUpdate(innerSourceComponentWithHighestVersion,
+                latestVersion.getLatestVersion()))
+        {
+          continue;
+        }
+
+        createAutomatedRemediationPullRequest(application, scanId, stageTypeId, latestVersion,
+            innerSourceComponentWithHighestVersion);
+      }
+    }
+    catch (Exception e) {
+      log.error(e.getMessage(), e);
+    }
+  }
+
+  private void createAutomatedRemediationPullRequest(
+      final Application application,
+      final String scanId,
+      final String stageTypeId,
+      final InnerSourceVersion latestReleaseVersion,
+      final ComponentIdentifier innerSourceComponent)
+  {
+    RemediationVersionDTO remediationVersionDTO =
+        new RemediationVersionDTO(latestReleaseVersion.getLatestVersion(),
+            ApiVersionChangeOptionType.INNER_SOURCE_LATEST_NON_BREAKING);
+    try {
+      PolicyEvaluation evaluation =
+          policyEvaluationDAO.getLastByOwnerIdAndScanId(application.getId(), scanId);
+      String scannedBranchName = evaluation != null ? evaluation.getBranchName() : null;
+      automatedPullRequestCreationService.createAutomatedRemediationPullRequest(application, scanId,
+          new Stage(stageTypeId, StageTypes.getById(stageTypeId).getName()),
+          innerSourceComponent, () -> Optional.of(remediationVersionDTO), Collections.emptyList(), true,
+          scannedBranchName);
+    }
+    catch (Exception e) {
+      log.error("Failed to create automated remediation pull request for InnerSource component {} for application {}.",
+          innerSourceComponent, application.getPublicId(), e);
+    }
+  }
+
+  private Map<String, Set<ComponentIdentifier>> getInnerSourceComponents(final Set<ComponentIdentifier> directDeps) {
+    Map<String, Set<ComponentIdentifier>> result = new HashMap<>();
+
+    if (directDeps.isEmpty()) {
+      return result;
+    }
+
+    Set<PackageUrlIdentifier> directDepsWithoutVersion = directDeps.stream()
+        .map(componentIdentifier -> componentIdentifier.createAlternativeVersion(null))
+        .map(PackageUrlIdentifier::fromComponentIdentifier)
+        .collect(Collectors.toSet());
+
+    Map<String, Set<ComponentIdentifier>> purlToComponents = directDeps.stream()
+        .collect(Collectors.groupingBy(
+            componentIdentifier -> PackageUrlIdentifier
+                .fromComponentIdentifier(componentIdentifier)
+                .createAlternativeVersion(null)
+                .getPackageUrl(),
+            Collectors.toSet()));
+
+    List<InnerSourceApplication> innerSourceApps = innerSourceApplicationDAO.getByPackageUrls(directDepsWithoutVersion);
+
+    for (InnerSourceApplication app : innerSourceApps) {
+      String packageUrl = app.getPackageUrl();
+      if (purlToComponents.containsKey(packageUrl)) {
+        result.put(app.getId(), purlToComponents.get(packageUrl));
+      }
+    }
+
+    return result;
+  }
+
+  private Set<ComponentIdentifier> extractDirectDependencies(final DependencyNode tree) {
+    Set<ComponentIdentifier> directDependencies = new HashSet<>();
+    for (DependencyNode child : tree.getChildren()) {
+      if (!child.isModule() && child.isDirect()) {
+        directDependencies.add(child.getComponentIdentifier());
+      }
+      for (DependencyNode firstLevel : child.getChildren()) {
+        if (firstLevel.isDirect()) {
+          directDependencies.add(firstLevel.getComponentIdentifier());
+        }
+      }
+    }
+    directDependencies.remove(null);
+    return directDependencies;
+  }
+
+  private Map<String, HashComponentIdentifier> applyClaimedComponents(
+      ContainerNode<?> bomJsonData,
+      ContainerNode<?> dataJson,
+      ContainerNode<?> summaryJsonData,
+      CpeResultsTelemetry cpeResultsTelemetry)
+  {
+    int exactlyMatchedComponentCount = 0;
+    int partiallyMatchedComponentCount = 0;
+    int knownArtifactCount = 0;
+
+    Map<String, HashComponentIdentifier> claimedComponentsByHash = new LinkedHashMap<>();
+    JsonNode aaData = bomJsonData.get("aaData");
+    for (JsonNode bomJsonNode : aaData) {
+      processCpeComponentTelemetry(bomJsonNode, cpeResultsTelemetry);
+      String hash = bomJsonNode.get("hash").asText();
+      HashComponentIdentifier hashComponentIdentifier = hashComponentIdentifierDAO.getByHash(hash);
+      ObjectNode bomObjectNode = (ObjectNode) bomJsonNode;
+
+      if (hashComponentIdentifier != null) {
+        ComponentIdentifier componentIdentifier = hashComponentIdentifier.getComponentIdentifier();
+        if (componentIdentifier.isMaven()) {
+          // reports generated before 1.13.0 still require separate GAV fields
+          setMavenCoordinatesWithExtension(bomObjectNode, componentIdentifier);
+        }
+        // injectComponentIdentifier below is for legacy reports and does not help claimed components
+        bomObjectNode.set("componentIdentifier", JsonUtils.asTree(componentIdentifier));
+        bomObjectNode.put("matchState", MatchState.EXACT.getId());
+        bomObjectNode.put("createTime", hashComponentIdentifier.getCreateTimeLong());
+        bomObjectNode.set("relativePopularity", NullNode.getInstance());
+        bomObjectNode.put("identificationSource", IdentificationSource.MANUAL.getId());
+        bomObjectNode.put("comment", hashComponentIdentifier.getComment());
+        claimedComponentsByHash.put(hash, hashComponentIdentifier);
+      }
+
+      String matchStateString = bomObjectNode.get("matchState").asText();
+      MatchState matchState = MatchState.getById(matchStateString);
+
+      if (!MatchState.UNKNOWN.equals(matchState)) {
+        knownArtifactCount++;
+        if (MatchState.EXACT.equals(matchState)) {
+          exactlyMatchedComponentCount++;
+        }
+        else {
+          partiallyMatchedComponentCount++;
+        }
+      }
+    }
+
+    ObjectNode data = (ObjectNode) dataJson;
+    ObjectNode summary = (ObjectNode) summaryJsonData;
+
+    data.put("partiallyMatchedComponentCount", partiallyMatchedComponentCount);
+    data.put(EXACTLY_MATCHED_COMPONENT_COUNT, exactlyMatchedComponentCount);
+    data.put(KNOWN_ARTIFACT_COUNT, knownArtifactCount);
+
+    // the pdf report uses summary.json not data.json
+    summary.put(KNOWN_ARTIFACT_COUNT, knownArtifactCount);
+
+    log.debug("applyClaimedComponents: {} components, {} claimed.", aaData.size(), claimedComponentsByHash.size());
+
+    return claimedComponentsByHash;
+  }
+
+  private void processCpeComponentTelemetry(final JsonNode bomJsonNode, final CpeResultsTelemetry cpeResultsTelemetry) {
+    if (bomJsonNode.hasNonNull("componentIdentifier")) {
+      ComponentIdentifier componentIdentifier =
+          ComponentIdentifierAdapter.getComponentIdentifier(bomJsonNode);
+      if (componentIdentifier != null) {
+        // for total, count only the components with any valid component identifier. unknown components are not counted
+        cpeResultsTelemetry.incrementReportComponentTotal();
+        if (ComponentIdentifier.isFormatValidForCpeMatching(componentIdentifier.getFormat())) {
+          cpeResultsTelemetry.incrementCandidateFormatsCount();
+        }
+      }
+    }
+
+    if (bomJsonNode.hasNonNull("identificationSource") && bomJsonNode.hasNonNull("analyzerFeatures")) {
+      try {
+        AnalyzerFeatures analyzerFeatures =
+            JsonUtils.asPojo(bomJsonNode.get("analyzerFeatures"), AnalyzerFeatures.class);
+        String identificationSource = bomJsonNode.get("identificationSource").asText();
+        if (IdentificationSource.SBOM.getId().equals(identificationSource) &&
+            AnalysisType.CPE.equals(analyzerFeatures.getAnalysisType()))
+        {
+          cpeResultsTelemetry.incrementCpeMatchedComponentCount();
+        }
+      }
+      catch (IOException e) {
+        log.debug("error parsing analyzerFeatures object", e);
+      }
+    }
+  }
+
+  private void processCpeSecurityTelemetry(
+      final JsonNode securityJsonNode,
+      final CpeResultsTelemetry cpeResultsTelemetry)
+  {
+    if (securityJsonNode != null && securityJsonNode.hasNonNull("detectionType")) {
+      String detectionType = securityJsonNode.get("detectionType").asText();
+      if (SecurityVulnerabilityDetectionType.CPE_MATCH.getId().equals(detectionType)) {
+        cpeResultsTelemetry.incrementCpeMatchedVulnerabilityCount();
+      }
+    }
+  }
+
+  @VisibleForTesting
+  static Map<ComponentIdentifier, Set<Integer>> parseDependencyDepths(JsonNode dependenciesJson) {
+    long start = System.currentTimeMillis();
+
+    Map<ComponentIdentifier, Set<Integer>> depthsByIdentifier = new LinkedHashMap<>();
+    JsonNode componentDepths = dependenciesJson.path("componentDepths");
+    JsonNode gavDepths = dependenciesJson.path("gavDepths");
+    if (componentDepths.isArray()) {
+      // new structure: [ { "componentIdentifier" : {...}, "depths" : [1, 2, 3] }, ... ]
+      for (JsonNode element : componentDepths) {
+        ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(element);
+        Set<Integer> depths = new LinkedHashSet<>();
+        for (final JsonNode level : element.path("depths")) {
+          depths.add(level.asInt());
+        }
+        depthsByIdentifier.put(componentIdentifier, depths);
+      }
+    }
+    else if (gavDepths.isObject()) {
+      // legacy structure: { "g:a:v" : [1, 2, 3], ... }
+      for (Entry<String, JsonNode> entry : gavDepths.properties()) {
+        String[] gav = entry.getKey().split(":");
+        if (gav.length != 3) {
+          continue;
+        }
+        ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(gav[0], gav[1], gav[2]);
+        Set<Integer> depths = new LinkedHashSet<>();
+        for (final JsonNode level : entry.getValue()) {
+          depths.add(level.asInt());
+        }
+        depthsByIdentifier.put(componentIdentifier, depths);
+      }
+    }
+
+    log.debug("parseDependencyDepths: {} depthsByIdentifier, {} ms.", depthsByIdentifier.size(),
+        System.currentTimeMillis() - start);
+
+    return depthsByIdentifier;
+  }
+
+  private int[] getSecurityCounts(ObjectNode dataJson) {
+    int[] securityCounts = new int[10];
+    JsonNode securityCountsNode = dataJson.get("securityCounts");
+    if (securityCountsNode != null && !securityCountsNode.isEmpty()) {
+      try {
+        securityCounts = JsonUtils.asPojo(securityCountsNode, int[].class);
+      }
+      catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
+    return securityCounts;
+  }
+
+  private void updateSecurityCounts(final double severity, int[] securityCounts) {
+    final int threatIndex = 10 - (int) Math.floor(severity);
+    securityCounts[threatIndex < 0 ? 0 : threatIndex < 10 ? threatIndex : 9]++;
+  }
+
+  private void updatePunchCard(
+      List<int[]> punchCard,
+      ComponentIdentifier componentIdentifier,
+      Map<ComponentIdentifier, Set<Integer>> depthsByIdentifier,
+      int level)
+  {
+    Set<Integer> depths = depthsByIdentifier.get(componentIdentifier);
+    if (depths == null) {
+      return;
+    }
+    for (Integer depth : depths) {
+      int index = depth - 1;
+      while (index >= punchCard.size()) {
+        punchCard.add(new int[3]);
+      }
+      punchCard.get(index)[level]++;
+    }
+  }
+
+  private Set<ComponentIdentifier> fixBomComponentIdentifiers(ContainerNode<?> bomJsonData) {
+    Set<ComponentIdentifier> componentIdentifiers = new LinkedHashSet<>();
+    JsonNode aaData = bomJsonData.get("aaData");
+    for (JsonNode bomJsonNode : aaData) {
+      ObjectNode bomObjectNode = (ObjectNode) bomJsonNode;
+
+      ComponentIdentifierAdapter.injectComponentIdentifier(bomObjectNode);
+      ComponentDisplayNameUtil.injectDisplayName(bomObjectNode);
+      ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(bomObjectNode);
+      componentIdentifiers.add(componentIdentifier);
+    }
+
+    log.debug("fixBomComponentIdentifiers: {} components.", aaData.size());
+
+    return componentIdentifiers;
+  }
+
+  private void fixComponentIdentifiers(
+      ContainerNode<?> jsonData,
+      Set<ComponentIdentifier> componentIdentifiers)
+  {
+    ArrayNode aaData = (ArrayNode) jsonData.get("aaData");
+    Iterator<JsonNode> iterJsonData = aaData.iterator();
+    int removedCount = 0;
+    while (iterJsonData.hasNext()) {
+      ObjectNode jsonNode = (ObjectNode) iterJsonData.next();
+      ComponentIdentifierAdapter.injectComponentIdentifier(jsonNode);
+      ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(jsonNode);
+
+      if (!componentIdentifiers.contains(componentIdentifier)) {
+        // License/security data for a component that is not in this report. Remove it.
+        iterJsonData.remove();
+        removedCount++;
+      }
+      else {
+        ComponentDisplayNameUtil.injectDisplayName(jsonNode);
+      }
+    }
+
+    log.debug("fixComponentIdentifiers: {} components, {} removed.", aaData.size(), removedCount);
+  }
+
+  private Set<ComponentIdentifier> applyLicenseOverrides(
+      ContainerNode<?> licensesJsonData,
+      Owner owner)
+  {
+    Set<ComponentIdentifier> componentIdentifiersWithLicenseOverrides = new HashSet<>();
+
+    if (!hasAnyLicenseOverrides(licenseOverrideDAO, owner.getId())) {
+      return componentIdentifiersWithLicenseOverrides;
+    }
+
+    ArrayNode licensesAaData = (ArrayNode) licensesJsonData.get("aaData");
+    Iterator<JsonNode> iterLicenseData = licensesAaData.iterator();
+    int licenseOverrideCount = 0;
+    while (iterLicenseData.hasNext()) {
+      ObjectNode licenseJsonNode = (ObjectNode) iterLicenseData.next();
+      ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(licenseJsonNode);
+      LicenseOverride licenseOverride = licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifierWithHierarchy(
+          owner, componentIdentifier);
+      if (licenseOverride != null) {
+        licenseOverrideCount++;
+        componentIdentifiersWithLicenseOverrides.add(componentIdentifier);
+        licenseJsonNode.put("status", licenseOverride.getStatus().getName());
+        if (!licenseOverride.getLicenseIds().isEmpty()) {
+          ArrayNode licenseOverrideNode = licenseJsonNode.putArray("overriddenLicenses");
+
+          for (String licenseId : licenseOverride.getLicenseIds()) {
+            licenseOverrideNode.add(licenseDAO.getByIdNotNull(licenseId).getShortDisplayName());
+          }
+        }
+        if (licenseOverride.getComment() != null) {
+          licenseJsonNode.put("comment", licenseOverride.getComment());
+        }
+      }
+    }
+
+    log.debug("applyLicenseOverrides: {} components, {} overrides.", licensesAaData.size(), licenseOverrideCount);
+    return componentIdentifiersWithLicenseOverrides;
+  }
+
+  private void applySecurityVulnerabilityOverrides(
+      ContainerNode<?> securityJsonData,
+      Owner owner,
+      CpeResultsTelemetry cpeResultsTelemetry)
+  {
+    ArrayNode securityAaData = (ArrayNode) securityJsonData.get("aaData");
+    Iterator<JsonNode> iterSecurityData = securityAaData.iterator();
+    int overrideCount = 0;
+    while (iterSecurityData.hasNext()) {
+      ObjectNode securityJsonNode = (ObjectNode) iterSecurityData.next();
+      processCpeSecurityTelemetry(securityJsonNode, cpeResultsTelemetry);
+      String hash = securityJsonNode.get("hash").asText();
+      String source = securityJsonNode.get("source").asText();
+      String referenceId = securityJsonNode.get("reference").asText();
+      SecurityVulnerabilityOverride override =
+          securityVulnerabilityOverrideDAO.getByOwnerIdHashSourceAndReferenceId(owner.getId(),
+              hash, source, referenceId);
+      if (override != null) {
+        overrideCount++;
+        securityJsonNode.put("status", override.getStatus().getName());
+        if (override.getComment() != null) {
+          securityJsonNode.put("comment", override.getComment());
+        }
+      }
+    }
+
+    log.debug("applySecurityVulnerabilityOverrides: {} components, {} overrides.", securityJsonData.size(),
+        overrideCount);
+  }
+
+  private Set<ComponentIdentifier> addLicenseOverridesForClaimedComponents(
+      ArrayNode licensesAaData,
+      Collection<HashComponentIdentifier> hashComponentIdentifiers,
+      Owner owner)
+  {
+    Set<ComponentIdentifier> componentIdentifiersWithLicenseOverrides = new HashSet<>();
+
+    int licenseOverrideCount = 0;
+    for (HashComponentIdentifier hashComponentIdentifier : hashComponentIdentifiers) {
+      LicenseOverride licenseOverride = licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifierWithHierarchy(
+          owner, hashComponentIdentifier.getComponentIdentifier());
+      if (licenseOverride != null) {
+        licenseOverrideCount++;
+        ObjectNode licenseJsonNode = licensesAaData.addObject();
+        licenseJsonNode.put("hash", hashComponentIdentifier.getHash());
+        ComponentIdentifier componentIdentifier = hashComponentIdentifier.getComponentIdentifier();
+        componentIdentifiersWithLicenseOverrides.add(componentIdentifier);
+        licenseJsonNode.set("componentIdentifier", JsonUtils.asTree(componentIdentifier));
+        if (componentIdentifier.isMaven()) {
+          // reports generated before 1.13.0 still require separate GAV fields
+          setMavenCoordinates(licenseJsonNode, componentIdentifier);
+          licenseJsonNode.put("groupId", componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID));
+          licenseJsonNode.put("artifactId", componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID));
+          licenseJsonNode.put("version", componentIdentifier.get(ComponentIdentifier.VERSION));
+          licenseJsonNode.put("classifier", componentIdentifier.get(ComponentIdentifier.MAVEN_CLASSIFIER));
+        }
+        licenseJsonNode.put("matchState", MatchState.EXACT.getId());
+        licenseJsonNode.put("catalogDate", hashComponentIdentifier.getCreateTimeLong());
+        licenseJsonNode.put("status", licenseOverride.getStatus().getName());
+        if (!licenseOverride.getLicenseIds().isEmpty()) {
+          ArrayNode licenseOverrideNode = licenseJsonNode.putArray("overriddenLicenses");
+
+          for (String licenseId : licenseOverride.getLicenseIds()) {
+            licenseOverrideNode.add(licenseDAO.getByIdNotNull(licenseId).getShortDisplayName());
+          }
+        }
+        if (licenseOverride.getComment() != null) {
+          licenseJsonNode.put("comment", licenseOverride.getComment());
+        }
+      }
+    }
+    log.debug("addLicenseOverridesForClaimedComponents: {} overrides.", licenseOverrideCount);
+    return componentIdentifiersWithLicenseOverrides;
+  }
+
+  private static void removeClaimedComponentsFromPartialMatched(
+      ContainerNode<?> partialmatchedJsonData,
+      Map<String, HashComponentIdentifier> claimedComponentsByHash)
+  {
+    JsonNode aaData = partialmatchedJsonData.get("aaData");
+    Iterator<JsonNode> iterPartialMatchData = aaData.iterator();
+    int removedCount = 0;
+    while (iterPartialMatchData.hasNext()) {
+      JsonNode jsonNode = iterPartialMatchData.next();
+      String hash = jsonNode.path("hash").asText();
+      if (claimedComponentsByHash.containsKey(hash)) {
+        removedCount++;
+        iterPartialMatchData.remove();
+      }
+      else {
+        JsonNode matchDetails = jsonNode.get("matchDetails");
+        for (JsonNode matchDetail : matchDetails) {
+          ObjectNode detailsNode = (ObjectNode) matchDetail;
+          ComponentIdentifierAdapter.injectComponentIdentifier(detailsNode);
+          ComponentDisplayNameUtil.injectDisplayName(detailsNode);
+        }
+      }
+    }
+
+    log.debug("removeClaimedComponentsFromPartialMatched: {} partial matches, {} removed.", aaData.size(),
+        removedCount);
+  }
+
+  private void sendCpeResultMetricsTelemetry(final Owner owner, final CpeResultsTelemetry cpeResultsTelemetry) {
+    if (cpeMatchingConfigurationService.isCpeDataMatchingEnabled(owner.getId()) &&
+        cpeResultsTelemetry.getCpeMatchedComponentCount() > 0)
+    {
+      TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.CPE_RESULTS_METRICS);
+      telemetryData.put("application_id", HdsClientAnalytics.obfuscate(owner.getId()));
+      telemetryData.put("owner_type", owner.getType().toString());
+      telemetryData.put(CpeResultsTelemetry.ATTRIBUTE_NAME, cpeResultsTelemetry);
+      telemetrySender.send(telemetryData);
+    }
+  }
+
+  @VisibleForTesting
+  static void hideObservedLicenses(
+      ComponentIdentifier matchedComponent,
+      ObjectNode matchedComponentNode,
+      boolean isALPObservedLicenseEnabled,
+      License notSupportedLicense)
+  {
+    // we do no replacement for empty or only "Not-Supported" entry
+    Set<String> currentObservedLicenses = JsonUtils.getStringSetFromArray(matchedComponentNode.get("observedLicenses"));
+    if (CollectionUtils.isNotEmpty(currentObservedLicenses) &&
+        !currentObservedLicenses.equals(Collections.singleton(notSupportedLicense.getShortDisplayName())))
+    {
+      if (!isALPObservedLicenseEnabled && License.isAlpObservedLicenseFormatHidden(matchedComponent.getFormat())) {
+        matchedComponentNode.putArray("observedLicenses")
+            .add(notSupportedLicense.getShortDisplayName());
+        matchedComponentNode.put("hiddenObservedLicenses", true);
+
+        ArrayNode effectiveLicensesNode = matchedComponentNode.putArray("effectiveLicenses");
+        JsonNode declaredLicenses = matchedComponentNode.get("declaredLicenses");
+        if (declaredLicenses != null) {
+          for (String declaredLicense : JsonUtils.getStringSetFromArray(declaredLicenses)) {
+            effectiveLicensesNode.add(declaredLicense);
+          }
+        }
+      }
+      else {
+        matchedComponentNode.put("hiddenObservedLicenses", false);
+      }
+    }
+    else {
+      matchedComponentNode.put("hiddenObservedLicenses", false);
+    }
+  }
+
+  @VisibleForTesting
+  void writeLicenseThreatsToReportFile(
+      final Owner owner,
+      final LifecycleReport applicationReport) throws IOException
+  {
+    Map<String, Integer> threatLevelsBySimpleLicenseId =
+        licenseThreatGroupDAO.getLicenseThreatLevelsByOwner(owner);
+
+    ObjectMapper mapper = new ObjectMapper();
+    ObjectNode licenseTable = mapper.createObjectNode();
+    for (MultiLicense multiLicense : multiLicenseDAO.getAll()) {
+      Integer threatLevel = null;
+      for (License license : multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(multiLicense.getId())) {
+        Integer simpleLicenseThreatLevel = threatLevelsBySimpleLicenseId.get(license.getId());
+
+        if (simpleLicenseThreatLevel != null) {
+          if (threatLevel == null) {
+            threatLevel = simpleLicenseThreatLevel;
+          }
+          else {
+            threatLevel = Math.max(threatLevel, simpleLicenseThreatLevel);
+          }
+        }
+      }
+      licenseTable.put(multiLicense.getShortDisplayName(), threatLevel);
+    }
+    ObjectNode licenseThreatsJson = mapper.createObjectNode();
+    licenseThreatsJson.set("aaData", licenseTable);
+    applicationReport.saveReportEntry(LICENSE_THREATS_JSON.getName(), licenseThreatsJson);
+  }
+
+  @VisibleForTesting
+  static boolean hasAnyLicenseOverrides(LicenseOverrideDAO licenseOverrideDAO, String applicationId) {
+    return licenseOverrideDAO.getCountByOwnerId(applicationId) > 0;
+  }
+
+  @VisibleForTesting
+  static void augmentDependenciesGraph(final JsonNode dependenciesJsonData) {
+    JsonNode dependencyGraphNode = dependenciesJsonData.get("dependencyGraph");
+    if (dependencyGraphNode == null) {
+      return;
+    }
+
+    // root node with component identifier 'null' contains all direct dependencies
+    List<ComponentIdentifier> directComponentIdentifiers = new ArrayList<>();
+    for (JsonNode child : dependencyGraphNode) {
+      ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(child);
+      if (componentIdentifier == null && child.has(CHILDREN_NODE)) {
+        for (JsonNode rootChild : child.get(CHILDREN_NODE)) {
+          ((ObjectNode) rootChild).put(DIRECT_DEPENDENCY_NODE, true);
+          directComponentIdentifiers.add(ComponentIdentifierAdapter.getComponentIdentifier(rootChild));
+        }
+        break;
+      }
+    }
+
+    // setting relevant component identifiers in the full component list
+    for (JsonNode child : dependencyGraphNode) {
+      ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(child);
+      if (componentIdentifier != null) {
+        ((ObjectNode) child).put(DIRECT_DEPENDENCY_NODE, directComponentIdentifiers.contains(componentIdentifier));
+      }
+    }
+  }
+
+  @VisibleForTesting
+  static void augmentModified(Set<ComponentIdentifier> componentIdentifiersWithLicenseOverrides, JsonNode bomJsonData) {
+    ArrayNode components = (ArrayNode) bomJsonData.get("aaData");
+    for (int componentIndex = 0; componentIndex < components.size(); componentIndex++) {
+      ObjectNode component = (ObjectNode) components.get(componentIndex);
+      if (componentIdentifiersWithLicenseOverrides
+          .contains(ComponentIdentifierAdapter.getComponentIdentifier(component)))
+      {
+        component.put("modified", true);
+      }
+    }
+  }
+
+  public ReportPdfEntity getPdfReport(final String appId, final String scanId) {
+    return reportDataStore.getReportPdf(appId, scanId);
+  }
+
+  /**
+   * Re-uploads the stored scan to HDS and materializes the freshly regenerated report under the canonical
+   * {@code scanId}, preserving any third-party report entries.
+   * <p>
+   * <b>Postcondition:</b> the report left under {@code scanId} is <em>unenriched</em> — {@code applyChanges}
+   * and the SBOM-data merge are intentionally <em>not</em> run here. The caller is responsible for triggering
+   * that enrichment exactly once under the canonical {@code scanId} (e.g. via the evaluator path's
+   * {@code fetchReport(scanId)}) before the report is consumed. Skipping that follow-up step silently yields a
+   * report missing enrichment data such as reachability markers (cf. CLM-38947).
+   * <p>
+   * Owner-agnostic: serves both a Lifecycle {@link Application} and a
+   * {@link HostedRepositoryComponent}. Everything it touches — the evaluation lookup, the scan store, the
+   * HDS upload, and the report store — is keyed on the owner id, so neither branch needs owner-type logic.
+   */
+  @WithSpan
+  public PolicyEvaluation reUploadScanToHds(
+      final Owner owner,
+      final String scanId,
+      final String clientUserAgent) throws IOException
+  {
+    // First call to ensure the scanId is audited even on failure.
+    AuditData.get().setScanId(scanId);
+    final String ownerId = owner.getId();
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(ownerId, scanId);
+
+    if (policyEvaluation == null) {
+      throw new BadRequestException("Policy evaluation for scan " + scanId + " does not exist on the server.");
+    }
+
+    final ScanEntity scanEntity = scanPersistenceService.getScan(ownerId, scanId);
+    final String stageTypeId = policyEvaluation.getStageTypeId();
+    final Stage stage = new Stage(stageTypeId);
+    final ScanTriggerType scanTriggerType = policyEvaluation.getScanTriggerType();
+    final ClientScanType clientScanType = policyEvaluation.getClientScanType();
+    final SbomSpecification sbomSpecification = scanTriggerType == ScanTriggerType.SONATYPE_CONTAINER_IMAGE_SCANNER_API
+        ? SbomSpecification.CYCLONEDX
+        : null;
+    // Propagate the original SBOM's validation state so SbomResultHandler.parseBom takes the correct branch.
+    // Defaulting to true for non-SBOM scans (no metadata) and metadata with no recorded validation state
+    // restores the dependency-graph processing path so "View Dependency Tree" stays enabled after
+    // re-evaluation (CLM-37563). For SBOMs that originally failed validation under SKIP_SBOM_IMPORT_VALIDATION,
+    // propagating false avoids re-running validation that would throw on a known-invalid SBOM.
+    //
+    // Keyed on scanId rather than owner type, so it is correct for every Owner: a hosted-repository
+    // artifact has no third-party SBOM metadata, which yields isValid=true and a null specification —
+    // an empty ScanContext carrying no SBOM assumptions.
+    final ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByScanId(scanId);
+    final boolean isValid = sbomMetadata == null || sbomMetadata.getIsValid();
+    final ScanContext scanContext = new ScanContext.Builder()
+        .containerImageSbomSpecification(sbomSpecification)
+        .isValid(isValid)
+        .build();
+
+    ScanReceipt scanReceipt = scanUploadService.upload(scanEntity, owner, stage.getStageTypeId(),
+        clientScanType,
+        clientUserAgent,
+        telemetryUtils.buildThirdPartyScanTelemetryData(ownerId, stage, stageTypeId,
+            scanTriggerType, clientUserAgent),
+        null /* scanRequestId */, scanContext, true);
+    // Call again after upload to ensure the scanId is set to the original value, not the temporary new one.
+    AuditData.get().setScanId(scanId);
+
+    try {
+      scanReceipt.waitForReport();
+    }
+    catch (InterruptedException e) {
+      AuditData.get().setException(e);
+      Thread.currentThread().interrupt();
+      throw new RuntimeException("Scan " + scanId + " interrupted while waiting for report re-generation.", e);
+    }
+
+    Map<String, ReportEntry> preservedThirdPartyEntries = readThirdPartyEntriesFromReport(owner, scanId);
+
+    String tempScanId = scanReceipt.getScanId();
+    // Materialize the HDS-regenerated report under tempScanId without running applyChanges or the
+    // SBOM-data merge. The caller is responsible for triggering that enrichment exactly once under the
+    // canonical scanId: today ReportResource.reevaluatePolicy does so via the evaluator path's
+    // fetchReport(scanId) after this method returns.
+    materializeReportFromHds(owner, tempScanId, preservedThirdPartyEntries);
+    reportDataStore.moveLifecycleReport(ownerId, tempScanId, scanId);
+    return policyEvaluation;
+  }
+
+  private Map<String, ReportEntry> readThirdPartyEntriesFromReport(
+      final Owner owner,
+      final String scanId)
+  {
+    try {
+      LifecycleReport originalReport = reportDataStore.getLifecycleReport(owner, scanId);
+      if (originalReport.exists()) {
+        List<String> entryNames = List.of(
+            THIRD_PARTY_BOM_JSON.getName(),
+            THIRD_PARTY_SECURITY_JSON.getName(),
+            THIRD_PARTY_LICENSE_JSON.getName());
+        Map<String, ReportEntry> entries = originalReport.getEntries(entryNames);
+        if (entries.values().stream().anyMatch(Objects::nonNull)) {
+          return entries;
+        }
+      }
+    }
+    catch (IOException e) {
+      log.warn("Could not read third-party entries from original report for scan {}", scanId, e);
+    }
+    return null;
+  }
+
+  public static void setMavenCoordinatesWithExtension(
+      final ObjectNode objectNode,
+      final ComponentIdentifier componentIdentifier)
+  {
+    setMavenCoordinates(objectNode, componentIdentifier);
+    objectNode.put(ComponentIdentifier.MAVEN_EXTENSION, componentIdentifier.get(ComponentIdentifier.MAVEN_EXTENSION));
+  }
+
+  public static void setMavenCoordinates(
+      final ObjectNode objectNode,
+      final ComponentIdentifier componentIdentifier)
+  {
+    objectNode.put(ComponentIdentifier.MAVEN_GROUP_ID, componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID));
+    objectNode
+        .put(ComponentIdentifier.MAVEN_ARTIFACT_ID, componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID));
+    objectNode.put(ComponentIdentifier.VERSION, componentIdentifier.get(ComponentIdentifier.VERSION));
+    objectNode.put(ComponentIdentifier.MAVEN_CLASSIFIER, componentIdentifier.get(ComponentIdentifier.MAVEN_CLASSIFIER));
+  }
+}

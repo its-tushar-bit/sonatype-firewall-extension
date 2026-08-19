@@ -1,0 +1,72 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "https://example.org/build-profile-spdx3",
+      "creationInfo": "_:creationInfo1",
+      "name": "Build Profile SPDX 3.0 Document",
+      "element": [
+        "https://example.org/build-root-app",
+        "https://example.org/ci-build-info"
+      ],
+      "rootElement": [
+        "https://example.org/build-root-app"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "https://example.org/build-root-app",
+      "creationInfo": "_:creationInfo1",
+      "name": "webapp-service",
+      "software_packageVersion": "4.1.0",
+      "externalIdentifier": [
+        {
+          "type": "ExternalIdentifier",
+          "externalIdentifierType": "packageUrl",
+          "identifier": "pkg:maven/com.example/webapp-service@4.1.0"
+        }
+      ]
+    },
+    {
+      "type": "build_Build",
+      "spdxId": "https://example.org/ci-build-info",
+      "creationInfo": "_:creationInfo1",
+      "name": "jenkins-pipeline-build-42",
+      "build_buildType": "https://jenkins.io/pipeline/v1",
+      "build_buildId": "42",
+      "build_buildStartTime": "2026-05-01T10:00:00Z",
+      "build_buildEndTime": "2026-05-01T10:15:00Z",
+      "build_environment": {
+        "JAVA_VERSION": "25",
+        "MAVEN_VERSION": "3.9.9",
+        "NODE_NAME": "linux-agent-01"
+      },
+      "build_parameters": {
+        "BRANCH": "main",
+        "DEPLOY_TARGET": "staging"
+      }
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "https://example.org/rel-build-to-app",
+      "creationInfo": "_:creationInfo1",
+      "relationshipType": "dependsOn",
+      "from": "https://example.org/build-root-app",
+      "to": ["https://example.org/ci-build-info"]
+    },
+    {
+      "@id": "_:creationInfo1",
+      "type": "CreationInfo",
+      "specVersion": "3.0.1",
+      "created": "2026-05-01T10:15:00Z",
+      "createdBy": ["https://example.org/tool-sonatype"]
+    },
+    {
+      "type": "Agent",
+      "spdxId": "https://example.org/tool-sonatype",
+      "creationInfo": "_:creationInfo1",
+      "name": "Sonatype Test"
+    }
+  ]
+}

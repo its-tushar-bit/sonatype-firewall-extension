@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<Document>
+  <SPDXID>SPDXRef-DOCUMENT</SPDXID>
+  <spdxVersion>SPDX-2.3</spdxVersion>
+  <creationInfo>
+    <created>2023-08-01T14:28:47Z</created>
+    <creators>Tool: Sonatype IQ Server - 1.165.0-01</creators>
+  </creationInfo>
+  <name>doc name</name>
+  <dataLicense>CC0-1.0</dataLicense>
+  <documentNamespace>http://localhost:8070/ui/links/application/scm-test-01/report/76b10b862e7b42009f2415097620928c
+  </documentNamespace>
+  <packages>
+    <SPDXID>SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.13.2</SPDXID>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-45046</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/org.apache.logging.log4j/log4j-core@2.13.2?type=jar</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://localhost:8070/ui/links/vln/sonatype-2021-4560</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>test cpe</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>cpe:2.3:a:pivotal_software:spring_framework:4.1.0:*:*:*:*:*:*:*</referenceLocator>
+      <referenceType>http://spdx.org/rdf/references/cpe23Type</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>test swid</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>swid:gen-242eb18a-503e-ca37-393b-cf156ef09691_9.1.1</referenceLocator>
+      <referenceType>http://spdx.org/rdf/references/swid</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>Apache-2.0</licenseConcluded>
+    <licenseDeclared>Apache-2.0</licenseDeclared>
+    <name>org.apache.logging.log4j:log4j-core</name>
+    <versionInfo>2.13.2</versionInfo>
+  </packages>
+  <packages>
+    <SPDXID>SPDXRef-generic-sonatype-iq-application-SCM-Test</SPDXID>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>NOASSERTION</licenseDeclared>
+    <name>sonatype:iq_application_SCM Test 1</name>
+    <versionInfo>76b10b862e7b42009f2415097620928c</versionInfo>
+  </packages>
+  <relationships>
+    <spdxElementId>SPDXRef-DOCUMENT</spdxElementId>
+    <relationshipType>DESCRIBES</relationshipType>
+    <relatedSpdxElement>SPDXRef-generic-sonatype-iq-application-SCM-Test</relatedSpdxElement>
+  </relationships>
+  <relationships>
+    <spdxElementId>SPDXRef-generic-sonatype-iq-application-SCM-Test</spdxElementId>
+    <relationshipType>DEPENDS_ON</relationshipType>
+    <relatedSpdxElement>SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.13.2</relatedSpdxElement>
+  </relationships>
+</Document>

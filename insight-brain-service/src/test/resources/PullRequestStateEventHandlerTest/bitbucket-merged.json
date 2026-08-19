@@ -1,0 +1,142 @@
+{
+	"id": 5,
+	"version": 3,
+	"title": "Revert \"Remove pom\"",
+	"description": "This reverts commit cb3cb611ad1a1b7922416b3400ea64cd83e07c60.",
+	"state": "MERGED",
+	"open": false,
+	"closed": true,
+	"draft": false,
+	"createdDate": 1744640341249,
+	"updatedDate": 1745415935349,
+	"closedDate": 1745415935349,
+	"fromRef": {
+		"id": "refs/heads/pr-commenting-test-2",
+		"displayId": "pr-commenting-test-2",
+		"latestCommit": "011279f12d6740fca6a76cef0f49ccf8b9f51a5d",
+		"type": "BRANCH",
+		"repository": {
+			"slug": "test-repo",
+			"id": 1,
+			"name": "test-repo",
+			"hierarchyId": "10ddf6cc128fe9e9a292",
+			"scmId": "git",
+			"state": "AVAILABLE",
+			"statusMessage": "Available",
+			"forkable": true,
+			"project": {
+				"key": "TEST",
+				"id": 1,
+				"name": "test",
+				"public": false,
+				"type": "NORMAL",
+				"links": {
+					"self": [
+						{
+							"href": "http://localhost:7990/projects/TEST"
+						}
+					]
+				}
+			},
+			"public": false,
+			"archived": false,
+			"links": {
+				"clone": [
+					{
+						"href": "ssh://git@localhost:7999/test/test-repo.git",
+						"name": "ssh"
+					},
+					{
+						"href": "http://localhost:7990/scm/test/test-repo.git",
+						"name": "http"
+					}
+				],
+				"self": [
+					{
+						"href": "http://localhost:7990/projects/TEST/repos/test-repo/browse"
+					}
+				]
+			}
+		}
+	},
+	"toRef": {
+		"id": "refs/heads/main",
+		"displayId": "main",
+		"latestCommit": "cb3cb611ad1a1b7922416b3400ea64cd83e07c60",
+		"type": "BRANCH",
+		"repository": {
+			"slug": "test-repo",
+			"id": 1,
+			"name": "test-repo",
+			"hierarchyId": "10ddf6cc128fe9e9a292",
+			"scmId": "git",
+			"state": "AVAILABLE",
+			"statusMessage": "Available",
+			"forkable": true,
+			"project": {
+				"key": "TEST",
+				"id": 1,
+				"name": "test",
+				"public": false,
+				"type": "NORMAL",
+				"links": {
+					"self": [
+						{
+							"href": "http://localhost:7990/projects/TEST"
+						}
+					]
+				}
+			},
+			"public": false,
+			"archived": false,
+			"links": {
+				"clone": [
+					{
+						"href": "ssh://git@localhost:7999/test/test-repo.git",
+						"name": "ssh"
+					},
+					{
+						"href": "http://localhost:7990/scm/test/test-repo.git",
+						"name": "http"
+					}
+				],
+				"self": [
+					{
+						"href": "http://localhost:7990/projects/TEST/repos/test-repo/browse"
+					}
+				]
+			}
+		}
+	},
+	"locked": false,
+	"author": {
+		"user": {
+			"name": "rpokorny",
+			"emailAddress": "rpokorny@sonatype.com",
+			"active": true,
+			"displayName": "Ross Pokorny",
+			"id": 52,
+			"slug": "rpokorny",
+			"type": "NORMAL",
+			"links": {
+				"self": [
+					{
+						"href": "http://localhost:7990/users/rpokorny"
+					}
+				]
+			}
+		},
+		"role": "AUTHOR",
+		"approved": false,
+		"status": "UNAPPROVED"
+	},
+	"reviewers": [],
+	"participants": [],
+	"links": {
+		"self": [
+			{
+				"href": "http://localhost:7990/projects/TEST/repos/test-repo/pull-requests/5"
+			}
+		]
+	}
+}

@@ -1,0 +1,115 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "direct-parent",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.example",
+          "version": "1.0.0"
+        }
+      },
+      "hash": "aaa111bbb222ccc333dd",
+      "matchState": "exact",
+      "proprietary": false,
+      "relativePopularity": null,
+      "createTime": 1587400833527,
+      "displayName": {
+        "parts": [
+          {"field": "Group", "value": "com.example"},
+          {"value": " : "},
+          {"field": "Artifact", "value": "direct-parent"},
+          {"value": " : "},
+          {"field": "Version", "value": "1.0.0"}
+        ]
+      },
+      "innerSource": true
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "transitive-dep-a",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.transitive",
+          "version": "2.0.0"
+        }
+      },
+      "hash": "eee555fff666ggg777hh",
+      "matchState": "exact",
+      "proprietary": false,
+      "relativePopularity": null,
+      "createTime": 1587400833527,
+      "displayName": {
+        "parts": [
+          {"field": "Group", "value": "org.transitive"},
+          {"value": " : "},
+          {"field": "Artifact", "value": "transitive-dep-a"},
+          {"value": " : "},
+          {"field": "Version", "value": "2.0.0"}
+        ]
+      },
+      "parentComponentPurls": [
+        "pkg:maven/com.example/direct-parent@1.0.0?type=jar"
+      ]
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "transitive-dep-b",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.transitive",
+          "version": "3.0.0"
+        }
+      },
+      "hash": "iii999jjj000kkk111ll",
+      "matchState": "exact",
+      "proprietary": false,
+      "relativePopularity": null,
+      "createTime": 1587400833527,
+      "displayName": {
+        "parts": [
+          {"field": "Group", "value": "org.transitive"},
+          {"value": " : "},
+          {"field": "Artifact", "value": "transitive-dep-b"},
+          {"value": " : "},
+          {"field": "Version", "value": "3.0.0"}
+        ]
+      },
+      "parentComponentPurls": [
+        "pkg:maven/com.example/direct-parent@1.0.0?type=jar"
+      ]
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "no-transitive-deps",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.example",
+          "version": "4.0.0"
+        }
+      },
+      "hash": "mmm333nnn444ooo555pp",
+      "matchState": "exact",
+      "proprietary": false,
+      "relativePopularity": null,
+      "createTime": 1587400833527,
+      "displayName": {
+        "parts": [
+          {"field": "Group", "value": "com.example"},
+          {"value": " : "},
+          {"field": "Artifact", "value": "no-transitive-deps"},
+          {"value": " : "},
+          {"field": "Version", "value": "4.0.0"}
+        ]
+      }
+    }
+  ]
+}

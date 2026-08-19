@@ -1,0 +1,165 @@
+{
+  "list" : [ {
+    "componentIdentifier": {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "tomcat",
+        "artifactId" : "tomcat-util",
+        "version" : "5.5.12"
+      }
+    },
+    "hash" : "5b7323d34e57f77cc9ad",
+    "matchState" : null,
+    "declaredLicenses" : [ {
+      "licenseId" : "UNSPECIFIED",
+      "licenseName" : "Not Provided"
+    } ],
+    "observedLicenses" : [ {
+      "licenseId" : "UNSPECIFIED",
+      "licenseName" : "Not Provided"
+    } ],
+    "overriddenLicenses" : [ ],
+    "catalogDate" : 1318693980000,
+    "relativePopularity" : 30,
+    "securityVulnerabilities" : [ {
+      "refId" : "20439",
+      "severity" : 5.0,
+      "source" : "osvdb",
+      "summary" : "This would be a summary",
+      "status" : null
+    }, {
+      "refId" : "36079",
+      "severity" : 3.5,
+      "source" : "osvdb",
+      "summary" : "This would be a summary",
+      "status" : null
+    }, {
+      "refId" : "71557",
+      "severity" : null,
+      "source" : "osvdb",
+      "summary" : "This would be a summary",
+      "status" : null
+    }, {
+      "refId" : "71558",
+      "severity" : null,
+      "source" : "osvdb",
+      "summary" : "This would be a summary",
+      "status" : null
+    } ],
+    "website" : "http://tomcat.apache.org/",
+    "policyAlerts" : null,
+    "licenseThreatLevel" : null,
+    "licenseThreatGroupNames" : null,
+    "majorRevisionStep" : false,
+    "identificationSource" : null,
+    "identificationSourceComment" : null,
+    "declaredLicenseIds" : [ "UNSPECIFIED" ],
+    "observedLicenseIds" : [ "UNSPECIFIED" ]
+  }, {
+    "componentIdentifier": {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "tomcat",
+        "artifactId" : "tomcat-util",
+        "version" : "5.5.15"
+      }
+    },
+    "hash" : "c496aee12754f4308abf",
+    "matchState" : null,
+    "declaredLicenses" : [ {
+      "licenseId" : "UNSPECIFIED",
+      "licenseName" : "Not Provided"
+    } ],
+    "observedLicenses" : [ {
+      "licenseId" : "UNSPECIFIED",
+      "licenseName" : "Not Provided"
+    } ],
+    "overriddenLicenses" : [ ],
+    "catalogDate" : 1321372380000,
+    "relativePopularity" : 25,
+    "securityVulnerabilities" : [ {
+      "refId" : "36079",
+      "severity" : 3.5,
+      "source" : "osvdb",
+      "summary" : "This would be a summary",
+      "status" : null
+    }, {
+      "refId" : "71557",
+      "severity" : null,
+      "source" : "osvdb",
+      "summary" : "This would be a summary",
+      "status" : null
+    }, {
+      "refId" : "71558",
+      "severity" : null,
+      "source" : "osvdb",
+      "summary" : "This would be a summary",
+      "status" : null
+    } ],
+    "website" : "http://tomcat.apache.org/",
+    "policyAlerts" : null,
+    "licenseThreatLevel" : null,
+    "licenseThreatGroupNames" : null,
+    "majorRevisionStep" : false,
+    "identificationSource" : null,
+    "identificationSourceComment" : null,
+    "declaredLicenseIds" : [ "UNSPECIFIED" ],
+    "observedLicenseIds" : [ "UNSPECIFIED" ]
+  }, {
+    "componentIdentifier": {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "tomcat",
+        "artifactId" : "tomcat-util",
+        "version" : "5.5.23"
+      }
+    },
+    "hash" : "1249e25aebb15358bedd",
+    "matchState" : null,
+    "declaredLicenses" : [ {
+      "licenseId" : "Not-Declared",
+      "licenseName" : "Not Declared"
+    } ],
+    "observedLicenses" : [ {
+      "licenseId" : "No-Sources",
+      "licenseName" : "No Sources"
+    } ],
+    "overriddenLicenses" : [ ],
+    "catalogDate" : 1323964380000,
+    "relativePopularity" : 35,
+    "securityVulnerabilities" : [ {
+      "refId" : "36079",
+      "severity" : 3.5,
+      "source" : "osvdb",
+      "summary" : "This would be a summary",
+      "status" : null
+    }, {
+      "refId" : "62054",
+      "severity" : null,
+      "source" : "osvdb",
+      "summary" : "This would be a summary",
+      "status" : null
+    }, {
+      "refId" : "71557",
+      "severity" : null,
+      "source" : "osvdb",
+      "summary" : "This would be a summary",
+      "status" : null
+    }, {
+      "refId" : "71558",
+      "severity" : null,
+      "source" : "osvdb",
+      "summary" : "This would be a summary",
+      "status" : null
+    } ],
+    "website" : "http://tomcat.apache.org/",
+    "policyAlerts" : null,
+    "licenseThreatLevel" : null,
+    "licenseThreatGroupNames" : null,
+    "majorRevisionStep" : false,
+    "identificationSource" : null,
+    "identificationSourceComment" : null,
+    "declaredLicenseIds" : [ "Not-Declared" ],
+    "observedLicenseIds" : [ "No-Sources" ]
+  } ]
+}

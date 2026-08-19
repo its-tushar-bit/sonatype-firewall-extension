@@ -1,0 +1,444 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "commons-lang3",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.apache.commons",
+          "version": "3.9"
+        }
+      },
+      "packageUrl": "pkg:maven/org.apache.commons/commons-lang3@3.9?type=jar",
+      "groupId": "org.apache.commons",
+      "artifactId": "commons-lang3",
+      "version": "3.9",
+      "filenames": [
+        "pkg:maven/org.apache.commons/commons-lang3@3.9?type=jar:0122c7cee69b53ed4a76"
+      ],
+      "pathnames": [
+        "dependency:/bom.xml/pkg:maven\\org.apache.commons\\commons-lang3@3.9?type=jar:0122c7cee69b53ed4a76"
+      ],
+      "aggregateFiles": [],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "0122c7cee69b53ed4a76",
+      "relativePopularity": 0.42,
+      "createTime": 1554946238000,
+      "lastModifiedTime": null,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "COORDINATE",
+        "scanClient": "brain",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true,
+        "manifestContentType": "SBOM"
+      },
+      "integrityRating": {
+        "id": 3,
+        "label": "Not Applicable"
+      },
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "org.apache.commons"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "commons-lang3"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "3.9"
+          }
+        ],
+        "name": "commons-lang3"
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "javax.inject",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "javax.inject",
+          "version": "1"
+        }
+      },
+      "packageUrl": "pkg:maven/javax.inject/javax.inject@1?type=jar",
+      "groupId": "javax.inject",
+      "artifactId": "javax.inject",
+      "version": "1",
+      "filenames": [
+        "pkg:maven/javax.inject/javax.inject@1?type=jar:6975da39a7040257bd51"
+      ],
+      "pathnames": [
+        "dependency:/bom.xml/pkg:maven\\javax.inject\\javax.inject@1?type=jar:6975da39a7040257bd51"
+      ],
+      "aggregateFiles": [],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "6975da39a7040257bd51",
+      "relativePopularity": 1,
+      "createTime": 1255476900000,
+      "lastModifiedTime": null,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "COORDINATE",
+        "scanClient": "brain",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true,
+        "manifestContentType": "SBOM"
+      },
+      "integrityRating": {
+        "id": 3,
+        "label": "Not Applicable"
+      },
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "javax.inject"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "javax.inject"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "1"
+          }
+        ],
+        "name": "javax.inject"
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "commons-io",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "commons-io",
+          "version": "2.6"
+        }
+      },
+      "packageUrl": "pkg:maven/commons-io/commons-io@2.6?type=jar",
+      "groupId": "commons-io",
+      "artifactId": "commons-io",
+      "version": "2.6",
+      "filenames": [
+        "pkg:maven/commons-io/commons-io@2.6?type=jar:815893df5f31da2ece40"
+      ],
+      "pathnames": [
+        "dependency:/bom.xml/pkg:maven\\commons-io\\commons-io@2.6?type=jar:815893df5f31da2ece40"
+      ],
+      "aggregateFiles": [],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "815893df5f31da2ece40",
+      "relativePopularity": 0.84,
+      "createTime": 1519358738000,
+      "lastModifiedTime": null,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "COORDINATE",
+        "scanClient": "brain",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true,
+        "manifestContentType": "SBOM"
+      },
+      "integrityRating": {
+        "id": 3,
+        "label": "Not Applicable"
+      },
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "commons-io"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "commons-io"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "2.6"
+          }
+        ],
+        "name": "commons-io"
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "slf4j-api",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.slf4j",
+          "version": "1.7.30"
+        }
+      },
+      "packageUrl": "pkg:maven/org.slf4j/slf4j-api@1.7.30?type=jar",
+      "groupId": "org.slf4j",
+      "artifactId": "slf4j-api",
+      "version": "1.7.30",
+      "filenames": [
+        "pkg:maven/org.slf4j/slf4j-api@1.7.30?type=jar:b5a4b6d16ab13e34a88f"
+      ],
+      "pathnames": [
+        "dependency:/bom.xml/pkg:maven\\org.slf4j\\slf4j-api@1.7.30?type=jar:b5a4b6d16ab13e34a88f"
+      ],
+      "aggregateFiles": [],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "b5a4b6d16ab13e34a88f",
+      "relativePopularity": 1,
+      "createTime": 1576530216000,
+      "lastModifiedTime": null,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "COORDINATE",
+        "scanClient": "brain",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true,
+        "manifestContentType": "SBOM"
+      },
+      "integrityRating": {
+        "id": 3,
+        "label": "Not Applicable"
+      },
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "org.slf4j"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "slf4j-api"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "1.7.30"
+          }
+        ],
+        "name": "slf4j-api"
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "ACME-business",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.example",
+          "version": "1.0-SNAPSHOT"
+        }
+      },
+      "packageUrl": "pkg:maven/org.example/ACME-business@1.0-SNAPSHOT?type=jar",
+      "groupId": "org.example",
+      "artifactId": "ACME-business",
+      "version": "1.0-SNAPSHOT",
+      "filenames": [
+        "pkg:maven/org.example/ACME-business@1.0-SNAPSHOT?type=jar"
+      ],
+      "pathnames": [
+        "dependency:/bom.xml/pkg:maven\\org.example\\ACME-business@1.0-SNAPSHOT?type=jar"
+      ],
+      "aggregateFiles": [],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "4f416268ccef5fe5a8e8",
+      "relativePopularity": null,
+      "createTime": 1666296467808,
+      "lastModifiedTime": null,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "Third-Party",
+      "componentCategories": [],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "THIRD_PARTY",
+        "analysisType": "COORDINATE",
+        "scanClient": "brain",
+        "hasLicense": false,
+        "hasIdentity": false,
+        "hasSecurity": false,
+        "manifestContentType": "SBOM"
+      },
+      "integrityRating": null,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "org.example"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "ACME-business"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "1.0-SNAPSHOT"
+          }
+        ],
+        "name": "ACME-business"
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "ACME-data",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.example",
+          "version": "1.0-SNAPSHOT"
+        }
+      },
+      "packageUrl": "pkg:maven/org.example/ACME-data@1.0-SNAPSHOT?type=jar",
+      "groupId": "org.example",
+      "artifactId": "ACME-data",
+      "version": "1.0-SNAPSHOT",
+      "filenames": [
+        "pkg:maven/org.example/ACME-data@1.0-SNAPSHOT?type=jar"
+      ],
+      "pathnames": [
+        "dependency:/bom.xml/pkg:maven\\org.example\\ACME-data@1.0-SNAPSHOT?type=jar"
+      ],
+      "aggregateFiles": [],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "be6b357833af04e6fcba",
+      "relativePopularity": null,
+      "createTime": 1666296467808,
+      "lastModifiedTime": null,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "Third-Party",
+      "componentCategories": [],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "THIRD_PARTY",
+        "analysisType": "COORDINATE",
+        "scanClient": "brain",
+        "hasLicense": false,
+        "hasIdentity": false,
+        "hasSecurity": false,
+        "manifestContentType": "SBOM"
+      },
+      "integrityRating": null,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "org.example"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "ACME-data"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "1.0-SNAPSHOT"
+          }
+        ],
+        "name": "ACME-data"
+      }
+    }
+  ]
+}

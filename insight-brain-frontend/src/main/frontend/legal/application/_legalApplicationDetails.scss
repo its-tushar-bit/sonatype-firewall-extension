@@ -1,0 +1,55 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+legal-application-details {
+  display: contents;
+}
+
+#legal-application-details-container {
+  .legal-application-details-licenses .nx-threat-indicator {
+    margin-left: 0;
+  }
+  .legal-application-details-table-review-progress {
+    text-align: center;
+    width: 200px;
+  }
+  .legal-application-details-table-review-status {
+    width: 200px;
+  }
+  .legal-application-details-review-progress {
+    padding-top: 0px;
+    padding-bottom: 0px;
+
+    .legal-application-details-review-progress-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-column-gap: 8px;
+      align-items: center;
+
+      .legal-application-details-review-progress-chart {
+        justify-self: end;
+      }
+      .legal-application-details-review-progress-ratio {
+        justify-self: start;
+      }
+    }
+  }
+  .legal-application-details-review-status {
+    @include nx-text-helpers.semi-bold;
+
+    &.status-FLAGGED {
+      color: var(--nx-swatch-red-50);
+    }
+    &.status-IN_PROGRESS {
+      color: var(--nx-swatch-blue-40);
+    }
+    &.status-COMPLETED {
+      color: var(--nx-swatch-green-40);
+    }
+  }
+}

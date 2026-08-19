@@ -1,0 +1,124 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+
+/**
+ * Manual job to mirror a specific observeinc/observe-agent version from Docker Hub
+ * into the private per-account ECR repositories (sca-cloud/observe-agent).
+ *
+ * ECS Fargate cells run the Observe agent as a sidecar and pull it from same-account
+ * ECR to avoid Docker Hub's anonymous pull rate limit (CannotPullContainerError 429).
+ * This job is the manual entry point for promoting a chosen upstream version into
+ * every account's ECR.
+ *
+ * The upstream image is pulled through the Sonatype registry proxy
+ * (withSonatypeDockerRegistry) and copied with `docker buildx imagetools create`,
+ * preserving the multi-arch manifest list. Each account receives the :<version> and
+ * :latest tags. Because only those two tags are written, re-running with an OLDER
+ * version moves :latest back to it without removing the newer version tag — this is
+ * the rollback path.
+ *
+ * Mirroring is deliberately manual: an operator picks the version. The
+ * deploy-to-prod-mirror job's version-drift check surfaces when a newer upstream
+ * version exists, but never mirrors automatically.
+ *
+ * Parameters:
+ *   OBSERVE_AGENT_VERSION - upstream observe-agent version to mirror (e.g., 2.17.0)
+ *
+ * Jenkins job path: insight/MTIQ/sca-cloud/update-observe-agent
+ */
+
+pipeline {
+  agent { label 'zion-small' }
+
+  // NO triggers block - this job is manual trigger only
+
+  parameters {
+    string(name: 'OBSERVE_AGENT_VERSION',
+           description: 'The upstream observeinc/observe-agent version to mirror into ECR (e.g., 2.17.0). ' +
+                        'Applied as both :<version> and :latest in every account. ' +
+                        'Re-run with an older version to roll :latest back to it (the newer version tag is retained).')
+  }
+
+  options {
+    timestamps()
+    buildDiscarder(logRotator(numToKeepStr: '100'))
+    disableConcurrentBuilds()
+    timeout(time: 30, unit: 'MINUTES')
+  }
+
+  stages {
+
+    stage('Validate Parameters') {
+      steps {
+        script {
+          if (!params.OBSERVE_AGENT_VERSION?.trim()) {
+            error 'OBSERVE_AGENT_VERSION parameter is required'
+          }
+          // Require a pinned semver-style version (e.g. 2.17.0). This rejects moving tags
+          // such as 'latest' or 'dev-nightly' — mirroring one of those would pin a
+          // non-reproducible image and make ECR :latest ambiguous. The character class
+          // also excludes shell-unsafe input (defence in depth; the value is passed to
+          // the shell via withEnv downstream, never interpolated).
+          if (!(params.OBSERVE_AGENT_VERSION ==~ /\d+\.\d+\.\d+[A-Za-z0-9._-]*/)) {
+            error "OBSERVE_AGENT_VERSION '${params.OBSERVE_AGENT_VERSION}' must be a pinned version like " +
+                  "'2.17.0' (semver X.Y.Z, optionally with a pre-release/build suffix). " +
+                  "Moving tags such as 'latest' or 'dev-nightly' are not allowed."
+          }
+          echo "Mirroring observe-agent version: ${params.OBSERVE_AGENT_VERSION}"
+        }
+      }
+    }
+
+    stage('Verify Upstream Version Exists') {
+      steps {
+        script {
+          def ecr = load 'jenkins/ecr-helpers.groovy'
+          ecr.verifyUpstreamObserveAgentExists(params.OBSERVE_AGENT_VERSION)
+        }
+      }
+    }
+
+    stage('Mirror to ECR') {
+      steps {
+        script {
+          def ecr = load 'jenkins/ecr-helpers.groovy'
+          // Each environment's cells pull observe-agent from their own account's ECR,
+          // and there is no cross-account promote flow for it, so mirror to all three.
+          def targets = [
+            'dev':     ecr.DEV_ECR_ACCOUNT,
+            'staging': ecr.STAGING_ECR_ACCOUNT,
+            'prod':    ecr.PROD_ECR_ACCOUNT
+          ]
+          targets.each { envName, account ->
+            echo "── Mirroring to ${envName} (account ${account.id}) ──"
+            ecr.mirrorObserveAgentToEcr(account, params.OBSERVE_AGENT_VERSION)
+          }
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      script {
+        echo "update-observe-agent: mirrored ${params.OBSERVE_AGENT_VERSION} to dev, staging, and prod ECR"
+        notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices',
+                   message: "Observe agent ${params.OBSERVE_AGENT_VERSION} mirrored to dev/staging/prod ECR (:latest moved to this version)")
+      }
+    }
+    failure {
+      script {
+        echo "update-observe-agent: FAILED for version ${params.OBSERVE_AGENT_VERSION}"
+        notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices',
+                   message: "Observe agent mirror FAILED for version ${params.OBSERVE_AGENT_VERSION}. Check logs.")
+      }
+    }
+    cleanup {
+      deleteDir()
+    }
+  }
+}

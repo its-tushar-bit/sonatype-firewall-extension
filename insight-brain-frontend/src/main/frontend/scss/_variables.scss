@@ -1,0 +1,265 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+/*
+  #Colors
+*/
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
+// Old boostrap variables
+
+$bootstrap-error-text: #b94a48;
+$bootstrap-error-border: #e4b9c1;
+$bootstrap-error-background: #f2dede;
+
+// Sonatype brand colours
+$iq-sonatype-blue: #336699;
+$iq-sonatype-orange: #f89100;
+
+// Sonatype Blue CSS custom properties - ordered from lightest to darkest intensity
+:root {
+  --iq-sonatype-blue-1: rgb(247, 251, 255); /* Lightest (used for score 0) */
+  --iq-sonatype-blue-2: rgb(222, 233, 242);
+  --iq-sonatype-blue-3: rgb(218, 231, 241);
+  --iq-sonatype-blue-4: rgb(211, 226, 238);
+  --iq-sonatype-blue-5: rgb(203, 220, 234);
+  --iq-sonatype-blue-6: rgb(190, 212, 228);
+  --iq-sonatype-blue-7: rgb(181, 205, 223);
+  --iq-sonatype-blue-8: rgb(168, 197, 219);
+  --iq-sonatype-blue-9: rgb(157, 189, 214);
+  --iq-sonatype-blue-10: rgb(150, 185, 212);
+  --iq-sonatype-blue-11: rgb(142, 179, 208);
+  --iq-sonatype-blue-12: rgb(121, 165, 198);
+  --iq-sonatype-blue-13: rgb(100, 151, 190);
+  --iq-sonatype-blue-14: rgb(91, 145, 187);
+  --iq-sonatype-blue-15: rgb(83, 139, 183);
+  --iq-sonatype-blue-16: rgb(74, 129, 170);
+  --iq-sonatype-blue-17: rgb(67, 117, 155);
+  --iq-sonatype-blue-18: rgb(63, 108, 143);
+  --iq-sonatype-blue-19: rgb(54, 93, 123);
+  --iq-sonatype-blue-20: rgb(47, 82, 109);
+  --iq-sonatype-blue-21: rgb(43, 74, 98);
+  --iq-sonatype-blue-22: rgb(40, 69, 91); /* Darkest */
+
+  @include nx-dark-mode-helpers.dark-mode {
+    --iq-sonatype-blue-1: var(--nx-swatch-purple-97); /* Lightest (used for score 0) */
+    --iq-sonatype-blue-2: var(--nx-swatch-purple-95);
+    --iq-sonatype-blue-3: var(--nx-swatch-purple-95);
+    --iq-sonatype-blue-4: var(--nx-swatch-purple-90);
+    --iq-sonatype-blue-5: var(--nx-swatch-purple-90);
+    --iq-sonatype-blue-6: var(--nx-swatch-purple-90);
+    --iq-sonatype-blue-7: var(--nx-swatch-purple-80);
+    --iq-sonatype-blue-8: var(--nx-swatch-purple-80);
+    --iq-sonatype-blue-9: var(--nx-swatch-purple-80);
+    --iq-sonatype-blue-10: var(--nx-swatch-purple-70);
+    --iq-sonatype-blue-11: var(--nx-swatch-purple-70);
+    --iq-sonatype-blue-12: var(--nx-swatch-purple-70);
+    --iq-sonatype-blue-13: var(--nx-swatch-purple-60);
+    --iq-sonatype-blue-14: var(--nx-swatch-purple-60);
+    --iq-sonatype-blue-15: var(--nx-swatch-purple-60);
+    --iq-sonatype-blue-16: var(--nx-swatch-purple-50);
+    --iq-sonatype-blue-17: var(--nx-swatch-purple-50);
+    --iq-sonatype-blue-18: var(--nx-swatch-purple-50);
+    --iq-sonatype-blue-19: var(--nx-swatch-purple-30);
+    --iq-sonatype-blue-20: var(--nx-swatch-purple-30);
+    --iq-sonatype-blue-21: var(--nx-swatch-purple-30);
+    --iq-sonatype-blue-22: var(--nx-swatch-purple-30); /* Darkest */
+  }
+}
+
+$iq-blue: #3d4e90;
+$iq-blue-xlight: #edeff7;
+$iq-blue-light: #dbdfed;
+$iq-blue-dark: #4f64ba;
+
+// Colour variables
+$iq-off-black: #070707;
+$iq-slate: #575757;
+$iq-off-white: #fefefe;
+
+$iq-grey-5: #b4b4b4;
+$iq-grey-4: #cacaca;
+$iq-grey-3: #dedede;
+$iq-grey-2: #eaeaea;
+$iq-grey-1: #f5f5f5;
+
+$iq-link-color: var(--nx-color-link);
+$iq-link-color-active: var(--nx-color-link-active);
+$iq-link-color-hover: var(--nx-color-link-hover);
+$iq-link-color-disabled: var(--nx-color-link-disabled);
+
+$iq-dark-blue: #006bbf;
+$iq-light-blue: #97cbee;
+$iq-rich-blue: #3da7fb;
+
+$iq-dark-purple: #885195;
+$iq-light-purple: #dbc6df;
+$iq-medium-purple: #b087ba;
+$iq-rich-purple: #c38cd0;
+
+$iq-dark-green: #099843;
+$iq-light-green: #b6e9ab;
+$iq-light-turquoise: #11a499;
+$iq-rich-turquoise: #1fb4a9;
+
+$iq-dark-red: #bc012f;
+$iq-light-red: #edb1af;
+
+$iq-orange: #f4861d;
+$iq-yellow: #f5c648;
+
+$iq-invalid-color: #c70000;
+$iq-valid-color: #84c900;
+
+// Was alert-fg & alert-bg
+$iq-warn-color: #9d6800;
+$iq-warn-color-bg: #fcf8e3;
+
+$iq-fail-color: #831d1d;
+$iq-fail-color-bg: #fce2e2;
+
+$iq-fail-color-active: #5c0000;
+$iq-fail-color-disabled: #dd9595;
+$iq-fail-color-hover: #5d0000;
+
+$pickable-colors: ('dark-blue', $iq-dark-blue), ('light-blue', $iq-light-blue), ('dark-green', $iq-dark-green),
+  ('light-green', $iq-light-green), ('orange', $iq-orange), ('dark-purple', $iq-dark-purple),
+  ('light-purple', $iq-light-purple), ('dark-red', $iq-dark-red), ('light-red', $iq-light-red), ('yellow', $iq-yellow);
+
+/*
+  ##Dependency Indicator Colors
+*/
+
+$iq-direct-dependency-light-mode: $iq-dark-blue;
+$iq-transitive-dependency-light-mode: $iq-dark-purple;
+$iq-inner-source-dependency-light-mode: $iq-light-turquoise;
+
+$iq-direct-dependency-dark-mode: $iq-rich-blue;
+$iq-transitive-dependency-dark-mode: $iq-rich-purple;
+$iq-inner-source-dependency-dark-mode: $iq-rich-turquoise;
+
+/*
+  ##Threat Colors
+*/
+// these policy threat colors are deprecated, please use $iq-threat-color-policy-* variables below
+$iq-threat-color-none: $iq-dark-blue;
+$iq-threat-color-low: $iq-dark-blue;
+$iq-threat-color-moderate: $iq-yellow;
+$iq-threat-color-severe: $iq-orange;
+$iq-threat-color-critical: $iq-dark-red;
+
+$iq-threat-color-unspecified: #d9dade;
+$iq-threat-color-ignore: $iq-light-blue;
+$iq-threat-color-policy-none: var(--nx-color-threat-none);
+$iq-threat-color-policy-low: var(--nx-color-threat-low);
+$iq-threat-color-policy-moderate: var(--nx-color-threat-moderate);
+$iq-threat-color-policy-severe: var(--nx-color-threat-severe);
+$iq-threat-color-policy-critical: var(--nx-color-threat-critical);
+
+$iq-threat-color-policy-none-light: #d9ecfb;
+$iq-threat-color-low-light: #92cbff;
+$iq-threat-color-moderate-light: #fdecaf;
+$iq-threat-color-severe-light: #ffd6a2;
+$iq-threat-color-critical-light: #ff9493;
+
+$threat-levels: ('none', #fff, $iq-threat-color-none, (0)), ('moderate', #444, $iq-threat-color-moderate, (1, 2, 3)),
+  ('severe', #fff, $iq-threat-color-severe, (4, 5, 6, 7)), ('critical', #fff, $iq-threat-color-critical, (8, 9, 10));
+
+$policy-threat-levels: ('none', #fff, $iq-threat-color-policy-none, (0)),
+  ('low', #444, $iq-threat-color-policy-low, (1)), ('moderate', #444, $iq-threat-color-policy-moderate, (2, 3)),
+  ('severe', #fff, $iq-threat-color-policy-severe, (4, 5, 6, 7)),
+  ('critical', #fff, $iq-threat-color-policy-critical, (8, 9, 10));
+
+$threat-bars: ('ignore', #fff, $iq-threat-color-ignore), ('unspecified', #fff, $iq-threat-color-unspecified);
+
+$nx-threat-levels: ('unspecified', --nx-color-threat-unspecified) ('none', --nx-color-threat-none),
+  ('low', --nx-color-threat-low), ('moderate', --nx-color-threat-moderate), ('severe', --nx-color-threat-severe),
+  ('critical', --nx-color-threat-critical);
+
+/*
+  #Content color variables
+*/
+$iq-main-background-color: $iq-grey-1;
+$iq-page-background: $iq-grey-1;
+$iq-content-background: $iq-grey-1;
+
+//  Text Colors
+$iq-text-color: $iq-off-black;
+$iq-text-color-light: $iq-slate;
+$iq-text-color-disabled: $iq-grey-4;
+$iq-text-color-error: $iq-fail-color;
+
+/*
+  #Borders
+*/
+$iq-border-darker: 1px solid $iq-slate;
+$iq-border-dark: 1px solid $iq-grey-4;
+$iq-border: 1px solid $iq-grey-3; // default
+$iq-border-light: 1px solid $iq-grey-2;
+$iq-border-lighter: 1px solid $iq-grey-1;
+$iq-border-error: 1px solid $iq-fail-color;
+
+// Border rows are used by lists and tables
+$iq-border-row: 1px solid $iq-grey-1;
+$iq-border-row-hover: 1px solid $iq-grey-4;
+$iq-border-row-disabled: 1px solid $iq-grey-1;
+$iq-border-row-dark: 1px solid $iq-grey-5;
+
+/*
+  #Margin/Padding widths
+*/
+$iq-spacing-xxs: 4px;
+$iq-spacing-xs: 8px;
+$iq-spacing-sm: 12px;
+$iq-spacing-md: 16px;
+$iq-spacing-l: 24px;
+$iq-spacing-xl: 32px;
+$iq-spacing-xxl: 64px;
+
+/*
+  #z-indexes
+  Gathered here for better visibility
+*/
+
+// Modal Z-indexes
+$iq-modal-backdrop-z-index: 1040;
+$iq-modal-z-index: 1050;
+
+$iq-color-picker-zindex: $iq-modal-backdrop-z-index - 10;
+$iq-form-mask-zindex: $iq-modal-z-index + 10;
+
+// This value is derived from bootstrap's tooltip z-index:
+$iq-tooltip-z-index: 1030;
+
+// need the login panel above the form save mask
+// ui-bootstrap modal window template sets z-index via ng-style, hence important
+$iq-login-modal-zindex: $iq-modal-z-index + 20 !important;
+
+// sidebar manage filter dropdown higher than main content
+$iq-sidebar-zindex: 4;
+
+// box-shadow to appear over scrollable contents
+$iq-dashboard-headers-zindex: 2;
+
+$iq-dashboard-mask-zindex: 1;
+
+/*
+  #Page elements
+*/
+$iq-page-width-max: 1366px;
+$iq-page-width-min: 1366px;
+$iq-content-width: 75.9%;
+$iq-sidebar-width: 100% - $iq-content-width;
+
+$iq-paragraph-width-maximum: 562px;
+
+$iq-cell-side-padding: 12px;
+$iq-cell-scroll-bar-width: 14px;
+
+$iq-alert-margin: 8px;
+
+$iq-scrollbar-width: 15px;
+
+$iq-scrollable-default-height: 400px;

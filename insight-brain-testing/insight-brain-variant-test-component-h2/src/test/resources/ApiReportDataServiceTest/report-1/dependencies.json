@@ -1,0 +1,6150 @@
+{
+  "dependencyGraph" : [ {
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "snakeyaml",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.yaml",
+          "version" : "1.27"
+        }
+      },
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "h2",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.h2database",
+          "version" : "1.4.200"
+        }
+      },
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jul-to-slf4j",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "1.7.32"
+        }
+      },
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "logback-classic",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "ch.qos.logback",
+          "version" : "1.2.4"
+        }
+      },
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "tomcat-embed-websocket",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.apache.tomcat.embed",
+          "version" : "9.0.50"
+        }
+      },
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-boot-actuator-autoconfigure",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.boot",
+          "version" : "2.4.9"
+        }
+      },
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-data-jdbc",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.data",
+          "version" : "2.1.11"
+        }
+      },
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-boot-jarmode-layertools",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.boot",
+          "version" : "2.4.9"
+        }
+      },
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "log4j-to-slf4j",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.apache.logging.log4j",
+          "version" : "2.13.3"
+        }
+      },
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jackson-module-parameter-names",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.fasterxml.jackson.module",
+          "version" : "2.11.4"
+        }
+      },
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "HikariCP",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.zaxxer",
+          "version" : "3.4.5"
+        }
+      },
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-data-rest-hal-explorer",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.data",
+          "version" : "3.4.11"
+        }
+      },
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jakarta.el",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.glassfish",
+          "version" : "3.0.3"
+        }
+      },
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "micrometer-registry-prometheus",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.micrometer",
+          "version" : "1.6.9"
+        }
+      },
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "hibernate-validator",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.hibernate.validator",
+          "version" : "6.1.7.Final"
+        }
+      },
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-cloud-starter-circuitbreaker-resilience4j",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.cloud",
+          "version" : "2.0.2"
+        }
+      },
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jakarta.annotation-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "jakarta.annotation",
+          "version" : "1.3.5"
+        }
+      },
+      "directDependency" : true
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "logback-classic",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ch.qos.logback",
+        "version" : "1.2.4"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "logback-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "ch.qos.logback",
+          "version" : "1.2.4"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "slf4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "1.7.32"
+        }
+      }
+    } ],
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "logback-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ch.qos.logback",
+        "version" : "1.2.4"
+      }
+    },
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "classmate",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml",
+        "version" : "1.5.1"
+      }
+    },
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-annotations",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.11.4"
+      }
+    },
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.11.4"
+      }
+    },
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.11.4"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jackson-annotations",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.fasterxml.jackson.core",
+          "version" : "2.11.4"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jackson-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.fasterxml.jackson.core",
+          "version" : "2.11.4"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-datatype-jdk8",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.datatype",
+        "version" : "2.11.4"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jackson-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.fasterxml.jackson.core",
+          "version" : "2.11.4"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jackson-databind",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.fasterxml.jackson.core",
+          "version" : "2.11.4"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-datatype-jsr310",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.datatype",
+        "version" : "2.11.4"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jackson-annotations",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.fasterxml.jackson.core",
+          "version" : "2.11.4"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jackson-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.fasterxml.jackson.core",
+          "version" : "2.11.4"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jackson-databind",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.fasterxml.jackson.core",
+          "version" : "2.11.4"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-module-parameter-names",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.module",
+        "version" : "2.11.4"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jackson-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.fasterxml.jackson.core",
+          "version" : "2.11.4"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jackson-databind",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.fasterxml.jackson.core",
+          "version" : "2.11.4"
+        }
+      }
+    } ],
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "h2",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.h2database",
+        "version" : "1.4.200"
+      }
+    },
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "json-path",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.jayway.jsonpath",
+        "version" : "2.4.0"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "json-smart",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "net.minidev",
+          "version" : "2.3.1"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "slf4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "1.7.32"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "HikariCP",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.zaxxer",
+        "version" : "3.4.5"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "slf4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "1.7.32"
+        }
+      }
+    } ],
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "resilience4j-annotations",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.github.resilience4j",
+        "version" : "1.7.0"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "vavr",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.vavr",
+          "version" : "0.10.2"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "slf4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "1.7.32"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "resilience4j-circuitbreaker",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.github.resilience4j",
+        "version" : "1.7.0"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "resilience4j-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.github.resilience4j",
+          "version" : "1.7.0"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "vavr",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.vavr",
+          "version" : "0.10.2"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "slf4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "1.7.32"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "resilience4j-circularbuffer",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.github.resilience4j",
+        "version" : "1.7.0"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "vavr",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.vavr",
+          "version" : "0.10.2"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "slf4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "1.7.32"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "resilience4j-consumer",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.github.resilience4j",
+        "version" : "1.7.0"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "resilience4j-circularbuffer",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.github.resilience4j",
+          "version" : "1.7.0"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "resilience4j-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.github.resilience4j",
+          "version" : "1.7.0"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "vavr",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.vavr",
+          "version" : "0.10.2"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "slf4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "1.7.32"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "resilience4j-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.github.resilience4j",
+        "version" : "1.7.0"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "vavr",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.vavr",
+          "version" : "0.10.2"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "slf4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "1.7.32"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "resilience4j-framework-common",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.github.resilience4j",
+        "version" : "1.7.0"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "resilience4j-circuitbreaker",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.github.resilience4j",
+          "version" : "1.7.0"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "resilience4j-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.github.resilience4j",
+          "version" : "1.7.0"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "resilience4j-ratelimiter",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.github.resilience4j",
+          "version" : "1.7.0"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "resilience4j-retry",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.github.resilience4j",
+          "version" : "1.7.0"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "resilience4j-timelimiter",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.github.resilience4j",
+          "version" : "1.7.0"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "vavr",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.vavr",
+          "version" : "0.10.2"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "slf4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "1.7.32"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "resilience4j-micrometer",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.github.resilience4j",
+        "version" : "1.7.0"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "vavr",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.vavr",
+          "version" : "0.10.2"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "slf4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "1.7.32"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "resilience4j-ratelimiter",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.github.resilience4j",
+        "version" : "1.7.0"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "resilience4j-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.github.resilience4j",
+          "version" : "1.7.0"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "vavr",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.vavr",
+          "version" : "0.10.2"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "slf4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "1.7.32"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "resilience4j-retry",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.github.resilience4j",
+        "version" : "1.7.0"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "resilience4j-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.github.resilience4j",
+          "version" : "1.7.0"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "vavr",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.vavr",
+          "version" : "0.10.2"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "slf4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "1.7.32"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "resilience4j-spring",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.github.resilience4j",
+        "version" : "1.7.0"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "resilience4j-annotations",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.github.resilience4j",
+          "version" : "1.7.0"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "resilience4j-consumer",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.github.resilience4j",
+          "version" : "1.7.0"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "resilience4j-framework-common",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.github.resilience4j",
+          "version" : "1.7.0"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "vavr",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.vavr",
+          "version" : "0.10.2"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "slf4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "1.7.32"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "resilience4j-spring-boot2",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.github.resilience4j",
+        "version" : "1.7.0"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "resilience4j-micrometer",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.github.resilience4j",
+          "version" : "1.7.0"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "resilience4j-spring",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.github.resilience4j",
+          "version" : "1.7.0"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "vavr",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.vavr",
+          "version" : "0.10.2"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "slf4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "1.7.32"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "resilience4j-timelimiter",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.github.resilience4j",
+        "version" : "1.7.0"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "resilience4j-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.github.resilience4j",
+          "version" : "1.7.0"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "vavr",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.vavr",
+          "version" : "0.10.2"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "slf4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "1.7.32"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "micrometer-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.micrometer",
+        "version" : "1.6.9"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "HdrHistogram",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.hdrhistogram",
+          "version" : "2.1.12"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "LatencyUtils",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.latencyutils",
+          "version" : "2.0.3"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "micrometer-registry-prometheus",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.micrometer",
+        "version" : "1.6.9"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "micrometer-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.micrometer",
+          "version" : "1.6.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "simpleclient_common",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.prometheus",
+          "version" : "0.9.0"
+        }
+      }
+    } ],
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "simpleclient",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.prometheus",
+        "version" : "0.9.0"
+      }
+    },
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "simpleclient_common",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.prometheus",
+        "version" : "0.9.0"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "simpleclient",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.prometheus",
+          "version" : "0.9.0"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "vavr",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.vavr",
+        "version" : "0.10.2"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "vavr-match",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.vavr",
+          "version" : "0.10.2"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "vavr-match",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.vavr",
+        "version" : "0.10.2"
+      }
+    },
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jakarta.annotation-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "jakarta.annotation",
+        "version" : "1.3.5"
+      }
+    },
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jakarta.validation-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "jakarta.validation",
+        "version" : "2.0.2"
+      }
+    },
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "accessors-smart",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.minidev",
+        "version" : "2.3.1"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "asm",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.ow2.asm",
+          "version" : "5.0.4"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "json-smart",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.minidev",
+        "version" : "2.3.1"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "accessors-smart",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "net.minidev",
+          "version" : "2.3.1"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "log4j-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.logging.log4j",
+        "version" : "2.13.3"
+      }
+    },
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "log4j-to-slf4j",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.logging.log4j",
+        "version" : "2.13.3"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "log4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.apache.logging.log4j",
+          "version" : "2.13.3"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "slf4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "1.7.32"
+        }
+      }
+    } ],
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "tomcat-embed-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.tomcat.embed",
+        "version" : "9.0.50"
+      }
+    },
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "tomcat-embed-websocket",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.tomcat.embed",
+        "version" : "9.0.50"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "tomcat-embed-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.apache.tomcat.embed",
+          "version" : "9.0.50"
+        }
+      }
+    } ],
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "evo-inflector",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.atteo",
+        "version" : "1.2.2"
+      }
+    },
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "bcpkix-jdk15on",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.bouncycastle",
+        "version" : "1.68"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "bcprov-jdk15on",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.bouncycastle",
+          "version" : "1.68"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "bcprov-jdk15on",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.bouncycastle",
+        "version" : "1.68"
+      }
+    },
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jakarta.el",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.glassfish",
+        "version" : "3.0.3"
+      }
+    },
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "HdrHistogram",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.hdrhistogram",
+        "version" : "2.1.12"
+      }
+    },
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "hibernate-validator",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.hibernate.validator",
+        "version" : "6.1.7.Final"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "classmate",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.fasterxml",
+          "version" : "1.5.1"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jakarta.validation-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "jakarta.validation",
+          "version" : "2.0.2"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jboss-logging",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.jboss.logging",
+          "version" : "3.4.2.Final"
+        }
+      }
+    } ],
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jboss-logging",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.jboss.logging",
+        "version" : "3.4.2.Final"
+      }
+    },
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "LatencyUtils",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.latencyutils",
+        "version" : "2.0.3"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "HdrHistogram",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.hdrhistogram",
+          "version" : "2.1.12"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "asm",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.ow2.asm",
+        "version" : "5.0.4"
+      }
+    },
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jul-to-slf4j",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.slf4j",
+        "version" : "1.7.32"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "slf4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "1.7.32"
+        }
+      }
+    } ],
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "slf4j-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.slf4j",
+        "version" : "1.7.32"
+      }
+    },
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-aop",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.9"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-beans",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-beans",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.9"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-context",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.9"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-aop",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-beans",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-expression",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.9"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-jcl",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-expression",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.9"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-jcl",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.9"
+      }
+    },
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-jdbc",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.9"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-beans",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-tx",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-tx",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.9"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-beans",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-web",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.9"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-beans",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-webmvc",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.9"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-aop",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-beans",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-context",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-expression",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-web",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-boot",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.boot",
+        "version" : "2.4.9"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-context",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-boot-actuator",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.boot",
+        "version" : "2.4.9"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-boot",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.boot",
+          "version" : "2.4.9"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-boot-actuator-autoconfigure",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.boot",
+        "version" : "2.4.9"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jackson-databind",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.fasterxml.jackson.core",
+          "version" : "2.11.4"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jackson-datatype-jsr310",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.fasterxml.jackson.datatype",
+          "version" : "2.11.4"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-boot",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.boot",
+          "version" : "2.4.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-boot-actuator",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.boot",
+          "version" : "2.4.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-boot-autoconfigure",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.boot",
+          "version" : "2.4.9"
+        }
+      }
+    } ],
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-boot-autoconfigure",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.boot",
+        "version" : "2.4.9"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-boot",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.boot",
+          "version" : "2.4.9"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-boot-jarmode-layertools",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.boot",
+        "version" : "2.4.9"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    } ],
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-cloud-circuitbreaker-resilience4j",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.cloud",
+        "version" : "2.0.2"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "resilience4j-circuitbreaker",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.github.resilience4j",
+          "version" : "1.7.0"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "resilience4j-spring-boot2",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.github.resilience4j",
+          "version" : "1.7.0"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "resilience4j-timelimiter",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.github.resilience4j",
+          "version" : "1.7.0"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-cloud-commons",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.cloud",
+          "version" : "3.0.3"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-cloud-commons",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.cloud",
+        "version" : "3.0.3"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-security-crypto",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.security",
+          "version" : "5.4.7"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-cloud-context",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.cloud",
+        "version" : "3.0.3"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-security-crypto",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.security",
+          "version" : "5.4.7"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-cloud-starter",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.cloud",
+        "version" : "3.0.3"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-cloud-commons",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.cloud",
+          "version" : "3.0.3"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-cloud-context",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.cloud",
+          "version" : "3.0.3"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-security-rsa",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.security",
+          "version" : "1.0.10.RELEASE"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-cloud-starter-circuitbreaker-resilience4j",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.cloud",
+        "version" : "2.0.2"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "resilience4j-circuitbreaker",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.github.resilience4j",
+          "version" : "1.7.0"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "resilience4j-timelimiter",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.github.resilience4j",
+          "version" : "1.7.0"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-cloud-circuitbreaker-resilience4j",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.cloud",
+          "version" : "2.0.2"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-cloud-starter",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.cloud",
+          "version" : "3.0.3"
+        }
+      }
+    } ],
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-data-commons",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.data",
+        "version" : "2.4.11"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "slf4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "1.7.32"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-beans",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-data-jdbc",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.data",
+        "version" : "2.1.11"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "slf4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "1.7.32"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-beans",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-context",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-jdbc",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-tx",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-data-commons",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.data",
+          "version" : "2.4.11"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-data-relational",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.data",
+          "version" : "2.1.11"
+        }
+      }
+    } ],
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-data-relational",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.data",
+        "version" : "2.1.11"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "slf4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "1.7.32"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-beans",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-context",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-tx",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-data-commons",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.data",
+          "version" : "2.4.11"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-data-rest-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.data",
+        "version" : "3.4.11"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jackson-annotations",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.fasterxml.jackson.core",
+          "version" : "2.11.4"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jackson-datatype-jdk8",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.fasterxml.jackson.datatype",
+          "version" : "2.11.4"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "evo-inflector",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.atteo",
+          "version" : "1.2.2"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "slf4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "1.7.32"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-tx",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-webmvc",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-data-commons",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.data",
+          "version" : "2.4.11"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-hateoas",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.hateoas",
+          "version" : "1.2.8"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-plugin-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.plugin",
+          "version" : "2.0.0.RELEASE"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-data-rest-hal-explorer",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.data",
+        "version" : "3.4.11"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "slf4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "1.7.32"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-data-rest-webmvc",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.data",
+          "version" : "3.4.11"
+        }
+      }
+    } ],
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-data-rest-webmvc",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.data",
+        "version" : "3.4.11"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jackson-annotations",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.fasterxml.jackson.core",
+          "version" : "2.11.4"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jackson-databind",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.fasterxml.jackson.core",
+          "version" : "2.11.4"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "slf4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "1.7.32"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-webmvc",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-data-rest-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.data",
+          "version" : "3.4.11"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-hateoas",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.hateoas",
+        "version" : "1.2.8"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "json-path",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.jayway.jsonpath",
+          "version" : "2.4.0"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "json-smart",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "net.minidev",
+          "version" : "2.3.1"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "slf4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "1.7.32"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-aop",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-beans",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-context",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-web",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-plugin-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.plugin",
+          "version" : "2.0.0.RELEASE"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-plugin-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.plugin",
+        "version" : "2.0.0.RELEASE"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "slf4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "1.7.32"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-aop",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-beans",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-context",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-security-crypto",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.security",
+        "version" : "5.4.7"
+      }
+    },
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-security-rsa",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.security",
+        "version" : "1.0.10.RELEASE"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "bcpkix-jdk15on",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.bouncycastle",
+          "version" : "1.68"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework",
+          "version" : "5.3.9"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-security-crypto",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.security",
+          "version" : "5.4.7"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "snakeyaml",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.yaml",
+        "version" : "1.27"
+      }
+    },
+    "directDependency" : true
+  } ],
+  "gavDepths" : {
+    "ch.qos.logback:logback-classic:1.2.4" : [ 1 ],
+    "org.springframework:spring-jdbc:5.3.9" : [ 2 ],
+    "org.springframework.hateoas:spring-hateoas:1.2.8" : [ 4 ],
+    "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.11.4" : [ 2 ],
+    "org.hibernate.validator:hibernate-validator:6.1.7.Final" : [ 1 ],
+    "org.springframework.boot:spring-boot-actuator-autoconfigure:2.4.9" : [ 1 ],
+    "org.springframework:spring-expression:5.3.9" : [ 4 ],
+    "org.springframework.plugin:spring-plugin-core:2.0.0.RELEASE" : [ 4, 5 ],
+    "org.latencyutils:LatencyUtils:2.0.3" : [ 3 ],
+    "io.prometheus:simpleclient_common:0.9.0" : [ 2 ],
+    "org.springframework.data:spring-data-rest-webmvc:3.4.11" : [ 2 ],
+    "org.apache.logging.log4j:log4j-api:2.13.3" : [ 2 ],
+    "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.11.4" : [ 4 ],
+    "org.springframework.cloud:spring-cloud-context:3.0.3" : [ 3 ],
+    "org.apache.logging.log4j:log4j-to-slf4j:2.13.3" : [ 1 ],
+    "org.springframework.boot:spring-boot-jarmode-layertools:2.4.9" : [ 1 ],
+    "com.fasterxml.jackson.core:jackson-annotations:2.11.4" : [ 3, 4 ],
+    "org.springframework.boot:spring-boot-actuator:2.4.9" : [ 2 ],
+    "org.springframework.data:spring-data-rest-core:3.4.11" : [ 3 ],
+    "net.minidev:json-smart:2.3.1" : [ 5, 6 ],
+    "com.h2database:h2:1.4.200" : [ 1 ],
+    "org.slf4j:slf4j-api:1.7.32" : [ 2, 3, 4, 5, 6, 7 ],
+    "ch.qos.logback:logback-core:1.2.4" : [ 2 ],
+    "org.bouncycastle:bcprov-jdk15on:1.68" : [ 5 ],
+    "com.fasterxml.jackson.core:jackson-databind:2.11.4" : [ 2, 3, 5 ],
+    "io.vavr:vavr-match:0.10.2" : [ 5 ],
+    "org.apache.tomcat.embed:tomcat-embed-websocket:9.0.50" : [ 1 ],
+    "io.micrometer:micrometer-registry-prometheus:1.6.9" : [ 1 ],
+    "org.springframework:spring-aop:5.3.9" : [ 4, 5, 6 ],
+    "io.micrometer:micrometer-core:1.6.9" : [ 2 ],
+    "org.springframework.security:spring-security-rsa:1.0.10.RELEASE" : [ 3 ],
+    "io.github.resilience4j:resilience4j-framework-common:1.7.0" : [ 5 ],
+    "org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j:2.0.2" : [ 1 ],
+    "io.github.resilience4j:resilience4j-consumer:1.7.0" : [ 5 ],
+    "io.github.resilience4j:resilience4j-annotations:1.7.0" : [ 5 ],
+    "io.github.resilience4j:resilience4j-circuitbreaker:1.7.0" : [ 2, 3, 6 ],
+    "org.springframework.boot:spring-boot:2.4.9" : [ 2, 3 ],
+    "org.springframework.cloud:spring-cloud-circuitbreaker-resilience4j:2.0.2" : [ 2 ],
+    "org.springframework.data:spring-data-commons:2.4.11" : [ 2, 3, 4 ],
+    "org.glassfish:jakarta.el:3.0.3" : [ 1 ],
+    "org.slf4j:jul-to-slf4j:1.7.32" : [ 1 ],
+    "io.github.resilience4j:resilience4j-ratelimiter:1.7.0" : [ 6 ],
+    "io.github.resilience4j:resilience4j-retry:1.7.0" : [ 6 ],
+    "org.ow2.asm:asm:5.0.4" : [ 8 ],
+    "org.hdrhistogram:HdrHistogram:2.1.12" : [ 3, 4 ],
+    "org.springframework:spring-webmvc:5.3.9" : [ 3, 4 ],
+    "com.fasterxml:classmate:1.5.1" : [ 2 ],
+    "io.vavr:vavr:0.10.2" : [ 3, 4, 5, 6, 7 ],
+    "org.springframework:spring-core:5.3.9" : [ 2, 3, 4, 5, 6 ],
+    "org.springframework.data:spring-data-relational:2.1.11" : [ 2 ],
+    "net.minidev:accessors-smart:2.3.1" : [ 7 ],
+    "io.github.resilience4j:resilience4j-spring:1.7.0" : [ 4 ],
+    "io.github.resilience4j:resilience4j-core:1.7.0" : [ 3, 6, 7 ],
+    "org.springframework.cloud:spring-cloud-commons:3.0.3" : [ 3 ],
+    "org.springframework:spring-context:5.3.9" : [ 2, 3, 4, 5, 6 ],
+    "org.yaml:snakeyaml:1.27" : [ 1 ],
+    "org.springframework:spring-tx:5.3.9" : [ 2, 3, 4 ],
+    "org.springframework.data:spring-data-jdbc:2.1.11" : [ 1 ],
+    "org.springframework:spring-jcl:5.3.9" : [ 7 ],
+    "io.github.resilience4j:resilience4j-circularbuffer:1.7.0" : [ 6 ],
+    "org.atteo:evo-inflector:1.2.2" : [ 4 ],
+    "jakarta.validation:jakarta.validation-api:2.0.2" : [ 2 ],
+    "io.github.resilience4j:resilience4j-spring-boot2:1.7.0" : [ 3 ],
+    "org.bouncycastle:bcpkix-jdk15on:1.68" : [ 4 ],
+    "com.fasterxml.jackson.module:jackson-module-parameter-names:2.11.4" : [ 1 ],
+    "com.zaxxer:HikariCP:3.4.5" : [ 1 ],
+    "io.github.resilience4j:resilience4j-micrometer:1.7.0" : [ 4 ],
+    "org.springframework.security:spring-security-crypto:5.4.7" : [ 4 ],
+    "jakarta.annotation:jakarta.annotation-api:1.3.5" : [ 1 ],
+    "com.fasterxml.jackson.core:jackson-core:2.11.4" : [ 2, 3, 5 ],
+    "org.springframework.cloud:spring-cloud-starter:3.0.3" : [ 2 ],
+    "org.springframework.data:spring-data-rest-hal-explorer:3.4.11" : [ 1 ],
+    "org.jboss.logging:jboss-logging:3.4.2.Final" : [ 2 ],
+    "com.jayway.jsonpath:json-path:2.4.0" : [ 5 ],
+    "org.apache.tomcat.embed:tomcat-embed-core:9.0.50" : [ 2 ],
+    "io.prometheus:simpleclient:0.9.0" : [ 3 ],
+    "org.springframework.boot:spring-boot-autoconfigure:2.4.9" : [ 2 ],
+    "io.github.resilience4j:resilience4j-timelimiter:1.7.0" : [ 2, 3, 6 ],
+    "org.springframework:spring-beans:5.3.9" : [ 2, 3, 4, 5, 6 ],
+    "org.springframework:spring-web:5.3.9" : [ 4, 5 ]
+  },
+  "componentDepths" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "snakeyaml",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.yaml",
+        "version" : "1.27"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "h2",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.h2database",
+        "version" : "1.4.200"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jul-to-slf4j",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.slf4j",
+        "version" : "1.7.32"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "slf4j-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.slf4j",
+        "version" : "1.7.32"
+      }
+    },
+    "depths" : [ 2, 3, 4, 5, 6, 7 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "logback-classic",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ch.qos.logback",
+        "version" : "1.2.4"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "logback-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ch.qos.logback",
+        "version" : "1.2.4"
+      }
+    },
+    "depths" : [ 2 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "tomcat-embed-websocket",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.tomcat.embed",
+        "version" : "9.0.50"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "tomcat-embed-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.tomcat.embed",
+        "version" : "9.0.50"
+      }
+    },
+    "depths" : [ 2 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-boot-actuator-autoconfigure",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.boot",
+        "version" : "2.4.9"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.11.4"
+      }
+    },
+    "depths" : [ 2, 3, 5 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-annotations",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.11.4"
+      }
+    },
+    "depths" : [ 3, 4 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.11.4"
+      }
+    },
+    "depths" : [ 2, 3, 5 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-datatype-jsr310",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.datatype",
+        "version" : "2.11.4"
+      }
+    },
+    "depths" : [ 2 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-boot",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.boot",
+        "version" : "2.4.9"
+      }
+    },
+    "depths" : [ 2, 3 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-context",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.9"
+      }
+    },
+    "depths" : [ 2, 3, 4, 5, 6 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-aop",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.9"
+      }
+    },
+    "depths" : [ 4, 5, 6 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-beans",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.9"
+      }
+    },
+    "depths" : [ 2, 3, 4, 5, 6 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.9"
+      }
+    },
+    "depths" : [ 2, 3, 4, 5, 6 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-jcl",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.9"
+      }
+    },
+    "depths" : [ 7 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-expression",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.9"
+      }
+    },
+    "depths" : [ 4 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-boot-actuator",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.boot",
+        "version" : "2.4.9"
+      }
+    },
+    "depths" : [ 2 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-boot-autoconfigure",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.boot",
+        "version" : "2.4.9"
+      }
+    },
+    "depths" : [ 2 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-data-jdbc",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.data",
+        "version" : "2.1.11"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-jdbc",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.9"
+      }
+    },
+    "depths" : [ 2 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-tx",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.9"
+      }
+    },
+    "depths" : [ 2, 3, 4 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-data-commons",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.data",
+        "version" : "2.4.11"
+      }
+    },
+    "depths" : [ 2, 3, 4 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-data-relational",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.data",
+        "version" : "2.1.11"
+      }
+    },
+    "depths" : [ 2 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-boot-jarmode-layertools",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.boot",
+        "version" : "2.4.9"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "log4j-to-slf4j",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.logging.log4j",
+        "version" : "2.13.3"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "log4j-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.logging.log4j",
+        "version" : "2.13.3"
+      }
+    },
+    "depths" : [ 2 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-module-parameter-names",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.module",
+        "version" : "2.11.4"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "HikariCP",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.zaxxer",
+        "version" : "3.4.5"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-data-rest-hal-explorer",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.data",
+        "version" : "3.4.11"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-data-rest-webmvc",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.data",
+        "version" : "3.4.11"
+      }
+    },
+    "depths" : [ 2 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-webmvc",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.9"
+      }
+    },
+    "depths" : [ 3, 4 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-web",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "5.3.9"
+      }
+    },
+    "depths" : [ 4, 5 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-data-rest-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.data",
+        "version" : "3.4.11"
+      }
+    },
+    "depths" : [ 3 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-datatype-jdk8",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.datatype",
+        "version" : "2.11.4"
+      }
+    },
+    "depths" : [ 4 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "evo-inflector",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.atteo",
+        "version" : "1.2.2"
+      }
+    },
+    "depths" : [ 4 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-hateoas",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.hateoas",
+        "version" : "1.2.8"
+      }
+    },
+    "depths" : [ 4 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "json-path",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.jayway.jsonpath",
+        "version" : "2.4.0"
+      }
+    },
+    "depths" : [ 5 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "json-smart",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.minidev",
+        "version" : "2.3.1"
+      }
+    },
+    "depths" : [ 5, 6 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "accessors-smart",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.minidev",
+        "version" : "2.3.1"
+      }
+    },
+    "depths" : [ 7 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "asm",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.ow2.asm",
+        "version" : "5.0.4"
+      }
+    },
+    "depths" : [ 8 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-plugin-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.plugin",
+        "version" : "2.0.0.RELEASE"
+      }
+    },
+    "depths" : [ 4, 5 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jakarta.el",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.glassfish",
+        "version" : "3.0.3"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "micrometer-registry-prometheus",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.micrometer",
+        "version" : "1.6.9"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "micrometer-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.micrometer",
+        "version" : "1.6.9"
+      }
+    },
+    "depths" : [ 2 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "HdrHistogram",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.hdrhistogram",
+        "version" : "2.1.12"
+      }
+    },
+    "depths" : [ 3, 4 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "LatencyUtils",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.latencyutils",
+        "version" : "2.0.3"
+      }
+    },
+    "depths" : [ 3 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "simpleclient_common",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.prometheus",
+        "version" : "0.9.0"
+      }
+    },
+    "depths" : [ 2 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "simpleclient",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.prometheus",
+        "version" : "0.9.0"
+      }
+    },
+    "depths" : [ 3 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "hibernate-validator",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.hibernate.validator",
+        "version" : "6.1.7.Final"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "classmate",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml",
+        "version" : "1.5.1"
+      }
+    },
+    "depths" : [ 2 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jakarta.validation-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "jakarta.validation",
+        "version" : "2.0.2"
+      }
+    },
+    "depths" : [ 2 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jboss-logging",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.jboss.logging",
+        "version" : "3.4.2.Final"
+      }
+    },
+    "depths" : [ 2 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-cloud-starter-circuitbreaker-resilience4j",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.cloud",
+        "version" : "2.0.2"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "resilience4j-circuitbreaker",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.github.resilience4j",
+        "version" : "1.7.0"
+      }
+    },
+    "depths" : [ 2, 3, 6 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "resilience4j-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.github.resilience4j",
+        "version" : "1.7.0"
+      }
+    },
+    "depths" : [ 3, 6, 7 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "vavr",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.vavr",
+        "version" : "0.10.2"
+      }
+    },
+    "depths" : [ 3, 4, 5, 6, 7 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "vavr-match",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.vavr",
+        "version" : "0.10.2"
+      }
+    },
+    "depths" : [ 5 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "resilience4j-timelimiter",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.github.resilience4j",
+        "version" : "1.7.0"
+      }
+    },
+    "depths" : [ 2, 3, 6 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-cloud-circuitbreaker-resilience4j",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.cloud",
+        "version" : "2.0.2"
+      }
+    },
+    "depths" : [ 2 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "resilience4j-spring-boot2",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.github.resilience4j",
+        "version" : "1.7.0"
+      }
+    },
+    "depths" : [ 3 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "resilience4j-micrometer",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.github.resilience4j",
+        "version" : "1.7.0"
+      }
+    },
+    "depths" : [ 4 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "resilience4j-spring",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.github.resilience4j",
+        "version" : "1.7.0"
+      }
+    },
+    "depths" : [ 4 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "resilience4j-annotations",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.github.resilience4j",
+        "version" : "1.7.0"
+      }
+    },
+    "depths" : [ 5 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "resilience4j-consumer",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.github.resilience4j",
+        "version" : "1.7.0"
+      }
+    },
+    "depths" : [ 5 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "resilience4j-circularbuffer",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.github.resilience4j",
+        "version" : "1.7.0"
+      }
+    },
+    "depths" : [ 6 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "resilience4j-framework-common",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.github.resilience4j",
+        "version" : "1.7.0"
+      }
+    },
+    "depths" : [ 5 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "resilience4j-ratelimiter",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.github.resilience4j",
+        "version" : "1.7.0"
+      }
+    },
+    "depths" : [ 6 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "resilience4j-retry",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.github.resilience4j",
+        "version" : "1.7.0"
+      }
+    },
+    "depths" : [ 6 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-cloud-commons",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.cloud",
+        "version" : "3.0.3"
+      }
+    },
+    "depths" : [ 3 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-security-crypto",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.security",
+        "version" : "5.4.7"
+      }
+    },
+    "depths" : [ 4 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-cloud-starter",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.cloud",
+        "version" : "3.0.3"
+      }
+    },
+    "depths" : [ 2 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-cloud-context",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.cloud",
+        "version" : "3.0.3"
+      }
+    },
+    "depths" : [ 3 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-security-rsa",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.security",
+        "version" : "1.0.10.RELEASE"
+      }
+    },
+    "depths" : [ 3 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "bcpkix-jdk15on",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.bouncycastle",
+        "version" : "1.68"
+      }
+    },
+    "depths" : [ 4 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "bcprov-jdk15on",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.bouncycastle",
+        "version" : "1.68"
+      }
+    },
+    "depths" : [ 5 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jakarta.annotation-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "jakarta.annotation",
+        "version" : "1.3.5"
+      }
+    },
+    "depths" : [ 1 ]
+  } ],
+  "dependencyTree" : {
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "snakeyaml",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.yaml",
+          "version" : "1.27"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "h2",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.h2database",
+          "version" : "1.4.200"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jul-to-slf4j",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "1.7.32"
+        }
+      },
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "slf4j-api",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.slf4j",
+            "version" : "1.7.32"
+          }
+        }
+      } ]
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "logback-classic",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "ch.qos.logback",
+          "version" : "1.2.4"
+        }
+      },
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "logback-core",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "ch.qos.logback",
+            "version" : "1.2.4"
+          }
+        }
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "slf4j-api",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.slf4j",
+            "version" : "1.7.32"
+          }
+        }
+      } ]
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "tomcat-embed-websocket",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.apache.tomcat.embed",
+          "version" : "9.0.50"
+        }
+      },
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "tomcat-embed-core",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.apache.tomcat.embed",
+            "version" : "9.0.50"
+          }
+        }
+      } ]
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-boot-actuator-autoconfigure",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.boot",
+          "version" : "2.4.9"
+        }
+      },
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "jackson-databind",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.fasterxml.jackson.core",
+            "version" : "2.11.4"
+          }
+        },
+        "children" : [ {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "jackson-annotations",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "com.fasterxml.jackson.core",
+              "version" : "2.11.4"
+            }
+          }
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "jackson-core",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "com.fasterxml.jackson.core",
+              "version" : "2.11.4"
+            }
+          }
+        } ]
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "jackson-datatype-jsr310",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.fasterxml.jackson.datatype",
+            "version" : "2.11.4"
+          }
+        },
+        "children" : [ {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "jackson-annotations",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "com.fasterxml.jackson.core",
+              "version" : "2.11.4"
+            }
+          }
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "jackson-core",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "com.fasterxml.jackson.core",
+              "version" : "2.11.4"
+            }
+          }
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "jackson-databind",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "com.fasterxml.jackson.core",
+              "version" : "2.11.4"
+            }
+          }
+        } ]
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "spring-boot",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.springframework.boot",
+            "version" : "2.4.9"
+          }
+        },
+        "children" : [ {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "spring-context",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.springframework",
+              "version" : "5.3.9"
+            }
+          },
+          "children" : [ {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "spring-aop",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "org.springframework",
+                "version" : "5.3.9"
+              }
+            },
+            "children" : [ {
+              "componentIdentifier" : {
+                "format" : "maven",
+                "coordinates" : {
+                  "artifactId" : "spring-beans",
+                  "classifier" : "",
+                  "extension" : "jar",
+                  "groupId" : "org.springframework",
+                  "version" : "5.3.9"
+                }
+              },
+              "children" : [ {
+                "componentIdentifier" : {
+                  "format" : "maven",
+                  "coordinates" : {
+                    "artifactId" : "spring-core",
+                    "classifier" : "",
+                    "extension" : "jar",
+                    "groupId" : "org.springframework",
+                    "version" : "5.3.9"
+                  }
+                },
+                "children" : [ {
+                  "componentIdentifier" : {
+                    "format" : "maven",
+                    "coordinates" : {
+                      "artifactId" : "spring-jcl",
+                      "classifier" : "",
+                      "extension" : "jar",
+                      "groupId" : "org.springframework",
+                      "version" : "5.3.9"
+                    }
+                  }
+                } ]
+              } ]
+            }, {
+              "componentIdentifier" : {
+                "format" : "maven",
+                "coordinates" : {
+                  "artifactId" : "spring-core",
+                  "classifier" : "",
+                  "extension" : "jar",
+                  "groupId" : "org.springframework",
+                  "version" : "5.3.9"
+                }
+              }
+            } ]
+          }, {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "spring-beans",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "org.springframework",
+                "version" : "5.3.9"
+              }
+            }
+          }, {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "spring-core",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "org.springframework",
+                "version" : "5.3.9"
+              }
+            }
+          }, {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "spring-expression",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "org.springframework",
+                "version" : "5.3.9"
+              }
+            },
+            "children" : [ {
+              "componentIdentifier" : {
+                "format" : "maven",
+                "coordinates" : {
+                  "artifactId" : "spring-core",
+                  "classifier" : "",
+                  "extension" : "jar",
+                  "groupId" : "org.springframework",
+                  "version" : "5.3.9"
+                }
+              }
+            } ]
+          } ]
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "spring-core",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.springframework",
+              "version" : "5.3.9"
+            }
+          }
+        } ]
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "spring-boot-actuator",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.springframework.boot",
+            "version" : "2.4.9"
+          }
+        },
+        "children" : [ {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "spring-boot",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.springframework.boot",
+              "version" : "2.4.9"
+            }
+          }
+        } ]
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "spring-boot-autoconfigure",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.springframework.boot",
+            "version" : "2.4.9"
+          }
+        },
+        "children" : [ {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "spring-boot",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.springframework.boot",
+              "version" : "2.4.9"
+            }
+          }
+        } ]
+      } ]
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-data-jdbc",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.data",
+          "version" : "2.1.11"
+        }
+      },
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "slf4j-api",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.slf4j",
+            "version" : "1.7.32"
+          }
+        }
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "spring-beans",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.springframework",
+            "version" : "5.3.9"
+          }
+        }
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "spring-context",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.springframework",
+            "version" : "5.3.9"
+          }
+        }
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "spring-core",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.springframework",
+            "version" : "5.3.9"
+          }
+        }
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "spring-jdbc",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.springframework",
+            "version" : "5.3.9"
+          }
+        },
+        "children" : [ {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "spring-beans",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.springframework",
+              "version" : "5.3.9"
+            }
+          }
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "spring-core",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.springframework",
+              "version" : "5.3.9"
+            }
+          }
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "spring-tx",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.springframework",
+              "version" : "5.3.9"
+            }
+          },
+          "children" : [ {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "spring-beans",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "org.springframework",
+                "version" : "5.3.9"
+              }
+            }
+          }, {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "spring-core",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "org.springframework",
+                "version" : "5.3.9"
+              }
+            }
+          } ]
+        } ]
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "spring-tx",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.springframework",
+            "version" : "5.3.9"
+          }
+        }
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "spring-data-commons",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.springframework.data",
+            "version" : "2.4.11"
+          }
+        },
+        "children" : [ {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "slf4j-api",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.slf4j",
+              "version" : "1.7.32"
+            }
+          }
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "spring-beans",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.springframework",
+              "version" : "5.3.9"
+            }
+          }
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "spring-core",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.springframework",
+              "version" : "5.3.9"
+            }
+          }
+        } ]
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "spring-data-relational",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.springframework.data",
+            "version" : "2.1.11"
+          }
+        },
+        "children" : [ {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "slf4j-api",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.slf4j",
+              "version" : "1.7.32"
+            }
+          }
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "spring-beans",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.springframework",
+              "version" : "5.3.9"
+            }
+          }
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "spring-context",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.springframework",
+              "version" : "5.3.9"
+            }
+          }
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "spring-core",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.springframework",
+              "version" : "5.3.9"
+            }
+          }
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "spring-tx",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.springframework",
+              "version" : "5.3.9"
+            }
+          }
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "spring-data-commons",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.springframework.data",
+              "version" : "2.4.11"
+            }
+          }
+        } ]
+      } ]
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-boot-jarmode-layertools",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.boot",
+          "version" : "2.4.9"
+        }
+      },
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "spring-core",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.springframework",
+            "version" : "5.3.9"
+          }
+        }
+      } ]
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "log4j-to-slf4j",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.apache.logging.log4j",
+          "version" : "2.13.3"
+        }
+      },
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "log4j-api",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.apache.logging.log4j",
+            "version" : "2.13.3"
+          }
+        }
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "slf4j-api",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.slf4j",
+            "version" : "1.7.32"
+          }
+        }
+      } ]
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jackson-module-parameter-names",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.fasterxml.jackson.module",
+          "version" : "2.11.4"
+        }
+      },
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "jackson-core",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.fasterxml.jackson.core",
+            "version" : "2.11.4"
+          }
+        }
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "jackson-databind",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.fasterxml.jackson.core",
+            "version" : "2.11.4"
+          }
+        }
+      } ]
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "HikariCP",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.zaxxer",
+          "version" : "3.4.5"
+        }
+      },
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "slf4j-api",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.slf4j",
+            "version" : "1.7.32"
+          }
+        }
+      } ]
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-data-rest-hal-explorer",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.data",
+          "version" : "3.4.11"
+        }
+      },
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "slf4j-api",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.slf4j",
+            "version" : "1.7.32"
+          }
+        }
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "spring-data-rest-webmvc",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.springframework.data",
+            "version" : "3.4.11"
+          }
+        },
+        "children" : [ {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "jackson-annotations",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "com.fasterxml.jackson.core",
+              "version" : "2.11.4"
+            }
+          }
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "jackson-databind",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "com.fasterxml.jackson.core",
+              "version" : "2.11.4"
+            }
+          }
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "slf4j-api",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.slf4j",
+              "version" : "1.7.32"
+            }
+          }
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "spring-webmvc",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.springframework",
+              "version" : "5.3.9"
+            }
+          },
+          "children" : [ {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "spring-aop",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "org.springframework",
+                "version" : "5.3.9"
+              }
+            }
+          }, {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "spring-beans",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "org.springframework",
+                "version" : "5.3.9"
+              }
+            }
+          }, {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "spring-context",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "org.springframework",
+                "version" : "5.3.9"
+              }
+            }
+          }, {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "spring-core",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "org.springframework",
+                "version" : "5.3.9"
+              }
+            }
+          }, {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "spring-expression",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "org.springframework",
+                "version" : "5.3.9"
+              }
+            }
+          }, {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "spring-web",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "org.springframework",
+                "version" : "5.3.9"
+              }
+            },
+            "children" : [ {
+              "componentIdentifier" : {
+                "format" : "maven",
+                "coordinates" : {
+                  "artifactId" : "spring-beans",
+                  "classifier" : "",
+                  "extension" : "jar",
+                  "groupId" : "org.springframework",
+                  "version" : "5.3.9"
+                }
+              }
+            }, {
+              "componentIdentifier" : {
+                "format" : "maven",
+                "coordinates" : {
+                  "artifactId" : "spring-core",
+                  "classifier" : "",
+                  "extension" : "jar",
+                  "groupId" : "org.springframework",
+                  "version" : "5.3.9"
+                }
+              }
+            } ]
+          } ]
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "spring-data-rest-core",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.springframework.data",
+              "version" : "3.4.11"
+            }
+          },
+          "children" : [ {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "jackson-annotations",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "com.fasterxml.jackson.core",
+                "version" : "2.11.4"
+              }
+            }
+          }, {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "jackson-datatype-jdk8",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "com.fasterxml.jackson.datatype",
+                "version" : "2.11.4"
+              }
+            },
+            "children" : [ {
+              "componentIdentifier" : {
+                "format" : "maven",
+                "coordinates" : {
+                  "artifactId" : "jackson-core",
+                  "classifier" : "",
+                  "extension" : "jar",
+                  "groupId" : "com.fasterxml.jackson.core",
+                  "version" : "2.11.4"
+                }
+              }
+            }, {
+              "componentIdentifier" : {
+                "format" : "maven",
+                "coordinates" : {
+                  "artifactId" : "jackson-databind",
+                  "classifier" : "",
+                  "extension" : "jar",
+                  "groupId" : "com.fasterxml.jackson.core",
+                  "version" : "2.11.4"
+                }
+              }
+            } ]
+          }, {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "evo-inflector",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "org.atteo",
+                "version" : "1.2.2"
+              }
+            }
+          }, {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "slf4j-api",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "org.slf4j",
+                "version" : "1.7.32"
+              }
+            }
+          }, {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "spring-tx",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "org.springframework",
+                "version" : "5.3.9"
+              }
+            }
+          }, {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "spring-webmvc",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "org.springframework",
+                "version" : "5.3.9"
+              }
+            }
+          }, {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "spring-data-commons",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "org.springframework.data",
+                "version" : "2.4.11"
+              }
+            }
+          }, {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "spring-hateoas",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "org.springframework.hateoas",
+                "version" : "1.2.8"
+              }
+            },
+            "children" : [ {
+              "componentIdentifier" : {
+                "format" : "maven",
+                "coordinates" : {
+                  "artifactId" : "json-path",
+                  "classifier" : "",
+                  "extension" : "jar",
+                  "groupId" : "com.jayway.jsonpath",
+                  "version" : "2.4.0"
+                }
+              },
+              "children" : [ {
+                "componentIdentifier" : {
+                  "format" : "maven",
+                  "coordinates" : {
+                    "artifactId" : "json-smart",
+                    "classifier" : "",
+                    "extension" : "jar",
+                    "groupId" : "net.minidev",
+                    "version" : "2.3.1"
+                  }
+                },
+                "children" : [ {
+                  "componentIdentifier" : {
+                    "format" : "maven",
+                    "coordinates" : {
+                      "artifactId" : "accessors-smart",
+                      "classifier" : "",
+                      "extension" : "jar",
+                      "groupId" : "net.minidev",
+                      "version" : "2.3.1"
+                    }
+                  },
+                  "children" : [ {
+                    "componentIdentifier" : {
+                      "format" : "maven",
+                      "coordinates" : {
+                        "artifactId" : "asm",
+                        "classifier" : "",
+                        "extension" : "jar",
+                        "groupId" : "org.ow2.asm",
+                        "version" : "5.0.4"
+                      }
+                    }
+                  } ]
+                } ]
+              }, {
+                "componentIdentifier" : {
+                  "format" : "maven",
+                  "coordinates" : {
+                    "artifactId" : "slf4j-api",
+                    "classifier" : "",
+                    "extension" : "jar",
+                    "groupId" : "org.slf4j",
+                    "version" : "1.7.32"
+                  }
+                }
+              } ]
+            }, {
+              "componentIdentifier" : {
+                "format" : "maven",
+                "coordinates" : {
+                  "artifactId" : "json-smart",
+                  "classifier" : "",
+                  "extension" : "jar",
+                  "groupId" : "net.minidev",
+                  "version" : "2.3.1"
+                }
+              }
+            }, {
+              "componentIdentifier" : {
+                "format" : "maven",
+                "coordinates" : {
+                  "artifactId" : "slf4j-api",
+                  "classifier" : "",
+                  "extension" : "jar",
+                  "groupId" : "org.slf4j",
+                  "version" : "1.7.32"
+                }
+              }
+            }, {
+              "componentIdentifier" : {
+                "format" : "maven",
+                "coordinates" : {
+                  "artifactId" : "spring-aop",
+                  "classifier" : "",
+                  "extension" : "jar",
+                  "groupId" : "org.springframework",
+                  "version" : "5.3.9"
+                }
+              }
+            }, {
+              "componentIdentifier" : {
+                "format" : "maven",
+                "coordinates" : {
+                  "artifactId" : "spring-beans",
+                  "classifier" : "",
+                  "extension" : "jar",
+                  "groupId" : "org.springframework",
+                  "version" : "5.3.9"
+                }
+              }
+            }, {
+              "componentIdentifier" : {
+                "format" : "maven",
+                "coordinates" : {
+                  "artifactId" : "spring-context",
+                  "classifier" : "",
+                  "extension" : "jar",
+                  "groupId" : "org.springframework",
+                  "version" : "5.3.9"
+                }
+              }
+            }, {
+              "componentIdentifier" : {
+                "format" : "maven",
+                "coordinates" : {
+                  "artifactId" : "spring-core",
+                  "classifier" : "",
+                  "extension" : "jar",
+                  "groupId" : "org.springframework",
+                  "version" : "5.3.9"
+                }
+              }
+            }, {
+              "componentIdentifier" : {
+                "format" : "maven",
+                "coordinates" : {
+                  "artifactId" : "spring-web",
+                  "classifier" : "",
+                  "extension" : "jar",
+                  "groupId" : "org.springframework",
+                  "version" : "5.3.9"
+                }
+              }
+            }, {
+              "componentIdentifier" : {
+                "format" : "maven",
+                "coordinates" : {
+                  "artifactId" : "spring-plugin-core",
+                  "classifier" : "",
+                  "extension" : "jar",
+                  "groupId" : "org.springframework.plugin",
+                  "version" : "2.0.0.RELEASE"
+                }
+              },
+              "children" : [ {
+                "componentIdentifier" : {
+                  "format" : "maven",
+                  "coordinates" : {
+                    "artifactId" : "slf4j-api",
+                    "classifier" : "",
+                    "extension" : "jar",
+                    "groupId" : "org.slf4j",
+                    "version" : "1.7.32"
+                  }
+                }
+              }, {
+                "componentIdentifier" : {
+                  "format" : "maven",
+                  "coordinates" : {
+                    "artifactId" : "spring-aop",
+                    "classifier" : "",
+                    "extension" : "jar",
+                    "groupId" : "org.springframework",
+                    "version" : "5.3.9"
+                  }
+                }
+              }, {
+                "componentIdentifier" : {
+                  "format" : "maven",
+                  "coordinates" : {
+                    "artifactId" : "spring-beans",
+                    "classifier" : "",
+                    "extension" : "jar",
+                    "groupId" : "org.springframework",
+                    "version" : "5.3.9"
+                  }
+                }
+              }, {
+                "componentIdentifier" : {
+                  "format" : "maven",
+                  "coordinates" : {
+                    "artifactId" : "spring-context",
+                    "classifier" : "",
+                    "extension" : "jar",
+                    "groupId" : "org.springframework",
+                    "version" : "5.3.9"
+                  }
+                }
+              } ]
+            } ]
+          }, {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "spring-plugin-core",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "org.springframework.plugin",
+                "version" : "2.0.0.RELEASE"
+              }
+            }
+          } ]
+        } ]
+      } ]
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jakarta.el",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.glassfish",
+          "version" : "3.0.3"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "micrometer-registry-prometheus",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.micrometer",
+          "version" : "1.6.9"
+        }
+      },
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "micrometer-core",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "io.micrometer",
+            "version" : "1.6.9"
+          }
+        },
+        "children" : [ {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "HdrHistogram",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.hdrhistogram",
+              "version" : "2.1.12"
+            }
+          }
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "LatencyUtils",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.latencyutils",
+              "version" : "2.0.3"
+            }
+          },
+          "children" : [ {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "HdrHistogram",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "org.hdrhistogram",
+                "version" : "2.1.12"
+              }
+            }
+          } ]
+        } ]
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "simpleclient_common",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "io.prometheus",
+            "version" : "0.9.0"
+          }
+        },
+        "children" : [ {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "simpleclient",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "io.prometheus",
+              "version" : "0.9.0"
+            }
+          }
+        } ]
+      } ]
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "hibernate-validator",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.hibernate.validator",
+          "version" : "6.1.7.Final"
+        }
+      },
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "classmate",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.fasterxml",
+            "version" : "1.5.1"
+          }
+        }
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "jakarta.validation-api",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "jakarta.validation",
+            "version" : "2.0.2"
+          }
+        }
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "jboss-logging",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.jboss.logging",
+            "version" : "3.4.2.Final"
+          }
+        }
+      } ]
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "spring-cloud-starter-circuitbreaker-resilience4j",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.springframework.cloud",
+          "version" : "2.0.2"
+        }
+      },
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "resilience4j-circuitbreaker",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "io.github.resilience4j",
+            "version" : "1.7.0"
+          }
+        },
+        "children" : [ {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "resilience4j-core",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "io.github.resilience4j",
+              "version" : "1.7.0"
+            }
+          },
+          "children" : [ {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "vavr",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "io.vavr",
+                "version" : "0.10.2"
+              }
+            },
+            "children" : [ {
+              "componentIdentifier" : {
+                "format" : "maven",
+                "coordinates" : {
+                  "artifactId" : "vavr-match",
+                  "classifier" : "",
+                  "extension" : "jar",
+                  "groupId" : "io.vavr",
+                  "version" : "0.10.2"
+                }
+              }
+            } ]
+          }, {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "slf4j-api",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "org.slf4j",
+                "version" : "1.7.32"
+              }
+            }
+          } ]
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "vavr",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "io.vavr",
+              "version" : "0.10.2"
+            }
+          }
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "slf4j-api",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.slf4j",
+              "version" : "1.7.32"
+            }
+          }
+        } ]
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "resilience4j-timelimiter",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "io.github.resilience4j",
+            "version" : "1.7.0"
+          }
+        },
+        "children" : [ {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "resilience4j-core",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "io.github.resilience4j",
+              "version" : "1.7.0"
+            }
+          }
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "vavr",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "io.vavr",
+              "version" : "0.10.2"
+            }
+          }
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "slf4j-api",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.slf4j",
+              "version" : "1.7.32"
+            }
+          }
+        } ]
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "spring-cloud-circuitbreaker-resilience4j",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.springframework.cloud",
+            "version" : "2.0.2"
+          }
+        },
+        "children" : [ {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "resilience4j-circuitbreaker",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "io.github.resilience4j",
+              "version" : "1.7.0"
+            }
+          }
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "resilience4j-spring-boot2",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "io.github.resilience4j",
+              "version" : "1.7.0"
+            }
+          },
+          "children" : [ {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "resilience4j-micrometer",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "io.github.resilience4j",
+                "version" : "1.7.0"
+              }
+            },
+            "children" : [ {
+              "componentIdentifier" : {
+                "format" : "maven",
+                "coordinates" : {
+                  "artifactId" : "vavr",
+                  "classifier" : "",
+                  "extension" : "jar",
+                  "groupId" : "io.vavr",
+                  "version" : "0.10.2"
+                }
+              }
+            }, {
+              "componentIdentifier" : {
+                "format" : "maven",
+                "coordinates" : {
+                  "artifactId" : "slf4j-api",
+                  "classifier" : "",
+                  "extension" : "jar",
+                  "groupId" : "org.slf4j",
+                  "version" : "1.7.32"
+                }
+              }
+            } ]
+          }, {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "resilience4j-spring",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "io.github.resilience4j",
+                "version" : "1.7.0"
+              }
+            },
+            "children" : [ {
+              "componentIdentifier" : {
+                "format" : "maven",
+                "coordinates" : {
+                  "artifactId" : "resilience4j-annotations",
+                  "classifier" : "",
+                  "extension" : "jar",
+                  "groupId" : "io.github.resilience4j",
+                  "version" : "1.7.0"
+                }
+              },
+              "children" : [ {
+                "componentIdentifier" : {
+                  "format" : "maven",
+                  "coordinates" : {
+                    "artifactId" : "vavr",
+                    "classifier" : "",
+                    "extension" : "jar",
+                    "groupId" : "io.vavr",
+                    "version" : "0.10.2"
+                  }
+                }
+              }, {
+                "componentIdentifier" : {
+                  "format" : "maven",
+                  "coordinates" : {
+                    "artifactId" : "slf4j-api",
+                    "classifier" : "",
+                    "extension" : "jar",
+                    "groupId" : "org.slf4j",
+                    "version" : "1.7.32"
+                  }
+                }
+              } ]
+            }, {
+              "componentIdentifier" : {
+                "format" : "maven",
+                "coordinates" : {
+                  "artifactId" : "resilience4j-consumer",
+                  "classifier" : "",
+                  "extension" : "jar",
+                  "groupId" : "io.github.resilience4j",
+                  "version" : "1.7.0"
+                }
+              },
+              "children" : [ {
+                "componentIdentifier" : {
+                  "format" : "maven",
+                  "coordinates" : {
+                    "artifactId" : "resilience4j-circularbuffer",
+                    "classifier" : "",
+                    "extension" : "jar",
+                    "groupId" : "io.github.resilience4j",
+                    "version" : "1.7.0"
+                  }
+                },
+                "children" : [ {
+                  "componentIdentifier" : {
+                    "format" : "maven",
+                    "coordinates" : {
+                      "artifactId" : "vavr",
+                      "classifier" : "",
+                      "extension" : "jar",
+                      "groupId" : "io.vavr",
+                      "version" : "0.10.2"
+                    }
+                  }
+                }, {
+                  "componentIdentifier" : {
+                    "format" : "maven",
+                    "coordinates" : {
+                      "artifactId" : "slf4j-api",
+                      "classifier" : "",
+                      "extension" : "jar",
+                      "groupId" : "org.slf4j",
+                      "version" : "1.7.32"
+                    }
+                  }
+                } ]
+              }, {
+                "componentIdentifier" : {
+                  "format" : "maven",
+                  "coordinates" : {
+                    "artifactId" : "resilience4j-core",
+                    "classifier" : "",
+                    "extension" : "jar",
+                    "groupId" : "io.github.resilience4j",
+                    "version" : "1.7.0"
+                  }
+                }
+              }, {
+                "componentIdentifier" : {
+                  "format" : "maven",
+                  "coordinates" : {
+                    "artifactId" : "vavr",
+                    "classifier" : "",
+                    "extension" : "jar",
+                    "groupId" : "io.vavr",
+                    "version" : "0.10.2"
+                  }
+                }
+              }, {
+                "componentIdentifier" : {
+                  "format" : "maven",
+                  "coordinates" : {
+                    "artifactId" : "slf4j-api",
+                    "classifier" : "",
+                    "extension" : "jar",
+                    "groupId" : "org.slf4j",
+                    "version" : "1.7.32"
+                  }
+                }
+              } ]
+            }, {
+              "componentIdentifier" : {
+                "format" : "maven",
+                "coordinates" : {
+                  "artifactId" : "resilience4j-framework-common",
+                  "classifier" : "",
+                  "extension" : "jar",
+                  "groupId" : "io.github.resilience4j",
+                  "version" : "1.7.0"
+                }
+              },
+              "children" : [ {
+                "componentIdentifier" : {
+                  "format" : "maven",
+                  "coordinates" : {
+                    "artifactId" : "resilience4j-circuitbreaker",
+                    "classifier" : "",
+                    "extension" : "jar",
+                    "groupId" : "io.github.resilience4j",
+                    "version" : "1.7.0"
+                  }
+                }
+              }, {
+                "componentIdentifier" : {
+                  "format" : "maven",
+                  "coordinates" : {
+                    "artifactId" : "resilience4j-core",
+                    "classifier" : "",
+                    "extension" : "jar",
+                    "groupId" : "io.github.resilience4j",
+                    "version" : "1.7.0"
+                  }
+                }
+              }, {
+                "componentIdentifier" : {
+                  "format" : "maven",
+                  "coordinates" : {
+                    "artifactId" : "resilience4j-ratelimiter",
+                    "classifier" : "",
+                    "extension" : "jar",
+                    "groupId" : "io.github.resilience4j",
+                    "version" : "1.7.0"
+                  }
+                },
+                "children" : [ {
+                  "componentIdentifier" : {
+                    "format" : "maven",
+                    "coordinates" : {
+                      "artifactId" : "resilience4j-core",
+                      "classifier" : "",
+                      "extension" : "jar",
+                      "groupId" : "io.github.resilience4j",
+                      "version" : "1.7.0"
+                    }
+                  }
+                }, {
+                  "componentIdentifier" : {
+                    "format" : "maven",
+                    "coordinates" : {
+                      "artifactId" : "vavr",
+                      "classifier" : "",
+                      "extension" : "jar",
+                      "groupId" : "io.vavr",
+                      "version" : "0.10.2"
+                    }
+                  }
+                }, {
+                  "componentIdentifier" : {
+                    "format" : "maven",
+                    "coordinates" : {
+                      "artifactId" : "slf4j-api",
+                      "classifier" : "",
+                      "extension" : "jar",
+                      "groupId" : "org.slf4j",
+                      "version" : "1.7.32"
+                    }
+                  }
+                } ]
+              }, {
+                "componentIdentifier" : {
+                  "format" : "maven",
+                  "coordinates" : {
+                    "artifactId" : "resilience4j-retry",
+                    "classifier" : "",
+                    "extension" : "jar",
+                    "groupId" : "io.github.resilience4j",
+                    "version" : "1.7.0"
+                  }
+                },
+                "children" : [ {
+                  "componentIdentifier" : {
+                    "format" : "maven",
+                    "coordinates" : {
+                      "artifactId" : "resilience4j-core",
+                      "classifier" : "",
+                      "extension" : "jar",
+                      "groupId" : "io.github.resilience4j",
+                      "version" : "1.7.0"
+                    }
+                  }
+                }, {
+                  "componentIdentifier" : {
+                    "format" : "maven",
+                    "coordinates" : {
+                      "artifactId" : "vavr",
+                      "classifier" : "",
+                      "extension" : "jar",
+                      "groupId" : "io.vavr",
+                      "version" : "0.10.2"
+                    }
+                  }
+                }, {
+                  "componentIdentifier" : {
+                    "format" : "maven",
+                    "coordinates" : {
+                      "artifactId" : "slf4j-api",
+                      "classifier" : "",
+                      "extension" : "jar",
+                      "groupId" : "org.slf4j",
+                      "version" : "1.7.32"
+                    }
+                  }
+                } ]
+              }, {
+                "componentIdentifier" : {
+                  "format" : "maven",
+                  "coordinates" : {
+                    "artifactId" : "resilience4j-timelimiter",
+                    "classifier" : "",
+                    "extension" : "jar",
+                    "groupId" : "io.github.resilience4j",
+                    "version" : "1.7.0"
+                  }
+                }
+              }, {
+                "componentIdentifier" : {
+                  "format" : "maven",
+                  "coordinates" : {
+                    "artifactId" : "vavr",
+                    "classifier" : "",
+                    "extension" : "jar",
+                    "groupId" : "io.vavr",
+                    "version" : "0.10.2"
+                  }
+                }
+              }, {
+                "componentIdentifier" : {
+                  "format" : "maven",
+                  "coordinates" : {
+                    "artifactId" : "slf4j-api",
+                    "classifier" : "",
+                    "extension" : "jar",
+                    "groupId" : "org.slf4j",
+                    "version" : "1.7.32"
+                  }
+                }
+              } ]
+            }, {
+              "componentIdentifier" : {
+                "format" : "maven",
+                "coordinates" : {
+                  "artifactId" : "vavr",
+                  "classifier" : "",
+                  "extension" : "jar",
+                  "groupId" : "io.vavr",
+                  "version" : "0.10.2"
+                }
+              }
+            }, {
+              "componentIdentifier" : {
+                "format" : "maven",
+                "coordinates" : {
+                  "artifactId" : "slf4j-api",
+                  "classifier" : "",
+                  "extension" : "jar",
+                  "groupId" : "org.slf4j",
+                  "version" : "1.7.32"
+                }
+              }
+            } ]
+          }, {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "vavr",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "io.vavr",
+                "version" : "0.10.2"
+              }
+            }
+          }, {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "slf4j-api",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "org.slf4j",
+                "version" : "1.7.32"
+              }
+            }
+          } ]
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "resilience4j-timelimiter",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "io.github.resilience4j",
+              "version" : "1.7.0"
+            }
+          }
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "spring-cloud-commons",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.springframework.cloud",
+              "version" : "3.0.3"
+            }
+          },
+          "children" : [ {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "spring-security-crypto",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "org.springframework.security",
+                "version" : "5.4.7"
+              }
+            }
+          } ]
+        } ]
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "spring-cloud-starter",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.springframework.cloud",
+            "version" : "3.0.3"
+          }
+        },
+        "children" : [ {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "spring-cloud-commons",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.springframework.cloud",
+              "version" : "3.0.3"
+            }
+          }
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "spring-cloud-context",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.springframework.cloud",
+              "version" : "3.0.3"
+            }
+          },
+          "children" : [ {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "spring-security-crypto",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "org.springframework.security",
+                "version" : "5.4.7"
+              }
+            }
+          } ]
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "spring-security-rsa",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.springframework.security",
+              "version" : "1.0.10.RELEASE"
+            }
+          },
+          "children" : [ {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "bcpkix-jdk15on",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "org.bouncycastle",
+                "version" : "1.68"
+              }
+            },
+            "children" : [ {
+              "componentIdentifier" : {
+                "format" : "maven",
+                "coordinates" : {
+                  "artifactId" : "bcprov-jdk15on",
+                  "classifier" : "",
+                  "extension" : "jar",
+                  "groupId" : "org.bouncycastle",
+                  "version" : "1.68"
+                }
+              }
+            } ]
+          }, {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "spring-core",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "org.springframework",
+                "version" : "5.3.9"
+              }
+            }
+          }, {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "spring-security-crypto",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "org.springframework.security",
+                "version" : "5.4.7"
+              }
+            }
+          } ]
+        } ]
+      } ]
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jakarta.annotation-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "jakarta.annotation",
+          "version" : "1.3.5"
+        }
+      }
+    } ]
+  }
+}

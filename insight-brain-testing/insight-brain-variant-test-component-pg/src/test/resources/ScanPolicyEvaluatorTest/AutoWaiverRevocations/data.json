@@ -1,0 +1,274 @@
+{
+  "weakcopyleftLicenseCount" : 2,
+  "keyFindings" : [ {
+    "text" : "Multiple directory traversal vulnerabilities could allow remote attackers to upload files to arbitrary directories via directory traversal sequences in multiple areas.",
+    "sv" : {
+      "source" : "cve",
+      "reference" : "CVE-2008-5518",
+      "groupId" : "org.apache.geronimo.framework",
+      "artifactId" : "geronimo-security",
+      "version" : "2.1"
+    }
+  }, {
+    "text" : "Multiple directory traversal vulnerabilities could allow remote attackers to upload files to arbitrary directories via directory traversal sequences in multiple areas.",
+    "sv" : {
+      "source" : "osvdb",
+      "reference" : "53927",
+      "groupId" : "org.apache.geronimo.framework",
+      "artifactId" : "geronimo-security",
+      "version" : "2.1"
+    }
+  }, {
+    "text" : "Multiple directory traversal vulnerabilities could allow remote attackers to upload files to arbitrary directories via directory traversal sequences in multiple areas.",
+    "sv" : {
+      "source" : "osvdb",
+      "reference" : "53928",
+      "groupId" : "org.apache.geronimo.framework",
+      "artifactId" : "geronimo-security",
+      "version" : "2.1"
+    }
+  }, {
+    "text" : "Multiple directory traversal vulnerabilities could allow remote attackers to upload files to arbitrary directories via directory traversal sequences in multiple areas.",
+    "sv" : {
+      "source" : "osvdb",
+      "reference" : "53929",
+      "groupId" : "org.apache.geronimo.framework",
+      "artifactId" : "geronimo-security",
+      "version" : "2.1"
+    }
+  }, {
+    "text" : "Multiple cross-site request forgery (CSRF) vulnerabilities could allow remote attackers to hijack the authentication of administrators for requests.",
+    "sv" : {
+      "source" : "osvdb",
+      "reference" : "53932",
+      "groupId" : "org.apache.geronimo.framework",
+      "artifactId" : "geronimo-security",
+      "version" : "2.1"
+    }
+  }, {
+    "text" : "Remote attackers could modify potentially sensitive AX information without detection via a man-in-the-middle (MITM) attack.",
+    "sv" : {
+      "source" : "cve",
+      "reference" : "CVE-2011-4314",
+      "groupId" : "org.openid4java",
+      "artifactId" : "openid4java",
+      "version" : "0.9.5"
+    }
+  }, {
+    "text" : "Remote attackers could modify potentially sensitive AX information without detection via a man-in-the-middle (MITM) attack.",
+    "sv" : {
+      "source" : "osvdb",
+      "reference" : "73737",
+      "groupId" : "org.openid4java",
+      "artifactId" : "openid4java",
+      "version" : "0.9.5"
+    }
+  }, {
+    "text" : "Sensitive information such as session IDs could be leaked to remote attackers and enable session hijacking attacks.",
+    "sv" : {
+      "source" : "cve",
+      "reference" : "CVE-2007-5333",
+      "groupId" : "tomcat",
+      "artifactId" : "tomcat-util",
+      "version" : "5.5.23"
+    }
+  }, {
+    "text" : "Remote attackers could cause a denial of service (DoS) via a request that contains many parameters and parameter values.",
+    "sv" : {
+      "source" : "cve",
+      "reference" : "CVE-2012-0022",
+      "groupId" : "tomcat",
+      "artifactId" : "tomcat-util",
+      "version" : "5.5.23"
+    }
+  }, {
+    "text" : "Sensitive information such as session IDs could be leaked to remote attackers and enable session hijacking attacks.",
+    "sv" : {
+      "source" : "osvdb",
+      "reference" : "41435",
+      "groupId" : "tomcat",
+      "artifactId" : "tomcat-util",
+      "version" : "5.4.23"
+    }
+  }, {
+    "text" : "Remote attackers could access arbitrary files via directory traversal sequences in the URL.",
+    "sv" : {
+      "source" : "cve",
+      "reference" : "CVE-2009-1523",
+      "groupId" : "org.mortbay.jetty",
+      "artifactId" : "jetty",
+      "version" : "6.1.15"
+    }
+  }, {
+    "text" : "Remote attackers could cause a denial of service (CPU consumption) by sending many crafted parameters.",
+    "sv" : {
+      "source" : "cve",
+      "reference" : "CVE-2011-4461",
+      "groupId" : "org.mortbay.jetty",
+      "artifactId" : "jetty",
+      "version" : "6.1.15"
+    }
+  }, {
+    "text" : "Remote attackers could access arbitrary files via directory traversal sequences in the URL.",
+    "sv" : {
+      "source" : "osvdb",
+      "reference" : "54186",
+      "groupId" : "org.mortbay.jetty",
+      "artifactId" : "jetty",
+      "version" : "6.1.15"
+    }
+  }, {
+    "text" : "Remote attackers could cause a denial of service (CPU consumption) by sending many crafted parameters.",
+    "sv" : {
+      "source" : "osvdb",
+      "reference" : "78117",
+      "groupId" : "org.mortbay.jetty",
+      "artifactId" : "jetty",
+      "version" : "6.1.15"
+    }
+  }, {
+    "text" : "Local users could bypass intended file access restrictions or cause a denial of service (infinite loop or JVM crash) by leveraging an untrusted web application.",
+    "sv" : {
+      "source" : "cve",
+      "reference" : "CVE-2011-2526",
+      "groupId" : "tomcat",
+      "artifactId" : "tomcat-util",
+      "version" : "5.5.23"
+    }
+  }, {
+    "text" : "Local users could bypass intended file access restrictions or cause a denial of service (infinite loop or JVM crash) by leveraging an untrusted web application.",
+    "sv" : {
+      "source" : "osvdb",
+      "reference" : "73797",
+      "groupId" : "tomcat",
+      "artifactId" : "tomcat-util",
+      "version" : "5.5.23"
+    }
+  }, {
+    "text" : "Local users could bypass intended file access restrictions or cause a denial of service (infinite loop or JVM crash) by leveraging an untrusted web application.",
+    "sv" : {
+      "source" : "osvdb",
+      "reference" : "73798",
+      "groupId" : "tomcat",
+      "artifactId" : "tomcat-util",
+      "version" : "5.5.23"
+    }
+  }, {
+    "text" : "Local users could bypass intended file access restrictions or cause a denial of service (infinite loop or JVM crash) by leveraging an untrusted web application.",
+    "sv" : {
+      "source" : "cve",
+      "reference" : "CVE-2011-2526",
+      "groupId" : "tomcat",
+      "artifactId" : "servlets-default",
+      "version" : "5.5.4"
+    }
+  }, {
+    "text" : "Local users could bypass intended file access restrictions or cause a denial of service (infinite loop or JVM crash) by leveraging an untrusted web application.",
+    "sv" : {
+      "source" : "osvdb",
+      "reference" : "73797",
+      "groupId" : "tomcat",
+      "artifactId" : "servlets-default",
+      "version" : "5.5.4"
+    }
+  }, {
+    "text" : "Local users could bypass intended file access restrictions or cause a denial of service (infinite loop or JVM crash) by leveraging an untrusted web application.",
+    "sv" : {
+      "source" : "osvdb",
+      "reference" : "73798",
+      "groupId" : "tomcat",
+      "artifactId" : "servlets-default",
+      "version" : "5.5.4"
+    }
+  }, {
+    "text" : "Character sequences in cookie values are not properly handled, which could cause sensitive information such as session IDs to be leaked to remote attackers and enable session hijacking attacks.",
+    "sv" : {
+      "source" : "cve",
+      "reference" : "CVE-2007-3385",
+      "groupId" : "tomcat",
+      "artifactId" : "tomcat-util",
+      "version" : "5.5.23"
+    }
+  }, {
+    "text" : "Character sequences in cookie values are not properly handled, which could cause sensitive information such as session IDs to be leaked to remote attackers and enable session hijacking attacks.",
+    "sv" : {
+      "source" : "osvdb",
+      "reference" : "37071",
+      "groupId" : "tomcat",
+      "artifactId" : "tomcat-util",
+      "version" : "5.5.23"
+    }
+  }, {
+    "text" : "Cross-site scripting (XSS) vulnerability could allow remote attackers to inject arbitrary web script or HTML via a directory listing request containing a ; (semicolon) character.",
+    "sv" : {
+      "source" : "osvdb",
+      "reference" : "54187",
+      "groupId" : "org.mortbay.jetty",
+      "artifactId" : "jetty",
+      "version" : "6.1.15"
+    }
+  }, {
+    "text" : "Multiple cross-site scripting (XSS) vulnerabilities could allow remote attackers to inject arbitrary web script or HTML.",
+    "sv" : {
+      "source" : "osvdb",
+      "reference" : "53930",
+      "groupId" : "org.apache.geronimo.framework",
+      "artifactId" : "geronimo-security",
+      "version" : "2.1"
+    }
+  }, {
+    "text" : "Multiple cross-site scripting (XSS) vulnerabilities could allow remote attackers to inject arbitrary web script or HTML.",
+    "sv" : {
+      "source" : "osvdb",
+      "reference" : "53931",
+      "groupId" : "org.apache.geronimo.framework",
+      "artifactId" : "geronimo-security",
+      "version" : "2.1"
+    }
+  }, {
+    "text" : "Cross-site scripting (XSS) vulnerability could allow remote attackers to inject arbitrary web script or HTML via the name parameter.",
+    "sv" : {
+      "source" : "cve",
+      "reference" : "CVE-2008-1947",
+      "groupId" : "tomcat",
+      "artifactId" : "catalina-host-manager",
+      "version" : "5.5.23"
+    }
+  }, {
+    "text" : "Cross-site scripting (XSS) vulnerability could allow remote attackers to inject arbitrary web script or HTML via the name parameter.",
+    "sv" : {
+      "source" : "osvdb",
+      "reference" : "45905",
+      "groupId" : "tomcat",
+      "artifactId" : "catalina-host-manager",
+      "version" : "5.5.23"
+    }
+  }, {
+    "text" : "Multiple cross-site scripting (XSS) vulnerabilities could allow remote authenticated users to inject arbitrary web script or HTML via a parameter name.",
+    "sv" : {
+      "source" : "cve",
+      "reference" : "CVE-2007-2450",
+      "groupId" : "tomcat",
+      "artifactId" : "catalina-host-manager",
+      "version" : "5.5.23"
+    }
+  }, {
+    "text" : "Multiple cross-site scripting (XSS) vulnerabilities could allow remote authenticated users to inject arbitrary web script or HTML via a parameter name.",
+    "sv" : {
+      "source" : "osvdb",
+      "reference" : "36079",
+      "groupId" : "tomcat",
+      "artifactId" : "catalina-host-manager",
+      "version" : "5.5.23"
+    }
+  } ],
+  "securityCounts" : [ 0, 4, 0, 0, 2, 12, 15, 2, 0, 1 ],
+  "nonStandardLicenseCount" : 2,
+  "copyleftLicenseCount" : 3,
+  "liberalLicenseCount" : 20,
+  "notProvidedLicenseCount" : 1,
+  "securityPunchCard" : [ [ 4, 11, 3 ], [ 0, 18, 0 ], [ 0, 12, 0 ], [ 0, 6, 0 ], [ 0, 6, 0 ] ],
+  "licensePunchCard" : [ [ 1, 2, 2 ], [ 2, 1, 0 ], [ 1, 0, 0 ], [ 0, 1, 0 ], [ 0, 1, 0 ] ],
+  "insecureArtifactCount" : 7,
+  "commitHash" : "testCommitHash"
+}

@@ -1,0 +1,147 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
+#iq-policy-violations-table {
+  margin-bottom: 0;
+}
+
+.iq-policy-violations-table {
+  &.nx-table {
+    // overflow override to properly display dropdowns on the final row
+    overflow: visible;
+  }
+
+  > tbody {
+    .nx-table-row {
+      .nx-cell {
+        ul {
+          margin: 0;
+          padding: 0;
+          list-style-type: none;
+        }
+
+        li {
+          @include nx-container-helpers.container-horizontal;
+        }
+      }
+
+      .nx-cell.disabled {
+        svg {
+          color: var(--nx-color-text-disabled);
+        }
+      }
+    }
+
+    .iq-policy-violation-row {
+      --actions-and-indicators--min-size: 190px;
+
+      .iq-policy-violation__request-waivers-btn,
+      .iq-policy-violation__waivers-dropdown-btn {
+        font-size: var(--nx-font-size-s);
+        padding: var(--nx-spacing-base);
+        min-width: var(--actions-and-indicators--min-size);
+        margin-bottom: var(--nx-spacing-2x);
+        margin-left: auto;
+        margin-right: auto;
+
+        &.disabled {
+          pointer-events: none;
+        }
+      }
+
+      .iq-policy-violation-row__policy-name-and-action-cell {
+        > span {
+          @include nx-text-helpers.bold;
+        }
+      }
+
+      .expires-in {
+        font-size: var(--nx-font-size-xs);
+        line-height: var(--nx-spacing-4x);
+        margin-top: var(--nx-spacing-base);
+      }
+
+      .iq-policy-violation-row__actions-and-indicators-cell {
+        min-width: var(--actions-and-indicators--min-size);
+        text-align: center;
+
+        .iq-waiver-indicator {
+          color: unset;
+          height: unset;
+
+          .iq-waiver-indicator-auto-tag {
+            margin-top: var(--nx-spacing-base);
+          }
+        }
+
+        .iq-policy-violation-status {
+          justify-content: flex-start;
+        }
+
+        // All indicators are inside div containers since they require multiple elements
+        // we take advantage of that selecting all immediate div children of the cell
+        > div {
+          @include nx-container-helpers.container-horizontal;
+          margin-bottom: var(--nx-spacing-2x);
+        }
+      }
+
+      .iq-policy-violation-cell {
+        text-align: left;
+      }
+    }
+
+    .iq-policy-violation-row--remediated {
+      background-color: var(--nx-swatch-grey-95);
+      @include nx-dark-mode-helpers.dark-mode {
+        background-color: var(--nx-swatch-indigo-10);
+      }
+    }
+
+    .iq-policy-violation-row__policy-name-and-reachability {
+      display: flex;
+      flex-direction: column;
+    }
+  }
+}
+
+#policy-violation-close-btn {
+  font-size: var(--nx-font-size-heading-2);
+}
+
+#component-details-policy-violations-popover {
+  .iq-popover__content {
+    .nx-tile-header,
+    .nx-tile-content {
+      padding-left: 0px;
+    }
+  }
+  .nx-loading-spinner {
+    padding: var(--nx-spacing-6x);
+  }
+  .nx-drawer-content {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    padding: 0;
+  }
+  .nx-footer {
+    .iq-waiver-indicator--active > span:last-child {
+      color: var(--nx-swatch-green-30);
+      font-weight: 600;
+    }
+  }
+  #violation-page-add-waiver {
+    .nx-dropdown-menu {
+      top: -130%;
+    }
+  }
+}

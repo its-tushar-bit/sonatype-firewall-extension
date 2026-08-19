@@ -1,0 +1,62 @@
+{
+  "dependencyGraph" : [ {
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jackson-databind",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.fasterxml.jackson.core",
+          "version" : "2.9.4"
+        }
+      },
+      "packageUrl" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4?type=jar",
+      "directDependency" : true
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4?type=jar",
+    "directDependency" : true
+  } ],
+  "gavDepths" : {
+    "com.fasterxml.jackson.core:jackson-databind:2.9.4" : [ 1 ]
+  },
+  "componentDepths" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.4"
+      }
+    },
+    "depths" : [ 1 ]
+  } ],
+  "dependencyTree" : {
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jackson-databind",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.fasterxml.jackson.core",
+          "version" : "2.9.4"
+        }
+      },
+      "packageUrl" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4?type=jar"
+    } ]
+  }
+}

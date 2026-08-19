@@ -1,0 +1,347 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "container",
+      "coordinates" : {
+        "name" : "apk-tools",
+        "namespace" : "alpine:3.6.5",
+        "version" : "2.7.6-r0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "9cd309492780e10b8349",
+    "url" : "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-30139",
+    "reference" : "CVE-2021-30139",
+    "source" : "Sonatype",
+    "score" : 7.5,
+    "cwe" : null,
+    "cvssVectorString" : null,
+    "cvssVectorSource" : null,
+    "matchState" : null,
+    "proprietary" : null,
+    "vulnerabilityCategories" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "name",
+        "value" : "apk-tools"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "namespace",
+        "value" : "alpine:3.6.5"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "2.7.6-r0"
+      } ],
+      "name" : "apk-tools : alpine:3.6.5 : 2.7.6-r0"
+    },
+    "identificationSource" : "Sonatype",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY"
+  }, {
+    "componentIdentifier" : {
+      "format" : "container",
+      "coordinates" : {
+        "name" : "musl",
+        "namespace" : "alpine:3.6.5",
+        "version" : "1.1.16-r15"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "f4cb15dd2d0e42aa3ffe",
+    "url" : "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-14697",
+    "reference" : "CVE-2019-14697",
+    "source" : "Sonatype",
+    "score" : 9.8,
+    "cwe" : null,
+    "cvssVectorString" : null,
+    "cvssVectorSource" : null,
+    "matchState" : null,
+    "proprietary" : null,
+    "vulnerabilityCategories" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "name",
+        "value" : "musl"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "namespace",
+        "value" : "alpine:3.6.5"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "1.1.16-r15"
+      } ],
+      "name" : "musl : alpine:3.6.5 : 1.1.16-r15"
+    },
+    "identificationSource" : "Sonatype",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY"
+  }, {
+    "componentIdentifier" : {
+      "format" : "container",
+      "coordinates" : {
+        "name" : "musl",
+        "namespace" : "alpine:3.6.5",
+        "version" : "1.1.16-r15"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "f4cb15dd2d0e42aa3ffe",
+    "url" : "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-28928",
+    "reference" : "CVE-2020-28928",
+    "source" : "Sonatype",
+    "score" : 5.5,
+    "cwe" : null,
+    "cvssVectorString" : null,
+    "cvssVectorSource" : null,
+    "matchState" : null,
+    "proprietary" : null,
+    "vulnerabilityCategories" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "name",
+        "value" : "musl"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "namespace",
+        "value" : "alpine:3.6.5"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "1.1.16-r15"
+      } ],
+      "name" : "musl : alpine:3.6.5 : 1.1.16-r15"
+    },
+    "identificationSource" : "Sonatype",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY"
+  }, {
+    "componentIdentifier" : {
+      "format" : "container",
+      "coordinates" : {
+        "name" : "busybox",
+        "namespace" : "alpine:3.6.5",
+        "version" : "1.26.2-r11"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "bb567b6eb2f04999869c",
+    "url" : "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-15874",
+    "reference" : "CVE-2017-15874",
+    "source" : "Sonatype",
+    "score" : 5.5,
+    "cwe" : null,
+    "cvssVectorString" : null,
+    "cvssVectorSource" : null,
+    "matchState" : null,
+    "proprietary" : null,
+    "vulnerabilityCategories" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "name",
+        "value" : "busybox"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "namespace",
+        "value" : "alpine:3.6.5"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "1.26.2-r11"
+      } ],
+      "name" : "busybox : alpine:3.6.5 : 1.26.2-r11"
+    },
+    "identificationSource" : "Sonatype",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY"
+  }, {
+    "componentIdentifier" : {
+      "format" : "container",
+      "coordinates" : {
+        "name" : "busybox",
+        "namespace" : "alpine:3.6.5",
+        "version" : "1.26.2-r11"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "bb567b6eb2f04999869c",
+    "url" : "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-1000500",
+    "reference" : "CVE-2018-1000500",
+    "source" : "Sonatype",
+    "score" : 8.1,
+    "cwe" : null,
+    "cvssVectorString" : null,
+    "cvssVectorSource" : null,
+    "matchState" : null,
+    "proprietary" : null,
+    "vulnerabilityCategories" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "name",
+        "value" : "busybox"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "namespace",
+        "value" : "alpine:3.6.5"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "1.26.2-r11"
+      } ],
+      "name" : "busybox : alpine:3.6.5 : 1.26.2-r11"
+    },
+    "identificationSource" : "Sonatype",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY"
+  }, {
+    "componentIdentifier" : {
+      "format" : "container",
+      "coordinates" : {
+        "name" : "busybox",
+        "namespace" : "alpine:3.6.5",
+        "version" : "1.26.2-r11"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "bb567b6eb2f04999869c",
+    "url" : "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-20679",
+    "reference" : "CVE-2018-20679",
+    "source" : "Sonatype",
+    "score" : 7.5,
+    "cwe" : null,
+    "cvssVectorString" : null,
+    "cvssVectorSource" : null,
+    "matchState" : null,
+    "proprietary" : null,
+    "vulnerabilityCategories" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "name",
+        "value" : "busybox"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "namespace",
+        "value" : "alpine:3.6.5"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "1.26.2-r11"
+      } ],
+      "name" : "busybox : alpine:3.6.5 : 1.26.2-r11"
+    },
+    "identificationSource" : "Sonatype",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY"
+  }, {
+    "componentIdentifier" : {
+      "format" : "container",
+      "coordinates" : {
+        "name" : "busybox",
+        "namespace" : "alpine:3.6.5",
+        "version" : "1.26.2-r11"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "bb567b6eb2f04999869c",
+    "url" : "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-5747",
+    "reference" : "CVE-2019-5747",
+    "source" : "Sonatype",
+    "score" : 7.5,
+    "cwe" : null,
+    "cvssVectorString" : null,
+    "cvssVectorSource" : null,
+    "matchState" : null,
+    "proprietary" : null,
+    "vulnerabilityCategories" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "name",
+        "value" : "busybox"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "namespace",
+        "value" : "alpine:3.6.5"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "1.26.2-r11"
+      } ],
+      "name" : "busybox : alpine:3.6.5 : 1.26.2-r11"
+    },
+    "identificationSource" : "Sonatype",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY"
+  }, {
+    "componentIdentifier" : {
+      "format" : "container",
+      "coordinates" : {
+        "name" : "busybox",
+        "namespace" : "alpine:3.6.5",
+        "version" : "1.26.2-r11"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "bb567b6eb2f04999869c",
+    "url" : "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-28831",
+    "reference" : "CVE-2021-28831",
+    "source" : "Sonatype",
+    "score" : 7.5,
+    "cwe" : null,
+    "cvssVectorString" : null,
+    "cvssVectorSource" : null,
+    "matchState" : null,
+    "proprietary" : null,
+    "vulnerabilityCategories" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "name",
+        "value" : "busybox"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "namespace",
+        "value" : "alpine:3.6.5"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "1.26.2-r11"
+      } ],
+      "name" : "busybox : alpine:3.6.5 : 1.26.2-r11"
+    },
+    "identificationSource" : "Sonatype",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY"
+  } ]
+}

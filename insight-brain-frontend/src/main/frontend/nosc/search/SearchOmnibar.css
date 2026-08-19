@@ -1,0 +1,140 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+/*
+ * Global-search omnibar styling.
+ *
+ * The omnibar's geometry (the expand-in-place card, the header row, row
+ * padding) lives inline on the components so it stays in lock-step with the
+ * Nexus One prototype's spec values. This file carries only what CSS does
+ * better: the listbox row highlight, the shared hover/active treatment, and
+ * the small typographic details that would otherwise be repeated inline on
+ * every row.
+ *
+ * All colors resolve through Radix theme vars so light/dark mode follows the
+ * user's TopNav choice with no hardcoded values.
+ */
+
+/* Data-source trigger, left of the input in the expanded card's header. Sized
+ * so the longer "Sonatype Catalog" label never truncates, and pinned against
+ * shrink so the input absorbs the remaining width. */
+.nosc-search-datasource-trigger {
+  flex: 0 0 auto;
+  min-width: 11rem;
+  white-space: nowrap;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+ *  LISTBOX OPTIONS
+ *
+ *  Every panel row (recent search, result, "Show results for",
+ *  "View more results") renders through ListboxOption. The highlight is
+ *  painted here rather than inline so pointer hover and keyboard
+ *  aria-activedescendant produce exactly the same treatment.
+ * ──────────────────────────────────────────────────────────────────── */
+.nosc-search-option {
+  cursor: pointer;
+  transition: background-color 120ms ease-out;
+}
+
+.nosc-search-option:hover,
+.nosc-search-option[data-active] {
+  background-color: var(--gray-3);
+}
+
+/* Leading 24px slot: type icon or numeric severity pill. The muted color
+ * applies to icons; Radix Badge sets its own color and is unaffected. */
+.nosc-search-icon-slot {
+  color: var(--gray-9);
+}
+
+/* Trailing "Jump to" affordance. Matches Radix Text size="2" weight="medium"
+ * color="gray" without nesting another Text per row. */
+.nosc-search-jump-to {
+  flex-shrink: 0;
+  font-size: var(--font-size-2);
+  font-weight: var(--font-weight-medium);
+  color: var(--gray-11);
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+ *  RESULTS STACK
+ *
+ *  A listbox admits only options, so the tab strip cannot be nested
+ *  inside one. It is rendered between the two listboxes in the DOM and
+ *  ordered back into position visually: the "Show results for" listbox
+ *  first, then the tabs, then the row listbox.
+ * ──────────────────────────────────────────────────────────────────── */
+.nosc-search-results-stack {
+  display: flex;
+  flex-direction: column;
+}
+
+.nosc-search-results-stack__lead {
+  order: 1;
+}
+
+.nosc-search-results-stack__tabs {
+  order: 2;
+}
+
+.nosc-search-results-stack__rows {
+  order: 3;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+ *  TAB STRIP
+ *
+ *  Plain buttons in a `tablist` (see SearchPanelTabs for why not Radix
+ *  Tabs), so the underline + hover treatment is defined here instead of
+ *  inherited from Radix's Tabs styling.
+ * ──────────────────────────────────────────────────────────────────── */
+.nosc-search-tablist {
+  gap: var(--space-4);
+  padding: 0 var(--space-4);
+  box-shadow: inset 0 -1px 0 0 var(--gray-a5);
+}
+
+.nosc-search-tab {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: var(--space-2) 0;
+  margin: 0;
+  cursor: pointer;
+  color: var(--gray-11);
+  white-space: nowrap;
+  /* Reserve the selected underline so selecting a tab doesn't shift the row. */
+  box-shadow: inset 0 -2px 0 0 transparent;
+}
+
+.nosc-search-tab:hover:not(:disabled) {
+  color: var(--gray-12);
+}
+
+.nosc-search-tab[data-selected] {
+  color: var(--gray-12);
+  font-weight: var(--font-weight-medium);
+  box-shadow: inset 0 -2px 0 0 var(--accent-9);
+}
+
+.nosc-search-tab:disabled {
+  cursor: default;
+  color: var(--gray-8);
+}
+
+.nosc-search-tab:focus-visible {
+  outline: 2px solid var(--focus-8);
+  outline-offset: -2px;
+  border-radius: var(--radius-1);
+}
+
+/* The expanded card scrolls its body, not the page. Keep the scrollbar subtle
+ * so the panel doesn't gain heavy chrome at max-height. */
+.nosc-search-omnibar-surface[data-open] {
+  scrollbar-width: thin;
+  scrollbar-color: var(--gray-7) transparent;
+}

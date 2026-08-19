@@ -1,0 +1,124 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-web",
+        "extension" : "jar",
+        "groupId" : "spring-web",
+        "version" : "1.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/spring-web/spring-web@1.0?type=jar",
+    "groupId" : "spring-web",
+    "artifactId" : "spring-web",
+    "version" : "1.0",
+    "classifier" : null,
+    "extension" : "jar",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "spring-web"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-web"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.0"
+      } ],
+      "name" : "spring-web"
+    },
+    "filenames" : [ "spring-web-1.0.jar" ],
+    "pathnames" : [ "built/spring-web-1.0.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "714d123d4df81c096bed",
+    "sha256" : "70fda5d53b25ec6535178cb557d46de37575d336e89ae1ea080e12c67d10811f",
+    "identificationSource" : "Artifactory",
+    "relativePopularity" : null,
+    "integrityRating": null,
+    "createTime" : null,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false,
+      "manifestContentType" : null
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "activeio",
+        "extension" : "jar",
+        "groupId" : "activeio",
+        "version" : "1.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/activeio/activeio@1.0?type=jar",
+    "groupId" : "activeio",
+    "artifactId" : "activeio",
+    "version" : "1.0",
+    "classifier" : null,
+    "extension" : "jar",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "activeio"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "activeio"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.0"
+      } ],
+      "name" : "activeio"
+    },
+    "filenames" : [ "activeio-1.0.jar" ],
+    "pathnames" : [ "built/activeio-1.0.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "05431145264b6ae31a85",
+    "sha256" : "44ba611acde81de4319b2c4412d3379c74527bf4f433d78f89b213e08f7e6418",
+    "relativePopularity" : 100,
+    "createTime" : 1135095471000,
+    "lastModifiedTime" : 1652123770000,
+    "lastModifiedEntryTime" : 1651674204000,
+    "website" : null,
+    "identificationSource" : "Sonatype-Artifactory",
+    "componentCategories" : [ {
+      "componentCategoryId" : 63,
+      "path" : "Data Transport"
+    } ],
+    "hygieneRating" : null,
+    "integrityRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    }
+  } ]
+}

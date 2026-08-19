@@ -1,0 +1,76 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+.vex-annotation-drawer__summary {
+  display: flex;
+  width: 100%;
+
+  .sbom-verified-icon {
+    color: var(--nx-swatch-green-30);
+  }
+
+  .sbom-unverified-icon {
+    color: var(--nx-swatch-orange-50);
+  }
+}
+
+.vex-annotation-drawer__summary > div {
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+.vex-annotation-drawer__cvss-score {
+  margin-right: 20px;
+}
+
+.vex-annotation-drawer__summary .threat-indicator-icon {
+  margin-left: 0px;
+}
+
+.vex-annotation-drawer__vulnerability-verified .verification-status-icon {
+  margin-left: 0px;
+}
+
+header .vex-annotation-popover .iq-popover-header__title {
+  padding-left: 0px;
+}
+
+.vex-annotation-drawer__vulnerability-description .vulnerability-description-paragraph {
+  margin-top: var(--nx-spacing-4x);
+  margin-bottom: 0;
+}
+
+.vex-annotation-drawer__vulnerability-description dl dd {
+  margin-bottom: 0;
+}
+
+.vex-annotation-popover__footer-button-bar {
+  display: flex;
+  flex-direction: row-reverse;
+}
+
+#vex-annotation-popover .nx-form__submit-btn,
+#vex-annotation-popover form footer {
+  display: none;
+}
+
+#vex-annotation-popover .vex-annotation-popover__footer-hidden {
+  display: none;
+}
+
+.vex-annotation-popover__form-save-errors .nx-alert__content {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.vex-annotation-popover__form-save-error-message {
+  flex: 0.8;
+}
+.vex-annotation-popover__form-save-errors .nx-btn--error {
+  margin: 0;
+}

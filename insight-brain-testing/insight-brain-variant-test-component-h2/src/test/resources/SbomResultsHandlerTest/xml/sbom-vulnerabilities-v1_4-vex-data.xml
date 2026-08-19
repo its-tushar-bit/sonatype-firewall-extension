@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bom xmlns="http://cyclonedx.org/schema/bom/1.4" serialNumber="urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79"
+     version="1">
+  <components>
+    <component type="library" bom-ref="pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar">
+      <group>com.fasterxml.jackson.core</group>
+      <name>jackson-databind</name>
+      <version>2.9.9</version>
+      <purl>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar</purl>
+    </component>
+  </components>
+  <vulnerabilities>
+    <vulnerability>
+      <id>CVE-2018-7489</id>
+      <source>
+        <name>NVD</name>
+        <url>https://nvd.nist.gov/vuln/detail/CVE-2018-7489</url>
+      </source>
+      <ratings>
+        <rating>
+          <source>
+            <name>NVD</name>
+            <url>https://nvd.nist.gov/vuln/detail/CVE-2018-7489</url>
+          </source>
+          <score>9.8</score>
+          <severity>critical</severity>
+          <method>CVSSv3</method>
+          <vector>AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H</vector>
+        </rating>
+      </ratings>
+      <cwes>
+        <cwe>184</cwe>
+        <cwe>502</cwe>
+      </cwes>
+      <description>FasterXML jackson-databind before 2.7.9.3, 2.8.x before 2.8.11.1 and 2.9.x before 2.9.5 allows unauthenticated remote code execution because of an incomplete fix for the CVE-2017-7525 deserialization flaw. This is exploitable by sending maliciously crafted JSON input to the readValue method of the ObjectMapper, bypassing a blacklist that is ineffective if the c3p0 libraries are available in the classpath.</description>
+      <recommendation>Upgrade</recommendation>
+      <advisories>
+        <advisory>
+          <title>GitHub Commit</title>
+          <url>https://github.com/FasterXML/jackson-databind/issues/1931</url>
+        </advisory>
+        <advisory>
+          <title>GitHub Commit</title>
+          <url>http://www.securityfocus.com/bid/103203</url>
+        </advisory>
+        <advisory>
+          <title>GitHub Commit</title>
+          <url>http://www.securitytracker.com/id/1040693</url>
+        </advisory>
+        <advisory>
+          <title>GitHub Commit</title>
+          <url>http://www.securitytracker.com/id/1041890</url>
+        </advisory>
+      </advisories>
+      <analysis>
+        <state>resolved</state>
+        <justification>code_not_reachable</justification>
+        <responses>
+          <response>will_not_fix</response>
+          <response>update</response>
+        </responses>
+        <detail>Some analysis details</detail>
+      </analysis>
+      <affects>
+        <target>
+          <ref>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar</ref>
+        </target>
+      </affects>
+    </vulnerability>
+  </vulnerabilities>
+</bom>

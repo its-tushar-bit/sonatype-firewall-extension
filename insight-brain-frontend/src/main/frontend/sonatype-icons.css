@@ -1,0 +1,65 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+.sonatype-icons.dashboard:before {
+  content: '\e604';
+}
+
+.sonatype-icons.reporting:before {
+  content: '\e606';
+}
+
+.sonatype-icons.organizational-design:before {
+  content: '\e607';
+}
+
+.sonatype-icon-menu:before {
+  font-size: 16px !important;
+  padding-right: 10px !important;
+  line-height: 18px !important;
+  vertical-align: middle;
+}
+
+.sonatype-icons.up:before {
+  content: '\e0d4';
+}
+
+.sonatype-icons.down:before {
+  content: '\e0d6';
+}
+
+.sonatype-icons.fail:before {
+  content: '\e037';
+  font-size: inherit;
+  color: #74071c;
+}
+
+.sonatype-icons.warn:before {
+  content: '\e03f';
+  font-size: inherit;
+  color: #ee7116;
+}
+
+.sonatype-icons.pad-left:before {
+  padding-left: 3px;
+}
+
+.sonatype-icons-hover:hover:before {
+  *zoom: 1;
+  font: 24px/30px 'sonatype-icons';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: inherit;
+  font-size: inherit;
+  opacity: 0.4;
+}
+
+.sonatype-icons-hover.warn:hover:before {
+  content: '\e03f';
+}
+
+.sonatype-icons-hover.fail:hover:before {
+  content: '\e037';
+}

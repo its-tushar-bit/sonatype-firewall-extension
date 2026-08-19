@@ -1,0 +1,58 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+reports-page {
+  display: contents;
+}
+
+#iq-report-container {
+  .iq-report-age {
+    margin-top: var(--nx-spacing-base);
+  }
+
+  #iq-violation-table {
+    &-body {
+      .nx-table-row .nx-cell {
+        .iq-violation-table-report-name,
+        .iq-violation-table-organization-name {
+          @include nx-text-helpers.semi-bold;
+        }
+        .iq-violation-show-contact-name {
+          text-decoration: none;
+        }
+        .nx-loading-spinner,
+        .iq-violation-contact-name,
+        .iq-violation-show-contact-name {
+          margin-top: var(--nx-spacing-base);
+        }
+        .iq-violation-contact-name-error {
+          color: var(--nx-color-validation-invalid);
+          margin-top: var(--nx-spacing-base);
+          font-size: var(--nx-font-size-xs);
+          .iq-violation-contact-name-error-icon {
+            margin-left: 0;
+            font-size: var(--nx-font-size);
+          }
+          .iq-violation-contact-name-error-text {
+            vertical-align: text-bottom;
+          }
+        }
+      }
+
+      .iq-report-links-container {
+        display: flex;
+        gap: var(--nx-spacing-base);
+      }
+    }
+    .iq-report-violation-cell {
+      width: 185px;
+    }
+    .reports-load-more-cell {
+      text-align: center;
+    }
+  }
+}

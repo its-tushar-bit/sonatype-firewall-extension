@@ -1,0 +1,61 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-button-helpers';
+
+.risk-table-filter {
+  box-sizing: border-box;
+  padding-right: var(--nx-spacing-2x);
+  padding-left: var(--nx-spacing-2x);
+  position: fixed;
+  border-bottom: 1px var(--nx-swatch-indigo-80) solid;
+
+  .nx-collapsible-items .nx-filter-input {
+    box-sizing: border-box;
+    max-width: 100%;
+  }
+}
+
+.risk-table-filter-footer {
+  @include nx-container-helpers.container-vertical;
+
+  .nx-alert {
+    .nx-btn-bar {
+      @include nx-container-helpers.container-horizontal;
+    }
+
+    .nx-btn {
+      margin-right: var(--nx-spacing-2x);
+    }
+  }
+}
+.risk-table-flter-footer-btns {
+  justify-content: space-around;
+}
+
+.nx-btn-bar.risk-table-filter-footer-btns {
+  justify-content: space-around;
+
+  .nx-btn {
+    margin: 0;
+  }
+}
+
+.risk-table-filter-header__title {
+  @include nx-container-helpers.container-horizontal;
+
+  align-items: start;
+  display: flex;
+
+  .risk-table-filter-header__title-text {
+    flex-grow: 1;
+    margin-top: 6px;
+  }
+
+  .nx-btn--icon-only {
+    @include nx-button-helpers.small-icon-btn;
+  }
+}

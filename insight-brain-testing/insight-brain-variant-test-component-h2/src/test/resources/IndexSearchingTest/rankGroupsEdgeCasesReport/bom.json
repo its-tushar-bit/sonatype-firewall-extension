@@ -1,0 +1,172 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "artifactUnscored",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "test",
+          "version": "1.0"
+        }
+      },
+      "hash": "hashRankUnscored0000",
+      "filenames": [
+        "artifactUnscored.jar"
+      ],
+      "pathnames": [
+        "some/dir/artifactUnscored.jar"
+      ],
+      "displayName": {
+        "parts": [
+          {
+            "value": "artifactUnscored"
+          }
+        ]
+      },
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "relativePopularity": null,
+      "createTime": 1364313072251,
+      "lastModifiedTime": 1481029585000,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "artifactTieA",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "test",
+          "version": "1.0"
+        }
+      },
+      "hash": "hashRankTieA00000000",
+      "filenames": [
+        "artifactTieA.jar"
+      ],
+      "pathnames": [
+        "some/dir/artifactTieA.jar"
+      ],
+      "displayName": {
+        "parts": [
+          {
+            "value": "artifactTieA"
+          }
+        ]
+      },
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "relativePopularity": null,
+      "createTime": 1364313072251,
+      "lastModifiedTime": 1481029585000,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "artifactTieB",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "test",
+          "version": "1.0"
+        }
+      },
+      "hash": "hashRankTieB00000000",
+      "filenames": [
+        "artifactTieB.jar"
+      ],
+      "pathnames": [
+        "some/dir/artifactTieB.jar"
+      ],
+      "displayName": {
+        "parts": [
+          {
+            "value": "artifactTieB"
+          }
+        ]
+      },
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "relativePopularity": null,
+      "createTime": 1364313072251,
+      "lastModifiedTime": 1481029585000,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "artifactBoundary",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "test",
+          "version": "1.0"
+        }
+      },
+      "hash": "hashRankBoundary0000",
+      "filenames": [
+        "artifactBoundary.jar"
+      ],
+      "pathnames": [
+        "some/dir/artifactBoundary.jar"
+      ],
+      "displayName": {
+        "parts": [
+          {
+            "value": "artifactBoundary"
+          }
+        ]
+      },
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "relativePopularity": null,
+      "createTime": 1364313072251,
+      "lastModifiedTime": 1481029585000,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+.firewall-repository-list {
+  width: 100%;
+  display: inline-block;
+  margin: 0 var(--nx-spacing-3x);
+
+  h2 {
+    margin: 0px 0px var(--nx-spacing-6x);
+    display: flex;
+    align-items: center;
+
+    > :first-child {
+      margin-left: var(--nx-spacing-2x);
+    }
+
+    span {
+      font-family: var(--nx-font-family);
+      font-weight: 700;
+      background-color: var(--nx-swatch-white);
+      border: 1px solid var(--nx-swatch-blue-10);
+      border-radius: calc(var(--nx-border-radius) * 2);
+      color: var(--nx-color-text-dark);
+      display: inline-block;
+      font-size: var(--nx-font-size-s);
+      line-height: var(--nx-line-height);
+      margin-left: var(--nx-spacing-6x);
+      padding: 1px calc(var(--nx-spacing-2x) - 1px);
+      text-align: center;
+      min-width: 8px;
+    }
+  }
+
+  .firewall-repository-list__item-disabled {
+    font-size: var(--nx-font-size-xs);
+    font-weight: 900;
+    line-height: var(--nx-line-height);
+    color: var(--nx-color-text-light);
+  }
+
+  .firewall-repository-list__table-container {
+    height: 520px;
+    overflow-y: auto;
+
+    .nx-table {
+      thead {
+        > :first-child {
+          .nx-cell.firewall-repository-list__check-all {
+            width: 40px;
+            padding-right: 0px;
+          }
+          .nx-cell.firewall-repository-list__header-disabled {
+            width: 40px;
+            padding-right: 0px;
+          }
+          .nx-cell--header {
+            background-color: var(--nx-swatch-indigo-70);
+          }
+        }
+      }
+
+      tbody {
+        .nx-table-row {
+          .nx-radio-checkbox {
+            display: inline-block;
+          }
+        }
+      }
+    }
+  }
+}

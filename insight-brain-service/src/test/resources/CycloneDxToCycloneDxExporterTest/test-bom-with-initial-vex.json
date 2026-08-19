@@ -1,0 +1,118 @@
+{
+  "bomFormat" : "CycloneDX",
+  "specVersion" : "1.6",
+  "version" : 1,
+  "metadata" : {
+    "component" : {
+      "type" : "application",
+      "name" : "hrapp",
+      "version" : "20250212110445310"
+    }
+  },
+  "components" : [
+    {
+      "type" : "library",
+      "bom-ref" : "561b185af127451982d8950a3ebd1ec5",
+      "name" : "org.springframework.boot:spring-boot-autoconfigure",
+      "version" : "2.0.3.RELEASE",
+      "purl" : "pkg:maven/org.springframework.boot/spring-boot-autoconfigure@2.0.3.RELEASE?type=jar"
+    }
+  ],
+  "vulnerabilities" : [
+    {
+      "bom-ref" : "CVE-2023-20883-64bb1ddef5c94d079cd4c2a48725c864",
+      "id" : "CVE-2023-20883",
+      "source" : {
+        "name" : "NVD",
+        "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-20883"
+      },
+      "ratings" : [
+        {
+          "source" : {
+            "name" : "NVD",
+            "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-20883"
+          },
+          "score" : 7.5,
+          "severity" : "high",
+          "method" : "CVSSv3",
+          "vector" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+        }
+      ],
+      "cwes" : [
+        400
+      ],
+      "affects" : [
+        {
+          "ref" : "561b185af127451982d8950a3ebd1ec5"
+        }
+      ]
+    },
+    {
+      "bom-ref" : "CVE-TEST-64bb1ddef5c94d079cd4c2a48725c864",
+      "id" : "CVE-TEST",
+      "source" : {
+        "name" : "NVD",
+        "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-TEST"
+      },
+      "ratings" : [
+        {
+          "source" : {
+            "name" : "NVD",
+            "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-TEST"
+          },
+          "score" : 7.5,
+          "severity" : "high",
+          "method" : "CVSSv3",
+          "vector" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+        }
+      ],
+      "cwes" : [
+        400
+      ],
+      "affects" : [
+        {
+          "ref" : "561b185af127451982d8950a3ebd1ec5"
+        }
+      ],
+      "analysis" : {
+        "state" : "exploitable",
+        "justification" : "code_not_present",
+        "response" : [
+          "can_not_fix"
+        ],
+        "detail" : "TEST-ORIGINAL-VEX-INFO",
+        "firstIssued" : "2025-01-22T17:04:23Z",
+        "lastUpdated" : "2025-01-22T17:04:23Z"
+      }
+    },
+    {
+      "bom-ref": "CVE-2018-6341-0562c339eaf94dc79abe20a67fcc9a73",
+      "id": "CVE-2018-6341",
+      "source": {
+        "name": "NVD",
+        "url": "NVD-link"
+      },
+      "ratings": [
+        {
+          "source": {
+            "name": "NVD",
+            "url": "NVD-link"
+          },
+          "score": 6.1,
+          "severity": "medium",
+          "method": "CVSSv3",
+          "vector": "CVSS:3.1"
+        }
+      ],
+      "cwes": [
+        79
+      ],
+      "description": "DESC CVE-2018-6341",
+      "affects": [
+        {
+          "ref": "561b185af127451982d8950a3ebd1ec5"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+[ {
+  "time" : 1361385700444,
+  "user" : "anonymous",
+  "ip" : "0:0:0:0:0:0:0:1",
+  "where" : "test2/25",
+  "data" : [ {
+    "groupId" : "g1.testGetComponentDetails_OverriddenSecurityVulnerabilityStatus",
+    "artifactId" : "a1",
+    "version" : "v1",
+    "source" : "osvdb",
+    "reference" : "36079",
+    "status" : "Acknowledged",
+    "comment" : ""
+  } ]
+} ]

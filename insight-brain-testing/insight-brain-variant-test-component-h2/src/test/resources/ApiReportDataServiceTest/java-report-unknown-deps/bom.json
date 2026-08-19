@@ -1,0 +1,104 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "known-parent",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.example",
+        "version" : "1.0.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.example/known-parent@1.0.0?type=jar",
+    "matchState" : "exact",
+    "hash" : "aaaaaaaaaaaaaaaaaa01",
+    "scanError" : false,
+    "proprietary" : false,
+    "filenames" : [ "known-parent-1.0.0.jar" ],
+    "pathnames" : [],
+    "aggregateFiles" : [],
+    "displayName" : {
+      "parts" : [ { "value" : "known-parent" } ],
+      "name" : "known-parent"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "unknown-middle",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.example",
+        "version" : "2.0.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.example/unknown-middle@2.0.0?type=jar",
+    "matchState" : "unknown",
+    "hash" : "aaaaaaaaaaaaaaaaaa02",
+    "scanError" : false,
+    "proprietary" : false,
+    "filenames" : [ "unknown-middle-2.0.0.jar" ],
+    "pathnames" : [],
+    "aggregateFiles" : [],
+    "displayName" : {
+      "parts" : [ { "value" : "unknown-middle" } ],
+      "name" : "unknown-middle"
+    },
+    "directDependency" : false,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "known-child",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.example",
+        "version" : "3.0.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.example/known-child@3.0.0?type=jar",
+    "matchState" : "exact",
+    "hash" : "aaaaaaaaaaaaaaaaaa03",
+    "scanError" : false,
+    "proprietary" : false,
+    "filenames" : [ "known-child-3.0.0.jar" ],
+    "pathnames" : [],
+    "aggregateFiles" : [],
+    "displayName" : {
+      "parts" : [ { "value" : "known-child" } ],
+      "name" : "known-child"
+    },
+    "directDependency" : false,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "known-grandchild",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.example",
+        "version" : "4.0.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.example/known-grandchild@4.0.0?type=jar",
+    "matchState" : "exact",
+    "hash" : "aaaaaaaaaaaaaaaaaa04",
+    "scanError" : false,
+    "proprietary" : false,
+    "filenames" : [ "known-grandchild-4.0.0.jar" ],
+    "pathnames" : [],
+    "aggregateFiles" : [],
+    "displayName" : {
+      "parts" : [ { "value" : "known-grandchild" } ],
+      "name" : "known-grandchild"
+    },
+    "directDependency" : false,
+    "innerSource" : false
+  } ],
+  "dependencyDataIncluded" : true
+}

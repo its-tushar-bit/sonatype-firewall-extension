@@ -1,0 +1,91 @@
+{
+  "version" : 5,
+  "aaData" : [ {
+    "hash" : "db6b61d995de714813ac",
+    "componentIdentifier" : {
+      "format" : "fake",
+      "coordinates" : {
+        "name" : "guava",
+        "namespace" : "com.google.guava",
+        "type" : "jar",
+        "version" : "30.1-jre"
+      }
+    },
+    "policyId" : "6dcf07f78530400eaa120eacdd1fc792",
+    "policyName" : "Security-High",
+    "policyThreatLevel" : 9,
+    "activeViolations" : [ {
+      "policyId" : "6dcf07f78530400eaa120eacdd1fc792",
+      "policyViolationId" : "0161344d33444a709769dc2df8469886",
+      "policyName" : "Security-High",
+      "policyOwnerId" : "ROOT_ORGANIZATION_ID",
+      "policyOwnerType" : "application",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "legacyViolation" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"d81227c83dd647c9adb61439561d1b9f\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability sonatype-2020-0926 with severity >= 7 (severity = 8.1)\",\"reference\":{\"value\":\"sonatype-2020-0926\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2020-0926\\\",\\\"severity\\\":8.1}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 9\",\"reason\":\"Found security vulnerability sonatype-2020-0926 with severity < 9 (severity = 8.1)\",\"reference\":{\"value\":\"sonatype-2020-0926\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2020-0926\\\",\\\"severity\\\":8.1}}\"}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "d81227c83dd647c9adb61439561d1b9f",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability sonatype-2020-0926 with severity >= 7 (severity = 8.1)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2020-0926",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 9",
+          "conditionReason" : "Found security vulnerability sonatype-2020-0926 with severity < 9 (severity = 8.1)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2020-0926",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    } ],
+    "waivedViolations" : [ ],
+    "allViolations" : [ {
+      "policyId" : "6dcf07f78530400eaa120eacdd1fc792",
+      "policyViolationId" : "0161344d33444a709769dc2df8469886",
+      "policyOwnerId" : "ROOT_ORGANIZATION_ID",
+      "policyOwnerType" : "application",
+      "policyName" : "Security-High",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "legacyViolation" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"d81227c83dd647c9adb61439561d1b9f\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability sonatype-2020-0926 with severity >= 7 (severity = 8.1)\",\"reference\":{\"value\":\"sonatype-2020-0926\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2020-0926\\\",\\\"severity\\\":8.1}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 9\",\"reason\":\"Found security vulnerability sonatype-2020-0926 with severity < 9 (severity = 8.1)\",\"reference\":{\"value\":\"sonatype-2020-0926\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2020-0926\\\",\\\"severity\\\":8.1}}\"}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "d81227c83dd647c9adb61439561d1b9f",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability sonatype-2020-0926 with severity >= 7 (severity = 8.1)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2020-0926",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 9",
+          "conditionReason" : "Found security vulnerability sonatype-2020-0926 with severity < 9 (severity = 8.1)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2020-0926",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    } ]
+  } ]
+}

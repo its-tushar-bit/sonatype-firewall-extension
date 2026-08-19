@@ -1,0 +1,150 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
+$pills-border-radius: 14px;
+
+.iq-nav-pills-menu {
+  background-color: var(--nx-swatch-indigo-90);
+  border-radius: $pills-border-radius;
+  padding: 4px 6px;
+  margin-right: var(--nx-spacing-3x);
+  overflow: hidden;
+  position: relative;
+  margin-bottom: var(--nx-spacing-2x);
+  max-width: max-content;
+
+  @include nx-dark-mode-helpers.dark-mode {
+    background-color: var(--nx-swatch-indigo-30);
+  }
+
+  &__list {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    overflow: auto;
+    gap: var(--nx-spacing-base);
+    scrollbar-width: none;
+    margin: 0;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  &__pill {
+    white-space: nowrap;
+
+    button {
+      @include nx-text-helpers.nx-font-family;
+      color: var(--nx-swatch-indigo-40);
+      font-size: var(--nx-font-size-s);
+      line-height: 32px;
+      font-weight: 600;
+      padding: 0 10px;
+      border-radius: 12px;
+      display: block;
+      border: none;
+      background-color: transparent;
+      outline: none;
+      @include nx-dark-mode-helpers.dark-mode {
+        color: var(--nx-swatch-indigo-80);
+      }
+
+      &:hover,
+      &:focus {
+        background-color: var(--nx-swatch-indigo-97);
+        @include nx-dark-mode-helpers.dark-mode {
+          color: var(--nx-swatch-indigo-90);
+          background-color: var(--nx-swatch-indigo-20);
+        }
+      }
+
+      &:active {
+        background-color: #fff;
+        @include nx-dark-mode-helpers.dark-mode {
+          color: var(--nx-swatch-indigo-97);
+          background-color: var(--nx-swatch-indigo-20);
+        }
+      }
+    }
+  }
+
+  .iq-arrow {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    top: 0;
+    width: 26px;
+    height: 40px;
+    transition-property: width;
+    transition-duration: 0.3s;
+    transition-timing-function: linear;
+
+    button {
+      min-width: 48px;
+      color: transparent;
+      transition-property: color;
+      transition-duration: 0.3s;
+      transition-timing-function: linear;
+    }
+  }
+
+  .iq-arrow-right {
+    right: 0;
+    background: linear-gradient(90deg, rgba(219, 222, 240, 0) 0%, rgba(219, 222, 240, 1) 30%);
+
+    @include nx-dark-mode-helpers.dark-mode {
+      background: linear-gradient(
+        90deg,
+        HSL(from var(--nx-swatch-indigo-30) h s l / 0) 0%,
+        var(--nx-swatch-indigo-30) 30%
+      );
+    }
+
+    button {
+      border-bottom-right-radius: $pills-border-radius;
+      border-top-right-radius: $pills-border-radius;
+    }
+  }
+
+  .iq-arrow-left {
+    left: 0;
+    background: linear-gradient(90deg, rgba(219, 222, 240, 1) 70%, rgba(219, 222, 240, 0) 100%);
+
+    @include nx-dark-mode-helpers.dark-mode {
+      background: linear-gradient(
+        90deg,
+        var(--nx-swatch-indigo-30) 70%,
+        HSL(from var(--nx-swatch-indigo-30) h s l / 0) 100%
+      );
+    }
+
+    button {
+      border-bottom-left-radius: $pills-border-radius;
+      border-top-left-radius: $pills-border-radius;
+    }
+  }
+
+  &:hover,
+  &:focus-within {
+    .iq-arrow {
+      width: 48px;
+
+      button {
+        color: var(--nx-swatch-indigo-40);
+
+        @include nx-dark-mode-helpers.dark-mode {
+          color: var(--nx-swatch-indigo-90);
+        }
+      }
+    }
+  }
+}

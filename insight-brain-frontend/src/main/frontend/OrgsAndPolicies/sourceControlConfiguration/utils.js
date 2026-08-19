@@ -1,0 +1,1118 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import {
+  combineValidationErrors,
+  nxFormSelectStateHelpers,
+  nxTextInputStateHelpers,
+} from '@sonatype/react-shared-components';
+import {
+  validateDoubleWhitespace,
+  validateMaxLength,
+  validateNonEmpty,
+  validatePatternMatch,
+} from 'MainRoot/util/validationUtil';
+import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
+import { PERSONAL_ACCOUNT_MARKER } from '../utility/constants';
+const { initialState: rscInitialState } = nxTextInputStateHelpers;
+const { initialState: rscSelectInitialState } = nxFormSelectStateHelpers;
+
+const validateUrlPatternMatch = validatePatternMatch(
+  /(http[s]?:\/\/[^?#\s]+)/,
+  'A valid HTTP(S) repository clone URL is required'
+);
+
+export const SOURCE_CONTROL_UNSUPPORTED_MESSAGE = 'Source Control is not supported by your license';
+export const SCM_FEATURE_UNSUPPORTED_MESSAGE = 'This feature is not supported by your license';
+export const GITHUB_APP_NOT_CONFIGURED_MESSAGE =
+  'Please configure and install a GitHub App or switch to Personal Access Token authentication.';
+export const DEFAULT_BRANCH_SUBLABEL =
+  'The branch used for automated remediation pull requests and as the basis for finding introduced violations in feature branches';
+export const ROOT_ORG_NAME = 'Root Organization';
+export const PROVIDER_TYPES = [
+  { name: 'Azure DevOps', value: 'azure' },
+  { name: 'Bitbucket', value: 'bitbucket' },
+  { name: 'GitHub', value: 'github' },
+  { name: 'GitLab', value: 'gitlab' },
+];
+export const PROVIDERS_WITH_USERNAME = ['azure', 'bitbucket'];
+export const PROVIDERS_SUPPORTING_PULL_REQUESTS = ['azure', 'bitbucket', 'github', 'gitlab'];
+export const PROVIDERS_SUPPORTING_FAILED_CHECKS_CLOSE = ['github', 'gitlab'];
+export const AUTHENTICATION_TYPES = {
+  GITHUB_APP: 'GITHUB_APP',
+  PAT: 'PAT',
+};
+export const GITHUB_ACCOUNT_TYPES = {
+  ORGANIZATION: 'organization',
+  PERSONAL: 'personal',
+};
+export const GITHUB_ACCOUNT_DISPLAY_LABELS = {
+  ORGANIZATION: 'Organization',
+  PERSONAL: 'Account',
+};
+export const GITHUB_URLS = {
+  LOGIN: 'https://github.com/login',
+  ORGANIZATION_APP_SETTINGS: 'https://github.com/organizations/{orgName}/settings/apps/new',
+  PERSONAL_APP_SETTINGS: 'https://github.com/settings/apps/new',
+  PERSONAL_INSTALLATIONS: 'https://github.com/settings/installations/{installationId}',
+  ORGANIZATION_INSTALLATIONS: 'https://github.com/organizations/{orgName}/settings/installations/{installationId}',
+};
+export const BRANCH_INPUT_MAX_CHARACTERS = 243,
+  USERNAME_INPUT_MAX_CHARACTERS = 255,
+  TOKEN_INPUT_MAX_CHARACTERS = 512;
+export const SCM_FORM_STATE_KEY_PREFIX = 'scmFormState_';
+
+const toGitHubAppList = (githubApps) => {
+  if (!githubApps) {
+    return [];
+  }
+
+  return (Array.isArray(githubApps) ? githubApps : [githubApps]).filter(Boolean);
+};
+
+const normalizeGitHubAppInfo = (githubApp) => {
+  if (!githubApp) {
+    return null;
+  }
+
+  return { ...githubApp };
+};
+
+const normalizeGitHubAppCollection = (githubApps) => {
+  if (!githubApps) {
+    return null;
+  }
+
+  const normalizedApps = toGitHubAppList(githubApps).map(normalizeGitHubAppInfo).filter(Boolean);
+
+  if (!normalizedApps.length) {
+    return null;
+  }
+
+  return Array.isArray(githubApps) ? normalizedApps : normalizedApps[0];
+};
+
+export const getCompositeGitHubAppState = ({ githubApp, githubApps } = {}) => {
+  if (githubApps) {
+    const normalizedCompositeApps = toGitHubAppList(githubApps);
+    const localGithubApps = normalizedCompositeApps
+      .map((compositeGithubApp) => normalizeGitHubAppInfo(compositeGithubApp?.value))
+      .filter(Boolean);
+    const parentGithubApps = normalizedCompositeApps
+      .map((compositeGithubApp) => normalizeGitHubAppInfo(compositeGithubApp?.parentValue))
+      .filter(Boolean);
+    const inheritedGitHubAppEntry = normalizedCompositeApps.find(
+      (compositeGithubApp) => compositeGithubApp?.parentValue
+    );
+
+    return {
+      value: localGithubApps.length > 1 ? localGithubApps : localGithubApps[0] ?? null,
+      localCount: localGithubApps.length,
+      parentValue: normalizeGitHubAppInfo(inheritedGitHubAppEntry?.parentValue),
+      parentCount: parentGithubApps.length,
+      parentName: inheritedGitHubAppEntry?.parentName ?? normalizedCompositeApps[0]?.parentName,
+    };
+  }
+
+  if (!githubApp) {
+    return {
+      value: null,
+      localCount: 0,
+      parentValue: null,
+      parentCount: 0,
+      parentName: undefined,
+    };
+  }
+
+  const normalizedValue = normalizeGitHubAppCollection(githubApp.value);
+  const normalizedParentValue = normalizeGitHubAppCollection(githubApp.parentValue);
+  return {
+    value: normalizedValue,
+    localCount: Array.isArray(normalizedValue) ? normalizedValue.length : normalizedValue ? 1 : 0,
+    parentValue: normalizedParentValue,
+    parentCount: Array.isArray(normalizedParentValue) ? normalizedParentValue.length : normalizedParentValue ? 1 : 0,
+    parentName: githubApp.parentName,
+  };
+};
+
+export const getGitHubAppIdentifier = (githubApp) => {
+  if (!githubApp) {
+    return null;
+  }
+
+  if (githubApp.id != null && String(githubApp.id).trim() !== '') {
+    return String(githubApp.id);
+  }
+
+  if (githubApp.installationId != null && String(githubApp.installationId).trim() !== '') {
+    return `installation:${githubApp.installationId}`;
+  }
+
+  return null;
+};
+
+export const hasConfiguredGitHubApp = (githubApp) => {
+  if (Array.isArray(githubApp)) {
+    return githubApp.some((app) => Boolean(getGitHubAppIdentifier(app)));
+  }
+  return Boolean(getGitHubAppIdentifier(githubApp));
+};
+
+export const getGitHubAppReturnParam = (routerParams, locationSearch, locationHash) => {
+  const routerGithubAppId = routerParams?.githubAppId;
+  if (routerGithubAppId != null && String(routerGithubAppId).trim() !== '') {
+    return String(routerGithubAppId);
+  }
+
+  const resolvedLocationSearch = locationSearch ?? (typeof window !== 'undefined' ? window.location.search : '');
+  const resolvedLocationHash = locationHash ?? (typeof window !== 'undefined' ? window.location.hash : '');
+
+  if (resolvedLocationSearch) {
+    const searchParams = new URLSearchParams(resolvedLocationSearch);
+    const githubAppId = searchParams.get('githubAppId');
+
+    if (githubAppId != null && githubAppId.trim() !== '') {
+      return githubAppId;
+    }
+  }
+
+  const hashQueryStart = resolvedLocationHash.indexOf('?');
+  if (hashQueryStart === -1) {
+    return null;
+  }
+
+  const hashParams = new URLSearchParams(resolvedLocationHash.substring(hashQueryStart + 1));
+  const githubAppId = hashParams.get('githubAppId');
+
+  return githubAppId != null && githubAppId.trim() !== '' ? githubAppId : null;
+};
+
+export const selectMatchedGitHubAppInfo = (githubApps, githubAppId = null) => {
+  const apps = toGitHubAppList(githubApps);
+
+  if (!apps.length) {
+    return null;
+  }
+
+  const normalizedGithubAppId = githubAppId == null ? null : String(githubAppId);
+  const matchedGithubApp = normalizedGithubAppId
+    ? apps.find((githubApp) => githubApp?.id != null && String(githubApp.id) === normalizedGithubAppId)
+    : null;
+
+  return matchedGithubApp ? { ...matchedGithubApp } : null;
+};
+
+export const selectCommittedGitHubAppInfo = (githubApps) => {
+  const apps = toGitHubAppList(githubApps);
+
+  if (!apps.length) {
+    return null;
+  }
+
+  const activeGithubApp = apps.find((githubApp) => githubApp?.isActive === true);
+
+  return activeGithubApp ? { ...activeGithubApp } : null;
+};
+
+/**
+ * Generates sessionStorage key for SCM form state scoped to specific owner.
+ * Keys are unique per owner to prevent cross-tenant data leakage in multi-tenant environments.
+ *
+ * @param {string} ownerType - Owner type: 'application' or 'organization'
+ * @param {string|number} ownerId - Unique identifier for the owner
+ * @returns {string} Storage key in format 'scmFormState_{ownerType}_{ownerId}'
+ * @example
+ * getScmFormStateStorageKey('organization', '12345')
+ * // Returns: 'scmFormState_organization_12345'
+ */
+export const getScmFormStateStorageKey = (ownerType, ownerId) => `${SCM_FORM_STATE_KEY_PREFIX}${ownerType}_${ownerId}`;
+
+/**
+ * Saves form state to sessionStorage.
+ * SessionStorage persists across cross-origin navigation (GitHub OAuth redirect)
+ * in all major browsers (Chrome, Edge, Firefox, Safari) and auto-clears on tab close.
+ *
+ * @param {string} key - Storage key (from getScmFormStateStorageKey)
+ * @param {Object} data - Form state data to save
+ */
+export const saveFormStateWithFallback = (key, data) => {
+  try {
+    sessionStorage.setItem(key, JSON.stringify(data));
+  } catch (error) {
+    console.warn('Failed to save form state to sessionStorage:', error);
+  }
+};
+
+/**
+ * Loads form state from sessionStorage.
+ *
+ * @param {string} key - Storage key (from getScmFormStateStorageKey)
+ * @returns {string|null} JSON string of saved form state, or null if not found
+ */
+export const loadFormStateWithFallback = (key) => {
+  try {
+    return sessionStorage.getItem(key);
+  } catch (error) {
+    console.warn('Failed to read from sessionStorage:', error);
+    return null;
+  }
+};
+
+/**
+ * Removes form state from sessionStorage.
+ * Best-effort cleanup - doesn't throw if removal fails.
+ *
+ * @param {string} key - Storage key (from getScmFormStateStorageKey)
+ */
+export const removeFormStateWithFallback = (key) => {
+  try {
+    sessionStorage.removeItem(key);
+  } catch (e) {
+    // Silent fail - cleanup is best-effort
+  }
+};
+export const SOURCE_CONTROL_OPTIONS = [
+  {
+    id: 'source-control-ssh',
+    title: 'Use SSH for Git Operations',
+    description: 'Clone and push changes to repositories via Secure Shell Protocol (SSH)',
+    optionName: 'sshEnabled',
+  },
+  {
+    id: 'source-control-remediation-pull-requests',
+    title: 'Automated Remediation with GoldenPRs™',
+    description:
+      'Create pull requests with remediation suggestions for policy violations discovered on the default branch.\n' +
+      '##### Golden Versions for Maven\n' +
+      'Pull requests for Maven dependencies are generated when the recommended version, including transitive dependencies, is non-breaking and safe to use.',
+    optionName: 'remediationPullRequestsEnabled',
+  },
+  {
+    id: 'inner-source-automated-updates',
+    title: 'Automated InnerSource Updates',
+    description:
+      'Create pull requests for consuming applications when new versions of InnerSource components are released.',
+    optionName: 'innerSourceAutomatedUpdatesEnabled',
+  },
+  {
+    id: 'source-control-pull-request-commenting',
+    title: 'Pull Request Commenting',
+    description:
+      'Comment on pull requests with remediation suggestions for policy violations discovered on the default branch.',
+    optionName: 'pullRequestCommentingEnabled',
+  },
+  {
+    id: 'source-control-evaluations',
+    title: 'Source Control Evaluations',
+    description: 'Allow IQ server to scan and evaluate the contents of the configured repository when needed.',
+    optionName: 'sourceControlEvaluationsEnabled',
+  },
+  {
+    id: 'automated-commit-feedback',
+    title: 'Automated Commit Feedback',
+    description: 'Allow IQ server to create commit statuses.',
+    optionName: 'commitStatusEnabled',
+  },
+  {
+    id: 'manual-pull-requests',
+    title: 'Manual Pull Requests',
+    description:
+      'Display an option to manually create a pull request against the default branch when suggested version changes are available.',
+    optionName: 'manualPullRequestsEnabled',
+  },
+];
+
+export const compositeSourceControlToModel = (
+  {
+    ownerId,
+    id,
+    repositoryUrl,
+    provider,
+    token,
+    username,
+    baseBranch,
+    authenticationType,
+    pullRequestCommentingEnabled,
+    remediationPullRequestsEnabled,
+    sourceControlEvaluationsEnabled,
+    commitStatusEnabled,
+    statusChecksEnabled,
+    sshEnabled,
+    manualPullRequestsEnabled,
+    innerSourceAutomatedUpdatesEnabled,
+    closePrOnFailedChecksEnabled,
+    closePrAfterDaysOpenEnabled,
+    closePrAfterDays,
+    githubApp,
+    githubApps,
+  },
+  isRootOrg
+) => {
+  const compositeGitHubApp = getCompositeGitHubAppState({ githubApp, githubApps });
+  const localGithubApp = selectCommittedGitHubAppInfo(compositeGitHubApp.value);
+  const inheritedGithubApp = selectCommittedGitHubAppInfo(compositeGitHubApp.parentValue);
+  const sourceControlData = {
+    ownerId,
+    id,
+    repositoryUrl: rscInitialState(repositoryUrl ?? '', urlFieldValidator),
+    provider: {
+      rscValue: rscSelectInitialState(provider.value ?? '', validateNonEmpty),
+      isInherited: provider.value === null && !isRootOrg,
+      parentValue: rscSelectInitialState(provider.parentValue ?? '', validateNonEmpty),
+      parentName: provider.parentName,
+    },
+    baseBranch: {
+      rscValue:
+        !baseBranch.value && isRootOrg
+          ? rscInitialState('main')
+          : rscInitialState(baseBranch?.value ?? '', () =>
+              textFieldValidator(baseBranch?.value, BRANCH_INPUT_MAX_CHARACTERS)
+            ),
+      isInherited: baseBranch.value === null && !isRootOrg,
+      parentValue: rscInitialState(baseBranch?.parentValue ?? '', () =>
+        textFieldValidator(baseBranch?.parentValue, BRANCH_INPUT_MAX_CHARACTERS)
+      ),
+      parentName: baseBranch.parentName,
+    },
+    authenticationType: {
+      value: authenticationType?.value ?? null,
+      isInherited: authenticationType?.value === null && !isRootOrg,
+      parentValue: authenticationType?.parentValue ?? null,
+      parentName: authenticationType?.parentName,
+      rscValue: rscInitialState(authenticationType?.value ?? ''),
+    },
+    pullRequestCommentingEnabled: {
+      ...pullRequestCommentingEnabled,
+      isInherited: pullRequestCommentingEnabled.value === null && !isRootOrg,
+      value: setDefaultIfNull(
+        pullRequestCommentingEnabled.value,
+        pullRequestCommentingEnabled.parentValue,
+        true,
+        isRootOrg
+      ),
+    },
+    remediationPullRequestsEnabled: {
+      ...remediationPullRequestsEnabled,
+      isInherited: remediationPullRequestsEnabled.value === null && !isRootOrg,
+      value: setDefaultIfNull(
+        remediationPullRequestsEnabled.value,
+        remediationPullRequestsEnabled.parentValue,
+        false,
+        isRootOrg
+      ),
+    },
+    sourceControlEvaluationsEnabled: {
+      ...sourceControlEvaluationsEnabled,
+      isInherited: sourceControlEvaluationsEnabled.value === null && !isRootOrg,
+      value: setDefaultIfNull(
+        sourceControlEvaluationsEnabled.value,
+        sourceControlEvaluationsEnabled.parentValue,
+        true,
+        isRootOrg
+      ),
+    },
+    sshEnabled: {
+      ...sshEnabled,
+      isInherited: sshEnabled.value === null && !isRootOrg,
+      value: setDefaultIfNull(sshEnabled.value, sshEnabled.parentValue, null, isRootOrg),
+    },
+    commitStatusEnabled: {
+      ...commitStatusEnabled,
+      isInherited: commitStatusEnabled.value === null && !isRootOrg,
+      value: setDefaultIfNull(commitStatusEnabled.value, commitStatusEnabled.parentValue, true, isRootOrg),
+    },
+    statusChecksEnabled,
+    manualPullRequestsEnabled: {
+      ...manualPullRequestsEnabled,
+      isInherited: manualPullRequestsEnabled?.value == null && !isRootOrg,
+      value: setDefaultIfNull(
+        manualPullRequestsEnabled?.value ?? null,
+        manualPullRequestsEnabled?.parentValue ?? null,
+        true,
+        isRootOrg
+      ),
+    },
+    innerSourceAutomatedUpdatesEnabled: {
+      ...innerSourceAutomatedUpdatesEnabled,
+      isInherited: innerSourceAutomatedUpdatesEnabled?.value == null && !isRootOrg,
+      value: setDefaultIfNull(
+        innerSourceAutomatedUpdatesEnabled?.value ?? null,
+        innerSourceAutomatedUpdatesEnabled?.parentValue ?? null,
+        true,
+        isRootOrg
+      ),
+    },
+    closePrOnFailedChecksEnabled: {
+      ...closePrOnFailedChecksEnabled,
+      isInherited: closePrOnFailedChecksEnabled?.value === null && !isRootOrg,
+      value: setDefaultIfNull(
+        closePrOnFailedChecksEnabled?.value,
+        closePrOnFailedChecksEnabled?.parentValue,
+        true,
+        isRootOrg
+      ),
+    },
+    closePrAfterDaysOpenEnabled: {
+      ...closePrAfterDaysOpenEnabled,
+      isInherited: closePrAfterDaysOpenEnabled?.value === null && !isRootOrg,
+      value: setDefaultIfNull(
+        closePrAfterDaysOpenEnabled?.value,
+        closePrAfterDaysOpenEnabled?.parentValue,
+        false,
+        isRootOrg
+      ),
+    },
+    closePrAfterDays: {
+      parentName: closePrAfterDays?.parentName,
+      isInherited: closePrAfterDays?.value === null && !isRootOrg,
+      parentValue: rscInitialState(closePrAfterDays?.value?.toString() ?? '', (val) => {
+        const numVal = parseInt(val, 10);
+        return !val || (numVal > 0 && numVal <= 365) ? null : 'Must be a number between 1 and 365';
+      }),
+      rscValue: rscInitialState(closePrAfterDays?.value?.toString() ?? '', (val) => {
+        const numVal = parseInt(val, 10);
+        return !val || (numVal > 0 && numVal <= 365) ? null : 'Must be a number between 1 and 365';
+      }),
+    },
+    githubApps: {
+      value: localGithubApp,
+      isInherited: localGithubApp === null && !isRootOrg,
+      parentValue: inheritedGithubApp,
+      parentName: compositeGitHubApp.parentName,
+      localCount: compositeGitHubApp.localCount,
+      parentCount: compositeGitHubApp.parentCount,
+    },
+  };
+  // Handle edge case: provider inherited from sub-org but token at root level
+  if (provider.parentName !== ROOT_ORG_NAME && token.parentName === ROOT_ORG_NAME) {
+    sourceControlData.token = {
+      rscValue: rscInitialState(token.value ?? '', () => textFieldValidator(token.value, TOKEN_INPUT_MAX_CHARACTERS)),
+      isInherited: false,
+      parentName: null,
+    };
+    sourceControlData.username = {
+      rscValue: rscInitialState('', () => textFieldValidator('', USERNAME_INPUT_MAX_CHARACTERS)),
+      isInherited: false,
+      parentName: null,
+      parentValue: null,
+    };
+  } else {
+    sourceControlData.token = {
+      rscValue: rscInitialState(
+        token.value ?? '',
+        token.value ? () => textFieldValidator(token.value, TOKEN_INPUT_MAX_CHARACTERS) : null
+      ),
+      isInherited: token.value === null && !isRootOrg,
+      parentName: token.parentName,
+      parentValue: rscInitialState(
+        token.parentValue ?? '',
+        token.parentValue ? () => textFieldValidator(token.parentValue, TOKEN_INPUT_MAX_CHARACTERS) : null
+      ),
+    };
+    sourceControlData.username = {
+      rscValue: rscInitialState(
+        username.value ?? '',
+        PROVIDERS_WITH_USERNAME.includes(provider.value) && username.value
+          ? () => textFieldValidator(username.value ?? '', USERNAME_INPUT_MAX_CHARACTERS)
+          : null
+      ),
+      isInherited: username.value === null && !isRootOrg,
+      parentName: username.parentName,
+      parentValue: rscInitialState(
+        username.parentValue ?? '',
+        PROVIDERS_WITH_USERNAME.includes(provider.parentValue) && username.parentValue
+          ? () => textFieldValidator(username.parentValue ?? '', USERNAME_INPUT_MAX_CHARACTERS)
+          : null
+      ),
+    };
+  }
+  return sourceControlData;
+};
+
+export const prepareSubmitData = (sourceControl, serverSourceControl, isApp, isRootOrg, isAutomationSupported) => {
+  if (!sourceControl) return {};
+  const { ownerId, id, sshEnabled } = sourceControl;
+  const submitData = {
+    ownerId,
+    id,
+    pullRequestCommentingEnabled: getPullRequestCommentingEnabledFlagFromModel(
+      sourceControl,
+      serverSourceControl,
+      isRootOrg,
+      isAutomationSupported
+    ),
+    commitStatusEnabled: getCommitStatusEnabledFlagFromModel(
+      sourceControl,
+      serverSourceControl,
+      isRootOrg,
+      isAutomationSupported
+    ),
+    remediationPullRequestsEnabled: getRemediationPullRequestsEnabledFlagFromModel(
+      sourceControl,
+      serverSourceControl,
+      isRootOrg,
+      isAutomationSupported
+    ),
+    sourceControlEvaluationsEnabled: getSourceControlEvaluationsEnabledFlagFromModel(
+      sourceControl,
+      serverSourceControl,
+      isRootOrg,
+      isAutomationSupported
+    ),
+    manualPullRequestsEnabled: getManualPullRequestsEnabledFlagFromModel(
+      sourceControl,
+      serverSourceControl,
+      isRootOrg,
+      isAutomationSupported
+    ),
+    innerSourceAutomatedUpdatesEnabled: getInnerSourceAutomatedUpdatesEnabledFlagFromModel(
+      sourceControl,
+      serverSourceControl,
+      isRootOrg,
+      isAutomationSupported
+    ),
+    statusChecksEnabled: true,
+    repositoryUrl: isApp ? sourceControl.repositoryUrl.trimmedValue : null,
+    sshEnabled: sshEnabled.value,
+    closePrOnFailedChecksEnabled: getClosePrOnFailedChecksEnabledFlagFromModel(sourceControl, serverSourceControl),
+    closePrAfterDaysOpenEnabled: sourceControl.closePrAfterDaysOpenEnabled.value ?? false,
+    closePrAfterDays: isNaN(parseInt(sourceControl.closePrAfterDays?.rscValue?.trimmedValue, 10))
+      ? null
+      : parseInt(sourceControl.closePrAfterDays?.rscValue?.trimmedValue, 10),
+    username: null,
+    token: null,
+    provider: null,
+    authenticationType: null,
+  };
+  if (
+    PROVIDERS_WITH_USERNAME.includes(sourceControl.provider.rscValue.value) ||
+    (PROVIDERS_WITH_USERNAME.includes(sourceControl.provider.parentValue.value) && sourceControl.provider.isInherited)
+  ) {
+    // bitbucket uses 'credentials' to gather username & password. They both move as a single block
+    if (
+      (!sourceControl.token.isInherited || isRootOrg || !sourceControl.provider.isInherited) &&
+      sourceControl.token.rscValue.trimmedValue &&
+      sourceControl.username.rscValue.trimmedValue
+    ) {
+      submitData.username = sourceControl.username.rscValue.trimmedValue;
+      submitData.token = sourceControl.token.rscValue.trimmedValue;
+    }
+  } else {
+    // username only supported in Bitbucket & Azure DevOps
+    if (
+      (!sourceControl.token.isInherited || isRootOrg || !sourceControl.provider.isInherited) &&
+      sourceControl.token.rscValue.trimmedValue
+    ) {
+      submitData.token =
+        sourceControl.token.rscValue.trimmedValue === '' ? null : sourceControl.token.rscValue.trimmedValue;
+    }
+  }
+
+  if (!sourceControl.provider.isInherited || (isRootOrg && sourceControl.provider.rscValue.value)) {
+    submitData.provider = sourceControl.provider.rscValue.value === '' ? null : sourceControl.provider.rscValue.value;
+  }
+
+  if (!sourceControl.baseBranch.isInherited || (isRootOrg && sourceControl.baseBranch.trimmedValue)) {
+    submitData.baseBranch =
+      sourceControl.baseBranch.rscValue.trimmedValue === ''
+        ? null
+        : getBaseBranchValueFromModel(sourceControl, serverSourceControl, isRootOrg, isAutomationSupported);
+  } else {
+    submitData.baseBranch = null;
+  }
+
+  // Save or clear authenticationType based on provider
+  const effectiveProviderValue = sourceControl.provider.isInherited
+    ? serverSourceControl.provider.parentValue.value
+    : sourceControl.provider.rscValue.value;
+
+  if (effectiveProviderValue === 'github') {
+    if (!sourceControl.authenticationType.isInherited || isRootOrg) {
+      submitData.authenticationType = sourceControl.authenticationType.value;
+    } else {
+      submitData.authenticationType = null;
+    }
+  } else {
+    submitData.authenticationType = null;
+  }
+  return submitData;
+};
+
+export const effectiveProvider = (sourceControl, serverSourceControl) => {
+  if (!sourceControl) return;
+  return sourceControl.provider?.isInherited
+    ? serverSourceControl?.provider?.parentValue?.value
+    : sourceControl.provider?.rscValue?.value;
+};
+
+export const effectiveAuthenticationType = (sourceControl) => {
+  if (!sourceControl?.authenticationType) {
+    return null;
+  }
+
+  const inheritedAuthenticationType = sourceControl.authenticationType.parentValue ?? null;
+  const localAuthenticationType = sourceControl.authenticationType.value ?? null;
+
+  return sourceControl.authenticationType.isInherited ? inheritedAuthenticationType : localAuthenticationType;
+};
+
+/**
+ * Determines if GitHub App authentication should be shown instead of standard credentials.
+ *
+ * @param {Object} sourceControl - Current source control configuration
+ * @param {Object} serverSourceControl - Server-level source control configuration
+ * @returns {boolean} True if the provider is GitHub (either current or inherited)
+ */
+export const shouldShowGitHubAppAuth = (sourceControl, serverSourceControl) => {
+  return effectiveProvider(sourceControl, serverSourceControl) === 'github';
+};
+
+export const effectiveFieldInheritFrom = (sourceControl, serverSourceControl, field) => {
+  if (!sourceControl) return;
+  return sourceControl.provider.isInherited ? serverSourceControl[field].parentName : null;
+};
+
+export const providerNeedsUsername = (sourceControl, serverSourceControl) =>
+  PROVIDERS_WITH_USERNAME.includes(effectiveProvider(sourceControl, serverSourceControl));
+
+export const isUsernameRequiredOnNode = (sourceControl, serverSourceControl, isApp) => {
+  return (
+    isApp &&
+    !effectiveFieldInheritFrom(sourceControl, serverSourceControl, 'username') &&
+    providerNeedsUsername(sourceControl, serverSourceControl)
+  );
+};
+
+export const isAccessTokenRequiredOnNode = (sourceControl, serverSourceControl, isApp) => {
+  // Only check at application level
+  if (!isApp) {
+    return false;
+  }
+
+  // Get effective provider (could be inherited or overridden)
+  const provider = effectiveProvider(sourceControl, serverSourceControl);
+  const isGitHub = provider === 'github';
+
+  if (isGitHub) {
+    const effectiveAuthType = effectiveAuthenticationType(sourceControl);
+    if (effectiveAuthType === AUTHENTICATION_TYPES.GITHUB_APP) {
+      return false;
+    }
+  }
+
+  // Check if provider is inherited (applies to all providers)
+  const isProviderInherited = sourceControl?.provider?.isInherited;
+  const hasParentProvider = sourceControl?.provider?.parentValue?.value;
+
+  // Cross-provider token validation: If provider changed and token is inherited from different provider
+  // then token is incompatible and required at app level
+  const isTokenInherited = sourceControl?.token?.isInherited;
+  const parentProvider = serverSourceControl?.provider?.parentValue?.value;
+  const currentProvider = sourceControl?.provider?.rscValue?.value;
+
+  if (
+    isTokenInherited &&
+    !isProviderInherited &&
+    currentProvider &&
+    parentProvider &&
+    currentProvider !== parentProvider
+  ) {
+    // Provider was overridden to a different provider but token is still inherited from old provider
+    // This means the inherited token is incompatible with the new provider
+    return true; // Token required - inherited token cannot be used with different provider
+  }
+
+  if (isGitHub) {
+    // For GitHub, auth inheritance is INDEPENDENT of provider inheritance
+    // User can inherit provider but override auth method (or vice versa)
+    const isAuthInherited = sourceControl?.authenticationType?.isInherited;
+    const parentAuthType = sourceControl?.authenticationType?.parentValue;
+    if (isAuthInherited && parentAuthType === AUTHENTICATION_TYPES.GITHUB_APP) {
+      // Inherited GitHub App authentication doesn't use tokens.
+      return false;
+    }
+
+    // Auth method is overridden - check if it's GitHub App (no token needed)
+    const authType = sourceControl?.authenticationType?.value;
+    if (authType === AUTHENTICATION_TYPES.GITHUB_APP) {
+      // GitHub App authentication doesn't use token
+      return false;
+    }
+
+    // If provider is inherited AND auth is inherited AND parent has a token
+    // Check: provider inherited + no local auth override + auth inherited + token inherited + parent has token
+    const isTokenInherited = sourceControl?.token?.isInherited;
+    const hasParentToken = sourceControl?.token?.parentValue?.value;
+    if (
+      isProviderInherited &&
+      hasParentProvider &&
+      !authType &&
+      isAuthInherited &&
+      isTokenInherited &&
+      hasParentToken
+    ) {
+      // Fully inherited with token = no token needed at app level
+      return false;
+    }
+
+    // Check if token is inherited and parent has token (even if provider inherited)
+    if (isTokenInherited && hasParentToken) {
+      return false; // Token inherited from parent
+    }
+
+    // Check if app has a token value (either in current input or saved on server)
+    const hasCurrentToken = sourceControl?.token?.rscValue?.trimmedValue;
+    const hasSavedToken = serverSourceControl?.token?.value;
+
+    // Auth type undefined/null is treated as PAT (backwards compatibility); explicit GITHUB_APP cannot reuse token.
+    const isParentUsingPAT = !parentAuthType || parentAuthType === AUTHENTICATION_TYPES.PAT;
+    const isOverridingWithParentToken =
+      !isTokenInherited &&
+      isProviderInherited &&
+      hasParentToken &&
+      !hasCurrentToken &&
+      !hasSavedToken &&
+      isParentUsingPAT;
+
+    if (hasCurrentToken || hasSavedToken || isOverridingWithParentToken) {
+      return false; // App has a token (current, saved, or available from parent during override)
+    }
+
+    // Auth method overridden to PAT or provider overridden or no parent token = token required at app level
+    return true;
+  }
+
+  // For non-GitHub providers (Bitbucket, GitLab, Azure, etc.)
+  // Check if provider is inherited WITH a parent value AND parent has credentials
+  if (isProviderInherited && hasParentProvider) {
+    // Check if parent actually has credentials to inherit
+    const hasParentToken = sourceControl?.token?.parentValue?.value;
+    const hasParentUsername = sourceControl?.username?.parentValue?.value;
+    const providerNeedsUsernameValue = PROVIDERS_WITH_USERNAME.includes(hasParentProvider);
+
+    const hasParentCredentials = providerNeedsUsernameValue ? hasParentToken && hasParentUsername : hasParentToken;
+
+    if (hasParentCredentials) {
+      // Provider inherited AND parent has credentials = no token needed at app level
+      return false;
+    }
+
+    // Provider inherited but parent has NO credentials = token required at app level
+    return true;
+  }
+
+  // Provider overridden or no parent provider = token required
+  return true;
+};
+
+/**
+ * Resolves the model `value` for an SCM toggle field.
+ *
+ * - At the **root organization** (no parent to inherit from): when neither `value` nor `parentValue`
+ *   is set, fall back to `defaultValue` so the UI has something sensible to display.
+ * - At a **sub-org or application**: a `null` `value` means the user picked "Inherit (Not Configured)".
+ *   That `null` must be preserved so `SourceControlInheritedInput` keeps the "Inherit" radio selected
+ *   (CLM-32426 — defaulting to `true`/`false` here would re-render the toggle as Enabled/Disabled).
+ *
+ * `isRootOrg` is required: passing it explicitly forces every caller to consider which side of
+ * this distinction it's on and prevents silently re-introducing CLM-32426 at new call sites.
+ */
+export const setDefaultIfNull = (value, parentValue, defaultValue, isRootOrg) => {
+  if (value !== null) return value;
+  if (!isRootOrg) return null;
+  return parentValue === null ? defaultValue : value;
+};
+
+export const arePullRequestsSupported = (sourceControl, serverSourceControl, isAutomationSupported) =>
+  (!effectiveProvider(sourceControl, serverSourceControl) ||
+    PROVIDERS_SUPPORTING_PULL_REQUESTS.includes(effectiveProvider(sourceControl, serverSourceControl))) &&
+  isAutomationSupported;
+
+export const getPullRequestCommentingEnabledFlagFromModel = (
+  sourceControl,
+  serverSourceControl,
+  isRootOrg,
+  isAutomationSupported
+) => {
+  if (!isRootOrg || isAutomationSupported) {
+    return sourceControl.pullRequestCommentingEnabled.value;
+  }
+
+  return serverSourceControl.pullRequestCommentingEnabled.value === null
+    ? true
+    : serverSourceControl.pullRequestCommentingEnabled.value;
+};
+
+export const getCommitStatusEnabledFlagFromModel = (
+  sourceControl,
+  serverSourceControl,
+  isRootOrg,
+  isAutomationSupported
+) => {
+  if (!isRootOrg || isAutomationSupported) {
+    return sourceControl.commitStatusEnabled.value;
+  }
+
+  return serverSourceControl.commitStatusEnabled.value === null ? true : serverSourceControl.commitStatusEnabled.value;
+};
+
+export const getRemediationPullRequestsEnabledFlagFromModel = (
+  sourceControl,
+  serverSourceControl,
+  isRootOrg,
+  isAutomationSupported
+) => {
+  if (!isRootOrg || arePullRequestsSupported(sourceControl, serverSourceControl, isAutomationSupported)) {
+    return sourceControl.remediationPullRequestsEnabled.value;
+  }
+
+  return serverSourceControl.remediationPullRequestsEnabled.value === null
+    ? true
+    : serverSourceControl.remediationPullRequestsEnabled.value;
+};
+
+export const getSourceControlEvaluationsEnabledFlagFromModel = (
+  sourceControl,
+  serverSourceControl,
+  isRootOrg,
+  isAutomationSupported
+) => {
+  if (!isRootOrg || isAutomationSupported) {
+    return sourceControl.sourceControlEvaluationsEnabled.value;
+  }
+
+  return serverSourceControl.sourceControlEvaluationsEnabled.value === null
+    ? true
+    : serverSourceControl.sourceControlEvaluationsEnabled.value;
+};
+
+export const getManualPullRequestsEnabledFlagFromModel = (
+  sourceControl,
+  serverSourceControl,
+  isRootOrg,
+  isAutomationSupported
+) => {
+  if (!isRootOrg || arePullRequestsSupported(sourceControl, serverSourceControl, isAutomationSupported)) {
+    return sourceControl.manualPullRequestsEnabled?.value ?? null;
+  }
+
+  return serverSourceControl.manualPullRequestsEnabled?.value ?? true;
+};
+
+export const getInnerSourceAutomatedUpdatesEnabledFlagFromModel = (
+  sourceControl,
+  serverSourceControl,
+  isRootOrg,
+  isAutomationSupported
+) => {
+  if (!isRootOrg || isAutomationSupported) {
+    return sourceControl.innerSourceAutomatedUpdatesEnabled?.value ?? null;
+  }
+
+  return serverSourceControl.innerSourceAutomatedUpdatesEnabled?.value ?? false;
+};
+
+export const getBaseBranchValueFromModel = (sourceControl, serverSourceControl, isRootOrg, isAutomationSupported) => {
+  if (!isRootOrg || arePullRequestsSupported(sourceControl, serverSourceControl, isAutomationSupported)) {
+    return sourceControl.baseBranch.rscValue.trimmedValue;
+  }
+
+  return serverSourceControl.baseBranch.rscValue.trimmedValue === ''
+    ? 'main'
+    : serverSourceControl.baseBranch.rscValue.trimmedValue;
+};
+
+export const getClosePrOnFailedChecksEnabledFlagFromModel = (sourceControl, serverSourceControl) => {
+  const provider = effectiveProvider(sourceControl, serverSourceControl);
+
+  if (!PROVIDERS_SUPPORTING_FAILED_CHECKS_CLOSE.includes(provider)) {
+    return null;
+  }
+
+  return sourceControl.closePrOnFailedChecksEnabled.value ?? false;
+};
+
+export const getDataFromSourceControl = (
+  ownerType,
+  {
+    provider,
+    username,
+    token,
+    baseBranch,
+    authenticationType,
+    pullRequestCommentingEnabled,
+    commitStatusEnabled,
+    remediationPullRequestsEnabled,
+    sourceControlEvaluationsEnabled,
+    statusChecksEnabled,
+    sshEnabled,
+    manualPullRequestsEnabled,
+    repositoryUrl,
+    innerSourceAutomatedUpdatesEnabled,
+    closePrOnFailedChecksEnabled,
+    closePrAfterDaysOpenEnabled,
+    closePrAfterDays,
+  }
+) => {
+  const data = {
+    provider,
+    username,
+    token,
+    baseBranch,
+    authenticationType,
+    remediationPullRequestsEnabled,
+    statusChecksEnabled,
+    pullRequestCommentingEnabled,
+    commitStatusEnabled,
+    sourceControlEvaluationsEnabled,
+    sshEnabled,
+    manualPullRequestsEnabled,
+    innerSourceAutomatedUpdatesEnabled,
+    closePrOnFailedChecksEnabled,
+    closePrAfterDaysOpenEnabled,
+    closePrAfterDays,
+  };
+  if (ownerType === 'application') {
+    data.repositoryUrl = repositoryUrl;
+  }
+  return data;
+};
+
+export const textFieldValidator = (val, maxLength) =>
+  combineValidationErrors(
+    validateNonEmpty(val?.trim()),
+    validateMaxLength(maxLength, val),
+    validateDoubleWhitespace(val)
+  );
+
+export const urlFieldValidator = (val) =>
+  combineValidationErrors(validateNonEmpty(val?.trim()), validateUrlPatternMatch(val));
+
+export const setIsDirty = (state) => {
+  const { sourceControl, serverSourceControl } = state;
+  const formFields = [
+    'provider',
+    'token',
+    'username',
+    'baseBranch',
+    'authenticationType',
+    'githubApps',
+    'pullRequestCommentingEnabled',
+    'commitStatusEnabled',
+    'remediationPullRequestsEnabled',
+    'sourceControlEvaluationsEnabled',
+    'manualPullRequestsEnabled',
+    'sshEnabled',
+    'repositoryUrl',
+    'innerSourceAutomatedUpdatesEnabled',
+    'closePrOnFailedChecksEnabled',
+    'closePrAfterDaysOpenEnabled',
+    'closePrAfterDays',
+  ];
+
+  const isDirty = formFields.some((property) => {
+    let fieldIsDirty = false;
+
+    if (property === 'provider') {
+      fieldIsDirty =
+        sourceControl[property]?.rscValue?.value !== serverSourceControl[property]?.rscValue?.value ||
+        sourceControl[property]?.isInherited !== serverSourceControl[property]?.isInherited;
+    } else if (property === 'repositoryUrl') {
+      fieldIsDirty = sourceControl[property]?.value !== serverSourceControl[property]?.value;
+    } else if (property === 'authenticationType') {
+      fieldIsDirty =
+        sourceControl[property]?.value !== serverSourceControl[property]?.value ||
+        sourceControl[property]?.isInherited !== serverSourceControl[property]?.isInherited;
+    } else if (property === 'githubApps') {
+      const currentGithubAppId = getGitHubAppIdentifier(sourceControl[property]?.value);
+      const serverGithubAppId = getGitHubAppIdentifier(serverSourceControl[property]?.value);
+      const isInheritedChanged = sourceControl[property]?.isInherited !== serverSourceControl[property]?.isInherited;
+      fieldIsDirty = currentGithubAppId !== serverGithubAppId || isInheritedChanged;
+    } else {
+      fieldIsDirty =
+        sourceControl[property]?.rscValue?.trimmedValue !== serverSourceControl[property]?.rscValue?.trimmedValue ||
+        sourceControl[property]?.value !== serverSourceControl[property]?.value ||
+        sourceControl[property]?.isInherited !== serverSourceControl[property]?.isInherited;
+    }
+
+    return fieldIsDirty;
+  });
+
+  return isDirty;
+};
+
+export const setIsRepoUrlDirty = (state) => {
+  const { sourceControl, serverSourceControl } = state;
+  return sourceControl['repositoryUrl']?.value !== serverSourceControl['repositoryUrl']?.value;
+};
+
+export const getValidationMessage = (isDirty, validationError, sourceControl) => {
+  if (!isDirty) {
+    const hasGitHubApps =
+      (sourceControl?.githubApps?.localCount ?? 0) > 0 || hasConfiguredGitHubApp(sourceControl?.githubApps?.value);
+    const isGitHubAppAuth = sourceControl?.authenticationType?.value === AUTHENTICATION_TYPES.GITHUB_APP;
+
+    if (hasGitHubApps && isGitHubAppAuth) {
+      return 'GitHub App is already configured. No additional changes to save.';
+    }
+    return MSG_NO_CHANGES_TO_SAVE;
+  }
+  // For dirty forms, check validation errors (catches both user input errors and invalid backend states)
+  if (validationError) {
+    return validationError;
+  }
+
+  return null;
+};
+
+/**
+ * Determines if an account name represents a personal GitHub account
+ * Personal accounts are stored with the marker suffix: "username(personal)"
+ * IMPORTANT: Backend stores this as accountName + "(personal)" with NO space
+ * Keep in sync with backend constant at:
+ * insight-brain-service/.../githubapp/ApiGitHubAppService.java:PERSONAL_ACCOUNT_MARKER
+ *
+ * @param {string} accountName - The account name to check
+ * @returns {boolean} True if this is a personal account, false otherwise
+ */
+export const isPersonalAccount = (accountName) => {
+  return accountName?.endsWith(PERSONAL_ACCOUNT_MARKER);
+};
+
+/**
+ * Extracts the clean account name without the personal marker suffix
+ * For personal accounts "john-doe(personal)" returns "john-doe"
+ * For org accounts "acme-corp" returns "acme-corp" unchanged
+ *
+ * @param {string} accountName - The account name to clean
+ * @returns {string} Clean account name without marker suffix
+ */
+export const getCleanAccountName = (accountName) => {
+  if (!accountName) return '';
+  return isPersonalAccount(accountName) ? accountName.slice(0, -PERSONAL_ACCOUNT_MARKER.length) : accountName;
+};
+
+/**
+ * Generates the appropriate GitHub App installation URL based on account type
+ * Personal: https://github.com/settings/installations/{installationId}
+ * Organization: https://github.com/organizations/{orgName}/settings/installations/{installationId}
+ *
+ * @param {string} accountName - The account name (may have personal marker)
+ * @param {string|number} installationId - The GitHub App installation ID
+ * @returns {string|null} The GitHub URL or null if installationId is missing
+ */
+export const getGitHubAppInstallationUrl = (accountName, installationId) => {
+  if (!installationId) return null;
+
+  if (isPersonalAccount(accountName)) {
+    return GITHUB_URLS.PERSONAL_INSTALLATIONS.replace('{installationId}', String(installationId));
+  }
+  // Use cleaned account name for organization URLs
+  const cleanName = getCleanAccountName(accountName);
+  return GITHUB_URLS.ORGANIZATION_INSTALLATIONS.replace('{orgName}', cleanName).replace(
+    '{installationId}',
+    String(installationId)
+  );
+};

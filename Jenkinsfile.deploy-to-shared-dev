@@ -1,0 +1,81 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+
+/**
+ * Standalone pipeline for deploying MTIQ images to shared-dev cell.
+ *
+ * Triggered as a downstream job from Jenkinsfile.main (main branch) after successful ECR push.
+ * Handles TFC deployment for the progressive deployment pipeline.
+ *
+ * Parameters:
+ *   ECR_TAG - The ECR tag to deploy (e.g., 202604161432-main-142-a1b2c3d4)
+ *             Format: {dateSection}-{branch}-{buildNumber}-{commitId}
+ *             See jenkins/ecr-helpers.groovy for full documentation.
+ */
+
+// Dev cell workspaces — explicit allowlist (never target legacy cells)
+def DEV_CELL_WORKSPACES = ['sca_aws_dev_cell-shared-dev']
+def DEV_GLOBAL_WORKSPACE = 'sca_aws_dev_global'
+
+pipeline {
+  agent { label 'zion-small' }
+
+  parameters {
+    string(name: 'ECR_TAG', description: 'The ECR tag to deploy (e.g., 202604161432-main-142-a1b2c3d4)')
+  }
+
+  options {
+    timestamps()
+    buildDiscarder(logRotator(numToKeepStr: '20'))
+    disableConcurrentBuilds()
+    // NOTE: must exceed 10 min × len(DEV_CELL_WORKSPACES) + overhead.
+    // Currently 1 workspace → 15 min is sufficient. Increase if workspaces are added.
+    timeout(time: 15, unit: 'MINUTES')
+  }
+
+  stages {
+    stage('Validate Parameters') {
+      steps {
+        script {
+          if (!params.ECR_TAG) {
+            error 'ECR_TAG parameter is required but was null. This job must be triggered from Jenkinsfile.main.'
+          }
+          echo "Parameters validated: ECR_TAG=${params.ECR_TAG}"
+        }
+      }
+    }
+
+    stage('Deploy to Cells') {
+      steps {
+        script {
+          def tfc = load 'jenkins/tfc-helpers.groovy'
+          tfc.deployCells('dev', DEV_CELL_WORKSPACES, DEV_GLOBAL_WORKSPACE, params.ECR_TAG, [maxDestructions: 4, maxAdditions: 4, maxChanges: 4])
+        }
+      }
+    }
+
+    stage('Trigger test-shared-dev') {
+      steps {
+        script {
+          build job: 'insight/MTIQ/sca-cloud/test-shared-dev',
+              parameters: [string(name: 'IMAGE_TAG', value: params.ECR_TAG)],
+              wait: false,
+              propagate: false
+        }
+      }
+    }
+  }
+
+  post {
+    failure {
+      script {
+        notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices',
+                   message: "Shared-dev deployment FAILED for ECR tag: ${params.ECR_TAG}")
+      }
+    }
+  }
+}

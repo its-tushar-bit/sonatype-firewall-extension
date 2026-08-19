@@ -1,0 +1,19 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+
+.nx-page-title.iq-component-risk-header {
+  display: block;
+
+  .iq-component-total-risk {
+    margin: var(--nx-spacing-4x) 0 0;
+  }
+
+  .nx-page-title__description {
+    margin-top: var(--nx-spacing-2x);
+  }
+}

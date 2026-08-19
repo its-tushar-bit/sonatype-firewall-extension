@@ -1,0 +1,172 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+
+/**
+ * Parameterized pipeline for regional production deployments.
+ *
+ * This job is shared by the regional production deployments (us-1, us-2, eu-1, ap-1, fidelity).
+ * Each regional Jenkins job configures the default values for CELL_WORKSPACES and
+ * GLOBAL_WORKSPACE. Only IMAGE_TAG must be passed in at build time.
+ *
+ * Parameters:
+ *   IMAGE_TAG (required) - The prod ECR tag to deploy (must have a prod-internal-verified-* tag)
+ *   CELL_WORKSPACES - Comma-separated TFC workspace names; defaults from Jenkins job config
+ *   GLOBAL_WORKSPACE - The global TFC workspace name; defaults to sca_aws_prod_global
+ *
+ * Jenkins job path: insight/MTIQ/sca-cloud/deploy-to-prod-{region}
+ *   - deploy-to-prod-us-1
+ *   - deploy-to-prod-us-2
+ *   - deploy-to-prod-eu-1
+ *   - deploy-to-prod-ap-1
+ *   - deploy-to-prod-fidelity
+ */
+
+pipeline {
+  agent { label 'zion-small' }
+
+  parameters {
+    string(name: 'IMAGE_TAG',
+           description: 'The prod ECR tag to deploy (must be a prod-internal-verified-* tag)')
+    string(name: 'CELL_WORKSPACES',
+           defaultValue: params.CELL_WORKSPACES ?: '',
+           description: 'Comma-separated TFC workspace names for this region (e.g., sca_aws_prod_cell-prod-us-1). Defaults from Jenkins job config.')
+    string(name: 'GLOBAL_WORKSPACE',
+           defaultValue: params.GLOBAL_WORKSPACE ?: 'sca_aws_prod_global',
+           description: 'The global TFC workspace name. Defaults from Jenkins job config.')
+  }
+
+  options {
+    timestamps()
+    buildDiscarder(logRotator(numToKeepStr: '100'))
+    disableConcurrentBuilds()
+    // 96 hours to allow for approval wait, with 30-minute timeout on deploy stage
+    timeout(time: 96, unit: 'HOURS')
+  }
+
+  stages {
+
+    stage('Validate Parameters') {
+      steps {
+        script {
+          if (!params.IMAGE_TAG?.trim()) {
+            error 'IMAGE_TAG parameter is required'
+          }
+          if (!params.CELL_WORKSPACES?.trim()) {
+            error 'CELL_WORKSPACES parameter is required'
+          }
+          if (!params.GLOBAL_WORKSPACE?.trim()) {
+            error 'GLOBAL_WORKSPACE parameter is required'
+          }
+          echo "Image tag: ${params.IMAGE_TAG}"
+          echo "Cell workspaces: ${params.CELL_WORKSPACES}"
+          echo "Global workspace: ${params.GLOBAL_WORKSPACE}"
+        }
+      }
+    }
+
+    stage('Validate Image') {
+      steps {
+        script {
+          def ecr = load 'jenkins/ecr-helpers.groovy'
+
+          // Validate image exists in prod ECR
+          ecr.validateImageExists(
+            ecr.PROD_ECR_ACCOUNT,
+            ecr.ECR_REPOSITORY,
+            params.IMAGE_TAG
+          )
+
+          // Safety check: verify image has a prod-internal-verified tag
+          withAwsRole(credentialsId: ecr.PROD_ECR_ACCOUNT.credentialId, role: ecr.PROD_ECR_ACCOUNT.role,
+                      roleAccount: ecr.PROD_ECR_ACCOUNT.id, region: ecr.ECR_REGION) {
+            withEnv(["REPOSITORY_ARG=${ecr.ECR_REPOSITORY}", "IMAGE_TAG_ARG=${params.IMAGE_TAG}", "REGION_ARG=${ecr.ECR_REGION}"]) {
+              def imageDetail = sh(script: '''
+                aws ecr describe-images \\
+                  --repository-name "$REPOSITORY_ARG" \\
+                  --image-ids "imageTag=$IMAGE_TAG_ARG" \\
+                  --region "$REGION_ARG" \\
+                  --query 'imageDetails[0].imageTags' \\
+                  --output json
+              ''', returnStdout: true).trim()
+
+              def tags = readJSON text: imageDetail
+              if (!tags) {
+                error "FAILED: Image ${params.IMAGE_TAG} was not found in prod ECR (account ${ecr.PROD_ECR_ACCOUNT.id}).\n" +
+                      "The image must exist in prod ECR before it can be deployed to production.\n" +
+                      "To fix: run push-to-prod to promote the image from staging ECR to prod ECR."
+              }
+              def hasVerifiedTag = tags.any { it.startsWith('prod-internal-verified-') }
+
+              if (!hasVerifiedTag) {
+                error "FAILED: Image ${params.IMAGE_TAG} exists in prod ECR but does not have a prod-internal-verified-* tag.\n" +
+                      "For an image to be deployed to production, it must have a prod-internal-verified-* tag in\n" +
+                      "prod ECR. This tag is applied automatically when the image is successfully deployed to\n" +
+                      "prod-internal by the deploy-to-prod-internal job.\n" +
+                      "To fix: run deploy-to-prod-internal with this image tag. Once it deploys successfully,\n" +
+                      "the verified tag will be applied and this job can proceed."
+              }
+              echo "Verified: Image has prod-internal-verified tag"
+            }
+          }
+        }
+      }
+    }
+
+    stage('Approval') {
+      steps {
+        input message: "Approve deployment to production [${params.CELL_WORKSPACES}]?",
+              ok: 'Deploy'
+      }
+    }
+
+    stage('Deploy to Production Region') {
+      steps {
+        script {
+          // Apply 30-minute timeout on the actual deployment
+          timeout(time: 30, unit: 'MINUTES') {
+            def tfc = load 'jenkins/tfc-helpers.groovy'
+
+            // Parse comma-separated workspaces into a list
+            def workspaces = params.CELL_WORKSPACES.split(',').collect { it.trim() }
+
+            tfc.deployCells("production-${params.CELL_WORKSPACES}", workspaces, params.GLOBAL_WORKSPACE, params.IMAGE_TAG, [maxDestructions: 4, maxAdditions: 4, maxChanges: 4, gateEnabled: true])
+          }
+        }
+      }
+    }
+
+  }
+
+  post {
+    success {
+      script {
+        echo "deploy-to-prod-region (${params.CELL_WORKSPACES}): Deployed ${params.IMAGE_TAG}"
+        notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices',
+                   message: "Production [${params.CELL_WORKSPACES}] deployment SUCCESS: ${params.IMAGE_TAG}")
+      }
+    }
+    failure {
+      script {
+        echo "deploy-to-prod-region (${params.CELL_WORKSPACES}): FAILED for ${params.IMAGE_TAG}"
+
+        echo "============================================"
+        echo "ROLLBACK INSTRUCTIONS"
+        echo "============================================"
+        echo "1. Identify the previous known-good image tag from prod ECR"
+        echo "2. Re-run this job with the previous tag for [${params.CELL_WORKSPACES}], or"
+        echo "3. Manually update the TFC workspace variable and apply"
+        echo "============================================"
+
+        notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices',
+                   message: "Production [${params.CELL_WORKSPACES}] deployment FAILED: ${params.IMAGE_TAG}. Check logs for rollback instructions.")
+      }
+    }
+    cleanup {
+      deleteDir()
+    }
+  }
+}

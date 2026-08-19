@@ -1,0 +1,30 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+.iq-dependency-information.nx-grid-col__section {
+  border: 0;
+  padding: 0;
+
+  .nx-grid-header {
+    padding: 0;
+
+    .nx-grid-header__title {
+      margin: 0;
+    }
+  }
+
+  .nx-p {
+    margin: var(--nx-spacing-3x) 0;
+  }
+
+  .nx-list {
+    margin-top: var(--nx-spacing-2x);
+
+    .nx-tag {
+      margin-left: var(--nx-spacing-2x);
+    }
+  }
+}

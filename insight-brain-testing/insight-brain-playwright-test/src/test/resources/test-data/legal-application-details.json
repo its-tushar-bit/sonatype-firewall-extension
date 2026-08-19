@@ -1,0 +1,11 @@
+{
+  "stageTypeId": "build",
+  "expectedComponentCount": 3,
+  "expectedTitleSuffix": "Obligations",
+  "tableColumns": [
+    "Component",
+    "Licenses",
+    "Completed Obligations",
+    "Review Status"
+  ]
+}

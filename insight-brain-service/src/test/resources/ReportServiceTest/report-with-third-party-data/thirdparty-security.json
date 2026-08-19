@@ -1,0 +1,63 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "debian-9",
+      "coordinates" : {
+        "name" : "glibc",
+        "version" : "2.24-11+deb9u3"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "37b3ce40791bc2dd8068",
+    "url" : "https://security-tracker.debian.org/tracker/CVE-2017-16997",
+    "reference" : "CVE-2017-16997",
+    "source" : "CVE",
+    "score" : 10.0,
+    "cwe" : null,
+    "cvssVectorString" : null,
+    "cvssVectorSource" : null,
+    "matchState" : "exact",
+    "proprietary" : null,
+    "fixedVersion" : "2.24.11",
+    "description" : "",
+    "severity" : "Critical",
+    "ratingMethod" : null,
+    "recommendations" : null,
+    "advisories" : null,
+    "identificationSource" : "SBOM",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "OTHER"
+  }, {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "name" : "altgraph",
+        "version" : "0.10.2"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "cf085cd08ee27334c573",
+    "url" : "https://nvd.nist.gov/vuln/detail/CVE-2018-7489",
+    "reference" : "CVE-2018-7489",
+    "source" : "NVD",
+    "score" : 9.8,
+    "cwe" : "184||502||",
+    "cvssVectorString" : "AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : null,
+    "matchState" : "exact",
+    "proprietary" : null,
+    "fixedVersion" : null,
+    "description" : "FasterXML jackson-databind before 2.7.9.3, 2.8.x before 2.8.11.1 and 2.9.x before 2.9.5 allows unauthenticated remote code execution because of an incomplete fix for the CVE-2017-7525 deserialization flaw. This is exploitable by sending maliciously crafted JSON input to the readValue method of the ObjectMapper, bypassing a blacklist that is ineffective if the c3p0 libraries are available in the classpath.",
+    "severity" : "Critical",
+    "ratingMethod" : "CVSSv3",
+    "recommendations" : "Upgrade||",
+    "advisories" : "https://github.com/FasterXML/jackson-databind/issues/1931||http://www.securityfocus.com/bid/103203||http://www.securitytracker.com/id/1040693||http://www.securitytracker.com/id/1041890||",
+    "identificationSource" : "SBOM",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "OTHER"
+  } ]
+}

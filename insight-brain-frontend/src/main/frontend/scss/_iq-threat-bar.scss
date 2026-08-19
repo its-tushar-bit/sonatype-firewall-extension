@@ -1,0 +1,49 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+/*
+  Threat Legends
+ */
+
+@use 'sass:list';
+
+@use './variables' as *;
+
+.iq-threat-bar {
+  display: inline-block;
+  height: 100%;
+  margin: 0 8px 0 -12px;
+  vertical-align: middle;
+  width: 8px;
+
+  @each $threatdef in list.join($threat-levels, $threat-bars) {
+    &.iq-threat-bar--#{list.nth($threatdef, 1)} {
+      background-color: #{list.nth($threatdef, 3)};
+    }
+  }
+
+  @each $threatdef in $threat-levels {
+    @each $threatLevel in list.nth($threatdef, 4) {
+      &.iq-threat-bar--#{$threatLevel} {
+        background-color: list.nth($threatdef, 3);
+      }
+    }
+  }
+
+  @each $threat in $policy-threat-levels {
+    @each $threatLevel in list.nth($threat, 4) {
+      &.iq-threat-bar--policy-level-#{$threatLevel} {
+        background-color: list.nth($threat, 3);
+      }
+    }
+  }
+}
+
+.iq-list__item {
+  .iq-threat-bar {
+    height: 48px;
+    margin: -20px 4px -18px -8px;
+  }
+}

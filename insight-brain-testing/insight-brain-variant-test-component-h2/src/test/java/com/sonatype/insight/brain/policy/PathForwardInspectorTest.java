@@ -1,0 +1,159 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.policy;
+
+import java.util.Arrays;
+import java.util.Collections;
+
+import jakarta.inject.Inject;
+
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
+import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
+import com.sonatype.insight.brain.hds.ComponentInfoService;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
+
+import org.apache.commons.lang3.tuple.Pair;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+
+import static org.hamcrest.Matchers.hasEntry;
+import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ComponentH2Test
+public class PathForwardInspectorTest
+    extends AbstractComponentH2Test
+{
+  private Application application;
+
+  private PathForwardInspector pathForwardInspector;
+
+  @Mock
+  private ComponentInfoService componentInfoServiceMock;
+
+  @Inject
+  private ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
+
+  @Inject
+  private ApplicationDAO applicationDAO;
+
+  private static final ComponentIdentifier MAVEN_COORDINATES_V1 = ComponentIdentifier.createMavenCoordinates("g1", "a1",
+      "1.0.0", "", "jar");
+
+  private static final ComponentIdentifier MAVEN_COORDINATES_V2 = ComponentIdentifier.createMavenCoordinates("g1", "a1",
+      "2.0.0", "", "jar");
+
+  private static final ComponentIdentifier MAVEN_COORDINATES_V3 = ComponentIdentifier.createMavenCoordinates("g1", "a1",
+      "3.0.0", "", "jar");
+
+  private static final Component MAVEN_COMPONENT_V1 = new Component(MAVEN_COORDINATES_V1);
+
+  @BeforeEach
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    application = tempEntity.newApplicationWithParent();
+    pathForwardInspector =
+        new PathForwardInspector(componentInfoServiceMock, componentDetailsLoaderFactory);
+
+    MAVEN_COMPONENT_V1.setHash("hash");
+    MAVEN_COMPONENT_V1.setMatchState(MatchState.EXACT);
+  }
+
+  @Test
+  public void testDoesNotContainsUpgradeableVersion() {
+    ComponentDetailsDTO componentDetailsDTO = new ComponentDetailsDTO();
+    componentDetailsDTO.componentIdentifier = MAVEN_COORDINATES_V1;
+    componentDetailsDTO.violatedPolicyCount = 1;
+
+    when(componentInfoServiceMock.getComponentDetailsForAllVersionsNoAuth(
+        any(), eq(MAVEN_COORDINATES_V1), eq("stageId"), any(), eq("scanId"), any(), any(), anyBoolean()))
+            .thenReturn(Pair.of(Collections.singletonList(componentDetailsDTO), null));
+
+    boolean result =
+        pathForwardInspector.containsUpgradeableVersion(MAVEN_COMPONENT_V1.getComponentIdentifier(),
+            application, "stageId", "scanId");
+
+    assertFalse(result);
+  }
+
+  @Test
+  public void testContainsUpgradeableVersion() {
+    ComponentDetailsDTO componentDetailsDTO3 = new ComponentDetailsDTO();
+    componentDetailsDTO3.componentIdentifier = MAVEN_COORDINATES_V3;
+    componentDetailsDTO3.violatedPolicyCount = 0;
+    ComponentDetailsDTO componentDetailsDTO2 = new ComponentDetailsDTO();
+    componentDetailsDTO2.componentIdentifier = MAVEN_COORDINATES_V2;
+    componentDetailsDTO2.violatedPolicyCount = 3;
+    ComponentDetailsDTO componentDetailsDTO1 = new ComponentDetailsDTO();
+    componentDetailsDTO1.componentIdentifier = MAVEN_COORDINATES_V1;
+    componentDetailsDTO1.violatedPolicyCount = 1;
+
+    when(componentInfoServiceMock.getComponentDetailsForAllVersionsNoAuth(
+        any(), eq(MAVEN_COORDINATES_V1), any(), any(), any(), any(), any(), anyBoolean())).thenReturn(
+            Pair.of(Arrays.asList(componentDetailsDTO1, componentDetailsDTO3), null));
+
+    boolean result =
+        pathForwardInspector.containsUpgradeableVersion(
+            MAVEN_COMPONENT_V1.getComponentIdentifier(), application, "stageId", "scanId");
+
+    assertTrue(result);
+    assertThat(pathForwardInspector.getViolatedComponentMap(), hasEntry(MAVEN_COORDINATES_V1, true));
+
+    pathForwardInspector.containsUpgradeableVersion(
+        MAVEN_COMPONENT_V1.getComponentIdentifier(), application, "stageId", "scanId");
+
+    // should only call once, as the result is cached
+    verify(componentInfoServiceMock, times(1)).getComponentDetailsForAllVersionsNoAuth(
+        any(), any(), eq("stageId"), any(), eq("scanId"), any(), any(), anyBoolean());
+  }
+
+  /**
+   * A hosted-repository component is an {@link com.sonatype.insight.brain.model.Owner} with no row
+   * in {@code application}. The auto-waiver path reaches here with whatever owner
+   * {@code ScanPolicyEvaluator} was given, so resolving that id as an Application would throw
+   * {@code NotFoundException} and fail the whole evaluation — not just skip the path-forward check.
+   */
+  @Test
+  public void containsUpgradeableVersion_worksForHostedRepositoryComponentOwner() {
+    Repository repository = tempEntity.newRepository(tempEntity.newRepositoryManager());
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+
+    // The precondition that made an Application-typed lookup throw: an HRC id is not an
+    // application id, so resolving it via ApplicationDAO finds nothing.
+    assertNull(applicationDAO.getById(hrc.getId()), "precondition: an HRC id has no application row");
+
+    ComponentDetailsDTO details = new ComponentDetailsDTO();
+    details.componentIdentifier = MAVEN_COORDINATES_V1;
+    details.violatedPolicyCount = 1;
+
+    when(componentInfoServiceMock.getComponentDetailsForAllVersionsNoAuth(
+        any(), eq(MAVEN_COORDINATES_V1), eq("stageId"), any(), eq("scanId"), any(), any(), anyBoolean()))
+            .thenReturn(Pair.of(Collections.singletonList(details), null));
+
+    boolean result = pathForwardInspector.containsUpgradeableVersion(
+        MAVEN_COMPONENT_V1.getComponentIdentifier(), hrc, "stageId", "scanId");
+
+    assertFalse(result);
+  }
+}

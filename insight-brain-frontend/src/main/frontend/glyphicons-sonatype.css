@@ -1,0 +1,135 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+.glyphicons-sonatype:before,
+.glyphicons-sonatype-hover:hover:before {
+  *zoom: 1;
+  font: 14px/28px 'Glyphicons';
+  font-style: normal;
+  color: #1d1d1b;
+}
+
+.glyphicons-sonatype-hover:hover:before {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: inherit;
+  font-size: inherit;
+  opacity: 0.4;
+}
+
+.glyphicons-sonatype.bin:before {
+  content: '\e017';
+}
+
+.glyphicons-sonatype.medium:before {
+  font-size: 18px;
+}
+
+.glyphicons-sonatype.small:before {
+  font-size: 10px;
+  padding-right: 10px;
+  color: #909090;
+  line-height: 12px;
+}
+
+.glyphicons-sonatype.user:before {
+  content: '\E004';
+}
+
+.glyphicons-sonatype.group:before {
+  content: '\E044';
+}
+
+.glyphicons-sonatype.envelope:before {
+  content: '\2709';
+}
+
+.glyphicons-sonatype.bell:before,
+.glyphicons-sonatype-hover.bell:hover:before {
+  content: '\E334';
+}
+
+.glyphicons-sonatype.inherited:before {
+  content: '\E214';
+}
+
+.glyphicons-halflings-sonatype:before {
+  *zoom: 1;
+  font: 12px/1em 'Glyphicons Halflings';
+  font-style: normal;
+  color: #1d1d1b;
+}
+
+.glyphicons-halflings-sonatype.expand:before {
+  content: '\e158';
+}
+
+.glyphicons-halflings-sonatype.collapse:before {
+  content: '\e159';
+}
+
+.glyphicons-sonatype.required {
+  position: relative;
+  left: -10px;
+}
+
+.glyphicons-sonatype.required:before {
+  content: '\002A';
+  color: #bc012f;
+  font-size: 10px;
+}
+
+.glyphicons-sonatype.clipboard:before {
+  content: '\e030';
+  font: 14px 'Glyphicons' !important;
+  vertical-align: bottom;
+}
+
+.glyphicons-sonatype.cogwheel:before {
+  content: '\e137';
+}
+
+.glyphicons-sonatype.help:before {
+  content: '\e195';
+}
+
+.glyphicons-sonatype.filter:before {
+  content: '\e321';
+  font-size: 18px;
+  color: black;
+  vertical-align: middle;
+}
+
+.glyphicons-sonatype.link:after {
+  content: '\e223';
+  font-size: 10px;
+  line-height: 10px;
+  vertical-align: super;
+  opacity: 0.3;
+  *zoom: 1;
+  font: 10px/10px 'Glyphicons';
+  font-style: normal;
+  padding-left: 3px;
+}
+
+.glyphicons-sonatype.link:hover:after {
+  opacity: 1;
+}
+
+.glyphicons-halflings-sonatype.lighter:before {
+  color: #888888;
+}
+
+.glyphicons-sonatype.cup:before {
+  content: '\E075';
+}
+
+.glyphicons-sonatype.inbox:before {
+  content: '\e131';
+}
+
+.glyphicons-sonatype.calculator:before {
+  content: '\E324';
+}

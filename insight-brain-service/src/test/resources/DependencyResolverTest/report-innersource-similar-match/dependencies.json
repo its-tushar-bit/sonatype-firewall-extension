@@ -1,0 +1,73 @@
+{
+  "dependencyTree": {
+    "componentIdentifier": {
+      "format": "maven",
+      "coordinates": {
+        "artifactId": "eai-example",
+        "classifier": "",
+        "extension": "jar",
+        "groupId": "com.example.camel.drools",
+        "version": "1.0.0-SNAPSHOT"
+      }
+    },
+    "children": [
+      {
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "camel-hl7",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "org.apache.camel",
+            "version": "2.23.2.fuse-780036-redhat-00001"
+          }
+        },
+        "children": [],
+        "direct": true
+      },
+      {
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "camel-hl7-no-pathnames",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "org.apache.camel",
+            "version": "2.23.2.fuse-780036-redhat-00001"
+          }
+        },
+        "children": [],
+        "direct": true
+      },
+      {
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "camel-hl7-empty-pathnames",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "org.apache.camel",
+            "version": "2.23.2.fuse-780036-redhat-00001"
+          }
+        },
+        "children": [],
+        "direct": true
+      },
+      {
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "camel-hl7-bad-pathnames",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "org.apache.camel",
+            "version": "2.23.2.fuse-780036-redhat-00001"
+          }
+        },
+        "children": [],
+        "direct": true
+      }
+    ],
+    "module": true
+  }
+}

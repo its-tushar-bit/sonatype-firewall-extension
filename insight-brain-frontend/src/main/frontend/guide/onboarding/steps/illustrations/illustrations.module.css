@@ -1,0 +1,47 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+/* Outer container for a screenshot illustration. Uses Radix panel color so it
+   sits comfortably on the modal surface in both light and dark themes. */
+.frame {
+  background: var(--color-panel);
+  overflow: visible; /* callout pins/labels extend outside the frame */
+}
+
+/* Right-side metrics card inside the ComponentMetricsCardMock. Slightly
+   inset from the outer card and constrained in width. */
+.metrics-card {
+  min-width: 180px;
+  max-width: 200px;
+  background: var(--color-background);
+}
+
+/* Wraps a single inline element that owns a CalloutPin. The pin/label are
+   positioned absolutely against this box. Using `display: inline-flex` so
+   the wrapper hugs the child badge exactly. */
+.pinned-inline {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Wraps a block-level element (paragraph, list) that owns a CalloutPin. */
+.pinned-block {
+  position: relative;
+}
+
+.picker-placeholder {
+  padding: 6px 10px;
+  border: 1px dashed var(--gray-7);
+  border-radius: 6px;
+  background: var(--color-background);
+}
+
+/* Policy-context bar illustration: stacks the picker row above a full-width divider,
+   matching the real PolicyContextBar layout. */
+.context-bar {
+  padding: 6px 8px;
+}

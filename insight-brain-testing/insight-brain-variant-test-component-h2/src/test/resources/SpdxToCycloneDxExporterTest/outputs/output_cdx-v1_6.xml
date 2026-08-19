@@ -1,0 +1,76 @@
+<bom xmlns="http://cyclonedx.org/schema/bom/1.6" version="1">
+  <metadata>
+    <timestamp>2025-04-29T14:19:19Z</timestamp>
+    <tools>
+      <components>
+        <component type="application">
+          <name>Sonatype SBOM Manager</name>
+          <version>1.191.0-SNAPSHOT</version>
+        </component>
+      </components>
+    </tools>
+    <component bom-ref="c3a2f5f2-5c06-4d9f-a183-8f296d1386ce" type="application">
+      <name>DUMMY-PUBLIC-ID-ad658d5ab7f24a208ab0c9ce07cff5e5</name>
+      <version>1.0.1</version>
+    </component>
+  </metadata>
+  <components>
+    <component bom-ref="e4ea175dcdab369a32a59e5977a8a2f6c0047820" type="application">
+      <group>org.apache.logging.log4j</group>
+      <name>log4j-core</name>
+      <version>2.13.2</version>
+      <licenses>
+        <license bom-ref="3a08a113-8e2a-44fb-9e18-9df92a42a9f5">
+          <id>Apache-2.0</id>
+        </license>
+      </licenses>
+      <purl>pkg:maven/org.apache.logging.log4j/log4j-core@2.13.2?type=jar</purl>
+    </component>
+    <component bom-ref="da83d3971bd00a068715210af7ae418b3fef1819" type="library">
+      <group>junit</group>
+      <name>junit</name>
+      <version>4.12</version>
+      <licenses>
+        <license bom-ref="45d23f5b-b44c-4f33-b9ed-a27cb17e8549">
+          <id>EPL-1.0</id>
+        </license>
+      </licenses>
+      <purl>pkg:maven/junit/junit@4.12?type=jar</purl>
+    </component>
+    <component bom-ref="8ef8444bb82551413612a2c5e7c03aa4362e6022" type="library">
+      <group>org.yaml</group>
+      <name>snakeyaml</name>
+      <version>1.29</version>
+      <licenses>
+        <license bom-ref="28591e85-dcf4-49df-a72b-68bb1dcbe422">
+          <id>Apache-2.0</id>
+        </license>
+      </licenses>
+      <purl>pkg:maven/org.yaml/snakeyaml@1.29?type=jar</purl>
+    </component>
+  </components>
+  <dependencies>
+    <dependency ref="da83d3971bd00a068715210af7ae418b3fef1819">
+      <dependency ref="8ef8444bb82551413612a2c5e7c03aa4362e6022"/>
+    </dependency>
+  </dependencies>
+  <vulnerabilities>
+    <vulnerability>
+      <id>CVE-2021-44832</id>
+      <references>
+        <reference>
+          <id>CVE-2021-44832</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/CVE-2021-44832</url>
+          </source>
+        </reference>
+      </references>
+      <affects>
+        <target>
+          <ref>e4ea175dcdab369a32a59e5977a8a2f6c0047820</ref>
+        </target>
+      </affects>
+    </vulnerability>
+  </vulnerabilities>
+</bom>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bom serialNumber="urn:uuid:a140fd3c-3ded-4bb0-a640-dc31e2904dc9" version="1" xmlns="http://cyclonedx.org/schema/bom/1.5">
+    <metadata>
+        <timestamp>2024-02-29T23:41:22Z</timestamp>
+        <component type="application" bom-ref="08dd5978-577c-46a6-8bae-4f3d1a243b43">
+            <group>sonatype</group>
+            <name>iq_application_vuln</name>
+            <version>a140fd3c3ded4bb0a640dc31e2904dc9</version>
+            <purl>pkg:generic/sonatype/iq_application_vuln@a140fd3c3ded4bb0a640dc31e2904dc9</purl>
+        </component>
+    </metadata>
+    <components>
+        <component type="library" bom-ref="435d9efa-2c0c-4078-91fb-7fdec24fcad0">
+            <group>apache</group>
+            <name>axis</name>
+            <version>1.0</version>
+            <licenses>
+                <license>
+                    <id>Apache-2.0</id>
+                </license>
+            </licenses>
+            <purl>pkg:maven/apache/axis@1.0?type=jar</purl>
+            <modified>false</modified>
+            <evidence>
+                <occurrences>
+                    <occurrence>
+                        <location>h2-2.2.224.jar</location>
+                    </occurrence>
+                </occurrences>
+            </evidence>
+        </component>
+    </components>
+    <externalReferences><reference type="bom"><url>http://localhost:8070/ui/links/application/vuln/report/a140fd3c3ded4bb0a640dc31e2904dc9</url><comment>IQ Report</comment></reference></externalReferences>
+    <vulnerabilities>
+        <vulnerability>
+            <id>CVE-2007-2353</id>
+            <source>
+                <name>NVD</name>
+                <url>https://nvd.nist.gov/vuln/detail/CVE-2007-2353</url>
+            </source>
+            <ratings>
+                <rating>
+                    <source>
+                        <name>NVD</name>
+                        <url>https://nvd.nist.gov/vuln-metrics/cvss/v3-calculator?vector=AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H&amp;version=3.0</url>
+                    </source>
+                    <score>6.0</score>
+                    <severity>high</severity>
+                  <method>CVSSv3</method>
+                  <vector>CVSS:3.1/AV:L/AC:L/PR:H/UI:N/S:C/C:H/I:N/A:N</vector>
+                  <justification>An optional reason for rating the vulnerability as it was</justification>
+                </rating>
+            </ratings>
+            <cwes>
+                <cwe>59</cwe>
+            </cwes>
+            <affects>
+                <target>
+                    <ref>435d9efa-2c0c-4078-91fb-7fdec24fcad0</ref>
+                </target>
+            </affects>
+        </vulnerability>
+    </vulnerabilities>
+</bom>

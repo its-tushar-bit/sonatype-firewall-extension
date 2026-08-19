@@ -1,0 +1,3134 @@
+{
+  "aaData" : [ {
+    "trigger" : {
+      "policyId" : "1ff70fe900fd4de0b5f53e9e6461e152",
+      "policyName" : "Architecture-Cleanup",
+      "threatLevel" : 1,
+      "policyViolationId" : "d99262df77004216bc4e1b06694a90ef",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ant",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "ant",
+            "version" : "1.6.5"
+          }
+        },
+        "hash" : "7d18faf23df1a5c3a436",
+        "constraintFacts" : [ {
+          "constraintId" : "f3482762edbc4d21ba926057dde15ee6",
+          "constraintName" : "Test components",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "Coordinates",
+            "conditionIndex" : 0,
+            "summary" : "Coordinates match maven:ant:ant:*:*:*",
+            "reason" : "Coordinates were ant : ant : 1.6.5 (match ant : ant : * : * : *)",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "ant"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ant"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.6.5"
+          } ],
+          "name" : "ant"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "47797f579ec94e71bc3a85803da68568",
+      "policyName" : "Architecture-Quality",
+      "threatLevel" : 1,
+      "policyViolationId" : "33d6cfce0be0478696d82a9ef70e36dd",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ant",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "ant",
+            "version" : "1.6.5"
+          }
+        },
+        "hash" : "7d18faf23df1a5c3a436",
+        "constraintFacts" : [ {
+          "constraintId" : "76e61e77ce7d4ccfb515c78626379eec",
+          "constraintName" : "Version is old",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "AgeInDays",
+            "conditionIndex" : 0,
+            "summary" : "Age older than 1825 days",
+            "reason" : "Found component older than 5 years",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "ant"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ant"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.6.5"
+          } ],
+          "name" : "ant"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "47797f579ec94e71bc3a85803da68568",
+      "policyName" : "Architecture-Quality",
+      "threatLevel" : 1,
+      "policyViolationId" : "14e4cb251cbe4d8cab32c765ab86e094",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ant-launcher",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "ant",
+            "version" : "1.6.5"
+          }
+        },
+        "hash" : "b06fd72d7cabd5ec39ce",
+        "constraintFacts" : [ {
+          "constraintId" : "76e61e77ce7d4ccfb515c78626379eec",
+          "constraintName" : "Version is old",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "AgeInDays",
+            "conditionIndex" : 0,
+            "summary" : "Age older than 1825 days",
+            "reason" : "Found component older than 5 years",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "ant"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ant-launcher"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.6.5"
+          } ],
+          "name" : "ant-launcher"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "47797f579ec94e71bc3a85803da68568",
+      "policyName" : "Architecture-Quality",
+      "threatLevel" : 1,
+      "policyViolationId" : "23a4fc6399ad40eb87abcb2546f8c6fe",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "cglib-nodep",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "cglib",
+            "version" : "2.2"
+          }
+        },
+        "hash" : "59afed7ab65e7ec6585d",
+        "constraintFacts" : [ {
+          "constraintId" : "76e61e77ce7d4ccfb515c78626379eec",
+          "constraintName" : "Version is old",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "AgeInDays",
+            "conditionIndex" : 0,
+            "summary" : "Age older than 1825 days",
+            "reason" : "Found component older than 5 years",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "cglib"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "cglib-nodep"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.2"
+          } ],
+          "name" : "cglib-nodep"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "47797f579ec94e71bc3a85803da68568",
+      "policyName" : "Architecture-Quality",
+      "threatLevel" : 1,
+      "policyViolationId" : "954527cf97994f0d93f4cee1e44c72b5",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "zxcvbn",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.nulab-inc",
+            "version" : "1.4.0"
+          }
+        },
+        "hash" : "7cf830b18fe2d2b13739",
+        "constraintFacts" : [ {
+          "constraintId" : "e9b68bb563654a30814a9922e099dc86",
+          "constraintName" : "Version is unpopular",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "RelativePopularity",
+            "conditionIndex" : 0,
+            "summary" : "Relative Popularity (Percentage) <= 10",
+            "reason" : "Relative popularity was <= 10% (relative popularity = 0%)",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "com.nulab-inc"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "zxcvbn"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.4.0"
+          } ],
+          "name" : "zxcvbn"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "47797f579ec94e71bc3a85803da68568",
+      "policyName" : "Architecture-Quality",
+      "threatLevel" : 1,
+      "policyViolationId" : "1a38f7fcf2bf4e4394fa4e52a002ae39",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "xstream",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.thoughtworks.xstream",
+            "version" : "1.4.5"
+          }
+        },
+        "hash" : "61c0a127b237182fdf2c",
+        "constraintFacts" : [ {
+          "constraintId" : "76e61e77ce7d4ccfb515c78626379eec",
+          "constraintName" : "Version is old",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "AgeInDays",
+            "conditionIndex" : 0,
+            "summary" : "Age older than 1825 days",
+            "reason" : "Found component older than 5 years",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "com.thoughtworks.xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.4.5"
+          } ],
+          "name" : "xstream"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "47797f579ec94e71bc3a85803da68568",
+      "policyName" : "Architecture-Quality",
+      "threatLevel" : 1,
+      "policyViolationId" : "027677a8c8cb4e71a0d7dc32f098d0fd",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "commons-lang",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "commons-lang",
+            "version" : "2.6"
+          }
+        },
+        "hash" : "0ce1edb914c94ebc388f",
+        "constraintFacts" : [ {
+          "constraintId" : "76e61e77ce7d4ccfb515c78626379eec",
+          "constraintName" : "Version is old",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "AgeInDays",
+            "conditionIndex" : 0,
+            "summary" : "Age older than 1825 days",
+            "reason" : "Found component older than 5 years",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "commons-lang"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "commons-lang"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.6"
+          } ],
+          "name" : "commons-lang"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "47797f579ec94e71bc3a85803da68568",
+      "policyName" : "Architecture-Quality",
+      "threatLevel" : 1,
+      "policyViolationId" : "ffb5225a21c5404a8337d3cd647059c2",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "a-name",
+          "coordinates" : {
+            "name" : "node-polyglot",
+            "qualifier" : "",
+            "version" : "0.4.3"
+          }
+        },
+        "hash" : "84e9051134ececf6bb16",
+        "constraintFacts" : [ {
+          "constraintId" : "76e61e77ce7d4ccfb515c78626379eec",
+          "constraintName" : "Version is old",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "AgeInDays",
+            "conditionIndex" : 0,
+            "summary" : "Age older than 1825 days",
+            "reason" : "Found component older than 5 years",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "node-polyglot"
+          }, {
+            "value" : " "
+          }, {
+            "field" : "Version",
+            "value" : "0.4.3"
+          } ],
+          "name" : "node-polyglot"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "47797f579ec94e71bc3a85803da68568",
+      "policyName" : "Architecture-Quality",
+      "threatLevel" : 1,
+      "policyViolationId" : "0067656368154540b6877b82aafb51f2",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "commons-exec",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.apache.commons",
+            "version" : "1.3"
+          }
+        },
+        "hash" : "8dfb9facd0830a27b1b5",
+        "constraintFacts" : [ {
+          "constraintId" : "76e61e77ce7d4ccfb515c78626379eec",
+          "constraintName" : "Version is old",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "AgeInDays",
+            "conditionIndex" : 0,
+            "summary" : "Age older than 1825 days",
+            "reason" : "Found component older than 5 years",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "org.apache.commons"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "commons-exec"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.3"
+          } ],
+          "name" : "commons-exec"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "47797f579ec94e71bc3a85803da68568",
+      "policyName" : "Architecture-Quality",
+      "threatLevel" : 1,
+      "policyViolationId" : "60053ede66fd4e9c90080085e13aa0cc",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "asciidoctorj",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.asciidoctor",
+            "version" : "2.4.3"
+          }
+        },
+        "hash" : "58c98a3ec44d15288a13",
+        "constraintFacts" : [ {
+          "constraintId" : "e9b68bb563654a30814a9922e099dc86",
+          "constraintName" : "Version is unpopular",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "RelativePopularity",
+            "conditionIndex" : 0,
+            "summary" : "Relative Popularity (Percentage) <= 10",
+            "reason" : "Relative popularity was <= 10% (relative popularity = 0%)",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "org.asciidoctor"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "asciidoctorj"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.4.3"
+          } ],
+          "name" : "asciidoctorj"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "47797f579ec94e71bc3a85803da68568",
+      "policyName" : "Architecture-Quality",
+      "threatLevel" : 1,
+      "policyViolationId" : "a4ecba8b738f4e3ebc5e11653ff2cdf7",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "jose4j",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.bitbucket.b_c",
+            "version" : "0.7.6"
+          }
+        },
+        "hash" : "4685155beaabc2fd6718",
+        "constraintFacts" : [ {
+          "constraintId" : "e9b68bb563654a30814a9922e099dc86",
+          "constraintName" : "Version is unpopular",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "RelativePopularity",
+            "conditionIndex" : 0,
+            "summary" : "Relative Popularity (Percentage) <= 10",
+            "reason" : "Relative popularity was <= 10% (relative popularity = 0%)",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "org.bitbucket.b_c"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "jose4j"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "0.7.6"
+          } ],
+          "name" : "jose4j"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "47797f579ec94e71bc3a85803da68568",
+      "policyName" : "Architecture-Quality",
+      "threatLevel" : 1,
+      "policyViolationId" : "e608a99c72cf4d4d960630b1f63dc8ee",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "a-name",
+          "coordinates" : {
+            "name" : "org.owasp.webgoat webgoat-container",
+            "qualifier" : "",
+            "version" : "7.0"
+          }
+        },
+        "hash" : "cf589d4746179e58dc8e",
+        "constraintFacts" : [ {
+          "constraintId" : "76e61e77ce7d4ccfb515c78626379eec",
+          "constraintName" : "Version is old",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "AgeInDays",
+            "conditionIndex" : 0,
+            "summary" : "Age older than 1825 days",
+            "reason" : "Found component older than 5 years",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "org.owasp.webgoat webgoat-container"
+          }, {
+            "value" : " "
+          }, {
+            "field" : "Version",
+            "value" : "7.0"
+          } ],
+          "name" : "org.owasp.webgoat webgoat-container"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "47797f579ec94e71bc3a85803da68568",
+      "policyName" : "Architecture-Quality",
+      "threatLevel" : 1,
+      "policyViolationId" : "4f700eff68784940b2cebfc9a06c4d34",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "bootstrap",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.webjars",
+            "version" : "3.3.7"
+          }
+        },
+        "hash" : "d6aeba80236573ed585b",
+        "constraintFacts" : [ {
+          "constraintId" : "76e61e77ce7d4ccfb515c78626379eec",
+          "constraintName" : "Version is old",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "AgeInDays",
+            "conditionIndex" : 0,
+            "summary" : "Age older than 1825 days",
+            "reason" : "Found component older than 5 years",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "org.webjars"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "bootstrap"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "3.3.7"
+          } ],
+          "name" : "bootstrap"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "47797f579ec94e71bc3a85803da68568",
+      "policyName" : "Architecture-Quality",
+      "threatLevel" : 1,
+      "policyViolationId" : "1bc4329d58ff433599e04b17bf6ad935",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "a-name",
+          "coordinates" : {
+            "name" : "org.webjars bootstrap",
+            "qualifier" : "",
+            "version" : "3.1.1"
+          }
+        },
+        "hash" : "b72e6b076e32fb3a87f6",
+        "constraintFacts" : [ {
+          "constraintId" : "76e61e77ce7d4ccfb515c78626379eec",
+          "constraintName" : "Version is old",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "AgeInDays",
+            "conditionIndex" : 0,
+            "summary" : "Age older than 1825 days",
+            "reason" : "Found component older than 5 years",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "org.webjars bootstrap"
+          }, {
+            "value" : " "
+          }, {
+            "field" : "Version",
+            "value" : "3.1.1"
+          } ],
+          "name" : "org.webjars bootstrap"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "47797f579ec94e71bc3a85803da68568",
+      "policyName" : "Architecture-Quality",
+      "threatLevel" : 1,
+      "policyViolationId" : "4c5502d916e841e580a2df4108ef743d",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "a-name",
+          "coordinates" : {
+            "name" : "org.webjars jquery",
+            "qualifier" : "",
+            "version" : "1.10.2"
+          }
+        },
+        "hash" : "37081687a930b9a4a29c",
+        "constraintFacts" : [ {
+          "constraintId" : "76e61e77ce7d4ccfb515c78626379eec",
+          "constraintName" : "Version is old",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "AgeInDays",
+            "conditionIndex" : 0,
+            "summary" : "Age older than 1825 days",
+            "reason" : "Found component older than 5 years",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "org.webjars jquery"
+          }, {
+            "value" : " "
+          }, {
+            "field" : "Version",
+            "value" : "1.10.2"
+          } ],
+          "name" : "org.webjars jquery"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "47797f579ec94e71bc3a85803da68568",
+      "policyName" : "Architecture-Quality",
+      "threatLevel" : 1,
+      "policyViolationId" : "76df626bf7ed4005bd9def31b00cd0f1",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "a-name",
+          "coordinates" : {
+            "name" : "underscore",
+            "qualifier" : "",
+            "version" : "1.10.2"
+          }
+        },
+        "hash" : "6e27fcb901943b36046d",
+        "constraintFacts" : [ {
+          "constraintId" : "76e61e77ce7d4ccfb515c78626379eec",
+          "constraintName" : "Version is old",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "AgeInDays",
+            "conditionIndex" : 0,
+            "summary" : "Age older than 1825 days",
+            "reason" : "Found component older than 5 years",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "underscore"
+          }, {
+            "value" : " "
+          }, {
+            "field" : "Version",
+            "value" : "1.10.2"
+          } ],
+          "name" : "underscore"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "47797f579ec94e71bc3a85803da68568",
+      "policyName" : "Architecture-Quality",
+      "threatLevel" : 1,
+      "policyViolationId" : "56498f3563ca47bdb1b229893b4a8d7d",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "xml-resolver",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "xml-resolver",
+            "version" : "1.2"
+          }
+        },
+        "hash" : "3d0f97750b3a03e09718",
+        "constraintFacts" : [ {
+          "constraintId" : "76e61e77ce7d4ccfb515c78626379eec",
+          "constraintName" : "Version is old",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "AgeInDays",
+            "conditionIndex" : 0,
+            "summary" : "Age older than 1825 days",
+            "reason" : "Found component older than 5 years",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "xml-resolver"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "xml-resolver"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.2"
+          } ],
+          "name" : "xml-resolver"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "628e351eac0640578ba85eb5bc7486ba",
+      "policyName" : "Security-Critical",
+      "threatLevel" : 10,
+      "policyViolationId" : "97dd970ae0fa44ba9fb6a9145ea83a56",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "xstream",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.thoughtworks.xstream",
+            "version" : "1.4.5"
+          }
+        },
+        "hash" : "61c0a127b237182fdf2c",
+        "constraintFacts" : [ {
+          "constraintId" : "78b78c4a8dc2472397c5976d2e9e4e0f",
+          "constraintName" : "Critical risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 9",
+            "reason" : "Found security vulnerability CVE-2013-7285 with severity >= 9 (severity = 9.8)",
+            "reference" : {
+              "value" : "CVE-2013-7285",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "com.thoughtworks.xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.4.5"
+          } ],
+          "name" : "xstream"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "628e351eac0640578ba85eb5bc7486ba",
+      "policyName" : "Security-Critical",
+      "threatLevel" : 10,
+      "policyViolationId" : "6b2bdbe798e94662b062f860f7c21afe",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "xstream",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.thoughtworks.xstream",
+            "version" : "1.4.5"
+          }
+        },
+        "hash" : "61c0a127b237182fdf2c",
+        "constraintFacts" : [ {
+          "constraintId" : "78b78c4a8dc2472397c5976d2e9e4e0f",
+          "constraintName" : "Critical risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 9",
+            "reason" : "Found security vulnerability CVE-2021-21342 with severity >= 9 (severity = 9.1)",
+            "reference" : {
+              "value" : "CVE-2021-21342",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "com.thoughtworks.xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.4.5"
+          } ],
+          "name" : "xstream"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "628e351eac0640578ba85eb5bc7486ba",
+      "policyName" : "Security-Critical",
+      "threatLevel" : 10,
+      "policyViolationId" : "359499b638b54e24923b24826ccadb43",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "xstream",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.thoughtworks.xstream",
+            "version" : "1.4.5"
+          }
+        },
+        "hash" : "61c0a127b237182fdf2c",
+        "constraintFacts" : [ {
+          "constraintId" : "78b78c4a8dc2472397c5976d2e9e4e0f",
+          "constraintName" : "Critical risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 9",
+            "reason" : "Found security vulnerability CVE-2021-21344 with severity >= 9 (severity = 9.8)",
+            "reference" : {
+              "value" : "CVE-2021-21344",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "com.thoughtworks.xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.4.5"
+          } ],
+          "name" : "xstream"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "628e351eac0640578ba85eb5bc7486ba",
+      "policyName" : "Security-Critical",
+      "threatLevel" : 10,
+      "policyViolationId" : "80978ecde1b34bf48dd7927dffda05e2",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "xstream",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.thoughtworks.xstream",
+            "version" : "1.4.5"
+          }
+        },
+        "hash" : "61c0a127b237182fdf2c",
+        "constraintFacts" : [ {
+          "constraintId" : "78b78c4a8dc2472397c5976d2e9e4e0f",
+          "constraintName" : "Critical risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 9",
+            "reason" : "Found security vulnerability CVE-2021-21345 with severity >= 9 (severity = 9.9)",
+            "reference" : {
+              "value" : "CVE-2021-21345",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "com.thoughtworks.xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.4.5"
+          } ],
+          "name" : "xstream"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "628e351eac0640578ba85eb5bc7486ba",
+      "policyName" : "Security-Critical",
+      "threatLevel" : 10,
+      "policyViolationId" : "ac2ebb55e72b43e7aebf03b8f54f71a4",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "xstream",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.thoughtworks.xstream",
+            "version" : "1.4.5"
+          }
+        },
+        "hash" : "61c0a127b237182fdf2c",
+        "constraintFacts" : [ {
+          "constraintId" : "78b78c4a8dc2472397c5976d2e9e4e0f",
+          "constraintName" : "Critical risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 9",
+            "reason" : "Found security vulnerability CVE-2021-21346 with severity >= 9 (severity = 9.8)",
+            "reference" : {
+              "value" : "CVE-2021-21346",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "com.thoughtworks.xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.4.5"
+          } ],
+          "name" : "xstream"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "628e351eac0640578ba85eb5bc7486ba",
+      "policyName" : "Security-Critical",
+      "threatLevel" : 10,
+      "policyViolationId" : "fdb1b50d116048858875c29e09ca8a6f",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "xstream",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.thoughtworks.xstream",
+            "version" : "1.4.5"
+          }
+        },
+        "hash" : "61c0a127b237182fdf2c",
+        "constraintFacts" : [ {
+          "constraintId" : "78b78c4a8dc2472397c5976d2e9e4e0f",
+          "constraintName" : "Critical risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 9",
+            "reason" : "Found security vulnerability CVE-2021-21347 with severity >= 9 (severity = 9.8)",
+            "reference" : {
+              "value" : "CVE-2021-21347",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "com.thoughtworks.xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.4.5"
+          } ],
+          "name" : "xstream"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "628e351eac0640578ba85eb5bc7486ba",
+      "policyName" : "Security-Critical",
+      "threatLevel" : 10,
+      "policyViolationId" : "bf0f1488bac04c1ab476789918815330",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "xstream",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.thoughtworks.xstream",
+            "version" : "1.4.5"
+          }
+        },
+        "hash" : "61c0a127b237182fdf2c",
+        "constraintFacts" : [ {
+          "constraintId" : "78b78c4a8dc2472397c5976d2e9e4e0f",
+          "constraintName" : "Critical risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 9",
+            "reason" : "Found security vulnerability CVE-2021-21350 with severity >= 9 (severity = 9.8)",
+            "reference" : {
+              "value" : "CVE-2021-21350",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "com.thoughtworks.xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.4.5"
+          } ],
+          "name" : "xstream"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "7bac78bcdd424543b1cf8d6983f3fb58",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "a2043084d75f402d9bca3b8181f59d94",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "xstream",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.thoughtworks.xstream",
+            "version" : "1.4.5"
+          }
+        },
+        "hash" : "61c0a127b237182fdf2c",
+        "constraintFacts" : [ {
+          "constraintId" : "03eb3f1a3af84b108452c47e1e998393",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2016-3674 with severity >= 7 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2016-3674",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2016-3674 with severity < 9 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2016-3674",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "com.thoughtworks.xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.4.5"
+          } ],
+          "name" : "xstream"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "7bac78bcdd424543b1cf8d6983f3fb58",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "e7553717f099463ea6b4f537fa29da59",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "xstream",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.thoughtworks.xstream",
+            "version" : "1.4.5"
+          }
+        },
+        "hash" : "61c0a127b237182fdf2c",
+        "constraintFacts" : [ {
+          "constraintId" : "03eb3f1a3af84b108452c47e1e998393",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2017-7957 with severity >= 7 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2017-7957",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2017-7957 with severity < 9 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2017-7957",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "com.thoughtworks.xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.4.5"
+          } ],
+          "name" : "xstream"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "7bac78bcdd424543b1cf8d6983f3fb58",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "a39e425b103a44c7b0515b4681cb60a6",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "xstream",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.thoughtworks.xstream",
+            "version" : "1.4.5"
+          }
+        },
+        "hash" : "61c0a127b237182fdf2c",
+        "constraintFacts" : [ {
+          "constraintId" : "03eb3f1a3af84b108452c47e1e998393",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-26217 with severity >= 7 (severity = 8.8)",
+            "reference" : {
+              "value" : "CVE-2020-26217",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-26217 with severity < 9 (severity = 8.8)",
+            "reference" : {
+              "value" : "CVE-2020-26217",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "com.thoughtworks.xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.4.5"
+          } ],
+          "name" : "xstream"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "7bac78bcdd424543b1cf8d6983f3fb58",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "796d09600c134291b58aa271c077ade0",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "xstream",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.thoughtworks.xstream",
+            "version" : "1.4.5"
+          }
+        },
+        "hash" : "61c0a127b237182fdf2c",
+        "constraintFacts" : [ {
+          "constraintId" : "03eb3f1a3af84b108452c47e1e998393",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-26258 with severity >= 7 (severity = 7.7)",
+            "reference" : {
+              "value" : "CVE-2020-26258",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-26258 with severity < 9 (severity = 7.7)",
+            "reference" : {
+              "value" : "CVE-2020-26258",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "com.thoughtworks.xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.4.5"
+          } ],
+          "name" : "xstream"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "7bac78bcdd424543b1cf8d6983f3fb58",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "a6b64915e3e34ad48b985be64dde34d2",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "xstream",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.thoughtworks.xstream",
+            "version" : "1.4.5"
+          }
+        },
+        "hash" : "61c0a127b237182fdf2c",
+        "constraintFacts" : [ {
+          "constraintId" : "03eb3f1a3af84b108452c47e1e998393",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2021-21343 with severity >= 7 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2021-21343",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2021-21343 with severity < 9 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2021-21343",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "com.thoughtworks.xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.4.5"
+          } ],
+          "name" : "xstream"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "7bac78bcdd424543b1cf8d6983f3fb58",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "5137e4fcd6ea46e09ce3353b45594c26",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "xstream",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.thoughtworks.xstream",
+            "version" : "1.4.5"
+          }
+        },
+        "hash" : "61c0a127b237182fdf2c",
+        "constraintFacts" : [ {
+          "constraintId" : "03eb3f1a3af84b108452c47e1e998393",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2021-21348 with severity >= 7 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2021-21348",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2021-21348 with severity < 9 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2021-21348",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "com.thoughtworks.xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.4.5"
+          } ],
+          "name" : "xstream"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "7bac78bcdd424543b1cf8d6983f3fb58",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "6225f4bbeb8b48f1920f0f852039960a",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "xstream",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.thoughtworks.xstream",
+            "version" : "1.4.5"
+          }
+        },
+        "hash" : "61c0a127b237182fdf2c",
+        "constraintFacts" : [ {
+          "constraintId" : "03eb3f1a3af84b108452c47e1e998393",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2021-21349 with severity >= 7 (severity = 8.6)",
+            "reference" : {
+              "value" : "CVE-2021-21349",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2021-21349 with severity < 9 (severity = 8.6)",
+            "reference" : {
+              "value" : "CVE-2021-21349",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "com.thoughtworks.xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.4.5"
+          } ],
+          "name" : "xstream"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "7bac78bcdd424543b1cf8d6983f3fb58",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "6ba3e19126844132ab2318aa0b691d46",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "asciidoctorj",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.asciidoctor",
+            "version" : "2.4.3"
+          }
+        },
+        "hash" : "58c98a3ec44d15288a13",
+        "constraintFacts" : [ {
+          "constraintId" : "03eb3f1a3af84b108452c47e1e998393",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2015-3649 with severity >= 7 (severity = 7.8)",
+            "reference" : {
+              "value" : "CVE-2015-3649",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2015-3649 with severity < 9 (severity = 7.8)",
+            "reference" : {
+              "value" : "CVE-2015-3649",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "org.asciidoctor"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "asciidoctorj"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.4.3"
+          } ],
+          "name" : "asciidoctorj"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "7bac78bcdd424543b1cf8d6983f3fb58",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "55dbedf6cefb4ce585031cde3faae762",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "jsoup",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.jsoup",
+            "version" : "1.13.1"
+          }
+        },
+        "hash" : "f9577f3732bb7caa4fee",
+        "constraintFacts" : [ {
+          "constraintId" : "03eb3f1a3af84b108452c47e1e998393",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2021-37714 with severity >= 7 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2021-37714",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2021-37714 with severity < 9 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2021-37714",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "org.jsoup"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "jsoup"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.13.1"
+          } ],
+          "name" : "jsoup"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "7bac78bcdd424543b1cf8d6983f3fb58",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "ffbecf622dfb445f90def2c97978707d",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "a-name",
+          "coordinates" : {
+            "name" : "underscore",
+            "qualifier" : "",
+            "version" : "1.10.2"
+          }
+        },
+        "hash" : "6e27fcb901943b36046d",
+        "constraintFacts" : [ {
+          "constraintId" : "03eb3f1a3af84b108452c47e1e998393",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2021-23358 with severity >= 7 (severity = 7.2)",
+            "reference" : {
+              "value" : "CVE-2021-23358",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2021-23358 with severity < 9 (severity = 7.2)",
+            "reference" : {
+              "value" : "CVE-2021-23358",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "underscore"
+          }, {
+            "value" : " "
+          }, {
+            "field" : "Version",
+            "value" : "1.10.2"
+          } ],
+          "name" : "underscore"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "f3396220abaa46188417472376eeb7d4",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ant",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "ant",
+            "version" : "1.6.5"
+          }
+        },
+        "hash" : "7d18faf23df1a5c3a436",
+        "constraintFacts" : [ {
+          "constraintId" : "b93083d6afb64436ab165470ef455106",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-2012-2098 with severity >= 4 (severity = 5.0)",
+            "reference" : {
+              "value" : "CVE-2012-2098",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-2012-2098 with severity < 7 (severity = 5.0)",
+            "reference" : {
+              "value" : "CVE-2012-2098",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "ant"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ant"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.6.5"
+          } ],
+          "name" : "ant"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "390221576d45429cb06f279129a4c60d",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ant",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "ant",
+            "version" : "1.6.5"
+          }
+        },
+        "hash" : "7d18faf23df1a5c3a436",
+        "constraintFacts" : [ {
+          "constraintId" : "b93083d6afb64436ab165470ef455106",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability sonatype-2018-0330 with severity >= 4 (severity = 6.5)",
+            "reference" : {
+              "value" : "sonatype-2018-0330",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability sonatype-2018-0330 with severity < 7 (severity = 6.5)",
+            "reference" : {
+              "value" : "sonatype-2018-0330",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "ant"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "ant"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.6.5"
+          } ],
+          "name" : "ant"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "47605111ff3c426892d024f74f8d64e8",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "xstream",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.thoughtworks.xstream",
+            "version" : "1.4.5"
+          }
+        },
+        "hash" : "61c0a127b237182fdf2c",
+        "constraintFacts" : [ {
+          "constraintId" : "b93083d6afb64436ab165470ef455106",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-2020-26259 with severity >= 4 (severity = 6.8)",
+            "reference" : {
+              "value" : "CVE-2020-26259",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-2020-26259 with severity < 7 (severity = 6.8)",
+            "reference" : {
+              "value" : "CVE-2020-26259",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "com.thoughtworks.xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "xstream"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.4.5"
+          } ],
+          "name" : "xstream"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "0cbe603bcae24843a7b597278f6feded",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "a-name",
+          "coordinates" : {
+            "name" : "jquery",
+            "qualifier" : "",
+            "version" : "2.1.4"
+          }
+        },
+        "hash" : "37da25aeb3ac361a1964",
+        "constraintFacts" : [ {
+          "constraintId" : "b93083d6afb64436ab165470ef455106",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-2020-11023 with severity >= 4 (severity = 6.1)",
+            "reference" : {
+              "value" : "CVE-2020-11023",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-2020-11023 with severity < 7 (severity = 6.1)",
+            "reference" : {
+              "value" : "CVE-2020-11023",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "jquery"
+          }, {
+            "value" : " "
+          }, {
+            "field" : "Version",
+            "value" : "2.1.4"
+          } ],
+          "name" : "jquery"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "5b769cecbdad4ad280a69593e8584e3d",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "a-name",
+          "coordinates" : {
+            "name" : "jquery-form",
+            "qualifier" : "",
+            "version" : "3.50.0"
+          }
+        },
+        "hash" : "9c06887e03feb6c996ab",
+        "constraintFacts" : [ {
+          "constraintId" : "b93083d6afb64436ab165470ef455106",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability sonatype-2015-0356 with severity >= 4 (severity = 6.1)",
+            "reference" : {
+              "value" : "sonatype-2015-0356",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability sonatype-2015-0356 with severity < 7 (severity = 6.1)",
+            "reference" : {
+              "value" : "sonatype-2015-0356",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "jquery-form"
+          }, {
+            "value" : " "
+          }, {
+            "field" : "Version",
+            "value" : "3.50.0"
+          } ],
+          "name" : "jquery-form"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "2e2083d75d8c49d1a509c4f71bd4a475",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "asciidoctorj",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.asciidoctor",
+            "version" : "2.4.3"
+          }
+        },
+        "hash" : "58c98a3ec44d15288a13",
+        "constraintFacts" : [ {
+          "constraintId" : "b93083d6afb64436ab165470ef455106",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability sonatype-2015-0247 with severity >= 4 (severity = 5.4)",
+            "reference" : {
+              "value" : "sonatype-2015-0247",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability sonatype-2015-0247 with severity < 7 (severity = 5.4)",
+            "reference" : {
+              "value" : "sonatype-2015-0247",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "org.asciidoctor"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "asciidoctorj"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.4.3"
+          } ],
+          "name" : "asciidoctorj"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "fe583ac7b94346e68f5f789d6c79decd",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "bootstrap",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.webjars",
+            "version" : "3.3.7"
+          }
+        },
+        "hash" : "d6aeba80236573ed585b",
+        "constraintFacts" : [ {
+          "constraintId" : "b93083d6afb64436ab165470ef455106",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-2018-14042 with severity >= 4 (severity = 6.1)",
+            "reference" : {
+              "value" : "CVE-2018-14042",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-2018-14042 with severity < 7 (severity = 6.1)",
+            "reference" : {
+              "value" : "CVE-2018-14042",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "org.webjars"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "bootstrap"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "3.3.7"
+          } ],
+          "name" : "bootstrap"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "df362cea50f740b18d1f0873fe7f7904",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "bootstrap",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.webjars",
+            "version" : "3.3.7"
+          }
+        },
+        "hash" : "d6aeba80236573ed585b",
+        "constraintFacts" : [ {
+          "constraintId" : "b93083d6afb64436ab165470ef455106",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-2018-20677 with severity >= 4 (severity = 6.1)",
+            "reference" : {
+              "value" : "CVE-2018-20677",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-2018-20677 with severity < 7 (severity = 6.1)",
+            "reference" : {
+              "value" : "CVE-2018-20677",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "org.webjars"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "bootstrap"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "3.3.7"
+          } ],
+          "name" : "bootstrap"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "5be2c8b1a4db4c669a982d7374e6ae18",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "bootstrap",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.webjars",
+            "version" : "3.3.7"
+          }
+        },
+        "hash" : "d6aeba80236573ed585b",
+        "constraintFacts" : [ {
+          "constraintId" : "b93083d6afb64436ab165470ef455106",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-2019-8331 with severity >= 4 (severity = 6.1)",
+            "reference" : {
+              "value" : "CVE-2019-8331",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-2019-8331 with severity < 7 (severity = 6.1)",
+            "reference" : {
+              "value" : "CVE-2019-8331",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "org.webjars"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "bootstrap"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "3.3.7"
+          } ],
+          "name" : "bootstrap"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "3546a4c47b4f40dca6903940dc89f451",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "bootstrap",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.webjars",
+            "version" : "3.3.7"
+          }
+        },
+        "hash" : "d6aeba80236573ed585b",
+        "constraintFacts" : [ {
+          "constraintId" : "b93083d6afb64436ab165470ef455106",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability sonatype-2016-0129 with severity >= 4 (severity = 5.4)",
+            "reference" : {
+              "value" : "sonatype-2016-0129",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability sonatype-2016-0129 with severity < 7 (severity = 5.4)",
+            "reference" : {
+              "value" : "sonatype-2016-0129",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "org.webjars"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "bootstrap"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "3.3.7"
+          } ],
+          "name" : "bootstrap"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "5ce06b1233124689a383bf1f57175a98",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "bootstrap",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.webjars",
+            "version" : "3.3.7"
+          }
+        },
+        "hash" : "d6aeba80236573ed585b",
+        "constraintFacts" : [ {
+          "constraintId" : "b93083d6afb64436ab165470ef455106",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability sonatype-2017-0695 with severity >= 4 (severity = 6.1)",
+            "reference" : {
+              "value" : "sonatype-2017-0695",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability sonatype-2017-0695 with severity < 7 (severity = 6.1)",
+            "reference" : {
+              "value" : "sonatype-2017-0695",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "org.webjars"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "bootstrap"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "3.3.7"
+          } ],
+          "name" : "bootstrap"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "3d554cc5e8654825bc0634a68801d55a",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "bootstrap",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.webjars",
+            "version" : "3.3.7"
+          }
+        },
+        "hash" : "d6aeba80236573ed585b",
+        "constraintFacts" : [ {
+          "constraintId" : "b93083d6afb64436ab165470ef455106",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability sonatype-2018-0607 with severity >= 4 (severity = 6.1)",
+            "reference" : {
+              "value" : "sonatype-2018-0607",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability sonatype-2018-0607 with severity < 7 (severity = 6.1)",
+            "reference" : {
+              "value" : "sonatype-2018-0607",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "org.webjars"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "bootstrap"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "3.3.7"
+          } ],
+          "name" : "bootstrap"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "923c44b45c544b9c8a2fabfcbf0d06a8",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "a-name",
+          "coordinates" : {
+            "name" : "org.webjars bootstrap",
+            "qualifier" : "",
+            "version" : "3.1.1"
+          }
+        },
+        "hash" : "b72e6b076e32fb3a87f6",
+        "constraintFacts" : [ {
+          "constraintId" : "b93083d6afb64436ab165470ef455106",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-2018-14042 with severity >= 4 (severity = 6.1)",
+            "reference" : {
+              "value" : "CVE-2018-14042",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-2018-14042 with severity < 7 (severity = 6.1)",
+            "reference" : {
+              "value" : "CVE-2018-14042",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "org.webjars bootstrap"
+          }, {
+            "value" : " "
+          }, {
+            "field" : "Version",
+            "value" : "3.1.1"
+          } ],
+          "name" : "org.webjars bootstrap"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "653656fc3fe34234b81b630085367e12",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "a-name",
+          "coordinates" : {
+            "name" : "org.webjars bootstrap",
+            "qualifier" : "",
+            "version" : "3.1.1"
+          }
+        },
+        "hash" : "b72e6b076e32fb3a87f6",
+        "constraintFacts" : [ {
+          "constraintId" : "b93083d6afb64436ab165470ef455106",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-2019-8331 with severity >= 4 (severity = 6.1)",
+            "reference" : {
+              "value" : "CVE-2019-8331",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-2019-8331 with severity < 7 (severity = 6.1)",
+            "reference" : {
+              "value" : "CVE-2019-8331",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "org.webjars bootstrap"
+          }, {
+            "value" : " "
+          }, {
+            "field" : "Version",
+            "value" : "3.1.1"
+          } ],
+          "name" : "org.webjars bootstrap"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "ef39eec42de148a382ef61a2f672d719",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "a-name",
+          "coordinates" : {
+            "name" : "org.webjars bootstrap",
+            "qualifier" : "",
+            "version" : "3.1.1"
+          }
+        },
+        "hash" : "b72e6b076e32fb3a87f6",
+        "constraintFacts" : [ {
+          "constraintId" : "b93083d6afb64436ab165470ef455106",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability sonatype-2016-0129 with severity >= 4 (severity = 5.4)",
+            "reference" : {
+              "value" : "sonatype-2016-0129",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability sonatype-2016-0129 with severity < 7 (severity = 5.4)",
+            "reference" : {
+              "value" : "sonatype-2016-0129",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "org.webjars bootstrap"
+          }, {
+            "value" : " "
+          }, {
+            "field" : "Version",
+            "value" : "3.1.1"
+          } ],
+          "name" : "org.webjars bootstrap"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "8874735f7dfa4072b16a05680f46152f",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "a-name",
+          "coordinates" : {
+            "name" : "org.webjars bootstrap",
+            "qualifier" : "",
+            "version" : "3.1.1"
+          }
+        },
+        "hash" : "b72e6b076e32fb3a87f6",
+        "constraintFacts" : [ {
+          "constraintId" : "b93083d6afb64436ab165470ef455106",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability sonatype-2018-0607 with severity >= 4 (severity = 6.1)",
+            "reference" : {
+              "value" : "sonatype-2018-0607",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability sonatype-2018-0607 with severity < 7 (severity = 6.1)",
+            "reference" : {
+              "value" : "sonatype-2018-0607",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "org.webjars bootstrap"
+          }, {
+            "value" : " "
+          }, {
+            "field" : "Version",
+            "value" : "3.1.1"
+          } ],
+          "name" : "org.webjars bootstrap"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "e8c7c26ec2364cb2af9ea5f0425311d9",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "a-name",
+          "coordinates" : {
+            "name" : "org.webjars jquery",
+            "qualifier" : "",
+            "version" : "1.10.2"
+          }
+        },
+        "hash" : "37081687a930b9a4a29c",
+        "constraintFacts" : [ {
+          "constraintId" : "b93083d6afb64436ab165470ef455106",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-2020-11023 with severity >= 4 (severity = 6.1)",
+            "reference" : {
+              "value" : "CVE-2020-11023",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-2020-11023 with severity < 7 (severity = 6.1)",
+            "reference" : {
+              "value" : "CVE-2020-11023",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "org.webjars jquery"
+          }, {
+            "value" : " "
+          }, {
+            "field" : "Version",
+            "value" : "1.10.2"
+          } ],
+          "name" : "org.webjars jquery"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "4034f7635b884af1b5ce4b466982ab2c",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "a-name",
+          "coordinates" : {
+            "name" : "org.webjars jquery",
+            "qualifier" : "",
+            "version" : "1.10.2"
+          }
+        },
+        "hash" : "37081687a930b9a4a29c",
+        "constraintFacts" : [ {
+          "constraintId" : "b93083d6afb64436ab165470ef455106",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability sonatype-2014-0026 with severity >= 4 (severity = 6.5)",
+            "reference" : {
+              "value" : "sonatype-2014-0026",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability sonatype-2014-0026 with severity < 7 (severity = 6.5)",
+            "reference" : {
+              "value" : "sonatype-2014-0026",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "org.webjars jquery"
+          }, {
+            "value" : " "
+          }, {
+            "field" : "Version",
+            "value" : "1.10.2"
+          } ],
+          "name" : "org.webjars jquery"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "b1135a4bd8194b7b8be9b0bbc3940e0b",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "a-name",
+          "coordinates" : {
+            "name" : "org.webjars jquery",
+            "qualifier" : "",
+            "version" : "1.10.2"
+          }
+        },
+        "hash" : "37081687a930b9a4a29c",
+        "constraintFacts" : [ {
+          "constraintId" : "b93083d6afb64436ab165470ef455106",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability sonatype-2019-0115 with severity >= 4 (severity = 6.1)",
+            "reference" : {
+              "value" : "sonatype-2019-0115",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability sonatype-2019-0115 with severity < 7 (severity = 6.1)",
+            "reference" : {
+              "value" : "sonatype-2019-0115",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "org.webjars jquery"
+          }, {
+            "value" : " "
+          }, {
+            "field" : "Version",
+            "value" : "1.10.2"
+          } ],
+          "name" : "org.webjars jquery"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "fd16f509cbd24bafbd881ef5e9851b88",
+      "policyName" : "Component-Unknown",
+      "threatLevel" : 2,
+      "policyViolationId" : "5792a861d0034ce695b937e8c0cb045b",
+      "componentFacts" : [ {
+        "componentIdentifier" : null,
+        "hash" : "41cb244475c8c1ddc670",
+        "constraintFacts" : [ {
+          "constraintId" : "48842baa663748cd86542056bcb293c1",
+          "constraintName" : "Unknown 3rd party component",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "MatchState",
+            "conditionIndex" : 0,
+            "summary" : "Match State is unknown",
+            "reason" : "Match state was 'Unknown'",
+            "reference" : null,
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "Proprietary",
+            "conditionIndex" : 0,
+            "summary" : "Proprietary is false",
+            "reason" : "Component does not contain proprietary packages",
+            "reference" : null,
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "DataSource",
+            "conditionIndex" : 0,
+            "summary" : "Data Source has support for identity",
+            "reason" : "Data Source has support for Identity",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : null
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "fd16f509cbd24bafbd881ef5e9851b88",
+      "policyName" : "Component-Unknown",
+      "threatLevel" : 2,
+      "policyViolationId" : "918fa8930870449eac55c1c2b26fce7e",
+      "componentFacts" : [ {
+        "componentIdentifier" : null,
+        "hash" : "7310db9fafcdc400f9b7",
+        "constraintFacts" : [ {
+          "constraintId" : "48842baa663748cd86542056bcb293c1",
+          "constraintName" : "Unknown 3rd party component",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "MatchState",
+            "conditionIndex" : 0,
+            "summary" : "Match State is unknown",
+            "reason" : "Match state was 'Unknown'",
+            "reference" : null,
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "Proprietary",
+            "conditionIndex" : 0,
+            "summary" : "Proprietary is false",
+            "reason" : "Component does not contain proprietary packages",
+            "reference" : null,
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "DataSource",
+            "conditionIndex" : 0,
+            "summary" : "Data Source has support for identity",
+            "reason" : "Data Source has support for Identity",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : null
+      } ]
+    },
+    "actions" : [ ]
+  } ]
+}

@@ -1,0 +1,225 @@
+<!--
+
+    Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+    Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+    "Sonatype" is a trademark of Sonatype, Inc.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.sonatype.insight.brain</groupId>
+    <artifactId>insight-brain</artifactId>
+    <version>1.208.0-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+  <artifactId>insight-brain-variant-test-mtiq</artifactId>
+
+  <description>
+    MTIQ deployment-variant integration test. The @MtiqTest meta-annotation boots
+    MultiTenantInsightBrainService once and reuses it, hitting the ui/links/* endpoints under the
+    global tenant. This is a SEPARATE module from the IQ variant tests (insight-brain-variant-test):
+    the MTIQ app and the plain IQ app both define Spring @Configuration classes in the
+    com.sonatype.insight.brain.service package, so they cannot share a test classpath (the IQ server
+    would component-scan MtiqConfigurationAliases and fail to boot). Shared machinery lives in
+    insight-brain-variant-test-support. Run with:
+    mvn verify -pl insight-brain-variant-test-mtiq -Dskip-functional-test
+  </description>
+
+  <properties>
+    <clm.skip>true</clm.skip>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <skip>false</skip>
+          <includes>
+            <include>**/*Test.*</include>
+            <include>**/*IT.*</include>
+          </includes>
+          <trimStackTrace>false</trimStackTrace>
+          <reuseForks>true</reuseForks>
+          <forkCount>1</forkCount>
+          <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
+          <forkedProcessExitTimeoutInSeconds>30</forkedProcessExitTimeoutInSeconds>
+          <shutdown>kill</shutdown>
+          <!--
+            @{jacocoVariantArgLine} carries the JaCoCo agent under the coverage profiles
+            (buildsupport-coverage / -sonar-coverage); it is empty otherwise, so normal and
+            one-box/perf runs keep this exact, tuned argLine.
+          -->
+          <argLine>
+            @{jacocoVariantArgLine}
+            --add-opens=java.base/java.lang=ALL-UNNAMED
+            --add-opens=java.base/java.util=ALL-UNNAMED
+            --add-opens=java.base/java.security=ALL-UNNAMED
+            --add-opens=java.base/sun.security.rsa=ALL-UNNAMED
+            --add-opens=java.base/sun.security.x509=ALL-UNNAMED
+            --add-opens=java.base/sun.security.util=ALL-UNNAMED
+            --add-opens=java.xml/com.sun.org.apache.xerces.internal.jaxp.datatype=ALL-UNNAMED
+            --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+            -Xmx3072M
+            -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar
+            -XX:+HeapDumpOnOutOfMemoryError
+            -XX:HeapDumpPath=${project.build.directory}/
+          </argLine>
+          <systemPropertyVariables>
+            <test.forkId>#${surefire.forkNumber}</test.forkId>
+            <!--
+              The MTIQ bean graph eagerly builds an AWS SecretsManager client; it needs a region to
+              construct (never actually called by the ui/links endpoints). CI provides AWS_REGION;
+              this shim provides one for local runs.
+            -->
+            <aws.region>us-east-1</aws.region>
+          </systemPropertyVariables>
+          <!-- insight-brain-service server jar's kie.conf can conflict with other deps' (mirrors nexus-mtiq-server). -->
+          <classpathDependencyExcludes>
+            <classpathDependencyExclude>org.drools:drools-core</classpathDependencyExclude>
+            <classpathDependencyExclude>org.drools:drools-compiler</classpathDependencyExclude>
+            <classpathDependencyExclude>org.drools:drools-mvel</classpathDependencyExclude>
+            <classpathDependencyExclude>org.kie:kie-internal</classpathDependencyExclude>
+          </classpathDependencyExcludes>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <!-- JUnit 5 (Jupiter) engine on the JUnit Platform. -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.junit.vintage</groupId>
+          <artifactId>junit-vintage-engine</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Shared variant-test machinery (AbstractSpikeServerExtension, SpikeRestClient, SpikeSupport). -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-variant-test-support</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- MTIQ app under test + its test fixtures. Pulls insight-brain-service:server transitively. -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>nexus-mtiq-server</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>nexus-mtiq-server</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- IQ test fixtures the launcher needs (TestCLMServer, DatabaseContainerRule, AbstractBaseIntegrationTest). -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-service</artifactId>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Tenancy test helpers (TenantTestHelper). -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-tenancy</artifactId>
+      <classifier>tests</classifier>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- DB/data/common test fixtures (DatabaseRuleAnnotations, H2DiskDatabaseFixture, ...). -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-db</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-data</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-common</artifactId>
+      <type>test-jar</type>
+    </dependency>
+
+    <!-- SpringTestExecutionContext lives here. -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-test</artifactId>
+    </dependency>
+
+    <!-- HDS mock the launcher wires up. -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>hds-mock-server</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Byte Buddy agent for Mockito (referenced by the failsafe -javaagent). -->
+    <dependency>
+      <groupId>net.bytebuddy</groupId>
+      <artifactId>byte-buddy-agent</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Embedded PostgreSQL (zonky) for the multi-tenant variant. -->
+    <dependency>
+      <groupId>io.zonky.test</groupId>
+      <artifactId>embedded-postgres</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+</project>

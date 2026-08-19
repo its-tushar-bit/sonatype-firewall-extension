@@ -1,0 +1,50 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "fake",
+      "coordinates" : {
+        "name" : "guava",
+        "namespace" : "com.google.guava",
+        "type" : "jar",
+        "version" : "30.1-jre"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "db6b61d995de714813ac",
+    "declaredLicenses" : [ "Apache-2.0"],
+    "observedLicenses" : null,
+    "effectiveLicenses" : null,
+    "securityCounters" : null,
+    "effectiveLicenseThreat" : 0,
+    "matchState" : null,
+    "proprietary" : null,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 0,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "name",
+        "value" : "guava"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "namespace",
+        "value" : "com.google.guava"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "type",
+        "value" : "jar"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "30.1-jre"
+      } ],
+      "name" : "guava : com.google.guava : jar : 30.1-jre"
+    },
+    "hiddenObservedLicenses" : false
+  } ]
+}

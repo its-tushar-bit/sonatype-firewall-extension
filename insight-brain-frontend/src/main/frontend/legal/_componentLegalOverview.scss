@@ -1,0 +1,162 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+
+.nx-page-main.iq-component-legal-overview-page {
+  padding: 0;
+
+  .iq-component-legal-overview-page__content {
+    padding: var(--nx-spacing-6x);
+    z-index: 1;
+  }
+}
+
+component-legal-overview {
+  display: contents;
+}
+
+#component-legal-overview-details {
+  display: grid;
+  column-gap: var(--nx-spacing-4x);
+  grid-template-columns: 1fr 1fr;
+
+  #component-overview-tile {
+    grid-column: 1 / span 2;
+
+    .stage-scan {
+      padding-right: var(--nx-spacing-2x);
+    }
+
+    .nx-grid-col {
+      align-content: space-between;
+      display: grid;
+      flex: initial;
+      gap: var(--nx-spacing-8x);
+      padding-left: var(--nx-spacing-8x);
+      padding-right: var(--nx-spacing-8x);
+    }
+
+    .nx-read-only {
+      display: contents;
+    }
+
+    .nx-read-only__label {
+      margin-top: 0;
+    }
+
+    .nx-grid-col:first-child {
+      grid-template:
+        'review-status review-status'
+        'last-modified modified-by';
+
+      padding-left: 0;
+    }
+
+    .nx-grid-col:nth-child(2) {
+      grid-template:
+        'review-progress review-progress review-progress'
+        'fulfilled flagged not-applicable';
+    }
+
+    .nx-grid-col:last-child {
+      grid-template:
+        'highest-threat highest-threat'
+        'stages .';
+
+      padding-right: 0;
+    }
+
+    .nx-policy-violation-indicator {
+      margin: 0;
+    }
+  }
+
+  .license-component-overview__review-status {
+    grid-area: review-status;
+  }
+
+  .license-component-overview__last-modified {
+    grid-area: last-modified;
+  }
+
+  .license-component-overview__modified-by {
+    grid-area: modified-by;
+  }
+
+  .license-component-overview__review-progress {
+    grid-area: review-progress;
+  }
+
+  .license-component-overview__fulfilled {
+    grid-area: fulfilled;
+  }
+
+  .license-component-overview__flagged {
+    grid-area: flagged;
+  }
+
+  .license-component-overview__not-applicable {
+    grid-area: not-applicable;
+  }
+
+  .license-component-overview__highest-threat {
+    grid-area: highest-threat;
+  }
+
+  .license-component-overview__stages {
+    grid-area: stages;
+  }
+
+  #license-obligations-tile {
+    grid-row-start: 2;
+    grid-row-end: 3;
+    grid-column-start: 1;
+    grid-column-end: 2;
+    align-self: flex-start;
+  }
+
+  #attribution-summary-tile {
+    height: min-content;
+    grid-row-start: 2;
+    grid-row-end: 3;
+    grid-column-start: 2;
+    grid-column-end: 3;
+
+    // prevent wide unwrappable content from expanding the width of this element outside of the page grid
+    min-width: 0;
+  }
+
+  .license-no-legal-elements-text {
+    text-align: center;
+  }
+
+  #license-details-tile {
+    dd > * {
+      vertical-align: middle;
+    }
+    .nx-text-link:last-of-type {
+      margin-right: var(--nx-spacing-2x);
+    }
+    .nx-tag {
+      margin: 0;
+    }
+  }
+
+  .legal-file-section-view-more-details {
+    text-align: right;
+    a {
+      @include nx-container-helpers.container-horizontal;
+    }
+  }
+}
+
+#legal-file-section-view-more-details {
+  text-align: right;
+  a {
+    @include nx-container-helpers.container-horizontal;
+  }
+}

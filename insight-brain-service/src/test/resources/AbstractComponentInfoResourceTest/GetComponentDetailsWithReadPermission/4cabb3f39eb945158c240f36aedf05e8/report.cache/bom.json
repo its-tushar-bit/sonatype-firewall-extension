@@ -1,0 +1,43 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "a1",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "g1",
+        "version" : "v1"
+      }
+    },
+    "groupId" : "g1",
+    "artifactId" : "a1",
+    "version" : "v1",
+    "filenames" : [ "jam.jar" ],
+    "pathnames" : [ "jam.jar" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "a235ba8b489512805ac1",
+    "relativePopularity" : 1.0,
+    "createTime" : 1172529820000,
+    "lastModifiedTime" : 1432766424000,
+    "lastModifiedEntryTime" : 1079726224000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "g1"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "a1"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "v1"
+      } ]
+    }
+  } ]
+}

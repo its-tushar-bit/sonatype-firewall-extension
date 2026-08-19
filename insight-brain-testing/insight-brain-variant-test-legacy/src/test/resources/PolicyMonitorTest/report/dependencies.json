@@ -1,0 +1,27 @@
+{
+  "dependencyGraph" : {
+    "ch.qos.logback:logback-access:0.6" : [ ],
+    "commons-httpclient:commons-httpclient:3.1" : [ ],
+    "null" : [ "ch.qos.logback:logback-access:0.6", "commons-httpclient:commons-httpclient:3.1" ]
+  },
+  "securityIssuesByDepth" : {
+    "1" : {
+      "Severe" : 2,
+      "Critical" : 0,
+      "Moderate" : 1
+    }
+  },
+  "gavDepths" : {
+    "ch.qos.logback:logback-access:0.6" : [ 1 ],
+    "commons-httpclient:commons-httpclient:3.1" : [ 1 ]
+  },
+  "licenseThreatsByDepth" : {
+    "1" : {
+      "NON-STANDARD" : 0,
+      "LIBERAL" : 1,
+      "WEAKCOPYLEFT" : 1,
+      "COPYLEFT" : 0,
+      "NOT-PROVIDED" : 0
+    }
+  }
+}

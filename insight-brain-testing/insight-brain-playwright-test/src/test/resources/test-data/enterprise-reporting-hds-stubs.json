@@ -1,0 +1,46 @@
+{
+  "currentVersion": {
+    "version": 1
+  },
+  "dashboards": {
+    "version": {"version": 100},
+    "dashboardMetadata": [
+      {
+        "dashboardId": "sbom-scorecard",
+        "groupId": null,
+        "title": "Sbom Report Overview",
+        "description": "A comprehensive view of monthly sboms",
+        "features": [
+          "Graphs",
+          "Tables"
+        ],
+        "accessButtonText": "Open Dashboard",
+        "previewImage": "rolling-recap.svg",
+        "priority": 1,
+        "spotlight": true,
+        "dashboardPath": null,
+        "spotlightColor": null,
+        "sinceIQVersion": null,
+        "spotlightText": null,
+        "category": "enterprise",
+        "previewImageIcon": "faCalendar"
+      }
+    ],
+    "dashboardGroupMetadata": [
+      {
+        "groupId": "security",
+        "description": "A group of security dashboards",
+        "features": [
+          "Trends",
+          "Breakdowns"
+        ],
+        "previewImageIcon": "faShield",
+        "sinceIQVersion": null,
+        "spotlight": false,
+        "spotlightColor": null,
+        "spotlightText": null,
+        "title": "Security Risk"
+      }
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "simpleMatch" : true,
+  "matchState" : "exact",
+  "hash" : "abababababababababab",
+  "componentIdentifier" : {
+    "format" : "maven",
+    "coordinates" : {
+      "groupId" : "g1",
+      "artifactId" : "a1",
+      "version" : "v1",
+      "classifier" : null,
+      "extension" : "jar"
+    }
+  },
+  "licenseThreat" : "LIBERAL",
+  "securityVulnerabilities" : [],
+  "catalogDate" : 1323982380000,
+  "securityThreat" : 0,
+  "securityIssues" : 0
+}

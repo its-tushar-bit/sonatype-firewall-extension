@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+    Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+    "Sonatype" is a trademark of Sonatype, Inc.
+
+-->
+<!--
+  PMD ruleset: Detects jOOQ fetchStream() calls not wrapped
+  in try-with-resources, which can leak database connections on exception.
+
+  Safe pattern (passes):
+    try (var stream = query.fetchStream().map(fn)) {
+        return stream.collect(...);
+    }
+
+  Unsafe pattern (fails):
+    return query.fetchStream().map(fn).collect(...);
+-->
+<ruleset name="FetchStreamResourceRuleset"
+    xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+
+  <description>
+    Detects jOOQ fetchStream() calls that are not wrapped in try-with-resources.
+    Such calls can leak database connections if an exception occurs during
+    stream processing.
+  </description>
+
+  <rule name="FetchStreamMustBeInTryWithResources"
+      language="java"
+      message="fetchStream() must be wrapped in try-with-resources to prevent connection leaks on exception"
+      class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+    <description>
+      jOOQ's fetchStream() returns a lazy JDBC-backed stream that holds a
+      borrowed connection until closed. If processing throws, the stream
+      must be closed via try-with-resources to return the connection to the pool.
+    </description>
+    <priority>1</priority>
+    <properties>
+      <property name="xpath">
+        <value>
+          <![CDATA[
+          //MethodCall[@MethodName='fetchStream' and not(ancestor::ResourceList)]
+          ]]>
+        </value>
+      </property>
+    </properties>
+    <example>
+      <![CDATA[
+      // Bad: leak on exception
+      return tx.dsl().selectFrom(T).fetchStream().map(this::toEntity).collect(toList());
+
+      // Good: stream closed even if map/collect throws
+      try (var stream = tx.dsl().selectFrom(T).fetchStream().map(this::toEntity)) {
+          return stream.collect(toList());
+      }
+      ]]>
+    </example>
+  </rule>
+</ruleset>

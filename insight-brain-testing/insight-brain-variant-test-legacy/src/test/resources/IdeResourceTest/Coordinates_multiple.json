@@ -1,0 +1,199 @@
+[
+  {
+    "waitDelta": null,
+    "simpleMatch": true,
+    "matchState": "exact",
+    "componentIdentifier": {
+      "format": "maven",
+      "coordinates": {
+        "artifactId": "tomcat-util",
+        "classifier": "",
+        "extension": "jar",
+        "groupId": "tomcat",
+        "version": "5.5.23"
+      }
+    },
+    "groupId": "tomcat",
+    "artifactId": "tomcat-util",
+    "version": "5.5.23",
+    "classifier": "",
+    "securityVulnerabilities": [
+      {
+        "refId": "cve-1234-1234",
+        "severity": 3.5,
+        "source": "cve",
+        "summary": "This would be a summary",
+        "status": null,
+        "url": null,
+        "vulnerabilityCategories": []
+      },
+      {
+        "refId": "SONATYPE-2016-2054",
+        "severity": 0.0,
+        "source": "sonatype",
+        "summary": "This would be a summary",
+        "status": null,
+        "url": null,
+        "vulnerabilityCategories": []
+      },
+      {
+        "refId": "SONATYPE-2017-1557",
+        "severity": 0.0,
+        "source": "sonatype",
+        "summary": "This would be a summary",
+        "status": null,
+        "url": null,
+        "vulnerabilityCategories": []
+      },
+      {
+        "refId": "SONATYPE-2017-1558",
+        "severity": 0.0,
+        "source": "sonatype",
+        "summary": "This would be a summary",
+        "status": null,
+        "url": null,
+        "vulnerabilityCategories": []
+      }
+    ],
+    "hash": "1249e25aebb15358bedd",
+    "observedLicenseIds": [
+      "No-Sources"
+    ],
+    "declaredLicenseIds": [
+      "Not-Declared"
+    ],
+    "catalogDate": null,
+    "relativePopularity": null,
+    "identificationSource": "Sonatype",
+    "componentCategories": null,
+    "hygieneRating": null,
+    "integrityRating": null,
+    "securityIssues": 4,
+    "securityThreat": 3.5
+  },
+  {
+    "waitDelta": null,
+    "simpleMatch": true,
+    "matchState": "exact",
+    "componentIdentifier": {
+      "format": "maven",
+      "coordinates": {
+        "artifactId": "commons-foo",
+        "classifier": "",
+        "extension": "jar",
+        "groupId": "commons",
+        "version": "1.0.0"
+      }
+    },
+    "groupId": "commons",
+    "artifactId": "commons-foo",
+    "version": "1.0.0",
+    "classifier": "",
+    "securityVulnerabilities": [
+      {
+        "refId": "cve-9999-9999",
+        "severity": 7.5,
+        "source": "cve",
+        "summary": "Only vulnerability for the second component",
+        "status": null,
+        "url": null,
+        "vulnerabilityCategories": []
+      }
+    ],
+    "hash": "cccccccccccccccccccc",
+    "observedLicenseIds": [
+      "No-Sources"
+    ],
+    "declaredLicenseIds": [
+      "Not-Declared"
+    ],
+    "catalogDate": null,
+    "relativePopularity": null,
+    "identificationSource": "Sonatype",
+    "componentCategories": null,
+    "hygieneRating": null,
+    "integrityRating": null,
+    "securityIssues": 1,
+    "securityThreat": 7.5
+  },
+  {
+    "waitDelta": null,
+    "simpleMatch": true,
+    "matchState": "exact",
+    "componentIdentifier": {
+      "format": "maven",
+      "coordinates": {
+        "artifactId": "safe-lib",
+        "classifier": "",
+        "extension": "jar",
+        "groupId": "safe",
+        "version": "2.0.0"
+      }
+    },
+    "groupId": "safe",
+    "artifactId": "safe-lib",
+    "version": "2.0.0",
+    "classifier": "",
+    "securityVulnerabilities": [],
+    "hash": "dddddddddddddddddddd",
+    "observedLicenseIds": [
+      "No-Sources"
+    ],
+    "declaredLicenseIds": [
+      "Not-Declared"
+    ],
+    "catalogDate": null,
+    "relativePopularity": null,
+    "identificationSource": "Sonatype",
+    "componentCategories": null,
+    "hygieneRating": null,
+    "integrityRating": null,
+    "securityIssues": 0,
+    "securityThreat": null
+  },
+  {
+    "waitDelta": 2000,
+    "simpleMatch": false,
+    "matchState": "pending",
+    "componentIdentifier": {
+      "format": "maven",
+      "coordinates": {
+        "artifactId": "pending-lib",
+        "classifier": "",
+        "extension": "jar",
+        "groupId": "pending",
+        "version": "3.0.0"
+      }
+    },
+    "groupId": "pending",
+    "artifactId": "pending-lib",
+    "version": "3.0.0",
+    "classifier": "",
+    "securityVulnerabilities": [
+      {
+        "refId": "cve-7777-7777",
+        "severity": 9.0,
+        "source": "cve",
+        "summary": "Vulnerability that must NOT be evaluated while pending",
+        "status": null,
+        "url": null,
+        "vulnerabilityCategories": []
+      }
+    ],
+    "hash": "ffffffffffffffffffff",
+    "observedLicenseIds": [
+      "No-Sources"
+    ],
+    "declaredLicenseIds": [
+      "Not-Declared"
+    ],
+    "catalogDate": null,
+    "relativePopularity": null,
+    "identificationSource": "Sonatype",
+    "componentCategories": null,
+    "hygieneRating": null,
+    "integrityRating": null,
+    "securityIssues": 1,
+    "securityThreat": 9.0
+  }
+]

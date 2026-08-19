@@ -1,0 +1,105 @@
+{
+  "bomFormat" : "CycloneDX",
+  "specVersion" : "1.6",
+  "version" : 1,
+  "metadata" : {
+    "timestamp" : "2024-10-28T17:52:55Z",
+    "tools" : {
+      "components" : [
+        {
+          "type" : "application",
+          "name" : "Sonatype SBOM Manager"
+        }
+      ]
+    },
+    "properties" : [
+      {
+        "name" : "sonatype:original_file",
+        "value" : "binary.temp"
+      }
+    ]
+  },
+  "components" : [
+    {
+      "type" : "library",
+      "bom-ref" : "81ec551b288c4523922b00a7ed5751e4",
+      "name" : "orange",
+      "version" : "1.0.1",
+      "purl" : "pkg:pypi/orange@1.0.1?qualifier=py2.py3-none-any&extension=whl",
+      "properties" : [
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "093080a1a4bbd2750541"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "SBOM-bom.json/pkg:pypi\\orange@1.0.1"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "27e313f427f34870a519d11bc7c38180",
+      "name" : "Microsoft.Identity.Client.Extensions.Msal",
+      "version" : "2.23.0",
+      "purl" : "pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0",
+      "properties" : [
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "00603c85922bf35d8edd"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "app6-bom.xml/pkg:nuget\\Microsoft.Identity.Client.Extensions.Msal@2.23.0:00603c85922bf35d8edd"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "07b6716f2d40409aadb83f37422a4bba",
+      "name" : "Microsoft.IdentityModel.Protocols",
+      "version" : "6.25.1",
+      "purl" : "pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1",
+      "properties" : [
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "c795e78734c2860bb627"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "app6-bom.xml/pkg:nuget\\Microsoft.IdentityModel.Protocols@6.25.1:c795e78734c2860bb627"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "db2da49eb432437c9bb23a76ad13a827",
+      "name" : "com.sun.istack:istack-commons-runtime",
+      "version" : "4.1.2",
+      "purl" : "pkg:maven/com.sun.istack/istack-commons-runtime@4.1.2?type=jar",
+      "properties" : [
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "18ec117c85f3ba0ac654"
+        }
+      ]
+    }
+  ],
+  "dependencies" : [
+    {
+      "ref" : "07b6716f2d40409aadb83f37422a4bba",
+      "dependsOn" : [
+        "07b6716f2d40409aadb83f37422a4bba"
+      ]
+    }
+  ]
+}

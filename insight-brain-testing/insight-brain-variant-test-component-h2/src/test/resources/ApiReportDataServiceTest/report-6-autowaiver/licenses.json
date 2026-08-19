@@ -1,0 +1,144 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "zxcvbn",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.nulab-inc",
+        "version" : "1.9.0"
+      }
+    },
+    "groupId" : "com.nulab-inc",
+    "artifactId" : "zxcvbn",
+    "version" : "1.9.0",
+    "hash" : "47e0b80099d6109ef199",
+    "declaredLicenses" : [ "MIT" ],
+    "observedLicenses" : [ "No Source License" ],
+    "effectiveLicenses" : [ "MIT" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 1,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 5,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : 5.3,
+    "catalogDate" : 1712393079107,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.nulab-inc"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "zxcvbn"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.9.0"
+      } ],
+      "name" : "zxcvbn"
+    },
+    "hiddenObservedLicenses" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-io",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-io",
+        "version" : "2.2"
+      }
+    },
+    "groupId" : "commons-io",
+    "artifactId" : "commons-io",
+    "version" : "2.2",
+    "hash" : "83b5b8a7ba1c08f9e8c8",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "Apache-2.0" ],
+    "effectiveLicenses" : [ "Apache-2.0" ],
+    "securityCounters" : {
+      "Critical" : 1,
+      "Severe" : 1,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : 8.7,
+    "catalogDate" : 1332774876000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "commons-io"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-io"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.2"
+      } ],
+      "name" : "commons-io"
+    },
+    "hiddenObservedLicenses" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "logback-classic",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ch.qos.logback",
+        "version" : "1.3.14"
+      }
+    },
+    "groupId" : "ch.qos.logback",
+    "artifactId" : "logback-classic",
+    "version" : "1.3.14",
+    "hash" : "a2f0045eae641a356b74",
+    "declaredLicenses" : [ "EPL-1.0", "LGPL-2.1" ],
+    "observedLicenses" : [ "EPL-1.0 or LGPL-2.1" ],
+    "effectiveLicenses" : [ "EPL-1.0", "EPL-1.0 or LGPL-2.1", "LGPL-2.1" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 2,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1701432373260,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "ch.qos.logback"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "logback-classic"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.3.14"
+      } ],
+      "name" : "logback-classic"
+    },
+    "hiddenObservedLicenses" : false
+  } ]
+}

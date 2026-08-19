@@ -1,0 +1,43 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+/*
+  #Mask elements
+*/
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+@use './variables' as *;
+
+.form-mask {
+  background-color: rgba($iq-off-white, 0.9);
+  @include nx-dark-mode-helpers.dark-mode {
+    background-color: HSL(from var(--nx-swatch-indigo-70) h s l / 0.9);
+  }
+  position: absolute;
+
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  height: 100%;
+  text-align: center;
+  z-index: $iq-form-mask-zindex;
+
+  .form-mask-msg {
+    background-color: $iq-off-white;
+    border: 2px solid $iq-slate;
+    box-shadow: -4px 4px 0px rgba($iq-slate, 0.65);
+    display: inline-block;
+    padding: 12px;
+    position: relative;
+    top: 50%;
+    z-index: $iq-form-mask-zindex + 1;
+
+    &.success {
+      border-color: $iq-dark-green;
+      color: $iq-dark-green;
+    }
+  }
+}

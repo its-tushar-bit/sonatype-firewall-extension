@@ -1,0 +1,15 @@
+{
+  "dependencyTree" : {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "innersource-main",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.sonatype.innersource.main",
+        "version" : "1.0.0"
+      },
+      "module" : true
+    }
+  }
+}

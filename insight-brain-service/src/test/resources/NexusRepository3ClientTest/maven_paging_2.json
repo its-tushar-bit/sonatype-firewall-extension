@@ -1,0 +1,17 @@
+{
+  "items": [
+    {
+      "format": "maven2",
+      "checksum": {
+        "sha1": "g1-n1-100-sha1"
+      },
+      "maven2": {
+        "extension": "jar",
+        "groupId": "g1",
+        "artifactId": "n1",
+        "version": "1.0.0"
+      }
+    }
+  ],
+  "continuationToken": null
+}

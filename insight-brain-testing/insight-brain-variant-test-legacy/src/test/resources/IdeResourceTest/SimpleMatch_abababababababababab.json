@@ -1,0 +1,27 @@
+{
+  "simpleMatch" : true,
+  "matchState" : "exact",
+  "hash" : "abababababababababab",
+  "componentIdentifier" : {
+    "format" : "maven",
+    "coordinates" : {
+      "groupId" : "g1",
+      "artifactId" : "a1",
+      "version" : "v1",
+      "classifier" : null,
+      "extension" : "jar"
+    }
+  },
+  "groupId" : "g1",
+  "artifactId" : "a1",
+  "version" : "v1",
+  "licenseThreat" : "LIBERAL",
+  "securityVulnerabilities" : [ {
+    "refId" : "36079",
+    "severity" : 3.5,
+    "source" : "osvdb"
+  } ],
+  "catalogDate" : 1323982380000,
+  "securityThreat" : 3.5,
+  "securityIssues" : 4
+}

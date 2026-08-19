@@ -1,0 +1,85 @@
+{
+  "dependencyGraph" : [ {
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "nuget",
+        "coordinates" : {
+          "packageId" : "jQuery",
+          "version" : "3.4.1"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "a-name",
+        "coordinates" : {
+          "name" : "knockout.validation",
+          "qualifier" : "",
+          "version" : "2.0.0-Pre"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "nuget",
+        "coordinates" : {
+          "packageId" : "jQuery",
+          "version" : "3.2.1"
+        }
+      }
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "knockout.validation",
+        "qualifier" : "",
+        "version" : "2.0.0-Pre"
+      }
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "jQuery",
+        "version" : "3.2.1"
+      }
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "jQuery",
+        "version" : "3.4.1"
+      }
+    }
+  } ],
+  "gavDepths" : { },
+  "componentDepths" : [ {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "jQuery",
+        "version" : "3.4.1"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "knockout.validation",
+        "qualifier" : "",
+        "version" : "2.0.0-Pre"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "jQuery",
+        "version" : "3.2.1"
+      }
+    },
+    "depths" : [ 1 ]
+  } ]
+}

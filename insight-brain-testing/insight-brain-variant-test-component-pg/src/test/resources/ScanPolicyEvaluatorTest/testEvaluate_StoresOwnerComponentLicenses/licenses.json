@@ -1,0 +1,17 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "group-test",
+        "artifactId" : "test",
+        "classifier" : "jar",
+        "version" : "1.0"
+      }
+    },
+    "hash" : "30be73c965cc990b153a",
+    "declaredLicenses" : [ "EPL-1.0", "LGPL-2.1" ],
+    "observedLicenses" : [ "EPL-1.0 or LGPL-2.1" ],
+    "effectiveLicenses" : [ "EPL-1.0", "EPL-1.0 or LGPL-2.1", "LGPL-2.1" ]
+  } ]
+}

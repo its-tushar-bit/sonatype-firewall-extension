@@ -1,0 +1,513 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import axios from 'axios';
+import { createAsyncThunk, unwrapResult } from '@reduxjs/toolkit';
+import createSlice from 'MainRoot/reduxConfig/createSlice';
+import { equals, isEmpty, omit, reject, clone, dissoc, propEq, curry } from 'ramda';
+import debounce from 'debounce';
+
+import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
+import { Messages } from 'MainRoot/util/CommonServices';
+import { getOwnerListUrl } from 'MainRoot/util/CLMLocation';
+import { UI_ROUTER_ON_FINISH, stateGo } from 'MainRoot/reduxUiRouter/routerActions';
+import { actions as repositoriesActions } from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSlice';
+import { sortOwnerByName, fuzzyFilter, flatEntries } from './utils';
+import {
+  selectRouterCurrentParams,
+  selectIsManagementViewRouterState,
+  selectRoutePrefix,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
+import { toggleBooleanProp } from 'MainRoot/util/reduxUtil';
+import { validateMinLength } from 'MainRoot/util/validationUtil';
+import { selectOwnersMap, selectTopParentOrganizationId } from './ownerSideNavSelectors';
+import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
+import { propSet } from 'MainRoot/util/reduxToolkitUtil';
+
+const { initialState: rscInitialState, userInput } = nxTextInputStateHelpers;
+
+export const FILTER_DEBOUNCE = 500;
+
+const REDUCER_NAME = `ownerSideNav`;
+export const initialState = {
+  loading: false,
+  loadError: null,
+  ownersMap: {},
+  topParentOrganizationId: 'ROOT_ORGANIZATION_ID',
+  flattenEntries: {},
+  displayedOrganization: null,
+  toggleOrganizationsCheck: true,
+  toggleApplicationsCheck: true,
+  toggleRepositoryManagersCheck: false,
+  toggleVirtualRepositoryManagersCheck: false,
+  toggleRepositoriesCheck: true,
+  filteredEntries: {
+    applications: [],
+    organizations: [],
+    repositoryManagers: [],
+    repositories: [],
+  },
+  filterQuery: rscInitialState(''),
+  filterLoading: false,
+};
+
+/**
+ * Check if the target entity (based on route params) exists in the ownersMap.
+ * If not, we need to reload the sidebar data to include the new entity.
+ */
+const isTargetEntityInOwnersMap = (ownersMap, routerParams) => {
+  if (!ownersMap) return false;
+
+  const {
+    organizationId = '',
+    applicationPublicId = '',
+    repositoryId = '',
+    repositoryManagerId = '',
+    repositoryContainerId = '',
+  } = routerParams;
+
+  // Check if the target entity exists in the ownersMap
+  if (organizationId && !ownersMap[organizationId]) return false;
+  if (applicationPublicId && !ownersMap[applicationPublicId]) return false;
+  if (repositoryId && !ownersMap[repositoryId]) return false;
+  if (repositoryManagerId && !ownersMap[repositoryManagerId]) return false;
+  if (repositoryContainerId && !ownersMap[repositoryContainerId]) return false;
+
+  return true;
+};
+
+const loadOwnerList = createAsyncThunk(
+  `${REDUCER_NAME}/loadOwnerList`,
+  (forceReload = false, { rejectWithValue, dispatch, getState }) => {
+    const state = getState();
+    const routerParams = selectRouterCurrentParams(state);
+    const ownersMap = selectOwnersMap(state);
+    const ownersMapExistInMemory = !isNilOrEmpty(ownersMap);
+
+    // Force reload if the target entity is not in the cached ownersMap
+    // This handles the case where a new entity was created and we navigate to it
+    // but the sidebar cache doesn't include the new entity yet
+    const targetEntityNotInOwnersMap = ownersMapExistInMemory && !isTargetEntityInOwnersMap(ownersMap, routerParams);
+
+    if (forceReload || !ownersMapExistInMemory || targetEntityNotInOwnersMap) {
+      return axios
+        .get(getOwnerListUrl())
+        .then(({ data }) => {
+          const { ownersMap, topParentOrganizationId } = data || {};
+          const displayedOrganization = getDisplayedOrganization(ownersMap, topParentOrganizationId, routerParams);
+          dispatch(actions.setDisplayedOrganization(displayedOrganization));
+          return { ownersMap, topParentOrganizationId };
+        })
+        .catch(rejectWithValue);
+    }
+
+    const topParentOrganizationId = selectTopParentOrganizationId(state);
+    const displayedOrganization = getDisplayedOrganization(ownersMap, topParentOrganizationId, routerParams);
+    dispatch(actions.setDisplayedOrganization(displayedOrganization));
+    return { ownersMap, topParentOrganizationId };
+  }
+);
+
+const loadOwnerListFulfilled = (state, { payload = {} }) => {
+  const { ownersMap, topParentOrganizationId } = payload;
+
+  state.ownersMap = ownersMap;
+  state.topParentOrganizationId = topParentOrganizationId;
+};
+
+const load = createAsyncThunk(
+  `${REDUCER_NAME}/load`,
+  async (forceReload = false, { getState, dispatch, rejectWithValue }) => {
+    const state = getState();
+    const promises = [dispatch(loadOwnerList(forceReload)), dispatch(repositoriesActions.loadRepositories())];
+    return Promise.all(promises)
+      .then((results) => {
+        const { ownersMap, topParentOrganizationId } = unwrapResult(results[0]) || {};
+        const routerParams = selectRouterCurrentParams(state);
+
+        const displayedOrganization = getDisplayedOrganization(ownersMap, topParentOrganizationId, routerParams);
+
+        // for the case when user does not have access to root organization we want them to be
+        // redirected to the closest available organization summary page down into n-level hierarchy
+        // when the user has no permission to view any organization then redirect to ROOT_ORGANIZATION_ID
+        const isManagementViewRoute = selectIsManagementViewRouterState(state);
+        if (isManagementViewRoute) {
+          const routePrefix = selectRoutePrefix(state);
+          dispatch(
+            stateGo(
+              `${routePrefix}management.view.organization`,
+              { organizationId: displayedOrganization.id ?? 'ROOT_ORGANIZATION_ID' },
+              { location: 'replace' }
+            )
+          );
+        }
+
+        // if isManagementViewRoute and there is at least one organization with permission
+        // keep loading while redirecting to the closest available organization
+        return {
+          loading: isManagementViewRoute,
+          displayedOrganization,
+          flattenEntries: flatEntries(ownersMap),
+        };
+      })
+      .catch(rejectWithValue);
+  }
+);
+
+const forceReload = () => (dispatch) => dispatch(load(true));
+
+const sortOwnerIdListByOwnerName = (ownerIds = [], owners) => {
+  const getFromOwnersMap = (ownerId) => owners[ownerId];
+  return sortOwnerByName(getFromOwnersMap)(ownerIds);
+};
+
+const updateDisplayedOrganization = (state, { payload }) => {
+  state.displayedOrganization = getDisplayedOrganization(state.ownersMap, state.topParentOrganizationId, {
+    organizationId: payload.organizationId,
+  });
+};
+
+const getDisplayedOrganization = (ownersMap, topParentOrganizationId = 'ROOT_ORGANIZATION_ID', routerParams) => {
+  if (!ownersMap) {
+    return null;
+  }
+  let displayedOrganization;
+
+  const {
+    organizationId = '',
+    applicationPublicId = '',
+    repositoryId = '',
+    repositoryManagerId = '',
+    repositoryContainerId = '',
+  } = routerParams;
+  if (organizationId) {
+    displayedOrganization = ownersMap[organizationId];
+  }
+
+  if (repositoryId) {
+    const repository = ownersMap[repositoryId];
+    displayedOrganization = ownersMap[repository?.parentId];
+  }
+
+  if (repositoryManagerId) {
+    displayedOrganization = ownersMap[repositoryManagerId];
+  }
+
+  if (repositoryContainerId) {
+    displayedOrganization = ownersMap[repositoryContainerId];
+  }
+
+  if (applicationPublicId) {
+    const application = ownersMap[applicationPublicId];
+    displayedOrganization = ownersMap[application?.organizationId];
+  }
+
+  return displayedOrganization || ownersMap[topParentOrganizationId] || {};
+};
+
+const onRouterFinish = (state, { payload }) => {
+  if (payload.toState.name.includes('management.view')) {
+    state.displayedOrganization = getDisplayedOrganization(
+      state.ownersMap,
+      state.topParentOrganizationId,
+      payload.toParams
+    );
+    state.toggleOrganizationsCheck = initialState.toggleOrganizationsCheck;
+    state.toggleApplicationsCheck = initialState.toggleApplicationsCheck;
+    state.toggleRepositoryManagersCheck = initialState.toggleRepositoryManagersCheck;
+    state.toggleRepositoriesCheck = initialState.toggleRepositoriesCheck;
+    resetFilter(state);
+  }
+};
+
+const loadRequested = (state) => {
+  state.loading = true;
+  state.loadError = null;
+};
+
+const loadFulfilled = (state, { payload }) => {
+  state.loading = payload.loading;
+  state.displayedOrganization = payload.displayedOrganization;
+  state.toggleOrganizationsCheck = initialState.toggleOrganizationsCheck;
+  state.toggleApplicationsCheck = initialState.toggleApplicationsCheck;
+  state.toggleRepositoryManagersCheck = initialState.toggleRepositoryManagersCheck;
+  state.toggleRepositoriesCheck = initialState.toggleRepositoriesCheck;
+  state.flattenEntries = payload.flattenEntries;
+};
+
+const loadFailed = (state, { payload }) => {
+  state.loading = false;
+  state.loadError = Messages.getHttpErrorMessage(payload);
+};
+
+const removeOrganizationFromOwnerHierarchy = (state, { payload: organizationId }) => {
+  const organization = state.ownersMap[organizationId];
+  if (organization) {
+    const ownerIdsToDelete = [];
+    collectOwnerIdsToDelete(state.ownersMap, [organizationId], ownerIdsToDelete);
+    state.ownersMap = omit(ownerIdsToDelete)(state.ownersMap);
+
+    const parentOrganization = state.ownersMap[organization.parentOrganizationId];
+    if (parentOrganization) {
+      const organizationIds = reject(equals(organizationId))(parentOrganization.organizationIds);
+      state.ownersMap[parentOrganization.id] = { ...parentOrganization, organizationIds };
+
+      incrementOrgCountersInAllParents(state.ownersMap, organization.parentOrganizationId, -(organization.subOrgs + 1));
+      incrementAppCountersInAllParents(state.ownersMap, organization.parentOrganizationId, -organization.totalApps);
+
+      state.flattenEntries = flatEntries(state.ownersMap);
+    }
+  }
+};
+
+const removeRepositoryFromOwnerHierarchy = (state, { payload: repositoryId }) => {
+  const repository = state.ownersMap[repositoryId];
+  if (repository) {
+    const parent = state.ownersMap[repository.parentId];
+    state.ownersMap = omit([repositoryId])(state.ownersMap);
+    if (parent) {
+      state.ownersMap[parent.id] = {
+        ...parent,
+        repositoryIds: reject(equals(repositoryId))(parent.repositoryIds),
+      };
+      state.displayedOrganization = getDisplayedOrganization(state.ownersMap, state.topParentOrganizationId, {
+        repositoryManagerId: repository.parentId,
+      });
+    }
+    state.flattenEntries = flatEntries(state.ownersMap);
+  }
+};
+
+const removeRepositoryManagerFromOwnerHierarchy = (state, { payload: repositoryManagerId }) => {
+  const repositoryManager = state.ownersMap[repositoryManagerId];
+  if (repositoryManager) {
+    const ownerIdsToDelete = [];
+    collectOwnerIdsToDelete(state.ownersMap, [repositoryManagerId], ownerIdsToDelete);
+    state.ownersMap = omit(ownerIdsToDelete)(state.ownersMap);
+
+    const repositoryContainer = state.ownersMap[repositoryManager.parentId];
+    if (repositoryContainer) {
+      const repositoryManagerIds = reject(equals(repositoryManagerId))(repositoryContainer.repositoryManagerIds || []);
+      const virtualRepositoryManagerIds = reject(equals(repositoryManagerId))(
+        repositoryContainer.virtualRepositoryManagerIds || []
+      );
+      state.ownersMap[repositoryContainer.id] = {
+        ...repositoryContainer,
+        repositoryManagerIds,
+        virtualRepositoryManagerIds,
+      };
+      state.displayedOrganization = getDisplayedOrganization(state.ownersMap, state.topParentOrganizationId, {
+        repositoryContainerId: repositoryContainer.id,
+      });
+    }
+    state.flattenEntries = flatEntries(state.ownersMap);
+  }
+};
+
+function collectOwnerIdsToDelete(ownersMap, orgIds, acc) {
+  acc.push(...orgIds);
+  for (const orgId of orgIds) {
+    const org = ownersMap[orgId];
+    if (!org) continue;
+    acc.push(...(org.applicationIds || []));
+    acc.push(...(org.repositoryIds || []));
+    collectOwnerIdsToDelete(ownersMap, org.organizationIds || [], acc);
+  }
+}
+
+const removeApplicationFromOwnerHierarchy = (state, { payload: applicationPublicId }) => {
+  const application = state.ownersMap[applicationPublicId];
+  if (application) {
+    state.ownersMap = omit([applicationPublicId])(state.ownersMap);
+
+    const parentOrganization = state.ownersMap[application.organizationId];
+    if (parentOrganization) {
+      state.ownersMap[parentOrganization.id].applicationIds = reject(equals(applicationPublicId))(
+        parentOrganization.applicationIds
+      );
+    }
+
+    incrementAppCountersInAllParents(state.ownersMap, application.organizationId, -1);
+
+    state.flattenEntries.applications = reject(
+      propEq('publicId', applicationPublicId),
+      state.flattenEntries.applications
+    );
+  }
+};
+
+const filterEntries = (entries, term) => {
+  if (isEmpty(entries.organizations)) {
+    return null;
+  }
+
+  let filteredOrganizations = [];
+  let filteredApplications = [];
+  let filteredRepositoryManagers = [];
+  let filteredRepositories = [];
+
+  if (term && term.length >= 3) {
+    filteredOrganizations = fuzzyFilter(entries.organizations, term, 'name');
+    filteredApplications = fuzzyFilter(entries.applications, term, 'name');
+    filteredRepositoryManagers = fuzzyFilter(entries.repositoryManagers, term, 'name');
+    filteredRepositories = fuzzyFilter(entries.repositories, term, 'name');
+  }
+
+  return {
+    organizations: sortOwnerByName(filteredOrganizations),
+    applications: sortOwnerByName(filteredApplications),
+    repositoryManagers: sortOwnerByName(filteredRepositoryManagers),
+    repositories: sortOwnerByName(filteredRepositories),
+  };
+};
+
+const resetFilter = (state) => {
+  state.filterQuery = initialState.filterQuery;
+  state.filteredEntries = initialState.filteredEntries;
+  state.filterLoading = false;
+};
+
+const filterSidebarEntries = (value) => (dispatch) => {
+  dispatch(actions.setFilterQuery(value));
+  filterSidebarEntriesDebounce(dispatch, value);
+};
+
+const filterSidebarEntriesDebounce = debounce((dispatch, value) => {
+  dispatch(actions.setFilteredEntries(value));
+}, FILTER_DEBOUNCE);
+
+const setFilterQuery = (state, { payload }) => {
+  state.filterLoading = true;
+  state.filterQuery = userInput(validateMinLength(3, 'Enter three characters to begin filtering.'), payload);
+};
+
+const setFilteredEntries = (state, { payload }) => {
+  state.filteredEntries = filterEntries(state.flattenEntries, payload);
+  state.filterLoading = false;
+};
+
+const updateOwnersMapWithNewAppId = (state, { payload }) => {
+  const { currentOwner, newPublicId } = payload;
+  const newOwnersMap = clone(dissoc(currentOwner.publicId, state.ownersMap));
+
+  newOwnersMap[newPublicId] = {
+    ...currentOwner,
+    publicId: newPublicId,
+  };
+
+  const idx = state.displayedOrganization.applicationIds.indexOf(currentOwner.publicId);
+  const newApplicationIds = [...state.displayedOrganization.applicationIds];
+
+  newApplicationIds[idx] = newPublicId;
+
+  newOwnersMap[state.displayedOrganization.id].applicationIds = newApplicationIds;
+
+  state.ownersMap = newOwnersMap;
+};
+
+const updateOwnersMapWithNewEntry = (state, { payload }) => {
+  const { isApp, entry } = payload;
+  const { ownersMap, displayedOrganization } = state;
+  const displayedOrgId = displayedOrganization.id;
+
+  if (isApp) {
+    ownersMap[entry.publicId] = { ...entry, type: 'application' };
+    ownersMap[displayedOrgId].applicationIds.push(entry.publicId);
+    ownersMap[displayedOrgId].applicationIds = sortOwnerIdListByOwnerName(
+      ownersMap[displayedOrgId].applicationIds,
+      ownersMap
+    );
+
+    state.flattenEntries = flatEntries(ownersMap);
+
+    incrementAppCountersInAllParents(ownersMap, displayedOrgId, +1);
+  } else {
+    ownersMap[entry.id] = {
+      ...entry,
+      type: 'organization',
+      applicationIds: [],
+      organizationIds: [],
+      subOrgs: 0,
+      totalApps: 0,
+    };
+
+    ownersMap[displayedOrgId].organizationIds.push(entry.id);
+    ownersMap[displayedOrgId].organizationIds = sortOwnerIdListByOwnerName(
+      ownersMap[displayedOrgId].organizationIds,
+      ownersMap
+    );
+
+    state.displayedOrganization = getDisplayedOrganization(ownersMap, state.topParentOrganizationId, {
+      organizationId: entry.parentOrganizationId,
+    });
+
+    state.flattenEntries.organizations = [...state.flattenEntries.organizations, entry];
+
+    incrementOrgCountersInAllParents(ownersMap, displayedOrgId, +1);
+  }
+};
+
+const incrementCountersInAllParents = curry((isApp, ownerMap, immediateParentId, value) => {
+  let currentOrgId = immediateParentId;
+  while (currentOrgId) {
+    const currentOrg = ownerMap[currentOrgId];
+    if (!currentOrg) {
+      currentOrgId = undefined;
+    } else {
+      if (isApp) {
+        currentOrg.totalApps += value;
+      } else {
+        currentOrg.subOrgs += value;
+      }
+      currentOrgId = currentOrg.parentOrganizationId;
+    }
+  }
+});
+
+const incrementAppCountersInAllParents = incrementCountersInAllParents(true);
+const incrementOrgCountersInAllParents = incrementCountersInAllParents(false);
+
+const ownerSideNavSlice = createSlice({
+  name: REDUCER_NAME,
+  initialState,
+  reducers: {
+    removeOrganizationFromOwnerHierarchy,
+    removeApplicationFromOwnerHierarchy,
+    removeRepositoryFromOwnerHierarchy,
+    removeRepositoryManagerFromOwnerHierarchy,
+    toggleOrganizationsCollapse: toggleBooleanProp('toggleOrganizationsCheck'),
+    toggleApplicationsCollapse: toggleBooleanProp('toggleApplicationsCheck'),
+    toggleRepositoryManagersCollapse: toggleBooleanProp('toggleRepositoryManagersCheck'),
+    toggleVirtualRepositoryManagersCollapse: toggleBooleanProp('toggleVirtualRepositoryManagersCheck'),
+    expandVirtualRepositoryManagers: (state) => {
+      state.toggleVirtualRepositoryManagersCheck = true;
+    },
+    toggleRepositoresCollapse: toggleBooleanProp('toggleRepositoriesCheck'),
+    setDisplayedOrganization: propSet('displayedOrganization'),
+    setFilterQuery,
+    setFilteredEntries,
+    resetFilter,
+    updateOwnersMapWithNewAppId,
+    updateOwnersMapWithNewEntry,
+    updateDisplayedOrganization,
+  },
+  extraReducers: {
+    [loadOwnerList.fulfilled]: loadOwnerListFulfilled,
+    [load.pending]: loadRequested,
+    [load.fulfilled]: loadFulfilled,
+    [load.rejected]: loadFailed,
+    [UI_ROUTER_ON_FINISH]: onRouterFinish,
+  },
+});
+
+export const actions = {
+  ...ownerSideNavSlice.actions,
+  load,
+  forceReload,
+  loadOwnerList,
+  filterSidebarEntries,
+};
+
+export default ownerSideNavSlice.reducer;

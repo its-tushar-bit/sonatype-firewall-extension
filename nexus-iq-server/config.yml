@@ -1,0 +1,109 @@
+# Directory for data files.
+sonatypeWork: ${SONATYPE_WORK:-./sonatype-work/clm-server}
+
+# Shared directory for management data of a IQ cluster
+clusterDirectory: ${CLUSTER_DIRECTORY:-./sonatype-work/clm-cluster}
+
+# HTTP Strict Transport Security (HSTS)
+# HSTS headers are enabled by default on HTTPS responses.
+# Uncomment the web: section below to customize or disable HSTS.
+#web:
+#  hsts:
+#    enabled: ${HSTS_ENABLED:-true}
+#    maxAge: 365 days
+#    includeSubDomains: true
+#    preload: false
+
+# HTTP-specific options.
+server:
+  applicationContextPath: ${SERVER_APPLICATION_CONTEXT_PATH:-/}
+
+  applicationConnectors:
+    - type: ${SERVER_APPLICATION_CONNECTOR_TYPE:-http}
+
+      # The port on which the HTTP server listens for service requests.
+      # Because Java cannot drop privileges in a POSIX system, these
+      # ports cannot be in the range 1-1024. A port value of 0 will
+      # make the OS use an arbitrary unused port.
+      port: ${SERVER_APPLICATION_CONNECTOR_PORT:-8070}
+
+      # The hostname of the interface to which the application HTTP server socket
+      # will be bound. If omitted, the socket will listen on all
+      # interfaces.
+      #bindHost: 127.0.0.1  # only bind to loopback
+
+  adminConnectors:
+    - type: ${SERVER_ADMIN_CONNECTOR_TYPE:-http}
+
+      # The port on which the HTTP server listens for administrative
+      # requests. Subject to the same limitations as "port".
+      port: ${SERVER_ADMIN_CONNECTOR_PORT:-8071}
+
+      # The hostname of the interface to which the admin HTTP server socket
+      # will be bound. For security, this defaults to localhost (127.0.0.1)
+      # to prevent unauthorized access to administrative endpoints.
+      # To allow access from other hosts, set SERVER_ADMIN_CONNECTOR_BIND_HOST
+      # environment variable to 0.0.0.0 or a specific IP address.
+      # WARNING: Exposing the admin port beyond localhost may allow unauthorized users
+      # to trigger sensitive operations like backups, shutdowns, or policy monitoring.
+      bindHost: ${SERVER_ADMIN_CONNECTOR_BIND_HOST:-127.0.0.1}
+
+  # HTTP request log settings.
+  requestLog:
+    type: ${REQUEST_LOG_TYPE:-classic}
+    timeZone: ${REQUEST_LOG_TIMEZONE:-UTC}
+    appenders:
+      # Settings for logging to the console.
+      - type: console
+        logFormat: '${REQUEST_LOG_FORMAT:-%clientHost %l %user [%date] "%requestURL" %statusCode %bytesSent %elapsedTime "%header{User-Agent}"}'
+      - type: file
+        threshold: ${REQUEST_LOG_FILE_THRESHOLD:-OFF}
+        currentLogFilename: "${REQUEST_LOG_FILE_NAME:-/var/log/nexus-iq-server/request.log}"
+        archivedLogFilenamePattern: "${REQUEST_LOG_ARCHIVED_FILENAME_PATTERN:-/var/log/nexus-iq-server/request-%d.log.gz}"
+        archivedFileCount: ${REQUEST_LOG_ARCHIVED_FILE_COUNT:-5}
+
+  # System IP Address Filter Allowlist
+  # Supports single IP address and IP address range in CIDR notation
+  # systemAllowlist:
+  # - ipAddress: 192.168.33.33
+  #   description: Only allow access from 192.168.33.33
+
+# Logging settings.
+logging:
+  # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
+  level: ${DEFAULT_LOGGING_LEVEL:-INFO}
+
+  # Logger-specific settings.
+  loggers:
+    com.sonatype.insight.scan: ${LOGGER_INSIGHT_SCAN_LEVEL:-INFO}
+    eu.medsea.mimeutil.MimeUtil2: ${LOGGER_MIMEUTIL2_LEVEL:-INFO}
+    org.apache.http: ${LOGGER_HTTP_LEVEL:-INFO}
+    org.apache.http.wire: ${LOGGER_HTTP_WIRE_LEVEL:-ERROR}
+    org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter: ${LOGGER_AUTHENTICATION_FILTER_LEVEL:-INFO}
+    org.eclipse.birt.report.engine.layout.pdf.font.FontConfigReader: ${LOGGER_FONT_CONFIG_READER_LEVEL:-WARN}
+    org.eclipse.jetty: ${LOGGER_ECLIPSE_JETTY_LEVEL:-INFO}
+    org.postgresql.jdbc.PgConnection: INFO
+    org.quartz: INFO
+    org.zeroturnaround.exec: INFO
+    org.eclipse.jgit: INFO
+    com.networknt.schema: OFF
+    software.amazon.awssdk: WARN
+  appenders:
+    - type: console
+      threshold: ${LOGGER_CONSOLE_THRESHOLD:-INFO}
+      logFormat: "%d{'yyyy-MM-dd HH:mm:ss,SSSZ'} %level [%thread] %X{username} %logger - %msg%n"
+    - type: file
+      threshold: ${LOGGER_FILE_THRESHOLD:-ALL}
+      currentLogFilename: "${LOGGER_FILE_NAME:-/var/log/nexus-iq-server/clm-server.log}"
+      archivedLogFilenamePattern: "${LOGGER_FILE_ARCHIVED_FILENAME_PATTERN:-/var/log/nexus-iq-server/clm-server-%d.log.gz}"
+      logFormat: "%d{'yyyy-MM-dd HH:mm:ss,SSSZ'} %level [%thread] %X{username} %logger - %msg%n"
+      archivedFileCount: ${LOGGER_FILE_ARCHIVED_FILE_COUNT:-5}
+createSampleData: ${CREATE_SAMPLE_DATA:-true}
+
+database:
+  type: ${DATABASE_TYPE:-postgresql}
+  hostname: ${DATABASE_HOSTNAME}
+  port: ${DATABASE_PORT:-5432}
+  name: ${DATABASE_NAME:-postgres}
+  username: ${DATABASE_USERNAME:-postgres}
+  password: ${DATABASE_PASSWORD}

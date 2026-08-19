@@ -1,0 +1,156 @@
+environment:
+  properties:
+    jdkPathPrefix: 'target/jdks'
+    jdkDirectoryPrefix: 'temurin_25.0.3_9'
+    jdkFilePrefix: 'jdk-25.0.3+9'
+
+assemble:
+  jlink:
+    nexus-iq-server:
+      active: ALWAYS
+      imageName: '{{distributionName}}-{{projectVersion}}'
+      targetJdks:
+        - path: '{{jdkPathPrefix}}/{{jdkDirectoryPrefix}}_mac_x86_64/{{jdkFilePrefix}}/Contents/Home'
+          platform: 'osx-x86_64'
+          extraProperties:
+            archiveFormat: TGZ
+        - path: '{{jdkPathPrefix}}/{{jdkDirectoryPrefix}}_mac_aarch64/{{jdkFilePrefix}}/Contents/Home'
+          platform: 'osx-aarch_64'
+          extraProperties:
+            archiveFormat: TGZ
+        - path: '{{jdkPathPrefix}}/{{jdkDirectoryPrefix}}_linux_x86_64/{{jdkFilePrefix}}'
+          platform: 'linux-x86_64'
+          extraProperties:
+            archiveFormat: TGZ
+        - path: '{{jdkPathPrefix}}/{{jdkDirectoryPrefix}}_linux_musl_x86_64/{{jdkFilePrefix}}'
+          platform: 'linux_musl-x86_64'
+          extraProperties:
+            archiveFormat: TGZ
+        - path: '{{jdkPathPrefix}}/{{jdkDirectoryPrefix}}_linux_aarch64/{{jdkFilePrefix}}'
+          platform: 'linux-aarch_64'
+          extraProperties:
+            archiveFormat: TGZ
+        - path: '{{jdkPathPrefix}}/{{jdkDirectoryPrefix}}_windows_x86_64/{{jdkFilePrefix}}'
+          platform: 'windows-x86_64'
+      options:
+        longFileMode: POSIX
+        bigNumberMode: POSIX
+      jdeps:
+        enabled: false
+      moduleNames:
+        - java.base
+        - java.compiler
+        - java.instrument
+        - java.logging
+        - java.management
+        - java.management.rmi
+        - java.naming
+        - java.net.http
+        - java.prefs
+        - java.rmi
+        - java.scripting
+        - java.se
+        - java.security.jgss
+        - java.security.sasl
+        - java.sql
+        - java.sql.rowset
+        - java.transaction.xa
+        - java.xml
+        - java.xml.crypto
+        - jdk.accessibility
+        - jdk.attach
+        - jdk.charsets
+        - jdk.compiler
+        - jdk.crypto.cryptoki
+        - jdk.crypto.ec
+        - jdk.dynalink
+        - jdk.hotspot.agent
+        - jdk.httpserver
+        - jdk.internal.ed
+        - jdk.internal.jvmstat
+        - jdk.internal.le
+        - jdk.internal.opt
+        - jdk.internal.vm.ci
+        - jdk.jcmd
+        - jdk.jconsole
+        - jdk.jdi
+        - jdk.jdwp.agent
+        - jdk.jfr
+        - jdk.jpackage
+        - jdk.jshell
+        - jdk.jsobject
+        - jdk.jstatd
+        - jdk.localedata
+        - jdk.management
+        - jdk.management.agent
+        - jdk.management.jfr
+        - jdk.naming.dns
+        - jdk.naming.rmi
+        - jdk.net
+        - jdk.nio.mapmode
+        - jdk.sctp
+        - jdk.security.auth
+        - jdk.security.jgss
+        - jdk.unsupported
+        - jdk.xml.dom
+        - jdk.zipfs
+      java:
+        version: '25'
+        groupId: com.sonatype.insight.brain
+        artifactId: nexus-iq-server
+        mainClass: com.sonatype.insight.brain.spring.InsightBrainSpringApplication
+        jvmOptions:
+          # Runtime --add-opens flags read from jvm.options at the distribution root.
+          # Unix launcher sets APP_HOME ($VAR); Windows launcher sets BASEDIR (%VAR%) — split per shell.
+          unix:
+            - '@$APP_HOME/jvm.options'
+          windows:
+            - '@%BASEDIR%\jvm.options'
+      mainJar:
+        path: 'nexus-iq-server/target/insight-brain-service-{{projectVersion}}-server.jar'
+
+      # Defines a list of additional files as artifacts.
+      # These files will be added to the assembled archive.
+      artifacts:
+        - path: jvm.options
+          transform: jvm.options
+        - path: nexus-iq-server/src/main/resources/config.yml
+          transform: examples/config.yml
+        - path: nexus-iq-server/src/main/resources/eula.html
+          transform: eula.html
+        - path: nexus-iq-server/src/main/resources/ASSEMBLY-README.txt
+          transform: README.txt
+
+        # CLM-37910 - workaround for jreleaser behaviour:
+        # When multiple artifacts have the same 'path' and 'transform' with different 'platform' values,
+        # only the FIRST platform processes the files. All subsequent platforms are filtered with
+        # "filtered by platform {}" message, resulting in missing files in those platform archives.
+        #
+        # As solutions use a platform-specific source file name (different 'path' values) but transform
+        # them all to the same output name. The platform-specific source files are copies committed
+        # to git in src/main/resources/ (sonatype-iq-server-{platform} and sonatype-iq-server-{platform}.service).
+        #
+        # This gives each artifact a unique 'path' to avoid the bug, while achieving identical final
+        # filenames across all Linux platforms via 'transform'.
+
+        # Linux init scripts - platform-specific sources, identical output names
+        - path: nexus-iq-server/src/main/resources/sonatype-iq-server-aarch64
+          transform: examples/sonatype-iq-server
+          platform: 'linux-aarch_64'
+        - path: nexus-iq-server/src/main/resources/sonatype-iq-server-x86_64
+          transform: examples/sonatype-iq-server
+          platform: 'linux-x86_64'
+        - path: nexus-iq-server/src/main/resources/sonatype-iq-server-musl
+          transform: examples/sonatype-iq-server
+          platform: 'linux_musl-x86_64'
+
+        # Linux systemd services - platform-specific sources, identical output names
+        - path: nexus-iq-server/src/main/resources/sonatype-iq-server-aarch64.service
+          transform: examples/sonatype-iq-server.service
+          platform: 'linux-aarch_64'
+        - path: nexus-iq-server/src/main/resources/sonatype-iq-server-x86_64.service
+          transform: examples/sonatype-iq-server.service
+          platform: 'linux-x86_64'
+        - path: nexus-iq-server/src/main/resources/sonatype-iq-server-musl.service
+          transform: examples/sonatype-iq-server.service
+          platform: 'linux_musl-x86_64'

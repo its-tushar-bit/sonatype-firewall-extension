@@ -1,0 +1,119 @@
+{
+  "components": [
+    {
+      "packageUrl": "pkg:maven/com.fasterxml.jackson.datatype/jackson-datatype-jdk8@2.10.3?type=jar",
+      "hash": "05fc73a94e771eb044e4",
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "jackson-datatype-jdk8",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.fasterxml.jackson.datatype",
+          "version": "2.10.3"
+        }
+      },
+      "proprietary": false,
+      "matchState": "exact",
+      "pathnames": [
+        "target/dependencies/jackson-datatype-jdk8-2.10.3.jar",
+        "target/license-legal-service-0.0.6-SNAPSHOT.jar/BOOT-INF/lib/jackson-datatype-jdk8-2.10.3.jar"
+      ],
+      "displayName": "com.fasterxml.jackson.datatype : jackson-datatype-jdk8 : 2.10.3",
+      "licenseData": {
+        "declaredLicenses": [
+          {
+            "licenseId": "CDDL-1.0-GPL-2.0",
+            "licenseName": "CDDL-1.0 or GPL-2.0"
+          }
+        ],
+        "observedLicenses": [
+          {
+            "licenseId": "No-Source-License",
+            "licenseName": "No Source License"
+          }
+        ],
+        "effectiveLicenses": [
+          {
+            "licenseId": "CDDL-1.0",
+            "licenseName": "CDDL-1.0"
+          }
+        ],
+        "overriddenLicenses": [],
+        "status": "Open",
+        "effectiveLicenseThreats": [
+          {
+            "licenseThreatGroupName": "Liberal",
+            "licenseThreatGroupLevel": 0,
+            "licenseThreatGroupCategory": "no-threat"
+          },
+          {
+            "licenseThreatGroupName": "Sonatype Special Licenses",
+            "licenseThreatGroupLevel": 5,
+            "licenseThreatGroupCategory": "severe"
+          }
+        ]
+      },
+      "securityData": {
+        "securityIssues": []
+      }
+    },
+    {
+      "packageUrl": "pkg:maven/org.springframework.boot/spring-boot-actuator@2.2.6.RELEASE?type=jar",
+      "hash": "07d6baf032f9361d6f8b",
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "spring-boot-actuator",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.springframework.boot",
+          "version": "2.2.6.RELEASE"
+        }
+      },
+      "proprietary": false,
+      "matchState": "exact",
+      "pathnames": [
+        "target/dependencies/spring-boot-actuator-2.2.6.RELEASE.jar",
+        "target/license-legal-service-0.0.6-SNAPSHOT.jar/BOOT-INF/lib/spring-boot-actuator-2.2.6.RELEASE.jar"
+      ],
+      "displayName": "org.springframework.boot : spring-boot-actuator : 2.2.6.RELEASE",
+      "licenseData": {
+        "declaredLicenses": [
+          {
+            "licenseId": "Apache-2.0+-BSD-UNSPECIFIED-EPL-1.0+-GPL-2.0+-LGPL-2.1+",
+            "licenseName": "Apache-2.0+ or BSD or EPL-1.0+ or GPL-2.0+ or LGPL-2.1+"
+          }
+        ],
+        "observedLicenses": [
+          {
+            "licenseId": "Apache-2.0",
+            "licenseName": "Apache-2.0"
+          }
+        ],
+        "effectiveLicenses": [
+          {
+            "licenseId": "Apache-2.0",
+            "licenseName": "Apache-2.0"
+          }
+        ],
+        "overriddenLicenses": [],
+        "status": "Open",
+        "effectiveLicenseThreats": [
+          {
+            "licenseThreatGroupName": "Liberal",
+            "licenseThreatGroupLevel": 0,
+            "licenseThreatGroupCategory": "no-threat"
+          }
+        ]
+      },
+      "securityData": {
+        "securityIssues": []
+      }
+    }
+  ],
+  "matchSummary": {
+    "totalComponentCount": 14,
+    "knownComponentCount": 14
+  }
+}

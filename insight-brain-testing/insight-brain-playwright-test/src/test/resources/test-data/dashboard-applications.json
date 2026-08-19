@@ -1,0 +1,87 @@
+{
+  "organizationName": "DashboardApplicationsTest",
+  "appNamePrefix": "App",
+  "noDataMessage": "No data available given the applied filters and permissions.",
+  "tableTestApps": [
+    {
+      "id": "1",
+      "stageType": "build",
+      "threatLevel": 1
+    },
+    {
+      "id": "2",
+      "stageType": "release",
+      "threatLevel": 3
+    },
+    {
+      "id": "3",
+      "stageType": "operate",
+      "threatLevel": 7
+    },
+    {
+      "id": "4",
+      "stageType": "stage-release",
+      "threatLevel": 10
+    },
+    {
+      "id": "5",
+      "violations": [
+        {
+          "stageType": "build",
+          "threatLevel": 8
+        },
+        {
+          "stageType": "release",
+          "threatLevel": 4
+        },
+        {
+          "stageType": "operate",
+          "threatLevel": 2
+        },
+        {
+          "stageType": "stage-release",
+          "threatLevel": 0
+        }
+      ]
+    }
+  ],
+  "tableTestExpectedCount": 5,
+  "tableTestExpectedTotalRisk": "14",
+  "tableTestDefaultSortIds": [
+    "5",
+    "4",
+    "3",
+    "2",
+    "1"
+  ],
+  "tableTestNameAscFirstId": "1",
+  "tableTestNameAscLastId": "5",
+  "tableTestLowRiskSortId": "1",
+  "tableTestModerateRiskSortId": "2",
+  "tableTestSevereRiskSortId": "3",
+  "tableTestCriticalRiskSortId": "4",
+  "threatLevelRangeMin": 0,
+  "threatLevelRangeMax": 10,
+  "totalRiskRowIndex": 0,
+  "paginationGroups": [
+    {
+      "count": 60,
+      "stageType": "build",
+      "threatLevel": 1
+    },
+    {
+      "count": 100,
+      "stageType": "build",
+      "threatLevel": 3
+    },
+    {
+      "count": 10,
+      "stageType": "build",
+      "threatLevel": 10
+    }
+  ],
+  "paginationWaitForResultsMs": 60000,
+  "paginationExpectedPage1Risk": "10",
+  "paginationExpectedPage2Risk": "3",
+  "paginationExpectedAscPage1Risk": "1"
+}

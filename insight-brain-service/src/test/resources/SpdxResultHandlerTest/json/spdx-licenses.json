@@ -1,0 +1,157 @@
+{
+  "SPDXID" : "SPDXRef-DOCUMENT",
+  "spdxVersion" : "SPDX-2.3",
+  "creationInfo" : {
+    "created" : "2023-08-09T19:26:25Z",
+    "creators" : [ "Tool: Sonatype IQ Server - 166" ]
+  },
+  "name" : "pkg:maven/com.sonatype.testing/pr-comment-02@1.0-SNAPSHOT?type=jar",
+  "dataLicense" : "CC0-1.0",
+  "hasExtractedLicensingInfos" : [ {
+    "licenseId" : "LicenseRef-COMMERCIAL",
+    "extractedText" : "COMMERCIAL"
+  }, {
+    "licenseId" : "LicenseRef-No-Source-License",
+    "extractedText" : "No-Source-License"
+  }, {
+    "licenseId" : "LicenseRef-PUBLIC-DOMAIN",
+    "extractedText" : "PUBLIC-DOMAIN"
+  } ],
+  "documentNamespace" : "http://localhost:8070/ui/links/application/pr-comment-02/report/57c213a7cac34ab7a7ee99b36a502d7a",
+  "packages" : [ {
+    "SPDXID" : "SPDXRef-maven-com.fasterxml.jackson.core-jackson-annotations-2.14.0",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.14.0?type=jar",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "Apache-2.0",
+    "licenseDeclared" : "Apache-2.0",
+    "name" : "com.fasterxml.jackson.core:jackson-annotations",
+    "versionInfo" : "2.14.0"
+  }, {
+    "SPDXID" : "SPDXRef-maven-com.sonatype.testing-pr-comment-02-1.0-SNAPSHOT",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/com.sonatype.testing/pr-comment-02@1.0-SNAPSHOT?type=jar",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "com.sonatype.testing:pr-comment-02",
+    "versionInfo" : "1.0-SNAPSHOT"
+  }, {
+    "SPDXID" : "SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.16.0",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/org.apache.logging.log4j/log4j-core@2.16.0?type=jar",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "Apache-2.0",
+    "licenseDeclared" : "Apache-2.0",
+    "name" : "org.apache.logging.log4j:log4j-core",
+    "versionInfo" : "2.16.0"
+  }, {
+    "SPDXID" : "SPDXRef-maven-com.fasterxml.jackson.core-jackson-core-2.14.0",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.14.0?type=jar",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "(Apache-2.0 AND MIT)",
+    "licenseDeclared" : "(Apache-2.0 AND MIT)",
+    "name" : "com.fasterxml.jackson.core:jackson-core",
+    "versionInfo" : "2.14.0"
+  }, {
+    "SPDXID" : "SPDXRef-maven-net.sf.ehcache-sizeof-agent-1.0.1",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/net.sf.ehcache/sizeof-agent@1.0.1?type=jar",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "(Apache-2.0 AND LicenseRef-COMMERCIAL)",
+    "licenseDeclared" : "(LicenseRef-No-Source-License AND Apache-2.0 AND LicenseRef-COMMERCIAL)",
+    "name" : "net.sf.ehcache:sizeof-agent",
+    "versionInfo" : "1.0.1"
+  }, {
+    "SPDXID" : "SPDXRef-maven-com.fasterxml.jackson.core-jackson-databind-2.14.0",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.14.0?type=jar",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "Apache-2.0",
+    "licenseDeclared" : "Apache-2.0",
+    "name" : "com.fasterxml.jackson.core:jackson-databind",
+    "versionInfo" : "2.14.0"
+  }, {
+    "SPDXID" : "SPDXRef-maven-net.sf.ehcache-ehcache-2.10.7",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/net.sf.ehcache/ehcache@2.10.7?type=jar",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "(EPL-1.0 AND Apache-2.0 AND (EPL-1.0 OR Apache-2.0) AND GPL-2.0-with-classpath-exception AND CC0-1.0 AND MIT AND (LGPL-2.1 OR LGPL-3.0 OR MPL-1.1 OR Apache-2.0) AND LicenseRef-PUBLIC-DOMAIN)",
+    "licenseDeclared" : "((EPL-1.0 OR Apache-2.0) AND EPL-1.0 AND GPL-2.0-with-classpath-exception AND Apache-2.0 AND (LGPL-2.1 OR LGPL-3.0 OR MPL-1.1 OR Apache-2.0) AND CC0-1.0 AND MIT AND LicenseRef-PUBLIC-DOMAIN)",
+    "name" : "net.sf.ehcache:ehcache",
+    "versionInfo" : "2.10.7"
+  }, {
+    "SPDXID" : "SPDXRef-maven-org.slf4j-slf4j-api-1.7.25",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/org.slf4j/slf4j-api@1.7.25?type=jar",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "MIT",
+    "licenseDeclared" : "MIT",
+    "name" : "org.slf4j:slf4j-api",
+    "versionInfo" : "1.7.25"
+  }, {
+    "SPDXID" : "SPDXRef-maven-org.apache.logging.log4j-log4j-api-2.16.0",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/org.apache.logging.log4j/log4j-api@2.16.0?type=jar",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "Apache-2.0",
+    "licenseDeclared" : "Apache-2.0",
+    "name" : "org.apache.logging.log4j:log4j-api",
+    "versionInfo" : "2.16.0"
+  }, {
+    "SPDXID" : "SPDXRef-maven-org.apache.commons.apache-commons-1.0",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/org.apache.commons.apache-commons/apache-commons@1.0?type=jar",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "LicenseRef-UNSPECIFIED",
+    "licenseDeclared" : "LicenseRef-UNSPECIFIED",
+    "name" : "org.apache.commons:apache-commons",
+    "versionInfo" : "1.0"
+  } ],
+  "relationships" : [ {
+    "spdxElementId" : "SPDXRef-DOCUMENT",
+    "relationshipType" : "DESCRIBES",
+    "relatedSpdxElement" : "SPDXRef-maven-com.sonatype.testing-pr-comment-02-1.0-SNAPSHOT"
+  } ]
+}

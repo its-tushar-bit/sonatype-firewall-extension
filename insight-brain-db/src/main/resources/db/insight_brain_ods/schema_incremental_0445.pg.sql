@@ -1,0 +1,11 @@
+-- SaaS Compatible
+-- This script originally contained a CREATE INDEX CONCURRENTLY statement for the
+-- policy_violation_app_stage_open_unfixed_idx partial index. During SaaS deployment we
+-- discovered that CREATE INDEX CONCURRENTLY deadlocks with ClusterLockManager.createForSchemaMigration
+-- because CONCURRENTLY waits for all open transactions (including the advisory lock transaction)
+-- to complete. See doc/devdocs/concurrent-index-creation.md for details.
+--
+-- This script was changed to a no-op. For existing instances, the index is created via
+-- PolicyViolationIndexAsyncDbMigration (runs after startup, outside the migration lock).
+-- New instances get the index via schema_post_init_postgres.sql at creation time.
+SELECT 1;

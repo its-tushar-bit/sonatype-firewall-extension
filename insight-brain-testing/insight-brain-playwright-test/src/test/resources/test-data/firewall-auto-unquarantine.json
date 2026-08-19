@@ -1,0 +1,12 @@
+{
+  "repositoryManagerInstanceId": "1",
+  "repositoryPublicId": "central",
+  "componentCoordinates": {
+    "g_a_1": "g:a:1",
+    "g_a_2": "g:a:2",
+    "g_a_3": "g:a:3",
+    "g_a_4": "g:a:4"
+  },
+  "expectedAutoUnquarantineRowCount": 2,
+  "expectedComponentDetailsUrlFragment": "/firewall/repository/"
+}

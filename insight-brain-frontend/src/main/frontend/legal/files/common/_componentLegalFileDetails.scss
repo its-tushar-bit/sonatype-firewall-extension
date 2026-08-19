@@ -1,0 +1,47 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use 'node_modules/@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+#legal-file-details-tile {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+#legal-file-text-quote {
+  flex-grow: 0;
+  margin-bottom: 0;
+}
+
+.legal-file-overview {
+  display: grid;
+  column-gap: var(--nx-spacing-12x);
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  height: 100%;
+  grid-template-rows: auto 1fr;
+
+  .nx-read-only__label {
+    margin-top: 0;
+  }
+
+  .legal-file-overview-text {
+    margin-top: var(--nx-spacing-8x);
+    grid-column: 1 / span 4;
+  }
+}
+
+.legal-file-included-in-detail-filepath {
+  @include nx-text-helpers.semi-bold;
+}
+
+.legal-file-preformatted {
+  white-space: pre-wrap;
+  font-family: monospace;
+}
+
+.file-path-item.nx-collapsible-items {
+  max-width: unset;
+}

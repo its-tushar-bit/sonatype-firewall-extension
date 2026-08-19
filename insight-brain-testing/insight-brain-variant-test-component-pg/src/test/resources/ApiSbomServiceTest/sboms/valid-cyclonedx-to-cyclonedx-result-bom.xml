@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bom serialNumber="urn:uuid:a140fd3c-3ded-4bb0-a640-dc31e2904dc9" version="1" xmlns="http://cyclonedx.org/schema/bom/1.6">
+  <metadata>
+    <timestamp>2024-05-09T10:59:53Z</timestamp>
+    <tools>
+      <components>
+        <component type="application">
+          <name>Sonatype SBOM Manager</name>
+          <version>1.176.0-SNAPSHOT</version>
+        </component>
+      </components>
+    </tools>
+    <component type="application" bom-ref="43a08ea0-c264-41d6-892a-6cfc7762aded">
+      <name>DUMMY-PUBLIC-ID-d0516b48c4c1432f936eafac413f6b40</name>
+      <version>30c3ee1d127e484e9d41</version>
+    </component>
+  </metadata>
+  <components>
+    <component type="library" bom-ref="435d9efa-2c0c-4078-91fb-7fdec24fcad0">
+      <group>apache</group>
+      <name>axis</name>
+      <version>1.0</version>
+      <licenses>
+        <license>
+          <id>Apache-2.0</id>
+          <properties>
+            <property name="sonatype:identification_sources">SBOM,Sonatype</property>
+          </properties>
+        </license>
+        <license>
+          <id>MIT</id>
+          <properties>
+            <property name="sonatype:identification_sources">Sonatype</property>
+          </properties>
+        </license>
+      </licenses>
+      <purl>pkg:maven/apache/axis@1.0?type=jar</purl>
+      <modified>false</modified>
+      <properties>
+        <property name="sonatype:identification_sources">SBOM</property>
+        <property name="sonatype:truncated_sha1">7bdade27d8cd197d9b5c</property>
+        <property name="sonatype:original_purl">pkg:maven/apache/axis@1.0?type=jar</property>
+      </properties>
+      <evidence>
+        <occurrences>
+          <occurrence>
+            <location>h2-2.2.224.jar</location>
+          </occurrence>
+        </occurrences>
+      </evidence>
+    </component>
+  </components>
+  <externalReferences><reference type="bom"><url>http://localhost:8070/ui/links/application/vuln/report/a140fd3c3ded4bb0a640dc31e2904dc9</url><comment>IQ Report</comment></reference></externalReferences>
+  <vulnerabilities>
+    <vulnerability>
+      <id>CVE-2007-2353</id>
+      <source>
+        <name>NVD</name>
+        <url>https://nvd.nist.gov/vuln/detail/CVE-2007-2353</url>
+      </source>
+      <references>
+        <reference>
+          <id>CVE-2007-2353</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/CVE-2007-2353</url>
+          </source>
+        </reference>
+      </references>
+      <ratings>
+        <rating>
+          <source>
+            <name>NVD</name>
+            <url>https://nvd.nist.gov/vuln/detail/CVE-2007-2353</url>
+          </source>
+          <score>6.0</score>
+          <severity>high</severity>
+          <method>CVSSv3</method>
+          <vector>CVSS:3.1/AV:L/AC:L/PR:H/UI:N/S:C/C:H/I:N/A:N</vector>
+        </rating>
+      </ratings>
+      <cwes>
+        <cwe>59</cwe>
+      </cwes>
+      <description>vuln description</description>
+      <analysis>
+        <state>exploitable</state>
+        <justification>requires_configuration</justification>
+        <responses>
+          <response>workaround_available</response>
+        </responses>
+        <detail>vex detail</detail>
+        <firstIssued>2024-05-16T15:30:39Z</firstIssued>
+      </analysis>
+      <affects>
+        <target>
+          <ref>435d9efa-2c0c-4078-91fb-7fdec24fcad0</ref>
+        </target>
+      </affects>
+      <properties>
+        <property name="sonatype:identification_sources">SBOM,Sonatype</property>
+      </properties>
+    </vulnerability>
+    <vulnerability>
+      <id>Sonatype-2024-123</id>
+      <source>
+        <name>Sonatype</name>
+        <url>http://link.to/vuln/Sonatype-2024-123</url>
+      </source>
+      <references>
+        <reference>
+          <id>Sonatype-2024-123</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/Sonatype-2024-123</url>
+          </source>
+        </reference>
+      </references>
+      <ratings>
+        <rating>
+          <source>
+            <name>Sonatype</name>
+            <url>http://link.to/vuln/Sonatype-2024-123</url>
+          </source>
+          <score>9.0</score>
+          <severity>critical</severity>
+          <method>other</method>
+        </rating>
+      </ratings>
+      <cwes>
+        <cwe>89</cwe>
+      </cwes>
+      <description>example sonatype vuln</description>
+      <analysis>
+        <state>in_triage</state>
+        <detail></detail>
+      </analysis>
+      <affects>
+        <target>
+          <ref>435d9efa-2c0c-4078-91fb-7fdec24fcad0</ref>
+        </target>
+      </affects>
+      <properties>
+        <property name="sonatype:identification_sources">Sonatype</property>
+      </properties>
+    </vulnerability>
+  </vulnerabilities>
+</bom>

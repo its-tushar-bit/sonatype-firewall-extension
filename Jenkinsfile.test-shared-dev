@@ -1,0 +1,123 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@Library(['jenkins-shared', 'iq-pipeline-library']) _
+
+/**
+ * Post-deployment smoke tests against shared-dev cell.
+ *
+ * Triggered as a downstream job from Jenkinsfile.deploy-to-shared-dev after successful deployments.
+ * Runs the mtiq-apps PostDeploymentSmokeTest against the cicd-testing tenant.
+ *
+ * Prerequisites:
+ *   - Jenkins credential 'mtiq-shared-dev-smoke-test-user' (Username with Password)
+ *   - Tenant 'cicd-testing' provisioned on shared-dev with dual (Firewall + Lifecycle) license
+ *
+ * Parameters:
+ *   IMAGE_TAG - The ECR tag that was just deployed (for traceability/reporting)
+ */
+
+pipeline {
+  agent { label 'zion-small' }
+
+  parameters {
+    string(name: 'IMAGE_TAG', description: 'The ECR tag that was just deployed')
+  }
+
+  options {
+    buildDiscarder(logRotator(numToKeepStr: '100'))
+    timestamps()
+    timeout(time: 30, unit: 'MINUTES')
+  }
+
+  tools {
+    jdk 'OpenJDK 17'
+  }
+
+  stages {
+
+    stage('Validate Parameters') {
+      steps {
+        script {
+          if (!params.IMAGE_TAG?.trim()) {
+            error 'IMAGE_TAG is required'
+          }
+        }
+      }
+    }
+
+    stage('Checkout mtiq-tools') {
+      steps {
+        dir('mtiq-tools') {
+          checkout([$class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[url: 'git@github.com:sonatype/mtiq-tools.git',
+                                        credentialsId: sonatypeZionCredentialsId()]]])
+        }
+      }
+    }
+
+    stage('Build') {
+      steps {
+        dir('mtiq-tools/mtiq-load-testing') {
+          withMaven(jdk: 'OpenJDK 17', maven: 'Maven 3.9.x', mavenSettingsConfig: 'private-settings.xml') {
+            sh 'mvn clean install -DskipTests'
+          }
+        }
+
+        dir('mtiq-tools/mtiq-apps') {
+          withMaven(jdk: 'OpenJDK 17', maven: 'Maven 3.9.x', mavenSettingsConfig: 'private-settings.xml') {
+            sh 'mvn clean install -P smoke'
+          }
+        }
+      }
+    }
+
+    stage('Smoke Test') {
+      steps {
+        dir('mtiq-tools/mtiq-load-testing') {
+          withCredentials([usernamePassword(credentialsId: 'mtiq-shared-dev-smoke-test-user',
+              usernameVariable: 'mtiqUser', passwordVariable: 'mtiqPwd')]) {
+            sh '''
+                java -jar ../mtiq-apps/target/mtiq-apps-1.0-SNAPSHOT.jar \
+                  --env=shared-dev \
+                  --id=cicd-testing \
+                  --url=https://cicd-testing.dev.iq.saas.sonatype.dev \
+                  --user=${mtiqUser} \
+                  --pwd=${mtiqPwd} \
+                  run
+                '''
+          }
+        }
+      }
+    }
+
+    stage('Trigger push-to-staging') {
+      steps {
+        script {
+          build job: 'insight/MTIQ/sca-cloud/push-to-staging',
+              parameters: [string(name: 'IMAGE_TAG', value: params.IMAGE_TAG)],
+              wait: false
+        }
+      }
+    }
+  }
+
+  post {
+    always {
+      archiveArtifacts artifacts: 'mtiq-tools/mtiq-load-testing/**/mtiq-*-report-*.html', allowEmptyArchive: true
+    }
+    success {
+      echo "Smoke tests passed for image tag: ${params.IMAGE_TAG}"
+    }
+    failure {
+      script {
+        echo "Smoke tests failed for image tag: ${params.IMAGE_TAG}"
+        notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices',
+                   message: "Shared-dev smoke tests FAILED for image tag: ${params.IMAGE_TAG}")
+      }
+    }
+  }
+}

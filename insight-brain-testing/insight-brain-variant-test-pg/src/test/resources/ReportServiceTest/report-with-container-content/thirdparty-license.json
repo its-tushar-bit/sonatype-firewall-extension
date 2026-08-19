@@ -1,0 +1,165 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "container",
+      "coordinates" : {
+        "name" : "libressl",
+        "namespace" : "alpine:3.6.5",
+        "version" : "2.5.5-r2"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "619f27db8ed8059bb7dc",
+    "declaredLicenses" : [ {
+      "id" : "UNSPECIFIED",
+      "name" : "Not Provided",
+      "url" : null
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "container",
+      "coordinates" : {
+        "name" : "musl",
+        "namespace" : "alpine:3.6.5",
+        "version" : "1.1.16-r15"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "f4cb15dd2d0e42aa3ffe",
+    "declaredLicenses" : [ {
+      "id" : "UNSPECIFIED",
+      "name" : "Not Provided",
+      "url" : null
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "container",
+      "coordinates" : {
+        "name" : "libc-dev",
+        "namespace" : "alpine:3.6.5",
+        "version" : "0.7.1-r0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "16ba57bc725b115caa47",
+    "declaredLicenses" : [ {
+      "id" : "UNSPECIFIED",
+      "name" : "Not Provided",
+      "url" : null
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "container",
+      "coordinates" : {
+        "name" : "alpine-keys",
+        "namespace" : "alpine:3.6.5",
+        "version" : "2.1-r1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "78ca21411f3e545cac32",
+    "declaredLicenses" : [ {
+      "id" : "UNSPECIFIED",
+      "name" : "Not Provided",
+      "url" : null
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "container",
+      "coordinates" : {
+        "name" : "apk-tools",
+        "namespace" : "alpine:3.6.5",
+        "version" : "2.7.6-r0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "9cd309492780e10b8349",
+    "declaredLicenses" : [ {
+      "id" : "UNSPECIFIED",
+      "name" : "Not Provided",
+      "url" : null
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "container",
+      "coordinates" : {
+        "name" : "pax-utils",
+        "namespace" : "alpine:3.6.5",
+        "version" : "1.2.2-r0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "cb849df800f5cd634cc3",
+    "declaredLicenses" : [ {
+      "id" : "UNSPECIFIED",
+      "name" : "Not Provided",
+      "url" : null
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "container",
+      "coordinates" : {
+        "name" : "zlib",
+        "namespace" : "alpine:3.6.5",
+        "version" : "1.2.11-r0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "73efaa27643d01713f0f",
+    "declaredLicenses" : [ {
+      "id" : "UNSPECIFIED",
+      "name" : "Not Provided",
+      "url" : null
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "container",
+      "coordinates" : {
+        "name" : "busybox",
+        "namespace" : "alpine:3.6.5",
+        "version" : "1.26.2-r11"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "bb567b6eb2f04999869c",
+    "declaredLicenses" : [ {
+      "id" : "UNSPECIFIED",
+      "name" : "Not Provided",
+      "url" : null
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "container",
+      "coordinates" : {
+        "name" : "alpine-baselayout",
+        "namespace" : "alpine:3.6.5",
+        "version" : "3.0.4-r0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "ae7c3834ba5553516a22",
+    "declaredLicenses" : [ {
+      "id" : "UNSPECIFIED",
+      "name" : "Not Provided",
+      "url" : null
+    } ]
+  } ]
+}

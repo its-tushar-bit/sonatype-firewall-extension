@@ -1,0 +1,375 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "terraform",
+      "coordinates" : {
+        "name" : "aws_s3_bucket.test01",
+        "plan" : "plan.tfplan",
+        "version" : "current"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "0d8e3bd6ee4e6d50557a",
+    "url" : null,
+    "reference" : "FG-R00229",
+    "source" : "IaC",
+    "score" : 9.0,
+    "cwe" : null,
+    "cvssVectorString" : null,
+    "cvssVectorSource" : null,
+    "matchState" : "exact",
+    "proprietary" : null,
+    "vulnerabilityCategories" : [ "data" ],
+    "fixedVersion" : null,
+    "description" : "S3 buckets should have all block public access options enabled. AWS's S3 Block Public Access feature has four settings: BlockPublicAcls, IgnorePublicAcls, BlockPublicPolicy, and RestrictPublicBuckets. All four settings should be enabled to help prevent the risk of a data breach.",
+    "severity" : "High",
+    "ratingMethod" : null,
+    "recommendations" : null,
+    "advisories" : "https://docs.fugue.co/FG_R00229.html",
+    "provider" : "kubernetes",
+    "inputType" : "tf"
+  }, {
+    "componentIdentifier" : {
+      "format" : "terraform",
+      "coordinates" : {
+        "name" : "aws_s3_bucket.test02",
+        "plan" : "plan.tfplan",
+        "version" : "current"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "0b21d00434253711ca98",
+    "url" : null,
+    "reference" : "FG-R00229",
+    "source" : "IaC",
+    "score" : 9.0,
+    "cwe" : null,
+    "cvssVectorString" : null,
+    "cvssVectorSource" : null,
+    "matchState" : "exact",
+    "proprietary" : null,
+    "vulnerabilityCategories" : [ "data" ],
+    "fixedVersion" : null,
+    "description" : "S3 buckets should have all block public access options enabled. AWS's S3 Block Public Access feature has four settings: BlockPublicAcls, IgnorePublicAcls, BlockPublicPolicy, and RestrictPublicBuckets. All four settings should be enabled to help prevent the risk of a data breach.",
+    "severity" : "High",
+    "ratingMethod" : null,
+    "recommendations" : null,
+    "advisories" : "https://docs.fugue.co/FG_R00229.html",
+    "provider" : "kubernetes",
+    "inputType" : "tf"
+  }, {
+    "componentIdentifier" : {
+      "format" : "terraform",
+      "coordinates" : {
+        "name" : "aws_s3_bucket.test01",
+        "plan" : "plan.tfplan",
+        "version" : "current"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "0d8e3bd6ee4e6d50557a",
+    "url" : null,
+    "reference" : "FG-R00274",
+    "source" : "IaC",
+    "score" : 7.0,
+    "cwe" : null,
+    "cvssVectorString" : null,
+    "cvssVectorSource" : null,
+    "matchState" : "exact",
+    "proprietary" : null,
+    "vulnerabilityCategories" : [ "data" ],
+    "fixedVersion" : null,
+    "description" : "S3 bucket access logging should be enabled. Enabling server access logging provides detailed records for the requests that are made to a S3 bucket. This information is useful for security and compliance auditing purposes.",
+    "severity" : "Medium",
+    "ratingMethod" : null,
+    "recommendations" : null,
+    "advisories" : null,
+    "provider" : "kubernetes",
+    "inputType" : "tf"
+  }, {
+    "componentIdentifier" : {
+      "format" : "terraform",
+      "coordinates" : {
+        "name" : "aws_s3_bucket.test02",
+        "plan" : "plan.tfplan",
+        "version" : "current"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "0b21d00434253711ca98",
+    "url" : null,
+    "reference" : "FG-R00274",
+    "source" : "IaC",
+    "score" : 7.0,
+    "cwe" : null,
+    "cvssVectorString" : null,
+    "cvssVectorSource" : null,
+    "matchState" : "exact",
+    "proprietary" : null,
+    "vulnerabilityCategories" : [ "data" ],
+    "fixedVersion" : null,
+    "description" : "S3 bucket access logging should be enabled. Enabling server access logging provides detailed records for the requests that are made to a S3 bucket. This information is useful for security and compliance auditing purposes.",
+    "severity" : "Medium",
+    "ratingMethod" : null,
+    "recommendations" : null,
+    "advisories" : null,
+    "provider" : "kubernetes",
+    "inputType" : "tf"
+  }, {
+    "componentIdentifier" : {
+      "format" : "terraform",
+      "coordinates" : {
+        "name" : "aws_s3_bucket.test01",
+        "plan" : "plan.tfplan",
+        "version" : "current"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "0d8e3bd6ee4e6d50557a",
+    "url" : null,
+    "reference" : "FG-R00099",
+    "source" : "IaC",
+    "score" : 9.0,
+    "cwe" : null,
+    "cvssVectorString" : null,
+    "cvssVectorSource" : null,
+    "matchState" : "exact",
+    "proprietary" : null,
+    "vulnerabilityCategories" : [ "data" ],
+    "fixedVersion" : null,
+    "description" : "S3 bucket server side encryption should be enabled. Enabling server-side encryption (SSE) on S3 buckets at the object level protects data at rest and helps prevent the breach of sensitive information assets. Objects can be encrypted with S3-Managed Keys (SSE-S3), KMS-Managed Keys (SSE-KMS), or Customer-Provided Keys (SSE-C).",
+    "severity" : "High",
+    "ratingMethod" : null,
+    "recommendations" : null,
+    "advisories" : null,
+    "provider" : "kubernetes",
+    "inputType" : "tf"
+  }, {
+    "componentIdentifier" : {
+      "format" : "terraform",
+      "coordinates" : {
+        "name" : "aws_s3_bucket.test02",
+        "plan" : "plan.tfplan",
+        "version" : "current"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "0b21d00434253711ca98",
+    "url" : null,
+    "reference" : "FG-R00099",
+    "source" : "IaC",
+    "score" : 9.0,
+    "cwe" : null,
+    "cvssVectorString" : null,
+    "cvssVectorSource" : null,
+    "matchState" : "exact",
+    "proprietary" : null,
+    "vulnerabilityCategories" : [ "data" ],
+    "fixedVersion" : null,
+    "description" : "S3 bucket server side encryption should be enabled. Enabling server-side encryption (SSE) on S3 buckets at the object level protects data at rest and helps prevent the breach of sensitive information assets. Objects can be encrypted with S3-Managed Keys (SSE-S3), KMS-Managed Keys (SSE-KMS), or Customer-Provided Keys (SSE-C).",
+    "severity" : "High",
+    "ratingMethod" : null,
+    "recommendations" : null,
+    "advisories" : null,
+    "provider" : "kubernetes",
+    "inputType" : "tf"
+  }, {
+    "componentIdentifier" : {
+      "format" : "terraform",
+      "coordinates" : {
+        "name" : "aws_s3_bucket.test01",
+        "plan" : "plan.tfplan",
+        "version" : "current"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "0d8e3bd6ee4e6d50557a",
+    "url" : null,
+    "reference" : "FG-R00100",
+    "source" : "IaC",
+    "score" : 7.0,
+    "cwe" : null,
+    "cvssVectorString" : null,
+    "cvssVectorSource" : null,
+    "matchState" : "exact",
+    "proprietary" : null,
+    "vulnerabilityCategories" : [ "data" ],
+    "fixedVersion" : null,
+    "description" : "S3 bucket policies should only allow requests that use HTTPS. To protect data in transit, an S3 bucket policy should deny all HTTP requests to its objects and allow only HTTPS requests. HTTPS uses Transport Layer Security (TLS) to encrypt data, which preserves integrity and prevents tampering.",
+    "severity" : "Medium",
+    "ratingMethod" : null,
+    "recommendations" : null,
+    "advisories" : null,
+    "provider" : "kubernetes",
+    "inputType" : "tf"
+  }, {
+    "componentIdentifier" : {
+      "format" : "terraform",
+      "coordinates" : {
+        "name" : "aws_s3_bucket.test02",
+        "plan" : "plan.tfplan",
+        "version" : "current"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "0b21d00434253711ca98",
+    "url" : null,
+    "reference" : "FG-R00100",
+    "source" : "IaC",
+    "score" : 7.0,
+    "cwe" : null,
+    "cvssVectorString" : null,
+    "cvssVectorSource" : null,
+    "matchState" : "exact",
+    "proprietary" : null,
+    "vulnerabilityCategories" : [ "data" ],
+    "fixedVersion" : null,
+    "description" : "S3 bucket policies should only allow requests that use HTTPS. To protect data in transit, an S3 bucket policy should deny all HTTP requests to its objects and allow only HTTPS requests. HTTPS uses Transport Layer Security (TLS) to encrypt data, which preserves integrity and prevents tampering.",
+    "severity" : "Medium",
+    "ratingMethod" : null,
+    "recommendations" : null,
+    "advisories" : null,
+    "provider" : "kubernetes",
+    "inputType" : "tf"
+  }, {
+    "componentIdentifier" : {
+      "format" : "terraform",
+      "coordinates" : {
+        "name" : "aws_s3_bucket.test01",
+        "plan" : "plan.tfplan",
+        "version" : "current"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "0d8e3bd6ee4e6d50557a",
+    "url" : null,
+    "reference" : "FG-R00275",
+    "source" : "IaC",
+    "score" : 7.0,
+    "cwe" : null,
+    "cvssVectorString" : null,
+    "cvssVectorSource" : null,
+    "matchState" : "exact",
+    "proprietary" : null,
+    "vulnerabilityCategories" : [ "data" ],
+    "fixedVersion" : null,
+    "description" : "S3 bucket replication (cross-region or same-region) should be enabled. Cross-Region S3 replication can help with meeting compliance requirements, minimizing latency, and increasing operational efficiency. Same-Region S3 replication can help with aggregating logs and compliance with data sovereignty laws.",
+    "severity" : "Medium",
+    "ratingMethod" : null,
+    "recommendations" : null,
+    "advisories" : null,
+    "provider" : "kubernetes",
+    "inputType" : "tf"
+  }, {
+    "componentIdentifier" : {
+      "format" : "terraform",
+      "coordinates" : {
+        "name" : "aws_s3_bucket.test02",
+        "plan" : "plan.tfplan",
+        "version" : "current"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "0b21d00434253711ca98",
+    "url" : null,
+    "reference" : "FG-R00275",
+    "source" : "IaC",
+    "score" : 7.0,
+    "cwe" : null,
+    "cvssVectorString" : null,
+    "cvssVectorSource" : null,
+    "matchState" : "exact",
+    "proprietary" : null,
+    "vulnerabilityCategories" : [ "data" ],
+    "fixedVersion" : null,
+    "description" : "S3 bucket replication (cross-region or same-region) should be enabled. Cross-Region S3 replication can help with meeting compliance requirements, minimizing latency, and increasing operational efficiency. Same-Region S3 replication can help with aggregating logs and compliance with data sovereignty laws.",
+    "severity" : "Medium",
+    "ratingMethod" : null,
+    "recommendations" : null,
+    "advisories" : null,
+    "provider" : "kubernetes",
+    "inputType" : "tf"
+  }, {
+    "componentIdentifier" : {
+      "format" : "terraform",
+      "coordinates" : {
+        "name" : "aws_s3_bucket.test01",
+        "plan" : "plan.tfplan",
+        "version" : "current"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "0d8e3bd6ee4e6d50557a",
+    "url" : null,
+    "reference" : "FG-R00101",
+    "source" : "IaC",
+    "score" : 7.0,
+    "cwe" : null,
+    "cvssVectorString" : null,
+    "cvssVectorSource" : null,
+    "matchState" : "exact",
+    "proprietary" : null,
+    "vulnerabilityCategories" : [ "data" ],
+    "fixedVersion" : null,
+    "description" : "S3 bucket versioning and lifecycle policies should be enabled. S3 bucket versioning and lifecycle policies are used to protect data availability and integrity. By enabling object versioning, data is protected from overwrites and deletions. Lifecycle policies ensure sensitive data is deleted when appropriate.",
+    "severity" : "Medium",
+    "ratingMethod" : null,
+    "recommendations" : null,
+    "advisories" : null,
+    "provider" : "kubernetes",
+    "inputType" : "tf"
+  }, {
+    "componentIdentifier" : {
+      "format" : "terraform",
+      "coordinates" : {
+        "name" : "aws_s3_bucket.test02",
+        "plan" : "plan.tfplan",
+        "version" : "current"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "0b21d00434253711ca98",
+    "url" : null,
+    "reference" : "FG-R00101",
+    "source" : "IaC",
+    "score" : 7.0,
+    "cwe" : null,
+    "cvssVectorString" : null,
+    "cvssVectorSource" : null,
+    "matchState" : "exact",
+    "proprietary" : null,
+    "vulnerabilityCategories" : [ "data" ],
+    "fixedVersion" : null,
+    "description" : "S3 bucket versioning and lifecycle policies should be enabled. S3 bucket versioning and lifecycle policies are used to protect data availability and integrity. By enabling object versioning, data is protected from overwrites and deletions. Lifecycle policies ensure sensitive data is deleted when appropriate.",
+    "severity" : "Medium",
+    "ratingMethod" : null,
+    "recommendations" : null,
+    "advisories" : null,
+    "provider" : "kubernetes",
+    "inputType" : "tf"
+  } ]
+}

@@ -1,0 +1,262 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "System.Private.DataContractSerialization",
+        "version" : "4.1.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "041ade54352f31e3655e",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-21538",
+    "reference" : "CVE-2023-21538",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "400",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2023-21538" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "ID",
+        "value" : "System.Private.DataContractSerialization"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "4.1.1"
+      } ],
+      "name" : "System.Private.DataContractSerialization"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "Microsoft.IdentityModel.JsonWebTokens",
+        "version" : "6.25.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "0e3da21fd80b9853692d",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-21319",
+    "reference" : "CVE-2024-21319",
+    "source" : "cve",
+    "score" : 6.8,
+    "cwe" : "400",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:C/C:N/I:N/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data", "operational" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2024-21319" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "ID",
+        "value" : "Microsoft.IdentityModel.JsonWebTokens"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "6.25.1"
+      } ],
+      "name" : "Microsoft.IdentityModel.JsonWebTokens"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "Microsoft.AspNetCore.Mvc.Abstractions",
+        "version" : "2.1.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "0e84c44f60b418abe7cb",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-38013",
+    "reference" : "CVE-2022-38013",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "400",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2022-38013" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "ID",
+        "value" : "Microsoft.AspNetCore.Mvc.Abstractions"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "2.1.0"
+      } ],
+      "name" : "Microsoft.AspNetCore.Mvc.Abstractions"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "System.Data.SqlClient",
+        "version" : "4.8.5"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "2631dd44ef76f6fa08f7",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-41064",
+    "reference" : "CVE-2022-41064",
+    "source" : "cve",
+    "score" : 5.8,
+    "cwe" : "200",
+    "cvssVectorString" : "CVSS:3.1/AV:A/AC:H/PR:L/UI:N/S:C/C:H/I:N/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data", "operational" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2022-41064" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "ID",
+        "value" : "System.Data.SqlClient"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "4.8.5"
+      } ],
+      "name" : "System.Data.SqlClient"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "Microsoft.IdentityModel.Tokens",
+        "version" : "6.25.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "4db920edbfaa27d9d22d",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-21319",
+    "reference" : "CVE-2024-21319",
+    "source" : "cve",
+    "score" : 6.8,
+    "cwe" : "400",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:C/C:N/I:N/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data", "operational" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2024-21319" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "ID",
+        "value" : "Microsoft.IdentityModel.Tokens"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "6.25.1"
+      } ],
+      "name" : "Microsoft.IdentityModel.Tokens"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "Microsoft.Data.SqlClient",
+        "version" : "5.0.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "f1700d313dcf271482bd",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-0056",
+    "reference" : "CVE-2024-0056",
+    "source" : "cve",
+    "score" : 8.7,
+    "cwe" : "693",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:C/C:H/I:H/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2024-0056" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "ID",
+        "value" : "Microsoft.Data.SqlClient"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "5.0.1"
+      } ],
+      "name" : "Microsoft.Data.SqlClient"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "System.IdentityModel.Tokens.Jwt",
+        "version" : "6.25.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "fe4de8261d186adfc4c3",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-21319",
+    "reference" : "CVE-2024-21319",
+    "source" : "cve",
+    "score" : 6.8,
+    "cwe" : "400",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:C/C:N/I:N/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data", "operational" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2024-21319" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "ID",
+        "value" : "System.IdentityModel.Tokens.Jwt"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "6.25.1"
+      } ],
+      "name" : "System.IdentityModel.Tokens.Jwt"
+    }
+  } ]
+}

@@ -1,0 +1,113 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use 'MainRoot/scss/variables' as *;
+
+// NxCopyToClipboard ships with full-width form-section spacing (margin-bottom 8x and a
+// 800px grid) that doesn't blend with the denser NxFieldset rows around it. The PAT-mode
+// relay URL follows a tall fieldset, so its top margin collapses with the fieldset's
+// bottom margin and looks like an oversized gap. Pull it up by one spacing unit so the
+// URL reads as a normal form field.
+.iq-relay-webhook-url-copy {
+  margin-top: calc(var(--nx-spacing-8x) * -1);
+  margin-bottom: var(--nx-spacing-4x);
+}
+
+.iq-source-control {
+  &-toggle {
+    &__title {
+      @include nx-text-helpers.bold;
+    }
+
+    &__text {
+      font-size: var(--nx-font-size);
+      margin-top: var(--nx-spacing-2x);
+    }
+  }
+  &-provider-select select {
+    margin-bottom: 0;
+  }
+  &-check {
+    &-ok {
+      color: var(--nx-swatch-green-25);
+    }
+    &-nok {
+      color: var(--nx-swatch-orange-50);
+    }
+    &-error {
+      color: var(--nx-swatch-red-40);
+    }
+  }
+}
+
+.iq-source-control-configuration-tile {
+  .nx-collapsible-items {
+    margin: inherit;
+    max-width: inherit;
+  }
+  .nx-collapsible-items__children .nx-text-input {
+    box-sizing: inherit;
+    padding: 0;
+    width: var(--nx-width-form-element-normal);
+  }
+  .nx-collapsible-items__header {
+    margin-bottom: var(--nx-spacing-6x);
+  }
+}
+
+.iq-automated-pr-table {
+  .pr-created-success-icon {
+    color: var(--nx-swatch-green-40);
+  }
+
+  .pr-created-error-icon {
+    color: var(--nx-swatch-red-40);
+  }
+
+  .pr-created-warning-icon {
+    color: var(--nx-swatch-orange-40);
+  }
+
+  .nx-cell {
+    text-align: center;
+  }
+
+  .iq-automated-pr-table_title-column {
+    width: 260px;
+    text-align: left;
+  }
+}
+
+.iq-source-control-token,
+.iq-source-control-base-branch {
+  .nx-label__text {
+    &::after {
+      display: none;
+    }
+  }
+}
+
+#source-control-remediation-pull-requests.iq-source-control-toggle {
+  margin-bottom: 0;
+}
+
+.git-advanced-options {
+  margin-left: 53px;
+
+  h4 {
+    text-transform: none;
+  }
+
+  .nx-text-input {
+    margin-left: 25px;
+    width: 160px;
+  }
+
+  .close-pr-after-days {
+    margin-left: 6px;
+  }
+}

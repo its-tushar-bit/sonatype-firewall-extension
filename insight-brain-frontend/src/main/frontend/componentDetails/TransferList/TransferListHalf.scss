@@ -1,0 +1,46 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+// This styles were taken from the NxTransferList component
+// This component should look like the NxTransferList but with labels
+
+// the padding on the sides of each transfer list control box
+$-control-box-side-spacing: var(--nx-spacing-6x);
+$-item-vertical-padding: var(--nx-spacing-2x);
+$-item-vertical-margin: var(--nx-spacing-2x);
+$-visible-item-count: 10;
+
+.iq-transfer-list__half {
+  margin-bottom: 0;
+  width: 348px;
+  min-width: 348px;
+
+  .nx-legend__text::after {
+    // remove "Optional"
+    display: none;
+  }
+}
+
+.iq-transfer-list__control-box {
+  align-items: stretch;
+  border: var(--nx-border-default);
+  border-radius: var(--nx-border-radius);
+  display: flex;
+  flex-direction: column;
+}
+
+.iq-transfer-list__item-list {
+  // Item list height styles from NxTransferList component
+  $item-height: '(1em * var(--nx-line-height) + 2 * #{$-item-vertical-padding})';
+  height: calc(#{$-visible-item-count} * #{$item-height} + #{$-visible-item-count - 1} * #{$-item-vertical-margin});
+
+  background-color: var(--nx-color-transfer-list-item-list-background);
+  border-top: var(--nx-border-default);
+  border-bottom: var(--nx-border-default);
+  box-sizing: content-box;
+  overflow-y: auto;
+  padding: var(--nx-spacing-6x) $-control-box-side-spacing;
+}

@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<title>Sonatype CLM Continuous Integration Report</title>
+		<link type="text/css" href="jquery-ui.css" rel="stylesheet" />
+		<link type="text/css" href="slick.grid.css" rel="stylesheet">
+		<link type="text/css" href="slick.grid.custom.css" rel="stylesheet">
+		<link type="text/css" href="slick.pager.css" rel="stylesheet">
+		<link type="text/css" href="tipsy.css" rel="stylesheet">
+
+		<link type="text/css" href="bootstrap.min.css" rel="stylesheet">
+		<style>
+.i-lic {background: url(public/license-icon_16x16.png)  no-repeat;height: 16px;line-height: 19px;padding-left:19px;}
+.i-sec {background: url(public/security-icon_16x16.png) no-repeat;height: 16px;line-height: 19px;padding-left:19px;}
+
+.h-label {font-family: Arial, Helvetica, sans-serif; font-size: 10px; color: #9E9E9E;}
+.h-value {font-family: Arial, Helvetica, sans-serif; color: #5D5D5D; font-size: 13px;}
+
+.sums {
+	width: 105px;
+	margin-right: 20px;
+	vertical-align:top;
+}
+span.cat {
+	padding-left: 2px;
+	font-family: Arial, Helvetica, sans-serif;
+	font-weight:bold;
+	font-size: 11px;
+}
+span.cnt {
+	display: block;
+	margin-bottom: 10px;
+	width: 104px;
+	height: 34px;
+	font-size: 22px;
+	line-height: 34px;
+}
+span.bdg {
+	display: inline-block;
+	width: 44px;
+	height: 22px;
+	line-height: 20px;
+}
+.pval span.bdg {
+	background: url(value_mask_44x22.png) no-repeat;
+	text-align: center;
+}
+.sval span.cnt {
+	background: url(value_mask_104x34.png) no-repeat;
+	font-family: 'Arial Black', Gadget, sans-serif;
+	text-align: center;
+}
+.sv-red span.cat {color:#9D0A0E;}
+.sv-red span.cnt, .pv-red span.bdg {
+	color: #5C0C0A;
+	background-color: #F00;
+}
+.sv-orange span.cat {color:#A0420D;}
+.sv-orange span.cnt, .pv-orange span.bdg {
+	color: #5A3D19;
+	background-color: #F7941E;
+}
+.sv-yellow span.cat {color:#81710A;}
+.sv-yellow span.cnt, .pv-yellow span.bdg {
+	color: #645723;
+	background-color: #FFDE16;
+}
+.sv-blue span.cat {color:#1964A3;}
+.sv-blue span.cnt, .pv-blue span.bdg {
+	color: #222E63;
+	background-color: #6D98D0;
+}
+/* header */
+.header-container {
+	display: inline-block;
+	vertical-align: top;
+	margin-right:15px;
+}
+#coverage_donut {margin: 0 5px 0 0; display:inline-block;}
+.value_lrg {font-family: 'Arial Black', Gadget, sans-serif; font-size: 19px; color: #656565; line-height:24px;}
+.label_med {font-size: 12px; color: #666; font-weight: bold}
+.value_sml {font-size: 12px; color: #9E9E9E; font-weight: bold;}
+.label_sml {font-size: 10px; color: #9E9E9E; line-height:16px; white-space:nowrap}
+.iblock { display: inline-block; }
+.punchcard { float: right; }
+.btn-group > .btn { color : #2068aa; font-weight:bold }
+.btn-group > .btn.btn-primary { color : white; font-weight:bold }
+.active { color: black }
+.sectionsummary {color:#848484;font-size:11px;font-weight:bold;padding-bottom:10px}
+.license-description {padding:20px;padding-top:30px;width:255px;position:absolute;}
+.security-description {padding:20px;padding-top:30px;width:355px;position:absolute;}
+.clear {clear:both;}
+.page-header{padding-bottom:5px !important;}
+.slick-headerrow-column > input {padding:0px !important;margin-bottom:0px !important;}
+label{display:inline-block;}
+.message {
+	position: absolute;
+	border : 1px solid black;
+	border-radius: 3px;
+	padding : 30px 45px;
+	background-color: white;
+	z-index: 2000;
+}
+div.selected {
+    background-color: #D8D8D8;
+}
+div.popout {
+    background: url(selected-row.png) repeat 0px -4px !important;
+    border-bottom-color: transparent;
+}
+.counterFill {
+    border: 1px solid black;
+    border-left:none;
+    border-right:none;
+    height:10px;
+    margin-top:6px;
+    display:inline-block;
+}
+.sectionBorder {
+    border-width: 10px;
+    border-style: solid;
+    border-color:#f7f7f7;
+}
+
+.sectionBorderNoBottom {
+    border-width: 10px 10px 0px 10px;
+    border-style: solid;
+    border-color:#f7f7f7;
+}
+
+.sectionBorderBottom {
+    border-width: 0px 0px 10px 0px;
+    border-style: solid;
+    border-color:#f7f7f7;
+}
+
+.informationPanel {
+    position: absolute; 
+    z-index: 2; 
+    background-color: white;
+    display: none;
+    height: 320px;
+}
+.informationPanel .tab-content {
+	width:100%;
+	padding-top:5px;
+}
+.informationPanel .tab-pane {
+	height: 270px;
+	overflow: hidden;
+}
+#infoPanelArtifactTable .license {
+	display: inline-block;
+}
+#licenseList li.license {
+	line-height: 14px;
+	vertical-align: bottom;
+	padding-bottom:4px;
+}
+.shadowTop {
+    -webkit-box-shadow: 0 -8px 6px -6px black;
+    -moz-box-shadow: 0 -8px 6px -6px black;
+    box-shadow: 0 -8px 6px -6px black;
+}
+
+.shadowBottom {
+    -webkit-box-shadow: 0 8px 6px -6px black;
+    -moz-box-shadow: 0 8px 6px -6px black;
+    box-shadow: 0 8px 6px -6px black;
+}
+
+.artifactInfoTableLabel {
+    font-size:11px;
+    color:#333333;
+    text-align: right;
+    vertical-align: top;
+    width: 120px;
+}
+
+.artifactInfoTableValue {
+    font-family:Arial;
+    font-size:12px;
+    font-weight:bold;
+    font-style:normal;
+    text-decoration:none;
+    color:#333333;
+    padding-left: 5px;
+    width: 200px;
+    word-wrap: break-word;
+}
+
+.artifactInfoSecurity {
+	display:inline-block;
+    height: 18px;
+    padding: 0px 5px;
+    text-align: center;
+    border-radius: 2px;
+}
+
+.artifactInfoSecurityCritical {
+    background-color:#ee1b24;
+    border: 1px solid #b71218;
+    color:white;
+}
+
+.artifactInfoSecuritySevere {
+    background-color:#f7941d;
+    border: 1px solid #c67a22;
+    color:black;
+}
+
+.artifactInfoSecurityModerate {
+    background-color:#fedf15;
+    border: 1px solid #ddbe18;
+    color:black;
+}
+
+.artifactInfoSecurityUnspecified {
+    background-color:#d9dade;
+    border: 1px solid #84858a;
+    color:#444549;
+}
+
+.editor {
+	position: absolute!important;
+	z-index: 1000;
+	zoom: 1;
+	background: #dcdcdc;
+	border-top: 1px solid #999;
+	border-bottom: 1px solid #999;
+	overflow: visible!important;
+}
+.editor-btn {
+	position: absolute!important;
+	z-index: 1001;
+	zoom: 1;
+	background: #dcdcdc;
+	border-left: 1px solid #999;
+	border-right: 1px solid #999;
+	border-bottom: 1px solid #999;
+	overflow: visible!important;
+}
+.editor-cell {
+	position: absolute;
+	height: 25px;
+	padding: 3px 2px 3px 2px;
+	font-size: 11px;
+	font-family: Arial, Helvetica, sans-serif;
+	color: #2068AA;
+	white-space:nowrap;
+}
+.bottomBorder {
+	border-bottom-width: 10px;
+	border-left-width: 10px;
+	border-right-width: 10px;
+	border-style:solid;
+	border-color:#f7f7f7;
+}
+.topBorder {
+	border-top-width: 10px;
+	border-left-width: 10px;
+	border-right-width: 10px;
+	border-style:solid;
+	border-color:#f7f7f7;
+}
+h1 {
+	color: #006699;
+}
+ul.nav-tabs>li>a {
+    cursor: pointer !important;
+}
+ul.nav-tabs>li.active>a {
+    background: #339999 !important;
+    color: white !important;
+}
+ul.nav-pills>li.active>a {
+    background: #009966 !important;
+    color: white !important;
+}
+#informationPanel .well .form-horizontal label {
+	width : 85px;
+}
+#informationPanel .well .form-horizontal .controls {
+	margin-left: 105px;
+}
+.bulkeditor .controls {
+	width : 650px;
+}
+.dirty {
+    background: transparent url(dirty.gif) no-repeat 0 0;
+}
+.infoPanelText {
+    width:99%;
+    padding:7px 0 5px 1%;
+    vertical-align:-12px;
+}
+.release-header {
+	background : url(release-header-bg.png);
+	text-align: center;
+	margin-top: 1px;
+}
+.release-header > span {
+	background : rgb(248,248,248);
+	padding : 0 5px;
+}
+.release-header > .help {
+	background: url(glyphicons_halflings_084_question-sign.png) no-repeat 0 3px;
+	width: 12px;
+	height: 18px;
+	float: right;
+}
+#securityTablePager, #licenseTablePager, #componentTablePager {
+	height: 26px;
+}
+body {
+	background-color: transparent;
+}
+.container {
+	background-color: white;
+}
+		</style>
+		<script type='text/javascript' src='../brain/policy-assets/js/brain.client.js'></script>
+		<script type='text/javascript' src='hogan.js'></script>
+		<script type='text/javascript' src='json2.js'></script>
+		<script type='text/javascript' src='date.format.js'></script>
+		<script type='text/javascript' src='jquery.min.js'></script>
+		<script type='text/javascript' src='jquery.tipsy.js'></script>
+		<script type='text/javascript' src='bootstrap.min.js'></script>
+		<script type='text/javascript' src='protovis.min.js'></script>
+		<script type='text/javascript' src='protovis-tipsy.js'></script>
+		<script type='text/javascript' src='protovis-xpan.js'></script>
+		<script type='text/javascript' src='appcheck.js'></script>
+		<script type='text/javascript' src='insight.js'></script>
+		<script type='text/javascript' src='table.js'></script>
+		<script type='text/javascript' src='details.js'></script>
+		<script type='text/javascript' src='jquery.event.drag-2.0.min.js'></script>
+		<script type='text/javascript' src='../brain/policy-assets/js/cip-loader.js'></script>
+		<script type='text/javascript' src='slick.core.js'></script>
+		<script type='text/javascript' src='slick.grid.js'></script>
+		<script type='text/javascript' src='slick.dataview.js'></script>
+		<script type='text/javascript' src='slick.groupitemmetadataprovider.js'></script>
+		<script type='text/javascript' src='slick.rowselectionmodel.js'></script>
+		<script type='text/javascript' src='slick.checkboxselectcolumn.js'></script>
+		<script type='text/javascript' src='slick.pager.js'></script>
+		<script type='text/javascript' src='slick.grid.tipsy.js'></script>
+		<script type='text/javascript' src='sort.js'></script>
+		<script type='text/javascript' src='filter.js'></script>
+		<script type='text/javascript' src='informationPanel.js'></script>
+		<script type='text/javascript' src='column-grouping.js'></script>
+		<script type='text/javascript' src='bulk-editor.js'></script>
+		<script type='text/javascript' src='details-editor.js'></script>
+		<script type='text/javascript'>
+			var freemium = false,
+				reportId = 'b63a5dc365c948b6814672fa47f896ea',
+				instanceId = '7845d1b819ba4343b724c428cbade9bc',
+				applicationId = '',
+				currentDate = new Date(1369925897713),
+				earliestReleaseDate = new Date(1131486722000);
+		</script>
+	</head>
+	<body>
+	<div class='container'>
+		<div style='width:100%'>
+			<div class='btn-group' data-toggle="buttons-radio" style='width:95%;display:inline-block' id='views'>
+				<button class='btn active' style='width:25%' id='summaryBtn' data-containerid='summary'>Summary</button>
+				<button class='btn' style='width:25%' id='componentcontainerBtn' data-containerid='componentcontainer'>Policy</button>
+				<button class='btn' style='width:25%' id='securitycontainerBtn' data-containerid='securitycontainer'>Security Issues</button>
+				<button class='btn' style='width:25%' id='licensecontainerBtn' data-containerid='licensecontainer'>License Analysis</button>
+			</div>
+
+			<div class='btn-group' style='width:4%;display:inline-block;text-align:right' id='actions'>
+
+				<a href='../printReport' target='_blank' class='btn btn-primary' data-action='print' data-tooltip='Print Report' data-gravity='n' data-gravity-offset='5' original-title=''><i class='icon-white icon-print'></i> </a>
+			</div>
+		</div>
+	<div id='summary' style='padding-top:5px' data-container='true'>Loading...</div>
+	<div id='licensecontainer' style='display:none;width:100%;padding-top:5px' data-container='true'>
+		<div style="width:100%;padding:3px 5px 3px 0px" id='licenseEditorContainer'>
+			<div id='licenseEditor' class='well hide bulkeditor'>
+			</div>
+		</div>
+	    <div class='sectionBorder'>
+		    <div id="licenseTable" class="borderedTable bulk"></div>
+		    <div id="licenseTablePager"></div>
+		</div>
+	</div>
+
+	<div id='securitycontainer' style='display:none;width:100%;padding-top:5px' data-container='true'>
+		<div style="width:100%;padding:3px 5px 3px 0px" id='securityEditorContainer'>
+			<div id='securityEditor' class='well hide bulkeditor'>
+			</div>
+		</div>
+		<div class='sectionBorder'>
+			<div id='securityTable' class="borderedTable bulk"></div>
+			<div id="securityTablePager"></div>
+		</div>
+	</div>
+
+	<div id='componentcontainer' style='display:none;width:100%;padding-top:5px' data-container='true'>
+        <div class='sectionBorder'>
+			<h4 style="vertical-align:top;margin-top:14px;display:inline-block;padding-left:15px">Filter:</h4>
+			<ul class='nav nav-pills' style='margin:5px;display:inline-block'>
+				<li class='active'><a href='#'>All</a></li>
+				<li><a href='#'>Exact</a></li>
+				<li><a href='#'>Similar</a></li>
+				<li><a href='#'>Unknown</a></li>
+				<li><a href='#'>Proprietary</a></li>
+				
+			</ul>
+            <div id='componentTable' class="borderedTable"></div>
+            <div id="componentTablePager"></div>
+        </div>
+    </div>
+</div>
+<script type='text/x-mustache-template' id='errorTemplate'>
+<div class='alert alert-error fade in' style='margin:auto;margin-top:20px;padding-top:5px;width:50%'>
+	<h4>Error</h4>
+	<p>{{#message}}{{message}}{{/message}}
+		{{^message}}Unfortunately an error occurred while contacting the Sonatype CLM Server, if the problem persists please contact support.{{/message}}
+	</p>
+	<p><button type='button' class='btn btn-danger'><i class='icon-white icon-refresh'></i> Retry</button></p>
+</div>
+</script>
+<script type='text/x-mustache-template' id='infoPanelComponentTemplate'>
+{{#partial}}
+<div id='informationPanelBanner' class='well' style='margin-top:5px;margin-bottom:10px;display:inline-block;'>
+	Security and License information for all versions of this component are available in the detailed report. Examples of this data can be seen in the <em>Security Issues</em> or <em>License Analysis</em> views.
+</div>
+{{/partial}}
+<div style='overflow: hidden; height: 270px;'>
+	<img src='artifactInfoIcon.png' style='display:inline-block; float: left;'/>
+	<table id='infoPanelArtifactTable' style='display: inline-block;border-collapse: collapse;'>
+{{#overriddenLicenses}}
+		<tr id='artifactInfoOverriddenLicenseRow'>
+			<td class='artifactInfoTableLabel'>Overridden License:</td>
+			<td class='artifactInfoTableValue'>{{{overriddenLicenses}}}</td>
+		</tr>
+{{/overriddenLicenses}}
+{{^partial}}
+		<tr id='artifactInfoDeclaredLicenseRow'>
+			<td class='artifactInfoTableLabel'>Declared License:</td>
+			<td class='artifactInfoTableValue'>{{{declaredLicenses}}}</td>
+		</tr>
+		<tr id='artifactInfoObservedLicenseRow'>
+			<td class='artifactInfoTableLabel'>Observed License:</td>
+			<td class='artifactInfoTableValue'>{{{observedLicenses}}}</td>
+		</tr>
+{{/partial}}
+		<tr id='artifactInfoGroupIdRow'>
+			<td class='artifactInfoTableLabel'>Group:</td>
+			<td class='artifactInfoTableValue'>{{groupId}}</td>
+		</tr>
+		<tr id='artifactInfoArtifactIdRow'>
+			<td class='artifactInfoTableLabel'>Artifact:</td>
+			<td class='artifactInfoTableValue'>{{artifactId}}</td>
+		</tr>
+		<tr id='artifactInfoVersionRow'>
+			<td class='artifactInfoTableLabel'>Version:</td>
+			<td class='artifactInfoTableValue'>{{version}}</td>
+		</tr>
+{{^partial}}
+		<tr id='artifactInfoSecurityThreatRow'>
+			<td class='artifactInfoTableLabel'>Highest Security Threat:</td>
+			<td class='artifactInfoTableValue'><div class="{{colorCls}}">{{lvl}}</div>{{#multipleSecurity}} within {{securityThreatCount}} security issues{{/multipleSecurity}}</td>
+		</tr>
+{{/partial}}
+		<tr id='artifactInfoCatalogDateRow'>
+			<td class='artifactInfoTableLabel'>Cataloged:</td>
+			<td class='artifactInfoTableValue'>{{cataloged}} ago</td>
+		</tr>
+		<tr id='artifactInfoSimilarityScoreRow'>
+			<td class='artifactInfoTableLabel'>Match State:</td>
+			<td class='artifactInfoTableValue'>{{currentMatchState}}{{#proprietary}} (proprietary){{/proprietary}}</td>
+		</tr>
+	</table>
+	<div id='aiVersionChartContainer' style='font-size:0;display:inline-block;float:right;border:1px solid #D8DBE0;width:477px;height:250px;background:rgb(247,251,254);border-radius:4px;padding:2px'>
+	   <div id='aiVersionChartLabelsWrapper' style='display:inline-block;vertical-align:top;width:100px'>
+			<div id='aiVersionChartLabels'></div>
+			<!-- note these divs must be next to each other with no spaces in between, for some reason this causes a gap in safari-->
+		</div><div id='aiVersionChartVizWrapper' style='display:inline-block;vertical-align:top;width:374px'>
+			<div id='aiVersionChartViz' style='overflow:hidden;width:374px;'></div>
+		</div>
+	</div>
+</div>
+</script>
+<script type='text/x-mustache-template' id='infoPanelSecurityEditor'>
+	<div style='display:inline-block;width:350px;vertical-align:top;margin-left:10px' class='topBorder bottomBorder'><div id='sv{{timestamp}}Table' class='borderedTable'></div></div>
+	<div id='editor{{timestamp}}' class='well' style='display:inline-block;margin-left:10px;margin-bottom:10px;-moz-box-sizing:border-box;box-sizing:border-box;width:490px'>
+	</div>
+</script>
+<script type='text/x-mustache-template' id='infoPanelLicenseEditor'>
+	<div style='display:inline-block;width:199px;vertical-align:top;margin-left:10px;margin-bottom:10px;height:202px;overflow:auto;' class='well'>
+		<ul class='nav nav-list' id='licenseList'></ul>
+	</div>
+	<div id='editor{{timestamp}}' class='well' style='display:inline-block;margin-left:10px;margin-bottom:10px;box-sizing:border-box;-moz-box-sizing:border-box;width:620px'>
+	</div>
+</script>
+<script type='text/x-mustache-template' id='svEditorTemplate'>
+	<div class='form-horizontal'>
+		<div class='control-group'>
+			<label class='control-label' for='svStatus{{timestamp}}'>Status</label>
+			<div class='controls' style='text-align:left'>
+				<select id='svStatus{{timestamp}}'{{#width}} style='width:{{width}}px'{{/width}}>
+					<option value='Open'>Open</option>
+					<option value='Acknowledged'>Acknowledged</option>
+					<option value='Not Applicable'>Not Applicable</option>
+					<option value='Confirmed'>Confirmed</option>
+				</select>
+			</div>
+		</div>
+		<div class='control-group'>
+			<label class='control-label' for='comment{{timestamp}}'>Comment</label>
+			<div class='controls'>
+				<textarea class='input-xlarge' id='comment{{timestamp}}' rows='3' style='{{#width}}width:{{width}}px;{{/width}}height:108px;padding:0px'></textarea>
+			</div>
+		</div>
+		<div class='controls' style='{{#width}}width:{{width}}px;{{/width}}text-align:right'>
+			<button type='none' class='btn btn-primary' data-type='update'>Update</button>
+			{{#cancel}}<button type='none' class='btn' data-type='cancel'>Cancel</button>{{/cancel}}
+		</div>
+	</div>
+</script>
+<script type='text/x-mustache-template' id='licenseEditorTemplate'>
+	<div class='form-horizontal'>
+		<div class='control-group'>
+			<label class='control-label' for='licenseselect{{timestamp}}'>Status</label>
+			<div class='controls' style='text-align:left;'>
+				<select id='licenseselect{{timestamp}}'{{#width}} style='width:{{width}}px'{{/width}}>
+					<option value='Open'>Open</option>
+					<option value='Acknowledged'>Acknowledged</option>
+					<option value='Overridden'>Overridden</option>
+					{{#single}}<option value='Selected'>Selected</option>{{/single}}
+					<option value='Confirmed'>Confirmed</option>
+				</select>
+			</div>
+		</div>
+		<div class='control-group'>
+			<label class='control-label' for='license{{timestamp}}'>License(s)</label>
+			<div class='controls' style='text-align:left;'>
+				<select id='license{{timestamp}}' disabled='disabled' data-licenseselect='true'{{#width}} style='width:{{width}}px'{{/width}}></select>
+			</div>
+		</div>
+		<div class='control-group'>
+			<label class='control-label' for='comment{{timestamp}}'>Comment</label>
+			<div class='controls'>
+				<textarea class='input-xlarge' id='comment{{timestamp}}' rows='3' style='{{#width}}width:{{width}}px;{{/width}}padding:0px;height:62px'></textarea>
+			</div>
+		</div>
+		<div class='controls' style='{{#width}}width:{{width}}px;{{/width}}text-align:right'>
+			<button type='none' class='btn btn-primary' data-type='update'>Update</button>
+			{{#cancel}}<button type='none' class='btn' data-type='cancel'>Cancel</button>{{/cancel}}
+		</div>
+	</div>
+</script>
+<script type='text/x-mustache-template' id='summaryPageTemplate'>
+	<h5>This report provides security and license assessments for open source components found within an application.</h5>
+	<div style='padding:5px' class='topBorder'>
+		<div class='page-header'>
+			<h4>Scope of Analysis</h4>
+		</div>
+		<div class='row'>
+			<div class='span5' data-tooltip='Matches: 1 exact, 2 similar' data-gravity='n'>
+				<span id="coverage_donut" alt="100% of Components Recognized as Open Source"></span>
+				<span class='header-container'>
+					<div class="value_lrg">3</div>
+					<div class="label_med">COMPONENTS IDENTIFIED</div>
+					<div class="label_sml"><span class="value_sml">100%</span> OF ALL COMPONENTS ARE OPEN SOURCE</div>
+				</span>
+			</div>
+	{{#policy}}
+	{{#policyComponentCount}}
+			<div class="span21" data-tooltip='A policy alert advises you of components that violate one or more policies within the application.' data-gravity='n'>
+				<div class="value_lrg pval">
+					{{#criticalCount}}<span class="pv-red"><span class="bdg">{{criticalCount}}</span></span>{{/criticalCount}}
+					{{#severeCount}}<span class="pv-orange"><span class="bdg">{{severeCount}}</span></span>{{/severeCount}}
+					{{#moderateCount}}<span class="pv-yellow"><span class="bdg">{{moderateCount}}</span></span>{{/moderateCount}}
+					<span><span></span></span>
+				</div>
+				<div class="label_med">POLICY ALERT{{#multipleAlerts}}S{{/multipleAlerts}}</div>
+				<div class="label_sml">AFFECTING <span class="value_sml">{{policyComponentCount}}</span> COMPONENT{{#multipleComponents}}S{{/multipleComponents}}</div>
+			</div>
+	{{/policyComponentCount}}
+	{{/policy}}
+	{{#sv}}
+			<div class="span2" data-tooltip='A security alert advises you of components with a known security defect as defined by public and private data sources.' data-gravity='n'>
+				<div class="value_lrg">{{count}}</div>
+				<div class="label_med">SECURITY ALERT{{#multiple}}S{{/multiple}}</div>
+				<div class="label_sml">AFFECTING <span class="value_sml">{{insecureArtifactCount}}</span> COMPONENT{{#multipleComponents}}S{{/multipleComponents}}</div>
+			</div>
+	{{/sv}}
+	{{#license}}
+			<div class="span2" data-tooltip='A license alert advises you of components with obligations that may not be suitable for certain commercial usage.' data-gravity='n'>
+				<div class="value_lrg">{{licenseAlerts}}</div>
+				<div class="label_med">LICENSE ALERT{{#multipleLicenseAlerts}}S{{/multipleLicenseAlerts}}</div>
+			</div>
+	{{/license}}
+		</div>
+	</div>
+	<div style='padding:5px' class='topBorder'>
+		<div class='page-header'>
+			<h4 class='i-sec'><span data-tooltip='Sonatype utilizes the base score from the Common Vulnerability Scoring System, version 2.' data-gravity='w'>Security Issues</span></h4>
+		</div>
+		<div class='sectionsummary'>How bad are the vulnerabilities and how many are there?</div>
+		<div class="sums iblock">
+			<div class="sval sv-red">
+				<span class="cat">Critical (8-10)</span><span class="cnt">{{sv.criticalCount}}</span>
+			</div>
+			<div class="sval sv-orange">
+				<span class="cat">Severe (4-7)</span><span class="cnt">{{sv.severeCount}}</span>
+			</div>
+			<div class="sval sv-yellow">
+				<span class="cat">Moderate (1-3)</span><span class="cnt">{{sv.moderateCount}}</span>
+			</div>
+		</div>
+		<div id="security-chart" class='iblock' style='width:267px'>
+		</div>
+		<div class='iblock security-description label_med'>
+			<span>The summary of security issues demonstrates the breakdown of vulnerabilities based on severity and the threat level it poses to your application.<br>The dependency depth highlights quantity and severity and distribution within the application's dependencies.</span>
+		</div>
+		<div id='security-punchcard' class='iblock punchcard'>
+		</div>
+	</div>
+	<div style='padding:5px' class='topBorder bottomBorder'>
+		<div class='page-header'>
+			<h4 class='i-lic'><span data-tooltip='License Analysis Summary: License data is calculated based the information provided by the publishing project, and the results of multiple public and proprietary source and binary scans.' data-gravity='w'>License Analysis</span></h4>
+		</div>
+		<div class='sectionsummary'>What type of licenses and how many of each?</div>
+		<div class="sums iblock">
+			<div class="sval sv-red">
+				<span class="cat">Critical (8-10)</span><span class="cnt" id='criticalLicenseCount'>{{license.criticalCount}}</span>
+			</div>
+			<div class="sval sv-orange">
+				<span class="cat">Severe (4-7)</span><span class="cnt" id='severeLicenseCount'>{{license.severeCount}}</span>
+			</div>
+			<div class="sval sv-yellow">
+				<span class="cat">Moderate (1-3)</span><span class="cnt" id='moderateLicenseCount'>{{license.moderateCount}}</span>
+			</div>
+			<div class="sval sv-blue">
+				<span class="cat">No Threat (0)</span><span class="cnt" id='noThreatLicenseCount'>{{license.noThreatCount}}</span>
+			</div>
+		</div>
+		<div id="license-chart" class='iblock' style='width:235px'>
+		</div>
+		<div class='iblock license-description label_med'>
+			<span>The summary of license analysis demonstrates the number of licenses detected in each category.<br>The dependency depth compares quantity by category and the distribution within your application's dependencies.</span>
+		</div>
+		<div id='license-punchcard' class='iblock punchcard'>
+		</div>
+	</div>
+	<div style='margin-bottom:10px;padding:5px;display:none' id='update' class='bottomBorder'>
+		<div style='width:33%;display:inline-block' class='sectionsummary'>&nbsp;Potential updates to resolve security issues:<div id='security' style='text-align:center;width:100%'></div></div>
+		<div style='width:33%;display:inline-block' class='sectionsummary'>&nbsp;Potential updates to resolve license issues:<div id='license' style='text-align:center;width:100%'></div></div>
+		<div style='width:33%;display:inline-block' class='sectionsummary'>&nbsp;Distance from most popular versions:<div id='popularity' style='text-align:center;width:100%'></div></div>
+	</div>
+</script>
+	</body>
+</html>

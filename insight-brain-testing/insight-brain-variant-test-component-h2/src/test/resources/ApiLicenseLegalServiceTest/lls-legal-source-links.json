@@ -1,0 +1,26 @@
+[
+  {
+    "id": "id1",
+    "content": "https://overriderepository1.com/mockcomponent.jar",
+    "originalContent": "https://overriderepository1.com/mockcomponent.jar",
+    "status" : "enabled"
+  },
+  {
+    "id": "id2",
+    "content": "https://overriderepository2.com/mockcomponent.jar",
+    "originalContent": "https://overriderepository1.com/mockcomponent.jar",
+    "status" : "disabled"
+  },
+  {
+    "id": "id3",
+    "content": "https://overriderepository3.com/mockcomponent.jar",
+    "originalContent": "https://overriderepository1.com/mockcomponent.jar",
+    "status" : "disabled"
+  },
+  {
+    "id": "id4",
+    "content": "https://overriderepository4.com/mockcomponent.jar",
+    "originalContent": "https://overriderepository1.com/mockcomponent.jar",
+    "status" : "enabled"
+  }
+]

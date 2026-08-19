@@ -1,0 +1,41 @@
+[
+  {
+    "hash": "01db730fbe26c148e3d0",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "tiles-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.tiles",
+        "version" : "2.2.2"
+      }
+    },
+    "legalFiles": [
+      {
+        "relPath": "META-INF/NOTICE",
+        "content": "\nApache ServiceComb\nCopyright 2017-2021 The Apache Software Foundation\n\nThis product includes software developed at\nThe Apache Software Foundation (http://www.apache.org/).\n\n\n",
+        "contentHash": "ceeb94cfb8ad27ae26ad0703a3e46babb828499fee29ff036b7eb9c80cd659e4",
+        "type": "NOTICE"
+      },
+      {
+        "relPath": "notice",
+        "content": "Notice Content",
+        "contentHash": "contentHash",
+        "type": "NOTICE"
+      },
+      {
+        "relPath": "META-INF/LICENSE",
+        "content": "\nApache ServiceComb\nCopyright 2017-2021 The Apache Software Foundation\n\nThis product includes software developed at\nThe Apache Software Foundation (http://www.apache.org/).\n\n\n",
+        "contentHash": "ceeb94cfb8ad27ae26ad0703a3e46babb828499fee29ff036b7eb9c80cd659e4",
+        "type": "LICENSE"
+      },
+      {
+        "relPath": "license",
+        "content": "License Content",
+        "contentHash": "contentHash",
+        "type": "LICENSE"
+      }
+    ]
+  }
+]

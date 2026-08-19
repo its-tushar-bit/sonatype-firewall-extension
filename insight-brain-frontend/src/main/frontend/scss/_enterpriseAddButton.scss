@@ -1,0 +1,35 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
+// Shared styling for Enterprise "Add" buttons with lock icon
+.iq-enterprise-add-button__crown {
+  color: var(--nx-color-text-dark);
+  margin-right: 12px;
+  cursor: help;
+}
+
+// Lock icon for component labels - dark color (already dark from above, keeping for specificity)
+.iq-label-lock-icon {
+  color: var(--nx-color-text-dark);
+}
+
+// Lock icon in sidebar - appears at the end of the text
+.iq-sidebar-crown {
+  color: var(--nx-color-text-dark);
+  margin-left: var(--nx-spacing-4x);
+  cursor: help;
+
+  @include nx-dark-mode-helpers.dark-mode {
+    color: var(--nx-swatch-grey-80);
+  }
+}
+
+// Semibold font for sidebar "Add" links
+.iq-sidebar-add-text {
+  font-weight: 600;
+}

@@ -1,0 +1,116 @@
+<scan version="2.32.1-01">
+  <configuration>
+    <properties>
+      <property name="archiveNames" value="true"/>
+      <property name="anonymizeArtifactIds" value="false"/>
+      <property name="fileExcludes" value=""/>
+      <property name="anonymizePaths" value="false"/>
+      <property name="maxDepth" value="256"/>
+      <property name="operatingSystem" value="true"/>
+      <property name="hashFiles" value="true"/>
+      <property name="fileIncludes" value=""/>
+      <property name="procArch" value="true"/>
+      <property name="maxSymlinkDepth" value="5"/>
+      <property name="jreInfo" value="true"/>
+      <property name="proprietaryPackages" value=""/>
+      <property name="pomProperties" value="true"/>
+      <property name="fileSizes" value="false"/>
+      <property name="nameHashes" value="true"/>
+      <property name="dirExcludes" value="**/.*, **/CVS"/>
+      <property name="hashJavaTypes" value="true"/>
+      <property name="ipAddresses" value="false"/>
+      <property name="dirIncludes" value=""/>
+      <property name="proprietaryRegexes" value=""/>
+      <property name="resourceNames" value="true"/>
+    </properties>
+  </configuration>
+  <item contentType="SBOM" lastModified="1571788783929" sha1="80d8ce5924b4b67314bf" path="scan-basic-bom.json">
+    <content><![CDATA[{
+  "bomFormat" : "CycloneDX",
+  "specVersion" : "1.7",
+  "version" : 1,
+  "metadata" : {
+    "timestamp" : "2021-12-03T15:47:01Z",
+    "component" : {
+      "type" : "application",
+      "bom-ref" : "acme-app",
+      "name" : "Acme Application",
+      "version" : "9.1.1",
+      "purl" : "pkg:maven/org.acme/acme-app@9.1.1?type=jar"
+    }
+  },
+  "components" : [
+    {
+      "type" : "framework",
+      "bom-ref" : "pkg:maven/org.acme/web-framework@1.0.0?type=jar",
+      "group" : "org.acme",
+      "name" : "web-framework",
+      "version" : "1.0.0",
+      "purl" : "pkg:maven/org.acme/web-framework@1.0.0?type=jar",
+      "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:maven/org.acme/web-framework@1.0.0?type=jar"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "66865e2ca32f070b6bb9f12ab867f5a43f2effb4"
+        }
+      ]
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "pkg:maven/org.acme/persistence@3.1.0?type=jar",
+      "group" : "org.acme",
+      "name" : "persistence",
+      "version" : "3.1.0",
+      "purl" : "pkg:maven/org.acme/persistence@3.1.0?type=jar",
+      "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:maven/org.acme/persistence@3.1.0?type=jar"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "2e1b7bea4f906cdf301d06b156e4c82a325a4f98"
+        }
+      ]
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "pkg:maven/org.acme/common-util@3.0.0?type=jar",
+      "group" : "org.acme",
+      "name" : "common-util",
+      "version" : "3.0.0",
+      "purl" : "pkg:maven/org.acme/common-util@3.0.0?type=jar",
+      "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:maven/org.acme/common-util@3.0.0?type=jar"
+        },
+        {
+          "name" : "componentRef",
+          "value" : "722a630146bed66a834c90f52ac7878194c92693"
+        }
+      ]
+    }
+  ]
+}
+]]></content>
+  </item>
+  <project id="pkg:maven/org.acme/acme-app@9.1.1?type=jar" kind="sbom" path="scan-basic-bom.xml">
+    <dependencies>
+      <dep direct="true" id="pkg:maven/org.acme/persistence@3.1.0?type=jar">
+        <dep id="pkg:maven/org.acme/common-util@3.0.0?type=jar"/>
+      </dep>
+      <dep direct="true" id="pkg:maven/org.acme/web-framework@1.0.0?type=jar">
+        <dep id="pkg:maven/org.acme/common-util@3.0.0?type=jar"/>
+      </dep>
+      <dep id="pkg:maven/org.acme/common-util@3.0.0?type=jar"/>
+    </dependencies>
+  </project>
+  <summary>
+    <startTime>2021-11-28T23:59:43+0000</startTime>
+    <endTime>2021-11-28T23:59:43+0000</endTime>
+  </summary>
+</scan>

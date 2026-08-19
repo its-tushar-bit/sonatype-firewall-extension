@@ -1,0 +1,6 @@
+server:
+  requestLog:
+    appenders:
+      - type: file
+        currentLogFilename: ./log/request.log
+        archivedLogFilenamePattern: ./log/request-%d.log.gz

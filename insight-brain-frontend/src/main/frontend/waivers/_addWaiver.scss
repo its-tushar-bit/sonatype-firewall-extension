@@ -1,0 +1,68 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use '../scss/variables' as *;
+
+add-waiver-page {
+  display: contents;
+}
+
+.iq-add-waiver-form {
+  .nx-read-only__data,
+  .nx-read-only__label {
+    @include nx-container-helpers.container-horizontal;
+  }
+}
+
+.iq-add-waiver-form .nx-read-only__label {
+  color: var(--nx-color-text-dark);
+  .iq-vulnerability-details__render-detail__info-icon-black {
+    margin: 0 var(--nx-spacing-2x);
+  }
+}
+
+.iq-add-waiver-form__component .nx-icon {
+  color: $iq-blue-dark;
+}
+
+.iq-add-waiver-form__scope .nx-radio {
+  @include nx-text-helpers.truncate-ellipsis;
+  max-width: 1024px;
+}
+
+.iq-add-waiver-form__comments .nx-text-input {
+  box-sizing: border-box;
+  min-height: 200px;
+  width: 100%;
+  max-width: var(--nx-width-text-wrapping);
+}
+
+.iq-add-waiver-form .nx-btn-bar {
+  @include nx-container-helpers.container-vertical;
+}
+
+.iq-add-waiver-form__vulnerability_details_link {
+  margin-bottom: var(--nx-spacing-8x);
+}
+
+div.iq-add-waiver-form__date-input {
+  margin-left: var(--nx-spacing-8x);
+  margin-bottom: 0;
+}
+
+.iq-add-waiver-form__expiration-days-diff {
+  font-size: var(--nx-font-size-xs);
+  line-height: var(--nx-spacing-4x);
+  position: absolute;
+  margin-top: var(--nx-spacing-2x);
+}
+
+.iq-add-waiver-form__expiryTime-block .nx-form-select {
+  margin-bottom: 0;
+}

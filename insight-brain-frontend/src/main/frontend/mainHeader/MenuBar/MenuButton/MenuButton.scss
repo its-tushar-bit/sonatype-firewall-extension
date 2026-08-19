@@ -1,0 +1,78 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use '../../../scss/variables' as *;
+
+.iq-menu-button {
+  position: relative;
+
+  .iq-menu-button__button {
+    margin: 0;
+  }
+
+  .iq-menu-button__nav-link {
+    @include nx-text-helpers.regular;
+    display: block;
+    color: $iq-link-color;
+    font-size: 14px;
+    line-height: 18px;
+    padding: $iq-spacing-xxs 0;
+    white-space: nowrap;
+    word-wrap: break-word;
+    cursor: pointer;
+
+    &:hover,
+    &.active {
+      filter: none;
+      color: $iq-link-color-active;
+      text-decoration: none;
+    }
+    &.disabled {
+      color: $iq-link-color-disabled;
+      cursor: default;
+    }
+  }
+
+  .iq-dropdown-menu {
+    left: auto;
+    right: 0;
+    top: 130%;
+    display: block;
+
+    &:first-child {
+      padding-bottom: 12px;
+    }
+
+    &::before {
+      border-right: 9px solid transparent;
+      border-bottom: 8px solid rgba(0, 0, 0, 0.2);
+      border-left: 9px solid transparent;
+      content: '';
+      display: inline-block;
+      position: absolute;
+      top: -8px;
+      right: 7px;
+    }
+
+    &::after {
+      border-right: 8px solid transparent;
+      border-bottom: 8px solid $iq-off-white;
+      border-left: 8px solid transparent;
+      content: '';
+      display: inline-block;
+      position: absolute;
+      top: -8px;
+      right: 8px;
+    }
+  }
+
+  .iq-menu-button__button--large-icon.nx-btn--icon-only {
+    padding: 0;
+    line-height: 1;
+  }
+}

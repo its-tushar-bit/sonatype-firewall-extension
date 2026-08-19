@@ -1,0 +1,98 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+.iq-access-tile-member-container {
+  @include nx-container-helpers.container-horizontal;
+
+  white-space: nowrap;
+  margin-right: 16px;
+  line-height: var(--nx-line-height);
+}
+
+.iq-access-member-text {
+  white-space: normal;
+}
+
+.iq-access-tile-member-container:last-child {
+  margin-right: 0;
+}
+
+#access-tile-pill-access {
+  @include nx-container-helpers.container-horizontal;
+
+  white-space: nowrap;
+  margin-right: 16px;
+  line-height: var(--nx-line-height);
+
+  .nx-collapsible-items {
+    max-width: 100%;
+
+    .nx-collapsible-items__trigger {
+      padding: 0 0 12px 0;
+      border: 0;
+    }
+
+    dl {
+      display: grid;
+      grid-template-columns: max-content auto;
+      margin-block-start: 0;
+
+      .access-label {
+        font-weight: 600;
+        white-space: nowrap;
+        padding-right: 60px;
+      }
+    }
+
+    dt,
+    dd {
+      border-top: var(--nx-border-secondary);
+      padding: var(--nx-spacing-4x) var(--nx-spacing-4x) var(--nx-spacing-4x) var(--nx-spacing-4x);
+      margin-left: 6px;
+    }
+
+    dt {
+      grid-column-start: 1;
+      padding-left: 16px;
+      margin-left: 15px;
+    }
+
+    dd {
+      grid-column-start: 2;
+      padding-left: 24px;
+    }
+  }
+
+  .nx-h3 {
+    margin: 0;
+  }
+
+  .access-element {
+    display: contents;
+    overflow: unset;
+  }
+
+  .access-description {
+    white-space: pre-wrap;
+  }
+
+  .access-header {
+    @include nx-text-helpers.truncate-ellipsis;
+    max-width: 100%;
+    margin: 0;
+  }
+
+  .access-header-text {
+    @include nx-text-helpers.truncate-ellipsis;
+    font-size: 14px;
+    color: var(--nx-text-color);
+    margin: 0;
+    padding-left: 28px;
+  }
+}

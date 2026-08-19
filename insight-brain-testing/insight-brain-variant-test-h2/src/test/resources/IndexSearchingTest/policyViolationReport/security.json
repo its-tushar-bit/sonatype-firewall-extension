@@ -1,0 +1,23 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "log4j-core",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.apache.logging",
+          "version": "2.14.0"
+        }
+      },
+      "hash": "hashPvtLog4j00000000",
+      "reference": "CVE-2021-44228",
+      "source": "cve",
+      "score": 10.0,
+      "cwe": "CWE-502",
+      "matchState": "exact",
+      "proprietary": false
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+[ {
+  "time" : 1365002086365,
+  "user" : "John",
+  "ip" : "127.0.0.1",
+  "where" : "",
+  "data" : {
+    "stage" : {
+      "stageTypeId" : "build"
+    },
+    "scanId" : "4ec4edff03b145e38b6915dda1d0b00f"
+  }
+}, {
+  "time" : 1364935646338,
+  "user" : "Jane",
+  "ip" : "127.0.0.1",
+  "where" : "",
+  "data" : {
+    "stage" : {
+      "stageTypeId" : "release"
+    },
+    "scanId" : "46969a0aa117487aa769b8c550095973"
+  }
+} ]

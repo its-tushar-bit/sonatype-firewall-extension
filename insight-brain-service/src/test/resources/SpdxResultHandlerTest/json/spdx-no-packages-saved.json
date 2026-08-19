@@ -1,0 +1,66 @@
+{
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "spdxVersion": "SPDX-2.3",
+  "creationInfo": {
+    "created": "2023-08-01T16:19:55Z",
+    "creators": [
+      "Tool: Sonatype IQ Server - 1.165.0-01"
+    ]
+  },
+  "name": "doc name",
+  "dataLicense": "CC0-1.0",
+  "documentNamespace": "http://localhost:8070/ui/links/application/scm-test-01/report/76b10b862e7b42009f2415097620928c",
+  "packages": [
+    {
+      "SPDXID": "SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.13.2",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:maven/org.apache.logging.log4j/log4j-core",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "Apache-2.0",
+      "licenseDeclared": "Apache-2.0",
+      "name": "org.apache.logging.log4j:log4j-core"
+    },
+    {
+      "SPDXID": "SPDXRef-maven-junit-junit-4.12",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "cpe:2.3:a:junit:junit:*:*:*:*:*:*:*:*",
+          "referenceType": "cpe23Type"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "EPL-1.0",
+      "licenseDeclared": "EPL-1.0",
+      "name": "junit:junit"
+    },
+    {
+      "SPDXID": "SPDXRef-django",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "django",
+      "checksums": [
+        {
+          "algorithm" : "SHA1",
+          "checksumValue" : "9188560f22e0b73070d2efce670c74af2bdf30af"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-django"
+    }
+  ]
+}

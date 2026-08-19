@@ -1,0 +1,89 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
+@use '../../../scss/variables' as *;
+
+.nx-dropdown.iq-manage-filters-dropdown {
+  display: block;
+  width: auto;
+
+  .nx-dropdown__toggle {
+    box-sizing: border-box;
+    width: 100%;
+
+    .iq-manage-filters-dropdown__dirty-asterisk {
+      color: var(--nx-color-text-dark);
+    }
+  }
+
+  .nx-dropdown-menu {
+    box-sizing: border-box;
+    width: 100%;
+
+    .iq-manage-filters-dropdown__option {
+      @include nx-container-helpers.container-horizontal;
+      display: flex;
+      padding: var(--nx-spacing-base) var(--nx-spacing-2x);
+
+      // without this the first one, which doesn't have a delete button, is shorter
+      height: 32px;
+
+      &.iq-manage-filters-dropdown__option--selected {
+        background-color: $iq-blue-light;
+
+        @include nx-dark-mode-helpers.dark-mode {
+          background-color: var(--nx-color-dropdown-menu-background-active);
+          color: var(--nx-color-text-stark);
+        }
+      }
+
+      &:hover,
+      &:focus {
+        background-color: var(--nx-swatch-grey-95);
+
+        @include nx-dark-mode-helpers.dark-mode {
+          background-color: var(--nx-color-dropdown-menu-background-hover);
+          color: var(--nx-color-text-stark);
+        }
+      }
+
+      .nx-dropdown-button {
+        padding: 0;
+      }
+
+      .nx-dropdown-button--select-filter {
+        flex-shrink: 1;
+
+        &:hover,
+        &:focus {
+          background: none;
+        }
+
+        &:focus {
+          outline: 1px solid #43cbf5;
+        }
+      }
+
+      .nx-btn--delete-filter {
+        background: none;
+        padding: 0;
+        flex-shrink: 0;
+      }
+    }
+
+    .nx-small-tag {
+      align-self: center;
+      margin: 0;
+      cursor: default;
+
+      & + .nx-btn--delete-filter {
+        margin-left: 0;
+      }
+    }
+  }
+}

@@ -1,0 +1,246 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+
+properties(
+    [
+        parameters (
+            [
+                booleanParam(name: 'hotfix', defaultValue: 'false', description: 'Check if this IQ Release is intended to be a hotfix e.g. urgent release to fix a severe bug. (Used for internal metrics only.)'),
+                string (name: 'releaseVersion', defaultValue: '',description: 'The version number for the product, like "1.118.0-01"'),
+                run(name: 'aggregateReleaseBuild', filter: 'STABLE', projectName: 'insight/insight-brain/aggregate-release', description: 'The aggregate release build containing binaries to release.'),
+
+                // Skip stage parameters
+                booleanParam(name: 'skipReleaseStartingNotification', defaultValue: false, description: 'Skip: Send Release Starting Notification'),
+                booleanParam(name: 'skipValidateReleaseBinaries', defaultValue: false, description: 'Skip: Validate Release Binaries (version check, build status)'),
+                booleanParam(name: 'skipMarkJiraVersionReleased', defaultValue: false, description: 'Skip: Mark Jira Version as Released'),
+                booleanParam(name: 'skipDeployToStaging', defaultValue: false, description: 'Skip: Deploy Binaries to Staging'),
+                booleanParam(name: 'skipDeployToProduction', defaultValue: false, description: 'Skip: Deploy Binaries to Production'),
+                booleanParam(name: 'skipCreateProductNotification', defaultValue: false, description: 'Skip: Create Product Notification'),
+                booleanParam(name: 'skipDeployNotificationToStaging', defaultValue: false, description: 'Skip: Deploy Product Notification to Staging'),
+                booleanParam(name: 'skipDeployNotificationToProduction', defaultValue: false, description: 'Skip: Deploy Product Notification to Production'),
+                booleanParam(name: 'skipSendPolicyResults', defaultValue: false, description: 'Skip: Send Policy Results'),
+                booleanParam(name: 'skipPublishSlimDocker', defaultValue: false, description: 'Skip: Publish Slim Docker Image'),
+                booleanParam(name: 'skipPublishAlpineDocker', defaultValue: false, description: 'Skip: Publish Alpine Docker Image'),
+                booleanParam(name: 'skipPublishRedHatDocker', defaultValue: false, description: 'Skip: Publish RedHat Docker Image to quay.io'),
+                booleanParam(name: 'skipPublishStandardDocker', defaultValue: false, description: 'Skip: Publish Standard Docker Image'),
+                booleanParam(name: 'skipReleaseCompleteNotifications', defaultValue: false, description: 'Skip: Send Release Complete Notifications'),
+                booleanParam(name: 'skipPostReleaseBuild', defaultValue: false, description: 'Skip: Trigger Post-Release Build'),
+                booleanParam(name: 'skipMarkAsLatest', defaultValue: false, description: 'Skip: Mark as latest version')
+            ]
+        )
+    ]
+)
+
+
+pipeline {
+  agent { label InsightConstants.AGENT_LABEL }
+
+  environment {
+    minorVersion = "${params.releaseVersion ? parseVersion(params.releaseVersion)?.minor : ''}"
+  }
+  options {
+    buildDiscarder(logRotator(numToKeepStr: '10'))
+  }
+  stages {
+    stage('Validate Parameters') {
+      steps {
+        script {
+          if (!env.aggregateReleaseBuild_NUMBER) {
+            error "aggregateReleaseBuild parameter is required but was not provided or resolved to null. " +
+                  "Select a STABLE aggregate-release build before triggering this pipeline."
+          }
+          if (!params.releaseVersion) {
+            error "releaseVersion parameter is required but was not provided."
+          }
+        }
+      }
+    }
+    stage('Confirm Start') {
+      steps {
+        input message: 'This will start the release process. Continue?', ok: 'Yes, Continue'
+      }
+    }
+    stage('Send Release Starting Notification') {
+      when {
+        expression { !params.skipReleaseStartingNotification }
+      }
+      steps {
+        build(job: 'insight/insight-brain/Release Starting',
+              parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
+      }
+    }
+    stage('Validate Release Binaries') {
+      when {
+        expression { !params.skipValidateReleaseBinaries }
+      }
+      steps {
+        script {
+          echo "=== Validating Release Binaries ==="
+          echo "Aggregate Release Build: ${env.aggregateReleaseBuild}"
+          echo "Expected Release Version: ${params.releaseVersion}"
+
+          // Parse and validate build information
+          def buildInfo = parseBuildName(env.aggregateReleaseBuild_NAME)
+          echo "Build Version: ${buildInfo.Version}"
+
+          // Validate version consistency
+          if (buildInfo.Version != params.releaseVersion) {
+            error "Version mismatch! Expected ${params.releaseVersion} but aggregate-release build is ${buildInfo.Version}"
+          }
+          echo "✓ Version match confirmed: ${params.releaseVersion}"
+
+          // Validate build completed successfully
+          def buildResult = env.aggregateReleaseBuild_RESULT
+          if (buildResult != 'SUCCESS') {
+            error "Aggregate-release build did not succeed. Build result: ${buildResult}"
+          }
+          echo "✓ Build status verified: ${buildResult}"
+
+          // Output staging URLs for manual verification
+          echo ""
+          echo "=== Staging Artifact URLs ==="
+          echo "CLI: https://download-staging.sonatype.com/clm/server/nexus-iq-cli-${params.releaseVersion}.jar"
+          echo "SBOM URLs: https://sonatype.repo.sonatype.app/repository/sonatype-sboms/insight-brain/${params.releaseVersion}/"
+          echo ""
+          echo "=== Binary Validation Complete ==="
+          echo "Note: Artifacts will be gathered and validated during deployment stages."
+          echo "      If artifacts are missing or invalid, the deploy job will fail."
+        }
+      }
+    }
+    stage('Mark Jira Version as Released') {
+      when {
+        expression { !params.skipMarkJiraVersionReleased }
+      }
+      steps {
+        script {
+          updateJiraVersionReleaseStatus('selfhosted', env.minorVersion, true)
+        }
+      }
+    }
+    stage('Deploy Binaries to Staging') { // Jenkinsfile.deploy
+      when {
+        expression { !params.skipDeployToStaging }
+      }
+      steps {
+        build(job: 'insight/insight-brain/deploy',
+              parameters: [ string(name: 'environment', value: 'Staging'),
+                            run(name: 'releaseBuild', runId: "insight/insight-brain/aggregate-release#${env.aggregateReleaseBuild_NUMBER}"),
+                            booleanParam(name: 'skipMarkAsLatest', value: params.skipMarkAsLatest)])
+      }
+    }
+    stage('Deploy Binaries to Production') { // Jenkinsfile.deploy
+      when {
+        expression { !params.skipDeployToProduction }
+      }
+      steps {
+        build(job: 'insight/insight-brain/deploy',
+              parameters: [ string(name: 'environment', value: 'Production'),
+                            run(name: 'releaseBuild', runId: "insight/insight-brain/aggregate-release#${env.aggregateReleaseBuild_NUMBER}"),
+                            booleanParam(name: 'skipMarkAsLatest', value: params.skipMarkAsLatest)])
+      }
+    }
+    stage('Create Product Notification') {
+      when {
+        expression { !params.skipCreateProductNotification }
+      }
+      steps {
+        build(job: 'insight/insight-brain/Update Product Notifications',
+              parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
+      }
+    }
+    stage('Deploy Product Notification to Staging') {
+      when {
+        expression { !params.skipDeployNotificationToStaging }
+      }
+      steps {
+        build(job: 'insight/hosted-data-services/product-notifications/Sync Product Notifications',
+              parameters: [string(name: 'ENVIRONMENT', value: 'staging')])
+      }
+    }
+    stage('Deploy Product Notification to Production') {
+      when {
+        expression { !params.skipDeployNotificationToProduction }
+      }
+      steps {
+        build(job: 'insight/hosted-data-services/product-notifications/Sync Product Notifications',
+              parameters: [string(name: 'ENVIRONMENT', value: 'production')])
+      }
+    }
+    stage('Send Policy Results') {
+      when {
+        expression { !params.skipSendPolicyResults }
+      }
+      steps {
+        build(job: 'insight/insight-brain/Send Policy Results',
+              parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
+      }
+    }
+    stage('Publish Slim Docker Image') {
+      when {
+        expression { !params.skipPublishSlimDocker }
+      }
+      steps {
+        build(job: 'insight/insight-brain/docker/slim-image/release',
+              parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/aggregate-release#${env.aggregateReleaseBuild_NUMBER}"),
+                           booleanParam(name: 'skipMarkAsLatest', value: params.skipMarkAsLatest)])
+      }
+    }
+    stage('Publish Alpine Docker Image') {
+      when {
+        expression { !params.skipPublishAlpineDocker }
+      }
+      steps {
+        build(job: 'insight/insight-brain/docker/alpine-image/release',
+            parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/aggregate-release#${env.aggregateReleaseBuild_NUMBER}"),
+                         booleanParam(name: 'skipMarkAsLatest', value: params.skipMarkAsLatest)])
+      }
+    }
+    stage('Publish RedHat Docker Image to quay.io') {
+      when {
+        expression { !params.skipPublishRedHatDocker }
+      }
+      steps {
+        build(job: 'insight/insight-brain/docker/redhat-image/release',
+            parameters: [
+                string(name: 'tag', value: "${params.releaseVersion.split('-')[0]}-ubi-1"),
+                run(name: 'releaseBuild', runId: "insight/insight-brain/aggregate-release#${env.aggregateReleaseBuild_NUMBER}"),
+                booleanParam(name: 'skipMarkAsLatest', value: params.skipMarkAsLatest)
+            ])
+      }
+    }
+    stage ('Publish Standard Docker Image') {
+      when {
+        expression { !params.skipPublishStandardDocker }
+      }
+      steps {
+        build(job: 'insight/insight-brain/docker/main-image/release',
+              parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/aggregate-release#${env.aggregateReleaseBuild_NUMBER}"),
+                           booleanParam(name: 'skipMarkAsLatest', value: params.skipMarkAsLatest)])
+      }
+    }
+    stage('Send Release Complete Notifications') {
+      when {
+        expression { !params.skipReleaseCompleteNotifications }
+      }
+      steps {
+        build(job: 'insight/insight-brain/Release Notification',
+              parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
+      }
+    }
+    stage('Trigger Post-Release Build') {
+      when {
+        expression { !params.skipPostReleaseBuild }
+      }
+      steps {
+        build(job: 'insight/insight-brain/post-release',
+              propagate: false,
+              parameters: [string(name: 'releaseVersion', value: params.releaseVersion)])
+      }
+    }
+  }
+}

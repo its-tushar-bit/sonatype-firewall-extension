@@ -1,0 +1,291 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+/*
+  #LDAP Styles
+*/
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use '../../scss/variables' as *;
+
+#ldap-name {
+  .iq-tile__actions {
+    margin-top: 8px;
+  }
+
+  .iq-tile-content {
+    clear: none;
+  }
+
+  .iq-tile-footer + .iq-tile-content {
+    margin-top: 24px;
+  }
+}
+
+#ldap-name-edit-btns {
+  &.iq-btn-bar {
+    margin-top: 12px;
+    margin-bottom: 0;
+  }
+}
+
+.ldap-loading {
+  margin: 20px;
+}
+
+/*
+  #Inline Editor
+
+  #These are old styles because the LDAP page uses /insight-brain-frontend/src/main/frontend/EditorTools.js
+*/
+
+.iq-ldap-name-editor {
+  @include nx-text-helpers.bold;
+
+  margin: 8px 0 16px 0;
+
+  &.head {
+    border: 1px solid $iq-grey-4;
+    padding: 0 8px;
+    width: 460px;
+
+    .editable {
+      @include nx-text-helpers.bold;
+
+      color: $iq-slate;
+      cursor: text;
+      display: block;
+      font-size: 40px;
+      width: 460px;
+    }
+
+    .editable-error {
+      font-size: 14px;
+    }
+
+    input {
+      @include nx-text-helpers.bold;
+
+      background: transparent;
+      -webkit-box-shadow: none;
+      -moz-box-shadow: none;
+      box-shadow: none;
+      color: $iq-slate;
+      font-size: 40px;
+      height: auto;
+      line-height: normal;
+      margin: 0;
+      text-rendering: optimizelegibility;
+      width: 460px;
+    }
+
+    .errors {
+      margin-top: -8px;
+      margin-bottom: 5px;
+    }
+
+    a.editable-empty {
+      color: $iq-off-black;
+      font-style: normal;
+      text-decoration: none;
+    }
+
+    .editable-wrap {
+      padding-bottom: 1px;
+    }
+  }
+
+  .editable-controls {
+    input {
+      @include nx-text-helpers.bold;
+
+      background: transparent;
+      border: none;
+      -webkit-box-shadow: none;
+      -moz-box-shadow: none;
+      box-shadow: none;
+      color: $iq-slate;
+      height: auto;
+      line-height: normal;
+      margin: 0;
+      padding: 0;
+      text-rendering: optimizelegibility;
+
+      &:focus {
+        outline: none;
+        border: 0;
+        -webkit-box-shadow: none;
+        -moz-box-shadow: none;
+        box-shadow: none;
+      }
+    }
+
+    &.editable-inline {
+      vertical-align: text-bottom;
+    }
+  }
+
+  .editable {
+    @include nx-text-helpers.bold;
+
+    -webkit-appearance: none;
+    background: transparent;
+    border-top: none;
+    border-right: none;
+    border-bottom: 1px solid transparent;
+    border-left: none;
+    border-radius: 0;
+    -moz-box-shadow: none;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    height: auto;
+    line-height: normal;
+    margin: 0;
+    padding: 0;
+    outline: none;
+    vertical-align: text-bottom;
+    width: auto;
+
+    &.editable-click,
+    &.editable-click:hover {
+      color: $iq-slate;
+    }
+
+    &.error {
+      color: $bootstrap-error-text;
+    }
+
+    &.editable-empty,
+    &.editable-empty:hover,
+    &.editable-empty:focus {
+      color: #909090;
+      font-style: normal;
+      text-decoration: none;
+    }
+
+    &.selected {
+      color: #333333;
+    }
+  }
+
+  .editableform .control-group {
+    line-height: normal;
+  }
+
+  .open .editable {
+    -webkit-appearance: none;
+    background: transparent;
+    border-top: none;
+    border-right: none;
+    border-bottom: 1px solid transparent;
+    border-left: none;
+    border-radius: 0;
+    -moz-box-shadow: none;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    height: auto;
+    line-height: normal;
+    margin: 0;
+    outline: none;
+    padding: 0;
+    vertical-align: text-bottom;
+    width: auto;
+  }
+}
+
+#ldap-server-ordering-modal {
+  $border-width: 1px;
+  $toolbar-btn-width: 32px;
+  $toolbar-padding: 12px;
+  $modal-header: 38px;
+
+  .iq-modal-content {
+    padding: 0;
+    position: relative;
+  }
+
+  .iq-list {
+    border-right: 1px solid $iq-grey-4;
+    width: 503px;
+  }
+
+  .iq-list__item {
+    &.selected {
+      border-top-color: $iq-grey-4;
+      border-bottom-color: $iq-grey-4;
+      color: $iq-off-black;
+    }
+
+    &:first-child {
+      border-top: none;
+
+      &:hover {
+        border-top: none;
+      }
+    }
+  }
+
+  .iq-ldap-ordering-buttons {
+    border-left: 1px solid $iq-grey-4;
+    height: #{($toolbar-btn-width + $toolbar-padding) * 4 - $toolbar-padding};
+    padding: $toolbar-padding;
+    width: $toolbar-btn-width; // 32px is the button size
+
+    button {
+      position: absolute;
+
+      @for $i from 1 through 3 {
+        &:nth-child(#{$i + 1}) {
+          top: #{$toolbar-padding + ($toolbar-btn-width + $toolbar-padding) * $i};
+        }
+      }
+    }
+
+    .iq-btn + .iq-btn {
+      margin: 0;
+    }
+  }
+}
+
+.iq-ldap-server-order {
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.iq-ldap-saving-message {
+  height: 30px;
+}
+
+// Used in ldap-checkusermapping.html
+.icon-question-sign {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+}
+
+#ldap-edit-connection,
+#ldap-edit-usermapping {
+  & .nx-tile-subsection {
+    border-top: var(--nx-border-subsection);
+    margin-top: var(--nx-spacing-6x);
+    padding-top: var(--nx-spacing-6x);
+    &:first-of-type {
+      border-top: none;
+      margin-top: var(--nx-spacing-8x);
+      padding-top: 0;
+    }
+  }
+}
+
+
+#ldap-dynamic-group-search-enabled {
+  max-width: none;
+}
+
+.iq-ldap-group-search-toggle {
+  font-size: var(--nx-font-size-s);
+  margin-top: var(--nx-spacing-2x);
+}

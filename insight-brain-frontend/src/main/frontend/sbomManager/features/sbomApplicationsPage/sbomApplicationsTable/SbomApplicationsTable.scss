@@ -1,0 +1,65 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+.sbom-manager-applications-table {
+  &__application-name,
+  &__latest-version {
+    display: inline-block;
+    text-wrap: wrap;
+    word-break: break-all;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__application-name {
+    max-width: 225px;
+  }
+
+  &__latest-version {
+    max-width: 125px;
+  }
+
+  &__releaseStatusPercentage {
+    display: flex;
+    gap: var(--nx-spacing-2x);
+    align-items: center;
+  }
+
+  &__releaseStatusPercentageDonut {
+    height: 24px;
+
+    .nx-binary-donut-chart__arc {
+      stroke: var(--nx-swatch-teal-40);
+    }
+  }
+
+  &__licenses {
+    text-wrap: wrap;
+    word-break: break-all;
+  }
+
+  .nx-table-row--filter-header {
+    .sbom-manager-applications-table__filter-input {
+      width: 225px;
+    }
+  }
+
+  &__pagination-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nx-spacing-2x);
+  }
+
+  &__pagination-wrapper {
+    width: min-content;
+
+    .nx-btn-bar.nx-btn-bar--pagination {
+      width: min-content;
+      margin: 0;
+    }
+  }
+}

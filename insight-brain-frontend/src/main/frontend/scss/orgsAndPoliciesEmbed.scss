@@ -1,0 +1,102 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+// Aggregate of every Orgs and Policies (management.*) stylesheet the Classic bundle loads through
+// scss/scss.scss. The Nexus One bundle embeds those pages (nexus-one/routes.tsx) but does not load
+// scss.scss, so it imports this file instead to render them with parity. These partials duplicate
+// @use lines already in scss.scss (they stay there for the Classic bundle's own cascade order):
+// keep this list in sync when adding/removing an Orgs and Policies stylesheet (orgsAndPoliciesEmbed
+// .jestspec.ts guards this) - same drift caveat as orgsAndPoliciesStates.ts vs OrgsAndPolicies/route.js.
+
+// Shared partials (outside OrgsAndPolicies/) that the embedded management pages render and that
+// scss/scss.scss also loads globally for the Classic bundle.
+@use '../navPills/navPills';
+// `.iq-tile-scroll-container` (the owner-summary `#owner-summary-sections` scroll region) - gives it
+// `overflow-y: auto` + `position: relative` (the latter required for the nav-pill scrollspy/jump
+// offsets). Classic loads this via the global `tiles` partial; without it the region doesn't scroll
+// and the pills do nothing.
+@use 'tiles';
+// Lays the owner sidebar (portaled into #iq-sidebar-container) out beside the page: gives
+// #iq-sidebar-container `display: contents` and the adjacent #iq-footer-container `grid-area:
+// content` in the #iq-content.nx-page-content grid. Without it the page auto-places below the
+// sidebar instead of beside it.
+@use '../react/iqSidebarNav/iqSidebarNav';
+// Access tile member-list layout (Owner Summary / repository summary). Classic loads this
+// via scss.scss; without it the embed renders unstyled `.iq-access-*` member rows.
+@use '../react/accessTile/accessTile';
+// Styles #policy-editor, #proprietary-config-editor, #policy-edit-actions/-notifications and the
+// owner-summary tile actions. It also zeroes the policy form's padding because that form wraps the
+// scrollspy anchors - the same nav-pill/scrollspy concern `tiles` handles for the owner summary.
+@use 'policy-editor';
+// The owner summary's InnerSource / Artifactory tile "Edit" buttons navigate to the
+// repositoryBaseConfigurations.* / artifactoryRepositoryBaseConfigurations.* pages (registered in
+// nexus-one/routes.tsx), whose pages and add/edit modals scss.scss also loads globally for Classic.
+// Without these the Edit flow renders unstyled.
+@use '../innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModal';
+@use '../innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurations';
+@use '../artifactoryRepositoryConfiguration/artifactoryRepositoryConfigurationModal';
+@use '../artifactoryRepositoryConfiguration/artifactoryRepositoryBaseConfigurations';
+
+@use '../OrgsAndPolicies/navigation/ownerTreeView';
+@use '../OrgsAndPolicies/repositories/repositoriesSummaryView';
+@use '../OrgsAndPolicies/policyEditor/policyActionsEditor/PolicyActionsEditor';
+@use '../OrgsAndPolicies/componentLabels/createComponentLabel';
+@use '../OrgsAndPolicies/policyEditor/editPolicyInheritance/EditPolicyInheritance';
+@use '../OrgsAndPolicies/policyEditor/policyNotificationsEditor/PolicyNotificationsEditor';
+@use '../OrgsAndPolicies/ownerSideNav/OwnerSideNav';
+@use '../OrgsAndPolicies/moveOwner/MoveOwnerModal';
+@use '../OrgsAndPolicies/access/accessPage';
+@use '../OrgsAndPolicies/proprietaryComponentConfig/proprietaryComponentConfiguration';
+@use '../OrgsAndPolicies/assignAppCategory/assignAppCategory';
+@use '../OrgsAndPolicies/ownerSummary/ownerSummary';
+@use '../OrgsAndPolicies/policyEditor/constraints/constraintsEditor';
+@use '../OrgsAndPolicies/ownerSummary/labelsTile/labelsTile';
+@use '../OrgsAndPolicies/ownerSummary/policiesTile/policiesTile';
+@use '../OrgsAndPolicies/ownerSummary/retentionTile/retentionTile';
+@use '../OrgsAndPolicies/repositories/repositoriesPills';
+@use '../OrgsAndPolicies/ownerSummary/licenseThreatGroupSummaryTile/applicableLicenseThreatGroupTable';
+@use '../OrgsAndPolicies/continuousMonitoringEditor/continuousMonitoringEditor';
+@use '../OrgsAndPolicies/ownerModal/ownerModal';
+@use '../OrgsAndPolicies/ownersTreePage/ownersTreePage';
+@use '../OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsSummaryPage';
+@use '../OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsComponentsTable/repositoryResultsComponentsTable';
+@use '../OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsComponentsTable/repositoryResultsComponentsFilter/repositoryResultsComponentsFilter';
+@use '../OrgsAndPolicies/legacyViolationsEditor/legacyViolationsEditor';
+@use '../OrgsAndPolicies/selectContactModal/selectContactModal';
+@use '../OrgsAndPolicies/dataRetentionEditor/dataRetentionEditor';
+@use '../OrgsAndPolicies/evaluateApplicationModal/evaluateApplication';
+@use '../OrgsAndPolicies/sourceControlConfiguration/sourceControlConfiguration';
+@use '../OrgsAndPolicies/manageGitHubApps/manageGitHubApps';
+@use '../OrgsAndPolicies/actionDropdown/actionDropdown';
+@use '../OrgsAndPolicies/navigation/ownerDetailSidebar';
+@use '../OrgsAndPolicies/sourceControlRateLimits/sourceControlRateLimits';
+@use '../OrgsAndPolicies/insufficientPermissionOwnerHierarchyTree/InsufficientPermissionOwnerHierarchyTree';
+@use '../OrgsAndPolicies/ownerSummary/sbomsTile/_sbomsTile.scss';
+@use '../OrgsAndPolicies/importSbomModal/import-sbom-modal';
+@use '../OrgsAndPolicies/publicDataSources/publicDataSourcesEditor';
+
+// `tiles` (above) pulls in typography's `h1 { line-height: 28px }`, which vertically clips the taller
+// `.nx-h1` (32px, overflow: hidden). Classic corrects this in _bootstrap-overrides.scss, but that
+// partial carries a bare `a { }` rule that would touch the shell, so restore just the heading
+// line-heights, scoped to the embed mount so the Nexus One shell's own headings are untouched.
+.nosc-classic-mount {
+  .nx-h1,
+  .nx-h2,
+  .nx-h3,
+  .nx-h4 {
+    line-height: var(--nx-line-height);
+  }
+}
+
+// Orgs embed uses ClassicComponentMount layout="page": #iq-content is a direct child of .nx-page
+// and is display:contents, so the owner sidebar + detail pane fill the shell content box's 1fr
+// grid row. Without a definite block size on the mount, that row collapses and the sidebar
+// renders as a short floating card (the broken layout that layout="page" fixes).
+.nosc-classic-mount[data-layout='page'] {
+  // top/bottom from the fixed shell offsets already size the box; keep overflow clipped like
+  // Classic .nx-page so the viewport-sized detail pane scrolls internally.
+  overflow: hidden;
+}

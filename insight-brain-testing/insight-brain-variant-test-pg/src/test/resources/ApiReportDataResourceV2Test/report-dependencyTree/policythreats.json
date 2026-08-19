@@ -1,0 +1,968 @@
+{
+  "version" : 5,
+  "aaData" : [ {
+    "hash" : "0f0cc5d04adc5003b8c7",
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "boom",
+        "version" : "3.2.2"
+      }
+    },
+    "policyId" : "d462c40a75ca403188072476a87e6176",
+    "policyName" : "Integrity-Rating",
+    "policyThreatLevel" : 9,
+    "activeViolations" : [ {
+      "policyId" : "47797f579ec94e71bc3a85803da68568",
+      "policyViolationId" : "06da0b0fdbff476f9715dd664c0cc401",
+      "policyName" : "Architecture-Quality",
+      "policyThreatLevel" : 1,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"76e61e77ce7d4ccfb515c78626379eec\",\"constraintName\":\"Version is old\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"AgeInDays\",\"conditionIndex\":0,\"summary\":\"Age older than 1825 days\",\"reason\":\"Found component older than 5 years\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "76e61e77ce7d4ccfb515c78626379eec",
+        "constraintName" : "Version is old",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "AgeInDays",
+          "conditionSummary" : "Age older than 1825 days",
+          "conditionReason" : "Found component older than 5 years",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY"
+    }, {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyViolationId" : "619e038b712b4025ad82ff8c6a719e9a",
+      "policyName" : "Security-Medium",
+      "policyThreatLevel" : 7,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"b93083d6afb64436ab165470ef455106\",\"constraintName\":\"Medium risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 4\",\"reason\":\"Found security vulnerability sonatype-2016-0091 with severity >= 4 (severity = 4.6)\",\"reference\":{\"value\":\"sonatype-2016-0091\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2016-0091\\\",\\\"severity\\\":4.6}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 7\",\"reason\":\"Found security vulnerability sonatype-2016-0091 with severity < 7 (severity = 4.6)\",\"reference\":{\"value\":\"sonatype-2016-0091\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2016-0091\\\",\\\"severity\\\":4.6}}\"}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "b93083d6afb64436ab165470ef455106",
+        "constraintName" : "Medium risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 4",
+          "conditionReason" : "Found security vulnerability sonatype-2016-0091 with severity >= 4 (severity = 4.6)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2016-0091",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 7",
+          "conditionReason" : "Found security vulnerability sonatype-2016-0091 with severity < 7 (severity = 4.6)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2016-0091",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "d462c40a75ca403188072476a87e6176",
+      "policyViolationId" : "1277787c241a463baf6592df4d7db94d",
+      "policyName" : "Integrity-Rating",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"0fa35829177b4a8f855bd94c62c3445e\",\"constraintName\":\"Pending integrity rating\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"IntegrityRating\",\"conditionIndex\":0,\"summary\":\"Integrity Rating is Pending\",\"reason\":\"Integrity Rating was Pending\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "0fa35829177b4a8f855bd94c62c3445e",
+        "constraintName" : "Pending integrity rating",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "IntegrityRating",
+          "conditionSummary" : "Integrity Rating is Pending",
+          "conditionReason" : "Integrity Rating was Pending",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY"
+    } ],
+    "waivedViolations" : [ ],
+    "allViolations" : [ {
+      "policyId" : "47797f579ec94e71bc3a85803da68568",
+      "policyViolationId" : "06da0b0fdbff476f9715dd664c0cc401",
+      "policyName" : "Architecture-Quality",
+      "policyThreatLevel" : 1,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"76e61e77ce7d4ccfb515c78626379eec\",\"constraintName\":\"Version is old\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"AgeInDays\",\"conditionIndex\":0,\"summary\":\"Age older than 1825 days\",\"reason\":\"Found component older than 5 years\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "76e61e77ce7d4ccfb515c78626379eec",
+        "constraintName" : "Version is old",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "AgeInDays",
+          "conditionSummary" : "Age older than 1825 days",
+          "conditionReason" : "Found component older than 5 years",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY"
+    }, {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyViolationId" : "619e038b712b4025ad82ff8c6a719e9a",
+      "policyName" : "Security-Medium",
+      "policyThreatLevel" : 7,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"b93083d6afb64436ab165470ef455106\",\"constraintName\":\"Medium risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 4\",\"reason\":\"Found security vulnerability sonatype-2016-0091 with severity >= 4 (severity = 4.6)\",\"reference\":{\"value\":\"sonatype-2016-0091\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2016-0091\\\",\\\"severity\\\":4.6}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 7\",\"reason\":\"Found security vulnerability sonatype-2016-0091 with severity < 7 (severity = 4.6)\",\"reference\":{\"value\":\"sonatype-2016-0091\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2016-0091\\\",\\\"severity\\\":4.6}}\"}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "b93083d6afb64436ab165470ef455106",
+        "constraintName" : "Medium risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 4",
+          "conditionReason" : "Found security vulnerability sonatype-2016-0091 with severity >= 4 (severity = 4.6)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2016-0091",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 7",
+          "conditionReason" : "Found security vulnerability sonatype-2016-0091 with severity < 7 (severity = 4.6)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2016-0091",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "d462c40a75ca403188072476a87e6176",
+      "policyViolationId" : "1277787c241a463baf6592df4d7db94d",
+      "policyName" : "Integrity-Rating",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"0fa35829177b4a8f855bd94c62c3445e\",\"constraintName\":\"Pending integrity rating\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"IntegrityRating\",\"conditionIndex\":0,\"summary\":\"Integrity Rating is Pending\",\"reason\":\"Integrity Rating was Pending\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "0fa35829177b4a8f855bd94c62c3445e",
+        "constraintName" : "Pending integrity rating",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "IntegrityRating",
+          "conditionSummary" : "Integrity Rating is Pending",
+          "conditionReason" : "Integrity Rating was Pending",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY"
+    } ]
+  }, {
+    "hash" : "ba067b0885e9c0726c8c",
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "hawk",
+        "version" : "4.1.2"
+      }
+    },
+    "policyId" : "d462c40a75ca403188072476a87e6176",
+    "policyName" : "Integrity-Rating",
+    "policyThreatLevel" : 9,
+    "activeViolations" : [ {
+      "policyId" : "47797f579ec94e71bc3a85803da68568",
+      "policyViolationId" : "0c93b3b6a61a48d1b489c69d13049e99",
+      "policyName" : "Architecture-Quality",
+      "policyThreatLevel" : 1,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"76e61e77ce7d4ccfb515c78626379eec\",\"constraintName\":\"Version is old\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"AgeInDays\",\"conditionIndex\":0,\"summary\":\"Age older than 1825 days\",\"reason\":\"Found component older than 5 years\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "76e61e77ce7d4ccfb515c78626379eec",
+        "constraintName" : "Version is old",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "AgeInDays",
+          "conditionSummary" : "Age older than 1825 days",
+          "conditionReason" : "Found component older than 5 years",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY"
+    }, {
+      "policyId" : "d462c40a75ca403188072476a87e6176",
+      "policyViolationId" : "fdc37f728cd34a22b58270173c5f3473",
+      "policyName" : "Integrity-Rating",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"0fa35829177b4a8f855bd94c62c3445e\",\"constraintName\":\"Pending integrity rating\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"IntegrityRating\",\"conditionIndex\":0,\"summary\":\"Integrity Rating is Pending\",\"reason\":\"Integrity Rating was Pending\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "0fa35829177b4a8f855bd94c62c3445e",
+        "constraintName" : "Pending integrity rating",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "IntegrityRating",
+          "conditionSummary" : "Integrity Rating is Pending",
+          "conditionReason" : "Integrity Rating was Pending",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY"
+    } ],
+    "waivedViolations" : [ ],
+    "allViolations" : [ {
+      "policyId" : "47797f579ec94e71bc3a85803da68568",
+      "policyViolationId" : "0c93b3b6a61a48d1b489c69d13049e99",
+      "policyName" : "Architecture-Quality",
+      "policyThreatLevel" : 1,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"76e61e77ce7d4ccfb515c78626379eec\",\"constraintName\":\"Version is old\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"AgeInDays\",\"conditionIndex\":0,\"summary\":\"Age older than 1825 days\",\"reason\":\"Found component older than 5 years\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "76e61e77ce7d4ccfb515c78626379eec",
+        "constraintName" : "Version is old",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "AgeInDays",
+          "conditionSummary" : "Age older than 1825 days",
+          "conditionReason" : "Found component older than 5 years",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY"
+    }, {
+      "policyId" : "d462c40a75ca403188072476a87e6176",
+      "policyViolationId" : "fdc37f728cd34a22b58270173c5f3473",
+      "policyName" : "Integrity-Rating",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"0fa35829177b4a8f855bd94c62c3445e\",\"constraintName\":\"Pending integrity rating\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"IntegrityRating\",\"conditionIndex\":0,\"summary\":\"Integrity Rating is Pending\",\"reason\":\"Integrity Rating was Pending\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "0fa35829177b4a8f855bd94c62c3445e",
+        "constraintName" : "Pending integrity rating",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "IntegrityRating",
+          "conditionSummary" : "Integrity Rating is Pending",
+          "conditionReason" : "Integrity Rating was Pending",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY"
+    } ]
+  }, {
+    "hash" : "268adff66bb6695c69b4",
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "hoek",
+        "version" : "3.0.4"
+      }
+    },
+    "policyId" : "7bac78bcdd424543b1cf8d6983f3fb58",
+    "policyName" : "Security-High",
+    "policyThreatLevel" : 9,
+    "activeViolations" : [ {
+      "policyId" : "47797f579ec94e71bc3a85803da68568",
+      "policyViolationId" : "5dbabbe7c3334ba98e38240d61cd9056",
+      "policyName" : "Architecture-Quality",
+      "policyThreatLevel" : 1,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"76e61e77ce7d4ccfb515c78626379eec\",\"constraintName\":\"Version is old\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"AgeInDays\",\"conditionIndex\":0,\"summary\":\"Age older than 1825 days\",\"reason\":\"Found component older than 5 years\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "76e61e77ce7d4ccfb515c78626379eec",
+        "constraintName" : "Version is old",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "AgeInDays",
+          "conditionSummary" : "Age older than 1825 days",
+          "conditionReason" : "Found component older than 5 years",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY"
+    }, {
+      "policyId" : "7bac78bcdd424543b1cf8d6983f3fb58",
+      "policyViolationId" : "fe1b8c397a9e4de5893fb5e0d5c03913",
+      "policyName" : "Security-High",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"03eb3f1a3af84b108452c47e1e998393\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability CVE-2018-3728 with severity >= 7 (severity = 8.8)\",\"reference\":{\"value\":\"CVE-2018-3728\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"CVE-2018-3728\\\",\\\"severity\\\":8.8}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 9\",\"reason\":\"Found security vulnerability CVE-2018-3728 with severity < 9 (severity = 8.8)\",\"reference\":{\"value\":\"CVE-2018-3728\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"CVE-2018-3728\\\",\\\"severity\\\":8.8}}\"}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "03eb3f1a3af84b108452c47e1e998393",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability CVE-2018-3728 with severity >= 7 (severity = 8.8)",
+          "conditionTriggerReference" : {
+            "value" : "CVE-2018-3728",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 9",
+          "conditionReason" : "Found security vulnerability CVE-2018-3728 with severity < 9 (severity = 8.8)",
+          "conditionTriggerReference" : {
+            "value" : "CVE-2018-3728",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyViolationId" : "8620af0b7d0142e399650f98f38a2de2",
+      "policyName" : "Security-Medium",
+      "policyThreatLevel" : 7,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"b93083d6afb64436ab165470ef455106\",\"constraintName\":\"Medium risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 4\",\"reason\":\"Found security vulnerability sonatype-2020-0074 with severity >= 4 (severity = 5.6)\",\"reference\":{\"value\":\"sonatype-2020-0074\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2020-0074\\\",\\\"severity\\\":5.6}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 7\",\"reason\":\"Found security vulnerability sonatype-2020-0074 with severity < 7 (severity = 5.6)\",\"reference\":{\"value\":\"sonatype-2020-0074\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2020-0074\\\",\\\"severity\\\":5.6}}\"}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "b93083d6afb64436ab165470ef455106",
+        "constraintName" : "Medium risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 4",
+          "conditionReason" : "Found security vulnerability sonatype-2020-0074 with severity >= 4 (severity = 5.6)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2020-0074",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 7",
+          "conditionReason" : "Found security vulnerability sonatype-2020-0074 with severity < 7 (severity = 5.6)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2020-0074",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "d462c40a75ca403188072476a87e6176",
+      "policyViolationId" : "aa51ce3011b64c6192763561b194b111",
+      "policyName" : "Integrity-Rating",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"0fa35829177b4a8f855bd94c62c3445e\",\"constraintName\":\"Pending integrity rating\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"IntegrityRating\",\"conditionIndex\":0,\"summary\":\"Integrity Rating is Pending\",\"reason\":\"Integrity Rating was Pending\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "0fa35829177b4a8f855bd94c62c3445e",
+        "constraintName" : "Pending integrity rating",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "IntegrityRating",
+          "conditionSummary" : "Integrity Rating is Pending",
+          "conditionReason" : "Integrity Rating was Pending",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY"
+    } ],
+    "waivedViolations" : [ ],
+    "allViolations" : [ {
+      "policyId" : "47797f579ec94e71bc3a85803da68568",
+      "policyViolationId" : "5dbabbe7c3334ba98e38240d61cd9056",
+      "policyName" : "Architecture-Quality",
+      "policyThreatLevel" : 1,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"76e61e77ce7d4ccfb515c78626379eec\",\"constraintName\":\"Version is old\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"AgeInDays\",\"conditionIndex\":0,\"summary\":\"Age older than 1825 days\",\"reason\":\"Found component older than 5 years\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "76e61e77ce7d4ccfb515c78626379eec",
+        "constraintName" : "Version is old",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "AgeInDays",
+          "conditionSummary" : "Age older than 1825 days",
+          "conditionReason" : "Found component older than 5 years",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY"
+    }, {
+      "policyId" : "7bac78bcdd424543b1cf8d6983f3fb58",
+      "policyViolationId" : "fe1b8c397a9e4de5893fb5e0d5c03913",
+      "policyName" : "Security-High",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"03eb3f1a3af84b108452c47e1e998393\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability CVE-2018-3728 with severity >= 7 (severity = 8.8)\",\"reference\":{\"value\":\"CVE-2018-3728\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"CVE-2018-3728\\\",\\\"severity\\\":8.8}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 9\",\"reason\":\"Found security vulnerability CVE-2018-3728 with severity < 9 (severity = 8.8)\",\"reference\":{\"value\":\"CVE-2018-3728\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"CVE-2018-3728\\\",\\\"severity\\\":8.8}}\"}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "03eb3f1a3af84b108452c47e1e998393",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability CVE-2018-3728 with severity >= 7 (severity = 8.8)",
+          "conditionTriggerReference" : {
+            "value" : "CVE-2018-3728",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 9",
+          "conditionReason" : "Found security vulnerability CVE-2018-3728 with severity < 9 (severity = 8.8)",
+          "conditionTriggerReference" : {
+            "value" : "CVE-2018-3728",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyViolationId" : "8620af0b7d0142e399650f98f38a2de2",
+      "policyName" : "Security-Medium",
+      "policyThreatLevel" : 7,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"b93083d6afb64436ab165470ef455106\",\"constraintName\":\"Medium risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 4\",\"reason\":\"Found security vulnerability sonatype-2020-0074 with severity >= 4 (severity = 5.6)\",\"reference\":{\"value\":\"sonatype-2020-0074\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2020-0074\\\",\\\"severity\\\":5.6}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 7\",\"reason\":\"Found security vulnerability sonatype-2020-0074 with severity < 7 (severity = 5.6)\",\"reference\":{\"value\":\"sonatype-2020-0074\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2020-0074\\\",\\\"severity\\\":5.6}}\"}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "b93083d6afb64436ab165470ef455106",
+        "constraintName" : "Medium risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 4",
+          "conditionReason" : "Found security vulnerability sonatype-2020-0074 with severity >= 4 (severity = 5.6)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2020-0074",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 7",
+          "conditionReason" : "Found security vulnerability sonatype-2020-0074 with severity < 7 (severity = 5.6)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2020-0074",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "d462c40a75ca403188072476a87e6176",
+      "policyViolationId" : "aa51ce3011b64c6192763561b194b111",
+      "policyName" : "Integrity-Rating",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"0fa35829177b4a8f855bd94c62c3445e\",\"constraintName\":\"Pending integrity rating\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"IntegrityRating\",\"conditionIndex\":0,\"summary\":\"Integrity Rating is Pending\",\"reason\":\"Integrity Rating was Pending\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "0fa35829177b4a8f855bd94c62c3445e",
+        "constraintName" : "Pending integrity rating",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "IntegrityRating",
+          "conditionSummary" : "Integrity Rating is Pending",
+          "conditionReason" : "Integrity Rating was Pending",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY"
+    } ]
+  }, {
+    "hash" : "769a68c95612b56faadf",
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "cryptiles",
+        "version" : "3.1.4"
+      }
+    },
+    "policyId" : "628e351eac0640578ba85eb5bc7486ba",
+    "policyName" : "Security-Critical",
+    "policyThreatLevel" : 10,
+    "activeViolations" : [ {
+      "policyId" : "628e351eac0640578ba85eb5bc7486ba",
+      "policyViolationId" : "8c811ddeec974846be6c9f5dc2d9519e",
+      "policyName" : "Security-Critical",
+      "policyThreatLevel" : 10,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"78b78c4a8dc2472397c5976d2e9e4e0f\",\"constraintName\":\"Critical risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 9\",\"reason\":\"Found security vulnerability CVE-2018-1000620 with severity >= 9 (severity = 9.8)\",\"reference\":{\"value\":\"CVE-2018-1000620\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"CVE-2018-1000620\\\",\\\"severity\\\":9.8}}\"}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "78b78c4a8dc2472397c5976d2e9e4e0f",
+        "constraintName" : "Critical risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 9",
+          "conditionReason" : "Found security vulnerability CVE-2018-1000620 with severity >= 9 (severity = 9.8)",
+          "conditionTriggerReference" : {
+            "value" : "CVE-2018-1000620",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "d462c40a75ca403188072476a87e6176",
+      "policyViolationId" : "c54a6818edee47648cffd1c190158cd1",
+      "policyName" : "Integrity-Rating",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"0fa35829177b4a8f855bd94c62c3445e\",\"constraintName\":\"Pending integrity rating\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"IntegrityRating\",\"conditionIndex\":0,\"summary\":\"Integrity Rating is Pending\",\"reason\":\"Integrity Rating was Pending\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "0fa35829177b4a8f855bd94c62c3445e",
+        "constraintName" : "Pending integrity rating",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "IntegrityRating",
+          "conditionSummary" : "Integrity Rating is Pending",
+          "conditionReason" : "Integrity Rating was Pending",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY"
+    } ],
+    "waivedViolations" : [ ],
+    "allViolations" : [ {
+      "policyId" : "628e351eac0640578ba85eb5bc7486ba",
+      "policyViolationId" : "8c811ddeec974846be6c9f5dc2d9519e",
+      "policyName" : "Security-Critical",
+      "policyThreatLevel" : 10,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"78b78c4a8dc2472397c5976d2e9e4e0f\",\"constraintName\":\"Critical risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 9\",\"reason\":\"Found security vulnerability CVE-2018-1000620 with severity >= 9 (severity = 9.8)\",\"reference\":{\"value\":\"CVE-2018-1000620\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"CVE-2018-1000620\\\",\\\"severity\\\":9.8}}\"}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "78b78c4a8dc2472397c5976d2e9e4e0f",
+        "constraintName" : "Critical risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 9",
+          "conditionReason" : "Found security vulnerability CVE-2018-1000620 with severity >= 9 (severity = 9.8)",
+          "conditionTriggerReference" : {
+            "value" : "CVE-2018-1000620",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "d462c40a75ca403188072476a87e6176",
+      "policyViolationId" : "c54a6818edee47648cffd1c190158cd1",
+      "policyName" : "Integrity-Rating",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"0fa35829177b4a8f855bd94c62c3445e\",\"constraintName\":\"Pending integrity rating\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"IntegrityRating\",\"conditionIndex\":0,\"summary\":\"Integrity Rating is Pending\",\"reason\":\"Integrity Rating was Pending\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "0fa35829177b4a8f855bd94c62c3445e",
+        "constraintName" : "Pending integrity rating",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "IntegrityRating",
+          "conditionSummary" : "Integrity Rating is Pending",
+          "conditionReason" : "Integrity Rating was Pending",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY"
+    } ]
+  }, {
+    "hash" : "5dd9da6ee3a5f3020774",
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "boom",
+        "version" : "5.2.0"
+      }
+    },
+    "policyId" : "d462c40a75ca403188072476a87e6176",
+    "policyName" : "Integrity-Rating",
+    "policyThreatLevel" : 9,
+    "activeViolations" : [ {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyViolationId" : "282d1dd677d644baba2fd3b414074eac",
+      "policyName" : "Security-Medium",
+      "policyThreatLevel" : 7,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"b93083d6afb64436ab165470ef455106\",\"constraintName\":\"Medium risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 4\",\"reason\":\"Found security vulnerability sonatype-2016-0091 with severity >= 4 (severity = 4.6)\",\"reference\":{\"value\":\"sonatype-2016-0091\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2016-0091\\\",\\\"severity\\\":4.6}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 7\",\"reason\":\"Found security vulnerability sonatype-2016-0091 with severity < 7 (severity = 4.6)\",\"reference\":{\"value\":\"sonatype-2016-0091\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2016-0091\\\",\\\"severity\\\":4.6}}\"}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "b93083d6afb64436ab165470ef455106",
+        "constraintName" : "Medium risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 4",
+          "conditionReason" : "Found security vulnerability sonatype-2016-0091 with severity >= 4 (severity = 4.6)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2016-0091",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 7",
+          "conditionReason" : "Found security vulnerability sonatype-2016-0091 with severity < 7 (severity = 4.6)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2016-0091",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "d462c40a75ca403188072476a87e6176",
+      "policyViolationId" : "f532b76b332e45438e0e32e431c4dd8f",
+      "policyName" : "Integrity-Rating",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"0fa35829177b4a8f855bd94c62c3445e\",\"constraintName\":\"Pending integrity rating\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"IntegrityRating\",\"conditionIndex\":0,\"summary\":\"Integrity Rating is Pending\",\"reason\":\"Integrity Rating was Pending\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "0fa35829177b4a8f855bd94c62c3445e",
+        "constraintName" : "Pending integrity rating",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "IntegrityRating",
+          "conditionSummary" : "Integrity Rating is Pending",
+          "conditionReason" : "Integrity Rating was Pending",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY"
+    } ],
+    "waivedViolations" : [ ],
+    "allViolations" : [ {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyViolationId" : "282d1dd677d644baba2fd3b414074eac",
+      "policyName" : "Security-Medium",
+      "policyThreatLevel" : 7,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"b93083d6afb64436ab165470ef455106\",\"constraintName\":\"Medium risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 4\",\"reason\":\"Found security vulnerability sonatype-2016-0091 with severity >= 4 (severity = 4.6)\",\"reference\":{\"value\":\"sonatype-2016-0091\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2016-0091\\\",\\\"severity\\\":4.6}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 7\",\"reason\":\"Found security vulnerability sonatype-2016-0091 with severity < 7 (severity = 4.6)\",\"reference\":{\"value\":\"sonatype-2016-0091\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2016-0091\\\",\\\"severity\\\":4.6}}\"}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "b93083d6afb64436ab165470ef455106",
+        "constraintName" : "Medium risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 4",
+          "conditionReason" : "Found security vulnerability sonatype-2016-0091 with severity >= 4 (severity = 4.6)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2016-0091",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 7",
+          "conditionReason" : "Found security vulnerability sonatype-2016-0091 with severity < 7 (severity = 4.6)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2016-0091",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "d462c40a75ca403188072476a87e6176",
+      "policyViolationId" : "f532b76b332e45438e0e32e431c4dd8f",
+      "policyName" : "Integrity-Rating",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"0fa35829177b4a8f855bd94c62c3445e\",\"constraintName\":\"Pending integrity rating\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"IntegrityRating\",\"conditionIndex\":0,\"summary\":\"Integrity Rating is Pending\",\"reason\":\"Integrity Rating was Pending\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "0fa35829177b4a8f855bd94c62c3445e",
+        "constraintName" : "Pending integrity rating",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "IntegrityRating",
+          "conditionSummary" : "Integrity Rating is Pending",
+          "conditionReason" : "Integrity Rating was Pending",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY"
+    } ]
+  }, {
+    "hash" : "9634502aa12c445dd5a7",
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "hoek",
+        "version" : "4.2.1"
+      }
+    },
+    "policyId" : "d462c40a75ca403188072476a87e6176",
+    "policyName" : "Integrity-Rating",
+    "policyThreatLevel" : 9,
+    "activeViolations" : [ {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyViolationId" : "6aa7ed6ded84482c9301fa613c982f59",
+      "policyName" : "Security-Medium",
+      "policyThreatLevel" : 7,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"b93083d6afb64436ab165470ef455106\",\"constraintName\":\"Medium risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 4\",\"reason\":\"Found security vulnerability sonatype-2020-0074 with severity >= 4 (severity = 5.6)\",\"reference\":{\"value\":\"sonatype-2020-0074\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2020-0074\\\",\\\"severity\\\":5.6}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 7\",\"reason\":\"Found security vulnerability sonatype-2020-0074 with severity < 7 (severity = 5.6)\",\"reference\":{\"value\":\"sonatype-2020-0074\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2020-0074\\\",\\\"severity\\\":5.6}}\"}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "b93083d6afb64436ab165470ef455106",
+        "constraintName" : "Medium risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 4",
+          "conditionReason" : "Found security vulnerability sonatype-2020-0074 with severity >= 4 (severity = 5.6)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2020-0074",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 7",
+          "conditionReason" : "Found security vulnerability sonatype-2020-0074 with severity < 7 (severity = 5.6)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2020-0074",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "d462c40a75ca403188072476a87e6176",
+      "policyViolationId" : "9ac50ff0a20949fca30bae041606d5cc",
+      "policyName" : "Integrity-Rating",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"0fa35829177b4a8f855bd94c62c3445e\",\"constraintName\":\"Pending integrity rating\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"IntegrityRating\",\"conditionIndex\":0,\"summary\":\"Integrity Rating is Pending\",\"reason\":\"Integrity Rating was Pending\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "0fa35829177b4a8f855bd94c62c3445e",
+        "constraintName" : "Pending integrity rating",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "IntegrityRating",
+          "conditionSummary" : "Integrity Rating is Pending",
+          "conditionReason" : "Integrity Rating was Pending",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY"
+    } ],
+    "waivedViolations" : [ ],
+    "allViolations" : [ {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyViolationId" : "6aa7ed6ded84482c9301fa613c982f59",
+      "policyName" : "Security-Medium",
+      "policyThreatLevel" : 7,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"b93083d6afb64436ab165470ef455106\",\"constraintName\":\"Medium risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 4\",\"reason\":\"Found security vulnerability sonatype-2020-0074 with severity >= 4 (severity = 5.6)\",\"reference\":{\"value\":\"sonatype-2020-0074\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2020-0074\\\",\\\"severity\\\":5.6}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 7\",\"reason\":\"Found security vulnerability sonatype-2020-0074 with severity < 7 (severity = 5.6)\",\"reference\":{\"value\":\"sonatype-2020-0074\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2020-0074\\\",\\\"severity\\\":5.6}}\"}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "b93083d6afb64436ab165470ef455106",
+        "constraintName" : "Medium risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 4",
+          "conditionReason" : "Found security vulnerability sonatype-2020-0074 with severity >= 4 (severity = 5.6)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2020-0074",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 7",
+          "conditionReason" : "Found security vulnerability sonatype-2020-0074 with severity < 7 (severity = 5.6)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2020-0074",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "d462c40a75ca403188072476a87e6176",
+      "policyViolationId" : "9ac50ff0a20949fca30bae041606d5cc",
+      "policyName" : "Integrity-Rating",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"0fa35829177b4a8f855bd94c62c3445e\",\"constraintName\":\"Pending integrity rating\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"IntegrityRating\",\"conditionIndex\":0,\"summary\":\"Integrity Rating is Pending\",\"reason\":\"Integrity Rating was Pending\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "0fa35829177b4a8f855bd94c62c3445e",
+        "constraintName" : "Pending integrity rating",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "IntegrityRating",
+          "conditionSummary" : "Integrity Rating is Pending",
+          "conditionReason" : "Integrity Rating was Pending",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY"
+    } ]
+  }, {
+    "hash" : "2c6cec14fedc2222739c",
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "sntp",
+        "version" : "2.1.0"
+      }
+    },
+    "policyId" : "d462c40a75ca403188072476a87e6176",
+    "policyName" : "Integrity-Rating",
+    "policyThreatLevel" : 9,
+    "activeViolations" : [ {
+      "policyId" : "d462c40a75ca403188072476a87e6176",
+      "policyViolationId" : "4cec586e1f164de9a3f50fe2a38457dd",
+      "policyName" : "Integrity-Rating",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"0fa35829177b4a8f855bd94c62c3445e\",\"constraintName\":\"Pending integrity rating\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"IntegrityRating\",\"conditionIndex\":0,\"summary\":\"Integrity Rating is Pending\",\"reason\":\"Integrity Rating was Pending\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "0fa35829177b4a8f855bd94c62c3445e",
+        "constraintName" : "Pending integrity rating",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "IntegrityRating",
+          "conditionSummary" : "Integrity Rating is Pending",
+          "conditionReason" : "Integrity Rating was Pending",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY"
+    } ],
+    "waivedViolations" : [ ],
+    "allViolations" : [ {
+      "policyId" : "d462c40a75ca403188072476a87e6176",
+      "policyViolationId" : "4cec586e1f164de9a3f50fe2a38457dd",
+      "policyName" : "Integrity-Rating",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"0fa35829177b4a8f855bd94c62c3445e\",\"constraintName\":\"Pending integrity rating\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"IntegrityRating\",\"conditionIndex\":0,\"summary\":\"Integrity Rating is Pending\",\"reason\":\"Integrity Rating was Pending\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "0fa35829177b4a8f855bd94c62c3445e",
+        "constraintName" : "Pending integrity rating",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "IntegrityRating",
+          "conditionSummary" : "Integrity Rating is Pending",
+          "conditionReason" : "Integrity Rating was Pending",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY"
+    } ]
+  }, {
+    "hash" : "6ca0f8ec393009c71b7b",
+    "componentIdentifier" : null,
+    "policyId" : "fd16f509cbd24bafbd881ef5e9851b88",
+    "policyName" : "Component-Unknown",
+    "policyThreatLevel" : 2,
+    "activeViolations" : [ {
+      "policyId" : "fd16f509cbd24bafbd881ef5e9851b88",
+      "policyViolationId" : "1755ea77bf804b8fa3103ff081efdce2",
+      "policyName" : "Component-Unknown",
+      "policyThreatLevel" : 2,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"48842baa663748cd86542056bcb293c1\",\"constraintName\":\"Unknown 3rd party component\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"MatchState\",\"conditionIndex\":0,\"summary\":\"Match State is unknown\",\"reason\":\"Match state was 'Unknown'\",\"reference\":null,\"triggerJson\":null},{\"conditionTypeId\":\"Proprietary\",\"conditionIndex\":1,\"summary\":\"Proprietary is false\",\"reason\":\"Component does not contain proprietary packages\",\"reference\":null,\"triggerJson\":null},{\"conditionTypeId\":\"DataSource\",\"conditionIndex\":2,\"summary\":\"Data Source has support for identity\",\"reason\":\"Data Source has support for Identity\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "48842baa663748cd86542056bcb293c1",
+        "constraintName" : "Unknown 3rd party component",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "MatchState",
+          "conditionSummary" : "Match State is unknown",
+          "conditionReason" : "Match state was 'Unknown'",
+          "conditionTriggerReference" : null
+        }, {
+          "conditionType" : "Proprietary",
+          "conditionSummary" : "Proprietary is false",
+          "conditionReason" : "Component does not contain proprietary packages",
+          "conditionTriggerReference" : null
+        }, {
+          "conditionType" : "DataSource",
+          "conditionSummary" : "Data Source has support for identity",
+          "conditionReason" : "Data Source has support for Identity",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "OTHER"
+    } ],
+    "waivedViolations" : [ ],
+    "allViolations" : [ {
+      "policyId" : "fd16f509cbd24bafbd881ef5e9851b88",
+      "policyViolationId" : "1755ea77bf804b8fa3103ff081efdce2",
+      "policyName" : "Component-Unknown",
+      "policyThreatLevel" : 2,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"48842baa663748cd86542056bcb293c1\",\"constraintName\":\"Unknown 3rd party component\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"MatchState\",\"conditionIndex\":0,\"summary\":\"Match State is unknown\",\"reason\":\"Match state was 'Unknown'\",\"reference\":null,\"triggerJson\":null},{\"conditionTypeId\":\"Proprietary\",\"conditionIndex\":1,\"summary\":\"Proprietary is false\",\"reason\":\"Component does not contain proprietary packages\",\"reference\":null,\"triggerJson\":null},{\"conditionTypeId\":\"DataSource\",\"conditionIndex\":2,\"summary\":\"Data Source has support for identity\",\"reason\":\"Data Source has support for Identity\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "48842baa663748cd86542056bcb293c1",
+        "constraintName" : "Unknown 3rd party component",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "MatchState",
+          "conditionSummary" : "Match State is unknown",
+          "conditionReason" : "Match state was 'Unknown'",
+          "conditionTriggerReference" : null
+        }, {
+          "conditionType" : "Proprietary",
+          "conditionSummary" : "Proprietary is false",
+          "conditionReason" : "Component does not contain proprietary packages",
+          "conditionTriggerReference" : null
+        }, {
+          "conditionType" : "DataSource",
+          "conditionSummary" : "Data Source has support for identity",
+          "conditionReason" : "Data Source has support for Identity",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "OTHER"
+    } ]
+  } ]
+}

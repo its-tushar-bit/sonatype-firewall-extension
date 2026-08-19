@@ -1,0 +1,100 @@
+environment:
+  properties:
+    jdkPathPrefix: 'target/jdks'
+    jdkDirectoryPrefix: 'temurin_25.0.3_9'
+    jdkFilePrefix: 'jdk-25.0.3+9'
+
+assemble:
+  jlink:
+    nexus-mtiq-server:
+      active: ALWAYS
+      imageName: '{{distributionName}}-{{projectVersion}}'
+      targetJdks:
+        - path: '{{jdkPathPrefix}}/{{jdkDirectoryPrefix}}_linux_x86_64/{{jdkFilePrefix}}'
+          platform: 'linux-x86_64'
+          extraProperties:
+            archiveFormat: TGZ
+        - path: '{{jdkPathPrefix}}/{{jdkDirectoryPrefix}}_linux_aarch64/{{jdkFilePrefix}}'
+          platform: 'linux-aarch_64'
+          extraProperties:
+            archiveFormat: TGZ
+      options:
+        longFileMode: POSIX
+        bigNumberMode: POSIX
+      jdeps:
+        enabled: false
+      moduleNames:
+        - java.base
+        - java.compiler
+        - java.instrument
+        - java.logging
+        - java.management
+        - java.management.rmi
+        - java.naming
+        - java.net.http
+        - java.prefs
+        - java.rmi
+        - java.scripting
+        - java.se
+        - java.security.jgss
+        - java.security.sasl
+        - java.sql
+        - java.sql.rowset
+        - java.transaction.xa
+        - java.xml
+        - java.xml.crypto
+        - jdk.accessibility
+        - jdk.attach
+        - jdk.charsets
+        - jdk.compiler
+        - jdk.crypto.cryptoki
+        - jdk.crypto.ec
+        - jdk.dynalink
+        - jdk.hotspot.agent
+        - jdk.httpserver
+        - jdk.internal.ed
+        - jdk.internal.jvmstat
+        - jdk.internal.le
+        - jdk.internal.opt
+        - jdk.internal.vm.ci
+        - jdk.jcmd
+        - jdk.jconsole
+        - jdk.jdi
+        - jdk.jdwp.agent
+        - jdk.jfr
+        - jdk.jpackage
+        - jdk.jshell
+        - jdk.jsobject
+        - jdk.jstatd
+        - jdk.localedata
+        - jdk.management
+        - jdk.management.agent
+        - jdk.management.jfr
+        - jdk.naming.dns
+        - jdk.naming.rmi
+        - jdk.net
+        - jdk.nio.mapmode
+        - jdk.sctp
+        - jdk.security.auth
+        - jdk.security.jgss
+        - jdk.unsupported
+        - jdk.xml.dom
+        - jdk.zipfs
+      java:
+        version: '25'
+        groupId: com.sonatype.insight.brain
+        artifactId: nexus-mtiq-server
+        mainClass: com.sonatype.insight.brain.service.MultiTenantInsightBrainService
+        jvmOptions:
+          # Runtime --add-opens flags read from jvm.options at the distribution root.
+          # Unix launcher sets APP_HOME ($VAR); Windows launcher sets BASEDIR (%VAR%) — split per shell.
+          unix:
+            - '@$APP_HOME/jvm.options'
+          windows:
+            - '@%BASEDIR%\jvm.options'
+      mainJar:
+        path: 'nexus-mtiq-server/target/nexus-mtiq-server.jar'
+
+      artifacts:
+        - path: jvm.options
+          transform: jvm.options

@@ -1,0 +1,40 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+#zscaler-limits {
+  h3 {
+    margin-bottom: var(--nx-spacing-base);
+  }
+
+  .nx-status-indicator {
+    margin-left: 0;
+  }
+}
+
+#zscaler-eula-checkbox {
+  align-items: start;
+
+  .nx-checkbox__box {
+    margin-top: 5px;
+  }
+
+  .nx-radio-checkbox__content {
+    overflow: unset;
+    text-overflow: unset;
+    white-space: normal;
+  }
+}
+
+#zscaler-config-format {
+  position: relative;
+
+  .config-format-tooltip__icon {
+    color: var(--nx-color-text-stark);
+    position: absolute;
+    top: -28px;
+    left: 175px;
+  }
+}

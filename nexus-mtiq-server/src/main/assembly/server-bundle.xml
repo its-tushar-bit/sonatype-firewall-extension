@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+    Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+    "Sonatype" is a trademark of Sonatype, Inc.
+
+-->
+<assembly>
+  <id>bundle</id>
+  <baseDirectory>${project.artifactId}-${project.version}-bundle</baseDirectory>
+  <includeBaseDirectory>false</includeBaseDirectory>
+  <formats>
+    <format>tar.gz</format>
+  </formats>
+  <fileSets>
+    <fileSet>
+      <directory>src/main/resources</directory>
+      <excludes>
+        <exclude>MultiTenantJwkLocalProvider/**</exclude>
+      </excludes>
+      <outputDirectory>.</outputDirectory>
+    </fileSet>
+  </fileSets>
+  <files>
+    <file>
+      <source>${project.build.directory}/nexus-mtiq-server.jar</source>
+      <outputDirectory>.</outputDirectory>
+      <destName>${clm.server.jar}</destName>
+    </file>
+  </files>
+</assembly>

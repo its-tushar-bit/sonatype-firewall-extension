@@ -1,0 +1,897 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+
+workspaceZip = 'workspace.zip'
+
+// moby/buildkit v0.31.2. Pinned by digest because Firewall quarantines every moby/buildkit tag; a digest
+// ref is not tag-quarantined.
+buildkitImageDigest = 'sha256:2f5adac4ecd194d9f8c10b7b5d7bceb5186853db1b26e5abd3a657af0b7e26ec'
+
+// IQ application the MTIQ container image is evaluated against. Separate from the 'insight-brain'
+// application used by the source scan so the image's OS violations stay out of the source report.
+mtiqImageIqApplication = 'docker-nexus-iq-server-mtiq'
+
+// One named buildx builder per agent, shared by the scan build and the RSC/ECR pushes so they
+// share a layer cache. buildx create without a name makes a new builder — and a cold cache — on
+// every call.
+mtiqBuildxBuilder = 'mtiq-buildx'
+
+configureBranchJob()
+make(
+    // 2024-05-03: We are using c6i.2xlarge EC2 instances. I tried c6i.4xlarge with "--threads 8" and there was no difference.
+    agentLabel: 'iq',
+    deployBranch: 'main',
+    useEventSpy: false,
+    javaVersion: 'OpenJDK 25',
+    mavenVersion: 'Maven 3.9.x',
+    mavenOptions: "-D skip-functional-test -D build.number=${env.BUILD_NUMBER} --threads 4",
+    retentionPolicy: currentBuild.fullProjectName.endsWith('/main') ? RetentionPolicy.HUNDRED_BUILDS : RetentionPolicy.SHORT_TERM,
+    snapshotBuildAndTest: { Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J ->
+      echo "Using mavenVersion='${mavenCommon.get('mavenVersion')}'"
+
+      /*
+        We skip tests on main because it runs the tests in parallel stages
+        which requires copying the workspace.
+       */
+      String mavenOptions = mavenCommon.get('mavenOptions')
+
+      mavenOptions += " -DskipTests"
+      mavenOptions += getRunRefPolicyImportIntTestMavenOption()
+
+      mavenCommon.put('mavenOptions', mavenOptions)
+
+      withSonatypeDockerRegistry() {
+        withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/",
+                 "TESTCONTAINERS_RYUK_DISABLED=true"]) {
+          runBuildAndParallelSteps(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
+        }
+      }
+    },
+    releaseBuild: { Map<String, ?> mavenCommon, String keystoreCredentialsId, boolean useInstall4J ->
+      withSonatypeDockerRegistry() {
+        withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/"]) {
+          buildAndSkipTests(mavenCommon, keystoreCredentialsId, false, useInstall4J)
+          // Download the JDKs and build the assemblies that will be included in the Jenkins artifacts that
+          // are used for releasing a bundled JDK with the server and cli
+          mvn mavenCommon, ' -pl :insight-brain -Pjdks -Pjenkins'
+          mvn mavenCommon, ' -pl :nexus-iq-server jreleaser:assemble'
+        }
+      }
+    },
+    releaseFromCommit: true,
+    snapshotProjectName: 'insight/insight-brain/feature-snapshots/main',
+    githubProjectUrl: 'git@github.com:sonatype/insight-brain.git',
+    runFeatureBranchPolicyEvaluations: true,
+    iqPolicyEvaluation: { stage ->
+        if (shouldRunPolicyEvaluation()) {
+          // Main-style builds always include full reachability analysis
+          def reachabilityConfig = [
+              javaAnalysis: [
+                  enable: true,
+                  includes: [
+                      [pattern: 'nexus-iq-server/target/insight-brain-service-*.jar']
+                  ],
+                  entrypointStrategy: 'JAVA_MAIN',
+                  namespaces: [
+                      [namespace: 'com.sonatype.insight']
+                  ]
+              ],
+              jsAnalysis: [
+                  enable: true,
+                  node: [
+                      executable: "${env.WORKSPACE}/insight-brain-frontend/node/node"
+                  ],
+                  projectDirectory: 'insight-brain-frontend',
+                  sourceFiles: [
+                      [pattern: 'src/main/**']
+                  ],
+                  excludeFiles: [
+                      [pattern: 'src/test/**']
+                  ]
+              ]
+          ]
+          nexusPolicyEvaluation iqStage: stage, iqApplication: 'insight-brain',
+              iqScanPatterns: [[scanPattern: 'insight-brain-frontend/target/webpack-modules']],
+              //Test files inside the maven modules are excluded from the scan
+              iqModuleExcludes: [[moduleExclude: '**/test/**'], [moduleExclude: '**/test-classes/**/module.xml']],
+              failBuildOnNetworkError: true,
+              reachability: reachabilityConfig,
+              unstableBuildOnScanningWarnings: false
+        }
+    },
+    distFiles: [
+      includes: [
+        'nexus-iq-server/target/jreleaser/assemble/nexus-iq-server/jlink/*.zip',
+        'nexus-iq-server/target/jreleaser/assemble/nexus-iq-server/jlink/*.tgz',
+        'nexus-iq-diagnostics/target/*.jar*',
+        'nexus-mtiq-server/target/*.tar.gz*'
+      ],
+      excludes: [
+        '**/*-sources.jar*',
+        '**/*-javadoc.jar*',
+        '**/original-*'
+      ]
+    ],
+    useSpotless: true,
+    releaseRetentionPolicy: RetentionPolicy.TEN_BUILDS,
+    onSuccess: {
+        postBuild()
+    },
+    // UNSTABLE publishes too, so a warn-level policy violation still yields an image in RSC rather
+    // than starving the branch of images while waivers are settled. This does not put an unstable
+    // image on the release path: postBuild()'s own isSuccess guard keeps the ECR push and the
+    // shared-dev deploy to SUCCESS builds only, and shared-dev is what gets promoted to prod-mirror
+    // and then to prod.
+    onUnstable: {
+        postBuild()
+    }
+)
+
+void postBuild() {
+  if (currentBuild.fullProjectName.contains("insight-brain/release")) {
+    echo 'Skipping MTIQ docker image for IQ on-premise release'
+    return
+  }
+
+  if (isMtiqImagePushEnabled()) {
+    def imageVersion = mtiqImageVersion()
+    // Build the MTIQ image (and optionally push to RSC)
+    pushMTIQDockerImage(isMtiqImagePushEnabled(), imageVersion)
+
+    // Main-branch-only actions
+    def isSuccess = currentBuild.currentResult == 'SUCCESS'
+    if (isSuccess && isDeployBranch(env, 'main')) {
+
+      // Push MTIQ image to dev ECR (reuses cached buildx layers — fast push only)
+      pushMTIQImageToEcr()
+
+      // Trigger TFC deployment to shared-dev cells
+      if (env.ECR_TAG) {
+        try {
+          echo "Triggering deploy-to-shared-dev with ECR_TAG=${env.ECR_TAG}"
+          build job: 'insight/MTIQ/sca-cloud/deploy-to-shared-dev',
+              parameters: [string(name: 'ECR_TAG', value: env.ECR_TAG)],
+              wait: false,
+              propagate: false
+        } catch (Exception e) {
+          echo "WARNING: Failed to trigger deploy-to-shared-dev job (non-fatal): ${e.message}"
+        }
+      } else {
+        echo "WARNING: ECR_TAG not set — ECR push may have failed. Skipping deploy-to-shared-dev trigger."
+      }
+    }
+  }
+}
+
+void configureBranchJob() {
+  // Use the project name to determine the branch
+  String projName = currentBuild.fullProjectName
+  boolean mtiqImagePushEnabledByDefault = (projName.toLowerCase().endsWith('/main') || projName.endsWith('_mtiq'))
+
+  // Main-style builds (Jenkinsfile.main) always run:
+  // - Full functional tests
+  // - Full policy evaluation (no dynamic skipping)
+  // - ReferencePolicyImportIntegrationTest
+  // - No build caching (full rebuild)
+  // The only configurable option is MTIQ image push
+  List params = [
+      choice(
+          name: 'buildMode',
+          choices: ['MAIN', 'FEATURE'],
+          description: 'Build mode: MAIN runs all tests including functional tests, no caching. ' +
+              'FEATURE excludes functional tests, uses build caching. ' +
+              'Changing this requires a new build to take effect.'
+      ),
+      booleanParam(defaultValue: mtiqImagePushEnabledByDefault,
+          description: 'If checked will push the MTIQ Docker image to RSC for this branch',
+          name: 'mtiqImagePushEnabled'),
+
+      booleanParam(name: 'skipPlaywrightTests', defaultValue: false,
+          description: 'Skip: Playwright Functional Tests (insight-brain-playwright-test)'),
+      booleanParam(name: 'skipPlaywrightRegressionTests', defaultValue: false,
+          description: 'Skip: Playwright Regression Tests (-Pregression, split across 3 agents). ' +
+              'Runs on every build unless checked.'),
+      choice(name: 'playwrightTraceMode', choices: ['on-failure', 'always', 'off'],
+          description: 'Playwright trace: on-failure (routine CI); always when debugging flakes; off to disable.'),
+
+      // Unit/Integration Test Skip Parameters (one per module partition)
+      booleanParam(name: 'skipFastModules', defaultValue: false, description: 'Skip: Fast Module Tests (quick JVM modules reactor)'),
+      booleanParam(name: 'skipService', defaultValue: false, description: 'Skip: Service Tests (insight-brain-service)'),
+      booleanParam(name: 'skipMtiqServer', defaultValue: false, description: 'Skip: MTIQ Server Tests (nexus-mtiq-server)'),
+      booleanParam(name: 'skipData', defaultValue: false, description: 'Skip: Data Tests (insight-brain-data)'),
+      booleanParam(name: 'skipComponentH2', defaultValue: false, description: 'Skip: Component H2 Tests (variant-test-component-h2)'),
+      booleanParam(name: 'skipComponentPg', defaultValue: false, description: 'Skip: Component PG Tests (variant-test-component-pg)'),
+      booleanParam(name: 'skipVariantH2Pg', defaultValue: false, description: 'Skip: Variant H2 + PG Tests'),
+      booleanParam(name: 'skipVariantMtiqFips', defaultValue: false, description: 'Skip: Variant MTIQ + FIPS Tests'),
+      booleanParam(name: 'skipLegacy', defaultValue: false, description: 'Skip: Legacy Tests (variant-test-legacy, 3-way split)'),
+      booleanParam(name: 'skipFrontend', defaultValue: false, description: 'Skip: Frontend Tests (Jest)')
+      ]
+
+  // Jenkins unfortunately will overwrite any parameters defined at the folder level using this dynamic approach.
+  // Therefore in order to support this workflow we need to mirror folder defined parameters here otherwise
+  // they are erased completely from the release configuration.
+  // See https://jenkins.ci.sonatype.dev/job/insight/job/insight-brain/job/release/
+  if (projName.contains('insight/insight-brain/release')) {
+    params += [
+        booleanParam(name: 'hotfix',
+            description: 'Check if this IQ Release is intended to be a hotfix e.g. urgent release to fix a severe bug' +
+                '. (Used for internal metrics only.)'),
+        stringParam(name: 'version', description: 'The version to release'),
+        stringParam(name: 'nextVersion',
+            description: 'The next SNAPSHOT version to use after the release. Optional as will be automatically be ' +
+                'calculated if left blank.'),
+        run(name:'snapshotBuild', filter: 'SUCCESSFUL', projectName: 'insight/insight-brain/feature-snapshots/main',
+            description: 'The snapshot build to release from.')
+    ]
+  }
+  def propertyList = [copyArtifactPermission("/${projName}"), parameters(params)]
+  if (projName.toLowerCase().endsWith('/main')) {
+    propertyList.add(disableConcurrentBuilds(abortPrevious: false))
+    propertyList.add(pipelineTriggers([cron('@midnight')]))
+  } else {
+    propertyList.add(disableConcurrentBuilds(abortPrevious: true))
+  }
+  properties(propertyList)
+}
+
+String mtiqImageVersion() {
+  // Default version for the MTIQ image off the `main` branch is in the format 202307111354-1234-ABCDEFGH
+
+  // First part of MTIQ version number (202307111354 in the example) is an unformatted date up to the minute
+  def dateSection = new Date().format("yyyyMMddHHmm", TimeZone.getTimeZone('UTC'))
+
+  // Second part of the MTIQ version number (1234 in the example) is the Jenkins snapshot build number
+  def buildNumSection = env.BUILD_NUMBER
+
+  // Third part of the MTIQ version number (ABCDEFGH in the example) is the Git short hash
+  def gitShortHashSection = env.GIT_COMMIT.take(8)
+
+  return "${dateSection}-${buildNumSection}-${gitShortHashSection}"
+}
+
+void pushMTIQDockerImage(boolean pushMtiqImage, String imageVersion) {
+    // MTIQ image push rules:
+    // - any snapshot build on the `main` branch
+    //   - Note IQ on-prem release builds should not be processed
+    //   - Note fast builds never run on `main`
+    // - any branch ending with `_mtiq`
+    // - any branch run manually with the parameter to push selected
+    // Note: there is a cleanup policy on RSC to purge old MTIQ feature branches images.
+
+    boolean isMainBuild = isDeployBranch(env, 'main')
+
+    if (currentBuild.fullProjectName.contains("insight-brain/release")) {
+        echo 'Skipping MTIQ docker image for IQ on-premise release'
+        return
+    }
+
+    // If we are on a feature branch (i.e. not `main`), then we use the branch name in the version number
+    // as well as prefixing it with `branch-` to allow for easy identification
+    if (!isMainBuild) {
+      // get branch name, max 20 characters
+      String branch = gitBranch(env).replaceAll(/[^\w.-]/, '_').take(30)
+      imageVersion = "branch-${branch}-${env.BUILD_NUMBER}"
+    }
+
+    echo "MTIQ image version: ${imageVersion}"
+    String iqVersion = getMavenProjectVersion('.')
+    echo "iqVersion:'${iqVersion}'"
+    mvn jreleaserConfig(""), ' -pl :insight-brain -Pjdks -Pjenkins'
+    mvn jreleaserConfig(""), ' -pl :nexus-mtiq-server jreleaser:assemble'
+
+    dir("nexus-mtiq-server") {
+      withSonatypeDockerRegistry() {
+        // Push for all `main` builds as well as any enabled branches by name or build parameter
+        echo "pushMtiqImage: $pushMtiqImage"
+        def pushOption = ""
+        if (pushMtiqImage) {
+          pushOption = " --push "
+        }
+        ensureMtiqBuildxBuilder()
+        sh "docker buildx build --platform=linux/amd64,linux/arm64 " +
+            " --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} " +
+            " --build-arg IQ_SERVER_VERSION=${iqVersion} " +
+          pushOption +
+          " --tag ${sonatypeDockerRegistryId()}/mtiq/server:${imageVersion} ."
+
+      }
+    }
+}
+
+/**
+ * Push the MTIQ Docker image to dev ECR.
+ *
+ * Must be called AFTER pushMTIQDockerImage() — reuses the buildx builder cache.
+ * Sets env.ECR_TAG on success (used by postBuild to trigger deploy-to-shared-dev).
+ * Non-fatal: failures are logged as warnings and do not affect the main build.
+ */
+void pushMTIQImageToEcr() {
+  try {
+    def ecr = load 'jenkins/ecr-helpers.groovy'
+    env.ECR_TAG = ecr.pushToEcrCached('main')
+  } catch (Exception e) {
+    echo "WARNING: ECR push failed (non-fatal): ${e.message}"
+  }
+}
+
+/** Local-only tag for the image handed to the container scan. Never pushed to any registry. */
+String mtiqScanImageTag() {
+  return "mtiq-server-scan:${env.BUILD_NUMBER}"
+}
+
+/**
+ * Create or re-select the shared buildx builder, pinned to the digest-referenced buildkit image
+ * because Firewall quarantines every moby/buildkit tag.
+ *
+ * Idempotent: create fails if the builder already exists on this agent, in which case we select it.
+ */
+void ensureMtiqBuildxBuilder() {
+  sh """docker buildx create --name ${mtiqBuildxBuilder} --use \\
+        --driver-opt image=${sonatypeDockerRegistryId()}/moby/buildkit@${buildkitImageDigest} \\
+        || docker buildx use ${mtiqBuildxBuilder}"""
+}
+
+/**
+ * Build the MTIQ image that the policy evaluation scans.
+ *
+ * The Dockerfile COPYs the jreleaser jlink assemblies for both architectures, so they are built
+ * first. pushMTIQDockerImage() builds them again for the multi-arch push; the two run on separate
+ * code paths and neither can rely on the other having happened.
+ *
+ * Single-platform (linux/amd64): buildx --load cannot load a multi-platform result into the classic
+ * docker image store. The Ubuntu package set is the same on arm64, so the OS component list — and
+ * therefore the violation set — is the same.
+ *
+ * @param scanImage local tag of the image to build
+ */
+void buildMtiqScanImage(String scanImage) {
+  String iqVersion = getMavenProjectVersion('.')
+  echo "Building MTIQ image for scanning: ${scanImage} (iqVersion='${iqVersion}')"
+
+  mvn jreleaserConfig(""), ' -pl :insight-brain -Pjdks -Pjenkins'
+  mvn jreleaserConfig(""), ' -pl :nexus-mtiq-server jreleaser:assemble'
+
+  dir('nexus-mtiq-server') {
+    withSonatypeDockerRegistry() {
+      ensureMtiqBuildxBuilder()
+      sh "docker buildx build --platform=linux/amd64 " +
+          " --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} " +
+          " --build-arg IQ_SERVER_VERSION=${iqVersion} " +
+          " --load " +
+          " --tag ${scanImage} ."
+    }
+  }
+}
+
+/**
+ * IQ lifecycle stage for the image evaluation, matching the stage the shared library passes to the
+ * source scan's iqPolicyEvaluation closure: 'build' on main, 'develop' on every other branch. IQ
+ * retains one evaluation per application and stage, so this keeps branch builds — including
+ * buildMode=MAIN ones — from overwriting the evaluation main recorded.
+ *
+ * This duplicates the library's own branch-to-stage mapping rather than reading it, because the
+ * scan runs in the parallel block, before the closure that receives that value is invoked.
+ */
+String mtiqImageIqStage() {
+  return isDeployBranch(env, 'main') ? 'build' : 'develop'
+}
+
+/**
+ * Evaluate the built MTIQ image against IQ policy.
+ *
+ * The IQ stage action is the only gate here. Fail throws: the build goes FAILURE, which reaches
+ * neither onSuccess nor onUnstable, so nothing is published. Warn neither throws nor marks the build
+ * UNSTABLE (unstableBuildOnScanningWarnings: false, per CLM-44494), so a warn-level finding is
+ * reported and the image publishes everywhere a green build does — including shared-dev. A finding
+ * that must not reach shared-dev has to be Fail at the build stage, or waived.
+ *
+ * @param scanImage local tag of the image to evaluate
+ */
+void evaluateMtiqImagePolicy(String scanImage) {
+  // Evaluate from an empty directory. Run from the workspace root and the scanner also picks up
+  // the module jars in target/, mixing the source application's components into the image report.
+  // dir() only sets the working directory for nested steps; it does not create the directory, and
+  // nexusPolicyEvaluation fails if its basedir is absent.
+  String scanDir = 'mtiq-container-scan'
+  sh "mkdir -p ${scanDir}"
+  dir(scanDir) {
+    // nexusPolicyEvaluation blocks in "Waiting for policy evaluation to complete..." with no
+    // timeout of its own, so a stalled IQ evaluation parks this branch indefinitely and holds the
+    // agent. Convert the expiry into an ordinary failure so it travels the same path as a policy
+    // violation, and rethrow everything else: a human abort has to keep taking effect immediately.
+    try {
+      timeout(time: 20, unit: 'MINUTES') {
+        nexusPolicyEvaluation(
+            iqApplication: mtiqImageIqApplication,
+            iqStage: mtiqImageIqStage(),
+            iqScanPatterns: [[scanPattern: "container:${scanImage}"]],
+            failBuildOnNetworkError: true,
+            // CLM-44494: warn-level findings must not mark the build UNSTABLE. Matches the four
+            // source-scan calls aligned in #16896. The consequence is that the IQ stage action is
+            // the only gate on this image: Warn reports and publishes, Fail blocks everything.
+            unstableBuildOnScanningWarnings: false)
+      }
+    }
+    catch (org.jenkinsci.plugins.workflow.steps.FlowInterruptedException e) {
+      if (isMtiqEvaluationTimeout(e)) {
+        error 'MTIQ image policy evaluation did not complete within 20 minutes'
+      }
+      throw e
+    }
+  }
+}
+
+/**
+ * Whether a pipeline interruption came from the evaluation timeout rather than from an abort.
+ *
+ * @param e the interruption thrown into the evaluation
+ * @return true when the timeout expired
+ */
+boolean isMtiqEvaluationTimeout(org.jenkinsci.plugins.workflow.steps.FlowInterruptedException e) {
+  return e.causes.any {
+    it instanceof org.jenkinsci.plugins.workflow.steps.TimeoutStepExecution.ExceededTimeout
+  }
+}
+
+/**
+ * Drop the local scan image from the agent's docker daemon. Tolerates the image being absent.
+ *
+ * @param scanImage local tag of the image to remove
+ */
+void removeMtiqScanImage(String scanImage) {
+  sh "docker image rm -f ${scanImage} || true"
+}
+
+Map<String, ?> jreleaserConfig(String mavenOptions, String pomFile = null, String javaVersion = 'OpenJDK 25') {
+  return mavenCommon(javaVersion: javaVersion, mavenVersion: 'Maven 3.9.x', useEventSpy: false,
+      pomFile: pomFile, mavenOptions: mavenOptions)
+}
+
+void runBuildAndParallelSteps(Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J) {
+  cache(defaultBranch: 'main', skipSave: true,  // Main-style builds don't save cache
+    caches:
+      [arbitraryFileCache(path: 'insight-brain-frontend/node_modules',
+                          cacheValidityDecidingFile: 'insight-brain-frontend/yarn.lock',
+                          compressionMethod: 'TARGZ'),
+        arbitraryFileCache(path: 'insight-brain-frontend/yarn-cache', compressionMethod: 'TARGZ')]) {
+    buildAndTest(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
+  }
+
+  runSafely "zip --symlinks -q -r ${workspaceZip} . "
+  archiveArtifacts(artifacts: workspaceZip, fingerprint: false)
+
+
+  def zips = [workspaceZip]
+  // Ordered map so Jenkins Stage View renders columns in insertion order.
+  def parallelSteps = [:]
+  parallelSteps.putAll(getParallelTests(zips))
+  parallelSteps.putAll(getDockerSteps(zips))
+  parallel(parallelSteps)
+
+  // Collect JaCoCo coverage from all parallel test stages into a single report
+  dir('jacoco-collection') {
+    parallelSteps.keySet().each { stageName ->
+      String stashName = "jacoco-${stageName.replaceAll('[^a-zA-Z0-9]', '-')}"
+      try {
+        dir(stashName) { unstash stashName }
+      } catch (e) {
+        echo "No JaCoCo coverage data from ${stageName}: ${e.message}"
+      }
+    }
+    recordCoverage(tools: [[parser: 'JACOCO', pattern: '**/target/site/jacoco/jacoco.xml']])
+  }
+}
+
+/**
+ * Returns the MTIQ image build + IQ container scan, to run in parallel with the test stages.
+ *
+ * Main-style builds always build and evaluate the image, matching shouldRunPolicyEvaluation() for
+ * the source scan: there is no parameter to opt out. Publishing is a separate decision that
+ * isMtiqImagePushEnabled() owns, so a build that publishes nothing is still evaluated.
+ *
+ * The branch runs two stages so a failure names its own cause: `Build MTIQ Image` for
+ * the image build, `Evaluate MTIQ Image Policy` for the policy evaluation.
+ *
+ * The branch deliberately does NOT allocate a node(). It runs on the enclosing (main) agent, which
+ * gives it three things the test branches cannot have:
+ *   - the existing workspace, so nexus-mtiq-server/target/ is already populated by Build & Test and
+ *     no copyRepo()/unzip is needed;
+ *   - the same agent postBuild() later pushes from, so the buildx layer cache carries over
+ *     (jenkins/ecr-helpers.groovy requires pushToEcrCached() to run on the build's agent);
+ *   - no contention, because every test branch allocates its own node and leaves this one idle.
+ *
+ * For the same reason the branch must never call deleteDir(): it shares the main workspace, which
+ * postBuild() still needs.
+ *
+ * @param zipFiles unused; the signature matches getParallelTests() for symmetry at the call site
+ * @return single-entry map of stage name to stage closure
+ */
+Map<String, Closure> getDockerSteps(List<String> zipFiles) {
+  String scanImage = mtiqScanImageTag()
+  return ['Build & Scan MTIQ Image': {
+    // catchError marks the build FAILURE without throwing out of parallel(), so this branch is
+    // reported red while the stages that follow the parallel block — Static Analysis, Collect
+    // Distribution Files and the source scan in Evaluate Policies — still run to completion. An
+    // exception allowed to escape instead would unwind the enclosing sequential flow and skip all
+    // three. Publishing is withheld either way, because a FAILURE build reaches neither onSuccess
+    // nor onUnstable.
+    //
+    // catchInterruptions stays false so a human abort still stops the build at once. The evaluation
+    // converts its own timeout into an ordinary failure, so nothing here needs to catch
+    // interruptions.
+    catchError(buildResult: 'FAILURE', message: 'MTIQ container scan failed', catchInterruptions: false) {
+      try {
+        stage('Build MTIQ Image') {
+          buildMtiqScanImage(scanImage)
+        }
+        stage('Evaluate MTIQ Image Policy') {
+          evaluateMtiqImagePolicy(scanImage)
+        }
+      }
+      finally {
+        removeMtiqScanImage(scanImage)
+      }
+    }
+  }]
+}
+
+Map<String, Closure> getParallelTests(List <String> zips) {
+  Map<String, Closure> testStages = [:]
+
+  if (!params.skipPlaywrightTests) {
+    testStages << createPlaywrightTests('Playwright Functional Tests', '.*Test.class', zips, 'sanity')
+  }
+
+  // Playwright Regression - split across 3 agents by test class name pattern
+  // @Category(RegressionTest) method counts: A-L (234), M-P (257), Q-Z (222)
+  if (playwrightRegressionEnabled()) {
+    testStages << createPlaywrightTests('Playwright Regression 1 (A-L)', '.*/[A-L].*Test.class', zips, 'regression')
+    testStages << createPlaywrightTests('Playwright Regression 2 (M-P)', '.*/[M-P].*Test.class', zips, 'regression')
+    testStages << createPlaywrightTests('Playwright Regression 3 (Q-Z)', '.*/[Q-Z].*Test.class', zips, 'regression')
+  }
+
+  // Backend tests are partitioned by MODULE, not by class-name letter. Each variant-test module boots
+  // its fixture once per module JVM (reuseForks per the module pom), so a class-name split across agents
+  // would re-boot that fixture on every agent and mix modules with different fork configs. Instead every
+  // heavy module gets its own agent; the small independent leaf modules are overlapped two-to-an-agent
+  // via Maven --threads. The remaining quick JVM modules run together in one 'Fast Module Tests' reactor.
+  // Keep this set in sync with slowTestModules(). copyRepo unzips the whole workspace, so every module
+  // already has its compiled test-classes on the agent.
+  if (!params.skipFastModules) {
+    testStages << createFastModuleTests('Fast Module Tests', zips)
+  }
+  if (!params.skipService) {
+    testStages << createModuleTests('Service Tests', 'insight-brain-service', zips)
+  }
+  if (!params.skipMtiqServer) {
+    testStages << createMtiqServerTests('MTIQ Server Tests', zips)
+  }
+  if (!params.skipData) {
+    testStages << createModuleTests('Data Tests', 'insight-brain-data', zips)
+  }
+  if (!params.skipComponentH2) {
+    testStages << createModuleTests('Component H2 Tests', 'insight-brain-variant-test-component-h2', zips)
+  }
+  if (!params.skipComponentPg) {
+    testStages << createModuleTests('Component PG Tests', 'insight-brain-variant-test-component-pg', zips)
+  }
+  if (!params.skipVariantH2Pg) {
+    testStages << createModuleReactorTests('Variant H2 + PG Tests',
+        ['insight-brain-variant-test-h2', 'insight-brain-variant-test-pg'], '2', zips)
+  }
+  if (!params.skipVariantMtiqFips) {
+    testStages << createModuleReactorTests('Variant MTIQ + FIPS Tests',
+        ['insight-brain-variant-test-mtiq', 'insight-brain-variant-test-fips'], '2', zips)
+  }
+  if (!params.skipLegacy) {
+    testStages << createLegacyPartitionTests('Legacy Tests A-E', '.*/[A-E].*Test.class', zips)
+    testStages << createLegacyPartitionTests('Legacy Tests F-Q', '.*/[F-Q].*Test.class', zips)
+    testStages << createLegacyPartitionTests('Legacy Tests R-Z', '.*/[R-Z].*Test.class', zips)
+  }
+  if (!params.skipFrontend) {
+    testStages << createFrontendTests('Frontend Tests - Jest', zips)
+  }
+  return testStages
+}
+
+/**
+ * Build a Playwright stage running the 'sanity' or 'regression' profile over the matching tests.
+ * 90m timeout matches the per-shard bound in Jenkinsfile.feature.
+ */
+Map<String, Closure> createPlaywrightTests(
+  String stageName,
+  String regex,
+  List<String> zipFiles,
+  String profile
+) {
+  String mavenModule = 'insight-brain-testing/insight-brain-playwright-test'
+
+  return ["${stageName}": {
+    node('iq-large') {
+      stage(stageName) {
+        try {
+          copyRepo(zipFiles)
+          String mavenOptions = "'-Dit.test=%regex[${regex}]'"
+          mavenOptions += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
+          mavenOptions += " -DdetectTestEntityLeaks"
+          mavenOptions += " -Dfailsafe.rerunFailingTestsCount=2"
+          mavenOptions += " -Dfailsafe.failOnFlakeCount=5"
+          mavenOptions += " --threads 4"
+          mavenOptions += " -P${profile}"
+          mavenOptions += " -Dplaywright.trace=${params.playwrightTraceMode ?: 'on-failure'}"
+          Map<String, ?> testConfig = testConfig(mavenOptions, "${mavenModule}/pom.xml")
+          timeout(time: 90, unit: 'MINUTES') {
+            mvn testConfig, 'failsafe:integration-test failsafe:verify'
+          }
+        }
+        finally {
+          capturePlaywrightResultsAndCleanup()
+        }
+      }
+    }
+  }]
+}
+
+Map<String, Closure> createFrontendTests(String stageName, List<String> zipFiles) {
+  return ["${stageName}": {
+    // 2024-05-03: We are using c6i.2xlarge EC2 instances. I tried c6i.4xlarge, there was a small difference (~2 mins),
+    // but this stage is still faster then other parallel stages without using larger EC2 instances.
+    node(InsightConstants.AGENT_LABEL){
+      stage(stageName) {
+        try {
+          copyRepo(zipFiles)
+          String mavenOptions = "-pl 'com.sonatype.insight.brain:insight-brain-frontend'"
+          mavenOptions += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
+          // Use single thread to prevent Jest parallelization issues causing test timeouts
+          mavenOptions += " --threads 1"
+
+          Map<String, ?> testConfig = testConfig(mavenOptions, null,  'OpenJDK 25')
+
+          mvn testConfig, "com.github.eirslett:frontend-maven-plugin:yarn@jest"
+        }
+        finally {
+          captureResultsAndCleanup()
+        }
+      }
+    }
+  }]
+}
+
+/** The test modules that each get their own parallel stage. Everything NOT here -- and not frontend,
+ *  playwright or legacy -- runs together in the single 'Fast Module Tests' reactor. */
+List slowTestModules() {
+  return [
+      'insight-brain-service',
+      'insight-brain-data',
+      'nexus-mtiq-server',
+      'insight-brain-variant-test-component-h2',
+      'insight-brain-variant-test-component-pg',
+      'insight-brain-variant-test-h2',
+      'insight-brain-variant-test-pg',
+      'insight-brain-variant-test-mtiq',
+      'insight-brain-variant-test-fips'
+  ]
+}
+
+/** Test flags common to every module/reactor/legacy/fast partition on a main-style build. */
+String commonModuleTestMavenOptions() {
+  String opts = ""
+  opts += " -Dskip-functional-test"
+  opts += " -DdetectTestEntityLeaks"
+  opts += " -Dsurefire.runOrder=alphabetical"
+  opts += " -Dsurefire.rerunFailingTestsCount=2"
+  opts += " -Dsurefire.failOnFlakeCount=5"
+  opts += " -Dfailsafe.runOrder=alphabetical"
+  opts += " -Dfailsafe.rerunFailingTestsCount=2"
+  opts += " -Dfailsafe.failOnFlakeCount=5"
+  opts += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
+  opts += " -Pbuildsupport-sonar-coverage "
+  // Main-style builds always run ReferencePolicyImportIntegrationTest (returns empty here).
+  opts += getRunRefPolicyImportIntTestMavenOption()
+  return opts
+}
+
+/** Run one module's surefire+failsafe tests on its own agent (single reused fixture boot per module). */
+Map<String, Closure> createModuleTests(String stageName, String module, List<String> zipFiles) {
+  return [(stageName): {
+    node('iq-large') {
+      stage(stageName) {
+        try {
+          copyRepo(zipFiles)
+          String mavenOptions = "-pl ':${module}'"
+          mavenOptions += commonModuleTestMavenOptions()
+          Map<String, ?> testConfig = testConfig(mavenOptions, null, 'OpenJDK 25')
+          timeout(time: 120, unit: 'MINUTES') {
+            mvn testConfig, 'jacoco:prepare-agent surefire:test failsafe:integration-test failsafe:verify jacoco:report'
+          }
+        }
+        finally {
+          captureResultsAndCleanup()
+        }
+      }
+    }
+  }]
+}
+
+/**
+ * Run several INDEPENDENT leaf modules together on one agent, overlapped via Maven --threads. Each
+ * module keeps its own surefire/failsafe forkCount, so the agent's concurrent JVMs = sum of the
+ * modules' fork counts; keep that x -Xmx under the agents' RAM (see CLM-39214).
+ */
+Map<String, Closure> createModuleReactorTests(String stageName, List<String> modules, String threads, List<String> zipFiles) {
+  return [(stageName): {
+    node('iq-large') {
+      stage(stageName) {
+        try {
+          copyRepo(zipFiles)
+          String mavenOptions = "-pl '${modules.collect { ":${it}" }.join(',')}'"
+          mavenOptions += " --threads ${threads}"
+          mavenOptions += commonModuleTestMavenOptions()
+          Map<String, ?> testConfig = testConfig(mavenOptions, null, 'OpenJDK 25')
+          timeout(time: 120, unit: 'MINUTES') {
+            mvn testConfig, 'jacoco:prepare-agent surefire:test failsafe:integration-test failsafe:verify jacoco:report'
+          }
+        }
+        finally {
+          captureResultsAndCleanup()
+        }
+      }
+    }
+  }]
+}
+
+/** Run one class-name partition of the legacy module (reuseForks=false: a full server per class). */
+Map<String, Closure> createLegacyPartitionTests(String stageName, String regex, List<String> zipFiles) {
+  return [(stageName): {
+    node('iq-large') {
+      stage(stageName) {
+        try {
+          copyRepo(zipFiles)
+          String mavenOptions = "-pl ':insight-brain-variant-test-legacy'"
+          mavenOptions += " -Dtest=%regex[${regex}]"
+          mavenOptions += " -Dit.test=%regex[${regex}]"
+          mavenOptions += commonModuleTestMavenOptions()
+          Map<String, ?> testConfig = testConfig(mavenOptions, null, 'OpenJDK 25')
+          timeout(time: 90, unit: 'MINUTES') {
+            mvn testConfig, 'jacoco:prepare-agent surefire:test failsafe:integration-test failsafe:verify jacoco:report'
+          }
+        }
+        finally {
+          captureResultsAndCleanup()
+        }
+      }
+    }
+  }]
+}
+
+/** nexus-mtiq-server: shaded server module; needs the 'initialize' phase and a longer timeout. */
+Map<String, Closure> createMtiqServerTests(String stageName, List<String> zipFiles) {
+  return [(stageName): {
+    node('iq-large') {
+      stage(stageName) {
+        try {
+          copyRepo(zipFiles)
+          String mavenOptions = "-pl ':nexus-mtiq-server'"
+          mavenOptions += commonModuleTestMavenOptions()
+          Map<String, ?> testConfig = testConfig(mavenOptions, null, 'OpenJDK 25')
+          // 90 minute timeout for Jakarta EE 11 migration experimentation (CLM-34044)
+          timeout(time: 90, unit: 'MINUTES') {
+            mvn testConfig, 'jacoco:prepare-agent initialize surefire:test failsafe:integration-test failsafe:verify jacoco:report'
+          }
+        }
+        finally {
+          captureResultsAndCleanup()
+        }
+      }
+    }
+  }]
+}
+
+/** Every quick JVM module in one --threads reactor: all modules NOT given a dedicated stage, and not
+ *  frontend/playwright/legacy. This is where db/policy/common/event/tenancy/guide + the PG DAO leaf
+ *  modules (data-pg/db-pg/mtiq-db-pg) + mtiq-fips run. */
+Map<String, Closure> createFastModuleTests(String stageName, List<String> zipFiles) {
+  return [(stageName): {
+    node('iq-large') {
+      stage(stageName) {
+        try {
+          copyRepo(zipFiles)
+          def excluded = ['insight-brain-frontend', 'insight-brain-playwright-test',
+                          'insight-brain-variant-test-legacy'] + slowTestModules()
+          String mavenOptions = "-pl '${excluded.collect { "!:${it}" }.join(',')}'"
+          mavenOptions += " --threads 4"
+          mavenOptions += commonModuleTestMavenOptions()
+          Map<String, ?> testConfig = testConfig(mavenOptions, null, 'OpenJDK 25')
+          timeout(time: 90, unit: 'MINUTES') {
+            mvn testConfig, 'jacoco:prepare-agent surefire:test failsafe:integration-test failsafe:verify jacoco:report'
+          }
+        }
+        finally {
+          captureResultsAndCleanup()
+        }
+      }
+    }
+  }]
+}
+
+void copyRepo(List<String> zipFiles) {
+  for (String zipFile : zipFiles) {
+    copyArtifacts(projectName: currentBuild.fullProjectName, filter: zipFile, selector: specific(currentBuild.id),
+        flatten: false)
+    runSafely "unzip -q -o ${zipFile}"
+  }
+}
+
+Map<String, ?> testConfig(String mavenOptions, String pomFile = null, String javaVersion = 'OpenJDK 25') {
+  return mavenCommon(javaVersion: javaVersion, mavenVersion: 'Maven 3.9.x', useEventSpy: false,
+      pomFile: pomFile, mavenOptions: mavenOptions)
+}
+
+void captureResultsAndCleanup() {
+  archiveArtifacts(artifacts: '**/target/*-reports/**', excludes: '**/TEST-*.xml, **/*-output.txt')
+  // Archive JaCoCo coverage data files for offline analysis
+  archiveArtifacts(artifacts: '**/target/jacoco.exec, **/target/site/jacoco/jacoco.xml', allowEmptyArchive: true)
+  // Archive heap dumps if OOM occurred
+  archiveArtifacts(artifacts: '**/target/*.hprof', allowEmptyArchive: true)
+  collectTestResults(['**/target/*-reports/*.xml'])
+  // Stash JaCoCo coverage data (exec + XML) for collection after all parallel stages complete
+  String stashName = "jacoco-${env.STAGE_NAME.replaceAll('[^a-zA-Z0-9]', '-')}"
+  stash name: stashName, includes: '**/target/jacoco.exec, **/target/site/jacoco/jacoco.xml', allowEmpty: true
+  deleteDir()
+}
+
+/** Cleanup for the Playwright stage. Archives failure artifacts + test reports. */
+void capturePlaywrightResultsAndCleanup() {
+  archiveArtifacts(artifacts: '**/target/*-reports/**', excludes: '**/TEST-*.xml, **/*-output.txt',
+                   allowEmptyArchive: true)
+  archiveArtifacts(artifacts: '**/target/*.hprof', allowEmptyArchive: true)
+  archiveArtifacts(artifacts: 'insight-brain-testing/insight-brain-playwright-test/target/playwright-screenshots/**',
+                   allowEmptyArchive: true)
+  archiveArtifacts(artifacts: 'insight-brain-testing/insight-brain-playwright-test/target/playwright-traces/**',
+                   allowEmptyArchive: true)
+  archiveArtifacts(artifacts: 'insight-brain-testing/insight-brain-playwright-test/target/playwright-diagnostics/**',
+                   allowEmptyArchive: true)
+  archiveArtifacts(artifacts: 'insight-brain-testing/insight-brain-playwright-test/target/failsafe-reports/*.txt',
+                   allowEmptyArchive: true)
+  archiveArtifacts(artifacts: 'insight-brain-testing/insight-brain-playwright-test/target/surefire-reports/*.txt',
+                   allowEmptyArchive: true)
+  try {
+    collectTestResults(['**/target/*-reports/*.xml'])
+  }
+  catch (Throwable t) {
+    echo "WARNING: collectTestResults failed (Junit/Failsafe XML may be missing or invalid): ${t.getMessage()}"
+  }
+  // Match unit/IT stages: coverage collection always unstashes jacoco-${STAGE_NAME}.
+  // Playwright rarely produces JaCoCo output; allowEmpty keeps MAIN from failing when absent.
+  archiveArtifacts(artifacts: '**/target/jacoco.exec, **/target/site/jacoco/jacoco.xml', allowEmptyArchive: true)
+  String stashName = "jacoco-${env.STAGE_NAME.replaceAll('[^a-zA-Z0-9]', '-')}"
+  stash name: stashName, includes: '**/target/jacoco.exec, **/target/site/jacoco/jacoco.xml', allowEmpty: true
+  deleteDir()
+}
+
+/** Whether the Playwright regression shards run. Unset (first build of a branch) means run. */
+boolean playwrightRegressionEnabled() {
+  return params.skipPlaywrightRegressionTests != true
+}
+
+boolean isDynamicPolicyEvaluationEnabled() {
+  // Dynamic policy evaluation disabled for main-style builds (Jenkinsfile.main) - always run full evaluation
+  return false
+}
+
+boolean isMtiqImagePushEnabled() {
+  return isDeployBranch(env, 'main') || params.mtiqImagePushEnabled
+}
+
+boolean shouldRunPolicyEvaluation() {
+  return (!isDynamicPolicyEvaluationEnabled() || haveDependenciesChanged(['pom.xml', 'package.json', 'yarn.lock']))
+}
+
+String getRunRefPolicyImportIntTestMavenOption() {
+  // Always run ReferencePolicyImportIntegrationTest for main-style builds (Jenkinsfile.main)
+  return ""
+}

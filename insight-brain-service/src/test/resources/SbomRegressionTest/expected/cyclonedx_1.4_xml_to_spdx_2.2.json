@@ -1,0 +1,251 @@
+{
+  "SPDXID" : "SPDXRef-DOCUMENT",
+  "spdxVersion" : "SPDX-2.2",
+  "creationInfo" : {
+    "created" : "2025-07-02T10:09:05Z",
+    "creators" : [ "Tool: Sonatype SBOM Manager - 1.193.0-SNAPSHOT" ]
+  },
+  "name" : "SbomRegressionTestApp",
+  "dataLicense" : "CC0-1.0",
+  "hasExtractedLicensingInfos" : [ {
+    "licenseId" : "LicenseRef-Some-random-license",
+    "extractedText" : "Extracted license created by Sonatype SBOM Manager",
+    "name" : "Some random license"
+  } ],
+  "documentNamespace" : "http://localhost:10055/ui/links/sbomManager/management/view/application/SbomRegressionTestApp/bom/9.1.1",
+  "packages" : [ {
+    "SPDXID" : "SPDXRef-pkg-maven-partner-shaded-library-1.0",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/partner/shaded-library@1.0",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "Partner Shaded Library",
+    "versionInfo" : "1.0"
+  }, {
+    "SPDXID" : "SPDXRef-pkg-maven-ossproject-library-2.0",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/ossproject/library@2.0",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "Some Opensource Library",
+    "versionInfo" : "2.0"
+  }, {
+    "SPDXID" : "SPDXRef-pkg-maven-acme-library-3.0",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/acme/library@3.0",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "Acme Library",
+    "versionInfo" : "2.0"
+  }, {
+    "SPDXID" : "SPDXRef-gnrtd0",
+    "attributionTexts" : [ "Evidence license text for: (Apache-2.0)" ],
+    "checksums" : [ {
+      "algorithm" : "SHA3-256",
+      "checksumValue" : "7478c7cf41c883a04ee89f1813f687886d53fa86f791fff90690c6221e3853aa"
+    }, {
+      "algorithm" : "SHA256",
+      "checksumValue" : "d88bc4e70bfb34d18b5542136639acbb26a8ae2429aa1e47489332fb389cc964"
+    }, {
+      "algorithm" : "BLAKE3",
+      "checksumValue" : "26cdc7fb3fd65fc3b621a4ef70bc7d2489d5c19e70c76cf7ec20e538df0047cf"
+    }, {
+      "algorithm" : "BLAKE2b-256",
+      "checksumValue" : "d8779633380c050bccf4e733b763ab2abd8ad2db60b517d47fd29bbf76433237"
+    }, {
+      "algorithm" : "SHA1",
+      "checksumValue" : "9188560f22e0b73070d2efce670c74af2bdf30af"
+    }, {
+      "algorithm" : "MD5",
+      "checksumValue" : "641b6e166f8b33c5e959e2adcc18b1c7"
+    } ],
+    "copyrightText" : "NOASSERTION",
+    "description" : "Modified version of Apache Catalina",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/com.acme/tomcat-catalina@9.0.14?packaging=jar",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "(Apache-2.0)",
+    "licenseDeclared" : "Apache-2.0",
+    "name" : "com.acme:tomcat-catalina",
+    "originator" : "Organization: Acme Inc",
+    "versionInfo" : "9.0.14"
+  }, {
+    "SPDXID" : "SPDXRef-gnrtd1",
+    "copyrightText" : "NOASSERTION",
+    "description" : "Apache Catalina",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?packaging=jar",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "Apache-2.0",
+    "name" : "org.apache.tomcat:tomcat-catalina",
+    "originator" : "Organization: Apache",
+    "versionInfo" : "9.0.14"
+  }, {
+    "SPDXID" : "SPDXRef-123",
+    "attributionTexts" : [ "Evidence license text for: (GPL-2.0-with-classpath-exception AND EPL-2.0)" ],
+    "checksums" : [ {
+      "algorithm" : "MD5",
+      "checksumValue" : "2342c2eaf1feb9a80195dbaddf2ebaa3"
+    }, {
+      "algorithm" : "SHA256",
+      "checksumValue" : "708f1f53b41f11f02d12a11b1a38d2905d47b099afc71a0f1124ef8582ec7313"
+    }, {
+      "algorithm" : "SHA1",
+      "checksumValue" : "68b78babe00a053f9e35ec6a2d9080f5b90122b0"
+    } ],
+    "copyrightText" : "Copyright Example Inc. All rights reserved.",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://example.org/security",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "All component versions are documented here",
+      "referenceCategory" : "OTHER",
+      "referenceLocator" : "http://example.org/docs",
+      "referenceType" : "http://cyclonedx.org/referenctype/documentation"
+    }, {
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "cpe:/a:example:myapplication:1.0.0",
+      "referenceType" : "cpe22Type"
+    }, {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/com.example/myapplication@1.0.0?packaging=war",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "(GPL-2.0-with-classpath-exception AND EPL-2.0)",
+    "licenseDeclared" : "(GPL-2.0-with-classpath-exception OR EPL-2.0)",
+    "name" : "org.example:mylibrary",
+    "originator" : "Person: Example Super Heros",
+    "supplier" : "Organization: Example Inc. (support@example.com)",
+    "versionInfo" : "1.0.0"
+  }, {
+    "SPDXID" : "SPDXRef-gnrtd2",
+    "attributionTexts" : [ "Copyright 2012 Google Inc. All Rights Reserved.", "Copyright (C) 2004,2005 Dave Brosius <dbrosius@users.sourceforge.net>", "Copyright (C) 2005 William Pugh", "Copyright (C) 2004,2005 University of Maryland", "Evidence license text for: (Apache-2.0 AND LGPL-2.1-only)" ],
+    "checksums" : [ {
+      "algorithm" : "MD5",
+      "checksumValue" : "cfcb0b64aacd2f81c1cd546543de965a"
+    }, {
+      "algorithm" : "SHA256",
+      "checksumValue" : "0384db3cec55d86a6898c489fdb75a8e75fe66b26639634983d2f3c3558493d1"
+    }, {
+      "algorithm" : "SHA1",
+      "checksumValue" : "7fbeef2346c45d565c3341f037bce4e088af8a52"
+    } ],
+    "copyrightText" : "NOASSERTION",
+    "description" : "Example Inc, enterprise framework",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://example.com/security",
+      "referenceType" : "advisory"
+    }, {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/com.example/myframework@1.0.0?packaging=war",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "homepage" : "http://example.com/myframework",
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "LicenseRef-Some-random-license",
+    "name" : "com.example:myframework",
+    "originator" : "Person: Example Super Heros",
+    "versionInfo" : "1.0.0"
+  }, {
+    "SPDXID" : "SPDXRef-pkg-maven-com.fasterxml.jackson.core-jackson-databind-2.9.4",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "comment" : "source: NVD",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://nvd.nist.gov/vuln/detail/CVE-2019-9997",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111",
+      "referenceType" : "advisory"
+    }, {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4",
+      "referenceType" : "purl"
+    }, {
+      "comment" : "source: CVE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://www.cve.org/CVERecord?id=CVE-2018-7489",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: Snyk",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2018-7489",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2019-9997",
+      "referenceType" : "advisory"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "com.fasterxml.jackson.core:jackson-databind",
+    "versionInfo" : "2.9.4"
+  }, {
+    "SPDXID" : "SPDXRef-gnrtd3",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "Acme Application",
+    "originator" : "Person: Acme Super Heros",
+    "versionInfo" : "9.1.1"
+  } ],
+  "relationships" : [ {
+    "spdxElementId" : "SPDXRef-DOCUMENT",
+    "relationshipType" : "DESCRIBES",
+    "relatedSpdxElement" : "SPDXRef-gnrtd3"
+  }, {
+    "spdxElementId" : "SPDXRef-pkg-maven-partner-shaded-library-1.0",
+    "relationshipType" : "CONTAINS",
+    "relatedSpdxElement" : "SPDXRef-pkg-maven-ossproject-library-2.0",
+    "comment" : "COMPLETE"
+  }, {
+    "spdxElementId" : "SPDXRef-gnrtd0",
+    "relationshipType" : "ANCESTOR_OF",
+    "relatedSpdxElement" : "SPDXRef-gnrtd1"
+  } ]
+}

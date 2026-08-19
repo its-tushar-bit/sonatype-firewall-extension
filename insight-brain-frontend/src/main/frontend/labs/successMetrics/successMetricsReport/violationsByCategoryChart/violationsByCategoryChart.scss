@@ -1,0 +1,41 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '../../../../scss/variables' as *;
+
+.iq-chart--violations-by-category {
+  height: 400px;
+
+  .iq-chart__dataset--overall,
+  .legend-entry:nth-child(1) .legend-symbol {
+    fill: $iq-dark-red;
+    stroke: $iq-dark-red;
+  }
+
+  .iq-chart__dataset--security,
+  .legend-entry:nth-child(2) .legend-symbol {
+    fill: $iq-dark-blue;
+    stroke: $iq-dark-blue;
+  }
+
+  .iq-chart__dataset--license,
+  .legend-entry:nth-child(3) .legend-symbol {
+    fill: $iq-dark-green;
+    stroke: $iq-dark-green;
+  }
+
+  .iq-chart__dataset--quality,
+  .legend-entry:nth-child(4) .legend-symbol {
+    fill: $iq-light-blue;
+    stroke: $iq-light-blue;
+  }
+
+  .iq-chart__dataset--other,
+  .legend-entry:nth-child(5) .legend-symbol {
+    fill: $iq-light-green;
+    stroke: $iq-light-green;
+  }
+}

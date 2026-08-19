@@ -1,0 +1,485 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "@dabh/diagnostics",
+        "version" : "2.0.2"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "@dabh/diagnostics:2.0.2" ],
+    "pathnames" : [ "dependency:/consumer/package-lock.json/pkg:npm/%40dabh/diagnostics@2.0.2" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "290d08f7b381b8f94607",
+    "relativePopularity" : null,
+    "createTime" : 1592847755156,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "@dabh/diagnostics"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "2.0.2"
+      } ],
+      "name" : "@dabh/diagnostics : 2.0.2"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "acorn-walk",
+        "version" : "7.1.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "acorn-walk:7.1.1" ],
+    "pathnames" : [ "dependency:/consumer/package-lock.json/pkg:npm/acorn-walk@7.1.1" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "345f0dffad5c735e7373",
+    "relativePopularity" : null,
+    "createTime" : 1581612716990,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "acorn-walk"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "7.1.1"
+      } ],
+      "name" : "acorn-walk : 7.1.1"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "acorn-globals",
+        "version" : "6.0.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "acorn-globals:6.0.0" ],
+    "pathnames" : [ "dependency:/consumer/package-lock.json/pkg:npm/acorn-globals@6.0.0" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "46cdd39f0f8ff08a8766",
+    "relativePopularity" : null,
+    "createTime" : 1583642550909,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "acorn-globals"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "6.0.0"
+      } ],
+      "name" : "acorn-globals : 6.0.0"
+    }
+  }, {
+    "componentIdentifier": null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "producer-one:0.8.0" ],
+    "pathnames" : [ "dependency:/consumer/package-lock.json/pkg:npm/producer-one@0.8.0" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "78ce5f863fdcc116739e",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Package Manifest",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false
+    },
+    "integrityRating" : null,
+    "displayName": {
+      "parts": [
+        {
+          "field": "Filename",
+          "value": "producer-one-0.8.0.zip"
+        }
+      ],
+      "name": "producer-one-0.8.0.zip"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "@types/request",
+        "version" : "2.48.2"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "@types/request:2.48.2" ],
+    "pathnames" : [ "dependency:/consumer/package-lock.json/pkg:npm/%40types/request@2.48.2" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "936374cbe1179d7ed529",
+    "relativePopularity" : null,
+    "createTime" : 1563031000147,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "@types/request"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "2.48.2"
+      } ],
+      "name" : "@types/request : 2.48.2"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "acorn",
+        "version" : "7.1.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "acorn:7.1.0" ],
+    "pathnames" : [ "dependency:/consumer/package-lock.json/pkg:npm/acorn@7.1.0" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "949d36f2c292535da602",
+    "relativePopularity" : null,
+    "createTime" : 1569306862464,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "acorn"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "7.1.0"
+      } ],
+      "name" : "acorn : 7.1.0"
+    }
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "producer-two:1.2.0" ],
+    "pathnames" : [ "dependency:/consumer/package-lock.json/pkg:npm/producer-two@1.2.0" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "cf120d62fd47774bbdde",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Package Manifest",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false
+    },
+    "integrityRating" : null,
+    "displayName": {
+      "parts": [
+        {
+          "field": "Filename",
+          "value": "producer-rwo-1.2.0.tgz"
+        }
+      ],
+      "name": "producer-one-1.2.0.tgz"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "kuler",
+        "version" : "2.0.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "kuler:2.0.0" ],
+    "pathnames" : [ "dependency:/consumer/package-lock.json/pkg:npm/kuler@2.0.0" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "e2c570a3800388fb4440",
+    "relativePopularity" : null,
+    "createTime" : 1559853482639,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "kuler"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "2.0.0"
+      } ],
+      "name" : "kuler : 2.0.0"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "form-data",
+        "version" : "2.5.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "form-data:2.5.1" ],
+    "pathnames" : [ "dependency:/consumer/package-lock.json/pkg:npm/form-data@2.5.1" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "f2cbec57b5e59e23716e",
+    "relativePopularity" : null,
+    "createTime" : 1567061334586,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "form-data"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "2.5.1"
+      } ],
+      "name" : "form-data : 2.5.1"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "enabled",
+        "version" : "2.0.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "enabled:2.0.0" ],
+    "pathnames" : [ "dependency:/consumer/package-lock.json/pkg:npm/enabled@2.0.0" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "f9dd92ec2d6f4bbc0d5d",
+    "relativePopularity" : null,
+    "createTime" : 1540768637748,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "enabled"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "2.0.0"
+      } ],
+      "name" : "enabled : 2.0.0"
+    }
+  } ]
+}

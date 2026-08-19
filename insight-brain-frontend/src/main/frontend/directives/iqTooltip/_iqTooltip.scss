@@ -1,0 +1,113 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '../../scss/variables' as *;
+
+.iq-tooltip.top-left {
+  // missing in our version of bootstrap
+  margin-top: -3px;
+  padding: 5px 0;
+}
+
+.iq-tooltip.top,
+.iq-tooltip.top-left {
+  padding-top: 0;
+  padding-bottom: 2px;
+}
+
+.iq-tooltip.in {
+  opacity: 1;
+
+  .modal & {
+    z-index: $iq-tooltip-z-index + $iq-modal-z-index;
+  }
+}
+
+.tooltip-arrow {
+  .iq-tooltip.top &,
+  .iq-tooltip.top-left & {
+    border-top-color: $iq-off-black;
+    bottom: -3px;
+  }
+
+  .iq-tooltip.top-left & {
+    // missing in our version of bootstrap
+    border-width: 5px 5px 0;
+    bottom: 0;
+  }
+
+  .iq-tooltip.bottom & {
+    border-bottom-color: $iq-off-black;
+  }
+
+  .iq-tooltip.right & {
+    border-right-color: $iq-off-black;
+  }
+
+  .iq-tooltip.left & {
+    border-left-color: $iq-off-black;
+  }
+
+  &::after {
+    border: 5px solid transparent;
+    content: '';
+    display: block;
+    height: 0;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 0;
+
+    .iq-tooltip.top &,
+    .iq-tooltip.bottom &,
+    .iq-tooltip.top-left & {
+      margin-left: -5px;
+      left: 50%;
+    }
+
+    .iq-tooltip.top &,
+    .iq-tooltip.top-left & {
+      border-top-color: $iq-slate;
+      border-bottom-width: 0;
+      margin-top: -6px;
+    }
+
+    .iq-tooltip.bottom & {
+      border-top-width: 0;
+      border-bottom-color: $iq-slate;
+      margin-top: 1px;
+    }
+
+    .iq-tooltip.right &,
+    .iq-tooltip.left & {
+      margin-top: -5px;
+      top: 50%;
+    }
+
+    .iq-tooltip.right & {
+      border-right-color: $iq-slate;
+      border-left-width: 0;
+      margin-left: 1px;
+    }
+
+    .iq-tooltip.left & {
+      border-right-width: 0;
+      border-left-color: $iq-slate;
+      right: 1px;
+    }
+  }
+}
+
+.tooltip-inner {
+  background-color: $iq-slate;
+  border: 1px solid $iq-off-black;
+  border-radius: 0;
+  color: $iq-off-white;
+}
+
+.tooltip {
+  pointer-events: none; // prevent flicking and other display issues when hovering on the tooltip border
+}

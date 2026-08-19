@@ -1,0 +1,10 @@
+{
+  "hostname": "proxy.server",
+  "port": "8080",
+  "proxyUsername": "u",
+  "proxyPassword": "p",
+  "fakePassword": "\u0000\u0000\u0000\u0000\u0000",
+  "excludeHostsInput": "foo.bar,bar.baz,baz.qux",
+  "excludeHostsExpected": "foo.bar, bar.baz, baz.qux",
+  "singleExcludeHost": "host.to.exclude"
+}

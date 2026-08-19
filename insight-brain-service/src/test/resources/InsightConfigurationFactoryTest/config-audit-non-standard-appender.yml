@@ -1,0 +1,5 @@
+logging:
+  loggers:
+    "com.sonatype.insight.audit":
+      appenders:
+      - type: "other"

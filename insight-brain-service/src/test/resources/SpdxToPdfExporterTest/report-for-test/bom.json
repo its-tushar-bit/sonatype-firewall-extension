@@ -1,0 +1,141 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "log4-corej",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.logging.log4",
+        "version" : "2.13.2"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.apache.logging.log4/log4-corej@2.13.2?type=jar",
+    "groupId" : "org.apache.logging.log4",
+    "artifactId" : "log4-corej",
+    "version" : "2.13.2",
+    "filenames" : [ "pkg:maven/org.apache.logging.log4/log4-corej@2.13.2?type=jar:3640dd71069d7986c9a1" ],
+    "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:maven\\org.apache.logging.log4\\log4-corej@2.13.2?type=jar:3640dd71069d7986c9a1" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "3640dd71069d7986c9a1",
+    "relativePopularity" : 0.01,
+    "createTime" : 1132683379000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "sbomApi",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "sonatypeIdentifier" : "a59f883a0e504ed09505bb1f46578cf0",
+    "endOfLife" : "END_OF_LIFE_UNKNOWN",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.apache.logging.log4"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "log4-corej"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.13.2"
+      } ],
+      "name" : "log4-corej"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.9"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar",
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-databind",
+    "version" : "2.9.9",
+    "filenames" : [ "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar" ],
+    "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:maven\\com.fasterxml.jackson.core\\jackson-databind@2.9.9?type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "d6eb9817d9c7289a91f0",
+    "relativePopularity" : 0.18,
+    "createTime" : 1557976205000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "sbomApi",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "sonatypeIdentifier" : "5ef80abec1574a958a0995eb7f13bf1d",
+    "endOfLife" : "END_OF_LIFE_UNKNOWN",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.fasterxml.jackson.core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jackson-databind"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.9.9"
+      } ],
+      "name" : "jackson-databind"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  } ],
+  "dependencyDataIncluded" : true
+}

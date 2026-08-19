@@ -1,0 +1,171 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.9"
+      }
+    },
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-databind",
+    "version" : "2.9.9",
+    "hash" : "d6eb9817d9c7289a91f0",
+    "url" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-12384",
+    "reference" : "CVE-2019-12384",
+    "source" : "cve",
+    "score" : 5.9,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2019-12384" ],
+    "researchType" : "DEEP_DIVE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.9"
+      }
+    },
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-databind",
+    "version" : "2.9.9",
+    "hash" : "d6eb9817d9c7289a91f0",
+    "url" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-12814",
+    "reference" : "CVE-2019-12814",
+    "source" : "cve",
+    "score" : 5.9,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2019-12814" ],
+    "researchType" : "DEEP_DIVE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.9"
+      }
+    },
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-databind",
+    "version" : "2.9.9",
+    "hash" : "d6eb9817d9c7289a91f0",
+    "url" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-25649",
+    "reference" : "CVE-2020-25649",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "611",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data", "functional" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-25649" ],
+    "researchType" : "DEEP_DIVE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.9"
+      }
+    },
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-databind",
+    "version" : "2.9.9",
+    "hash" : "d6eb9817d9c7289a91f0",
+    "url" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-36518",
+    "reference" : "CVE-2020-36518",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "787",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-36518" ],
+    "researchType" : "DEEP_DIVE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.9"
+      }
+    },
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-databind",
+    "version" : "2.9.9",
+    "hash" : "d6eb9817d9c7289a91f0",
+    "url" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-42003",
+    "reference" : "CVE-2022-42003",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "configuration", "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2022-42003" ],
+    "researchType" : "DEEP_DIVE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.9"
+      }
+    },
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-databind",
+    "version" : "2.9.9",
+    "hash" : "d6eb9817d9c7289a91f0",
+    "url" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-42004",
+    "reference" : "CVE-2022-42004",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "configuration", "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2022-42004" ],
+    "researchType" : "DEEP_DIVE"
+  } ]
+}

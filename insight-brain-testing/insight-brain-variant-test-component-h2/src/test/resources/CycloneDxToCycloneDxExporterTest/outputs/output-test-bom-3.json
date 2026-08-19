@@ -1,0 +1,150 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "serialNumber": "urn:uuid:1270d235-485f-4736-a574-7d4cbac62537",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2024-06-21T05:03:20Z",
+    "tools": {
+      "components": [
+        {
+          "name": "Sonatype SBOM Manager",
+          "version": "1.170.0-SNAPSHOT",
+          "type": "application"
+        }
+      ]
+    },
+    "component": {
+      "name": "webgoat",
+      "type": "application",
+      "version": "v1"
+    }
+  },
+  "components": [
+    {
+      "group": "log4j",
+      "name": "log4j",
+      "version": "1.4.196",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0",
+            "properties": [
+              {
+                "name": "sonatype:identification_sources",
+                "value": "SBOM,Sonatype"
+              }
+            ]
+          }
+        }
+      ],
+      "purl": "pkg:maven/log4j/log4j@1.2.8?type=jar",
+      "modified": false,
+      "properties": [
+        {
+          "name": "sonatype:truncated_sha1",
+          "value": "dd0034398d593aa3588c"
+        },
+        {
+          "name": "sonatype:match_state",
+          "value": "exact"
+        },
+        {
+          "name": "sonatype:identification_sources",
+          "value": "Sonatype"
+        },
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:maven/log4j/log4j@1.2.8?type=jar"
+        }
+      ],
+      "type": "library",
+      "bom-ref": "3f51629d-5b14-4a98-9f5b-3e0a489288b4"
+    }
+  ],
+  "vulnerabilities": [
+    {
+      "id": "sonatype-2010-0053",
+      "source": {
+        "name": "source",
+        "url": "l1"
+      },
+      "ratings": [
+        {
+          "source": {
+            "name": "source",
+            "url": "l1"
+          },
+          "score": 5.5,
+          "severity": "medium",
+          "method": "other",
+          "vector": "v:1"
+        }
+      ],
+      "description": "DESC sonatype-2010-0053",
+      "affects": [
+        {
+          "ref": "3f51629d-5b14-4a98-9f5b-3e0a489288b4"
+        }
+      ],
+      "properties": [
+        {
+          "name": "sonatype:identification_sources",
+          "value": "G,F"
+        }
+      ],
+      "references": [
+        {
+          "id": "sonatype-2010-0053",
+          "source": {
+            "name": "Sonatype Guide",
+            "url": "https://links.sonatype.com/products/clm/vulnerability/sonatype-2010-0053"
+          }
+        }
+      ]
+    },
+    {
+      "id": "sonatype-2010-1234",
+      "source": {
+        "name": "source",
+        "url": "l1"
+      },
+      "ratings": [
+        {
+          "source": {
+            "name": "source",
+            "url": "l1"
+          },
+          "score": 10.0,
+          "severity": "medium",
+          "method": "other",
+          "vector": "v:1"
+        }
+      ],
+      "cwes": [
+        1973
+      ],
+      "description": "Some nasty vulnerability",
+      "affects": [
+        {
+          "ref": "3f51629d-5b14-4a98-9f5b-3e0a489288b4"
+        }
+      ],
+      "properties": [
+        {
+          "name": "sonatype:identification_sources",
+          "value": "G,F"
+        }
+      ],
+      "references": [
+        {
+          "id": "sonatype-2010-1234",
+          "source": {
+            "name": "Sonatype Guide",
+            "url": "https://links.sonatype.com/products/clm/vulnerability/sonatype-2010-1234"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,377 @@
+{
+  "dependencyTree": {
+    "componentIdentifier": {
+      "format": "maven",
+      "coordinates": {
+        "artifactId": "insight-scanner",
+        "classifier": "",
+        "extension": "pom",
+        "groupId": "com.sonatype.insight.scan",
+        "version": "2.23.5-SNAPSHOT"
+      },
+      "module": true
+    },
+    "children": [
+      {
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "insight-test-reverse-proxy",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "com.sonatype.insight.scan",
+            "version": "2.23.5-SNAPSHOT"
+          }
+        },
+        "direct": true,
+        "module": true
+      },
+      {
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "insight-client-utils",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "com.sonatype.insight.scan",
+            "version": "2.23.5-SNAPSHOT"
+          }
+        },
+        "children": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "insight-test-reverse-proxy",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.sonatype.insight.scan",
+                "version": "2.23.5-SNAPSHOT"
+              }
+            },
+            "direct": true
+          }
+        ],
+        "direct": true,
+        "module": true
+      },
+      {
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "insight-archive-utils",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "com.sonatype.insight.scan",
+            "version": "2.23.5-SNAPSHOT"
+          }
+        },
+        "children": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "commons-compress",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "org.apache.commons",
+                "version": "1.19"
+              }
+            },
+            "direct": true
+          },
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "mockito-core",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "org.mockito",
+                "version": "2.28.2"
+              }
+            },
+            "direct": true
+          }
+        ],
+        "direct": true,
+        "module": true
+      },
+      {
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "insight-scanner-model",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "com.sonatype.insight.scan",
+            "version": "2.23.5-SNAPSHOT"
+          }
+        },
+        "direct": true,
+        "module": true
+      },
+      {
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "insight-scanner-model-io",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "com.sonatype.insight.scan",
+            "version": "2.23.5-SNAPSHOT"
+          }
+        },
+        "children": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "xstream",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.thoughtworks.xstream",
+                "version": "1.4.11.1"
+              }
+            },
+            "direct": true
+          },
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "insight-scanner-model",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.sonatype.insight.scan",
+                "version": "2.23.5-SNAPSHOT"
+              }
+            },
+            "direct": true
+          }
+        ],
+        "direct": true,
+        "module": true
+      },
+      {
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "insight-scanner-core",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "com.sonatype.insight.scan",
+            "version": "2.23.5-SNAPSHOT"
+          }
+        },
+        "children": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "insight-scanner-model",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.sonatype.insight.scan",
+                "version": "2.23.5-SNAPSHOT"
+              }
+            },
+            "direct": true
+          }
+        ],
+        "direct": true,
+        "module": true
+      },
+      {
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "insight-scanner-archive",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "com.sonatype.insight.scan",
+            "version": "2.23.5-SNAPSHOT"
+          }
+        },
+        "children": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "mockito-core",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "org.mockito",
+                "version": "2.28.2"
+              }
+            },
+            "direct": true
+          },
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "insight-scanner-hashing",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.sonatype.insight.scan",
+                "version": "1.12.0-01"
+              }
+            },
+            "children": [
+              {
+                "componentIdentifier": {
+                  "format": "maven",
+                  "coordinates": {
+                    "artifactId": "insight-scanner-hashing-asm60",
+                    "classifier": "",
+                    "extension": "jar",
+                    "groupId": "com.sonatype.insight.scan",
+                    "version": "1.12.0-01"
+                  }
+                }
+              },
+              {
+                "componentIdentifier": {
+                  "format": "maven",
+                  "coordinates": {
+                    "artifactId": "asm",
+                    "classifier": "",
+                    "extension": "jar",
+                    "groupId": "org.ow2.asm",
+                    "version": "7.1"
+                  }
+                }
+              }
+            ],
+            "direct": true
+          },
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "insight-scanner-model-io",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.sonatype.insight.scan",
+                "version": "2.23.5-SNAPSHOT"
+              }
+            },
+            "children": [
+              {
+                "componentIdentifier": {
+                  "format": "maven",
+                  "coordinates": {
+                    "artifactId": "xstream",
+                    "classifier": "",
+                    "extension": "jar",
+                    "groupId": "com.thoughtworks.xstream",
+                    "version": "1.4.11.1"
+                  }
+                }
+              }
+            ],
+            "direct": true
+          },
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "insight-archive-utils",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.sonatype.insight.scan",
+                "version": "2.23.5-SNAPSHOT"
+              }
+            },
+            "children": [
+              {
+                "componentIdentifier": {
+                  "format": "maven",
+                  "coordinates": {
+                    "artifactId": "commons-compress",
+                    "classifier": "",
+                    "extension": "jar",
+                    "groupId": "org.apache.commons",
+                    "version": "1.19"
+                  }
+                }
+              }
+            ],
+            "direct": true
+          },
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "insight-scanner-model",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.sonatype.insight.scan",
+                "version": "2.23.5-SNAPSHOT"
+              }
+            },
+            "direct": true
+          },
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "commons-io",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "commons-io",
+                "version": "2.6"
+              }
+            },
+            "direct": true
+          },
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "insight-scanner-core",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.sonatype.insight.scan",
+                "version": "2.23.5-SNAPSHOT"
+              }
+            },
+            "direct": true
+          }
+        ],
+        "direct": true,
+        "module": true
+      },
+      {
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "insight-module-model",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "com.sonatype.insight.scan",
+            "version": "2.23.5-SNAPSHOT"
+          }
+        },
+        "children": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "xstream",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.thoughtworks.xstream",
+                "version": "1.4.11.1"
+              }
+            },
+            "direct": true
+          }
+        ],
+        "direct": true,
+        "module": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,18 @@
+# Dropwizard config for the embedded IQ server used by AbstractIqApiTest.
+# hdsUrl and HTTP ports are overridden at runtime by TestInsightBrainServiceRule
+# (HDS mock URL and PortAllocator-assigned ports).
+
+sonatypeWork: ./target/sonatype-work/clm-server
+
+showRootOrganization: true
+
+importReferencePoliciesFromHDS: false
+
+logging:
+  level: INFO
+  loggers:
+    "com.sonatype": DEBUG
+    "org.eclipse.jetty.server.HttpChannel": INFO
+  appenders:
+    - type: console
+      logFormat: "%date %-5level [%thread] %logger - %msg%n"

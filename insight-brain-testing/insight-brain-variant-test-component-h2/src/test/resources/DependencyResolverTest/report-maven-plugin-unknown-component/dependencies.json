@@ -1,0 +1,59 @@
+{
+  "dependencyGraph" : [ {
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "test",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "test",
+          "version" : "1.0"
+        }
+      },
+      "packageUrl" : "pkg:maven/test/test@1.0?type=jar"
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "test",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "test",
+        "version" : "1.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/test/test@1.0?type=jar"
+  } ],
+  "gavDepths" : { },
+  "componentDepths" : [ ],
+  "dependencyTree" : {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "maven-deps",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.example",
+        "version" : "1.0-SNAPSHOT"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.example/maven-deps@1.0-SNAPSHOT?type=jar",
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "test",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "test",
+          "version" : "1.0"
+        }
+      },
+      "packageUrl" : "pkg:maven/test/test@1.0?type=jar",
+      "direct" : true
+    } ],
+    "module" : true
+  }
+}

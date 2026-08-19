@@ -1,0 +1,92 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+.nx-table.iq-policy-editor-table {
+  display: grid;
+  grid-auto-columns: auto;
+  grid-template-columns:
+    minmax(90px, 1fr)
+    repeat(7, min-content)
+    minmax(48px, min-content)
+    60px;
+
+  tbody,
+  thead,
+  tr {
+    display: contents;
+  }
+
+  .nx-cell--meta-info {
+    grid-column: 1 / 11;
+    justify-content: center;
+  }
+
+  .nx-cell {
+    display: flex;
+    vertical-align: middle;
+    white-space: normal;
+    box-sizing: border-box;
+
+    &:first-child {
+      white-space: nowrap;
+      width: auto;
+      grid-column-start: 1;
+      font-size: var(--nx-font-size-s);
+    }
+
+    &.continuous-monitoring {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding-top: 0;
+      padding-bottom: 0;
+
+      .nx-truncate-ellipsis {
+        white-space: normal;
+      }
+    }
+  }
+
+  .nx-cell:not(:first-child) {
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+
+    & > * {
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+
+  // This media query is to avoid the trash can for deleting notifications to hide at lower supported resolutions
+  @media (max-width: 1416px) {
+    .nx-cell {
+      padding: var(--nx-spacing-3x) var(--nx-spacing-2x);
+    }
+  }
+}
+
+#policy-edit-notifications {
+  .nx-cell:last-child > * {
+    margin-right: 0;
+  }
+
+  // This media query is to avoid the trash can for deleting notifications to hide at lower supported resolutions
+  @media (max-width: 1416px) {
+    .nx-cell {
+      padding: var(--nx-spacing-3x) var(--nx-spacing-2x);
+    }
+  }
+}
+
+#iq-policy-editor__add-notification {
+  & > *:first-child {
+    width: 150px;
+  }
+}
+
+#iq-policy-editor__add-notification.nx-form-row {
+  flex-wrap: wrap;
+}

@@ -1,0 +1,76 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+.container {
+  background-color: var(--color-panel);
+  border-right: 1px solid var(--gray-6);
+  transition: width 0.5s ease-in-out;
+  overflow: hidden;
+}
+
+@media (width < 1024px) {
+  .container {
+    position: fixed;
+    top: var(--header-height);
+    left: 0;
+    bottom: 0;
+    z-index: 1000;
+    width: 240px;
+    transition: transform 0.3s ease-in-out;
+  }
+
+  .container-entering {
+    animation: slide-in-from-left 300ms ease-out;
+  }
+
+}
+
+.overlay {
+  position: fixed;
+  inset: var(--header-height) 0 0;
+  background-color: var(--overlay-bg);
+  z-index: 999;
+}
+
+.overlay-entering {
+  animation: fade-in 200ms ease-out;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-in-from-left {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 6px;
+  margin: 4px 0;
+  border-radius: var(--radius-2);
+  color: var(--gray-12);
+  font-weight: 400;
+  font-size: var(--font-size-2);
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  width: 100%;
+}
+
+.link:hover {
+  background-color: var(--gray-4);
+}
+
+.link[data-active='true'] {
+  background-color: var(--gray-3);
+}

@@ -1,0 +1,105 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-button-helpers';
+
+@use '../dashboard/filter/manageFiltersDropdown/manageFiltersDropdown';
+
+dashboard-filter {
+  display: contents;
+}
+
+.dashboard-filter {
+  box-sizing: border-box;
+  padding-right: var(--nx-spacing-2x);
+  padding-left: 2px; // this is to avoid cutting off filter caret icon when it's turning
+
+  .nx-collapsible-items .nx-filter-input {
+    box-sizing: border-box;
+    max-width: 100%;
+  }
+}
+
+.dashboard-filter-footer {
+  .nx-alert {
+    .nx-btn-bar {
+      @include nx-container-helpers.container-horizontal;
+    }
+
+    .nx-btn {
+      margin-right: var(--nx-spacing-2x);
+    }
+  }
+}
+
+.nx-btn-bar.dashboard-filter-footer-btns {
+  justify-content: space-between;
+
+  .nx-btn {
+    margin: 0;
+  }
+}
+
+.tooltip.top-left {
+  &.filter-label-tooltip {
+    margin-top: 2px;
+    margin-left: -8px;
+    .tooltip-arrow {
+      margin-left: 53px;
+    }
+  }
+
+  &.filter-item-tooltip {
+    .tooltip-arrow {
+      margin-left: 24px;
+    }
+  }
+}
+
+.iq-filter-name-section {
+  margin-left: 52px;
+
+  .nx-text-input {
+    margin-bottom: 0;
+  }
+}
+
+.delete-filters-modal {
+  width: 400px;
+
+  .fa.loading-spinner {
+    margin-left: 12px;
+  }
+
+  .iq-checkbox__label {
+    margin-bottom: 8px !important;
+  }
+
+  .field {
+    overflow: hidden;
+    white-space: nowrap;
+
+    &.error {
+      max-height: 470px;
+    }
+  }
+}
+
+.dashboard-filter-header__title {
+  @include nx-container-helpers.container-horizontal;
+
+  align-items: start;
+  display: flex;
+
+  .dashboard-filter-header__title-text {
+    flex-grow: 1;
+    margin-top: 6px;
+  }
+
+  .nx-btn--icon-only {
+    @include nx-button-helpers.small-icon-btn;
+  }
+}

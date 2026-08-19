@@ -1,0 +1,128 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+enterprise-reporting-dashboard-page {
+  --looker-iframe-margin: 60px;
+
+  display: block;
+  width: 100%;
+
+  // Ensure NxPageMain takes full width
+  .nx-page-main {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  iframe {
+    height: 100%;
+    width: 100%;
+  }
+
+  .nx-page-title {
+    .nx-h1 {
+      margin-left: var(--looker-iframe-margin);
+    }
+  }
+
+  .nx-tabs {
+    margin: 0;
+    width: 100%;
+  }
+  .nx-tab-list {
+    margin-bottom: 0;
+    margin-left: var(--looker-iframe-margin);
+  }
+
+  .nx-tab-panel {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+
+    .dashboard-disabled {
+      margin-top: var(--nx-spacing-6x);
+    }
+  }
+
+  .nx-alert--error {
+    margin-left: var(--looker-iframe-margin);
+  }
+}
+
+.enterprise-reporting-dashboard {
+  // min-height prevents layout jumping while Looker iframe loads
+  &__container {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-height: 600px;
+    position: relative;
+
+    iframe {
+      width: 100% !important;
+      max-width: 100%;
+    }
+  }
+
+  &__navigation-bar {
+    font-size: 12px;
+    margin-left: var(--looker-iframe-margin);
+    margin-bottom: var(--nx-spacing-4x);
+  }
+
+  &__navigation-links {
+    display: flex;
+  }
+
+  &__filter-tag {
+    display: flex;
+    gap: var(--nx-spacing-2x);
+    align-items: center;
+
+    .nx-h3,
+    .nx-tag {
+      margin: 0;
+      font-size: var(--nx-font-size-xs);
+    }
+  }
+
+  &__link-list {
+    display: flex;
+    flex-wrap: wrap;
+    list-style-type: none;
+    margin: 0;
+  }
+
+  &__link-item {
+    &:not(:last-child) {
+      &::after {
+        color: var(--nx-color-text-stark);
+        content: '|';
+        margin: 0 8px;
+      }
+    }
+  }
+  &__type {
+    &.nx-h3 {
+      color: var(--nx-color-text-stark);
+      flex-shrink: 0;
+      font-weight: 600;
+      font-size: 12px;
+      margin: 2px 12px 0 0;
+    }
+  }
+}
+
+.filter-button.nx-btn {
+  width: max-content;
+  align-self: end;
+}
+
+//Matching the Looker Dashboard marign, which shrinks at 1512px
+@media (max-width: 1512px) {
+  enterprise-reporting-dashboard-page {
+    --looker-iframe-margin: 20px;
+  }
+}

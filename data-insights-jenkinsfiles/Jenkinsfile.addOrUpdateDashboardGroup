@@ -1,0 +1,313 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+// This job allows the Business Intelligence team control what is shown on the Insight Data landing page in IQ
+// Some more technical background can be found here https://sonatype.atlassian.net/wiki/spaces/DATA/pages/227410489/Dashboard+Change+Management
+// The Jenkins job is located here:  https://jenkins.ci.sonatype.dev/job/insight/job/insight-brain/job/Data%20Insights%20Dashboard%20Configuration/job/Create%20or%20Update%20Dashboard%20Group/
+
+@Library(['jenkins-shared']) _
+
+def configFileName = "enterprise-reporting.json"
+
+def updatedConfigJson
+
+def validator // will be loaded in the pipeline
+def helper // will be loaded in the pipeline
+
+def s3ConfigurationByEnv = [
+  staging: [
+    account: "993883856687",
+    role: 'jenkins-hds-enterprise-reporting-staging',
+    credentialsId: 'hds-enterprise-reporting-external-id-staging',
+    usEast2Bucket: "hds-staging-enterprise-reporting-us-east-2",
+    usWest2Bucket: "hds-staging-enterprise-reporting-us-west-2"
+  ],
+  production: [
+    account  : "135388973902",
+    role: 'jenkins-hds-enterprise-reporting-production',
+    credentialsId: 'hds-enterprise-reporting-external-id-production',
+    usEast2Bucket: "hds-production-enterprise-reporting-us-east-2",
+    usWest2Bucket: "hds-production-enterprise-reporting-us-west-2"
+  ]
+]
+
+pipeline {
+  agent {
+    node {
+      label 'zion-small'
+    }
+  }
+
+  parameters {
+    // Check if this is a rebuild and include 'production' in the choices if it is
+    choice(
+        name: 'environment',
+        description: 'The environment to update. Production is only available for rebuilds and you will have to manually type it in.',
+        choices: currentBuild.getBuildCauses().any { cause -> cause._class.contains('Rebuild') } ? ['staging', 'production'] : ['staging']
+    )
+
+    string(
+        name: 'groupId',
+        description: 'The identifier for the dashboard group. If no group exists with this ID, a new group is created.',
+        trim: true,
+        defaultValue: ''
+    )
+
+    string(
+        name: 'dashboardIdCsv',
+        description: 'A comma-separated list of dashboard IDs to associate with this group. The groupId will be added to these dashboards.',
+        trim: true,
+        defaultValue: ''
+    )
+
+    string(
+        name: 'description',
+        description: 'Dashboard group description (Provided by UI/UX Design team). Required field - cannot be cleared.',
+        trim: true,
+        defaultValue: ''
+    )
+
+    string(
+        name: 'featuresCsv',
+        description: 'Dashboard group features, provide as a comma separated list -- no space after commas (Provided by UI/UX Design team). Required field - cannot be cleared.',
+        trim: true,
+        defaultValue: ''
+    )
+
+    string(
+        name: 'previewImageIcon',
+        description: 'Dashboard group icon name (Provided by UI/UX Design team). Required field - cannot be cleared.',
+        trim: true,
+        defaultValue: ''
+    )
+
+    string(
+        name: 'sinceIQVersion',
+        description: 'The minimum IQ version required for this feature -- optional (Provided by BI team). Use \'-\' to clear the existing value.',
+        trim: true
+    )
+
+    booleanParam(
+        name: 'spotlight',
+        description: 'Will highlight a dashboard group as being "new" (Provided by UI/UX Design team).',
+        defaultValue: false,
+    )
+
+    string(
+        name: 'spotlightColor',
+        description: 'A optional customer color for "new" tag shown in the UI (Provided by UI/UX Design team). Use \'-\' to clear the existing value.',
+        trim: true
+    )
+
+    string(
+        name: 'spotlightText',
+        description: 'A optional text for the tag shown in the UI (Provided by UI/UX Design team). Use \'-\' to clear the existing value.',
+        trim: true
+    )
+
+    string(
+        name: 'title',
+        description: 'Dashboard group title (Provided by UI/UX Design team). Required field - cannot be cleared.',
+        trim: true,
+        defaultValue: ''
+    )
+
+    booleanParam(
+      name: 'saveToS3',
+      description: 'Whether to save the updated configuration to s3. Leave unchecked just to preview the changes.',
+      defaultValue: false
+    )
+  }
+
+  stages {
+    stage('Merge Configurations') {
+      steps {
+        script {
+          echo "Running for environment: ${params.environment}"
+          def s3Configuration = s3ConfigurationByEnv[params.environment]
+
+          // Validate that s3Configuration is not null or blank
+          if (s3Configuration == null) {
+            error "s3Configuration is null. Invalid environment: ${params.environment}"
+          }
+
+          def jsonSlurper = new groovy.json.JsonSlurper()
+
+          // Parse and validate dashboard entries and groups
+          validator = load 'data-insights-jenkinsfiles/validations.groovy'
+
+          // Load helper functions
+          helper = load 'data-insights-jenkinsfiles/helper.groovy'
+
+          // Validate that groupId is provided
+          if (validator.isEmptyParameter(params.groupId)) {
+            error "groupId parameter cannot be empty. Please provide a group ID."
+          }
+
+          withAwsRole(region: 'us-east-2', role: s3Configuration.role, roleAccount: s3Configuration.account, credentialsId: s3Configuration.credentialsId) {
+            // Get existing configuration or create a new one if it doesn't exist
+            def existingConfig
+            def bucketForEast = s3Configuration.usEast2Bucket
+            def bucketForWest = s3Configuration.usWest2Bucket
+
+            try {
+              def existingConfigJson = sh(script: "aws s3 cp s3://${bucketForEast}/${configFileName} -", returnStdout: true).trim()
+              existingConfig = jsonSlurper.parseText(existingConfigJson)
+              echo "Found existing configuration with version ${existingConfig.version}"
+            } catch (Exception e) {
+              echo "No existing configuration found or error reading it. Creating new configuration."
+              existingConfig = [
+                version: 0,
+                dashboards: [:],
+                dashboardGroups: [:]
+              ]
+            }
+
+            // Ensure dashboards and dashboardGroups maps exist
+            if (!existingConfig.dashboards) existingConfig.dashboards = [:]
+            if (!existingConfig.dashboardGroups) existingConfig.dashboardGroups = [:]
+
+            // Get existing entry or create new one
+            def existingEntry = existingConfig.dashboardGroups[params.groupId] ?: [:]
+
+            // Set build name based on whether this is an add or update operation
+            def operation = existingEntry.isEmpty() ? "add" : "update"
+            def username = currentBuild.getBuildCauses()[0].userId ?: "unknown"
+            currentBuild.displayName = "#${currentBuild.number} : ${operation} ${params.groupId} -> ${params.environment} by ${username}"
+
+            def entry = helper.processEntryAttributes(
+              existingEntry,
+              [
+                'groupId': params.groupId,
+                'description': params.description,
+                'featuresCsv': params.featuresCsv,
+                'previewImageIcon': params.previewImageIcon,
+                'sinceIQVersion': params.sinceIQVersion,
+                'spotlightColor': params.spotlightColor,
+                'spotlight': params.spotlight,
+                'spotlightText': params.spotlightText,
+                'title': params.title
+              ],
+              'groupId',
+              validator
+            )
+
+            // Store back in the config
+            existingConfig.dashboardGroups[params.groupId] = entry
+
+            // Process dashboardIdCsv parameter if provided
+            if (!validator.isEmptyParameter(params.dashboardIdCsv)) {
+              associateDashboardsToGroup(existingConfig, params.groupId, params.dashboardIdCsv, validator)
+            }
+
+            // Sort dashboards by priorityOrder
+            helper.sortDashboardsByPriorityOrder(existingConfig)
+
+            def newConfig = [:]
+            // Increment the version
+            newConfig.version = (existingConfig.version ?: 0) + 1
+
+            newConfig.dashboardGroups = existingConfig.dashboardGroups
+            newConfig.dashboards = existingConfig.dashboards
+
+            // Convert the updated config to JSON
+            updatedConfigJson = groovy.json.JsonOutput.toJson(newConfig)
+            def prettyJsonConfigs = groovy.json.JsonOutput.prettyPrint(updatedConfigJson)
+
+            // Pretty print for logging
+            echo "Updated configuration:"
+            echo prettyJsonConfigs
+            writeFile file: 'updated_dashboard_configs.json', text: prettyJsonConfigs
+          }
+        }
+      }
+    }
+
+    stage('Archive Artifacts') {
+      steps {
+        archiveArtifacts artifacts: 'updated_dashboard_configs.json', allowEmptyArchive: true
+      }
+    }
+
+    stage('Persist to S3') {
+      steps {
+        script {
+          if (!params.saveToS3) {
+            echo 'Skipping S3 writes – marking stage as unstable'
+            unstable('S3 writes skipped')
+            return // Exit the current script block without failing
+          }
+          else {
+            echo "Saving configuration to S3"
+            def s3Configuration = s3ConfigurationByEnv[params.environment]
+
+            withAwsRole(region: 'us-east-2', role: s3Configuration.role, roleAccount: s3Configuration.account, credentialsId: s3Configuration.credentialsId) {
+              helper.saveToBucket(s3Configuration.usEast2Bucket, configFileName, updatedConfigJson)
+              helper.saveToBucket(s3Configuration.usWest2Bucket, configFileName, updatedConfigJson)
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+def covertEmtpyToNull(String value) {
+  if (value == null || value.trim().length() == 0) {
+    return null
+  } else {
+    return value
+  }
+}
+
+/**
+ * Associate dashboards with a dashboard group.
+ *
+ * @param existingConfig The existing configuration containing dashboards and dashboard groups
+ * @param groupId The ID of the group to associate dashboards with
+ * @param dashboardIdCsv A comma-separated list of dashboard IDs to associate with the group
+ * @param validator The validation functions to use
+ */
+def associateDashboardsToGroup(def existingConfig, String groupId, String dashboardIdCsv, def validator) {
+  // Split the comma-separated list into an array of dashboard IDs
+  def dashboardIds = dashboardIdCsv.split(',').collect { it.trim() }
+
+  echo "Associating group '${groupId}' with ${dashboardIds.size()} dashboards: ${dashboardIds.join(', ')}"
+
+  // Update each dashboard entry to add/update the groupId field
+  dashboardIds.each { dashboardId ->
+    if (existingConfig.dashboards.containsKey(dashboardId)) {
+      // Get the existing dashboard entry
+      def dashboardEntry = existingConfig.dashboards[dashboardId]
+
+      // Update the groupId field
+      dashboardEntry.groupId = groupId
+
+      // Store back in the config
+      existingConfig.dashboards[dashboardId] = dashboardEntry
+
+      echo "Updated dashboard '${dashboardId}' to be part of group '${groupId}'"
+    } else {
+      echo "Warning: Dashboard '${dashboardId}' not found in configuration, skipping"
+    }
+  }
+
+  // Find dashboards that currently refer to this group but aren't in the dashboardIdCsv list
+  def dashboardsToUpdate = existingConfig.dashboards.findAll { id, dashboard ->
+    dashboard.groupId == groupId && !dashboardIds.contains(id)
+  }
+
+  // Clear the groupId for these dashboards
+  dashboardsToUpdate.each { id, dashboard ->
+    // Remove the groupId field
+    dashboard.remove('groupId')
+
+    // Store back in the config
+    existingConfig.dashboards[id] = dashboard
+
+    echo "Removed group association for dashboard '${id}' as it's not in the dashboardIdCsv list"
+  }
+}

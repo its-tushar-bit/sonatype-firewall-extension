@@ -1,0 +1,80 @@
+<scan version="2.32.1-01">
+  <configuration>
+    <properties>
+      <property name="archiveNames" value="true"/>
+      <property name="anonymizeArtifactIds" value="false"/>
+      <property name="fileExcludes" value=""/>
+      <property name="anonymizePaths" value="false"/>
+      <property name="maxDepth" value="256"/>
+      <property name="operatingSystem" value="true"/>
+      <property name="hashFiles" value="true"/>
+      <property name="fileIncludes" value=""/>
+      <property name="procArch" value="true"/>
+      <property name="maxSymlinkDepth" value="5"/>
+      <property name="jreInfo" value="true"/>
+      <property name="proprietaryPackages" value=""/>
+      <property name="pomProperties" value="true"/>
+      <property name="fileSizes" value="false"/>
+      <property name="nameHashes" value="true"/>
+      <property name="dirExcludes" value="**/.*, **/CVS"/>
+      <property name="hashJavaTypes" value="true"/>
+      <property name="ipAddresses" value="false"/>
+      <property name="dirIncludes" value=""/>
+      <property name="proprietaryRegexes" value=""/>
+      <property name="resourceNames" value="true"/>
+    </properties>
+  </configuration>
+  <item contentType="SBOM" lastModified="1571788783929" sha1="80d8ce5924b4b67314bf" path="scan-basic-bom.xml">
+    <content>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+      &lt;bom xmlns=&quot;http://cyclonedx.org/schema/bom/1.3&quot; serialNumber=&quot;urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79&quot; version=&quot;1&quot;&gt;
+      &lt;metadata&gt;
+      &lt;timestamp&gt;2021-12-03T15:47:01Z&lt;/timestamp&gt;
+      &lt;!-- The component for which this BOM describes --&gt;
+      &lt;component type=&quot;application&quot; bom-ref=&quot;acme-app&quot;&gt;
+      &lt;name&gt;Acme Application&lt;/name&gt;
+      &lt;version&gt;9.1.1&lt;/version&gt;
+      &lt;purl&gt;pkg:maven/org.acme/acme-app@9.1.1?type=jar&lt;/purl&gt;
+      &lt;/component&gt;
+      &lt;/metadata&gt;
+      &lt;components&gt;
+      &lt;component type=&quot;framework&quot; bom-ref=&quot;pkg:maven/org.acme/web-framework@1.0.0?type=jar&quot;&gt;
+      &lt;group&gt;org.acme&lt;/group&gt;
+      &lt;name&gt;web-framework&lt;/name&gt;
+      &lt;version&gt;1.0.0&lt;/version&gt;
+      &lt;purl&gt;pkg:maven/org.acme/web-framework@1.0.0?type=jar&lt;/purl&gt;
+      &lt;/component&gt;
+      &lt;component type=&quot;library&quot; bom-ref=&quot;pkg:maven/org.acme/persistence@3.1.0?type=jar&quot;&gt;
+      &lt;group&gt;org.acme&lt;/group&gt;
+      &lt;name&gt;persistence&lt;/name&gt;
+      &lt;version&gt;3.1.0&lt;/version&gt;
+      &lt;purl&gt;pkg:maven/org.acme/persistence@3.1.0?type=jar&lt;/purl&gt;
+      &lt;/component&gt;
+      &lt;component type=&quot;library&quot; bom-ref=&quot;pkg:maven/org.acme/common-util@3.0.0?type=jar&quot;&gt;
+      &lt;group&gt;org.acme&lt;/group&gt;
+      &lt;name&gt;common-util&lt;/name&gt;
+      &lt;version&gt;3.0.0&lt;/version&gt;
+      &lt;purl&gt;pkg:maven/org.acme/common-util@3.0.0?type=jar&lt;/purl&gt;
+      &lt;/component&gt;
+      &lt;/components&gt;
+      &lt;dependencies&gt;
+      &lt;!-- Direct dependencies of the main application --&gt;
+      &lt;dependency ref=&quot;acme-app&quot;&gt;
+      &lt;dependency ref=&quot;pkg:maven/org.acme/web-framework@1.0.0&quot; /&gt;
+      &lt;dependency ref=&quot;pkg:maven/org.acme/persistence@3.1.0&quot; /&gt;
+      &lt;/dependency&gt;
+      &lt;!-- All other dependency relationships --&gt;
+      &lt;dependency ref=&quot;pkg:maven/org.acme/web-framework@1.0.0&quot;&gt;
+      &lt;dependency ref=&quot;pkg:maven/org.acme/common-util@3.0.0&quot; /&gt;
+      &lt;/dependency&gt;
+      &lt;dependency ref=&quot;pkg:maven/org.acme/persistence@3.1.0&quot;&gt;
+      &lt;dependency ref=&quot;pkg:maven/org.acme/common-util@3.0.0&quot; /&gt;
+      &lt;/dependency&gt;
+      &lt;dependency ref=&quot;pkg:maven/org.acme/common-util@3.0.0&quot; /&gt;
+      &lt;/dependencies&gt;
+      &lt;/bom&gt;</content>
+  </item>
+  <summary>
+    <startTime>2021-11-28T23:59:43+0000</startTime>
+    <endTime>2021-11-28T23:59:43+0000</endTime>
+  </summary>
+</scan>

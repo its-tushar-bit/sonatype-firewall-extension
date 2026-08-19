@@ -1,0 +1,59 @@
+{
+  "remediation": {
+    "suggestedVersionChange": {
+      "type": "recommended-non-breaking",
+      "data": {
+        "component": {
+          "componentIdentifier": {
+            "format": "maven",
+            "coordinates": {
+              "groupId": "com.example",
+              "artifactId": "test-artifact",
+              "version": "1.5.0",
+              "extension": "jar",
+              "classifier": ""
+            }
+          }
+        }
+      }
+    },
+    "versionChanges": [
+      {
+        "type": "recommended-non-breaking",
+        "data": {
+          "component": {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "groupId": "com.example",
+                "artifactId": "test-artifact",
+                "version": "1.5.0",
+                "extension": "jar",
+                "classifier": ""
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "automatedRemediationStatus": {
+    "status": "MANUAL_PULL_REQUEST_POSSIBLE"
+  },
+  "allVersions": [
+    {
+      "displayName": { "name": "test-artifact" },
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "groupId": "com.example",
+          "artifactId": "test-artifact",
+          "version": "1.5.0",
+          "extension": "jar",
+          "classifier": ""
+        }
+      },
+      "breakingChangesCount": 0
+    }
+  ]
+}

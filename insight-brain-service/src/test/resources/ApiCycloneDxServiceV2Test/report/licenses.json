@@ -1,0 +1,79 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "jQuery",
+        "version" : "3.4.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "5408e54a94044d1f1f21",
+    "declaredLicenses" : [ "CC0-1.0", "MIT" ],
+    "observedLicenses" : [ "CDDL-1.1" ],
+    "effectiveLicenses" : [ "CC0-1.0", "MIT" ],
+    "securityCounters" : {
+      "Critical" : 1,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "securityThreatLevel" : 9.8,
+    "catalogDate" : 1556821287254
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "knockout.validation",
+        "qualifier" : "",
+        "version" : "2.0.0-Pre"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "7c9933a349f37d5f3131",
+    "declaredLicenses" : [ "Apache-1.0", "Apache-1.1", "Apache-2.0", "LGPL-2.1", "MPL-1.1" ],
+    "observedLicenses" : [ "Apache-2.0 or LGPL-2.1+ or MPL-1.1" ],
+    "effectiveLicenses" : [ "LGPL-2.1", "MPL-1.1" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1383585090000
+  }, {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "jQuery",
+        "version" : "3.2.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "0babbbd2c221d24484f5",
+    "declaredLicenses" : [ "CC0-1.0", "MIT" ],
+    "observedLicenses" : [ "CDDL-1.1" ],
+    "effectiveLicenses" : [ "CC0-1.0", "MIT" ],
+    "securityCounters" : {
+      "Critical" : 1,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "similar",
+    "proprietary" : false,
+    "securityThreatLevel" : 9.8,
+    "catalogDate" : 1505410495144
+  } ]
+}

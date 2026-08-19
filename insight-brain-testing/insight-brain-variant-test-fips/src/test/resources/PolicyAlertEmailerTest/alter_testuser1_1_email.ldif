@@ -1,0 +1,5 @@
+dn: uid=test_user1_1,ou=users,dc=company,dc=com
+changetype: modify
+replace: mail
+mail: test.user1_1modified@company.com
+-

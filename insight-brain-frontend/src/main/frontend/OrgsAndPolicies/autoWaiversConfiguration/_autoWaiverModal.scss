@@ -1,0 +1,54 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+.iq-auto-waiver-modal-fieldset {
+  .nx-legend {
+    display: none;
+  }
+}
+
+.iq-auto-waiver-modal-fieldset__item,
+.iq-auto-waiver-modal__container {
+  padding-left: var(--nx-spacing-6x);
+
+  .nx-h4 {
+    text-transform: capitalize;
+  }
+
+  &-reachability-header {
+    display: flex;
+    gap: var(--nx-spacing-base);
+    align-items: center;
+
+    .nx-icon {
+      color: var(--nx-color-text-stark);
+    }
+  }
+}
+
+.iq-auto-waiver-modal__container {
+  margin-bottom: var(--nx-spacing-8x);
+
+  &:last-of-type {
+    margin-bottom: 0;
+  }
+}
+
+.iq-auto-waiver-modal--pro-tier {
+  .nx-footer {
+    .nx-form__submit-btn {
+      display: none;
+    }
+  }
+
+  // Make enterprise banner flush with modal content
+  .nx-modal-content {
+    padding-top: 0;
+
+    > :first-child {
+      margin-top: 0;
+    }
+  }
+}

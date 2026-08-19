@@ -1,0 +1,66 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "https://example.org/dataset-profile-spdx3",
+      "creationInfo": "_:creationInfo1",
+      "name": "Dataset Profile SPDX 3.0 Document",
+      "element": [
+        "https://example.org/dataset-root-app",
+        "https://example.org/training-dataset"
+      ],
+      "rootElement": [
+        "https://example.org/dataset-root-app"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "https://example.org/dataset-root-app",
+      "creationInfo": "_:creationInfo1",
+      "name": "data-pipeline",
+      "software_packageVersion": "2.0.0",
+      "externalIdentifier": [
+        {
+          "type": "ExternalIdentifier",
+          "externalIdentifierType": "packageUrl",
+          "identifier": "pkg:pypi/data-pipeline@2.0.0"
+        }
+      ]
+    },
+    {
+      "type": "dataset_Dataset",
+      "spdxId": "https://example.org/training-dataset",
+      "creationInfo": "_:creationInfo1",
+      "name": "imdb-reviews-v3",
+      "software_packageVersion": "3.0.0",
+      "dataset_datasetType": ["structured", "text"],
+      "dataset_dataCollectionProcess": "Collected from public IMDB reviews with consent",
+      "dataset_intendedUse": "Sentiment analysis model training",
+      "dataset_datasetSize": 50000,
+      "dataset_datasetNoise": "Contains some duplicate entries",
+      "dataset_knownBias": ["English language bias", "Genre selection bias"]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "https://example.org/rel-app-to-dataset",
+      "creationInfo": "_:creationInfo1",
+      "relationshipType": "dependsOn",
+      "from": "https://example.org/dataset-root-app",
+      "to": ["https://example.org/training-dataset"]
+    },
+    {
+      "@id": "_:creationInfo1",
+      "type": "CreationInfo",
+      "specVersion": "3.0.1",
+      "created": "2026-05-01T00:00:00Z",
+      "createdBy": ["https://example.org/tool-sonatype"]
+    },
+    {
+      "type": "Agent",
+      "spdxId": "https://example.org/tool-sonatype",
+      "creationInfo": "_:creationInfo1",
+      "name": "Sonatype Test"
+    }
+  ]
+}

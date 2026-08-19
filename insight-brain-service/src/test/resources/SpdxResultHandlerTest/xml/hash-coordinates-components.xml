@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<Document>
+  <SPDXID>SPDXRef-DOCUMENT</SPDXID>
+  <spdxVersion>SPDX-2.3</spdxVersion>
+  <creationInfo>
+    <created>2023-08-01T14:28:47Z</created>
+    <creators>Tool: Sonatype IQ Server - 1.165.0-01</creators>
+  </creationInfo>
+  <name>doc name</name>
+  <dataLicense>CC0-1.0</dataLicense>
+  <documentNamespace>test</documentNamespace>
+  <packages>
+    <SPDXID>SPDXRef-test</SPDXID>
+    <copyrightText>NOASSERTION</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <filesAnalyzed>false</filesAnalyzed>
+    <name>tomcat-catalina</name>
+    <versionInfo>9.0.14</versionInfo>
+    <checksums>
+      <algorithm>SHA1</algorithm>
+      <checksumValue>e7b1000b94e835ffd37f4c6dcbdad43f4b48a02a</checksumValue>
+    </checksums>
+  </packages>
+  <relationships>
+    <spdxElementId>SPDXRef-DOCUMENT</spdxElementId>
+    <relationshipType>DESCRIBES</relationshipType>
+    <relatedSpdxElement>SPDXRef-test</relatedSpdxElement>
+  </relationships>
+</Document>
+

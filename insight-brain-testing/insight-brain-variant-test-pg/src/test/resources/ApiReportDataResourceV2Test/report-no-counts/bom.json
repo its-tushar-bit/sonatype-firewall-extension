@@ -1,0 +1,45 @@
+{
+  "aaData" : [ {
+    "filenames" : [ "tomcat-util-5.5.23.jar" ],
+    "pathnames" : [ "sample-application.zip/tomcat-util-5.5.23.jar", "sample-application.zip/dupe.jar", "dependency:/test:my-app:ear:1.2/tomcat:tomcat-util:5.5.23" ],
+    "displayName": {
+      "parts": [
+        {
+          "value": "displayName"
+        }
+      ]
+    },
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.5.23",
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : true,
+    "hash" : "1249e25aebb15358bedd",
+    "relativePopularity" : 1.0,
+    "createTime" : 1201589122000,
+    "lastModifiedTime" : 1201148356000,
+    "lastModifiedEntryTime" : 1173079498000
+  }, {
+    "filenames" : [ "sample-application.zip" ],
+    "pathnames" : [ "sample-application.zip" ],
+    "displayName": {
+      "parts": [
+        {
+          "value": "displayName"
+        }
+      ]
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "69b58197caabec2e0d06",
+    "relativePopularity" : 0.0,
+    "createTime" : null,
+    "lastModifiedTime" : 1392070212000,
+    "lastModifiedEntryTime" : 1373976956000
+  } ]
+}

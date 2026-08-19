@@ -1,0 +1,259 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+/*
+ * Styles required to override Bootstraps default styles
+ * Please list the location in the app of any changes
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use './variables' as *;
+@use './mixins';
+
+.nx-list {
+  ul,
+  ol {
+    margin-left: 0;
+  }
+}
+
+.nx-read-only__label,
+.nx-read-only__data {
+  line-height: var(--nx-line-height);
+}
+
+// These styles appear in the System Preferences pages and are required because of Bootstrap accordion styles
+.iq-list,
+.iq-list--clickable {
+  .iq-list__item {
+    .row {
+      margin: 0;
+    }
+
+    &.accordion-group {
+      border: none;
+      border-top: 1px solid transparent;
+      border-bottom: 1px solid $iq-grey-1;
+      border-radius: 0;
+      margin: 0;
+
+      &:first-of-type {
+        border-top: 1px solid $iq-grey-3;
+      }
+
+      &:hover {
+        border: none;
+      }
+    }
+
+    td {
+      line-height: 100%;
+    }
+  }
+}
+
+.iq-list__item--expanding {
+  .row {
+    cursor: default;
+  }
+}
+
+.nx-fieldset {
+  // override bootstrap <legend> styles and apply normal label styles
+  legend.nx-legend {
+    @include nx-text-helpers.semi-bold;
+
+    // use the same styling as <label>s
+    border-style: none;
+    font-size: 16px;
+    line-height: var(--nx-line-height);
+    margin-bottom: 0;
+  }
+}
+
+.nx-label {
+  margin-bottom: 0;
+  line-height: var(--nx-line-height);
+}
+
+.nx-text-input__invalid-message {
+  font-weight: normal;
+}
+
+.nx-text-input {
+  input[type='text'],
+  input[type='password'],
+  textarea {
+    background: none;
+    box-shadow: none;
+    border: none;
+    border-radius: 0;
+    color: var(--nx-color-text);
+    height: auto;
+    line-height: var(--nx-line-height);
+    padding: 0;
+    transition: none;
+    vertical-align: initial;
+  }
+
+  &:not(.nx-filter-input) {
+    .nx-text-input__input {
+      padding: 0;
+      margin: 0;
+    }
+  }
+}
+
+.nx-radio-checkbox__input {
+  &[type='checkbox'],
+  &[type='radio'] {
+    margin: 0;
+    width: 0;
+  }
+}
+
+.nx-toggle__input {
+  &[type='checkbox'] {
+    margin: 0 0 0 29px;
+    width: 0;
+  }
+}
+
+.nx-h1,
+.nx-h2,
+.nx-h3,
+.nx-h4,
+.nx-h5,
+.nx-h6 {
+  line-height: var(--nx-line-height);
+}
+
+.nx-p {
+  margin-top: 0;
+}
+
+.nx-table {
+  border-collapse: separate;
+}
+
+.nx-btn {
+  vertical-align: baseline;
+}
+
+.nx-form {
+  margin: 0;
+}
+
+.nx-toggle {
+  font-size: 16px;
+  font-weight: normal;
+  line-height: var(--nx-line-height);
+}
+
+.nx-radio-checkbox {
+  line-height: var(--nx-line-height);
+}
+
+// Override Bootstrap's styling of <a> elements.
+a {
+  @include mixins.text-link;
+}
+
+.nx-breadcrumb__link--current {
+  text-decoration: none;
+}
+
+.nx-global-sidebar__navigation-link {
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+.nx-list__item--clickable {
+  .nx-text-link,
+  .nx-list__link {
+    &:hover {
+      text-decoration: none;
+    }
+  }
+}
+
+.nx-code-snippet {
+  .nx-text-input__input {
+    cursor: text;
+  }
+}
+
+// These styles appear in the CDP Claim tab and are required because of Bootstrap input[type="date"] styles
+.nx-text-input__input[type='date'] {
+  background-color: transparent;
+  border: none;
+  color: var(--nx-color-text);
+  flex-grow: 1;
+  line-height: var(--nx-line-height);
+  box-shadow: none;
+  transition: none;
+  margin-bottom: 0;
+  &:focus {
+    box-shadow: none;
+  }
+}
+
+.iq-vulnerability-details__sub-description-term {
+  font-weight: normal;
+}
+
+/*
+  Fix to solve issue of textarea not expanding to full width:
+  bootstrap value for width of textarea is 206px;
+  This overrides the value so that the textarea expands to full width.
+*/
+.nx-text-input textarea {
+  width: 100%;
+}
+
+/*
+  Fix to solve issue of input not expanding to full width
+  (or expanding too much when custom value for input is specified):
+  This overrides the value so that the input expands to full width.
+*/
+.nx-text-input input {
+  width: 100%;
+}
+
+/*
+  Fix to properly show items in NxTransferList.
+*/
+.nx-transfer-list__select {
+  line-height: var(--nx-line-height);
+  margin: 0;
+}
+
+// Links styled as buttons should not retain link text styles
+a.nx-btn {
+  text-decoration: none;
+
+  &:not(.disabled) {
+    color: inherit;
+  }
+}
+
+// Fix height of form select
+.nx-form-select {
+  height: 40px;
+  margin-bottom: 0;
+  &__select {
+    height: 40px;
+  }
+}
+
+// Bootstrap sets code { color: #d14 } and pre { color: $grayDark } which overrides RSC colors
+.nx-pre {
+  color: var(--nx-color-text);
+
+  code, .nx-code {
+    color: inherit;
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "firstCatalog" : 1131487196000,
+  "lastCatalog" : 1399301189247,
+  "popularity" : [ {
+    "artifactId" : "geronimo-tomcat",
+    "catalogDates" : [ 1131487196000, 1131487196000, 1132809385000, 1136511582000, 1158675716000, 1162775304000 ],
+    "currentVersionIndex" : 3,
+    "groupId" : "geronimo",
+    "popularity" : [ 33, 66, 66, 100, 66, 33 ],
+    "version" : "1.0"
+  } ]
+}

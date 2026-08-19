@@ -1,0 +1,60 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+
+.iq-version-graph-component-details {
+  header {
+    @include nx-container-helpers.container-vertical;
+  }
+
+  &__list {
+    display: grid;
+    font-size: var(--nx-font-size-xs);
+    grid-template-columns: auto auto;
+
+    // Each item is a grid child who's children themselves participate in the parent grid alignment.
+    // This enables us to get both of the following simultaneously:
+    // 1. Terms and values are aligned, based on the widths of the longest of each
+    // 2. The borders on the nx-list__items are still visible (which they wouldn't be if you used display: contents)
+
+    .nx-list__item {
+      display: grid;
+      grid-column: 1 / -1;
+      grid-template-columns: subgrid;
+    }
+
+    .nx-list__term {
+      width: auto;
+    }
+
+    .nx-list__term,
+    .nx-list__description {
+      $vertical-padding: var(--nx-spacing-base);
+      padding-bottom: $vertical-padding;
+      padding-top: $vertical-padding;
+    }
+
+    .nx-threat-number {
+      font-size: var(--nx-font-size-s);
+    }
+  }
+
+  .nx-btn-bar {
+    justify-content: flex-start;
+  }
+
+  &__integrity--suspicious {
+    color: var(--nx-color-threat-critical);
+  }
+
+  &__hygiene-icon--exemplar {
+    color: var(--nx-swatch-purple-80);
+  }
+
+  &__hygiene-icon--laggard {
+    color: var(--nx-swatch-yellow-60);
+  }
+}

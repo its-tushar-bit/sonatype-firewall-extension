@@ -1,0 +1,68 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "components": [
+    {
+      "type": "library",
+      "name": "example-library-1",
+      "version": "1.0.0"
+    },
+    {
+      "name": "example-library-2",
+      "version": "1.0.0"
+    },
+    {
+      "name": "example-library-3",
+      "version": "1.0.0"
+    },
+    {
+      "name": "example-library-4",
+      "version": "1.0.0"
+    },
+    {
+      "name": "example-library-5",
+      "version": "1.0.0"
+    },
+    {
+      "name": "example-library-6",
+      "version": "1.0.0"
+    },
+    {
+      "name": "example-library-7",
+      "version": "1.0.0"
+    },
+    {
+      "name": "example-library-9",
+      "version": "1.0.0"
+    },
+    {
+      "name": "example-library-10",
+      "version": "1.0.0"
+    },
+    {
+      "name": "example-library-11",
+      "version": "1.0.0"
+    },
+    {
+      "name": "example-library-12",
+      "version": "1.0.0"
+    },
+    {
+      "name": "example-library-13",
+      "version": "1.0.0"
+    },
+    {
+      "name": "example-library-14",
+      "version": "1.0.0"
+    },
+    {
+      "name": "example-library-15",
+      "version": "1.0.0"
+    },
+    {
+      "name": "example-library-16",
+      "version": "1.0.0"
+    }
+  ]
+}

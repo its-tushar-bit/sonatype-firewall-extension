@@ -1,0 +1,300 @@
+{
+  "version" : 5,
+  "aaData" : [ {
+    "hash" : "a2f0045eae641a356b74",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "logback-classic",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ch.qos.logback",
+        "version" : "1.3.14"
+      }
+    },
+    "policyId" : "b767f497c6b34d9ca18a0350514360a4",
+    "policyName" : "Architecture-Quality",
+    "policyThreatLevel" : 1,
+    "activeViolations" : [ {
+      "policyId" : "b767f497c6b34d9ca18a0350514360a4",
+      "policyViolationId" : "d91a945d2baf4ae69f78a149b40d0a1d",
+      "policyName" : "Architecture-Quality",
+      "policyThreatLevel" : 1,
+      "waived" : false,
+      "grandfathered" : false,
+      "legacyViolation" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"3c03efd3f3154520bf8c996b0839a00a\",\"constraintName\":\"Version is unpopular\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"RelativePopularity\",\"conditionIndex\":0,\"summary\":\"Relative Popularity (Percentage) <= 10\",\"reason\":\"Relative popularity was <= 10% (relative popularity = 3%)\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "3c03efd3f3154520bf8c996b0839a00a",
+        "constraintName" : "Version is unpopular",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "RelativePopularity",
+          "conditionSummary" : "Relative Popularity (Percentage) <= 10",
+          "conditionReason" : "Relative popularity was <= 10% (relative popularity = 3%)",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY"
+    } ],
+    "waivedViolations" : [ ],
+    "allViolations" : [ {
+      "policyId" : "b767f497c6b34d9ca18a0350514360a4",
+      "policyViolationId" : "d91a945d2baf4ae69f78a149b40d0a1d",
+      "policyName" : "Architecture-Quality",
+      "policyThreatLevel" : 1,
+      "waived" : false,
+      "grandfathered" : false,
+      "legacyViolation" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"3c03efd3f3154520bf8c996b0839a00a\",\"constraintName\":\"Version is unpopular\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"RelativePopularity\",\"conditionIndex\":0,\"summary\":\"Relative Popularity (Percentage) <= 10\",\"reason\":\"Relative popularity was <= 10% (relative popularity = 3%)\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "3c03efd3f3154520bf8c996b0839a00a",
+        "constraintName" : "Version is unpopular",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "RelativePopularity",
+          "conditionSummary" : "Relative Popularity (Percentage) <= 10",
+          "conditionReason" : "Relative popularity was <= 10% (relative popularity = 3%)",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY"
+    } ]
+  }, {
+    "hash" : "0436bd0d56730df756cf",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "logback-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ch.qos.logback",
+        "version" : "1.3.14"
+      }
+    },
+    "policyId" : "b767f497c6b34d9ca18a0350514360a4",
+    "policyName" : "Architecture-Quality",
+    "policyThreatLevel" : 1,
+    "activeViolations" : [ {
+      "policyId" : "b767f497c6b34d9ca18a0350514360a4",
+      "policyViolationId" : "7ca4f0862cf848e59f3ced422bf0bb39",
+      "policyName" : "Architecture-Quality",
+      "policyThreatLevel" : 1,
+      "waived" : false,
+      "grandfathered" : false,
+      "legacyViolation" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"3c03efd3f3154520bf8c996b0839a00a\",\"constraintName\":\"Version is unpopular\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"RelativePopularity\",\"conditionIndex\":0,\"summary\":\"Relative Popularity (Percentage) <= 10\",\"reason\":\"Relative popularity was <= 10% (relative popularity = 3%)\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "3c03efd3f3154520bf8c996b0839a00a",
+        "constraintName" : "Version is unpopular",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "RelativePopularity",
+          "conditionSummary" : "Relative Popularity (Percentage) <= 10",
+          "conditionReason" : "Relative popularity was <= 10% (relative popularity = 3%)",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY"
+    } ],
+    "waivedViolations" : [ ],
+    "allViolations" : [ {
+      "policyId" : "b767f497c6b34d9ca18a0350514360a4",
+      "policyViolationId" : "7ca4f0862cf848e59f3ced422bf0bb39",
+      "policyName" : "Architecture-Quality",
+      "policyThreatLevel" : 1,
+      "waived" : false,
+      "grandfathered" : false,
+      "legacyViolation" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"3c03efd3f3154520bf8c996b0839a00a\",\"constraintName\":\"Version is unpopular\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"RelativePopularity\",\"conditionIndex\":0,\"summary\":\"Relative Popularity (Percentage) <= 10\",\"reason\":\"Relative popularity was <= 10% (relative popularity = 3%)\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "3c03efd3f3154520bf8c996b0839a00a",
+        "constraintName" : "Version is unpopular",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "RelativePopularity",
+          "conditionSummary" : "Relative Popularity (Percentage) <= 10",
+          "conditionReason" : "Relative popularity was <= 10% (relative popularity = 3%)",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY"
+    } ]
+  }, {
+    "hash" : "83b5b8a7ba1c08f9e8c8",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-io",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-io",
+        "version" : "2.2"
+      }
+    },
+    "policyId" : "26b54c5617e841b38b84c10f5b3426ee",
+    "policyName" : "Security-Medium",
+    "policyThreatLevel" : 7,
+    "activeViolations" : [ {
+      "policyId" : "26b54c5617e841b38b84c10f5b3426ee",
+      "policyViolationId" : "857ab1e9224640158b6757f3309531d7",
+      "policyName" : "Security-Medium",
+      "policyThreatLevel" : 7,
+      "waived" : false,
+      "grandfathered" : false,
+      "legacyViolation" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"554325a9631846d9acd176cf385ea699\",\"constraintName\":\"Medium risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 4\",\"reason\":\"Found security vulnerability sonatype-2018-0705 with severity >= 4 (severity = 5.3)\",\"reference\":{\"value\":\"sonatype-2018-0705\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2018-0705\\\",\\\"severity\\\":5.3}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 7\",\"reason\":\"Found security vulnerability sonatype-2018-0705 with severity < 7 (severity = 5.3)\",\"reference\":{\"value\":\"sonatype-2018-0705\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2018-0705\\\",\\\"severity\\\":5.3}}\"}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "554325a9631846d9acd176cf385ea699",
+        "constraintName" : "Medium risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 4",
+          "conditionReason" : "Found security vulnerability sonatype-2018-0705 with severity >= 4 (severity = 5.3)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2018-0705",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 7",
+          "conditionReason" : "Found security vulnerability sonatype-2018-0705 with severity < 7 (severity = 5.3)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2018-0705",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "b767f497c6b34d9ca18a0350514360a4",
+      "policyViolationId" : "13ca1d61502b42b5959cb85a60a33439",
+      "policyName" : "Architecture-Quality",
+      "policyThreatLevel" : 1,
+      "waived" : false,
+      "grandfathered" : false,
+      "legacyViolation" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"117328177a204ea495cc036751490a7d\",\"constraintName\":\"Version is old\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"AgeInDays\",\"conditionIndex\":0,\"summary\":\"Age older than 1825 days\",\"reason\":\"Found component older than 5 years\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "117328177a204ea495cc036751490a7d",
+        "constraintName" : "Version is old",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "AgeInDays",
+          "conditionSummary" : "Age older than 1825 days",
+          "conditionReason" : "Found component older than 5 years",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY"
+    }, {
+      "policyId" : "b767f497c6b34d9ca18a0350514360a4",
+      "policyViolationId" : "8b7c5a4d5ed7427bbfbcf8eb3dc229f5",
+      "policyName" : "Architecture-Quality",
+      "policyThreatLevel" : 1,
+      "waived" : false,
+      "grandfathered" : false,
+      "legacyViolation" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"3c03efd3f3154520bf8c996b0839a00a\",\"constraintName\":\"Version is unpopular\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"RelativePopularity\",\"conditionIndex\":0,\"summary\":\"Relative Popularity (Percentage) <= 10\",\"reason\":\"Relative popularity was <= 10% (relative popularity = 10%)\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "3c03efd3f3154520bf8c996b0839a00a",
+        "constraintName" : "Version is unpopular",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "RelativePopularity",
+          "conditionSummary" : "Relative Popularity (Percentage) <= 10",
+          "conditionReason" : "Relative popularity was <= 10% (relative popularity = 10%)",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY"
+    } ],
+    "waivedViolations" : [ ],
+    "allViolations" : [ {
+      "policyId" : "26b54c5617e841b38b84c10f5b3426ee",
+      "policyViolationId" : "857ab1e9224640158b6757f3309531d7",
+      "policyName" : "Security-Medium",
+      "policyThreatLevel" : 7,
+      "waived" : false,
+      "grandfathered" : false,
+      "legacyViolation" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"554325a9631846d9acd176cf385ea699\",\"constraintName\":\"Medium risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 4\",\"reason\":\"Found security vulnerability sonatype-2018-0705 with severity >= 4 (severity = 5.3)\",\"reference\":{\"value\":\"sonatype-2018-0705\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2018-0705\\\",\\\"severity\\\":5.3}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 7\",\"reason\":\"Found security vulnerability sonatype-2018-0705 with severity < 7 (severity = 5.3)\",\"reference\":{\"value\":\"sonatype-2018-0705\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2018-0705\\\",\\\"severity\\\":5.3}}\"}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "554325a9631846d9acd176cf385ea699",
+        "constraintName" : "Medium risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 4",
+          "conditionReason" : "Found security vulnerability sonatype-2018-0705 with severity >= 4 (severity = 5.3)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2018-0705",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 7",
+          "conditionReason" : "Found security vulnerability sonatype-2018-0705 with severity < 7 (severity = 5.3)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2018-0705",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "b767f497c6b34d9ca18a0350514360a4",
+      "policyViolationId" : "13ca1d61502b42b5959cb85a60a33439",
+      "policyName" : "Architecture-Quality",
+      "policyThreatLevel" : 1,
+      "waived" : false,
+      "grandfathered" : false,
+      "legacyViolation" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"117328177a204ea495cc036751490a7d\",\"constraintName\":\"Version is old\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"AgeInDays\",\"conditionIndex\":0,\"summary\":\"Age older than 1825 days\",\"reason\":\"Found component older than 5 years\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "117328177a204ea495cc036751490a7d",
+        "constraintName" : "Version is old",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "AgeInDays",
+          "conditionSummary" : "Age older than 1825 days",
+          "conditionReason" : "Found component older than 5 years",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY"
+    }, {
+      "policyId" : "b767f497c6b34d9ca18a0350514360a4",
+      "policyViolationId" : "8b7c5a4d5ed7427bbfbcf8eb3dc229f5",
+      "policyName" : "Architecture-Quality",
+      "policyThreatLevel" : 1,
+      "waived" : false,
+      "grandfathered" : false,
+      "legacyViolation" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"3c03efd3f3154520bf8c996b0839a00a\",\"constraintName\":\"Version is unpopular\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"RelativePopularity\",\"conditionIndex\":0,\"summary\":\"Relative Popularity (Percentage) <= 10\",\"reason\":\"Relative popularity was <= 10% (relative popularity = 10%)\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "3c03efd3f3154520bf8c996b0839a00a",
+        "constraintName" : "Version is unpopular",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "RelativePopularity",
+          "conditionSummary" : "Relative Popularity (Percentage) <= 10",
+          "conditionReason" : "Relative popularity was <= 10% (relative popularity = 10%)",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "QUALITY"
+    } ]
+  } ]
+}

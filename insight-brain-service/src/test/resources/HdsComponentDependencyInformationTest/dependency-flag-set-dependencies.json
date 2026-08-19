@@ -1,0 +1,27 @@
+{
+  "dependencyTree": {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "Microsoft.Identity.Client.Extensions.Msal",
+        "version" : "2.23.0"
+      }
+    },
+    "packageUrl" : "pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0",
+    "direct": true,
+    "children": [
+      {
+        "componentIdentifier": {
+          "format": "nuget",
+          "coordinates": {
+            "packageId": "Microsoft.IdentityModel.Protocols",
+            "version": "6.25.1"
+          }
+        },
+        "packageUrl": "pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1",
+        "direct": true
+      }
+    ],
+    "module": true
+  }
+}

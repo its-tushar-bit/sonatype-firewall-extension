@@ -1,0 +1,4 @@
+logging:
+  loggers:
+    "com.sonatype.insight.policy.violation":
+      appenders: ["bogus"]

@@ -1,0 +1,19 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+/*
+ * NOSC preview shell targets the same 1366px minimum width as Classic IQ.
+ * This breakpoint only controls when a tile spans two columns inside the
+ * overview grid — not sub-1366px phone layouts.
+ */
+.grid-span-two-from-sm {
+  grid-column: span 1;
+}
+
+@media (min-width: 768px) {
+  .grid-span-two-from-sm {
+    grid-column: span 2;
+  }
+}

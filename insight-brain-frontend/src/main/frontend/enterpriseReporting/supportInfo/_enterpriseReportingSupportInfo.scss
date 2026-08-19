@@ -1,0 +1,56 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '../enterpriseReportingLandingPage';
+
+.iq-enterprise-reporting-support-info {
+  margin-left: 60px;
+  font-size: var(--nx-font-size-s);
+  position: relative;
+
+  &__btn.nx-btn.nx-btn--tertiary {
+    @include enterpriseReportingLandingPage.landing-page-tertiary-btn;
+    margin: 0 0 var(--nx-spacing-2x) 0;
+    .nx-icon {
+      margin-right: var(--nx-spacing-base);
+      &.copied {
+        color: var(--nx-color-validation-valid);
+      }
+      &.hidden {
+        visibility: hidden;
+      }
+    }
+  }
+
+  &__title.nx-h3 {
+    margin-bottom: var(--nx-spacing-2x);
+    font-size: var(--nx-font-size-s);
+    &.iq-enterprise-reporting-support-info__title--help {
+      margin: var(--nx-spacing-6x) 0 0 0;
+    }
+  }
+
+  &__message {
+    position: absolute;
+    bottom: -12px;
+    margin-top: var(--nx-spacing-base);
+    color: var(--nx-color-validation-valid);
+    font-size: var(--nx-font-size-xs);
+    animation: fadeIn 500ms ease-out;
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+}
+//Matching the Looker Dashboard marign, which shrinks at 1500px
+@media (max-width: 1500px) {
+  .iq-enterprise-reporting-support-info {
+    margin-left: 20px;
+  }
+}

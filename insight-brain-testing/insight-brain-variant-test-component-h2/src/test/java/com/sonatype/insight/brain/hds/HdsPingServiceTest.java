@@ -1,0 +1,49 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.hds;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+
+import com.sonatype.insight.brain.variant.AbstractComponentH2Test;
+import com.sonatype.insight.brain.variant.ComponentH2Test;
+import com.sonatype.insight.error.exception.BadGatewayException;
+import jakarta.inject.Inject;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+
+@ComponentH2Test
+public class HdsPingServiceTest
+    extends AbstractComponentH2Test
+{
+  @Inject
+  private HdsPingService hdsPingService;
+
+  @Mock
+  private PingHdsClient pingHdsClientMock;
+
+  @Test
+  public void testPingHds_alive() {
+    when(pingHdsClientMock.get(String.class, "ping")).thenReturn("alive");
+
+    PingResponseDTO status = hdsPingService.pingHds();
+
+    assertThat(status.alive).isTrue();
+    assertThat(status.errorMessage).isNull();
+    assertThat(status.incidentId).isNull();
+  }
+
+  @Test
+  public void testPingHds_Unreachable() {
+    when(pingHdsClientMock.get(String.class, "ping")).thenThrow(new BadGatewayException("Unreachable"));
+
+    PingResponseDTO status = hdsPingService.pingHds();
+
+    assertThat(status.alive).isFalse();
+    assertThat(status.errorMessage).isEqualTo("Unreachable");
+    assertThat(status.incidentId).matches("[0-9a-fA-F]{16}");
+  }
+}

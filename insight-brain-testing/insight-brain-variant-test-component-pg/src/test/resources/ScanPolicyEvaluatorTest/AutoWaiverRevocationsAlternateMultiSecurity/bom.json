@@ -1,0 +1,621 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "gson",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.google.code.gson",
+        "version" : "2.8.1"
+      }
+    },
+    "groupId" : "com.google.code.gson",
+    "artifactId" : "gson",
+    "version" : "2.8.1",
+    "filenames" : [ "gson-2.8.1.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.nexus:nexus-platform-api:jar:1.0.0/com.google.code.gson:gson:jar:2.8.1" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "02a8e0aa38a2e21cb39e",
+    "relativePopularity" : 0.06,
+    "createTime" : 1496194739000,
+    "lastModifiedTime" : 1613054204000,
+    "lastModifiedEntryTime" : 1496165936000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.google.code.gson"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "gson"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.8.1"
+      } ],
+      "name" : "gson"
+    },
+    "directDependency": false,
+    "innerSource": false,
+    "parentComponentPurls": [
+      "pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar"
+    ],
+    "innerSourceData": [
+      {
+        "ownerApplicationName": "insight-scanner-archive",
+        "ownerApplicationId": "06260dc1e0f34f97892d325fcdf1fdb3",
+        "innerSourceComponentPurl": "pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar"
+      }
+    ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-annotations",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.0"
+      }
+    },
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-annotations",
+    "version" : "2.9.0",
+    "filenames" : [ "jackson-annotations-2.9.0.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.nexus:nexus-platform-api:jar:1.0.0/com.fasterxml.jackson.core:jackson-annotations:jar:2.9.0" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "07c10d545325e3a6e72e",
+    "relativePopularity" : 1.0,
+    "createTime" : 1501386820000,
+    "lastModifiedTime" : 1614253376000,
+    "lastModifiedEntryTime" : 1501358006000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.fasterxml.jackson.core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jackson-annotations"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.9.0"
+      } ],
+      "name" : "jackson-annotations"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : ["pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.8?type=jar"]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.8"
+      }
+    },
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-core",
+    "version" : "2.9.8",
+    "filenames" : [ "jackson-core-2.9.8.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.nexus:nexus-platform-api:jar:1.0.0/com.fasterxml.jackson.core:jackson-core:jar:2.9.8" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "0f5a654e4675769c716e",
+    "relativePopularity" : 0.76,
+    "createTime" : 1544908773000,
+    "lastModifiedTime" : 1614253376000,
+    "lastModifiedEntryTime" : 1544879952000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.fasterxml.jackson.core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jackson-core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.9.8"
+      } ],
+      "name" : "jackson-core"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : ["pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.8?type=jar"]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.8"
+      }
+    },
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-databind",
+    "version" : "2.9.8",
+    "filenames" : [ "jackson-databind-2.9.8.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.nexus:nexus-platform-api:jar:1.0.0/com.fasterxml.jackson.core:jackson-databind:jar:2.9.8" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "11283f21cc480aa86c4d",
+    "relativePopularity" : 0.84,
+    "createTime" : 1544911179000,
+    "lastModifiedTime" : 1614253376000,
+    "lastModifiedEntryTime" : 1544911146000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.fasterxml.jackson.core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jackson-databind"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.9.8"
+      } ],
+      "name" : "jackson-databind"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xmlpull",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "xmlpull",
+        "version" : "1.1.3.1"
+      }
+    },
+    "groupId" : "xmlpull",
+    "artifactId" : "xmlpull",
+    "version" : "1.1.3.1",
+    "filenames" : [ "xmlpull-1.1.3.1.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.nexus:nexus-platform-api:jar:1.0.0/xmlpull:xmlpull:jar:1.1.3.1" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "2b8e230d2ab644e4ecaa",
+    "relativePopularity" : 1.0,
+    "createTime" : 1471563152000,
+    "lastModifiedTime" : 1613053616000,
+    "lastModifiedEntryTime" : 1053346378000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "xmlpull"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "xmlpull"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.1.3.1"
+      } ],
+      "name" : "xmlpull"
+    },
+    "directDependency": false,
+    "innerSource": false,
+    "parentComponentPurls": [
+      "pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar"
+    ],
+    "innerSourceData": [
+      {
+        "ownerApplicationName": "insight-module-model",
+        "ownerApplicationId": "7509f572645749eba3e19b826e111c8b",
+        "innerSourceComponentPurl": "pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar"
+      }
+    ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "slf4j-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.slf4j",
+        "version" : "1.7.30"
+      }
+    },
+    "groupId" : "org.slf4j",
+    "artifactId" : "slf4j-api",
+    "version" : "1.7.30",
+    "filenames" : [ "slf4j-api-1.7.30.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.nexus:nexus-platform-api:jar:1.0.0/org.slf4j:slf4j-api:jar:1.7.30" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "b5a4b6d16ab13e34a88f",
+    "relativePopularity" : 1.0,
+    "createTime" : 1576530216000,
+    "lastModifiedTime" : 1613053900000,
+    "lastModifiedEntryTime" : 1576533812000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.slf4j"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "slf4j-api"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.7.30"
+      } ],
+      "name" : "slf4j-api"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : ["pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar"],
+    "innerSourceData": [
+      {
+        "ownerApplicationName": "insight-module-model",
+        "ownerApplicationId": "7509f572645749eba3e19b826e111c8b",
+        "innerSourceComponentPurl": "pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar"
+      }
+    ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "httpcore",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.httpcomponents",
+        "version" : "4.4.6"
+      }
+    },
+    "groupId" : "org.apache.httpcomponents",
+    "artifactId" : "httpcore",
+    "version" : "4.4.6",
+    "filenames" : [ "httpcore-4.4.6.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.nexus:nexus-platform-api:jar:1.0.0/org.apache.httpcomponents:httpcore:jar:4.4.6" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "e3fd8ced1f52c7574af9",
+    "relativePopularity" : 0.37,
+    "createTime" : 1488416755000,
+    "lastModifiedTime" : 1613053978000,
+    "lastModifiedEntryTime" : 1483800580000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.apache.httpcomponents"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "httpcore"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "4.4.6"
+      } ],
+      "name" : "httpcore"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : ["pkg:maven/com.sonatype.insight.scan/insight-client-utils@1.0.0-SNAPSHOT?type=jar"]
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "insight-client-utils-1.0.0-SNAPSHOT.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.nexus:nexus-platform-api:jar:1.0.0/com.sonatype.insight.scan:insight-client-utils:jar:1.0.0-SNAPSHOT" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : true,
+    "hash" : "2c1eb14a25c7caee0352",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1616447562000,
+    "lastModifiedEntryTime" : 1616447562000,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Filename",
+        "value" : "insight-client-utils-1.0.0-SNAPSHOT.jar"
+      } ],
+      "name" : "insight-client-utils-1.0.0-SNAPSHOT.jar"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "insight-module-model",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.sonatype.insight.scan",
+        "version" : "1.0.0-SNAPSHOT"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "insight-module-model-1.0.0-SNAPSHOT.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.nexus:nexus-platform-api:jar:1.0.0/com.sonatype.insight.scan:insight-module-model:jar:1.0.0-SNAPSHOT" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : true,
+    "hash" : "26b9cbbd4dd8f42598fe",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1616422616000,
+    "lastModifiedEntryTime" : 1616422616000,
+    "website" : null,
+    "identificationSource" : "Package Manifest",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "mvn",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.sonatype.insight.scan"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "insight-module-model"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.0.0-SNAPSHOT"
+      } ],
+      "name" : "insight-module-model"
+    },
+    "directDependency" : true,
+    "innerSource": true,
+    "innerSourceData": [
+      {
+        "ownerApplicationName": "insight-module-model",
+        "ownerApplicationId": "7509f572645749eba3e19b826e111c8b"
+      }
+    ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "insight-scanner-archive",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.sonatype.insight.scan",
+        "version" : "1.0.0-SNAPSHOT"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "insight-scanner-archive-1.0.0-SNAPSHOT.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.nexus:nexus-platform-api:jar:1.0.0/com.sonatype.insight.scan:insight-scanner-archive:jar:1.0.0-SNAPSHOT" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : true,
+    "hash" : "45fdf322f94df9181dea",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1616422594000,
+    "lastModifiedEntryTime" : 1616422594000,
+    "website" : null,
+    "identificationSource" : "Package Manifest",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "mvn",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.sonatype.insight.scan"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "insight-scanner-archive"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.0.0-SNAPSHOT"
+      } ],
+      "name" : "insight-scanner-archive"
+    },
+    "directDependency" : true,
+    "innerSource" : true,
+    "innerSourceData": [
+      {
+        "ownerApplicationName": "insight-scanner-archive",
+        "ownerApplicationId": "06260dc1e0f34f97892d325fcdf1fdb3"
+      }
+    ]
+  }]
+}

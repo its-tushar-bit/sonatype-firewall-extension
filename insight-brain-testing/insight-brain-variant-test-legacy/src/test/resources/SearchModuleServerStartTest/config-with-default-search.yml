@@ -1,0 +1,2 @@
+# default to get lucene is no config for it, but config cannot be empty
+logging:

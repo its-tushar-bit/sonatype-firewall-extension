@@ -1,0 +1,5 @@
+# unspecified features are enabled by default. e.g. 'unspecifiedFeature' is enabled
+features:
+  enabledFeature: true
+  disabledFeature: false
+

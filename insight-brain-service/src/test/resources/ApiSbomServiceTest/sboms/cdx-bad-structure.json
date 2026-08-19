@@ -1,0 +1,12 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.4",
+  "version": 1,
+  "components": [
+	{
+	  "type": "library",
+	  "name": "example-library-1",
+	  "version": "1.0.0"
+	
+  ]
+}

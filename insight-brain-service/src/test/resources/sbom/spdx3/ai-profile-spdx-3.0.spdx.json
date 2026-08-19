@@ -1,0 +1,82 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "https://example.org/ai-profile-spdx3",
+      "creationInfo": "_:creationInfo1",
+      "name": "AI Profile SPDX 3.0 Document",
+      "element": [
+        "https://example.org/ai-root-app",
+        "https://example.org/ai-model-package"
+      ],
+      "rootElement": [
+        "https://example.org/ai-root-app"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "https://example.org/ai-root-app",
+      "creationInfo": "_:creationInfo1",
+      "name": "ml-application",
+      "software_packageVersion": "1.0.0",
+      "externalIdentifier": [
+        {
+          "type": "ExternalIdentifier",
+          "externalIdentifierType": "packageUrl",
+          "identifier": "pkg:pypi/ml-application@1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "https://example.org/ai-model-package",
+      "creationInfo": "_:creationInfo1",
+      "name": "sentiment-model-v2",
+      "software_packageVersion": "2.1.0",
+      "ai_autonomyType": "nonAutonomous",
+      "ai_domain": ["nlp", "sentiment-analysis"],
+      "ai_energyConsumption": {
+        "type": "ai_EnergyConsumption",
+        "ai_finetuningEnergyConsumption": [
+          {
+            "type": "ai_EnergyConsumptionDescription",
+            "ai_energyQuantity": 150.5,
+            "ai_energyUnit": "kilowattHour"
+          }
+        ]
+      },
+      "ai_informationAboutTraining": "Trained on IMDB review dataset",
+      "ai_limitation": "May not perform well on sarcastic text",
+      "ai_modelDataPreprocessing": ["tokenization", "lowercasing", "stopword-removal"],
+      "externalIdentifier": [
+        {
+          "type": "ExternalIdentifier",
+          "externalIdentifierType": "packageUrl",
+          "identifier": "pkg:pypi/sentiment-model-v2@2.1.0"
+        }
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "https://example.org/rel-app-to-model",
+      "creationInfo": "_:creationInfo1",
+      "relationshipType": "dependsOn",
+      "from": "https://example.org/ai-root-app",
+      "to": ["https://example.org/ai-model-package"]
+    },
+    {
+      "@id": "_:creationInfo1",
+      "type": "CreationInfo",
+      "specVersion": "3.0.1",
+      "created": "2026-04-30T00:00:00Z",
+      "createdBy": ["https://example.org/tool-sonatype"]
+    },
+    {
+      "type": "Agent",
+      "spdxId": "https://example.org/tool-sonatype",
+      "creationInfo": "_:creationInfo1",
+      "name": "Sonatype Test"
+    }
+  ]
+}

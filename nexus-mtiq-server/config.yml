@@ -1,0 +1,142 @@
+# Directory for data files.
+sonatypeWork: ${SONATYPE_WORK:-./sonatype-work/clm-server}
+
+# Shared directory for management data of a IQ cluster
+clusterDirectory: ${CLUSTER_DIRECTORY:-./sonatype-work/clm-cluster}
+
+# HTTP Strict Transport Security (HSTS)
+# HSTS headers are enabled by default on HTTPS responses.
+# Uncomment the web: section below to customize or disable HSTS.
+#web:
+#  hsts:
+#    enabled: ${HSTS_ENABLED:-true}
+#    maxAge: 365 days
+#    includeSubDomains: true
+#    preload: false
+
+# HTTP-specific options.
+server:
+  applicationContextPath: ${SERVER_APPLICATION_CONTEXT_PATH:-/}
+
+  applicationConnectors:
+    - type: ${SERVER_APPLICATION_CONNECTOR_TYPE:-http}
+
+      # The port on which the HTTP server listens for service requests.
+      # Because Java cannot drop privileges in a POSIX system, these
+      # ports cannot be in the range 1-1024. A port value of 0 will
+      # make the OS use an arbitrary unused port.
+      port: ${SERVER_APPLICATION_CONNECTOR_PORT:-8070}
+
+      # The hostname of the interface to which the application HTTP server socket
+      # will be bound. If omitted, the socket will listen on all
+      # interfaces.
+      #bindHost: 127.0.0.1  # only bind to loopback
+
+  adminConnectors:
+    - type: ${SERVER_ADMIN_CONNECTOR_TYPE:-http}
+
+      # The port on which the HTTP server listens for administrative
+      # requests. Subject to the same limitations as "port".
+      port: ${SERVER_ADMIN_CONNECTOR_PORT:-8071}
+
+      # The hostname of the interface to which the admin HTTP server socket
+      # will be bound. For security, this defaults to localhost (127.0.0.1)
+      # to prevent unauthorized access to administrative endpoints.
+      # To allow access from other hosts, set SERVER_ADMIN_CONNECTOR_BIND_HOST
+      # environment variable to 0.0.0.0 or a specific IP address.
+      # WARNING: Exposing the admin port beyond localhost may allow unauthorized users
+      # to trigger sensitive operations like backups, shutdowns, or policy monitoring.
+      bindHost: ${SERVER_ADMIN_CONNECTOR_BIND_HOST:-127.0.0.1}
+
+  # HTTP request log settings.
+  requestLog:
+    type: ${REQUEST_LOG_TYPE:-classic}
+    timeZone: ${REQUEST_LOG_TIMEZONE:-UTC}
+    appenders:
+      # Settings for logging to the console.
+      - type: console
+        logFormat: '${REQUEST_LOG_FORMAT:-%clientHost %l %user [%date] "%requestURL" %statusCode %bytesSent %elapsedTime "%header{User-Agent}"}'
+      - type: file
+        threshold: ${REQUEST_LOG_FILE_THRESHOLD:-OFF}
+        currentLogFilename: "${REQUEST_LOG_FILE_NAME:-/var/log/nexus-iq-server/request.log}"
+        archivedLogFilenamePattern: "${REQUEST_LOG_ARCHIVED_FILENAME_PATTERN:-/var/log/nexus-iq-server/request-%d.log.gz}"
+        archivedFileCount: ${REQUEST_LOG_ARCHIVED_FILE_COUNT:-5}
+
+# MTIQ-specific database configurations
+# single-tenant IQ creates 5 connection pools from the single database config, 4 of which
+# represent distinct schemas; For multi-tenant those schemas are consolidated into one but
+# there is still a need for a separate connection pool for the locks datasource; and because
+# the current insight-config doesn't allow for multiple connection pool configs in the same
+# db config definition two datasource definitions are used - one config for the main datasource
+# and another for the locks datasource.
+# For more info see:  https://github.com/sonatype/insight-brain/blob/main/insight-brain-db/src/main/java/com/sonatype/insight/brain/db/datastore/DataStore.java
+mainDatabase:
+  maxConnections: 500
+  maxIdleConnections: 50
+  url: ${MAIN_DATABASE_URL}
+  username: ${MAIN_DATABASE_USERNAME:-postgres}
+  password: ${MAIN_DATABASE_PASSWORD}
+
+locksDatabase:
+  maxConnections: 50
+  maxIdleConnections: 5
+  url: ${LOCKS_DATABASE_URL}
+  username: ${LOCKS_DATABASE_USERNAME:-postgres}
+  password: ${LOCKS_DATABASE_PASSWORD}
+
+# Logging settings.
+logging:
+  # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
+  level: ${DEFAULT_LOGGING_LEVEL:-INFO}
+
+  # Logger-specific settings.
+  loggers:
+    com.sonatype.insight.scan: ${LOGGER_INSIGHT_SCAN_LEVEL:-INFO}
+    eu.medsea.mimeutil.MimeUtil2: ${LOGGER_MIMEUTIL2_LEVEL:-INFO}
+    org.apache.http: ${LOGGER_HTTP_LEVEL:-INFO}
+    org.apache.http.wire: ${LOGGER_HTTP_WIRE_LEVEL:-ERROR}
+    org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter: ${LOGGER_AUTHENTICATION_FILTER_LEVEL:-INFO}
+    org.eclipse.birt.report.engine.layout.pdf.font.FontConfigReader: ${LOGGER_FONT_CONFIG_READER_LEVEL:-WARN}
+    org.eclipse.jetty: ${LOGGER_ECLIPSE_JETTY_LEVEL:-INFO}
+    org.postgresql.jdbc.PgConnection: INFO
+    org.quartz: INFO
+    org.zeroturnaround.exec: INFO
+    com.networknt.schema: OFF
+    org.eclipse.jgit: INFO
+    software.amazon.awssdk: WARN
+    com.sonatype.insight.audit:
+      appenders:
+        - type: console
+        # Uncomment these lines to send the audit logs to files
+        #- type: mtiq-audit-log
+        #  auditLogBasePath: "./sonatype-work/clm-cluster"
+  appenders:
+  - type: console
+    threshold: ${LOGGER_CONSOLE_THRESHOLD:-INFO}
+    logFormat: "%d{'yyyy-MM-dd HH:mm:ss,SSSZ'} %level [%thread] %X{username} %logger - %msg%n"
+  - type: file
+    threshold: ${LOGGER_FILE_THRESHOLD:-ALL}
+    currentLogFilename: "${LOGGER_FILE_NAME:-/var/log/nexus-iq-server/clm-server.log}"
+    archivedLogFilenamePattern: "${LOGGER_FILE_ARCHIVED_FILENAME_PATTERN:-/var/log/nexus-iq-server/clm-server-%d.log.gz}"
+    logFormat: "%d{'yyyy-MM-dd HH:mm:ss,SSSZ'} %level [%thread] %X{username} %logger - %msg%n"
+    archivedFileCount: ${LOGGER_FILE_ARCHIVED_FILE_COUNT:-5}
+createSampleData: ${CREATE_SAMPLE_DATA:-true}
+
+auth0:
+  domain: ${AUTH0_DOMAIN:-"local/"}
+  customDomain: ${AUTH0_CUSTOM_DOMAIN:-"local/"}
+
+# If true, the built-in admin user will be deleted when creating a new tenant
+deleteBuiltInAdmin: ${DELETE_BUILT_IN_ADMIN:-true}
+
+# The Global tenant encryption key name used to retrieve the key from AWS secrets manager
+globalTenantEncryptionKeyName: ${GLOBAL_TENANT_ENCRYPTION_KEY_NAME:-mtiq-dev/tenant-encryption-key-legacy}
+
+# Use the IQ DefaultEncryptionKeyStore for local development, this returns the mtiq-dev/tenant-encryption-key-legacy key
+usingDefaultEncryptionKeyStore: ${USING_DEFAULT_ENCRYPTION_KEY_STORE:-false}
+
+mtiq-health:
+  type: mtiq-health
+  healthCheckUrlPaths:
+    - /healthcheck
+  initialOverallState: false

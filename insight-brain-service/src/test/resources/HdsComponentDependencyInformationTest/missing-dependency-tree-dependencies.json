@@ -1,0 +1,35 @@
+{
+  "dependencyGraph": [
+    {
+      "children": [
+        {
+          "componentIdentifier": {
+            "format": "maven",
+            "coordinates": {
+              "artifactId": "cglib-nodep",
+              "classifier": "",
+              "extension": "jar",
+              "groupId": "cglib",
+              "version": "3.3.0"
+            }
+          },
+          "packageUrl": "pkg:maven/cglib/cglib-nodep@3.3.0?type=jar",
+          "directDependency": true
+        }
+      ]
+    }
+  ],
+  "componentDepths" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "cglib-nodep",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "cglib",
+        "version" : "3.3.0"
+      }
+    },
+    "depths" : [ 1 ]
+  }]
+}

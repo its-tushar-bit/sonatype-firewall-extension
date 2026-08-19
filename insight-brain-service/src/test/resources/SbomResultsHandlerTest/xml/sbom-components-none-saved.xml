@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bom xmlns="http://cyclonedx.org/schema/bom/1.6">
+    <components>
+        <component type="library">
+            <publisher>Apache</publisher>
+            <group>org.apache.tomcat</group>
+            <name>tomcat-catalina</name>
+            <purl>pkg:maven/org.apache.tomcat/tomcat-catalina</purl>
+        </component>
+        <component type="library">
+            <group>com.fasterxml.jackson.core</group>
+            <name>jackson-databind</name>
+            <purl>pkg:maven/com.fasterxml.jackson.core/jackson-databind</purl>
+        </component>
+        <component type="library">
+            <group>joda-time</group>
+            <name>joda-time</name>
+            <cpe>cpe:2.3:a:pivotal_software:spring_framework:*:*:*:*:*:*:*:*</cpe>
+        </component>
+        <component type="library">
+            <name>django</name>
+            <hashes>
+                <hash alg="SHA-1">e6b1000b94e835ffd37f4c6dcbdad43f4b48a02a</hash>
+            </hashes>
+        </component>
+    </components>
+</bom>

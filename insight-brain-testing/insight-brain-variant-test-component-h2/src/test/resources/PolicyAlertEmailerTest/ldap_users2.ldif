@@ -1,0 +1,122 @@
+dn: ou=users,dc=company,dc=com
+objectclass: top
+objectclass: organizationalUnit
+ou: users
+description: Container for user entries
+
+dn: ou=groups,dc=company,dc=com
+objectclass: top
+objectclass: organizationalUnit
+ou: groups
+description: Container for group entries
+
+dn: uid=test_user1_2,ou=users,dc=company,dc=com
+uid: test_user1_2
+givenName: Test
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+sn: User
+cn: Test User 1 2
+userPassword: {md5}rQ8H83Kkz8RJZFwzDwk0fg==
+mail: test.user1_2@company.com
+departmentNumber: ab
+departmentNumber: xb
+departmentNumber: abc
+
+dn: uid=test_user2_2,ou=users,dc=company,dc=com
+uid: test_user2_2
+givenName: Test
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+sn: User
+cn: Test User 2 2
+userPassword: test
+mail: test.user2_2@company.com
+departmentNumber: ab
+departmentNumber: bc
+departmentNumber: bx
+
+dn: uid=test*user1_2,ou=users,dc=company,dc=com
+uid: test*user1_2
+givenName: Test
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+sn: User
+cn: Test*User 1 2
+userPassword: te*st
+mail: test.user3_2@company.com
+departmentNumber: ab
+departmentNumber: bc
+departmentNumber: bx
+
+dn: uid=test_sasl_user1_2,ou=system
+uid: test_sasl_user1_2
+givenName: Test
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+sn: User
+cn: Test SASL User 1 2
+userPassword: s3cr3t
+mail: test.sasl.user_2@company.com
+departmentNumber: ab
+departmentNumber: saslUsers
+
+dn: cn=Alpha,ou=groups,dc=company,dc=com
+cn: Alpha
+objectClass: top
+objectClass: groupOfUniqueNames
+uniqueMember: uid=test_user1_2,ou=users,dc=company,dc=com
+
+dn: cn=Beta,ou=groups,dc=company,dc=com
+cn: Beta
+objectClass: top
+objectClass: groupOfUniqueNames
+uniqueMember: uid=test_user2_2,ou=users,dc=company,dc=com
+
+dn: cn=Gamma,ou=groups,dc=company,dc=com
+cn: Gamma
+objectClass: top
+objectClass: groupOfNames
+member: uid=test_user1_2
+
+dn: cn=Theta,ou=groups,dc=company,dc=com
+cn: Theta
+objectClass: top
+objectClass: groupOfNames
+member: uid=test_user1_2
+member: uid=test_user2_2
+
+dn: cn=Epsilon,ou=groups,dc=company,dc=com
+cn: Epsilon
+objectClass: top
+objectClass: groupOfNames
+member: uid=test_user1_2,ou=users,dc=company,dc=com
+member: uid=test_user2_2,ou=users,dc=company,dc=com
+
+dn: cn=Delta,ou=groups,dc=company,dc=com
+cn: Delta
+objectClass: top
+objectClass: groupOfNames
+member: uid=qwertytest_user1_2zxcvbn,uid=test_user1_2,ou=users,dc=company,dc=comyuioptest_user1_2
+member: uid=qwertytest_user2_2zxcvbn,uid=test_user2_2,ou=users,dc=company,dc=comyuioptest_user2_2
+
+dn: cn=Lambda,ou=groups,dc=company,dc=com
+cn: Lambda
+objectClass: top
+objectClass: groupOfNames
+member: dc=company,uid=test_user1_2,ou=users,dc=company,dc=com,dc=com,uid=test_user1_2,ou=users,dc=company,dc=com
+member: dc=company,uid=test_user2_2,ou=users,dc=company,dc=com,dc=com,uid=test_user1_2,ou=users,dc=company,dc=com
+
+dn: cn=Omega,ou=groups,dc=company,dc=com
+cn: Omega
+objectClass: top
+objectClass: groupOfNames
+member: uid=test_user1_2

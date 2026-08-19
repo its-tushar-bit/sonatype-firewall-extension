@@ -1,0 +1,40 @@
+<scan version="2.24">
+  <configuration>
+    <properties>
+      <property name="archiveNames" value="true"/>
+      <property name="hashFiles" value="true"/>
+    </properties>
+  </configuration>
+  <item path="bad-manifest.spdx.json" contentType="SPDX" lastModified="1690994395752" sha1="baaaad000000000000000000">
+    <content>{
+  &quot;spdxVersion&quot;: &quot;SPDX-2.2&quot;,
+  &quot;SPDXID&quot;: &quot;SPDXRef-DOCUMENT&quot;,
+  &quot;name&quot;: &quot;bad-manifest&quot;,
+  &quot;packages&quot;: [
+    {
+      &quot;SPDXID&quot;: &quot;SPDXRef-Package-1&quot;,
+      &quot;name&quot;: &quot;bad-pkg&quot;,
+      &quot;filesAnalyzed&quot;: false,
+      &quot;licenseInfoFromFiles&quot;: [&quot;LicenseRef-1&quot;],
+      &quot;downloadLocation&quot;: &quot;NOASSERTION&quot;
+    }
+  ]
+}</content>
+  </item>
+  <item path="good.cdx.json" contentType="SBOM" lastModified="1690994395752" sha1="cccc00000000000000000000">
+    <content>{
+  &quot;bomFormat&quot;: &quot;CycloneDX&quot;,
+  &quot;specVersion&quot;: &quot;1.4&quot;,
+  &quot;version&quot;: 1,
+  &quot;serialNumber&quot;: &quot;urn:uuid:00000000-0000-0000-0000-000000000001&quot;,
+  &quot;components&quot;: [
+    {
+      &quot;type&quot;: &quot;library&quot;,
+      &quot;name&quot;: &quot;log4j-core&quot;,
+      &quot;version&quot;: &quot;2.17.1&quot;,
+      &quot;purl&quot;: &quot;pkg:maven/org.apache.logging.log4j/log4j-core@2.17.1&quot;
+    }
+  ]
+}</content>
+  </item>
+</scan>

@@ -1,0 +1,46 @@
+{
+  "id" : "1c25d5182bd24d46b6e83db428171554",
+  "name" : "Test",
+  "ownerId" : "ROOT_ORGANIZATION_ID",
+  "enabled" : true,
+  "threatLevel" : 7,
+  "constraints" : [ {
+    "id" : "89888f222798463b95467e3b931e3d61",
+    "name" : "No Unknown",
+    "enabled" : true,
+    "operator" : "OR",
+    "conditions" : [ {
+      "conditionTypeId" : "MatchState",
+      "operator" : "is",
+      "value" : "unknown"
+    } ]
+  } ],
+  "actions" : {
+    "develop" : [ {
+      "actionTypeId" : "warn",
+      "target" : null
+    } ],
+    "build" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    }, {
+      "actionTypeId" : "notify",
+      "target" : "nobody@sonatype.com"
+    }, {
+      "actionTypeId" : "notify",
+      "target" : "1cddabf7fdaa47d6833454af10e0a3ef",
+      "targetType" : "role"
+    } ],
+    "stage-release" : [ ],
+    "release" : [ ],
+    "operate" : [ ]
+  },
+  "monitorNotifyActions" : [ {
+    "actionTypeId" : "notify",
+    "target" : "nobody@sonatype.com"
+  }, {
+    "actionTypeId" : "notify",
+    "target" : "1cddabf7fdaa47d6833454af10e0a3ef",
+    "targetType" : "role"
+  } ]
+}

@@ -1,0 +1,123 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.api.v2;
+
+import jakarta.ws.rs.core.Response;
+
+import com.sonatype.insight.brain.api.v2.service.ApiSpdxService;
+import com.sonatype.insight.brain.dataaccess.repository.HostedRepositoryComponentDAO;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
+import com.sonatype.insight.brain.security.SecurityAspectControl;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+/**
+ * Unit tests for {@link ApiHostedRepositoryComponentSpdxResource}. Both handlers are HRC-scoped
+ * siblings of the {@link ApiSpdxResource} counterparts; each resolves the HRC through the DAO
+ * and forwards {@code format}, {@code generateCycloneDx}, and {@code spdxVersion} to
+ * {@link ApiSpdxService} verbatim.
+ */
+@ExtendWith(MockitoExtension.class)
+public class ApiHostedRepositoryComponentSpdxResourceTest
+{
+  private static final String HRC_ID = "hrc-1";
+
+  private static final String STAGE_ID = "build";
+
+  private static final String SCAN_ID = "scan-1";
+
+  private static final String FORMAT = "json";
+
+  private static final String SPDX_VERSION = "2.3";
+
+  @Mock
+  private ApiSpdxService apiSpdxService;
+
+  @Mock
+  private HostedRepositoryComponentDAO hostedRepositoryComponentDAO;
+
+  @InjectMocks
+  private ApiHostedRepositoryComponentSpdxResource resource;
+
+  private HostedRepositoryComponent hrc;
+
+  @BeforeEach
+  public void setUp() {
+    // AspectJ compile-time weaving inserts a @HasFeature aspect on the resource class and an
+    // @Authorize aspect on its service-call sites. Both fire during Mockito unit tests that
+    // bypass the Spring proxy. Disabling enforcement short-circuits both to the mocked service
+    // call — see SecurityAspectControl's javadoc for the intended use. This also covers
+    // @HasFeature(HOSTED_REPOSITORY_EVALUATION), so the feature must not be toggled here:
+    // SystemConfigurationPropertyFeature.setEnabled reaches for a statically injected
+    // SystemConfigurationPropertyDAO that a plain MockitoJUnitRunner never wires.
+    SecurityAspectControl.disableEnforcement();
+    hrc = new HostedRepositoryComponent("repo-1", "path/lib.jar", "hash-abc");
+    hrc.setId(HRC_ID);
+    when(hostedRepositoryComponentDAO.getByIdNotNull(HRC_ID)).thenReturn(hrc);
+  }
+
+  @AfterEach
+  public void tearDown() {
+    SecurityAspectControl.enableEnforcement();
+  }
+
+  @Test
+  public void getLatestForStage_delegatesWithResolvedHrcAndAllParams() {
+    Response expected = mock(Response.class);
+    when(apiSpdxService.getLatestForStage(hrc, STAGE_ID, FORMAT, false, SPDX_VERSION)).thenReturn(expected);
+
+    Response actual = resource.getLatestForStage(HRC_ID, STAGE_ID, FORMAT, false, SPDX_VERSION);
+
+    assertThat(actual).isSameAs(expected);
+    verify(hostedRepositoryComponentDAO).getByIdNotNull(HRC_ID);
+    verify(apiSpdxService).getLatestForStage(hrc, STAGE_ID, FORMAT, false, SPDX_VERSION);
+  }
+
+  @Test
+  public void getLatestForStage_passesGenerateCycloneDxTrue() {
+    Response expected = mock(Response.class);
+    when(apiSpdxService.getLatestForStage(hrc, STAGE_ID, FORMAT, true, SPDX_VERSION)).thenReturn(expected);
+
+    Response actual = resource.getLatestForStage(HRC_ID, STAGE_ID, FORMAT, true, SPDX_VERSION);
+
+    assertThat(actual).isSameAs(expected);
+    verify(apiSpdxService).getLatestForStage(hrc, STAGE_ID, FORMAT, true, SPDX_VERSION);
+  }
+
+  @Test
+  public void getByScanId_delegatesWithResolvedHrcAndAllParams() {
+    Response expected = mock(Response.class);
+    when(apiSpdxService.getByScanId(hrc, SCAN_ID, FORMAT, false, SPDX_VERSION)).thenReturn(expected);
+
+    Response actual = resource.getByScanId(HRC_ID, SCAN_ID, FORMAT, false, SPDX_VERSION);
+
+    assertThat(actual).isSameAs(expected);
+    verify(hostedRepositoryComponentDAO).getByIdNotNull(HRC_ID);
+    verify(apiSpdxService).getByScanId(hrc, SCAN_ID, FORMAT, false, SPDX_VERSION);
+  }
+
+  @Test
+  public void getByScanId_passesGenerateCycloneDxTrue() {
+    Response expected = mock(Response.class);
+    when(apiSpdxService.getByScanId(hrc, SCAN_ID, "xml", true, "2.2")).thenReturn(expected);
+
+    Response actual = resource.getByScanId(HRC_ID, SCAN_ID, "xml", true, "2.2");
+
+    assertThat(actual).isSameAs(expected);
+    verify(apiSpdxService).getByScanId(hrc, SCAN_ID, "xml", true, "2.2");
+  }
+}

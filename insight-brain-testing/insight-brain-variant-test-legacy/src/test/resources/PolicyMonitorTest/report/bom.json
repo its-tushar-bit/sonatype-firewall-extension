@@ -1,0 +1,31 @@
+{
+  "aaData" : [ {
+    "filenames" : [ "logback-access-0.6.jar" ],
+    "pathnames" : [ "logback-access-0.6.jar" ],
+    "groupId" : "ch.qos.logback",
+    "artifactId" : "logback-access",
+    "version" : "0.6",
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "47b6857af4a1cc50875a",
+    "relativePopularity" : 0.0,
+    "createTime" : 1164926586000,
+    "lastModifiedTime" : 1342193988000,
+    "lastModifiedEntryTime" : 1164948158000
+  }, {
+    "filenames" : [ "commons-httpclient-3.1.jar" ],
+    "pathnames" : [ "commons-httpclient-3.1.jar" ],
+    "groupId" : "commons-httpclient",
+    "artifactId" : "commons-httpclient",
+    "version" : "3.1",
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "964cd74171f427720480",
+    "relativePopularity" : 1.0,
+    "createTime" : 1187703847000,
+    "lastModifiedTime" : 1387218402000,
+    "lastModifiedEntryTime" : 1187449252000
+  } ]
+}

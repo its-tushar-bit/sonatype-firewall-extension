@@ -1,0 +1,6 @@
+server:
+  applicationConnectors:
+    - type: https
+      keyStorePath: ./target/test-classes/InsightBrainServiceTest/localhost.p12
+      keyStorePassword: changeit
+      keyStoreType: PKCS12

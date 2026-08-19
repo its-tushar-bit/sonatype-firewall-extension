@@ -1,0 +1,34 @@
+{
+  "dependencyTree" : {
+    "componentIdentifier" : {
+      "format" : "golang",
+      "coordinates" : {
+        "name" : "acme-server",
+        "version" : "1.0"
+      }
+    },
+    "packageUrl" : "pkg:golang/acme-server@1.0",
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "golang",
+        "coordinates" : {
+          "name" : "acme-app",
+          "version" : "1.0"
+        }
+      },
+      "packageUrl" : "pkg:golang/acme-app@1.0",
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "golang",
+          "coordinates" : {
+            "name" : "github.com/gohouse/converter",
+            "version" : "v0.0.3"
+          }
+        },
+        "packageUrl" : "pkg:golang/github.com/gohouse/converter@v0.0.3"
+      } ],
+      "direct" : true
+    } ],
+    "module" : true
+  }
+}

@@ -1,0 +1,103 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
+.iq-original-bom-viewer {
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  &__info {
+    margin-bottom: 16px;
+  }
+
+  &__warning {
+    margin-bottom: 16px;
+  }
+
+  &__search-input {
+    width: 300px;
+  }
+
+  &__tree {
+    font-family: var(--nx-font-family-monospace);
+  }
+
+  &__key {
+    color: var(--nx-color-text-stark);
+    font-weight: 600;
+  }
+
+  &__count {
+    color: var(--nx-color-text-stark);
+    font-weight: normal;
+  }
+
+  &__separator {
+    color: var(--nx-color-text-stark);
+  }
+
+  &__value {
+    word-break: break-word;
+    overflow-wrap: break-word;
+    min-width: 0;
+    flex: 1;
+  }
+
+  &__preview {
+    color: var(--nx-color-text-subtle);
+    font-style: italic;
+    margin-left: 0.5rem;
+    max-width: 500px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    @include nx-dark-mode-helpers.dark-mode {
+      color: var(--nx-color-text-dark-subtle);
+    }
+  }
+
+  &__loading {
+    margin-left: var(--nx-spacing-2x);
+    color: var(--nx-color-text-stark);
+    font-style: italic;
+    font-size: var(--nx-font-size-xs);
+  }
+
+  &__sentinel {
+    height: 1px;
+    display: block;
+    cursor: pointer;
+  }
+
+  &__results-count {
+    margin-bottom: 16px;
+    color: var(--nx-color-text-stark);
+    font-size: var(--nx-font-size-sm);
+    font-style: italic;
+
+    @include nx-dark-mode-helpers.dark-mode {
+      color: var(--nx-color-text-dark-stark);
+    }
+  }
+
+  &__highlight {
+    background-color: var(--nx-swatch-yellow-95);
+    color: var(--nx-color-text-stark);
+    font-weight: 500;
+    padding: 0 2px;
+    border-radius: 2px;
+
+    @include nx-dark-mode-helpers.dark-mode {
+      background-color: var(--nx-swatch-yellow-30);
+      color: var(--nx-color-text-dark-stark);
+    }
+  }
+}

@@ -1,0 +1,53 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+#owner-pill-sboms {
+  .delete-sbom {
+    color: var(--nx-swatch-red-40);
+  }
+
+  .nx-table {
+    overflow-y: visible;
+  }
+
+  .nx-table-container__footer {
+    z-index: auto;
+  }
+}
+
+.sbom-manager-owner-summary-sboms-tile-table {
+  &__version-link {
+    text-wrap: wrap;
+    word-break: break-all;
+  }
+
+  // this is a temporary workaround and will be addressed in the future ticket
+  .nx-cell--header {
+    text-wrap: wrap;
+  }
+
+  @media only screen and (min-width: 1366px) {
+    &__version-link-tooltip {
+      display: none;
+    }
+  }
+
+  &__releaseStatusPercentage {
+    display: flex;
+    gap: var(--nx-spacing-base);
+    align-items: center;
+    font-size: var(--nx-font-size-s);
+  }
+
+  &__releaseStatusPercentageDonut {
+    height: 30px;
+
+    .nx-binary-donut-chart__arc {
+      stroke: var(--nx-swatch-teal-40);
+    }
+  }
+}

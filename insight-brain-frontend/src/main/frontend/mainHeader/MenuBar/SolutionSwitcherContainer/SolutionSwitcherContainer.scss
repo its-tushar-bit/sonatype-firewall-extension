@@ -1,0 +1,91 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
+#iq-solution-switcher {
+  .spp-solution-switcher-container {
+    .spp-solution-switcher {
+      &--open {
+        .nx-btn {
+          background: var(--nx-background-global-sidebar-2-link-selected);
+
+          &:focus:not(:active) {
+            outline-color: var(--nx-color-global-sidebar-2-link-selected);
+          }
+
+          &.nx-dropdown__toggle img {
+            @include nx-dark-mode-helpers.dark-mode {
+              filter: invert(1);
+            }
+          }
+        }
+      }
+
+      .nx-btn {
+        border-radius: var(--nx-border-radius);
+
+        &:focus {
+          border-radius: var(--nx-border-radius);
+          outline: var(--nx-focus-outline-width) solid var(--nx-color-interactive-border-focus);
+        }
+
+        &:hover {
+          background-color: var(--nx-color-interactive-background-hover);
+        }
+
+        &:active {
+          background-color: var(--nx-color-interactive-background-active);
+        }
+
+        img {
+          // Since we're using an svg for the icon, we need to apply a filter to make it look correct in dark mode
+          // Dark mode icons are --nx-swatch-indigo-90 i.e. hsl(228, 44%, 90%)
+          // I used a HSL to filter converter to get a CSS filter that transforms the light icon to the dark one
+          @include nx-dark-mode-helpers.dark-mode {
+            filter: brightness(0) saturate(100%) invert(91%) sepia(14%) saturate(633%) hue-rotate(191deg)
+              brightness(101%) contrast(89%);
+          }
+        }
+      }
+
+      .nx-dropdown-menu {
+        .spp-solution-list-item {
+          color: var(--nx-color-text);
+
+          &:hover {
+            color: var(--nx-color-text);
+            background-color: var(--nx-color-interactive-background-hover);
+          }
+
+          &:active {
+            color: var(--nx-color-text);
+            background-color: var(--nx-color-interactive-background-active);
+          }
+
+          &:active:focus {
+            color: var(--nx-color-text);
+          }
+
+          &:focus {
+            color: var(--nx-color-text);
+          }
+
+          .spp-solution-submenu {
+            color: var(--nx-color-text);
+          }
+
+          .spp-solution-submenu-item {
+            color: var(--nx-color-text);
+          }
+        }
+
+        .spp-solution-switcher__subheader {
+          color: var(--nx-color-text);
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "SPDXID" : "SPDXRef-DOCUMENT",
+  "spdxVersion" : "SPDX-2.3",
+  "creationInfo" : {
+    "created" : "2024-06-13T22:17:37Z",
+    "creators" : [ "Tool: Sonatype SBOM Manager - 1.178.0-SNAPSHOT" ]
+  },
+  "name" : "webgoat",
+  "dataLicense" : "CC0-1.0",
+  "documentNamespace" : "nullui/links/sbomManager/management/view/application/webgoat/bom/v1",
+  "packages" : [ {
+    "SPDXID" : "SPDXRef-pkg-pypi-pip-24.0-package-id-ec032e427ce8872c",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:pypi/pip@24.0",
+      "referenceType" : "purl"
+    }, {
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "cpe:2.3:a:pip_developers_\\<distutils_sig_project:python-pip:24.0:*:*:*:*:*:*:*",
+      "referenceType" : "cpe23Type"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "MIT",
+    "name" : "pip",
+    "originator" : "Person: The pip developers <distutils-sig@python.org>",
+    "primaryPackagePurpose" : "LIBRARY",
+    "versionInfo" : "24.0"
+  }, {
+    "SPDXID" : "SPDXRef-gnrtd0",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "webgoat",
+    "primaryPackagePurpose" : "APPLICATION"
+  } ],
+  "relationships" : [ {
+    "spdxElementId" : "SPDXRef-DOCUMENT",
+    "relationshipType" : "DESCRIBES",
+    "relatedSpdxElement" : "SPDXRef-gnrtd0"
+  } ]
+}

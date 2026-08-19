@@ -1,0 +1,134 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+
+/**
+ * Standalone pipeline for deploying Docker images to prod-internal cells.
+ *
+ * Triggered as a downstream job from Jenkinsfile.push-to-prod after successful promotion to prod ECR.
+ *
+ * Parameters:
+ *   IMAGE_TAG - The prod ECR tag to deploy
+ *               Format: {dateSection}-{branch}-{buildNumber}-{commitId}
+ *
+ * Jenkins job path: insight/MTIQ/sca-cloud/deploy-to-prod-internal
+ *
+ * Tracked in: CLM-39453
+ */
+
+// Prod-internal cell workspaces — explicit allowlist
+def PROD_INTERNAL_CELL_WORKSPACES = ['sca_aws_prod_cell-prod-internal']
+def PROD_GLOBAL_WORKSPACE = 'sca_aws_prod_global'
+
+pipeline {
+  agent { label 'zion-small' }
+
+  parameters {
+    string(name: 'IMAGE_TAG', description: 'The prod ECR tag to deploy (e.g., 202604161432-main-142-a1b2c3d4)')
+  }
+
+  options {
+    buildDiscarder(logRotator(numToKeepStr: '100'))
+    timestamps()
+    disableConcurrentBuilds()
+    // Currently 1 workspace & the new image tag → 20 min is sufficient. Increase if workspaces are added.
+    timeout(time: 20, unit: 'MINUTES')
+  }
+
+  stages {
+
+    stage('Validate Parameters') {
+      steps {
+        script {
+          if (!params.IMAGE_TAG?.trim()) {
+            error 'IMAGE_TAG is required'
+          }
+          echo "Deploying image tag: ${params.IMAGE_TAG}"
+        }
+      }
+    }
+
+
+    stage('Validate Image in Prod ECR') {
+      steps {
+        script {
+          def ecr = load 'jenkins/ecr-helpers.groovy'
+          ecr.validateImageExists(
+            ecr.PROD_ECR_ACCOUNT,
+            ecr.ECR_REPOSITORY,
+            params.IMAGE_TAG
+          )
+          echo "Validated image exists in prod ECR: ${params.IMAGE_TAG}"
+          env.RESOLVED_IMAGE_TAG = params.IMAGE_TAG
+        }
+      }
+    }
+
+    stage('Deploy to Prod-Internal Cells') {
+      steps {
+        script {
+          def tfc = load 'jenkins/tfc-helpers.groovy'
+          tfc.deployCells('prod-internal', PROD_INTERNAL_CELL_WORKSPACES, PROD_GLOBAL_WORKSPACE, env.RESOLVED_IMAGE_TAG, [maxDestructions: 4, maxAdditions: 4, maxChanges: 4])
+        }
+      }
+    }
+
+    // Tag AFTER successful deployment — Jenkinsfile.deploy-to-prod uses this tag
+    // as a safety gate, so it must only exist on images that actually deployed.
+    stage('Tag as Verified') {
+      steps {
+        script {
+          def ecr = load 'jenkins/ecr-helpers.groovy'
+          def dateStamp = new Date().format('yyyyMMdd-HHmm', TimeZone.getTimeZone('UTC'))
+          def verifiedTag = "prod-internal-verified-${dateStamp}"
+
+          def manifest = ecr.getImageManifest(
+            ecr.PROD_ECR_ACCOUNT,
+            ecr.ECR_REPOSITORY,
+            params.IMAGE_TAG
+          )
+          ecr.putImageManifest(
+            ecr.PROD_ECR_ACCOUNT,
+            ecr.ECR_REPOSITORY,
+            verifiedTag,
+            manifest
+          )
+          echo "Tagged image as verified: ${verifiedTag}"
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      script {
+        echo "deploy-to-prod-internal: Deployed ${params.IMAGE_TAG}"
+        notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices',
+                   message: "Prod-internal deployment SUCCESS: ${params.IMAGE_TAG}")
+      }
+    }
+    failure {
+      script {
+        notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices',
+                   message: "Prod-internal deployment FAILED for tag: ${params.IMAGE_TAG}")
+        echo ""
+        echo "============================================"
+        echo "REMEDIATION"
+        echo "============================================"
+        echo "If deployment succeeded but tagging failed,"
+        echo "manually apply the verified tag in prod ECR:"
+        echo ""
+        echo "  aws ecr batch-get-image --repository-name <repo> --image-ids imageTag=${params.IMAGE_TAG} --query 'images[0].imageManifest' --output text > manifest.json"
+        echo "  aws ecr put-image --repository-name <repo> --image-tag prod-internal-verified-<yyyyMMdd-HHmm> --image-manifest file://manifest.json"
+        echo "============================================"
+      }
+    }
+    cleanup {
+      sh 'rm -f image-manifest.json || true'
+      deleteDir()
+    }
+  }
+}

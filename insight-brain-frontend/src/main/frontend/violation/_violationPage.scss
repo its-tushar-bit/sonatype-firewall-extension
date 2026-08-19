@@ -1,0 +1,296 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use '../scss/variables' as *;
+
+#violation-page {
+  @include nx-container-helpers.container-vertical;
+  .iq-violations-details-info {
+    margin-top: 0;
+  }
+  .nx-list--violation-reasons:last-child {
+    margin-bottom: 0;
+  }
+  .nx-tile-header__title span {
+    @include nx-text-helpers.truncate-ellipsis;
+  }
+}
+
+#similar-waivers-tile {
+  .similar-waivers-header {
+    display: grid;
+    grid-template:
+      'title filter'
+      'subtitle filter' / auto min-content;
+    &__title {
+      @include nx-text-helpers.truncate-ellipsis;
+      margin-right: var(--nx-spacing-4x);
+      margin-bottom: var(--nx-spacing-base);
+      margin-top: 0;
+    }
+    &__subtitle {
+      grid-area: subtitle;
+    }
+    &__filter {
+      grid-area: filter;
+    }
+  }
+}
+
+.nx-drawer .iq-violation-details-popover-section {
+  padding: var(--nx-spacing-6x);
+
+  &.iq-tabs-section {
+    padding-top: var(--nx-spacing-2x);
+
+    .nx-tabs {
+      margin-top: 0;
+    }
+  }
+}
+
+.policy-violation-details-popover .nx-drawer-header {
+  grid-template: 'title vulnerability-level close-button' / auto 1fr auto;
+}
+
+.iq-violation-details {
+  .nx-tile-header {
+    row-gap: var(--nx-spacing-2x);
+    grid-template:
+      'title tags actions' 40px
+      'nopolicy nopolicy nopolicy'
+      'subtitle subtitle .' auto / auto 1fr auto;
+
+    .iq-waiver-indicator--active {
+      color: var(--nx-swatch-green-30);
+      font-weight: 600;
+      margin-right: var(--nx-spacing-base);
+    }
+  }
+
+  .nx-tile-header__subtitle {
+    @include nx-container-helpers.container-horizontal;
+    display: flex;
+    max-width: max-content;
+    min-width: 0;
+
+    .iq-violation-details__subtitle-part {
+      margin: 0 var(--nx-spacing-4x) 0 0;
+      flex: 1 0 33%;
+      max-width: max-content;
+    }
+
+    .iq-violation-details__subtitle-part:last-of-type {
+      margin: 0;
+    }
+  }
+
+  .header--disabled {
+    // Increase padding due to the manage waivers button not being present
+    padding-top: calc(var(--nx-spacing-6x) + var(--nx-spacing-2x) / 2);
+  }
+
+  .nx-tile-header__title {
+    &.nx-tile-header__title--disabled {
+      display: contents;
+
+      > h2 {
+        color: var(--nx-color-text-disabled);
+      }
+
+      > span {
+        color: var(--nx-color-text-disabled);
+        margin-left: 11px;
+      }
+    }
+    .nx-h2 {
+      display: flex;
+      align-items: center;
+      .nx-policy-violation-indicator {
+        margin-left: var(--nx-spacing-4x);
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  .nx-tile__actions {
+    .nx-btn {
+      margin: 0;
+    }
+  }
+
+  .nx-grid-col {
+    display: grid;
+
+    margin: 0;
+    padding-left: var(--nx-spacing-12x);
+    padding-right: var(--nx-spacing-12x);
+
+    gap: var(--nx-spacing-8x) var(--nx-spacing-12x);
+
+    > * {
+      @include nx-text-helpers.truncate-ellipsis;
+    }
+
+    dt,
+    dd {
+      line-height: var(--nx-line-height);
+    }
+
+    dt {
+      margin-bottom: var(--nx-spacing-2x);
+    }
+
+    dd {
+      display: inline;
+    }
+  }
+}
+
+.iq-violation-details__subtitle-part {
+  $icon-margin: 0 var(--nx-spacing-base) 0 0;
+
+  @include nx-container-helpers.container-horizontal;
+
+  font-weight: normal;
+  margin: 0 var(--nx-spacing-2x) 0 0;
+
+  .iq-violation-details__subtitle-separator {
+    margin: 0 var(--nx-spacing-2x);
+    color: var(--nx-color-text-secondary);
+  }
+
+  .iq-inverse-icon-wrapper {
+    @include nx-container-helpers.container-horizontal;
+
+    display: inline-block;
+
+    // makes the iq-inverse-icon-wrapper 16px tall as desired
+    font-size: 11px;
+
+    margin: $icon-margin;
+
+    // eyeballed to line up with the non-inverse icon
+    position: relative;
+    bottom: 1.75px;
+  }
+
+  .nx-icon {
+    margin: $icon-margin;
+  }
+}
+
+.iq-violation-details__stage {
+  @include nx-container-helpers.container-horizontal;
+
+  .nx-icon {
+    margin: 0 var(--nx-spacing-base) 0 0;
+  }
+}
+
+.iq-violation-details__stage--unused {
+  color: var(--nx-color-text-disabled);
+}
+
+.iq-violation-details__stage-action--fail {
+  color: $iq-dark-red;
+}
+
+.iq-violation-details__stage-action--warn {
+  color: $iq-orange;
+}
+
+.nx-grid-col.iq-violation-details__left-details {
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr 1fr;
+  flex: 0 auto;
+}
+
+.iq-violation-details__right-details {
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+}
+
+.iq-violation-details__bottom-details {
+  display: flex;
+  justify-content: space-between;
+  &.iq-violation-details__bottom-from-firewall {
+    flex-direction: column;
+  }
+}
+
+.iq-violation-details__reported {
+  display: flex;
+}
+
+.iq-violation-details__first-reported {
+  margin-right: var(--nx-spacing-6x);
+}
+
+.iq-violation-details__policy-owner-icon {
+  $size: var(--nx-spacing-4x);
+
+  height: $size;
+  width: $size;
+
+  margin-right: var(--nx-spacing-2x);
+
+  vertical-align: -3px;
+}
+
+.iq-waiver-indicator {
+  align-items: center;
+  justify-content: flex-end;
+  display: flex;
+  grid-column: 3;
+  grid-row: 2;
+  height: 19px;
+  text-align: right;
+}
+
+.iq-waiver-indicator--inactive {
+  color: var(--nx-color-text-disabled);
+}
+
+.iq-waiver-indicator__counter {
+  box-sizing: border-box;
+  background-color: var(--nx-swatch-green-30);
+  border-radius: 8px;
+  color: var(--nx-swatch-white);
+  font-size: 10px;
+  line-height: 10px;
+  padding: 3px;
+  min-width: 16px;
+  margin-right: 5px;
+  text-align: center;
+}
+
+.iq-waiver-indicator__counter--inactive {
+  background-color: var(--nx-color-text-disabled);
+}
+
+.iq-waiver-indicator-tab {
+  > span:first-child {
+    margin-right: var(--nx-spacing-2x);
+  }
+
+  > span {
+    display: inline-block;
+    vertical-align: middle;
+    text-align: baseline;
+  }
+}
+
+.iq-violation-details__reachability {
+  margin-top: var(--nx-spacing-6x);
+
+  .nx-h3 {
+    margin-bottom: var(--nx-spacing-2x);
+  }
+}

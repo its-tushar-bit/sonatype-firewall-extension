@@ -1,0 +1,40 @@
+{
+  "priorities": {
+    "total": 1,
+    "page": 1,
+    "pageSize": 15,
+    "pageCount": 1,
+    "results": [
+      {
+        "componentHash": "mpr-test-hash-001",
+        "displayName": "com.example:test-artifact",
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "groupId": "com.example",
+            "artifactId": "test-artifact",
+            "version": "1.0.0",
+            "extension": "jar",
+            "classifier": ""
+          }
+        },
+        "policyActions": ["Warn"],
+        "remediationType": "next-non-breaking",
+        "remediationVersion": "1.5.0",
+        "dependencyType": "Direct",
+        "action": "warn",
+        "priority": 1,
+        "securityReachable": false,
+        "hasExpiredWaiver": false,
+        "hasSoonToExpireWaiver": false,
+        "isAllViolationsWaived": false,
+        "hasSameViolationsOnMain": false,
+        "hasAutoWaiver": false,
+        "waivedViolationsCount": 0
+      }
+    ]
+  },
+  "recommendations": {},
+  "scanIdFromLatestBuildStageEvaluation": "MPR_REGRESSION_SCAN",
+  "hasAutoWaiversConfigured": false
+}

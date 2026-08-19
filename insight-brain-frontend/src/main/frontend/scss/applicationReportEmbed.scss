@@ -1,0 +1,31 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+// Classic loads these via scss/scss.scss. The Nexus One bundle embeds
+// applicationReport.* (Component Details Legal tab, etc.) but does not load
+// scss.scss, so import this aggregate from nexus-one/routes.tsx for parity.
+// Keep in sync with the matching @use lines in scss.scss.
+//
+// This file is the single home for why each partial is here; applicationReportEmbed.jestspec.ts
+// only guards that the list stays in sync with scss.scss.
+
+@use '../applicationReport/applicationReport';
+@use '../componentDetails/ComponentDetails';
+@use '../componentDetails/ViolationsTableTile/componentWaivers/componentWaiversPopover';
+@use '../componentDetails/TransferList/TransferList';
+@use '../componentDetails/TransferList/TransferListHalf';
+@use '../componentDetails/overview/occurrencesPopover/occurrencesPopover';
+// Sizes the format-tag icon. Without it the Maven tag renders at the SVG's natural size and
+// blows out the Component Details header.
+@use '../react/tag/tag';
+// Lays out the policy violation drawer reached from the Component Details Policy Violations tab:
+// the single-row drawer header (title / threat indicator / close button), the 24px section padding,
+// and the two-column detail grid. Without it the header wraps onto three rows and the body sits
+// flush against the drawer edges.
+@use '../violation/violationPage';
+// Colours the Threat Level value in that drawer by severity. Without it a Critical violation's
+// threat level renders in the default text grey rather than red.
+@use 'iq-threat-levels';

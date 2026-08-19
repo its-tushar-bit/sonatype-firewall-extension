@@ -1,0 +1,53 @@
+hdsUrl: https://clm-staging.sonatype.com/
+#hdsUrl: "http://localhost:8080/"
+relayUrl: https://clm-staging.sonatype.com/
+
+logging:
+  # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
+  level: DEBUG
+  loggers:
+    "com.sonatype.insight.brain.git.event": INFO
+    "com.sonatype.insight.brain.git.PullRequestPollingScheduler": INFO
+    "com.sonatype.insight.scan": INFO
+    "com.sonatype.nexus.git.utils.api.NativeGitUtils": INFO
+    "eu.medsea.mimeutil.MimeUtil2": INFO
+    "org.apache.http": INFO
+    "org.apache.hc.client5.http": INFO
+    "org.apache.http.wire": ERROR
+    "org.apache.hc.client5.http.wire": ERROR
+    "org.apache.hc.core5.reactor": INFO
+    "org.apache.commons.beanutils.converters": INFO
+    "org.apache.shiro": INFO
+    "org.eclipse.birt.report.engine.layout.pdf.font.FontConfigReader": WARN
+    "org.eclipse.jetty": INFO
+    "org.quartz": INFO
+    "org.springframework.jdbc.datasource.init.ResourceDatabasePopulator": INFO
+    "org.zeroturnaround.exec": INFO
+    "org.thymeleaf": INFO
+    "software.amazon.awssdk": WARN
+    "com.sonatype.insight.audit":
+      appenders:
+        - type: console
+    "com.sonatype.insight.policy.violation":
+      appenders:
+        - type: console
+    "com.networknt.schema": OFF
+  appenders:
+    - type: console
+      logFormat: "%d{'yyyy-MM-dd HH:mm:ss,SSSZ'} %level [%thread] %X{username} %logger - %msg%n"
+
+# System IP Address Filter Allowlist
+# Supports single IP address and IP address range in CIDR notation
+#systemAllowlist:
+#  - ipAddress: 192.168.33.33
+#    description: Only allow access from 192.168.33.33
+
+# This is made explicit in order to make it overridable on the command line.  When doing frontend dev work,
+# webpack-dev-server runs on port 8070 and the dropwizard app should be moved to port 8072 by specifying
+# the -Ddw.server.applicationConnectors[0].port=8072 system property (or modifying this file)
+server:
+  applicationConnectors:
+    - type: http
+      port: 8070
+  requestLog:
+    type: classic

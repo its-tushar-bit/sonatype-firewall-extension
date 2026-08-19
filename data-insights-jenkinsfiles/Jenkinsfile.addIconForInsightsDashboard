@@ -1,0 +1,154 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+// This job allows the Business Intelligence team update the icons that are available for use on the Data Insights Page
+// Some more technical background can be found here https://sonatype.atlassian.net/wiki/spaces/DATA/pages/227410489/Dashboard+Change+Management
+// The job can be found here https://jenkins.ci.sonatype.dev/job/insight/job/insight-brain/job/Data%20Insights%20Dashboard%20Configuration/job/Add%20Icon%20to%20HDS%20Staging/
+
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+import groovy.json.JsonSlurper
+
+def iconZipFileName = "icons.zip"
+
+def s3Configuration =  [
+  account: "993883856687",
+  role: 'jenkins-hds-enterprise-reporting-staging',
+  credentialsId: 'hds-enterprise-reporting-external-id-staging',
+  usEast2Bucket: "hds-staging-enterprise-reporting-us-east-2",
+  usWest2Bucket: "hds-staging-enterprise-reporting-us-west-2"
+]
+
+pipeline {
+  agent {
+    node {
+      label 'zion-small'
+    }
+  }
+
+    parameters {
+      base64File (
+        name: 'newImage',
+        description: 'Upload an svg image file, it will be added to the icons.zip file'
+      )
+  }
+
+  stages {
+    stage('Create/Update Data Insights Tile For usEast2Bucket Staging') {
+      steps {
+        script {
+          withAwsRole(region: 'us-east-2', role: s3Configuration.role, roleAccount: s3Configuration.account, credentialsId: s3Configuration.credentialsId) {
+              withFileParameter('newImage') {
+                  def newIconFileName = env.newImage_FILENAME
+                  validateImageFileName(newIconFileName)
+
+                  clean(iconZipFileName)
+
+                  // copy the file to the work space
+                  sh 'mkdir -p "${WORKSPACE}/uploads"'
+                  sh 'mv "$newImage" "${WORKSPACE}/uploads/$newImage_FILENAME"'
+
+                  echo "trying to get existing zip file"
+                  def bucketName = s3Configuration.usEast2Bucket
+
+                  if (!fileExists(bucketName, iconZipFileName)) {
+                      echo "${iconZipFileName} does not exist, creating it"
+                      createEmptyZip(bucketName, iconZipFileName)
+                  } else {
+                      echo "${iconZipFileName} exists, skipping creation"
+                  }
+
+                  // get zip and decompress it
+                  getFileFromS3(bucketName, iconZipFileName)
+                  unzip(zipFile: "./${iconZipFileName}", dir: './unzipped')
+
+                  echo "current contents of icon zip file '${iconZipFileName}'"
+                  
+                  sh 'ls -la ./unzipped'
+                  sh 'cp ./uploads/* ./unzipped'
+
+                  echo "new contents of icon zip file '${iconZipFileName}'"
+                  sh 'ls -la ./unzipped'
+
+                  createAndUploadZip('./unzipped', bucketName, iconZipFileName)
+                  copyFromEastBucketToWestBucket(s3Configuration, iconZipFileName)
+              }
+          }
+        }
+      }
+    }
+  }
+}
+
+def fileExists(bucketName, fileName) {
+  def base_file_template = '{ \\"version\\": 1, \\"dashboards\\": {} }'
+
+  def value = sh(script: """
+    aws s3api head-object --bucket ${bucketName} --key ${fileName} > /dev/null 2>&1 || not_exist=true
+    if [ \$not_exist ]; then
+        echo "false"
+    else
+        echo "true"
+    fi
+    """, returnStdout: true).trim()
+
+    return 'true'.equals(value)
+}
+
+def createEmptyZip(bucketName, iconZipFileName) {
+    // delete in case it's still here from previous job
+    sh "rm -rf ${iconZipFileName}"
+    sh "rm -rf empty_dir"
+
+    sh 'mkdir empty_dir'
+    zip zipFile: iconZipFileName, dir: 'empty_dir', archive: true
+    sh 'rm -rf empty_dir'
+
+    sh "aws s3 cp ${iconZipFileName} s3://${bucketName}/${iconZipFileName}"
+}
+
+def createAndUploadZip(contentsDir, bucketName, iconZipFileName) {
+    echo 'zipping the new contents'
+    zip zipFile: "new-${iconZipFileName}", dir: contentsDir, archive: true
+
+    echo "uploading the new zip file '${iconZipFileName}'"
+    sh "aws s3 cp new-${iconZipFileName} s3://${bucketName}/${iconZipFileName}"
+}
+
+def getFileFromS3(bucketName, fileName) {
+    sh "aws s3 cp s3://${bucketName}/${fileName} ./${fileName}"
+}
+
+def copyFromEastBucketToWestBucket(s3Configuration, fileName) {
+  def bucketForStagingEast = s3Configuration.usEast2Bucket
+  def bucketForStagingWest = s3Configuration.usWest2Bucket
+
+  echo "copying s3://${bucketForStagingEast}/${fileName} to s3://${bucketForStagingWest}/${fileName}"
+
+  sh "aws s3 cp s3://${bucketForStagingEast}/${fileName} s3://${bucketForStagingWest}/${fileName}"
+}
+
+def validateImageFileName(imageFileName) {
+    if (imageFileName == null) {
+        error "you must provide an svg image file"
+    }
+
+    def isSvg = 'svg'.equals(imageFileName.toLowerCase().tokenize('.')[-1])
+
+    if (!isSvg) {
+        error "Invalid file name ${imageFileName}, please use svg files."
+    }
+}
+
+def clean(iconZipFileName) {
+    echo 'cleaning up files from previous runs'
+    sh "rm -rf ${iconZipFileName}"
+    sh "rm -rf empty_dir"
+    sh "rm -rf ./*.svg"
+    sh "rm -rf ./uploads"
+    sh "rm -rf ./*.zip"
+    sh "rm -rf ./unzipped"
+}
+

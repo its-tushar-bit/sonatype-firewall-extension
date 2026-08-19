@@ -1,0 +1,30 @@
+# Spring Boot configuration
+# This file provides Spring Boot specific configuration
+# Dropwizard configuration is loaded separately from config-dev.yml
+
+spring:
+  boot:
+    admin:
+      enabled: false
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.jersey.autoconfigure.JerseyAutoConfiguration
+      - org.springframework.boot.jersey.autoconfigure.metrics.JerseyServerMetricsAutoConfiguration
+      - org.springframework.boot.jersey.autoconfigure.actuate.endpoint.web.HealthEndpointJerseyExtensionAutoConfiguration
+      - org.springframework.boot.servlet.autoconfigure.MultipartAutoConfiguration
+
+server:
+  port: 8070
+
+# Actuator endpoints configuration
+management:
+  server:
+    port: 8071
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,threaddump
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized

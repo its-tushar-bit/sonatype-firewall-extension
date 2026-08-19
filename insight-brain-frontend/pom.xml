@@ -1,0 +1,183 @@
+<!--
+
+    Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+    Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+    "Sonatype" is a trademark of Sonatype, Inc.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.sonatype.insight.brain</groupId>
+    <artifactId>insight-brain</artifactId>
+    <version>1.208.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>insight-brain-frontend</artifactId>
+  <name>Insight Brain Frontend</name>
+
+  <properties>
+    <node.version>v20.20.0</node.version>
+    <yarn.version>v1.22.22</yarn.version>
+    <!-- Frontend build script for the Maven 'build' execution. Default runs lint + esbuild;
+         feature CI overrides to 'esbuild:build' to move lint into the parallel Frontend Tests stage. -->
+    <frontend.build.script>build</frontend.build.script>
+    <sonar.sources>src/main/frontend</sonar.sources>
+    <sonar.exclusions>src/main/frontend/lib/**/*,src/main/frontend/audit-report/lib/**/*</sonar.exclusions>
+    <sonar.coverage.exclusions>
+      src/main/frontend/lib/**/*,src/main/frontend/audit-report/lib/**/*
+    </sonar.coverage.exclusions>
+    <sonar.tests>src/test/frontend</sonar.tests>
+    <sonar.javascript.lcov.reportPaths>${project.build.directory}/coverage/lcov.info</sonar.javascript.lcov.reportPaths>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.github.eirslett</groupId>
+        <artifactId>frontend-maven-plugin</artifactId>
+        <configuration>
+          <!--
+            CI=true is read by src/test/frontend/consoleSetup.js to suppress all
+            console.{error,warn,log,debug} output from Jest, eliminating ~38 MB
+            of stack-frame noise per CI log. Applied at the plugin level (not
+            just the jest execution) to match the nexus-internal frontend
+            pattern. Developers running Jest directly via `yarn jest` in watch
+            mode will have CI unset and therefore see full console output.
+          -->
+          <environmentVariables>
+            <CI>true</CI>
+          </environmentVariables>
+        </configuration>
+        <executions>
+          <!-- install-node-and-npm provides node/node_modules/npm/bin/node-gyp-bin/,
+               which prevents yarn 1.x's _checkForGyp from corrupting the shared
+               Config object via global.run() during "Building fresh packages". -->
+          <execution>
+            <id>install-node-and-npm</id>
+            <goals>
+              <goal>install-node-and-npm</goal>
+            </goals>
+            <configuration>
+              <nodeVersion>${node.version}</nodeVersion>
+              <npmVersion>10.8.2</npmVersion>
+            </configuration>
+          </execution>
+          <execution>
+            <id>install-node-and-yarn</id>
+            <goals>
+              <goal>install-node-and-yarn</goal>
+            </goals>
+            <configuration>
+              <nodeVersion>${node.version}</nodeVersion>
+              <yarnVersion>${yarn.version}</yarnVersion>
+            </configuration>
+          </execution>
+          <execution>
+            <id>yarn-install</id>
+            <goals>
+              <goal>yarn</goal>
+            </goals>
+            <configuration>
+              <arguments>install --check-files --frozen-lockfile</arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>build</id>
+            <goals>
+              <goal>yarn</goal>
+            </goals>
+            <configuration>
+              <!-- Feature CI passes -Dfrontend.build.script=esbuild:build to keep lint off the
+                   serial critical Build path (lint runs in the parallel Frontend Tests stage).
+                   Default 'build' (lint + esbuild) is used for local/release builds. -->
+              <arguments>run ${frontend.build.script}</arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <!-- Frontend lint gate. Bound to phase 'none' to exclude it from the Maven lifecycle so
+                 it never runs on the serial Build critical path; the parallel Frontend Tests CI stage
+                 invokes it explicitly via yarn@ci-lint. NOTE: the frontend-maven-plugin 'yarn' goal
+                 defaults to the generate-resources phase, so an execution with no explicit phase
+                 (like build/yarn-install) would otherwise run during 'mvn install'. -->
+            <id>ci-lint</id>
+            <phase>none</phase>
+            <goals>
+              <goal>yarn</goal>
+            </goals>
+            <configuration>
+              <arguments>run ci-lint</arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>jest</id>
+            <phase>test</phase>
+            <goals>
+              <goal>yarn</goal>
+            </goals>
+            <configuration>
+              <skip>${frontend.tests.skip}</skip>
+              <arguments>run jest</arguments>
+              <!--
+                Duplicate of the plugin-level environmentVariables block above.
+                frontend-maven-plugin has a known Map-merge quirk where an
+                execution-level <configuration> can mask the plugin-level
+                <environmentVariables> map, so we restate CI=true here to
+                guarantee it lands in the Jest process. Both declarations are
+                intentionally kept.
+              -->
+              <environmentVariables>
+                <CI>true</CI>
+              </environmentVariables>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+    <resources>
+      <resource>
+        <directory>${project.build.directory}/generated-resources/webpack/</directory>
+      </resource>
+    </resources>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>m2e</id>
+      <activation>
+        <property>
+          <name>m2e.version</name>
+        </property>
+      </activation>
+      <properties>
+        <frontend.tests.skip>true</frontend.tests.skip>
+      </properties>
+    </profile>
+    <profile>
+      <id>idea</id>
+      <properties>
+      </properties>
+    </profile>
+    <profile>
+      <id>clean-node</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-clean-plugin</artifactId>
+            <configuration>
+              <filesets>
+                <fileset>
+                  <directory>node</directory>
+                </fileset>
+                <fileset>
+                  <directory>node_modules</directory>
+                </fileset>
+              </filesets>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+  </profiles>
+</project>

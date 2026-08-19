@@ -1,0 +1,13 @@
+{
+  "notification1Id": "1",
+  "notification1Summary": "summary1",
+  "notification1Detail": "detail1",
+  "notification1AgeText": "10 minutes ago",
+  "notification1AgeOffsetMs": 600000,
+  "notification2Id": "2",
+  "notification2Summary": "summary2",
+  "notification2Detail": "detail2",
+  "notification2AgeText": "10 hours ago",
+  "notification2AgeOffsetMs": 36000000,
+  "postNotificationUrlFragment": "/reports/violations"
+}

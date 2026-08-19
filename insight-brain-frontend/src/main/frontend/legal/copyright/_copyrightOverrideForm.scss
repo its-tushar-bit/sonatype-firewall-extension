@@ -1,0 +1,57 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '../../scss/variables' as *;
+
+#edit-copyrights-override-table {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: var(--nx-spacing-6x);
+  align-items: baseline;
+
+  thead th {
+    margin-bottom: var(--nx-spacing-4x);
+    padding: 0;
+  }
+
+  thead,
+  tbody,
+  tr {
+    display: contents;
+  }
+
+  td {
+    padding: 0;
+  }
+}
+
+.copyright-obligation-fulfilled-icon {
+  color: $iq-dark-green;
+}
+
+.copyright-obligation-flagged-icon {
+  color: $iq-dark-red;
+}
+
+.copyright-obligation-ignored-icon {
+  color: $iq-slate;
+}
+
+// Very specific selector to apply color to the collapsed NxDropdown. Credit to Glen Hunter.
+.nx-dropdown__toggle {
+  .nx-icon {
+    &.copyright-obligation-fulfilled-icon {
+      color: $iq-dark-green;
+    }
+    &.copyright-obligation-flagged-icon {
+      color: $iq-dark-red;
+    }
+    &.copyright-obligation-ignored-icon {
+      color: $iq-slate;
+    }
+  }
+}

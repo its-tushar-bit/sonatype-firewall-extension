@@ -1,0 +1,17 @@
+# Files that must have CRLF line endings
+*.bat eol=crlf
+
+# set script files to use LF only
+*.sh eol=lf
+
+# set svg image files to use LF only so comparisons between an svg and the same file but extracted from a zip don't fail
+*.svg eol=lf
+
+# even on Windows, npm uses Unix-style line terminators
+package*.json eol=lf
+
+# some tests use tmp files as input
+*.tmp eol=lf
+
+# Use bd merge for beads JSONL files
+.beads/issues.jsonl merge=beads

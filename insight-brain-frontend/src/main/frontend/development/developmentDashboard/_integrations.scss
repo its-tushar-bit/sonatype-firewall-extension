@@ -1,0 +1,239 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
+sonatype-developer-page {
+  display: contents;
+
+  --graph-grid-lines: var(--nx-swatch-grey-90);
+  @include nx-dark-mode-helpers.dark-mode {
+    --graph-grid-lines: var(--nx-swatch-indigo-40);
+  }
+}
+
+$donut-size: 72px;
+$apps-without-ci-preview-table-place-holder-width: 483px;
+$page-max-width: 1550px;
+
+#integrations-sidebar {
+  background-color: var(--nx-swatch-indigo-30);
+  color: var(--nx-swatch-white);
+
+  .nx-h4,
+  .nx-h3,
+  .nx-h2,
+  .nx-h1 {
+    color: var(--nx-swatch-white); // have to be specific enough to override rsc
+  }
+}
+
+.nx-page.iq-integrations-page-wrapper {
+  --nx-width-sidebar-max: 250px;
+}
+
+.nx-text-link.integrations-link {
+  &,
+  &:hover,
+  &:focus,
+  &:active,
+  &:active:focus {
+    color: var(--nx-swatch-white);
+    text-decoration: none;
+    display: block;
+    padding: var(--nx-spacing-4x);
+    border-radius: var(--nx-border-radius) 0 0 var(--nx-border-radius);
+  }
+
+  &:active:focus {
+    outline: var(--nx-focus-outline-width) solid var(--nx-color-interactive-border-focus);
+  }
+}
+
+a.nx-text-link.integrations-link.integrations-link-selected {
+  background-color: var(--nx-swatch-blue-10);
+  color: var(--nx-swatch-white);
+}
+
+.iq-integrations-card-logo {
+  height: 48px;
+}
+
+.iq-integrations__full-width-text {
+  &.nx-p {
+    max-width: unset;
+  }
+}
+
+.iq-integrations-card--flex-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.iq-integrations-card--align-left {
+  text-align: left;
+}
+
+.iq-integrations-card-container {
+  &.nx-card-container {
+    justify-content: flex-start;
+  }
+}
+
+.iq-integrations-card {
+  &.nx-card {
+    max-width: 474px;
+  }
+}
+
+.iq-integrations-content {
+  max-width: $page-max-width;
+}
+
+.iq-integrations-card-cicd,
+.iq-integrations-card-ide,
+.iq-integrations-card-ascf {
+  &.nx-card {
+    text-align: left;
+
+    .nx-card__content {
+      align-items: flex-start;
+    }
+
+    .nx-card__text {
+      max-width: 800px;
+    }
+  }
+}
+
+.iq-integrations-card-ide {
+  .nx-card__content {
+    align-items: flex-start;
+  }
+
+  .nx-card__content--row {
+    flex-direction: column;
+
+    .nx-alert {
+      font-size: var(--nx-font-size);
+      margin: 0;
+
+      .nx-load-error__content {
+        flex-wrap: nowrap;
+
+        .nx-load-error__retry {
+          flex-shrink: 0;
+          align-self: flex-start;
+        }
+      }
+    }
+  }
+
+  .iq-integrations-card-callout {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    gap: 20px;
+
+    .iq-integrations-card-callout--count {
+      background-color: var(--nx-swatch-blue-50);
+      border-radius: 8px;
+      color: var(--nx-swatch-white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      height: 60px;
+      width: 94px;
+    }
+
+    .iq-integrations-card-callout--message {
+      color: var(--nx-color-text-dark);
+      font-weight: 600;
+    }
+  }
+}
+
+.nx-alert.iq-integrations-page-top-level-alert {
+  width: 100%;
+  max-width: $page-max-width;
+}
+
+svg.nx-icon.iq-total-risk-info-icon {
+  margin-left: var(--nx-spacing-2x);
+  color: var(--nx-color-text-dark);
+}
+
+.nx-cell.iq-developer-app-integrations-header {
+  text-align: center;
+}
+
+.iq-integrations-and-risk-enabled {
+  color: var(--nx-swatch-green-40);
+}
+
+.iq-integrations-and-risk-disabled {
+  color: var(--nx-swatch-red-40);
+}
+
+.iq-developer-dashboard-graph-tooltip {
+  border-radius: 4px;
+  background-color: var(--nx-color-site-background);
+  padding: var(--nx-spacing-2x);
+  color: var(--nx-color-text);
+}
+
+#iq-developer-app-integrations-and-risk-table {
+  .nx-cell--header {
+    position: static;
+  }
+
+  .nx-dropdown {
+    width: 100%;
+  }
+
+  .iq-integrations-applications-table__name-cell {
+    overflow-wrap: anywhere;
+  }
+}
+
+.iq-developer-app-integrations-scm-configure-button,
+.iq-developer-app-integrations-cicd-configure-button {
+  margin-right: 0px;
+}
+
+.iq-developer-dashboard-graph-container {
+  display: flex;
+  flex-direction: row;
+
+  .iq-developer-dashboard-adoption-graph,
+  .iq-developer-dashboard-risk-remediation-graph,
+  .iq-developer-dashboard-mttr-graph {
+    flex: 1;
+    margin-top: 0;
+
+    .iq-developer-dashboard-graph-wrapper {
+      height: 350px;
+    }
+
+    .nx-h2 {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.iq-developer-dashboard-priorities-cell-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--nx-spacing-base);
+}
+
+.iq-developer-dashboard-info-tooltip {
+  &.nx-icon {
+    color: var(--nx-color-text-dark);
+  }
+}

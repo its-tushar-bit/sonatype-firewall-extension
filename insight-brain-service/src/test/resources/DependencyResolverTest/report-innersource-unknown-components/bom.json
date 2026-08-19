@@ -1,0 +1,108 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "slf4j-api-1.7.30.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.nexus:nexus-platform-api:jar:1.0.0/org.slf4j:slf4j-api:jar:1.7.30" ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "b5a4b6d16ab13e34a88f",
+    "relativePopularity" : 0.0,
+    "createTime" : 1576530216000,
+    "lastModifiedTime" : 1577131198000,
+    "lastModifiedEntryTime" : 1576551812000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Filename",
+        "value" : "slf4j-api-1.7.30.jar\""
+      }],
+      "name" : "slf4j-api-1.7.30.jar"
+    }
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "insight-module-model-1.0.0-SNAPSHOT.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.nexus:nexus-platform-api:jar:1.0.0/com.sonatype.insight.scan:insight-module-model:jar:1.0.0-SNAPSHOT" ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : true,
+    "hash" : "8a8aa7d21754d585698d",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1598294268000,
+    "lastModifiedEntryTime" : 1598294270000,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Filename",
+        "value" : "insight-module-model-1.0.0-SNAPSHOT.jar"
+      } ],
+      "name" : "insight-module-model-1.0.0-SNAPSHOT.jar"
+    }
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "insight-innersource-child-2.0.0.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.nexus:nexus-platform-api:jar:1.0.0/com.sonatype.insight.scan:insight-innersource-child:jar:2.0.0" ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : true,
+    "hash" : "9a8aa7d21754d585698e",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1598294268000,
+    "lastModifiedEntryTime" : 1598294270000,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Filename",
+        "value" : "insight-innersource-child-2.0.0.jar"
+      } ],
+      "name" : "insight-innersource-child-2.0.0.jar"
+    }
+  }]
+}

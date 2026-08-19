@@ -1,0 +1,5 @@
+search:
+  type: http
+  uri: https://example.com:123
+  username: john
+  password: secret

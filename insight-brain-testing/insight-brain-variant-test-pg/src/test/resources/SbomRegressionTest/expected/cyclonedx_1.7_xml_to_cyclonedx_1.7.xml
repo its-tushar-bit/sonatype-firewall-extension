@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bom serialNumber="urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79" version="1" xmlns="http://cyclonedx.org/schema/bom/1.7">
+  <metadata>
+    <timestamp>2026-07-01T16:42:55Z</timestamp>
+    <tools>
+      <components>
+        <component type="application">
+          <name>Sonatype SBOM Manager</name>
+          <version>1.205.0-SNAPSHOT</version>
+        </component>
+      </components>
+    </tools>
+    <component type="application" bom-ref="3ef771bd-1f41-4422-b312-583b874f98f1">
+      <name>SbomRegressionTestApp</name>
+      <version>1.0.0</version>
+    </component>
+  </metadata>
+  <components>
+    <component type="library" bom-ref="pkg:maven/partner/shaded-library@1.0">
+      <name>Partner Shaded Library</name>
+      <version>1.0</version>
+      <purl>pkg:maven/partner/shaded-library@1.0</purl>
+      <properties>
+        <property name="sonatype:identification_sources">SBOM</property>
+        <property name="sonatype:truncated_sha1">bea74eb2b5af290ae9b7</property>
+        <property name="sonatype:original_purl">pkg:maven/partner/shaded-library@1.0</property>
+      </properties>
+      <components>
+        <component type="library" bom-ref="pkg:maven/ossproject/library@2.0">
+          <name>Some Opensource Library</name>
+          <version>2.0</version>
+          <purl>pkg:maven/ossproject/library@2.0</purl>
+        </component>
+      </components>
+    </component>
+    <component type="library" bom-ref="pkg:maven/acme/library@3.0" isExternal="true">
+      <name>Acme Library</name>
+      <versionRange>vers:maven/>=3.0|&lt;4.0</versionRange>
+      <purl>pkg:maven/acme/library@3.0</purl>
+      <properties>
+        <property name="sonatype:identification_sources">SBOM</property>
+        <property name="sonatype:truncated_sha1">a9f7d008c44d7c8a6796</property>
+        <property name="sonatype:original_purl">pkg:maven/acme/library@3.0</property>
+      </properties>
+    </component>
+    <component type="library" bom-ref="123">
+      <name>ACME Library</name>
+      <version>1.0.0</version>
+      <description>A library with a lot of dependencies.</description>
+      <scope>required</scope>
+      <hashes>
+        <hash alg="SHA-1">aad4c61ddcc5e8a2dabede0f3b482cd9aea9434d</hash>
+        <hash alg="SHA-256">bbd4c61ddcc5e8a2dabede0f3b482cd9aea9434d</hash>
+      </hashes>
+      <licenses>
+        <license>
+          <id>Apache-2.0</id>
+          <properties>
+            <property name="sonatype:identification_sources">SBOM</property>
+          </properties>
+        </license>
+      </licenses>
+      <purl>pkg:maven/acme/library@1.0.0</purl>
+      <externalReferences>
+        <reference type="website">
+          <url>http://acme.example.com/</url>
+        </reference>
+      </externalReferences>
+      <properties>
+        <property name="Foo">You</property>
+        <property name="Foo">Two</property>
+        <property name="Bar">Foo</property>
+        <property name="sonatype:identification_sources">SBOM</property>
+        <property name="sonatype:truncated_sha1">aad4c61ddcc5e8a2dabe</property>
+        <property name="sonatype:original_purl">pkg:maven/acme/library@1.0.0</property>
+      </properties>
+    </component>
+    <component type="framework" bom-ref="a99aa6ef-5901-485a-8bee-c6270b411ff1">
+      <supplier>
+        <name>Spring</name>
+        <url>https://spring.io</url>
+      </supplier>
+      <author>Pivotal</author>
+      <publisher>Pivotal</publisher>
+      <group>org.springframework</group>
+      <name>spring-web</name>
+      <version>5.0.4.RELEASE</version>
+      <description>Spring Web</description>
+      <scope>required</scope>
+      <hashes>
+        <hash alg="SHA-1">aad4c61ddcc5e8a2dabede0f3b482cd9aea9434d</hash>
+        <hash alg="SHA-256">bbd4c61ddcc5e8a2dabede0f3b482cd9aea9434d</hash>
+      </hashes>
+      <licenses>
+        <license>
+          <id>Apache-2.0</id>
+          <licensing>
+            <lastRenewal>2026-01-01T00:00:00Z</lastRenewal>
+            <expiration>2030-01-01T00:00:00Z</expiration>
+          </licensing>
+          <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+      </licenses>
+      <copyright>Copyright 2019 Spring.io</copyright>
+      <cpe>cpe:2.3:a:pivotal_software:spring_framework:5.0.4:*:*:*:*:*:*:*</cpe>
+      <purl>pkg:maven/org.springframework/spring-web@5.0.4.RELEASE?type=jar</purl>
+      <externalReferences>
+        <reference type="website">
+          <url>http://spring.io</url>
+        </reference>
+      </externalReferences>
+      <properties>
+        <property name="Foo">You</property>
+        <property name="Foo">Two</property>
+        <property name="Bar">Foo</property>
+      </properties>
+    </component>
+    <component type="library" bom-ref="pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4">
+      <supplier>
+        <name>FasterXML</name>
+        <url>http://fasterxml.com</url>
+      </supplier>
+      <author>Tatu Saloranta</author>
+      <publisher>FasterXML</publisher>
+      <group>com.fasterxml.jackson.core</group>
+      <name>jackson-databind</name>
+      <version>2.9.4</version>
+      <description>General data-binding functionality for Jackson: works on core streaming API</description>
+      <scope>required</scope>
+      <hashes>
+        <hash alg="SHA-1">aad4c61ddcc5e8a2dabede0f3b482cd9aea9434d</hash>
+        <hash alg="SHA-256">bbd4c61ddcc5e8a2dabede0f3b482cd9aea9434d</hash>
+      </hashes>
+      <licenses>
+        <license>
+          <id>Apache-2.0</id>
+          <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+      </licenses>
+      <copyright>Copyright 2019 FasterXML</copyright>
+      <cpe>cpe:2.3:a:fasterxml:jackson-databind:2.9.4:*:*:*:*:*:*:*</cpe>
+      <purl>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4</purl>
+      <externalReferences>
+        <reference type="website">
+          <url>http://github.com/FasterXML/jackson</url>
+        </reference>
+      </externalReferences>
+      <properties>
+        <property name="Foo">You</property>
+        <property name="Foo">Two</property>
+        <property name="Bar">Foo</property>
+      </properties>
+      <evidence>
+        <identity>
+          <field>purl</field>
+          <confidence>0.95</confidence>
+          <concludedValue>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4</concludedValue>
+          <methods>
+            <method>
+              <technique>filename</technique>
+              <confidence>0.9</confidence>
+            </method>
+          </methods>
+        </identity>
+      </evidence>
+    </component>
+  </components>
+  <services>
+    <service bom-ref="b2a46a4b-8367-4bae-9820-95557cfe03a8">
+      <provider>
+        <name>Partner Org</name>
+        <url>https://partner.example.com</url>
+      </provider>
+      <group>com.example</group>
+      <name>Stock ticker service</name>
+      <version>2020-Q2</version>
+      <description>Provides real-time stock information</description>
+      <endpoints>
+        <endpoint>https://partner.example.com/stocks</endpoint>
+        <endpoint>https://partner.example.com/stocks/nyse</endpoint>
+      </endpoints>
+      <authenticated>true</authenticated>
+      <x-trust-boundary>true</x-trust-boundary>
+      <data>
+        <classification flow="bi-directional">pii</classification>
+      </data>
+      <licenses>
+        <license>
+          <id>Apache-2.0</id>
+          <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+      </licenses>
+      <externalReferences>
+        <reference type="website">
+          <url>http://partner.example.com</url>
+        </reference>
+      </externalReferences>
+      <properties>
+        <property name="Foo">You</property>
+        <property name="Foo">Two</property>
+        <property name="Bar">Foo</property>
+      </properties>
+    </service>
+  </services>
+  <vulnerabilities>
+    <vulnerability>
+      <id>CVE-2018-7489</id>
+      <source>
+        <name>NVD</name>
+        <url>https://nvd.nist.gov/vuln/detail/CVE-2018-7489</url>
+      </source>
+      <references>
+        <reference>
+          <id>CVE-2018-7489</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/CVE-2018-7489</url>
+          </source>
+        </reference>
+      </references>
+      <ratings>
+        <rating>
+          <source>
+            <name>NVD</name>
+          </source>
+          <score>9.8</score>
+          <severity>critical</severity>
+          <method>CVSSv3</method>
+          <vector>CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H</vector>
+        </rating>
+      </ratings>
+      <cwes>
+        <cwe>502</cwe>
+      </cwes>
+      <description>FasterXML jackson-databind before 2.7.9.3, 2.8.x before 2.8.11.1 and 2.9.x before 2.9.5 allows unauthenticated remote code execution because of an incomplete fix for the CVE-2017-7525 deserialization flaw.</description>
+      <detail>This vulnerability impacts the jackson-databind component. When the default typing feature is enabled (either globally or for a specific type) it is possible for a user to provide an Object that can be deserialized into a BadAttributeValueExpException object.</detail>
+      <recommendation>Upgrade to version 2.9.5 or later</recommendation>
+      <affects>
+        <target>
+          <ref>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4</ref>
+        </target>
+      </affects>
+      <properties>
+        <property name="sonatype:identification_sources">Sonatype</property>
+      </properties>
+    </vulnerability>
+    <vulnerability bom-ref="CVE-2018-7489-253a6552ac924579ba686598329e4aeb">
+      <id>CVE-2018-7489</id>
+      <source>
+        <name>NVD</name>
+        <url>https://nvd.nist.gov/vuln/detail/CVE-2018-7489</url>
+      </source>
+      <references>
+        <reference>
+          <id>CVE-2018-7489</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/CVE-2018-7489</url>
+          </source>
+        </reference>
+      </references>
+      <ratings>
+        <rating>
+          <source>
+            <name>NVD</name>
+            <url>https://nvd.nist.gov/vuln/detail/CVE-2018-7489</url>
+          </source>
+          <score>9.8</score>
+          <severity>critical</severity>
+          <method>CVSSv3</method>
+          <vector>CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H</vector>
+        </rating>
+      </ratings>
+      <cwes>
+        <cwe>502</cwe>
+      </cwes>
+      <description>FasterXML jackson-databind before 2.7.9.3, 2.8.x before 2.8.11.1 and 2.9.x before 2.9.5 allows unauthenticated remote code execution because of an incomplete fix for the CVE-2017-7525 deserialization flaw.</description>
+      <affects>
+        <target>
+          <ref>123</ref>
+        </target>
+      </affects>
+      <properties>
+        <property name="sonatype:identification_sources">SBOM</property>
+      </properties>
+    </vulnerability>
+  </vulnerabilities>
+</bom>

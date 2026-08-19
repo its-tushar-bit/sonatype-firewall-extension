@@ -1,0 +1,61 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+.iq-integrations-description-list-thinner-text {
+  font-weight: lighter;
+}
+
+.iq-integrations-card-cicd-wizard {
+  &.nx-card {
+    border: thin solid #e6e6e6;
+    text-align: center;
+  }
+}
+.iq-integrations-copy-to-clipboard-cicd {
+  width: 100%;
+  & .nx-text-input--textarea {
+    & .nx-text-input__box {
+      background: #333333;
+    }
+  }
+  .nx-text-input textarea {
+    color: #ffffff;
+  }
+  .nx-label__text {
+    text-align: left;
+  }
+}
+
+.iq-integrations-description-list-cicd {
+  font-size: 14px;
+  .nx-list__item {
+    text-align: left;
+    & .nx-list__description {
+      border-left: var(--nx-border-default);
+      border-right: var(--nx-border-default);
+    }
+    border-left: var(--nx-border-default);
+    border-bottom: var(--nx-border-default);
+  }
+}
+
+#iq-integrations-description-list-title {
+  text-align: left;
+}
+
+.iq-integration-cicd-wizard-p {
+  margin: 0 auto;
+}
+
+#iq-integrations-cicd-wizard {
+  .iq-integrations-cicd-wizard-header {
+    text-align: left;
+  }
+}
+
+#iq-integrations-cicd-wizard-paragraph {
+  text-align: left;
+}

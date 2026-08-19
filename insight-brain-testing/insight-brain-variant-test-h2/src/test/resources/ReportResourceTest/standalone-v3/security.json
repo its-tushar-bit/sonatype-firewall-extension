@@ -1,0 +1,24 @@
+{
+  "aaData" : [{
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "reactivex:rxjs",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.webjars.npm",
+        "version" : "5.0.0-alpha.7"
+      }
+    },
+    "groupId" : "org.webjars.npm",
+    "artifactId" : "reactivex:rxjs",
+    "version" : "5.0.0-alpha.7",
+    "hash" : "9276b9bfccfcd3614dc2",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2013-1624",
+    "reference" : "CVE-2013-1624",
+    "source" : "cve",
+    "score" : 9.3,
+    "matchState" : "exact",
+    "proprietary" : false
+  }]
+}

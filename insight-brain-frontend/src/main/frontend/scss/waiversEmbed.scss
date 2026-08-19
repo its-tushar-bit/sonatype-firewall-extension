@@ -1,0 +1,27 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+// Aggregate of the stylesheets the standalone Classic waiver pages need. Those pages
+// (addWaiver, requestWaiver, requestWaiverReview, requestWaiverUpdate and the Firewall
+// waiver-request review) are reached from the embedded ViolationPage and are wrapped in
+// ClassicComponentMount by nexus-one/routes.tsx. The Classic bundle styles them through
+// scss/scss.scss, which the Nexus One bundle does not load, so it imports this instead.
+// Keep this list in sync with the matching @use lines in scss.scss
+// (waiversEmbed.jestspec.ts guards that).
+
+@use '../waivers/addWaiver';
+@use '../waivers/requestWaiver';
+@use '../waivers/requestWaiverReview';
+// Styles FirewallReviewWaiverRequestPage, behind dashboardFirewallWaiverRequestReview. Its
+// .iq-fw-review-waiver-page__* rules (back link, expiry block, rejection reason) live here rather
+// than with the other waiver partials because the page sits under firewall/.
+@use '../firewall/waiverRequests/firewallWaiverRequests';
+// Colours the threat-level label next to the violation being waived
+// (AddWaiverForm / RequestWaiver* / FirewallReviewWaiverRequestPage).
+@use 'iq-threat-levels';
+// Colours <ViolationExclamation> on those same pages. The class modifiers live only in this
+// partial (scss.scss:38); without it the icon renders in the default colour in the N1 shell.
+@use '../react/iqViolationExclamation';

@@ -1,0 +1,80 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+.iq-waiver-expiration-notification-editor {
+  .iq-waiver-expiration-notification-editor__subsection-heading {
+    margin-bottom: 4px;
+  }
+
+  .iq-waiver-expiration-notification-editor__subsection-description {
+    margin-top: 0;
+    margin-bottom: 8px;
+  }
+
+  .iq-waiver-expiration-notification-editor__fieldset {
+    margin-bottom: 0;
+  }
+
+  .iq-waiver-expiration-notification-editor__reminder-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .iq-waiver-expiration-notification-editor__reminder-label {
+    white-space: nowrap;
+  }
+
+  .iq-waiver-expiration-notification-editor__day-input-wrapper {
+    width: 120px;
+    flex-shrink: 0;
+
+    .nx-text-input {
+      margin-bottom: 0;
+    }
+  }
+
+  .iq-waiver-expiration-notification-editor__day-error {
+    color: var(--nx-color-validation-invalid);
+    font-size: 12px;
+    margin-top: 4px;
+  }
+
+  .iq-waiver-expiration-notification-editor__button-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+    .nx-btn {
+      margin: 8px 0;
+    }
+  }
+
+  .iq-waiver-expiration-notification-editor__divider {
+    background: var(--nx-color-border);
+    border: none;
+    height: 1px;
+    margin: 0;
+    width: 100%;
+  }
+
+  .iq-waiver-expiration-notification-editor__delete-btn {
+    color: var(--nx-swatch-red-40);
+    border-color: var(--nx-swatch-red-40);
+  }
+
+  .iq-waiver-expiration-notification-editor__reminder-list-item {
+    display: block;
+
+    &--first {
+      border-top: none;
+    }
+
+    &--last {
+      padding-bottom: 0;
+    }
+  }
+}

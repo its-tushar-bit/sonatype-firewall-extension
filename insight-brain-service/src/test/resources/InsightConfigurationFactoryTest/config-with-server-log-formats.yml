@@ -1,0 +1,10 @@
+logging:
+  appenders:
+    - type: console
+      logFormat: "consoleServerLogFormat"
+    - type: file
+      currentLogFilename: ./target/log/request.log
+      logFormat: "fileServerLogFormat"
+      archive: false
+    - type: syslog
+      logFormat: "syslogServerLogFormat"

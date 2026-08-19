@@ -1,0 +1,3 @@
+# match prettier configuration
+*.js  eol=lf
+*.jsx eol=lf

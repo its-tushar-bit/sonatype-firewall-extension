@@ -1,0 +1,15 @@
+logging:
+  loggers:
+    "com.sonatype.insight.test":
+      appenders:
+      - type: console
+      - type: file
+        currentLogFilename: ./target/log/server.log
+        archive: false
+      - type: syslog
+  appenders:
+    - type: console
+    - type: file
+      currentLogFilename: ./target/log/server.log
+      archive: false
+    - type: syslog

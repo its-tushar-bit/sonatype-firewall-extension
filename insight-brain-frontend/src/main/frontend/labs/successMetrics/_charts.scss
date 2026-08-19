@@ -1,0 +1,151 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use '../../scss/variables' as *;
+
+@use './successMetricsReport/violationTrendsChart/violationTrendsChart';
+
+// Chart Variables
+$-chart-horizontal-bar-min-width: 490px;
+
+.iq-tile--chart {
+  padding: 24px;
+}
+
+.iq-tile-header--chart {
+  h2 {
+    font-size: 48px;
+    line-height: 48px;
+    margin-top: 0;
+  }
+}
+
+.iq-chart {
+  background-color: $iq-off-white;
+  height: 200px;
+  margin-top: 8px;
+  padding: 8px;
+
+  .plottable {
+    .axis-label {
+      text {
+        @include nx-text-helpers.regular;
+
+        font-size: 14px;
+        text-transform: none;
+      }
+    }
+
+    .label,
+    .table {
+      background-color: transparent;
+    }
+  }
+}
+
+.iq-chart-title {
+  font-size: 32px;
+  line-height: 32px;
+}
+
+.iq-chart__averages {
+  font-size: 24px;
+  line-height: 30px;
+  margin-left: 24px;
+  margin-right: 24px;
+}
+
+.iq-chart__display-number {
+  @include nx-text-helpers.bold;
+
+  font-size: 133%;
+  vertical-align: middle;
+}
+
+.iq-tile-scroll-container--success-metrics {
+  margin-top: $iq-spacing-l;
+  margin-right: 0;
+  margin-left: 0;
+  padding-top: 0;
+  width: 100%;
+
+  .iq-spinner__wrapper {
+    margin-left: 8px;
+  }
+
+  .iq-tile {
+    margin-left: $iq-spacing-sm;
+  }
+}
+
+.iq-chart--horizontal-bar {
+  background-color: transparent;
+
+  .iq-chart__dataset--overall {
+    fill: $iq-light-red;
+  }
+
+  .iq-chart__dataset--critical {
+    fill: $iq-dark-red;
+  }
+
+  .iq-chart__dataset--component {
+    fill: $iq-dark-blue;
+  }
+
+  > iq-render-plottable {
+    background-color: $iq-off-white;
+    box-sizing: border-box;
+    display: inline-block;
+    vertical-align: top;
+    width: calc(60% - 8px);
+    max-width: calc(100% - #{(2 * 8px) + $-chart-horizontal-bar-min-width});
+  }
+}
+
+.iq-chart__labels--horizontal-bar {
+  box-sizing: border-box;
+  display: inline-block;
+  padding-top: 14px;
+  width: calc(40% - 8px);
+  min-width: $-chart-horizontal-bar-min-width;
+}
+
+.iq-chart__bar-label {
+  font-size: 20px;
+  height: 30px;
+  line-height: 30px;
+  padding: 6.5px 0;
+
+  span {
+    vertical-align: middle;
+
+    &:first-child {
+      display: inline-block;
+      width: 325px;
+    }
+  }
+}
+
+.iq-chart__highlight {
+  display: inline-block;
+  font-size: 30px;
+  margin-right: 20px;
+  text-align: right;
+  vertical-align: middle;
+  width: 60px;
+}
+
+.iq-chart--horizontal-bar .iq-chart__container {
+  background-color: #fefefe;
+  box-sizing: border-box;
+  display: inline-block;
+  vertical-align: top;
+  width: calc(60% - 8px);
+  max-width: calc(100% - 506px);
+}

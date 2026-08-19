@@ -1,0 +1,165 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.policy.waiver;
+
+import java.util.Date;
+import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
+import com.sonatype.insight.brain.api.v2.service.ApiComponentRemediationService;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
+import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+@Named
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public class WaivedComponentUpgradeInspector
+    implements Runnable
+{
+  private static final Logger log = LoggerFactory.getLogger(WaivedComponentUpgradeInspector.class);
+
+  private final Configuration configuration;
+
+  private final PolicyWaiverDAO policyWaiverDAO;
+
+  private final PolicyDAO policyDAO;
+
+  private final ApiComponentRemediationService apiComponentRemediationService;
+
+  @Inject
+  public WaivedComponentUpgradeInspector(
+      Configuration configuration,
+      PolicyDAO policyDAO,
+      PolicyWaiverDAO policyWaiverDAO,
+      ApiComponentRemediationService apiComponentRemediationService)
+  {
+    this.configuration = configuration;
+    this.policyDAO = policyDAO;
+    this.policyWaiverDAO = policyWaiverDAO;
+    this.apiComponentRemediationService = apiComponentRemediationService;
+  }
+
+  @Override
+  public void run() {
+    log.info("Starting Waived Component Upgrade Inspector for tenant {}", TenantThreadLocal.getTenant());
+
+    if (!configuration.getWaivedComponentUpgradeMonitoringEnabled()) {
+      log.info("Could not run Waived Component Upgrade Inspector as upgrade monitoring is turned off");
+      return;
+    }
+
+    long start = System.currentTimeMillis();
+
+    policyDAO.getAll().forEach(this::inspectWaiversForPolicy);
+
+    log.info("Completed Waived Component Upgrade Inspector in {} ms for tenant {}",
+        System.currentTimeMillis() - start, TenantThreadLocal.getTenant());
+  }
+
+  private void inspectWaiversForPolicy(final Policy policy) {
+    List<PolicyWaiver> waiversForRemediationInspection = getWaiversForRemediationInspection(policy);
+    if (waiversForRemediationInspection.isEmpty()) {
+      return;
+    }
+
+    for (PolicyWaiver waiver : waiversForRemediationInspection) {
+      try {
+        if (waiverContainsUpgradeableComponent(waiver)) {
+          waiver.setComponentUpgradeAvailable(true);
+          if (SystemConfigurationPropertyFeature.EXPIRE_WAIVER_WHEN_REMEDIATION_AVAILABLE.isEnabled() &&
+              waiver.isExpireWhenRemediationAvailable())
+          {
+            // Set expiry time to now in order to trigger auto expiry
+            waiver.setExpiryTime(new Date());
+          }
+          policyWaiverDAO.update(waiver);
+        }
+      }
+      catch (RuntimeException e) {
+        log.error("Error when marking waiver as having component upgrade available. Waiver id: " + waiver.getId(), e);
+      }
+    }
+  }
+
+  private List<PolicyWaiver> getWaiversForRemediationInspection(final Policy policy) {
+    Predicate<PolicyWaiver> componentUpgradeAvailableNotSet =
+        policyWaiver -> policyWaiver.isComponentUpgradeAvailable() == null ||
+            !policyWaiver.isComponentUpgradeAvailable();
+
+    return policyWaiverDAO.getActiveByPolicyId(policy.getId())
+        .stream()
+        .filter(componentUpgradeAvailableNotSet)
+        .filter(policyWaiver -> ComponentMatcherStrategyForWaiver.EXACT_COMPONENT.equals(
+            policyWaiver.getComponentMatchStrategy()))
+        .filter(policyWaiver -> policyWaiver.getAssociatedPackageUrl() != null)
+        .collect(Collectors.toList());
+  }
+
+  private boolean waiverContainsUpgradeableComponent(final PolicyWaiver waiver) {
+    ApiComponentDTOV2 componentDTOV2 = new ApiComponentDTOV2();
+    componentDTOV2.packageUrl = waiver.getAssociatedPackageUrl();
+
+    ApiComponentRemediationDTO suggestedRemediationForComponent =
+        apiComponentRemediationService.getSuggestedRemediationForComponentNoAuthz(componentDTOV2, waiver.getOwnerId(),
+            null, null, null, null, false);
+
+    return isRemediationAvailable(suggestedRemediationForComponent, waiver);
+  }
+
+  private static boolean isRemediationAvailable(
+      final ApiComponentRemediationDTO suggestedRemediationForComponent,
+      final PolicyWaiver waiver)
+  {
+    if (suggestedRemediationForComponent == null) {
+      return false;
+    }
+    for (ApiVersionChangeOptionDTO versionChange : suggestedRemediationForComponent.remediation.versionChanges) {
+      if (isRecommendationNotCurrentVersionAndIsNonViolatingVersion(waiver, versionChange)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /*
+   * Since remediation api returns current version if it satisfies the recommendation strategy, we need to check that
+   * the remediation does not suggest the same version that is already related to the waiver itself.
+   */
+  private static boolean isRecommendationNotCurrentVersionAndIsNonViolatingVersion(
+      final PolicyWaiver waiver,
+      final ApiVersionChangeOptionDTO versionChange)
+  {
+    return ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS.equals(versionChange.getType()) &&
+        !isRecommendationSameVersionAsCurrentVersion(waiver, versionChange);
+  }
+
+  private static boolean isRecommendationSameVersionAsCurrentVersion(
+      final PolicyWaiver waiver,
+      final ApiVersionChangeOptionDTO versionChange)
+  {
+    return versionChange.getData().getComponent().packageUrl.equals(waiver.getAssociatedPackageUrl());
+  }
+}

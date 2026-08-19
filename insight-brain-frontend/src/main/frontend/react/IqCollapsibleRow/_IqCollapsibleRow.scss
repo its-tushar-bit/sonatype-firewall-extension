@@ -1,0 +1,49 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+.iq-collapsible-row {
+  border: none;
+  background-color: var(--nx-swatch-indigo-95);
+
+  @include nx-dark-mode-helpers.dark-mode {
+    background-color: var(--nx-swatch-indigo-30);
+  }
+
+  &__empty-message {
+    text-align: center;
+  }
+
+  &__header {
+    margin-top: var(--nx-spacing-3x);
+    margin-bottom: var(--nx-spacing-3x);
+
+    &.nx-cell {
+      padding-top: 0px !important;
+      padding-bottom: 0px;
+    }
+
+    &-title {
+      display: inline-block;
+      &.empty-message {
+        margin-left: var(--nx-spacing-2x);
+      }
+    }
+
+    &-icon,
+    .nx-icon {
+      width: 10px;
+      margin-left: 0;
+    }
+  }
+}
+
+.iq-collapsible-row__header-icon {
+  color: var(--nx-color-text-stark);
+}

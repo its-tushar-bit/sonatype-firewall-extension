@@ -1,0 +1,18 @@
+{
+  "aaData" : [ {
+    "filenames" : [ "geronimo-tomcat-1.0.jar" ],
+    "pathnames" : [ "geronimo-tomcat-1.0.jar" ],
+    "groupId" : "geronimo",
+    "artifactId" : "geronimo-tomcat",
+    "version" : "1.0",
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "30a69958223a2c6215e2",
+    "relativePopularity" : 1.0,
+    "createTime" : 1136511582000,
+    "lastModifiedTime" : 1399301184000,
+    "lastModifiedEntryTime" : 1135217464000,
+    "website" : null
+  } ]
+}

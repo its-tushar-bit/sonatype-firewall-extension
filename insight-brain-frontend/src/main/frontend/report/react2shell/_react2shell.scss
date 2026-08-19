@@ -1,0 +1,63 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use 'react2ShellSummaryTiles';
+
+.iq-react2shell-page {
+  .nx-alert.nx-alert--error {
+    width: 100%;
+    max-width: none;
+    margin: var(--nx-spacing-4x) 0;
+  }
+
+  .nx-table-container {
+    overflow-x: auto;
+  }
+}
+
+.iq-react2shell-impact-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--nx-spacing-4x);
+
+  &__pagination {
+    font-size: var(--nx-font-size-s);
+    color: var(--nx-color-text-subtle);
+  }
+}
+
+.iq-react2shell-about {
+  .iq-react2shell-about__card-header--left-aligned {
+    text-align: left;
+  }
+
+  .iq-react2shell-about__card-header--spaced {
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .iq-react2shell-about__card-header-title {
+    margin-bottom: 0;
+  }
+
+  .iq-react2shell-about__card-content--left-aligned {
+    text-align: left;
+  }
+
+  .iq-react2shell-about__card-content--no-padding {
+    text-align: left;
+    padding-left: 0;
+  }
+
+  .iq-react2shell-about__blog-link {
+    margin-top: 0;
+    text-align: left;
+    display: block;
+    width: 100%;
+  }
+}

@@ -1,0 +1,219 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "camel-hl7",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.apache.camel",
+          "version": "2.23.2"
+        }
+      },
+      "packageUrl": "pkg:maven/org.apache.camel/camel-hl7@2.23.2?type=jar",
+      "groupId": "org.apache.camel",
+      "artifactId": "camel-hl7",
+      "version": "2.23.2",
+      "filenames": [
+        "camel-hl7-2.23.2.fuse-780036-redhat-00001.jar"
+      ],
+      "pathnames": [
+        "dependency:/com.example.camel.drools:eai-example:jar:1.0.0-SNAPSHOT/org.apache.camel:camel-hl7:jar:2.23.2.fuse-780036-redhat-00001"
+      ],
+      "aggregateFiles": [],
+      "matchState": "similar",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "e1c25a5850675def87a4",
+      "relativePopularity": 0.05,
+      "createTime": 1554574127000,
+      "lastModifiedTime": 1631886684000,
+      "lastModifiedEntryTime": 1606777432000,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": {
+        "id": 0,
+        "label": "Neutral"
+      },
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "mvn",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "integrityRating": {
+        "id": 3,
+        "label": "Not Applicable"
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "camel-hl7-no-pathnames",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.apache.camel",
+          "version": "2.23.2"
+        }
+      },
+      "packageUrl": "pkg:maven/org.apache.camel/camel-hl7-no-pathnames@2.23.2?type=jar",
+      "groupId": "org.apache.camel",
+      "artifactId": "camel-hl7-no-pathnames",
+      "version": "2.23.2",
+      "filenames": [
+        "camel-hl7-no-pathnames-2.23.2.fuse-780036-redhat-00001.jar"
+      ],
+      "aggregateFiles": [],
+      "matchState": "similar",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "e1c25a5850675def87a5",
+      "relativePopularity": 0.05,
+      "createTime": 1554574127000,
+      "lastModifiedTime": 1631886684000,
+      "lastModifiedEntryTime": 1606777432000,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": {
+        "id": 0,
+        "label": "Neutral"
+      },
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "mvn",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "integrityRating": {
+        "id": 3,
+        "label": "Not Applicable"
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "camel-hl7-empty-pathnames",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.apache.camel",
+          "version": "2.23.2"
+        }
+      },
+      "packageUrl": "pkg:maven/org.apache.camel/camel-hl7-empty-pathnames@2.23.2?type=jar",
+      "groupId": "org.apache.camel",
+      "artifactId": "camel-hl7-empty-pathnames",
+      "version": "2.23.2",
+      "filenames": [
+        "camel-hl7-empty-pathnames-2.23.2.fuse-780036-redhat-00001.jar"
+      ],
+      "pathnames": [],
+      "aggregateFiles": [],
+      "matchState": "similar",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "e1c25a5850675def87a6",
+      "relativePopularity": 0.05,
+      "createTime": 1554574127000,
+      "lastModifiedTime": 1631886684000,
+      "lastModifiedEntryTime": 1606777432000,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": {
+        "id": 0,
+        "label": "Neutral"
+      },
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "mvn",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "integrityRating": {
+        "id": 3,
+        "label": "Not Applicable"
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "camel-hl7-bad-pathnames",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.apache.camel",
+          "version": "2.23.2"
+        }
+      },
+      "packageUrl": "pkg:maven/org.apache.camel/camel-hl7-bad-pathnames@2.23.2?type=jar",
+      "groupId": "org.apache.camel",
+      "artifactId": "camel-hl7-bad-pathnames",
+      "version": "2.23.2",
+      "filenames": [
+        "camel-hl7-bad-pathnames-2.23.2.fuse-780036-redhat-00001.jar"
+      ],
+      "pathnames": [
+        "bad-pathnames"
+      ],
+      "aggregateFiles": [],
+      "matchState": "similar",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "e1c25a5850675def87a7",
+      "relativePopularity": 0.05,
+      "createTime": 1554574127000,
+      "lastModifiedTime": 1631886684000,
+      "lastModifiedEntryTime": 1606777432000,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": {
+        "id": 0,
+        "label": "Neutral"
+      },
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "mvn",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "integrityRating": {
+        "id": 3,
+        "label": "Not Applicable"
+      }
+    }
+  ]
+}

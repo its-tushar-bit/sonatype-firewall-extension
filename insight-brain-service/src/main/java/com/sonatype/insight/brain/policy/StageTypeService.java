@@ -1,0 +1,171 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.policy;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import jakarta.annotation.Nullable;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+
+import com.sonatype.insight.brain.model.policy.StageType;
+import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
+import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.product.license.ProductLicense;
+
+/**
+ * @since 1.11
+ */
+@Named
+public class StageTypeService
+{
+  public static final String ALL_CONTEXT = "all";
+
+  public static final String LIFECYCLE_CONTEXT = "lifecycle";
+
+  public static final String CI_CONTEXT = "ci";
+
+  public static final String CLI_CONTEXT = "cli";
+
+  public static final String QA_CONTEXT = "qa";
+
+  public static final String RM_CONTEXT = "rm";
+
+  public static final String MAVEN_CONTEXT = "maven";
+
+  public static final String DASHBOARD_CONTEXT = "dashboard";
+
+  public static final String SBOM_CONTEXT = "sbom";
+
+  private final ProductLicense productLicense;
+
+  private final Map<String, Predicate<StageType>> filterMap = new HashMap<>();
+
+  @Inject
+  public StageTypeService(final ProductLicense productLicense) {
+    this.productLicense = productLicense;
+    filterMap.put(ALL_CONTEXT, stageType -> true);
+    filterMap.put(LIFECYCLE_CONTEXT, new LifecycleFilter());
+    filterMap.put(CI_CONTEXT, new BuildFilter());
+    filterMap.put(CLI_CONTEXT, new BuildFilter());
+    filterMap.put(QA_CONTEXT, new RMFilter());
+    filterMap.put(RM_CONTEXT, new RMFilter());
+    filterMap.put(MAVEN_CONTEXT, new BuildFilter());
+    filterMap.put(DASHBOARD_CONTEXT, new DashboardFilter());
+    filterMap.put(SBOM_CONTEXT, new SbomFilter());
+  }
+
+  /**
+   * Using details here https://docs.sonatype.com/display/ProdMgmt/Product+License+Matrix to map the product to
+   * available StageTypes
+   *
+   * @return all StageType objects allowed by the current license in natural order of occurrence during the component
+   *         lifecycle.
+   */
+  public Collection<StageType> getLicensedStageTypes() {
+    return getLicensedStageTypes(ALL_CONTEXT);
+  }
+
+  /**
+   * Using details here https://docs.sonatype.com/display/ProdMgmt/Product+Licensing to map the product to
+   * available StageTypes
+   *
+   * @return all StageType objects allowed by the current license in natural order of occurrence during the component
+   *         lifecycle filtered by the supplied context.
+   * @since 1.13
+   */
+  public Collection<StageType> getLicensedStageTypes(final String context) {
+    Predicate<StageType> filter = filterMap.get(context);
+    if (filter == null) {
+      throw new IllegalArgumentException("Invalid context " + context);
+    }
+    Collection<StageType> allowed = orderStages(productLicense.getStageTypes());
+    allowed = allowed.stream().filter(filter).collect(Collectors.toList());
+    return Collections.unmodifiableCollection(allowed);
+  }
+
+  public Set<String> getValidSuccessMetricsStageTypeIds() {
+    return this.getLicensedStageTypes()
+        .stream()
+        .map(StageType::getId)
+        .filter(stageTypeId -> !StageTypes.isIgnoredForPolicyViolationAggregation(stageTypeId))
+        .collect(Collectors.toSet());
+  }
+
+  /**
+   * Orders the given stages by their natural chronological order. This is the same order as {@link StageTypes#getAll()}
+   * .
+   */
+  private Collection<StageType> orderStages(Collection<StageType> stagesToOrder) {
+    Collection<StageType> ordered = new ArrayList<>();
+
+    for (StageType stageType : StageTypes.getAll()) {
+      if (stagesToOrder.contains(stageType)) {
+        ordered.add(stageType);
+      }
+    }
+
+    return ordered;
+  }
+
+  class RMFilter
+      implements Predicate<StageType>
+  {
+    @Override
+    public boolean test(@Nullable final StageType input) {
+      return !DevelopStageType.ID.equals(input.getId()) && !ProxyStageType.ID.equals(input.getId()) &&
+          !ComplianceStageType.ID.equals(input.getId());
+    }
+  }
+
+  private static class BuildFilter
+      implements Predicate<StageType>
+  {
+    @Override
+    public boolean test(StageType input) {
+      return !ProxyStageType.ID.equals(input.getId()) && !ComplianceStageType.ID.equals(input.getId());
+    }
+  }
+
+  private static class SbomFilter
+      implements Predicate<StageType>
+  {
+    @Override
+    public boolean test(StageType input) {
+      return ComplianceStageType.ID.equals(input.getId());
+    }
+  }
+
+  private static class DashboardFilter
+      implements Predicate<StageType>
+  {
+    @Override
+    public boolean test(StageType input) {
+      return !StageTypes.isIgnoredForDashboard(input.getId());
+    }
+  }
+
+  /**
+   * Keeps everything except {@link ComplianceStageType}; used for {@link #LIFECYCLE_CONTEXT}.
+   */
+  private static class LifecycleFilter
+      implements Predicate<StageType>
+  {
+    @Override
+    public boolean test(StageType input) {
+      return !ComplianceStageType.ID.equals(input.getId());
+    }
+  }
+}

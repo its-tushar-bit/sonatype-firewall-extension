@@ -1,0 +1,196 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-lang3",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.commons",
+        "version" : "3.9"
+      }
+    },
+    "packageUrl": "pkg:maven/org.apache.commons/commons-lang3@3.9?type=jar",
+    "groupId" : "org.apache.commons",
+    "artifactId" : "commons-lang3",
+    "version" : "3.9",
+    "filenames" : [ "commons-lang3-3.9.jar" ],
+    "pathnames" : [ "dependency:/org.example:Consumer-Service:jar:1.0-SNAPSHOT/org.apache.commons:commons-lang3:jar:3.9" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "0122c7cee69b53ed4a76",
+    "relativePopularity" : 0.75,
+    "createTime" : 1554946238000,
+    "lastModifiedTime" : 1570652596000,
+    "lastModifiedEntryTime" : 1554949830000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "javax.inject",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "javax.inject",
+        "version" : "1"
+      }
+    },
+    "packageUrl": "pkg:maven/javax.inject/javax.inject@1?type=jar",
+    "groupId" : "javax.inject",
+    "artifactId" : "javax.inject",
+    "version" : "1",
+    "filenames" : [ "javax.inject-1.jar" ],
+    "pathnames" : [ "dependency:/org.example:Consumer-Service:jar:1.0-SNAPSHOT/javax.inject:javax.inject:jar:1" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "6975da39a7040257bd51",
+    "relativePopularity" : 1.0,
+    "createTime" : 1255476900000,
+    "lastModifiedTime" : 1558621478000,
+    "lastModifiedEntryTime" : 1255468024000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-collections",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-collections",
+        "version" : "3.2.2"
+      }
+    },
+    "packageUrl": "pkg:maven/commons-collections/commons-collections@3.2.2?type=jar",
+    "groupId" : "commons-collections",
+    "artifactId" : "commons-collections",
+    "version" : "3.2.2",
+    "filenames" : [ "commons-collections-3.2.2.jar" ],
+    "pathnames" : [ "dependency:/org.example:Consumer-Service:jar:1.0-SNAPSHOT/commons-collections:commons-collections:jar:3.2.2" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "8ad72fe39fa8c91eaaf1",
+    "relativePopularity" : 1.0,
+    "createTime" : 1471601416000,
+    "lastModifiedTime" : 1558621516000,
+    "lastModifiedEntryTime" : 1447391436000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "ACME-business-1.0-SNAPSHOT.jar" ],
+    "pathnames" : [ "dependency:/org.example:Consumer-Service:jar:1.0-SNAPSHOT/org.example:ACME-business:jar:1.0-SNAPSHOT" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "e098d6c405dfa8aa0594",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1609943838000,
+    "lastModifiedEntryTime" : 1609943840000,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : null
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "ACME-data-1.0-SNAPSHOT.jar" ],
+    "pathnames" : [ "dependency:/org.example:Consumer-Service:jar:1.0-SNAPSHOT/org.example:ACME-data:jar:1.0-SNAPSHOT" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "250cf732cef21df70a59",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1609943838000,
+    "lastModifiedEntryTime" : 1609943840000,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : null
+  } ]
+}

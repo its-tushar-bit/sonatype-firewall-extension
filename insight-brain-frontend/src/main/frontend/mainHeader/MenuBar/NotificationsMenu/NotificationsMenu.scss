@@ -1,0 +1,105 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
+@use '../../../scss/variables' as *;
+
+.iq-notifications-menu-button {
+  position: relative;
+
+  .iq-dropdown-menu {
+    padding-bottom: 8px;
+    right: -80px;
+    left: auto;
+    width: 360px;
+
+    &::before {
+      right: 87px;
+      left: inherit;
+    }
+
+    &::after {
+      right: 88px;
+      left: inherit;
+    }
+  }
+
+  .iq-scrollable {
+    max-height: 318px;
+  }
+}
+
+.iq-unread-dot {
+  border-radius: 50%;
+  pointer-events: none;
+  background-color: var(--nx-swatch-red-40);
+  height: 8px;
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 8px;
+}
+
+.iq-notif-error {
+  background-color: $iq-off-white;
+  border-radius: 50%;
+  color: var(--nx-swatch-red-40);
+  height: 16px;
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 16px;
+
+  &.nx-icon {
+    margin: 0;
+  }
+}
+
+.iq-notifications-menu {
+  .nx-dropdown-menu {
+    width: 284px;
+
+    .nx-alert {
+      margin: 0 var(--nx-spacing-2x);
+    }
+
+    .iq-notification {
+      &.nx-dropdown-button {
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .iq-notification__age {
+        font-size: 12px;
+        color: var(--nx-color-text-stark);
+      }
+
+      .iq-notification__text {
+        color: var(--nx-color-text-stark);
+      }
+
+      &.viewed {
+        .iq-notification__text,
+        .iq-notification__age {
+          color: var(--nx-swatch-grey-50);
+          @include nx-dark-mode-helpers.dark-mode {
+            color: var(--nx-swatch-indigo-65);
+          }
+        }
+      }
+    }
+  }
+}
+
+.iq-notification-detail-modal-content {
+  a:focus {
+    color: var(--nx-color-link);
+  }
+}

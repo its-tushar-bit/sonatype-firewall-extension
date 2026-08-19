@@ -1,0 +1,28 @@
+[
+  {
+    "name": "ci-project-1",
+    "description": "long description: Nexus IQ Server is the on-premises server that customers run to evaluate their applications against a set of policies and review the results. It is part of the Nexus Lifecycle product umbrella (historically, this product umbrella was previously known as Component Lifecycle Management (CLM)). insight-brain contains the server, front-end, and component scanner for Nexus IQ Server. It scans projects (i.e. it generates hashes that represent components in an application - see also: insight-scanner), and evaluates known component vulnerabilities and component license information against user-configured policies. It then uses these data to generate an application scan report.",
+    "private": false,
+    "clone_url": "https://localhost/depshield-ci/ci-project-1.git",
+    "ssh_url": "git@localhost:depshield-ci/ci-project-1.git",
+    "default_branch": "",
+    "archived" : false
+  },
+  {
+    "name": "nexus-repository-p2",
+    "description": "days",
+    "private": false,
+    "clone_url": "https://admin@localhost/sonatype-nexus-community/nexus-repository-p2.git",
+    "ssh_url": "git@localhost:sonatype-nexus-community/nexus-repository-p2.git",
+    "archived" : false
+  },
+  {
+    "name": "nexus-repository-puppet",
+    "description": "my",
+    "private": false,
+    "clone_url": "https://localhost/sonatype-nexus-community/nexus-repository-puppet.git",
+    "ssh_url": "git@localhost:sonatype-nexus-community/nexus-repository-puppet.git",
+    "default_branch": "main",
+    "archived" : false
+  }
+]

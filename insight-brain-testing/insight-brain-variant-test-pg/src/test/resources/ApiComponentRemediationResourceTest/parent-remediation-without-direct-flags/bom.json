@@ -1,0 +1,34 @@
+{
+  "aaData": [
+    {
+      "hash": "hash-easytable",
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "easytable",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.github.vandeseer",
+          "version": "0.8.5"
+        }
+      },
+      "packageUrl": "pkg:maven/com.github.vandeseer/easytable@0.8.5?type=jar",
+      "matchState": "exact"
+    },
+    {
+      "hash": "hash-pdfbox",
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "pdfbox",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.apache.pdfbox",
+          "version": "2.0.19"
+        }
+      },
+      "packageUrl": "pkg:maven/org.apache.pdfbox/pdfbox@2.0.19?type=jar",
+      "matchState": "exact"
+    }
+  ]
+}

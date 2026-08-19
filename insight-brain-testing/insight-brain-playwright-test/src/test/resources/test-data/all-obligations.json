@@ -1,0 +1,16 @@
+{
+  "appName": "AllObligationsTest",
+  "appPublicId": "app",
+  "orgName": "org",
+  "componentGroupId": "g",
+  "componentArtifactId": "a",
+  "componentVersion": "v",
+  "componentHash": "033e7a20b23ea284d474",
+  "componentLicenseId": "MIT",
+  "fulfillComment": "my comment",
+  "initialObligationStatus": "Unreviewed",
+  "fulfilledObligationStatus": "Fulfilled",
+  "defaultModalStatus": "Fulfilled",
+  "totalObligationCount": 10,
+  "attributionAccordionCount": 7
+}

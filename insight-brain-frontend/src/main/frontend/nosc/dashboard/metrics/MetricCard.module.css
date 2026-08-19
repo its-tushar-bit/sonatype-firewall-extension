@@ -1,0 +1,179 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+/* Click-through wrapper for a metric card. The whole tile is a bare <a>, so both
+ * the browser default link style AND the legacy `.nx-html a` rule (red, under-
+ * lined) would otherwise paint it and — because Radix typography inherits
+ * currentColor — bleed into the title, hero number and sub-metrics. The doubled
+ * class out-specifies `.nx-html a` (0,1,1) without depending on any ancestor
+ * class, so the tile never looks like a hyperlink in any bundle. Focus styling
+ * lives here (not inline) so keyboard users get a visible, theme-aware ring. */
+.cardLink.cardLink {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  border-radius: var(--radius-3);
+}
+
+.cardLink:focus-visible {
+  outline: 2px solid var(--accent-8);
+  outline-offset: 2px;
+}
+
+/* Subtle hover lift so the whole tile reads as interactive without being noisy. */
+.cardLink:hover {
+  background-color: var(--gray-a2);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cardLink {
+    transition: background-color 120ms ease;
+  }
+}
+
+/* Sub-metric breakdown laid out as a compact two-column grid (matches the
+ * Nexus One prototype): severity cards become a tidy 2x2 and dual-stat cards
+ * sit side-by-side, which also equalises card heights across a row. */
+.breakdown {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--space-4);
+  row-gap: var(--space-2);
+}
+
+.statRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.statStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.subMetric {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/* Value reads first ("106 Critical"), label trails in muted gray — the label
+ * is allowed to truncate so long names never break the grid. */
+.subLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Small severity/sub-metric swatch. Color is a SUPPLEMENT to the always-present
+ * text label + value — never the sole signal (WCAG 1.4.1). */
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  align-self: center;
+}
+
+/* Quick-link cards: a left accent bar + tinted icon chip give the bottom row
+ * the same "call to action" weight as the prototype without extra chrome. */
+.quickLinkCard {
+  box-shadow: inset 3px 0 0 0 var(--accent-9);
+}
+
+/* Domain-tinted left rail + hover lift shared by every metric card (Nexus One
+ * chrome pass). The rail color comes from a CSS variable set by a `.rail*`
+ * tone class below so the shell itself stays tone-agnostic. */
+.cardShell {
+  border-left: 4px solid var(--metric-rail, var(--accent-9));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cardShell {
+    transition: box-shadow 120ms ease, transform 120ms ease;
+  }
+
+  .cardShell:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.railApps {
+  --metric-rail: var(--blue-9);
+}
+
+.railLegal {
+  --metric-rail: var(--teal-9);
+}
+
+.railOrgs {
+  --metric-rail: var(--indigo-9);
+}
+
+.railComponents {
+  --metric-rail: var(--orange-9);
+}
+
+.railViolations {
+  --metric-rail: var(--red-9);
+}
+
+.railVulnerabilities {
+  --metric-rail: var(--orange-9);
+}
+
+.railWaivers {
+  --metric-rail: var(--blue-9);
+}
+
+/* Muted card title — chrome pass moves titles off bold body-text weight so the
+ * hero number is the clear focal point of each card. */
+.titleMuted {
+  color: var(--gray-11);
+  font-weight: 500;
+}
+
+/* Applications' secondary stat ("N Stages") reads as a small pill rather than
+ * a plain stat row — no bars, no ratio pills, just a compact supplemental chip.
+ * Use the apps rail blue (not product accent red) so it reads as chrome, not
+ * a severity/error badge. */
+.stageChip {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  margin-top: var(--space-2);
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  background: var(--blue-3);
+  color: var(--blue-11);
+  width: fit-content;
+  white-space: nowrap;
+}
+
+.quickLinkIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  border-radius: var(--radius-2);
+  background-color: var(--accent-3);
+  color: var(--accent-11);
+}

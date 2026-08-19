@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bom xmlns="http://cyclonedx.org/schema/bom/1.4" version="1" serialNumber="urn:uuid:123e4567-e89b-12d3-a456-426614174000">
+  <metadata>
+    <timestamp>2024-02-29T23:41:22Z</timestamp>
+    <component type="application" bom-ref="08dd5978-577c-46a6-8bae-4f3d1a243b43">
+      <group>sonatype</group>
+      <name>iq_application_vuln</name>
+      <version>a140fd3c3ded4bb0a640dc31e2904dc9</version>
+      <purl>pkg:generic/sonatype/iq_application_vuln@a140fd3c3ded4bb0a640dc31e2904dc9</purl>
+    </component>
+  </metadata>
+  <components>
+    <component type="library">
+      <name>example-component1</name>
+      <version>1.0.0</version>
+      <blargh/>
+    </component>
+    <component>
+      <name>example-component2</name>
+      <version>1.0.0</version>
+    </component>
+  </components>
+</bom>

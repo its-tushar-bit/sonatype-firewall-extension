@@ -1,0 +1,57 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "debian-9",
+      "coordinates" : {
+        "name" : "glibc",
+        "version" : "2.24-11+deb9u3"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "37b3ce40791bc2dd8068",
+    "declaredLicenses" : [ {
+      "id" : "UNSPECIFIED",
+      "name" : "Not Provided",
+      "url" : null
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "name" : "altgraph",
+        "version" : "0.10.2"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "cf085cd08ee27334c573",
+    "declaredLicenses" : [ {
+      "id" : "GPL-2.0",
+      "name" : "GPL-2.0",
+      "url" : null
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-httpclient",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "apache-httpclient",
+        "version" : "3.1"
+      }
+    },
+    "groupId" : "apache-httpclient",
+    "artifactId" : "commons-httpclient",
+    "version" : "3.1",
+    "hash" : "964cd74171f427720480",
+    "effectiveLicenses" : [ {
+      "id" : "AGPL-1.0",
+      "name" : "AGPL-1.0",
+      "url" : "url.1"
+    } ]
+  } ]
+}

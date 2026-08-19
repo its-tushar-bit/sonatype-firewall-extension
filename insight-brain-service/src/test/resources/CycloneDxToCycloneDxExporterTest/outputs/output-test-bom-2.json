@@ -1,0 +1,110 @@
+{
+  "bomFormat" : "CycloneDX",
+  "specVersion" : "1.5",
+  "serialNumber" : "urn:uuid:1270d235-485f-4736-a574-7d4cbac62537",
+  "version" : 1,
+  "metadata" : {
+    "timestamp" : "2024-06-26T15:35:50Z",
+    "tools" : {
+      "components" : [
+        {
+          "name" : "Sonatype SBOM Manager",
+          "version" : "1.179.0-SNAPSHOT",
+          "type" : "application"
+        }
+      ]
+    },
+    "component" : {
+      "name" : "webgoat",
+      "version" : "v1",
+      "type" : "application"
+    }
+  },
+  "components" : [
+    {
+      "group" : "log4j",
+      "name" : "log4j",
+      "version" : "1.4.196",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "MPL-2.0",
+            "properties" : [
+              {
+                "name" : "sonatype:identification_sources",
+                "value" : "SBOM,Sonatype"
+              }
+            ]
+          }
+        }
+      ],
+      "purl" : "pkg:maven/log4j/log4j@1.2.8?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "sonatype:truncated_sha1",
+          "value" : "dd0034398d593aa3588c"
+        },
+        {
+          "name" : "sonatype:match_state",
+          "value" : "exact"
+        },
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "Sonatype"
+        },
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:maven/log4j/log4j@1.2.8?type=jar"
+        }
+      ],
+      "type" : "library",
+      "bom-ref" : "3f51629d-5b14-4a98-9f5b-3e0a489288b4"
+    }
+  ],
+  "vulnerabilities" : [
+    {
+      "id" : "CVE-2022-23307",
+      "source" : {
+        "name" : "NVD",
+        "url" : "NVD-link"
+      },
+      "ratings" : [
+        {
+          "source" : {
+            "name" : "NVD",
+            "url" : "NVD-link"
+          },
+          "score" : 5.5,
+          "severity" : "medium",
+          "method" : "CVSSv3",
+          "vector" : "CVSS:3.1"
+        }
+      ],
+      "cwes" : [
+        1234
+      ],
+      "description" : "DESC CVE-2022-23307",
+      "affects" : [
+        {
+          "ref" : "3f51629d-5b14-4a98-9f5b-3e0a489288b4"
+        }
+      ],
+      "properties" : [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "G,F"
+        }
+      ],
+      "references" : [
+        {
+          "id" : "CVE-2022-23307",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2022-23307"
+          }
+        }
+      ]
+    }
+  ]
+}

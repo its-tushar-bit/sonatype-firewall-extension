@@ -1,0 +1,776 @@
+{
+  "dependencyGraph" : [ {
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jquery",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.webjars",
+          "version" : "3.5.1"
+        }
+      },
+      "packageUrl" : "pkg:maven/org.webjars/jquery@3.5.1?type=jar",
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "commons-lang",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "commons-lang",
+          "version" : "2.6"
+        }
+      },
+      "packageUrl" : "pkg:maven/commons-lang/commons-lang@2.6?type=jar",
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jsoup",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.jsoup",
+          "version" : "1.13.1"
+        }
+      },
+      "packageUrl" : "pkg:maven/org.jsoup/jsoup@1.13.1?type=jar",
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jjwt",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.jsonwebtoken",
+          "version" : "0.9.1"
+        }
+      },
+      "packageUrl" : "pkg:maven/io.jsonwebtoken/jjwt@0.9.1?type=jar",
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "zxcvbn",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.nulab-inc",
+          "version" : "1.4.0"
+        }
+      },
+      "packageUrl" : "pkg:maven/com.nulab-inc/zxcvbn@1.4.0?type=jar",
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "ant",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "ant",
+          "version" : "1.6.5"
+        }
+      },
+      "packageUrl" : "pkg:maven/ant/ant@1.6.5?type=jar",
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "ant-launcher",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "ant",
+          "version" : "1.6.5"
+        }
+      },
+      "packageUrl" : "pkg:maven/ant/ant-launcher@1.6.5?type=jar",
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "asciidoctorj",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.asciidoctor",
+          "version" : "2.4.3"
+        }
+      },
+      "packageUrl" : "pkg:maven/org.asciidoctor/asciidoctorj@2.4.3?type=jar",
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "xstream",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.thoughtworks.xstream",
+          "version" : "1.4.5"
+        }
+      },
+      "packageUrl" : "pkg:maven/com.thoughtworks.xstream/xstream@1.4.5?type=jar",
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "xml-resolver",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "xml-resolver",
+          "version" : "1.2"
+        }
+      },
+      "packageUrl" : "pkg:maven/xml-resolver/xml-resolver@1.2?type=jar",
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "commons-exec",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.apache.commons",
+          "version" : "1.3"
+        }
+      },
+      "packageUrl" : "pkg:maven/org.apache.commons/commons-exec@1.3?type=jar",
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "bootstrap",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.webjars",
+          "version" : "3.3.7"
+        }
+      },
+      "packageUrl" : "pkg:maven/org.webjars/bootstrap@3.3.7?type=jar",
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "cglib-nodep",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "cglib",
+          "version" : "2.2"
+        }
+      },
+      "packageUrl" : "pkg:maven/cglib/cglib-nodep@2.2?type=jar",
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jaxb-runtime",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.glassfish.jaxb",
+          "version" : "2.3.0"
+        }
+      },
+      "packageUrl" : "pkg:maven/org.glassfish.jaxb/jaxb-runtime@2.3.0?type=jar",
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jose4j",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.bitbucket.b_c",
+          "version" : "0.7.6"
+        }
+      },
+      "packageUrl" : "pkg:maven/org.bitbucket.b_c/jose4j@0.7.6?type=jar",
+      "directDependency" : true
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ant",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ant",
+        "version" : "1.6.5"
+      }
+    },
+    "packageUrl" : "pkg:maven/ant/ant@1.6.5?type=jar",
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ant-launcher",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ant",
+        "version" : "1.6.5"
+      }
+    },
+    "packageUrl" : "pkg:maven/ant/ant-launcher@1.6.5?type=jar",
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "cglib-nodep",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "cglib",
+        "version" : "2.2"
+      }
+    },
+    "packageUrl" : "pkg:maven/cglib/cglib-nodep@2.2?type=jar",
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "zxcvbn",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.nulab-inc",
+        "version" : "1.4.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.nulab-inc/zxcvbn@1.4.0?type=jar",
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xstream",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.thoughtworks.xstream",
+        "version" : "1.4.5"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.thoughtworks.xstream/xstream@1.4.5?type=jar",
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-lang",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-lang",
+        "version" : "2.6"
+      }
+    },
+    "packageUrl" : "pkg:maven/commons-lang/commons-lang@2.6?type=jar",
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jjwt",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.jsonwebtoken",
+        "version" : "0.9.1"
+      }
+    },
+    "packageUrl" : "pkg:maven/io.jsonwebtoken/jjwt@0.9.1?type=jar",
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-exec",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.commons",
+        "version" : "1.3"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.apache.commons/commons-exec@1.3?type=jar",
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "asciidoctorj",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.asciidoctor",
+        "version" : "2.4.3"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.asciidoctor/asciidoctorj@2.4.3?type=jar",
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jose4j",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.bitbucket.b_c",
+        "version" : "0.7.6"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.bitbucket.b_c/jose4j@0.7.6?type=jar",
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jaxb-runtime",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.glassfish.jaxb",
+        "version" : "2.3.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.glassfish.jaxb/jaxb-runtime@2.3.0?type=jar",
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jsoup",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.jsoup",
+        "version" : "1.13.1"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.jsoup/jsoup@1.13.1?type=jar",
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "bootstrap",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.webjars",
+        "version" : "3.3.7"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.webjars/bootstrap@3.3.7?type=jar",
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jquery",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.webjars",
+        "version" : "3.5.1"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.webjars/jquery@3.5.1?type=jar",
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xml-resolver",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "xml-resolver",
+        "version" : "1.2"
+      }
+    },
+    "packageUrl" : "pkg:maven/xml-resolver/xml-resolver@1.2?type=jar",
+    "directDependency" : true
+  } ],
+  "gavDepths" : {
+    "com.thoughtworks.xstream:xstream:1.4.5" : [ 1 ],
+    "org.jsoup:jsoup:1.13.1" : [ 1 ],
+    "org.bitbucket.b_c:jose4j:0.7.6" : [ 1 ],
+    "cglib:cglib-nodep:2.2" : [ 1 ],
+    "io.jsonwebtoken:jjwt:0.9.1" : [ 1 ],
+    "com.nulab-inc:zxcvbn:1.4.0" : [ 1 ],
+    "org.asciidoctor:asciidoctorj:2.4.3" : [ 1 ],
+    "org.webjars:jquery:3.5.1" : [ 1 ],
+    "ant:ant:1.6.5" : [ 1 ],
+    "org.glassfish.jaxb:jaxb-runtime:2.3.0" : [ 1 ],
+    "org.webjars:bootstrap:3.3.7" : [ 1 ],
+    "org.apache.commons:commons-exec:1.3" : [ 1 ],
+    "xml-resolver:xml-resolver:1.2" : [ 1 ],
+    "commons-lang:commons-lang:2.6" : [ 1 ],
+    "ant:ant-launcher:1.6.5" : [ 1 ]
+  },
+  "componentDepths" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jquery",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.webjars",
+        "version" : "3.5.1"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-lang",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-lang",
+        "version" : "2.6"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jsoup",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.jsoup",
+        "version" : "1.13.1"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jjwt",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.jsonwebtoken",
+        "version" : "0.9.1"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "zxcvbn",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.nulab-inc",
+        "version" : "1.4.0"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ant",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ant",
+        "version" : "1.6.5"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ant-launcher",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ant",
+        "version" : "1.6.5"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "asciidoctorj",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.asciidoctor",
+        "version" : "2.4.3"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xstream",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.thoughtworks.xstream",
+        "version" : "1.4.5"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xml-resolver",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "xml-resolver",
+        "version" : "1.2"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-exec",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.commons",
+        "version" : "1.3"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "bootstrap",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.webjars",
+        "version" : "3.3.7"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "cglib-nodep",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "cglib",
+        "version" : "2.2"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jaxb-runtime",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.glassfish.jaxb",
+        "version" : "2.3.0"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jose4j",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.bitbucket.b_c",
+        "version" : "0.7.6"
+      }
+    },
+    "depths" : [ 1 ]
+  } ],
+  "dependencyTree" : {
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jquery",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.webjars",
+          "version" : "3.5.1"
+        }
+      },
+      "packageUrl" : "pkg:maven/org.webjars/jquery@3.5.1?type=jar"
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "commons-lang",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "commons-lang",
+          "version" : "2.6"
+        }
+      },
+      "packageUrl" : "pkg:maven/commons-lang/commons-lang@2.6?type=jar"
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jsoup",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.jsoup",
+          "version" : "1.13.1"
+        }
+      },
+      "packageUrl" : "pkg:maven/org.jsoup/jsoup@1.13.1?type=jar"
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jjwt",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "io.jsonwebtoken",
+          "version" : "0.9.1"
+        }
+      },
+      "packageUrl" : "pkg:maven/io.jsonwebtoken/jjwt@0.9.1?type=jar"
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "zxcvbn",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.nulab-inc",
+          "version" : "1.4.0"
+        }
+      },
+      "packageUrl" : "pkg:maven/com.nulab-inc/zxcvbn@1.4.0?type=jar"
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "ant",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "ant",
+          "version" : "1.6.5"
+        }
+      },
+      "packageUrl" : "pkg:maven/ant/ant@1.6.5?type=jar"
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "ant-launcher",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "ant",
+          "version" : "1.6.5"
+        }
+      },
+      "packageUrl" : "pkg:maven/ant/ant-launcher@1.6.5?type=jar"
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "asciidoctorj",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.asciidoctor",
+          "version" : "2.4.3"
+        }
+      },
+      "packageUrl" : "pkg:maven/org.asciidoctor/asciidoctorj@2.4.3?type=jar"
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "xstream",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.thoughtworks.xstream",
+          "version" : "1.4.5"
+        }
+      },
+      "packageUrl" : "pkg:maven/com.thoughtworks.xstream/xstream@1.4.5?type=jar"
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "xml-resolver",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "xml-resolver",
+          "version" : "1.2"
+        }
+      },
+      "packageUrl" : "pkg:maven/xml-resolver/xml-resolver@1.2?type=jar"
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "commons-exec",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.apache.commons",
+          "version" : "1.3"
+        }
+      },
+      "packageUrl" : "pkg:maven/org.apache.commons/commons-exec@1.3?type=jar"
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "bootstrap",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.webjars",
+          "version" : "3.3.7"
+        }
+      },
+      "packageUrl" : "pkg:maven/org.webjars/bootstrap@3.3.7?type=jar"
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "cglib-nodep",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "cglib",
+          "version" : "2.2"
+        }
+      },
+      "packageUrl" : "pkg:maven/cglib/cglib-nodep@2.2?type=jar"
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jaxb-runtime",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.glassfish.jaxb",
+          "version" : "2.3.0"
+        }
+      },
+      "packageUrl" : "pkg:maven/org.glassfish.jaxb/jaxb-runtime@2.3.0?type=jar"
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jose4j",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.bitbucket.b_c",
+          "version" : "0.7.6"
+        }
+      },
+      "packageUrl" : "pkg:maven/org.bitbucket.b_c/jose4j@0.7.6?type=jar"
+    } ]
+  }
+}

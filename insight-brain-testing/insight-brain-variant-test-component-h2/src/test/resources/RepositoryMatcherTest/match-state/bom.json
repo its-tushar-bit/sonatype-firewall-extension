@@ -1,0 +1,96 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": null,
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "filenames": [
+        "g.a-1.1-SNAPSHOT.jar"
+      ],
+      "pathnames": [
+        "g.a-1.1-SNAPSHOT.jar"
+      ],
+      "aggregateFiles": [],
+      "matchState": "unknown",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "635bacfc3ce81e2ae820",
+      "sha256": "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941",
+      "relativePopularity": null,
+      "createTime": null,
+      "lastModifiedTime": 1633356270000,
+      "lastModifiedEntryTime": 1632940910000,
+      "website": null,
+      "identificationSource": null,
+      "componentCategories": [],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "cli",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "integrityRating": null,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Filename",
+            "value": "g.a.1.1-SNAPSHOT.jar"
+          }
+        ],
+        "name": "g.a.1.1-SNAPSHOT.jar"
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "commons-httpclient",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "apache-httpclient",
+          "version": "3.1"
+        }
+      },
+      "groupId": "apache-httpclient",
+      "artifactId": "commons-httpclient",
+      "version": "3.1",
+      "filenames": [
+        "commons-httpclient-3.1.SONATYPE.jar"
+      ],
+      "pathnames": [
+        "full.jar/WebGoat-6.0.1/WEB-INF/lib/commons-httpclient-3.1.SONATYPE.jar"
+      ],
+      "matchState": "similar",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "f0776db1593e215146d2",
+      "sha256": "8c7ac48903b2a4382561321e5c25913960007a65d0f5e4a167a80d41984092c9",
+      "relativePopularity": 0.0,
+      "createTime": 1453427378000,
+      "lastModifiedTime": 1476879890000,
+      "lastModifiedEntryTime": 1314936314000,
+      "website": null
+    },
+    {
+      "filenames" : [ "geronimo-tomcat-1.0.jar" ],
+      "pathnames" : [ "geronimo-tomcat-1.0.jar" ],
+      "groupId" : "geronimo",
+      "artifactId" : "geronimo-tomcat",
+      "version" : "1.0",
+      "matchState" : "exact",
+      "scanError" : false,
+      "proprietary" : false,
+      "hash" : "30a69958223a2c6215e2",
+      "sha256" : "7e93eb342a844f918fc03cfe26b1d8b301077deb2a161216f540982f263f43a5",
+      "relativePopularity" : 1.0,
+      "createTime" : 1136511582000,
+      "lastModifiedTime" : 1399301184000,
+      "lastModifiedEntryTime" : 1135217464000,
+      "website" : null
+    }
+  ]
+}

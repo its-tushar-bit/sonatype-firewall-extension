@@ -1,0 +1,46 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+
+properties(
+  [
+    parameters (
+      [
+        string (
+          name: 'releaseVersion',
+          defaultValue: '',
+          description: 'The version number for the product, like "52"'
+        )
+      ]
+    )
+  ]
+)
+
+pipeline {
+  agent { label 'zion-small' }
+  options {
+    buildDiscarder(logRotator(numToKeepStr: '10'))
+  }
+  stages {
+    stage('Email Release Notification') {
+      steps {
+        emailext(
+          mimeType: 'text/html',
+          subject: "IQ Server Release ${params.releaseVersion} is complete",
+          body: "<p>Dear Product Owners,</p>\
+          <p>All the release binaries are up, and can be found by following the link below.</p>\
+          <p><a href='https://links.sonatype.com/products/clm/download'>https://links.sonatype.com/products/clm/download</a></p>",
+          to: "jwhitehouse@sonatype.com, products@sonatype.com, dev@sonatype.com, sonatype-se-discussion-group@sonatype.com, success@sonatype.com, support-team-group@sonatype.com, design-studio-core-team-group@sonatype.com"
+        )
+      }
+    }
+    stage('Slack Release Notification') {
+      steps {
+        slackSend color: 'good', channel: '#releases-sca-core', message: "IQ Server Release ${params.releaseVersion} is complete. @lifecycle-product-folks Please send the notification to the clm-announcements list."
+      }
+    }
+  }
+}

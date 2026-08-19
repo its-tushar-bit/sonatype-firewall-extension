@@ -1,0 +1,59 @@
+{
+  "dependencyTree": {
+    "children": [
+      {
+        "componentIdentifier": {
+          "format": "pypi",
+          "coordinates": {
+            "extension": "",
+            "name": "tomlkit",
+            "qualifier": "",
+            "version": "0.13.2"
+          }
+        },
+        "packageUrl": "pkg:pypi/tomlkit@0.13.2",
+        "direct": true
+      },
+      {
+        "componentIdentifier": {
+          "format": "pypi",
+          "coordinates": {
+            "extension": "",
+            "name": "protobuf",
+            "qualifier": "",
+            "version": "4.25.5"
+          }
+        },
+        "packageUrl": "pkg:pypi/protobuf@4.25.5",
+        "children": [
+          {
+            "componentIdentifier": {
+              "format": "pypi",
+              "coordinates": {
+                "extension": "",
+                "name": "multidict",
+                "qualifier": "",
+                "version": "6.1.0"
+              }
+            },
+            "packageUrl": "pkg:pypi/multidict@6.1.0"
+          },
+          {
+            "componentIdentifier": {
+              "format": "pypi",
+              "coordinates": {
+                "extension": "",
+                "name": "gitpython",
+                "qualifier": "",
+                "version": "3.0.5"
+              }
+            },
+            "packageUrl": "pkg:pypi/gitpython@3.0.5"
+          }
+        ],
+        "direct": true
+      }
+    ],
+    "module": true
+  }
+}

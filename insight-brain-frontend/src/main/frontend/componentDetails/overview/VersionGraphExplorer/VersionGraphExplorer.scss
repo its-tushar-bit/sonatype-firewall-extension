@@ -1,0 +1,31 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+// The version-graph library paints two inline-block SVGs (100px labels + 375px chart).
+// When the Nexus One LeftNav narrows the content area below 475px, the chart SVG wraps
+// and is clipped by the library's fixed height + overflow:hidden. Keep the row intact
+// and scroll inside the tile instead of clipping the chart out of view (CLM-44042).
+//
+// Scrollport is the outer wrapper (not #aiVersionChartContainer): min-width on the same
+// element as overflow-x does not create a local scrollbar when the parent is narrower.
+.iq-version-graph-scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+#aiVersionChartContainer {
+  min-width: 475px;
+  white-space: nowrap;
+}
+
+#aiVersionChartLabels,
+#aiVersionChartViz {
+  display: inline-block;
+  vertical-align: top;
+  overflow: hidden;
+}

@@ -1,0 +1,131 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
+@use './variables' as *;
+
+// NOTE: Typography mixins are located in _typography.scss
+
+@mixin iq-arrow-up() {
+  border-color: transparent transparent var(--nx-swatch-white) transparent;
+  border-style: solid;
+  border-width: 0 5px 5px 5px;
+  content: '';
+  height: 0;
+  margin-left: -5px;
+  position: absolute;
+  bottom: 0px;
+  left: 50%;
+  width: 0;
+}
+
+/*
+  Tables with a fixed header
+ */
+@mixin table-fixed-widths($numColumns) {
+  .iq-table--fixed__header,
+  .iq-table--fixed__content {
+    .iq-cell {
+      width: calc(100% / #{$numColumns});
+
+      // fixes problem in IE11 where the last column wraps when all of the columns are exactly equal
+      &:last-child {
+        width: calc((100% / #{$numColumns}) - 1px);
+      }
+    }
+
+    // :last-child here is required to override the :last-child rule on iq-cell above
+    .iq-cell--empty:last-child {
+      width: 100%;
+    }
+  }
+
+  &.scrollbar-present {
+    .iq-table--fixed__content {
+      .iq-cell {
+        width: calc((100% + #{$iq-scrollbar-width}) / #{$numColumns});
+      }
+
+      // fixes problem in IE11 where the last column wraps when all of the columns are exactly equal
+      .iq-cell:last-child {
+        width: calc(((100% + #{$iq-scrollbar-width}) / #{$numColumns}) - #{$iq-scrollbar-width} - 1px);
+      }
+    }
+  }
+}
+
+@mixin visually-hidden() {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+@mixin overflow-wrap-anywhere() {
+  overflow-wrap: anywhere;
+  @supports not (overflow-wrap: anywhere) {
+    word-break: break-all;
+  }
+}
+
+// Duplicate of RSC link styling for instances where bare <a>'s require styling
+@mixin text-link {
+  color: var(--nx-color-link);
+  cursor: pointer;
+  text-decoration: underline;
+
+  &:focus {
+    // outline-offset scales the border-radius so this
+    // was changed to 4px to get it visually close to
+    // var(--nx-border-radius) or (6px).
+    border-radius: 4px;
+    outline: var(--nx-focus-outline-width) solid var(--nx-color-interactive-border-focus);
+  }
+
+  &:hover {
+    color: var(--nx-color-link-hover);
+  }
+
+  &:active,
+  &:active:focus {
+    color: var(--nx-color-link-active);
+    outline: none;
+  }
+}
+
+// Dependency indicator coloring
+@mixin dependency-indicator-colors {
+  &.direct {
+    background: $iq-direct-dependency-light-mode;
+    color: $iq-off-white;
+    @include nx-dark-mode-helpers.dark-mode {
+      background: $iq-direct-dependency-dark-mode;
+      color: $iq-off-black;
+    }
+  }
+
+  &.transitive {
+    background: $iq-transitive-dependency-light-mode;
+    color: $iq-off-white;
+    @include nx-dark-mode-helpers.dark-mode {
+      background: $iq-transitive-dependency-dark-mode;
+      color: $iq-off-black;
+    }
+  }
+
+  &.inner-source {
+    background: $iq-inner-source-dependency-light-mode;
+    color: $iq-off-white;
+    @include nx-dark-mode-helpers.dark-mode {
+      background: $iq-inner-source-dependency-dark-mode;
+      color: $iq-off-black;
+    }
+  }
+}

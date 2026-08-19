@@ -1,0 +1,56 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-button-helpers';
+
+.legal-dashboard-filter {
+  box-sizing: border-box;
+  padding-right: var(--nx-spacing-2x);
+  padding-left: 2px; // this is to avoid cutting off filter caret icon when it's turning
+
+  .nx-collapsible-items .nx-filter-input {
+    box-sizing: border-box;
+    max-width: 100%;
+  }
+}
+
+.legal-dashboard-filter-footer {
+  @include nx-container-helpers.container-vertical;
+
+  .nx-alert {
+    .nx-btn-bar {
+      @include nx-container-helpers.container-horizontal;
+    }
+
+    .nx-btn {
+      margin-right: var(--nx-spacing-2x);
+    }
+  }
+}
+
+.nx-btn-bar.legal-dashboard-filter-footer-btns {
+  justify-content: space-between;
+
+  .nx-btn {
+    margin: 0;
+  }
+}
+
+.legal-dashboard-filter-header__title {
+  @include nx-container-helpers.container-horizontal;
+
+  align-items: start;
+  display: flex;
+
+  .legal-dashboard-filter-header__title-text {
+    flex-grow: 1;
+    margin-top: 6px;
+  }
+
+  .nx-btn--icon-only {
+    @include nx-button-helpers.small-icon-btn;
+  }
+}

@@ -1,0 +1,87 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@Library(['private-pipeline-library', 'jenkins-shared', 'bnr-pipeline-library', 'iq-pipeline-library']) _
+
+properties([
+    parameters([
+        string(name: 'environment', defaultValue: '', description: 'Target environment (e.g. Staging, Production)'),
+        run(name: 'releaseBuild', filter: 'STABLE', projectName: 'insight/insight-brain/aggregate-release', description: 'The aggregate release build to deploy.'),
+        booleanParam(name: 'skipMarkAsLatest', defaultValue: false, description: 'Skip: Mark as latest version')
+    ])
+])
+
+pipeline {
+  agent { label InsightConstants.AGENT_LABEL }
+  environment {
+    minorVersion = "${parseVersion(getVersionFromBuildName(env.releaseBuild_NAME))?.minor}"
+  }
+  tools {
+    jdk 'Java 8'
+  }
+  options {
+    buildDiscarder(
+        logRotator(numToKeepStr: '100', artifactNumToKeepStr: '20')
+    )
+    timestamps()
+  }
+  stages {
+    stage('Export Variables') {
+      steps {
+        exportBuildVariables(params.environment, env.releaseBuild_NAME)
+      }
+    }
+    stage('Checkout Publishing Scripts') {
+      steps {
+        checkoutPublishingScripts()
+      }
+    }
+    stage('Gather Build Artifacts') {
+      steps {
+        gatherBuildArtifacts('insight/insight-brain/aggregate-release', env.releaseBuild_NUMBER)
+      }
+    }
+    stage('Publish Server') {
+      steps {
+        publishProduct('IQServer')
+      }
+    }
+    stage('Update iq-server latest version') {
+      when {
+        expression { !params.skipMarkAsLatest }
+      }
+      steps {
+        updateLatestVersionTable(params.environment, 'IQ_SERVER', getVersionFromBuildName(env.releaseBuild_NAME))
+      }
+    }
+    stage('Update nginx configuration') {
+      when {
+        expression { !params.skipMarkAsLatest }
+      }
+      steps {
+        updateNginxConfig(params.environment)
+      }
+    }
+    stage('Purge Fastly Download Cache') {
+      steps {
+        build job: 'ops/fastly-purge-downloads', propagate: true, wait: true
+      }
+    }
+    stage('Update Download and Compatibility Page') {
+      when {
+        expression { 'Production' == params?.environment && !params.skipMarkAsLatest }
+      }
+      steps {
+        updateDownloadPage(env.minorVersion)
+      }
+    }
+  }
+  post {
+    always {
+      notifyChat(currentBuild: currentBuild, env: env, room: 'ops-builds')
+      deleteDir()
+    }
+  }
+}

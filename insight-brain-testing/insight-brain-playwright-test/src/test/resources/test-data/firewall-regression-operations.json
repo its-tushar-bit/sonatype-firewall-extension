@@ -1,0 +1,21 @@
+{
+  "dashboardId": "sbom-scorecard",
+  "dashboardTitle": "Sbom Report Overview",
+  "expectedDashboardUrlFragment": "/enterpriseReportingDashboard/",
+  "componentVersion": "1.0",
+  "bulkWaiveExpiryOption": "30",
+  "confirmationHeadingText": "Confirmation",
+  "waiverConfigHeadingText": "Waiver Configuration",
+  "modalSaveButtonText": "Save Changes",
+  "modalNoChangesText": "There are no changes to save.",
+  "emptyStateText": "No data found.",
+  "quarantinedComponentHeadingText": "Quarantined Component View",
+  "bulkWaiveUrlFragment": ".*bulk-waive$",
+  "bulkWaiveConfigUrlFragment": ".*bulk-waive-configuration.*",
+  "bulkWaiveConfirmationUrlFragment": ".*bulk-waive-confirmation.*",
+  "ariaSortAttribute": "aria-sort",
+  "ariaSortAscending": "ascending",
+  "ariaSortDescending": "descending",
+  "incompleteConfigModalHeadingText": "Unsaved Changes",
+  "incompleteConfigModalWarningText": "The page may contain unsaved changes; continuing will discard them."
+}

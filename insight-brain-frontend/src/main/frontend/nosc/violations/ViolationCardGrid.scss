@@ -1,0 +1,34 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+// Violation card: the whole card is a link with a severity-keyed left border. The border color is
+// driven by a data-threat-color attribute (set from threatColorFor in ViolationCardGrid.tsx) rather
+// than an inline style so jsdom can assert the attribute without applying stylesheet colors.
+.violation-card-link {
+  display: block;
+  color: inherit;
+  border-left: 4px solid transparent;
+
+  &[data-threat-color='red'] {
+    border-left-color: var(--red-9);
+  }
+
+  &[data-threat-color='orange'] {
+    border-left-color: var(--orange-9);
+  }
+
+  &[data-threat-color='yellow'] {
+    border-left-color: var(--yellow-9);
+  }
+
+  &[data-threat-color='indigo'] {
+    border-left-color: var(--indigo-9);
+  }
+
+  &[data-threat-color='gray'] {
+    border-left-color: var(--gray-9);
+  }
+}

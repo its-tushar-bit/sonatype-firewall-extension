@@ -1,0 +1,21 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+.nosc-waivers-ana-card-link {
+  display: block;
+  color: inherit;
+}
+
+.nosc-waivers-ana-card-link:hover .nosc-waivers-ana-card,
+.nosc-waivers-ana-card-link:focus-visible .nosc-waivers-ana-card {
+  border-color: var(--accent-7);
+  background-color: var(--gray-2);
+}
+
+.nosc-waivers-ana-card {
+  cursor: pointer;
+  transition: border-color 120ms ease, background-color 120ms ease;
+}

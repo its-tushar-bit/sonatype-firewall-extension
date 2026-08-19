@@ -1,0 +1,84 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+.iq-license-info {
+  flex: 1 1 33%;
+  margin: 8px 0;
+  padding-top: 12px;
+  padding-bottom: 10px;
+}
+
+.iq-license-info__nested-definitions {
+  margin: 0;
+
+  dt,
+  dd {
+    display: inline;
+    margin: 0;
+  }
+
+  dt {
+    font-weight: normal;
+
+    &::after {
+      content: ' — ';
+    }
+  }
+}
+
+.iq-product-license__specifications {
+  grid-template:
+    'expiration-date  days-remaining      fingerprint '
+    'license-types    licensed-developers licensed-applications'
+    'license-types    licensed-developers licensed-sboms'
+    'license-types    licensed-developers licensed-credits';
+
+  grid-template-columns: 20% 25% auto;
+}
+
+.iq-product-license__expiration-date {
+  grid-area: expiration-date;
+}
+
+.iq-product-license__license-types {
+  grid-area: license-types;
+}
+
+.iq-product-license__days-remaining {
+  grid-area: days-remaining;
+}
+
+.iq-product-license__licensed-developers {
+  grid-area: licensed-developers;
+}
+
+.iq-product-license__licensed-applications {
+  grid-area: licensed-applications;
+}
+
+.iq-product-license__licensed-sboms {
+  grid-area: licensed-sboms;
+}
+
+.iq-product-license__licensed-credits {
+  grid-area: licensed-credits;
+}
+
+.iq-product-license__fingerprint {
+  grid-area: fingerprint;
+  word-break: break-all;
+}
+
+form.iq-license-footer-form {
+  margin: 0;
+}
+
+.iq-product-license-details-footer--no-license {
+  margin-top: 24px;
+  .nx-btn {
+    margin-left: 0;
+  }
+}

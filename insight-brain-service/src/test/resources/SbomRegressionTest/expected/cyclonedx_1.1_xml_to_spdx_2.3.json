@@ -1,0 +1,273 @@
+{
+  "SPDXID" : "SPDXRef-DOCUMENT",
+  "spdxVersion" : "SPDX-2.3",
+  "creationInfo" : {
+    "created" : "2025-07-02T10:06:11Z",
+    "creators" : [ "Tool: Sonatype SBOM Manager - 1.193.0-SNAPSHOT" ]
+  },
+  "name" : "SbomRegressionTestApp",
+  "dataLicense" : "CC0-1.0",
+  "hasExtractedLicensingInfos" : [ {
+    "licenseId" : "LicenseRef-See-License-Clause",
+    "extractedText" : "Extracted license created by Sonatype SBOM Manager"
+  }, {
+    "licenseId" : "LicenseRef-Some-random-license",
+    "extractedText" : "Extracted license created by Sonatype SBOM Manager",
+    "name" : "Some random license"
+  } ],
+  "documentNamespace" : "http://localhost:10046/ui/links/sbomManager/management/view/application/SbomRegressionTestApp/bom/20250702110606829",
+  "packages" : [ {
+    "SPDXID" : "SPDXRef-gnrtd0",
+    "attributionTexts" : [ "Evidence license text for: (Apache-2.0)" ],
+    "checksums" : [ {
+      "algorithm" : "SHA256",
+      "checksumValue" : "f498a8ff2dd007e29c2074f5e4b01a9a01775c3ff3aeaf6906ea503bc5791b7b"
+    }, {
+      "algorithm" : "SHA1",
+      "checksumValue" : "e6b1000b94e835ffd37f4c6dcbdad43f4b48a02a"
+    }, {
+      "algorithm" : "MD5",
+      "checksumValue" : "3942447fac867ae5cdb3229b658f4d48"
+    } ],
+    "copyrightText" : "NOASSERTION",
+    "description" : "Modified version of Apache Catalina",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/com.acme/tomcat-catalina@9.0.14?packaging=jar",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "(Apache-2.0)",
+    "licenseDeclared" : "Apache-2.0",
+    "name" : "com.acme:tomcat-catalina",
+    "originator" : "Organization: Acme Inc",
+    "primaryPackagePurpose" : "APPLICATION",
+    "versionInfo" : "9.0.14"
+  }, {
+    "SPDXID" : "SPDXRef-gnrtd1",
+    "copyrightText" : "NOASSERTION",
+    "description" : "Apache Catalina",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?packaging=jar",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "Apache-2.0",
+    "name" : "org.apache.tomcat:tomcat-catalina",
+    "originator" : "Organization: Apache",
+    "primaryPackagePurpose" : "APPLICATION",
+    "versionInfo" : "9.0.14"
+  }, {
+    "SPDXID" : "SPDXRef-gnrtd2",
+    "attributionTexts" : [ "Evidence license text for: (EPL-2.0)" ],
+    "checksums" : [ {
+      "algorithm" : "SHA1",
+      "checksumValue" : "68b78babe00a053f9e35ec6a2d9080f5b90122b0"
+    }, {
+      "algorithm" : "MD5",
+      "checksumValue" : "2342c2eaf1feb9a80195dbaddf2ebaa3"
+    }, {
+      "algorithm" : "SHA256",
+      "checksumValue" : "708f1f53b41f11f02d12a11b1a38d2905d47b099afc71a0f1124ef8582ec7313"
+    } ],
+    "copyrightText" : "Copyright Example Inc. All rights reserved.",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/com.example/myapplication@1.0.0?packaging=war",
+      "referenceType" : "purl"
+    }, {
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://example.org/security",
+      "referenceType" : "advisory"
+    }, {
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "cpe:/a:example:myapplication:1.0.0",
+      "referenceType" : "cpe22Type"
+    }, {
+      "comment" : "All component versions are documented here",
+      "referenceCategory" : "OTHER",
+      "referenceLocator" : "http://example.org/docs",
+      "referenceType" : "http://cyclonedx.org/referenctype/documentation"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "(EPL-2.0)",
+    "licenseDeclared" : "(GPL-2.0 WITH Classpath-exception-2.0 OR EPL-2.0)",
+    "name" : "org.example:mylibrary",
+    "primaryPackagePurpose" : "LIBRARY",
+    "versionInfo" : "1.0.0"
+  }, {
+    "SPDXID" : "SPDXRef-gnrtd3",
+    "checksums" : [ {
+      "algorithm" : "MD5",
+      "checksumValue" : "cfcb0b64aacd2f81c1cd546543de965a"
+    }, {
+      "algorithm" : "SHA256",
+      "checksumValue" : "0384db3cec55d86a6898c489fdb75a8e75fe66b26639634983d2f3c3558493d1"
+    }, {
+      "algorithm" : "SHA1",
+      "checksumValue" : "7fbeef2346c45d565c3341f037bce4e088af8a52"
+    } ],
+    "copyrightText" : "NOASSERTION",
+    "description" : "Example Inc, enterprise framework",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/com.example/myframework@1.0.0?packaging=war",
+      "referenceType" : "purl"
+    }, {
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://example.com/security",
+      "referenceType" : "advisory"
+    } ],
+    "filesAnalyzed" : false,
+    "homepage" : "http://example.com/myframework",
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "LicenseRef-Some-random-license",
+    "name" : "com.example:myframework",
+    "primaryPackagePurpose" : "FRAMEWORK",
+    "versionInfo" : "1.0.0"
+  }, {
+    "SPDXID" : "SPDXRef-123",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "acme-library",
+    "primaryPackagePurpose" : "LIBRARY",
+    "versionInfo" : "1.0.0"
+  }, {
+    "SPDXID" : "SPDXRef-456",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "acme-library",
+    "primaryPackagePurpose" : "LIBRARY",
+    "versionInfo" : "1.0.0"
+  }, {
+    "SPDXID" : "SPDXRef-789",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "acme-library",
+    "primaryPackagePurpose" : "LIBRARY",
+    "versionInfo" : "1.0.0"
+  }, {
+    "SPDXID" : "SPDXRef-pkg-maven-com.fasterxml.jackson.core-jackson-databind-2.9.9-type-jar",
+    "attributionTexts" : [ "Evidence license text for: (LicenseRef-See-License-Clause)" ],
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "comment" : "source: NVD",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-42004",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: NVD",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-42003",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: NVD",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-12814",
+      "referenceType" : "advisory"
+    }, {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar",
+      "referenceType" : "purl"
+    }, {
+      "comment" : "source: NVD",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-12384",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: NVD",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-36518",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: NVD",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-25649",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: NVD",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://nvd.nist.gov/vuln/detail/CVE-2018-7489",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2018-7489",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2020-36518",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2022-42003",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2019-12814",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2020-25649",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2019-12384",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2022-42004",
+      "referenceType" : "advisory"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "(LicenseRef-See-License-Clause)",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "com.fasterxml.jackson.core:jackson-databind",
+    "primaryPackagePurpose" : "LIBRARY",
+    "versionInfo" : "2.9.9"
+  }, {
+    "SPDXID" : "SPDXRef-gnrtd4",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "SbomRegressionTestApp",
+    "primaryPackagePurpose" : "APPLICATION"
+  } ],
+  "relationships" : [ {
+    "spdxElementId" : "SPDXRef-DOCUMENT",
+    "relationshipType" : "DESCRIBES",
+    "relatedSpdxElement" : "SPDXRef-gnrtd4"
+  }, {
+    "spdxElementId" : "SPDXRef-gnrtd0",
+    "relationshipType" : "ANCESTOR_OF",
+    "relatedSpdxElement" : "SPDXRef-gnrtd1"
+  }, {
+    "spdxElementId" : "SPDXRef-123",
+    "relationshipType" : "CONTAINS",
+    "relatedSpdxElement" : "SPDXRef-456"
+  } ]
+}

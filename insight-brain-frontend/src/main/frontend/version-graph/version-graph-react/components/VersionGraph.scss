@@ -1,0 +1,37 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+
+.iq-version-graph-chart-section {
+  header {
+    @include nx-container-helpers.container-vertical;
+  }
+
+  // Scrollport is the outer wrapper: min-width on the same element as overflow-x does not
+  // create a local scrollbar when the parent is narrower than 475px (CLM-44042).
+  .iq-version-graph-chart-section__scroll {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .iq-version-graph-chart-section__labels,
+  .iq-version-graph-chart-section__chart {
+    // undocumented apparent requirement for the chart to size correctly
+    display: inline-block;
+    vertical-align: top;
+    overflow: hidden;
+  }
+
+  .iq-version-graph-chart-section__container {
+    // Labels (100px) + chart (375px) must stay on one row; outer scrollport handles overflow.
+    min-width: 475px;
+    white-space: nowrap;
+    border-radius: var(--nx-border-radius);
+    border: var(--nx-border-default);
+  }
+}

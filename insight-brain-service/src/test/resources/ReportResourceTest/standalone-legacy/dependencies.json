@@ -1,0 +1,31 @@
+{
+  "dependencyGraph" : {
+    "null" : [ "tomcat:tomcat-util:5.5.23", "org.dojotoolkit:dojo-js:1.9.1", "tomcat:servlets-default:5.5.4", "tomcat:catalina-host-manager:5.5.23" ],
+    "org.dojotoolkit:dojo-js:1.9.1" : [ ],
+    "tomcat:catalina-host-manager:5.5.23" : [ ],
+    "tomcat:servlets-default:5.5.4" : [ ],
+    "tomcat:tomcat-util:5.5.23" : [ ]
+  },
+  "securityIssuesByDepth" : {
+    "1" : {
+      "Severe" : 0,
+      "Critical" : 0,
+      "Moderate" : 12
+    }
+  },
+  "gavDepths" : {
+    "tomcat:catalina-host-manager:5.5.23" : [ 1 ],
+    "tomcat:tomcat-util:5.5.23" : [ 1 ],
+    "tomcat:servlets-default:5.5.4" : [ 1 ],
+    "org.dojotoolkit:dojo-js:1.9.1" : [ 1 ]
+  },
+  "licenseThreatsByDepth" : {
+    "1" : {
+      "NON-STANDARD" : 0,
+      "LIBERAL" : 1,
+      "WEAKCOPYLEFT" : 0,
+      "COPYLEFT" : 0,
+      "NOT-PROVIDED" : 3
+    }
+  }
+}

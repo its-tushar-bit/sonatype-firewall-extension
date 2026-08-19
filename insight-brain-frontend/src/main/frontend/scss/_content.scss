@@ -1,0 +1,67 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use './variables' as *;
+
+body {
+  &:not(.nx-body) {
+    // styles for the other pages outside the main brain bundle
+    color: $iq-off-black;
+  }
+
+  &.nx-body {
+    // override bootstrap
+    @include nx-text-helpers.font-size(var(--nx-font-size));
+
+    // See https://sonatype.atlassian.net/browse/RSC-1798
+    .nx-btn--small {
+      font-size: var(--nx-font-size-s);
+    }
+  }
+}
+
+ui-view {
+  display: contents;
+}
+
+.iq-content-only {
+  display: contents;
+}
+
+#iq-content {
+  // This is a hack for the sake of selenium. This element has `display: contents` so this
+  // makes no actual difference, but because it also had `overflow-y: hidden` selenium decided it wasn't
+  // visible (which isn't accurate). Unsetting `overflow-y` here fixes that.
+  overflow-y: revert;
+}
+
+.nx-page-main {
+  // to make a positioning container for iq-popovers
+  position: relative;
+}
+
+.nx-page-main.nx-page-main--no-sidebar {
+  grid-area: old-sidebar-start/old-sidebar-start/content-end/content-end;
+}
+
+// global errors
+.nx-page-main--error {
+  display: flex;
+  justify-content: center;
+
+  &.nx-page-main > .iq-alert {
+    align-self: flex-start;
+    justify-content: center;
+    width: 50%;
+    max-width: 400px;
+    margin-top: 42px;
+  }
+}
+
+.nx-breadcrumb {
+  margin-bottom: var(--nx-spacing-6x);
+}

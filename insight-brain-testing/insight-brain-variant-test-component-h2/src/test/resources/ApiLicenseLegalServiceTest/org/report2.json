@@ -1,0 +1,60 @@
+{
+  "components": [
+    {
+      "packageUrl": "pkg:maven/com.fasterxml.jackson.datatype/jackson-datatype-jdk8@2.10.3?type=jar",
+      "hash": "05fc73a94e771eb044e4",
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "jackson-datatype-jdk8",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.fasterxml.jackson.datatype",
+          "version": "2.10.3"
+        }
+      },
+      "proprietary": false,
+      "matchState": "exact",
+      "pathnames": [
+        "com.sonatype:license-legal-service:jar:0.0.4-SNAPSHOT/com.fasterxml.jackson.datatype:jackson-datatype-jdk8:jar:2.10.3"
+      ],
+      "displayName": "com.fasterxml.jackson.datatype : jackson-datatype-jdk8 : 2.10.3",
+      "licenseData": {
+        "declaredLicenses": [
+          {
+            "licenseId": "EPL-2.0",
+            "licenseName": "EPL-2.0"
+          }
+        ],
+        "observedLicenses": [
+          {
+            "licenseId": "No-Source-License",
+            "licenseName": "No Source License"
+          }
+        ],
+        "effectiveLicenses": [
+          {
+            "licenseId": "EPL-2.0",
+            "licenseName": "EPL-2.0"
+          }
+        ],
+        "overriddenLicenses": [],
+        "status": "Open",
+        "effectiveLicenseThreats": [
+          {
+            "licenseThreatGroupName": "Sonatype Special Licenses",
+            "licenseThreatGroupLevel": 5,
+            "licenseThreatGroupCategory": "severe"
+          }
+        ]
+      },
+      "securityData": {
+        "securityIssues": []
+      }
+    }
+  ],
+  "matchSummary": {
+    "totalComponentCount": 1,
+    "knownComponentCount": 1
+  }
+}

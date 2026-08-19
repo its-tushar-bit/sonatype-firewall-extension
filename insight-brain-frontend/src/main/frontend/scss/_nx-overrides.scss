@@ -1,0 +1,107 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use './variables' as *;
+
+// Tweaks necessary to get RSC nx-* classes to work within iq-* containers
+.iq-scrollable {
+  .nx-table:first-child {
+    margin-top: 0;
+  }
+
+  .nx-table:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.nx-cell > .iq-text-indicator:first-child {
+  margin-left: var(--nx-spacing-3x);
+}
+
+.nx-collapsible-items--collapsed {
+  .nx-collapsible-items__child {
+    visibility: hidden;
+  }
+}
+
+.nx-collapsible-items--threat-slider {
+  .nx-collapsible-items__child {
+    line-height: 18px;
+    margin-left: var(--nx-spacing-2x);
+  }
+}
+
+.nx-page-title.iq-page-title {
+  margin-right: $iq-spacing-sm;
+}
+
+.nx-page-title__page-icon.fa {
+  margin: 0 8px;
+  vertical-align: baseline;
+}
+
+.nx-form .nx-submit-mask {
+  z-index: 1; // TODO remove this (temporary fix until RSC-532 is resolved)
+}
+
+.nx-page .nx-modal-backdrop {
+  z-index: 1072;
+}
+
+.nx-page {
+  position: relative;
+}
+
+.nx-tag {
+  &.transitive,
+  &.direct,
+  &.innerSource {
+    color: var(--nx-swatch-white);
+  }
+
+  &.transitive {
+    background-color: $iq-dark-purple;
+    border: 1px solid $iq-dark-purple;
+  }
+
+  &.direct {
+    background-color: $iq-dark-blue;
+    border: 1px solid $iq-dark-blue;
+  }
+
+  &.innerSource {
+    background-color: $iq-light-turquoise;
+    border: 1px solid $iq-light-turquoise;
+  }
+}
+
+.nx-table.iq-component-risk-item-table > tbody > .nx-table-row > .iq-component-risk-cell {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/**
+  Fix to solve issues of select element overflowing from modal:
+  RSC Variable override: Latest RSC uses --nx-width-form-element-wide: 800px;
+  IQ was implemented to use --nx-width-form-element-wide: 624px;
+*/
+
+html.nx-html {
+  --nx-width-form-element-wide: 624px;
+}
+
+.nx-text-input.nx-text-input--full {
+  width: 100%;
+  max-width: 100%;
+}
+
+.nx-global-footer-2-container .nx-page-main {
+  flex: 1 0 auto;
+
+  &.nx-viewport-sized__container {
+    flex: auto;
+  }
+}

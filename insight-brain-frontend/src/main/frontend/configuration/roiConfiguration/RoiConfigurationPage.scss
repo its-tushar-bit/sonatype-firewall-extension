@@ -1,0 +1,50 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+roi-configuration {
+  display: contents;
+}
+
+.roi-configuration-page {
+  .nx-radio-checkbox__content {
+    overflow: visible;
+    font-size: var(--nx-font-size-s);
+  }
+}
+
+.roi-configuration-page-description-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-spacing-4x);
+
+  &__item {
+    dt {
+      margin-bottom: var(--nx-spacing-base);
+    }
+
+    dd {
+      display: flex;
+      flex-direction: column;
+      margin-left: 0;
+      gap: var(--nx-spacing-base);
+    }
+  }
+}
+
+.roi-configuration-page-security-violation-types {
+  margin-top: var(--nx-spacing-2x);
+
+  &__item {
+    display: flex;
+    flex-direction: row;
+    gap: var(--nx-spacing-base);
+  }
+}
+
+.roi-configuration-page__numeric-value {
+  font-size: var(--nx-font-size-s);
+  font-weight: bold;
+}

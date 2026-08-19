@@ -1,0 +1,192 @@
+{
+  "bomFormat" : "CycloneDX",
+  "specVersion" : "1.6",
+  "serialNumber" : "${json-unit.ignore}",
+  "version" : 1,
+  "metadata" : {
+    "timestamp" : "${json-unit.ignore}",
+    "tools" : {
+      "components" : [
+        {
+          "name" : "Sonatype SBOM Manager",
+          "version" : "${json-unit.ignore}",
+          "type" : "application"
+        }
+      ]
+    },
+    "component" : {
+      "name" : "${json-unit.ignore}",
+      "type" : "application",
+      "version" : "${json-unit.ignore}",
+      "bom-ref" : "${json-unit.ignore}"
+    }
+  },
+  "components" : [
+    {
+      "group" : "apache",
+      "name" : "axis",
+      "properties": [
+        {
+          "name": "sonatype:identification_sources",
+          "value": "SBOM"
+        },
+        {
+          "name": "sonatype:truncated_sha1",
+          "value": "7bdade27d8cd197d9b5c"
+        },
+        {
+          "name": "sonatype:original_purl",
+          "value": "pkg:maven/apache/axis@1.0?type=jar"
+        }
+      ],
+      "version" : "1.0",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0",
+            "url" : "",
+            "properties" : [
+              {
+                "name" : "sonatype:identification_sources",
+                "value" : "SBOM,Sonatype"
+              }
+            ]
+          }
+        },
+        {
+          "license" : {
+            "id" : "MIT",
+            "url" : "",
+            "properties" : [
+              {
+                "name" : "sonatype:identification_sources",
+                "value" : "Sonatype"
+              }
+            ]
+          }
+        }
+      ],
+      "purl" : "pkg:maven/apache/axis@1.0?type=jar",
+      "modified" : false,
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "h2-2.2.224.jar"
+          }
+        ]
+      },
+      "type" : "library",
+      "bom-ref" : "435d9efa-2c0c-4078-91fb-7fdec24fcad0"
+    }
+  ],
+  "externalReferences" : [
+    {
+      "type" : "bom",
+      "url" : "http://localhost:8070/ui/links/application/vuln/report/a140fd3c3ded4bb0a640dc31e2904dc9",
+      "comment" : "IQ Report"
+    }
+  ],
+  "vulnerabilities" : [
+    {
+      "id" : "CVE-2007-2353",
+      "source" : {
+        "name" : "NVD",
+        "url" : "https://nvd.nist.gov/vuln/detail/CVE-2007-2353"
+      },
+      "ratings" : [
+        {
+          "source" : {
+            "name" : "NVD",
+            "url" : "https://nvd.nist.gov/vuln/detail/CVE-2007-2353"
+          },
+          "score" : 6.0,
+          "severity" : "high",
+          "method" : "CVSSv3",
+          "vector" : "CVSS:3.1/AV:L/AC:L/PR:H/UI:N/S:C/C:H/I:N/A:N"
+        }
+      ],
+      "cwes" : [
+        59
+      ],
+      "description" : "vuln description",
+      "analysis" : {
+        "state" : "exploitable",
+        "justification" : "requires_configuration",
+        "response" : [
+          "workaround_available"
+        ],
+        "detail" : "vex detail",
+        "firstIssued": "${json-unit.ignore}",
+        "lastUpdated": "${json-unit.ignore}"
+      },
+      "affects" : [
+        {
+          "ref" : "435d9efa-2c0c-4078-91fb-7fdec24fcad0"
+        }
+      ],
+      "properties" : [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "SBOM,Sonatype"
+        }
+      ],
+      "references" : [
+        {
+          "id" : "CVE-2007-2353",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2007-2353"
+          }
+        }
+      ]
+    },
+    {
+      "id" : "Sonatype-2024-123",
+      "source" : {
+        "name" : "Sonatype",
+        "url" : "http://link.to/vuln/Sonatype-2024-123"
+      },
+      "ratings" : [
+        {
+          "source" : {
+            "name" : "Sonatype",
+            "url" : "http://link.to/vuln/Sonatype-2024-123"
+          },
+          "score" : 9.0,
+          "severity" : "critical",
+          "method" : "other"
+        }
+      ],
+      "cwes" : [
+        89
+      ],
+      "description" : "example sonatype vuln",
+      "analysis" : {
+        "state" : "in_triage",
+        "detail" : "",
+        "firstIssued": "${json-unit.ignore}",
+        "lastUpdated": "${json-unit.ignore}"
+      },
+      "affects" : [
+        {
+          "ref" : "435d9efa-2c0c-4078-91fb-7fdec24fcad0"
+        }
+      ],
+      "properties" : [
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "Sonatype"
+        }
+      ],
+      "references" : [
+        {
+          "id" : "Sonatype-2024-123",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/Sonatype-2024-123"
+          }
+        }
+      ]
+    }
+  ]
+}

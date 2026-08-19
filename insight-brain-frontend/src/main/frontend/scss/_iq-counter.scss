@@ -1,0 +1,32 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use './variables' as *;
+
+.iq-counter {
+  @include nx-text-helpers.semi-bold;
+
+  background-color: $iq-off-white;
+  border: 1px solid $iq-grey-3;
+  border-radius: 8px;
+  color: $iq-slate;
+  display: inline-block;
+  font-size: 11px;
+  height: 16px;
+  line-height: 16px; // used for vertical alignment
+  margin-left: 8px;
+  padding: 0 4px;
+  text-align: center;
+  min-width: 8px;
+
+  &.iq-counter--active {
+    background-color: $iq-blue-light;
+    border-color: $iq-blue-light;
+    color: $iq-blue;
+  }
+}

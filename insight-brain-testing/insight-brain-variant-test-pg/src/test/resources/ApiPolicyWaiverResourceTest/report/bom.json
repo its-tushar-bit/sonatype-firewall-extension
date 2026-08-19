@@ -1,0 +1,85 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "direct",
+          "classifier": "",
+          "extension": "e",
+          "groupId": "g",
+          "version": "v"
+        }
+      },
+      "hash": "hash1",
+      "matchState": "exact",
+      "proprietary": false,
+      "relativePopularity": null,
+      "createTime": 1587400833527,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "g"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "direct"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "v"
+          }
+        ]
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "transitive",
+          "classifier": "",
+          "extension": "e",
+          "groupId": "g",
+          "version": "v"
+        }
+      },
+      "hash": "hash2",
+      "matchState": "exact",
+      "proprietary": false,
+      "relativePopularity": null,
+      "createTime": 1587400833527,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "g"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "transitive"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "v"
+          }
+        ]
+      },
+      "parentComponentPurls": [
+        "pkg:maven/g/direct@v?type=e"
+      ]
+    }
+  ]
+}

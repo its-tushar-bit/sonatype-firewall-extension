@@ -1,0 +1,57 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.4",
+  "serialNumber": "urn:uuid:bom-regression-json-test-001",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2024-01-15T10:00:00Z",
+    "component": {
+      "type": "application",
+      "name": "test-app",
+      "version": "1.0.0",
+      "purl": "pkg:maven/com.sonatype.test/test-app@1.0.0?type=jar"
+    }
+  },
+  "components": [
+    {
+      "type": "library",
+      "name": "alpha",
+      "version": "1.0.0",
+      "group": "com.example",
+      "purl": "pkg:npm/alpha@1.0.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "beta",
+      "version": "2.0.0",
+      "group": "com.example",
+      "purl": "pkg:npm/beta@2.0.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pkg:npm/alpha@1.0.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/beta@2.0.0",
+      "dependsOn": [
+        "pkg:npm/alpha@1.0.0"
+      ]
+    }
+  ]
+}

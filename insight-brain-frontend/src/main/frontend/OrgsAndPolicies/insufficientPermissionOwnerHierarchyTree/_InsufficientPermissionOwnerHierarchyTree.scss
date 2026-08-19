@@ -1,0 +1,16 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+.repositories-dotted-line .iq-owner-tree > li > ul > li:first-child > svg {
+  line:nth-child(3) {
+    stroke-dasharray: 2;
+  }
+}
+
+.repositories-dotted-line .iq-owner-tree > li > ul > li:nth-child(2) > svg {
+  line:first-child {
+    stroke-dasharray: 2;
+  }
+}

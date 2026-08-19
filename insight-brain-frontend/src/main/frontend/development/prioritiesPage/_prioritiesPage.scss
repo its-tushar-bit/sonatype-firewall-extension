@@ -1,0 +1,167 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+
+priorities-page {
+  display: contents;
+}
+
+.iq-priorities-page {
+  .nx-page-title__description {
+    max-width: 100%;
+  }
+
+  .iq-priorities-page-desc-title {
+    color: var(--nx-color-text-dark);
+    font-weight: bold;
+  }
+
+  .iq-priorities-page-commit {
+    font-size: 16px;
+  }
+
+  .iq-priorities-page-copy-commit-btn {
+    cursor: pointer;
+  }
+
+  .iq-priorities-page-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nx-spacing-2x);
+
+    .iq-priorities-page-header-actions,
+    .iq-priorities-page-header-title {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .iq-priorities-page-header-actions {
+      align-items: center;
+      .iq-priorities-page-breadcrumbs {
+        display: flex;
+        gap: var(--nx-spacing-2x);
+        font-size: 14px;
+
+        .iq-priorities-page-breadcrumbs-crumb {
+          &::after {
+            content: '/';
+            margin-left: var(--nx-spacing-2x);
+            color: var(--nx-color-text-stark);
+          }
+
+          &:last-child::after {
+            content: none;
+          }
+        }
+
+        svg {
+          margin-left: 0;
+        }
+
+        .nx-code {
+          font-size: 16px;
+        }
+
+        .iq-priorities-page-branch-name {
+          max-width: var(--nx-width-text-wrapping);
+        }
+      }
+    }
+
+    .iq-priorities-page-header-title {
+      align-items: center;
+      .iq-priorities-page-header-title-metadata {
+        display: flex;
+        gap: 14px;
+        font-size: 14px;
+      }
+    }
+  }
+
+  .iq-priorities-page-filter-row {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .iq-priorities-page-view-dropdown,
+  .nx-dropdown-menu {
+    width: 200px;
+  }
+}
+
+.iq-priorities-table {
+  &.nx-table {
+    display: grid;
+    grid-template-columns: auto 1fr repeat(4, auto);
+  }
+
+  tbody,
+  thead,
+  tr {
+    display: contents;
+  }
+
+  .nx-cell {
+    align-content: center;
+    display: block;
+
+    &--meta-info {
+      grid-column: 1 / -1; // span all columns, center loading spinner
+    }
+  }
+
+  &__priority-column-header.nx-icon {
+    font-size: var(--nx-font-size);
+  }
+
+  &__component {
+    min-width: 0;
+  }
+
+  &__recommendation {
+    @include nx-container-helpers.container-horizontal;
+  }
+
+  &__priority {
+    color: var(--nx-swatch-grey-60);
+    font-size: var(--nx-font-size-s);
+
+    // Specification has 24px content-box width. We can't just use box-sizing: content-box because it messes up the
+    // height
+    min-width: calc(24px + var(--nx-spacing-3x) + var(--nx-spacing-4x) - 1px);
+  }
+
+  .iq-dependency-indicator {
+    margin-right: var(--nx-spacing-2x);
+  }
+}
+
+.iq-priorities-page-copy-success.nx-icon {
+  color: var(--nx-swatch-green-40);
+  margin-right: 0;
+}
+
+.iq-priorities-page-copy-fail.nx-icon {
+  color: var(--nx-swatch-red-60);
+  margin-right: 0;
+}
+
+.nx-icon.iq-soon-to-expire-waiver-icon {
+  color: var(--nx-swatch-orange-55);
+}
+
+.nx-icon.iq-expired-waiver-icon {
+  color: var(--nx-swatch-indigo-80);
+}
+
+.nx-icon.iq-golden-star {
+  color: var(--nx-swatch-yellow-45);
+  font-size: var(--nx-font-size-s);
+
+  // most closely matches apparent alignment in mockups. Since the font-size of the icon is smaller than the text,
+  // there's no definitive right answer to the alignment
+  vertical-align: 0;
+}

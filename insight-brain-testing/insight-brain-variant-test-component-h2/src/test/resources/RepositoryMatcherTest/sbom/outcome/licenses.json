@@ -1,0 +1,200 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "library",
+        "coordinates": {
+          "name": "test",
+          "version": "2.0"
+        }
+      },
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "hash": "05eb8a0c64d7bae7a2e5",
+      "declaredLicenses": [
+        "Not Provided"
+      ],
+      "observedLicenses": null,
+      "effectiveLicenses": null,
+      "securityCounters": null,
+      "effectiveLicenseThreat": 5,
+      "matchState": null,
+      "proprietary": null,
+      "matchedByCoordinates": false,
+      "securityThreatLevel": null,
+      "catalogDate": 0,
+      "displayName": {
+        "parts": [
+          {
+            "field": "name",
+            "value": "test"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "version",
+            "value": "2.0"
+          }
+        ],
+        "name": "test : 2.0"
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "test",
+          "extension": "jar",
+          "groupId": "test",
+          "version": "4.0"
+        }
+      },
+      "groupId": "test",
+      "artifactId": "test",
+      "version": "4.0",
+      "hash": "f31a5221fc5d29efb78f",
+      "declaredLicenses": [
+        "Not Provided"
+      ],
+      "observedLicenses": null,
+      "effectiveLicenses": null,
+      "securityCounters": null,
+      "effectiveLicenseThreat": 5,
+      "matchState": null,
+      "proprietary": null,
+      "matchedByCoordinates": false,
+      "securityThreatLevel": null,
+      "catalogDate": 0,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "test"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "test"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "4.0"
+          }
+        ],
+        "name": "test"
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "test",
+          "extension": "jar",
+          "groupId": "test",
+          "version": "3.0"
+        }
+      },
+      "groupId": "test",
+      "artifactId": "test",
+      "version": "3.0",
+      "hash": "b077007d8c2b56317f17",
+      "declaredLicenses": [
+        "Not Provided"
+      ],
+      "observedLicenses": null,
+      "effectiveLicenses": null,
+      "securityCounters": null,
+      "effectiveLicenseThreat": 5,
+      "matchState": null,
+      "proprietary": null,
+      "matchedByCoordinates": false,
+      "securityThreatLevel": null,
+      "catalogDate": 0,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "test"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "test"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "3.0"
+          }
+        ],
+        "name": "test"
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "a",
+          "extension": "jar",
+          "groupId": "g.org",
+          "version": "1.1-SNAPSHOT"
+        }
+      },
+      "packageUrl": "pkg:maven/g.org/a@1.1-SNAPSHOT?type=jar",
+      "groupId": "g.org",
+      "artifactId": "a",
+      "version": "1.1-SNAPSHOT",
+      "classifier": null,
+      "extension": "jar",
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "g.org"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "a"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "1.1-SNAPSHOT"
+          }
+        ],
+        "name": "a"
+      },
+      "hash": "05431145264b6ae31a85",
+      "catalogDate": 1135095471000,
+      "effectiveLicenses": [
+        "Not Declared",
+        "Apache-2.0"
+      ],
+      "declaredLicenses": [
+        "Not Declared"
+      ],
+      "observedLicenses": [
+        "Apache-2.0"
+      ],
+      "matchState": "exact",
+      "proprietary": false,
+      "matchedByCoordinates": true
+    }
+  ]
+}

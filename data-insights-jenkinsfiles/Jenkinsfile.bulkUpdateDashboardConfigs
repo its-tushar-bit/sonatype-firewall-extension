@@ -1,0 +1,289 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@Library(['jenkins-shared']) _
+
+def configFileName = 'enterprise-reporting.json'
+
+def updatedConfigJson
+
+// Example dashboard metadata for documentation purposes
+def exampleDashboardMetaDataJson = '''[
+  {
+    "dashboardId": "success-metrics-trends",
+    "groupId": "success-metrics",
+    "accessButtonText": "View Data Insights",
+    "category": "dataInsight",
+    "dashboardPath": "data-insights/success-metrics-trends",
+    "description": "Explore our collection of data insights dashboards",
+    "featuresCsv": "feature1,feature2,feature3",
+    "modelsCsv": "model1,model2,model3",
+    "previewImageFilename": "DataInsightsGroup.svg",
+    "previewImageIcon": "faChartPie",
+    "priorityOrder": 50,
+    "sinceIQVersion": "",
+    "spotlight": true,
+    "spotlightColor": "purple",
+    "spotlightText": "New",
+    "title": "Data Insights Dashboards"
+  },
+  ... // other dashboard entries
+]'''
+
+def s3ConfigurationByEnv = [
+  staging: [
+    account: "993883856687",
+    role: 'jenkins-hds-enterprise-reporting-staging',
+    credentialsId: 'hds-enterprise-reporting-external-id-staging',
+    usEast2Bucket: "hds-staging-enterprise-reporting-us-east-2",
+    usWest2Bucket: "hds-staging-enterprise-reporting-us-west-2"
+  ],
+
+  production: [
+    account  : "135388973902",
+    role: 'jenkins-hds-enterprise-reporting-production',
+    credentialsId: 'hds-enterprise-reporting-external-id-production',
+    usEast2Bucket: "hds-production-enterprise-reporting-us-east-2",
+    usWest2Bucket: "hds-production-enterprise-reporting-us-west-2"
+  ]
+]
+
+pipeline {
+  agent {
+    node {
+      label 'zion-small'
+    }
+  }
+
+  parameters {
+    choice(
+      name: 'environment',
+      description: 'Pick which environment you want to update.',
+      //choices: ['staging', 'production']
+      choices: ['staging']
+    )
+
+    text(
+      name: 'dashboardEntries',
+      description: '''
+<pre>
+Provide a JSON array of dashboard entries to update or create.
+Dashboard entries <em>must</em> include a dashboardId.
+
+The available attributes are:
+
+dashboardId*, groupId, accessButtonText*, category*, dashboardPath*, description*, featuresCsv*, modelsCsv*,
+previewImageFilename*, previewImageIcon*, priorityOrder*, sinceIQVersion,
+spotlight, spotlightColor, spotlightText, title*, allowedSalesforceAccountIdsCsv
+
+*required for new dashboards.
+
+Example:
+[
+  {
+    "dashboardId": "success-metrics-trends", // required
+    "groupId": "success-metrics", // as needed
+    "title": "Success Metrics Trends", // as needed
+    ... // other fields as needed
+  }
+]
+</pre>''',
+      defaultValue: '[ ]'
+    )
+
+    text(
+      name: 'dashboardGroups',
+      description: '''
+<pre>
+Provide a JSON array of dashboard groups to update or create.
+Dashboard groups <em>must</em> include a groupId.
+
+The available attributes are:
+
+groupId*, description*, featuresCsv*, previewImageIcon*, sinceIQVersion,
+spotlight, spotlightColor, spotlightText, title*
+
+*required for new dashboard groups.
+
+Example:
+[
+  {
+    "groupId": "success-metrics", // required
+    "title": "Success Metrics", // as needed
+    ... // other fields as needed
+  }
+]
+</pre>''',
+      defaultValue: '[ ]'
+    )
+
+    booleanParam(
+      name: 'saveToS3',
+      description: 'Whether to save the updated configuration to s3.  Leave unchecked just to preview the changes.',
+      defaultValue: false
+    )
+  }
+
+  stages {
+    stage('Merge Configurations') {
+      steps {
+        script {
+          echo "Running for environment: ${params.environment}"
+          def s3Configuration = s3ConfigurationByEnv[params.environment]
+          def jsonSlurper = new groovy.json.JsonSlurper()
+
+          // Parse and validate dashboard entries and groups
+          def validator = load 'data-insights-jenkinsfiles/validations.groovy'
+
+          // Load helper functions
+          def helper = load 'data-insights-jenkinsfiles/helper.groovy'
+
+          // Validate and parse the dashboardEntries parameter
+          if (validator.isEmptyParameter(params.dashboardEntries) &&
+              validator.isEmptyParameter(params.dashboardGroups)) {
+            error "Both dashboardEntries and dashboardGroups parameters cannot be empty. Please provide at least one entry."
+          }
+          def newDashboardEntries = validator.parseJsonParameter(params.dashboardEntries, 'dashboardEntries')
+          def newDashboardGroups = validator.parseJsonParameter(params.dashboardGroups, 'dashboardGroups')
+
+          // Validate required fields
+          validator.validateRequiredFields(newDashboardEntries, 'dashboardId', 'dashboard entry')
+          validator.validateRequiredFields(newDashboardGroups, 'groupId', 'dashboard group')
+
+          echo "Processing ${newDashboardEntries.size()} dashboard entries and ${newDashboardGroups.size()} dashboard groups"
+
+          withAwsRole(region: 'us-east-2', role: s3Configuration.role, roleAccount: s3Configuration.account, credentialsId: s3Configuration.credentialsId) {
+            // Get existing configuration or create a new one if it doesn't exist
+            def existingConfig
+            def bucketForEast = s3Configuration.usEast2Bucket
+            def bucketForWest = s3Configuration.usWest2Bucket
+
+            try {
+              def existingConfigJson = sh(script: "aws s3 cp s3://${bucketForEast}/${configFileName} -", returnStdout: true).trim()
+              existingConfig = jsonSlurper.parseText(existingConfigJson)
+              echo "Found existing configuration with version ${existingConfig.version}"
+            } catch (Exception e) {
+              echo "No existing configuration found or error reading it. Creating new configuration."
+              existingConfig = [
+                version: 0,
+                dashboards: [:],
+                dashboardGroups: [:]
+              ]
+            }
+
+            // Ensure dashboards and dashboardGroups maps exist
+            if (!existingConfig.dashboards) existingConfig.dashboards = [:]
+            if (!existingConfig.dashboardGroups) existingConfig.dashboardGroups = [:]
+
+            // Process dashboard entries and groups
+            processEntries(newDashboardEntries, existingConfig.dashboards, 'dashboardId', 'dashboard', validator)
+            processEntries(newDashboardGroups, existingConfig.dashboardGroups, 'groupId', 'dashboard group', validator)
+
+            // Sort dashboards and dashboard groups by priorityOrder
+            helper.sortDashboardsByPriorityOrder(existingConfig)
+
+            def newConfig = [:]
+            // Increment the version
+            newConfig.version = (existingConfig.version ?: 0) + 1
+            newConfig.dashboardGroups = existingConfig.dashboardGroups
+            newConfig.dashboards = existingConfig.dashboards
+
+            // Convert the updated config to JSON
+            updatedConfigJson = groovy.json.JsonOutput.toJson(newConfig)
+            def prettyJsonConfigs = groovy.json.JsonOutput.prettyPrint(updatedConfigJson)
+
+            // Pretty print for logging
+            echo "Updated configuration:"
+            echo prettyJsonConfigs
+            writeFile file: 'updated_dashboard_configs.json', text: prettyJsonConfigs
+          }
+        }
+      }
+    }
+
+    stage('Archive Artifacts') {
+      steps {
+        archiveArtifacts artifacts: 'updated_dashboard_configs.json', allowEmptyArchive: true
+      }
+    }
+
+    stage('Persist to S3') {
+      steps {
+        script {
+          if (!params.saveToS3) {
+            echo 'Skipping S3 writes – marking stage as unstable'
+            unstable('S3 writes skipped')
+            return // Exit the current script block without failing
+          }
+          else {
+            echo "Saving configuration to S3"
+            helper.saveToBucket(s3Configuration.usEast2Bucket, configFileName, updatedConfigJson)
+            helper.saveToBucket(s3Configuration.usWest2Bucket, configFileName, updatedConfigJson)
+            echo "Updated to version ${newConfig.version}"
+          }
+        }
+      }
+    }
+  }
+}
+
+def toCsv(someList) {
+    def str = ''
+
+    if (someList == null) {
+        return null;
+    }
+
+    if (someList.size() == 0) {
+        return '';
+    }
+
+    if (someList.size() == 1) {
+        return someList[0]
+    }
+
+    someList.eachWithIndex { val, idx ->
+        if (idx == 0) {
+          str += "${val}"
+        } else {
+          str += ",${val}"
+        }
+    }
+
+    return str
+}
+
+
+/**
+ * Process a list of entries and update them in a configuration map.
+ *
+ * @param entries The list of entries to process
+ * @param configMap The configuration map to update
+ * @param idField The name of the field that contains the entry ID
+ * @param entryType The type of entry (for logging)
+ * @param validator The validation functions to use for each entry
+ */
+def processEntries(entries, configMap, idField, entryType, validator) {
+  entries.each { entry ->
+    def entryId = entry[idField]
+
+    // Get existing entry or create new one
+    def existingEntry = configMap[entryId] ?: [:]
+
+    // Determine if this is a new entry or an existing one
+    boolean isNewEntry = existingEntry.isEmpty()
+
+    // Update with new values, preserving existing values for fields not specified
+    def updatedEntry = existingEntry + entry
+
+    // Validate the entry based on its type and whether it's new or existing
+    validator.validateEntry(updatedEntry, idField, isNewEntry)
+
+    // Store back in the config
+    configMap[entryId] = updatedEntry
+    echo "${isNewEntry ? 'Created' : 'Updated'} ${entryType}: ${entryId}"
+  }
+}

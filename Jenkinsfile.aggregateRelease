@@ -1,0 +1,425 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+
+import groovy.json.JsonSlurper
+
+def IQ_BASEURL = "https://sonatype.sonatype.app"
+
+pipeline {
+  agent { label InsightConstants.AGENT_LABEL }
+
+  parameters {
+    string(name: 'RELEASE_VERSION', description: 'The version being released (e.g., 1.199.0). Build number will be appended automatically.')
+    string(name: 'RELEASE_BRANCH_NAME', description: 'The release branch to build from (e.g., release-1.199.x)')
+
+    // Skip stage parameters for testing
+    booleanParam(name: 'skipValidateParams', defaultValue: false, description: 'Skip: Validate release parameters')
+    booleanParam(name: 'skipCheckout', defaultValue: false, description: 'Skip: Checkout release branch')
+    booleanParam(name: 'skipSetVersion', defaultValue: false, description: 'Skip: Set release version')
+    booleanParam(name: 'skipBuild', defaultValue: false, description: 'Skip: Build release artifacts')
+    booleanParam(name: 'skipReleaseScan', defaultValue: false, description: 'Skip: Lifecycle release-stage IQ evaluation (WARNING: skipping causes storeLifecycleSboms to publish a stale report)')
+    booleanParam(name: 'skipDeploy', defaultValue: false, description: 'Skip: Deploy Maven artifacts')
+    booleanParam(name: 'skipTag', defaultValue: false, description: 'Skip: Create release tag')
+    booleanParam(name: 'skipPublish', defaultValue: false, description: 'Skip: Publish to staging repository')
+    booleanParam(name: 'skipSboms', defaultValue: false, description: 'Skip: Save insight-brain SBOMs')
+    booleanParam(name: 'skipMarkAsLatest', defaultValue: false, description: 'Skip: Mark as latest version (set to true for hotfix/patch releases)')
+  }
+
+  environment {
+    RELEASE_BUILD_NUMBER = getReleaseBuildNumber("release-${RELEASE_VERSION}")
+    FULL_RELEASE_VERSION = "${RELEASE_VERSION}-${RELEASE_BUILD_NUMBER}"
+  }
+
+  stages {
+    stage('Validate release parameters') {
+      when {
+        expression { !params.skipValidateParams }
+      }
+      steps {
+        script {
+          def requiredProperties = [RELEASE_VERSION, RELEASE_BRANCH_NAME]
+          requiredProperties.each { val ->
+            if ("${val}"?.trim().length() == 0) {
+              throw new Exception('RELEASE_VERSION and RELEASE_BRANCH_NAME are required')
+            }
+          }
+          def displayParams = [Version: FULL_RELEASE_VERSION, Branch: RELEASE_BRANCH_NAME]
+          setBuildDisplayName(displayParams)
+        }
+      }
+    }
+
+    stage('Checkout release branch') {
+      when {
+        expression { !params.skipCheckout }
+      }
+      steps {
+        dir('insight-brain') {
+          sshagent(credentials: [sonatypeZionCredentialsId()]) {
+            runSafely "git fetch origin ${RELEASE_BRANCH_NAME}"
+            runSafely "git checkout ${RELEASE_BRANCH_NAME}"
+          }
+        }
+      }
+    }
+
+    stage('Set release version') {
+      when {
+        expression { !params.skipSetVersion }
+      }
+      steps {
+        dir('insight-brain') {
+          script {
+            def config = mavenCommon(javaVersion: 'OpenJDK 25', mavenVersion: 'Maven 3.9.x', useEventSpy: false)
+            mvn config, "versions:set -DnewVersion=${FULL_RELEASE_VERSION} -DgenerateBackupPoms=false"
+
+            // Verify version was set correctly using Maven (tail -1 to skip withMaven banner)
+            def pomVersion = null
+            withMaven(jdk: 'OpenJDK 25', maven: 'Maven 3.9.x', mavenSettingsConfig: 'rsc-private-settings') {
+              pomVersion = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout | tail -1", returnStdout: true).trim()
+            }
+            echo "POM version after versions:set: ${pomVersion}"
+            if (pomVersion != FULL_RELEASE_VERSION) {
+              error "Version mismatch! Expected ${FULL_RELEASE_VERSION} but found ${pomVersion}"
+            }
+          }
+        }
+      }
+    }
+
+    stage('Build release artifacts') {
+      when {
+        expression { !params.skipBuild }
+      }
+      steps {
+        dir('insight-brain') {
+          script {
+            def mavenOpts = "-Dskip-functional-test -DskipTests -Dspotless.apply.skip=true -Dspotless.check.skip=true -Dbuild.number=${env.BUILD_NUMBER} --threads 4"
+            def config = mavenCommon(javaVersion: 'OpenJDK 25', mavenVersion: 'Maven 3.9.x', useEventSpy: false, mavenOptions: mavenOpts)
+
+            withSonatypeDockerRegistry() {
+              withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/"]) {
+                // Use withCodeSigningCredentials and -Prelease profile like publishRelease does
+                withCodeSigningCredentials('gnupg', null, config) {
+                  def releaseConfig = config + [mavenOptions: config.mavenOptions + ' -Prelease']
+                  mvn releaseConfig, 'clean install'
+                }
+                mvn config, ' -pl :insight-brain -Pjdks -Pjenkins'
+                mvn config, ' -pl :nexus-iq-server jreleaser:assemble'
+              }
+            }
+          }
+        }
+      }
+    }
+
+    stage('Lifecycle release scan') {
+      when {
+        expression { !params.skipReleaseScan }
+      }
+      steps {
+        dir('insight-brain') {
+          script {
+            def reachabilityConfig = [
+                javaAnalysis: [
+                    enable: true,
+                    includes: [
+                        [pattern: 'nexus-iq-server/target/insight-brain-service-*.jar']
+                    ],
+                    entrypointStrategy: 'JAVA_MAIN',
+                    namespaces: [
+                        [namespace: 'com.sonatype.insight']
+                    ]
+                ],
+                jsAnalysis: [
+                    enable: true,
+                    node: [
+                        executable: "${env.WORKSPACE}/insight-brain/insight-brain-frontend/node/node"
+                    ],
+                    projectDirectory: 'insight-brain-frontend',
+                    sourceFiles: [
+                        [pattern: 'src/main/**']
+                    ],
+                    excludeFiles: [
+                        [pattern: 'src/test/**']
+                    ]
+                ]
+            ]
+            nexusPolicyEvaluation(
+                iqStage: 'release',
+                iqApplication: 'insight-brain',
+                iqScanPatterns: [[scanPattern: 'insight-brain-frontend/target/webpack-modules']],
+                iqModuleExcludes: [
+                    [moduleExclude: '**/test/**'],
+                    [moduleExclude: '**/test-classes/**/module.xml']
+                ],
+                failBuildOnNetworkError: true,
+                reachability: reachabilityConfig,
+                unstableBuildOnScanningWarnings: false
+            )
+          }
+        }
+      }
+    }
+
+    stage('Deploy Maven artifacts') {
+      when {
+        expression { !params.skipDeploy }
+      }
+      steps {
+        dir('insight-brain') {
+          script {
+            // Use same config as build stage
+            def config = mavenCommon(javaVersion: 'OpenJDK 25', mavenVersion: 'Maven 3.9.x', useEventSpy: false)
+
+            // Call publishRelease from jenkins-shared library (same as old release pipeline)
+            publishRelease(config, null, false)
+          }
+        }
+      }
+    }
+
+    stage('Create release tag') {
+      when {
+        expression { !params.skipTag }
+      }
+      steps {
+        dir('insight-brain') {
+          sshagent(credentials: [sonatypeZionCredentialsId()]) {
+            sh """
+              git config user.email sonatype-zion@sonatype.com
+              git config user.name "Sonatype Zion"
+              git add -A
+              git commit -m "Release ${FULL_RELEASE_VERSION}"
+              git push --no-verify origin ${RELEASE_BRANCH_NAME}
+              git tag -a release-${FULL_RELEASE_VERSION} -m "Release ${FULL_RELEASE_VERSION}"
+              git push --no-verify origin release-${FULL_RELEASE_VERSION}
+            """
+          }
+          script {
+            // Verify tag was created on remote
+            sshagent(credentials: [sonatypeZionCredentialsId()]) {
+              def tagExists = sh(script: "git ls-remote --tags origin | grep -q 'refs/tags/release-${FULL_RELEASE_VERSION}\$'", returnStatus: true) == 0
+              if (!tagExists) {
+                error "Failed to verify release tag 'release-${FULL_RELEASE_VERSION}' on remote. Tag may not have been created."
+              }
+            }
+            echo "Successfully verified release tag 'release-${FULL_RELEASE_VERSION}' exists on remote."
+          }
+        }
+      }
+    }
+
+    stage('Publish to staging repository') {
+      when {
+        expression { !params.skipPublish }
+      }
+      steps {
+        dir('insight-brain') {
+          script {
+            // Collect artifacts to target/dist/ with checksums
+            // Trailing * in patterns (e.g., *.tar.gz*) matches both the file AND its .asc signature
+            def distFiles = [
+              includes: [
+                'nexus-iq-server/target/jreleaser/assemble/nexus-iq-server/jlink/*.zip',
+                'nexus-iq-server/target/jreleaser/assemble/nexus-iq-server/jlink/*.tgz',
+                'nexus-iq-server/target/jreleaser/assemble/nexus-iq-server/jlink/*.tgz.sha256'
+              ],
+              excludes: [
+                '**/*-sources.jar*',
+                '**/*-javadoc.jar*',
+                '**/original-*'
+              ]
+            ]
+            collectDist(distFiles)
+          }
+          // Stash artifacts before checkout (checkout will delete the workspace)
+          stash name: 'dist-artifacts', includes: 'target/dist/**'
+        }
+        // Remove new-ansible if exists (workaround for checkoutPublishingScripts using mkdir without -p)
+        sh 'rm -rf new-ansible'
+        // Checkout publishing scripts (clones ci-deployment repo into workspace root)
+        checkoutPublishingScripts()
+        // Unstash artifacts and copy to artifacts/ directory
+        dir('insight-brain') {
+          unstash 'dist-artifacts'
+        }
+        sh 'mkdir -p artifacts && cp insight-brain/target/dist/* artifacts/'
+        // Write build properties AFTER checkout (so file isn't overwritten by clone)
+        writeBuildProperties('Staging', "${FULL_RELEASE_VERSION}")
+        // Publish to staging
+        publishProduct('IQServer')
+        script {
+          if (!params.skipMarkAsLatest) {
+            updateLatestVersionTable('Staging', 'IQ_SERVER', "${FULL_RELEASE_VERSION}")
+          }
+        }
+        updateNginxConfig('Staging')
+      }
+    }
+
+    stage('Save insight-brain SBOMs') {
+      when {
+        expression { !params.skipSboms }
+      }
+      steps {
+        script {
+          if (params.skipReleaseScan) {
+            unstable "Lifecycle release scan was skipped; the report consumed by storeLifecycleSboms may be stale."
+          }
+          storeLifecycleSboms('insight-brain', "${FULL_RELEASE_VERSION}", IQ_BASEURL)
+        }
+      }
+    }
+
+    stage('Output download urls') {
+      steps {
+        script {
+          writeFile(
+            file: 'release-candidates.txt',
+            text: """https://download-staging.sonatype.com/clm/server/nexus-iq-cli-${FULL_RELEASE_VERSION}.jar
+
+Docker images will be published by the releaseIQServer job.""".toString()
+          )
+          archiveArtifacts artifacts: 'release-candidates.txt', fingerprint: true
+
+          def sbomBaseUrl = 'https://sonatype.repo.sonatype.app/repository/sonatype-sboms/insight-brain'
+          writeFile(
+            file: 'sbom-urls.txt',
+            text: """${sbomBaseUrl}/${FULL_RELEASE_VERSION}/insight-brain-${FULL_RELEASE_VERSION}-spdx.json
+${sbomBaseUrl}/${FULL_RELEASE_VERSION}/insight-brain-${FULL_RELEASE_VERSION}-cyclonedx.json
+${sbomBaseUrl}/${FULL_RELEASE_VERSION}/insight-brain-${FULL_RELEASE_VERSION}.pdf""".toString()
+          )
+          archiveArtifacts artifacts: 'sbom-urls.txt', fingerprint: true
+        }
+      }
+    }
+  }
+
+  post {
+    always {
+      node(InsightConstants.AGENT_LABEL) {
+        cleanWs()
+      }
+    }
+  }
+}
+
+/**
+ * Calculates the next build number based on existing release tags.
+ * Returns "01" for first build, "02" for second, etc.
+ * Only considers tags matching the expected format: tagBaseName-NN (e.g., release-1.199.0-01)
+ */
+private String getReleaseBuildNumber(String tagBaseName) {
+  dir('insight-brain') {
+    sshagent(credentials: [sonatypeZionCredentialsId()]) {
+      runSafely "git fetch --tags --force"
+    }
+
+    def gitTags = runSafely("git tag -l --sort=-version:refname \"${tagBaseName}-*\"", true)
+    if (gitTags.allWhitespace) {
+      return "01"
+    }
+
+    // Find the highest valid build number from tags matching expected format
+    def highestBuildNumber = 0
+    def gitTagsArray = gitTags.split("\\n")
+    for (tag in gitTagsArray) {
+      def suffix = tag.replace("${tagBaseName}-", "")
+      // Only consider tags where suffix is a pure number (e.g., "01", "02")
+      if (suffix.matches("\\d+")) {
+        def num = suffix as Integer
+        if (num > highestBuildNumber) {
+          highestBuildNumber = num
+        }
+      }
+    }
+
+    def buildNumber = highestBuildNumber + 1
+    if (buildNumber < 10) {
+      return "0" + buildNumber
+    }
+    return buildNumber.toString()
+  }
+}
+
+/**
+ * Fetches and stores SBOMs (SPDX, CycloneDX) and PDF reports from Lifecycle.
+ */
+private void storeLifecycleSboms(String applicationName, String version, String iqBaseUrl) {
+  def jsonSlurper = new JsonSlurper()
+
+  def response = httpRequest(
+    url: "${iqBaseUrl}/api/v2/applications?publicId=${applicationName}",
+    authentication: 'jenkins-saas-service-acct',
+    httpMode: 'GET',
+    contentType: 'APPLICATION_JSON'
+  )
+  def parsedResponse = jsonSlurper.parseText(response.content)
+  def applicationId = parsedResponse?.applications[0]?.id
+  if (!applicationId) {
+    echo "No Lifecycle applicationId found for ${applicationName}, HTTP response data: ${response.content}"
+  } else {
+    // Fetch SPDX JSON
+    response = httpRequest(
+      url: "${iqBaseUrl}/api/v2/spdx/${applicationId}/stages/release?format=json",
+      authentication: 'jenkins-saas-service-acct',
+      httpMode: 'GET',
+      contentType: 'APPLICATION_JSON'
+    )
+    writeFile file: "${applicationName}-${version}-spdx.json", text: response.content
+    uploadSbom(applicationName, version, "${applicationName}-${version}-spdx.json")
+
+    // Fetch CycloneDX JSON
+    response = httpRequest(
+      url: "${iqBaseUrl}/api/v2/cycloneDx/1.5/${applicationId}/stages/release",
+      authentication: 'jenkins-saas-service-acct',
+      httpMode: 'GET',
+      contentType: 'APPLICATION_JSON'
+    )
+    writeFile file: "${applicationName}-${version}-cyclonedx.json", text: response.content
+    uploadSbom(applicationName, version, "${applicationName}-${version}-cyclonedx.json")
+
+    // Query the reports API to find the stages
+    response = httpRequest(
+      url: "${iqBaseUrl}/api/v2/reports/applications/${applicationId}",
+      authentication: 'jenkins-saas-service-acct',
+      httpMode: 'GET',
+      contentType: 'APPLICATION_JSON'
+    )
+    parsedResponse = jsonSlurper.parseText(response.content)
+    // Find the reportPdfUrl for the release stage
+    def reportPdfUrl = parsedResponse.find { it.stage == 'release' }?.reportPdfUrl
+    if (!reportPdfUrl) {
+      echo "No release stage reportPdfUrl found for ${applicationName}, HTTP response data: ${response.content}"
+    } else {
+      // Fetch PDF report using curl -L to follow 307 redirects (httpRequest doesn't support followRedirects)
+      withCredentials([usernamePassword(credentialsId: 'jenkins-saas-service-acct', usernameVariable: 'IQ_USER', passwordVariable: 'IQ_PASS')]) {
+        sh "curl -L -u \"\$IQ_USER:\$IQ_PASS\" -o \"${applicationName}-${version}.pdf\" \"${iqBaseUrl}/${reportPdfUrl}\""
+      }
+      uploadSbom(applicationName, version, "${applicationName}-${version}.pdf")
+    }
+  }
+}
+
+/**
+ * Uploads SBOM artifacts to the Sonatype SBOM repository.
+ */
+private void uploadSbom(String applicationName, String version, String fileName) {
+  String baseUrl = 'https://sonatype.repo.sonatype.app/repository/sonatype-sboms'
+  def targetUrl = "${baseUrl}/${applicationName}/${version}/${fileName}"
+  httpRequest(
+    url: targetUrl,
+    httpMode: 'PUT',
+    authentication: 'jenkins-at-sonatype.repo.sonatype.app',
+    uploadFile: fileName,
+    multipartName: fileName,
+    wrapAsMultipart: false
+  )
+}
+

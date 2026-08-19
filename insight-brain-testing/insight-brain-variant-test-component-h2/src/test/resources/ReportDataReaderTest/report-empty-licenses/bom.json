@@ -1,0 +1,64 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "commons-beanutils",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "commons-beanutils",
+          "version": "1.6"
+        }
+      },
+      "groupId": "commons-beanutils",
+      "artifactId": "commons-beanutils",
+      "version": "1.6",
+      "filenames": [
+        "commons-beanutils-1.6.jar"
+      ],
+      "pathnames": [
+        "22/commons-beanutils-1.6.jar"
+      ],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "ed3c2b07d1b16ec11440",
+      "relativePopularity": 0.01,
+      "createTime": 1132682927000,
+      "lastModifiedTime": 1413131596000,
+      "lastModifiedEntryTime": 1043177940000,
+      "website": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "test",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "commons-beanutils"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "commons-beanutils"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "1.6"
+          }
+        ]
+      }
+    }
+  ]
+}

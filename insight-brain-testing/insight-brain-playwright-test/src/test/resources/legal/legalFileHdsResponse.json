@@ -1,0 +1,41 @@
+[
+  {
+    "hash": "033e7a20b23ea284d474",
+    "componentIdentifier": {
+      "format": "maven",
+      "coordinates": {
+        "artifactId": "spring-boot-actuator",
+        "classifier": "source",
+        "extension": "jar",
+        "groupId": "org.springframework.boot",
+        "version": "2.2.6.RELEASE"
+      }
+    },
+    "legalFiles": [
+      {
+        "relPath": "META-INF/NOTICE",
+        "content": "\nApache ServiceComb\nCopyright 2017-2021 The Apache Software Foundation\n\nThis product includes software developed at\nThe Apache Software Foundation (http://www.apache.org/).\n\n\n",
+        "contentHash": "ceeb94cfb8ad27ae26ad0703a3e46babb828499fee29ff036b7eb9c80cd659e4",
+        "type": "NOTICE"
+      },
+      {
+        "relPath": "notice",
+        "content": "content",
+        "contentHash": "contentHash",
+        "type": "NOTICE"
+      },
+      {
+        "relPath": "META-INF/LICENSE",
+        "content": "\nApache ServiceComb\nCopyright 2017-2021 The Apache Software Foundation\n\nThis product includes software developed at\nThe Apache Software Foundation (http://www.apache.org/).\n\n\n",
+        "contentHash": "ceeb94cfb8ad27ae26ad0703a3e46babb828499fee29ff036b7eb9c80cd659e4",
+        "type": "LICENSE"
+      },
+      {
+        "relPath": "license",
+        "content": "content",
+        "contentHash": "contentHash",
+        "type": "LICENSE"
+      }
+    ]
+  }
+]

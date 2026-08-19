@@ -1,0 +1,33 @@
+<!--
+
+    Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+    Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+    "Sonatype" is a trademark of Sonatype, Inc.
+
+-->
+<configuration>
+  <!--
+  NOTE: For tests involving the DW-based server, the config-test.yml controls the (eventual) logging configuration.
+  -->
+
+  <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%date %-5level [%thread] %logger - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <root level="INFO">
+    <appender-ref ref="console" />
+  </root>
+
+  <logger name="com.sonatype" level="DEBUG" />
+  <logger name="org.apache.http.headers" level="DEBUG" />
+  <logger name="org.eclipse.jetty.server.HttpChannel" level="DEBUG" />
+  <logger name="com.icegreen.greenmail" level="DEBUG" />
+  <!-- Turn off the excessive logging from ApacheDS code. This makes the tests run ~6 times faster (on my machine, at least :) ). -->
+  <logger name="net.sf.ehcache" level="WARN" />
+  <logger name="org.apache.directory" level="WARN" />
+  <logger name="com.sonatype.insight.brain.concurrent.PerpetualLockManager" level="TRACE" />
+  <logger name="com.sonatype.insight.brain.security.FIPSModeDetector" level="TRACE" />
+  <logger name="com.sonatype.insight.brain.git.event.orchestrate" level="DEBUG" />
+</configuration>

@@ -1,0 +1,154 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+/* eslint-env jest */
+
+import { resolveEntityDetailContext } from 'MainRoot/nosc/entityDetail/resolveEntityDetailContext';
+import type { EntityKind } from 'MainRoot/nosc/entityDetail/entityDetailTypes';
+
+describe('resolveEntityDetailContext', () => {
+  const fullInput = {
+    applicationPublicId: 'my-app',
+    applicationName: 'My App',
+    componentHash: 'abc',
+    componentDisplayName: 'log4j-core 2.14.1',
+    policyViolationId: 'pv-1',
+    policyName: 'Critical CVE Policy',
+    vulnId: 'CVE-2021-44228',
+    stageId: 'build',
+    scanId: 'scan-1',
+  };
+
+  it('marks violation current and links app, component, and vulnerability routes', () => {
+    const chain = resolveEntityDetailContext({
+      current: 'violation',
+      ...fullInput,
+    });
+    expect(chain.nodes.map((n) => n.kind)).toEqual([
+      'application',
+      'component',
+      'violation',
+      'vulnerability',
+    ]);
+    expect(chain.nodes.find((n) => n.kind === 'violation')?.isCurrent).toBe(true);
+    expect(chain.nodes.find((n) => n.kind === 'violation')?.href).toBeNull();
+    expect(chain.nodes.find((n) => n.kind === 'application')?.href).toBe(
+      '#/applications/my-app?stageId=build&scanId=scan-1',
+    );
+    expect(chain.nodes.find((n) => n.kind === 'component')?.href).toBe('#/components/abc');
+    expect(chain.nodes.find((n) => n.kind === 'vulnerability')?.href).toBe(
+      '#/vulnerabilities/CVE-2021-44228/applications?applicationPublicId=my-app&componentHash=abc&violationId=pv-1&scanId=scan-1',
+    );
+    expect(chain.stageId).toBe('build');
+    expect(chain.scanId).toBe('scan-1');
+  });
+
+  it('filters out unavailable nodes when IDs are missing', () => {
+    const chain = resolveEntityDetailContext({
+      current: 'violation',
+      policyViolationId: 'pv-1',
+      policyName: 'Some Policy',
+    });
+    // Only violation node should remain (available and current)
+    expect(chain.nodes.map((n) => n.kind)).toEqual(['violation']);
+    const violationNode = chain.nodes.find((n) => n.kind === 'violation');
+    expect(violationNode?.isAvailable).toBe(true);
+    expect(violationNode?.isCurrent).toBe(true);
+    expect(violationNode?.href).toBeNull();
+  });
+
+  it('preserves scanId when stageId is absent', () => {
+    const chain = resolveEntityDetailContext({
+      current: 'violation',
+      policyViolationId: 'pv-1',
+      scanId: 'scan-only',
+    });
+    expect(chain.scanId).toBe('scan-only');
+    expect(chain.stageId).toBeUndefined();
+  });
+
+  it('omits nodes without context when opening a CVE directly', () => {
+    const chain = resolveEntityDetailContext({
+      current: 'vulnerability',
+      vulnId: 'CVE-2021-44228',
+    });
+    // Only vulnerability node should remain (available and current)
+    expect(chain.nodes.map((n) => n.kind)).toEqual(['vulnerability']);
+    expect(chain.nodes.find((n) => n.kind === 'vulnerability')?.isCurrent).toBe(true);
+    expect(chain.nodes.find((n) => n.kind === 'vulnerability')?.isAvailable).toBe(true);
+    // Application, component, and violation nodes should be filtered out
+    expect(chain.nodes.find((n) => n.kind === 'application')).toBeUndefined();
+    expect(chain.nodes.find((n) => n.kind === 'component')).toBeUndefined();
+    expect(chain.nodes.find((n) => n.kind === 'violation')).toBeUndefined();
+  });
+
+  it('includes only available or current nodes in the chain', () => {
+    const chain = resolveEntityDetailContext({
+      current: 'vulnerability',
+      applicationPublicId: 'my-app',
+      applicationName: 'My App',
+      vulnId: 'CVE-2021-44228',
+      // Missing componentHash and policyViolationId
+    });
+    // Should include application (available) and vulnerability (current), but not component or violation
+    expect(chain.nodes.map((n) => n.kind)).toEqual(['application', 'vulnerability']);
+    expect(chain.nodes.find((n) => n.kind === 'application')?.isAvailable).toBe(true);
+    expect(chain.nodes.find((n) => n.kind === 'vulnerability')?.isCurrent).toBe(true);
+  });
+
+  it.each([
+    ['application', '#/violations/pv-1/overview?stageId=build&scanId=scan-1'],
+    ['component', '#/applications/my-app?stageId=build&scanId=scan-1'],
+    ['vulnerability', '#/applications/my-app?stageId=build&scanId=scan-1'],
+  ] as const)('current=%s keeps current href null and links other available nodes', (current, expectedSiblingHref) => {
+    const chain = resolveEntityDetailContext({
+      current: current as EntityKind,
+      ...fullInput,
+    });
+    expect(chain.nodes.find((n) => n.kind === current)?.isCurrent).toBe(true);
+    expect(chain.nodes.find((n) => n.kind === current)?.href).toBeNull();
+
+    if (current === 'application') {
+      expect(chain.nodes.find((n) => n.kind === 'violation')?.href).toBe(expectedSiblingHref);
+      expect(chain.nodes.find((n) => n.kind === 'component')?.href).toBe('#/components/abc');
+      expect(chain.nodes.find((n) => n.kind === 'vulnerability')?.href).toBe(
+        '#/vulnerabilities/CVE-2021-44228/applications?applicationPublicId=my-app&componentHash=abc&violationId=pv-1&scanId=scan-1',
+      );
+    } else {
+      expect(chain.nodes.find((n) => n.kind === 'application')?.href).toBe(expectedSiblingHref);
+    }
+  });
+
+  it('encodes special characters in native entity hrefs', () => {
+    const chain = resolveEntityDetailContext({
+      current: 'component',
+      applicationPublicId: 'a/b c',
+      componentHash: 'h/ash',
+      policyViolationId: 'pv/1 2',
+      vulnId: 'CVE/1 2',
+      scanId: 'scan id',
+    });
+    expect(chain.nodes.find((n) => n.kind === 'application')?.href).toBe(
+      '#/applications/a%2Fb%20c?scanId=scan+id',
+    );
+    expect(chain.nodes.find((n) => n.kind === 'violation')?.href).toBe(
+      '#/violations/pv%2F1%202/overview?scanId=scan+id',
+    );
+    expect(chain.nodes.find((n) => n.kind === 'vulnerability')?.href).toBe(
+      '#/vulnerabilities/CVE%2F1%202/applications?applicationPublicId=a%2Fb+c&componentHash=h%2Fash&violationId=pv%2F1+2&scanId=scan+id',
+    );
+  });
+
+  it('links component rail nodes to estate detail when only a hash is available', () => {
+    const chain = resolveEntityDetailContext({
+      current: 'violation',
+      componentHash: 'solo-hash',
+      policyViolationId: 'pv-1',
+      scanId: 'scan-9',
+    });
+    expect(chain.nodes.find((n) => n.kind === 'component')?.isAvailable).toBe(true);
+    expect(chain.nodes.find((n) => n.kind === 'component')?.href).toBe('#/components/solo-hash');
+  });
+});

@@ -1,0 +1,66 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+// Checkbox cell
+.fw-bulk-waive__toggle-cell {
+  width: 48px;
+  padding-left: 16px;
+}
+
+// Threat indicator cell
+.fw-bulk-waive__threat-cell {
+  width: 110px;
+  @include nx-text-helpers.semi-bold;
+
+  .nx-threat-number {
+    margin-left: 8px;
+  }
+}
+
+// Policy name cell
+.fw-bulk-waive__policy-name-cell {
+  width: 280px;
+}
+
+.fw-bulk-waive__policy-name-text {
+  @include nx-text-helpers.truncate-ellipsis;
+}
+
+// Constraint name cell (for CDP bulk waive)
+.fw-bulk-waive__constraint-name-cell {
+  width: 320px;
+}
+
+// Component name cell
+.fw-bulk-waive__component-name-cell {
+  width: 350px;
+  max-width: 350px;
+
+  // Ensure the NxOverflowTooltip and its child div respect the width constraint
+  .nx-overflow-tooltip {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .nx-truncate-ellipsis {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+// Condition name cell
+.fw-bulk-waive__condition-name-cell {
+  width: 420px;
+  max-width: 420px;
+
+  .fw-bulk-waive__condition-text {
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.4;
+  }
+}

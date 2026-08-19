@@ -1,0 +1,31 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+#saml-configuration-page div.iq-saml-configuration-load-xml-button-bar {
+  justify-content: flex-start;
+}
+
+#saml-configuration-page .nx-tile-header__subtitle {
+  margin-top: var(--nx-spacing-2x);
+}
+
+#saml-configuration-page .nx-sub-label {
+  font-style: normal;
+  font-size: var(--nx-font-size);
+  font-weight: normal;
+}
+
+.iq-saml-configuration-metadata,
+.iq-saml-configuration-metadata:focus,
+.iq-saml-configuration-metadata:hover {
+  text-decoration: none;
+  cursor: pointer;
+  color: var(--nx-color-text-dark);
+}
+
+input.iq-input-file--hidden {
+  left: -9999em;
+  position: absolute;
+}

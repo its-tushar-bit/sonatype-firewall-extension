@@ -1,0 +1,53 @@
+var isProd = process.env.NODE_ENV;
+module.exports = {
+  parserOptions: {
+    ecmaVersion: 2020,
+    sourceType: 'module',
+  },
+  env: {
+    browser: true,
+    node: true,
+    jest: true,
+    es6: true,
+  },
+  globals: {
+    $: false,
+    clmBuildTimestamp: false,
+    Fuse: false,
+    Set: false,
+    jQuery: false,
+    SpecUtil: false,
+    ResourceUtils: false,
+    StoreMockData: false,
+    StoreUtils: false,
+    PolicyTileMockData: false,
+    ProprietaryMockData: false,
+    MockData: false,
+    SidebarResourceMockData: false,
+    AccessMockData: false,
+    WebhookMockData: false,
+    ApplicationMockData: false,
+    Promise: false,
+  },
+  extends: ['eslint:recommended', 'plugin:react/recommended', 'plugin:prettier/recommended'],
+  plugins: ['deprecate'],
+  rules: {
+    eqeqeq: ['error', 'always', { null: 'ignore' }],
+    'no-caller': 'error',
+    'no-undef': 'error',
+    'no-unused-vars': 'warn',
+    strict: 'error',
+    'no-invalid-this': 'off',
+    'no-nested-ternary': 'off',
+    'no-prototype-builtins': 'off',
+    'vars-on-top': 'off',
+    'no-console': isProd ? ['error', { allow: ['warn', 'error'] }] : 'off',
+    'no-debugger': isProd ? 'error' : 'off',
+    'prettier/prettier': ['warn', { endOfLine: 'auto' }],
+  },
+  settings: {
+    react: {
+      version: 'detect',
+    },
+  },
+};

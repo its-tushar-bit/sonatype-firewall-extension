@@ -1,0 +1,166 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.dashboard.applications;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import com.sonatype.insight.brain.dashboard.PolicyViolationState;
+import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
+import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
+import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.error.exception.BadRequestException;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+public class ApplicationsListRequestValidatorTest
+{
+  @Mock
+  private Configuration configuration;
+
+  private ApplicationsListRequestValidator validator;
+
+  @BeforeEach
+  public void setUp() {
+    lenient().when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(2048);
+    validator = new ApplicationsListRequestValidator(configuration);
+  }
+
+  @Test
+  public void validate_acceptsSupportedThreatLevelRanges() {
+    ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
+    request.policyThreatLevelRanges = List.of(
+        new PolicyThreatLevelFilter(8, 10),
+        new PolicyThreatLevelFilter(1, 1));
+
+    assertThatCode(() -> validator.validate(request)).doesNotThrowAnyException();
+  }
+
+  @Test
+  public void validate_acceptsSupportedApplicationsListOrderByTokens() {
+    assertThat(ApplicationsListRequestValidator.DEFAULT_ORDER_BY).isEqualTo("-maxPolicyThreatLevel");
+
+    assertThatCode(() -> validator.validate(requestWithOrderBy("-maxPolicyThreatLevel")))
+        .doesNotThrowAnyException();
+    assertThatCode(() -> validator.validate(requestWithOrderBy("maxPolicyThreatLevel")))
+        .doesNotThrowAnyException();
+    assertThatCode(() -> validator.validate(requestWithOrderBy("-lastEvaluationTime")))
+        .doesNotThrowAnyException();
+    assertThatCode(() -> validator.validate(requestWithOrderBy("lastEvaluationTime")))
+        .doesNotThrowAnyException();
+  }
+
+  @Test
+  public void validate_rejectsTooManyThreatLevelRanges() {
+    ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
+    List<PolicyThreatLevelFilter> ranges = new ArrayList<>();
+    for (int i = 0; i < ApplicationsListRequestValidator.MAX_POLICY_THREAT_LEVEL_RANGES + 1; i++) {
+      ranges.add(new PolicyThreatLevelFilter(1, 1));
+    }
+    request.policyThreatLevelRanges = ranges;
+
+    assertThatThrownBy(() -> validator.validate(request))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("too many entries");
+  }
+
+  @Test
+  public void validate_rejectsOutOfDomainThreatLevelBounds() {
+    ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
+    request.policyThreatLevelRanges = List.of(new PolicyThreatLevelFilter(-1, 5));
+
+    assertThatThrownBy(() -> validator.validate(request))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("minPolicyThreatLevel");
+  }
+
+  @Test
+  public void validate_rejectsTooManyStageIds() {
+    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(2);
+    validator = new ApplicationsListRequestValidator(configuration);
+    ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
+    request.stageIds = Set.of("build", "develop", "release");
+
+    assertThatThrownBy(() -> validator.validate(request))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("stageIds contains too many ids");
+  }
+
+  /**
+   * CLM-43211: these two were previously blanket-rejected. Both deserialize into EnumSets, so the
+   * indexed domain already bounds them and violation-scoped discovery can serve them.
+   */
+  @Test
+  public void validate_acceptsPolicyTypeAndViolationStateFilters() {
+    ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
+    request.policyThreatCategories = new PolicyThreatCategoryFilter(Set.of(PolicyThreatCategory.SECURITY));
+    request.policyViolationStates = new PolicyViolationStateFilter(Set.of(PolicyViolationState.OPEN));
+
+    assertThatCode(() -> validator.validate(request)).doesNotThrowAnyException();
+  }
+
+  @Test
+  public void validate_stillRejectsTagIdsAsUnsupported() {
+    ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
+    request.tagIds = Set.of("tag-a");
+
+    assertThatThrownBy(() -> validator.validate(request))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("tagIds");
+  }
+
+  @Test
+  public void validate_rejectsNullThreatLevelRangeElement() {
+    ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
+    request.policyThreatLevelRanges = new ArrayList<>();
+    request.policyThreatLevelRanges.add(null);
+    request.policyThreatLevelRanges.add(new PolicyThreatLevelFilter(8, 10));
+
+    assertThatThrownBy(() -> validator.validate(request))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("must not contain null elements");
+  }
+
+  @Test
+  public void validate_rejectsNonPositiveAgeInDays() {
+    ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
+    request.ageInDays = 0;
+
+    assertThatThrownBy(() -> validator.validate(request))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("ageInDays");
+  }
+
+  @Test
+  public void validate_rejectsAgeInDaysAboveMax() {
+    ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
+    request.ageInDays = ApplicationsListRequestValidator.MAX_AGE_IN_DAYS + 1;
+
+    assertThatThrownBy(() -> validator.validate(request))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("ageInDays");
+  }
+
+  private static ApplicationsListRequestDTO requestWithOrderBy(final String orderBy) {
+    ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
+    request.orderBy = orderBy;
+    return request;
+  }
+}

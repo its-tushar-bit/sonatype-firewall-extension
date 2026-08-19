@@ -1,0 +1,55 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+/*
+  #Responsive Styles
+*/
+@media (max-width: 1249px) {
+  .container {
+    margin: auto;
+    width: 849px;
+    min-width: 849px;
+  }
+
+  .span12 {
+    width: 850px;
+  }
+
+  .span10 {
+    width: 706px;
+  }
+
+  .span6 {
+    width: 414px;
+  }
+
+  .span2 {
+    width: 124px;
+  }
+}
+
+@media (min-width: 1250px) {
+  .container {
+    margin: auto;
+    width: 1105px;
+    min-width: 1105px;
+  }
+
+  .span12 {
+    width: 1105px;
+  }
+
+  .span10 {
+    width: 916px;
+  }
+
+  .span6 {
+    width: 537px;
+  }
+
+  .span2 {
+    width: 159px;
+  }
+}

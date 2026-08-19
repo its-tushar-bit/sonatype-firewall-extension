@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bom serialNumber="urn:uuid:d02f01de-5bec-4f60-844f-b344912a289f" version="1"
+     xmlns="http://cyclonedx.org/schema/bom/1.4">
+  <metadata>
+    <timestamp>2022-12-09T15:06:10Z</timestamp>
+    <tools>
+      <tool>
+        <vendor>Sonatype Inc.</vendor>
+        <name>Nexus IQ Server</name>
+        <version>1.153.0</version>
+      </tool>
+    </tools>
+    <properties>
+      <property name="Scan ID">Random Value</property>
+    </properties>
+  </metadata>
+  <externalReferences>
+    <reference type="bom">
+      <url>http://localhost:8070/ui/links/application/a1/report/d02f01de5bec4f60844fb344912a289f</url>
+      <comment>IQ Report</comment>
+    </reference>
+  </externalReferences>
+</bom>

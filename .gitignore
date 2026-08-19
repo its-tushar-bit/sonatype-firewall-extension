@@ -1,4 +1,84 @@
+# Node.js / Frontend build
 node_modules/
 *.log
 .DS_Store
 .vite/
+
+# Java / Maven
+.classpath
+.idea
+.pi/
+.project
+.settings/
+.sonatype
+.run/
+target/
+sonatype-work/
+log/
+dependency-reduced-pom.xml
+*.iml
+*.eml
+.*.swp
+.tags
+.vscode/
+.factorypath
+perfTemp_*/
+perf_results-*.out
+.pmd
+.pmdruleset.xml
+awsPerfRun_*/
+
+# Terraform
+*.tfstate
+*.tfstate.backup
+.terraform.tfstate.lock.info
+override.tf
+.terraform
+terraform.tfvars
+
+# Python
+__pycache__
+.beads
+
+# dep tree that is created as part of IQ for vsCode
+dependency_tree.txt
+
+# MCP configuration file
+.mcp.json
+
+# Claude Code local settings
+.claude/settings.local.json
+/COMPONENT_IDENTIFIER_ANALYSIS.md
+/enable-pypi-audit.sh
+/FIREWALL_API_TO_TELEMETRY_FLOW.md
+/MULTI_FORMAT_TELEMETRY_VERIFICATION.md
+/PYPI_SETUP_GUIDE.md
+/REPOSITORY_COMPONENT_TELEMETRY_SUMMARY.md
+/setup-and-test-pypi.sh
+/setup-pypi-repository.sh
+/test-log4j-telemetry.sh
+/test-npm-telemetry.sh
+/test-nuget-telemetry.sh
+/test-pypi-telemetry.sh
+/enable-docker-audit.sh
+/setup-and-test-docker.sh
+/setup-docker-repository.sh
+/test-docker-telemetry.sh
+
+# Claude auto-review working files
+review_payload.json
+analysis_scratchpad.md
+
+# Superpowers (AI-assisted development artifacts - not for version control)
+docs/superpowers/
+
+# Superset worktree configuration
+.superset/
+
+# Git worktrees
+.worktrees/
+.claude/worktrees/
+
+# Local Justfile overrides
+Justfile.local
+.mvn/maven.config

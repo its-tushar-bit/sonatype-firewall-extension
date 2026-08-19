@@ -1,0 +1,124 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+.sbom-manager-sbom-release-status-tile {
+  grid-area: sbom-release-status;
+  color: var(--nx-color-text-dark);
+
+  .nx-tile-header {
+    display: block;
+
+    &__title {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: var(--nx-spacing-2x);
+
+      .nx-h3 {
+        font-size: var(--nx-font-size-s);
+        font-weight: 400;
+      }
+    }
+  }
+
+  .nx-tile-content {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+
+    .nx-p {
+      font-size: var(--nx-font-size-s);
+      text-align: center;
+    }
+  }
+
+  &__info-icon {
+    margin: 0;
+    color: var(--nx-color-text-dark);
+  }
+
+  &__meter-bars {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+  }
+}
+
+.sbom-manager-sbom-release-status-meter-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min-content;
+
+  &__status {
+    display: flex;
+    align-items: center;
+  }
+
+  &__icon {
+    margin-left: 0;
+
+    &--red {
+      color: var(--nx-swatch-red-40);
+    }
+    &--orange {
+      color: var(--nx-swatch-orange-55);
+    }
+    &--green {
+      color: var(--nx-swatch-green-40);
+    }
+  }
+
+  @mixin meterStyle() {
+    $-height: 10px;
+    $-radius: 5px;
+    &::-webkit-meter-bar {
+      height: $-height;
+      border-radius: $-radius;
+    }
+    &::-moz-meter-bar {
+      height: $-height;
+      border-radius: $-radius;
+    }
+    &::-webkit-meter-optimum-value {
+      height: $-height;
+      border-radius: $-radius;
+      @content;
+    }
+    &:-moz-meter-optimum::-moz-meter-bar {
+      height: $-height;
+      border-radius: $-radius;
+      @content;
+    }
+  }
+
+  &__meter {
+    margin: 0;
+    width: 220px;
+    height: 10px;
+
+    @include meterStyle {
+      background: var(--nx-swatch-teal-30);
+    }
+
+    &--partially-annotated {
+      @include meterStyle {
+        background: var(--nx-swatch-teal-35);
+      }
+    }
+
+    &--release-ready {
+      @include meterStyle {
+        background: var(--nx-swatch-teal-45);
+      }
+    }
+  }
+
+  &__sbom-count {
+    font-size: var(--nx-font-size);
+    font-weight: 700;
+  }
+}

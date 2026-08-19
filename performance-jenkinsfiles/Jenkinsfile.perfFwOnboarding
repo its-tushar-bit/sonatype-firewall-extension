@@ -1,0 +1,257 @@
+
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library', 'nxrm-jenkins-shared', 'skyfall-jenkins-shared']) _
+
+JDK_VERSION = 'JDK8u121'
+
+mavenConfig = mavenCommon([javaVersion : JDK_VERSION, mavenVersion: NxrmConstants.MAVEN_VERSION, useEventSpy: false])
+
+properties(
+  [
+    [$class: 'JiraProjectProperty'],
+    [$class: 'RebuildSettings',
+    autoRebuild: false,
+    rebuildDisabled: false],
+    parameters(
+      [
+        // NXRM Parameters
+        string(name: 'nxrm_repository_branch', defaultValue: 'main',
+          description: 'The branch used to build the Nexus Repository binaries'),
+        string(name: 'java_direct_mem', defaultValue: '8g',
+         description: 'Nexus: The value to use for the -XX:MaxDirectMemorySize JVM parameter', trim: true),
+        string(name: 'java_max_mem', defaultValue: '16g', description: 'Nexus: JVM max heap, -Xmx', trim: true),
+        string(name: 'java_min_mem', defaultValue: '16g', description: 'Nexus: JVM min heap, -Xms', trim: true),
+        string(name: 'postgres_max_connections', defaultValue: '1500',
+          description: 'Nexus: Max Postgres connections', trim: true),
+        string(name: 'nxrm_connection_pool', defaultValue: '1400',
+          description: 'Nexus: NXRM connections pool size', trim: true),
+        string(name: 'nxrm_instance_type', defaultValue: 'm5d.2xlarge', 
+          description: 'Nexus: The EC2 instance type to host NXRM. More info: https://aws.amazon.com/ec2/instance-types/',  trim: true),
+        string(name: 'nxrm_rds_type', defaultValue: 'db.r5.xlarge',
+          description: 'Nexus: Instance type for External Postgres RDS'),
+        choice(
+          name: 'repo_database_to_test_with',
+          choices: ['Firewall_onboarding_Ago_2023'].join('\n'),
+          description: 'Nexus: Which Database to be loaded by the NXRM environment'
+        ),
+        // IQ Parameters
+        string(name: 'iq_jvm_parameters', defaultValue: '-Xms24g -Xmx24g -XX:+UseG1GC',
+          description: 'IQ: The JVM parameters to pass to the IQ Server instance. JMX parameters are automatically added.'),
+        string(name: 'iq_instance_type', defaultValue: 'm5d.2xlarge',
+          description: 'IQ: The EC2 instance type for the IQ Server instance. More info: https://aws.amazon.com/ec2/instance-types/'),
+        string(name: 'iq_rds_type', defaultValue: 'db.m5.4xlarge',
+          description: 'IQ: The RDS instance type for the Postgres instance. The types can be found here: https://aws.amazon.com/rds/instance-types/'),
+        choice(
+          name: 'iq_git_reference_type',
+          choices: ['heads', 'tags'],
+          description: 'IQ: Select the type of Git reference to input in the field below. "heads" for a branch and "tags" for a tag'),
+        string(name: 'iq_git_reference_name', defaultValue: 'main',
+          description: 'The Git reference name used to build the IQ Server binaries from'),
+        booleanParam(defaultValue: false, description: '''Running Firewall onboarding process with name space confusion protection \
+        (it can take more than 50 hours to run the test with this param. Use with caution)''', name: 'name_space_conf_protection'),
+        string(name: 'expected_components', defaultValue: '10658491',
+          description: 'The number of expected components to monitor, regarding the DB used. Default DB: 10658491'),
+      ]),
+            [$class: 'JobLocalConfiguration', changeReasonComment: ''],
+            pipelineTriggers()
+  ]
+)
+
+pipeline {
+  agent {
+      label InsightConstants.AGENT_LABEL
+  }
+
+  tools {
+      jdk mavenConfig.javaVersion
+      }
+
+  environment {
+      // GROOVY_HOME is picked up by slurp-logs.sh
+      GROOVY_HOME = '/opt/zion/bundles/tools/groovy/groovy-2.4.3'
+
+      JAVA_OPTS = "-XX:MaxDirectMemorySize=${params.java_direct_mem}"
+
+      // Nexus Terraform variables
+      TF_VAR_assume_role_arn = 'arn:aws:iam::070872106090:role/sysadmins'
+      TF_VAR_clustered = 'false'
+      TF_VAR_cluster_size = 1
+      TF_VAR_gatling_init = 'false'
+      TF_VAR_build_key = "${env.BUILD_TAG}"
+      TF_VAR_java_min_heap = "${params.java_min_mem}"
+      TF_VAR_java_max_heap = "${params.java_max_mem}"
+      TF_VAR_java_max_direct_memory = "${params.java_direct_mem}"
+      TF_VAR_instance_type = "${params.nxrm_instance_type}"
+      TF_VAR_owner = "${OWNER}"
+      TF_VAR_data_base_nxrm = "postgres"
+      TF_VAR_db_postgres_auto = "true"
+      TF_VAR_postgres_max_connections = "${params.postgres_max_connections}"
+
+      //IQ Terraform Variables
+      TF_VAR_jvm_parameters = "${params.iq_jvm_parameters}"
+      TF_VAR_nexus_iq_server_aws_instance_type = "${params.iq_instance_type}"
+      TF_VAR_nexus_iq_server_aws_db_instance_type = "${params.iq_rds_type}"
+      TF_VAR_nexus_iq_server_jar_path = "target/nexus-iq-server.jar"
+      TF_VAR_nexus_iq_server_license_path = 'target/license.lic'
+      LICENSE_PATH = credentials('iq-server-internal-license')
+
+    }
+
+    options {
+      buildDiscarder(
+        logRotator(numToKeepStr: '100', daysToKeepStr: '30', artifactNumToKeepStr: '20', artifactDaysToKeepStr: '30')
+      )
+      timestamps()
+    }
+
+
+  stages {
+    // Default stage to load Jenkinsfile parameters
+     stage('Load parameters') {
+      steps {
+        script {
+          if (env.BUILD_NUMBER.equals('1')) {
+            currentBuild.displayName = 'Parameters loaded. Refresh the page and build again.'
+            currentBuild.result = 'ABORTED'
+            error("Stopping initial build as it's required only to load the default parameters")
+          }
+        }
+      }
+    }
+
+    // Build Nexus
+    stage('Build Nexus Repository Manager') {
+      steps {
+        dir('nexus-internal') {
+          checkout([$class: 'GitSCM', branches: [[name: "refs/heads/${nxrm_repository_branch}"]],
+                    userRemoteConfigs: [[url: 'git@github.com:sonatype/nexus-internal.git',
+                                          credentialsId: sonatypeZionCredentialsId()]]])
+
+          withMaven(jdk: 'OpenJDK 25', maven: 'Maven 3.9.x', mavenSettingsConfig: 'private-settings.xml',
+                options: [ artifactsPublisher(disabled: true), junitPublisher(disabled: true) ]) {
+            sh './rebuild.sh -Dmaven.repo.local="${WORKSPACE}/.zion/repository" -T 1C -DskipTests -Dspotless.apply.skip=true -Dspotless.check.skip=true -Dskip-obfuscate'
+            sh 'mvn dependency:copy-dependencies -pl :nexus-stress-testsuite'
+            sh "echo 'Location ${WORKSPACE}; ls ${WORKSPACE}'"
+          }
+        }
+      }
+    }
+
+    // Build IQ
+    stage('Build IQ Server') {
+      steps {
+        withMaven(jdk: 'OpenJDK 25', maven: 'Maven 3.9.x', mavenSettingsConfig: 'private-settings.xml',
+                options: [ artifactsPublisher(disabled: true), junitPublisher(disabled: true) ]) {
+          sh '''
+            mvn clean install -Dmaven.repo.local="$WORKSPACE/.zion/repository" -T 1C -DskipTests -Dspotless.apply.skip=true -Dspotless.check.skip=true -Dskip-obfuscate \
+                -pl -insight-brain-frontend,-nexus-iq-server,-insight-rm-common
+          '''
+        }
+      }
+    }
+
+    stage('Deploy IQ and NXRM Environment ') {
+      steps {
+        firewallOnboardingStartEnvironment()
+      }
+      post {
+        always {
+          archiveArtifacts artifacts: 'perf-skyfall-team/firewall-performance/firewall_onboarding/terraform.tfstate', allowEmptyArchive: true
+        }
+        failure {
+          dir('perf-skyfall-team/firewall-performance/firewall_onboarding') {
+            terraformDestroy()
+          }
+        }
+        aborted {
+          dir('perf-skyfall-team/firewall-performance/firewall_onboarding') {
+            terraformDestroy()
+          }
+        }
+      }
+    }
+
+    stage('Launch Firewall from Onboarding Wizard') {
+      steps {
+        firewallOnboardingWizard(
+          nameSpaceConfProtection: "${params.name_space_conf_protection}"
+        )
+      }
+      post {
+        always {
+           archiveArtifacts artifacts: 'perf-skyfall-team/firewall-performance/firewall_onboarding/terraform.tfstate', allowEmptyArchive: true
+        }
+        failure {
+          dir('perf-skyfall-team/firewall-performance/firewall_onboarding') {
+            terraformDestroy()
+          }
+        }
+        aborted {
+          dir('perf-skyfall-team/firewall-performance/firewall_onboarding') {
+            terraformDestroy()
+          }
+        }
+      }
+    }
+
+    stage('Running monitoring') {
+      steps {
+        firewallOnboardingPollTasks(
+          expectedRecords: "${params.expected_components}"
+        )
+      }
+      post {
+        always {
+          archiveArtifacts artifacts: 'perf-skyfall-team/firewall-performance/firewall_onboarding/terraform.tfstate', allowEmptyArchive: true
+          archiveArtifacts artifacts: 'perf-skyfall-team/firewall-performance/firewall_onboarding/Firewall-Onboarding-Performance-Test-System-Metrics.pdf', allowEmptyArchive: true
+        }
+        failure {
+          dir('perf-skyfall-team/firewall-performance/firewall_onboarding') {
+            terraformDestroy()
+          }
+        }
+        aborted {
+          dir('perf-skyfall-team/firewall-performance/firewall_onboarding') {
+            terraformDestroy()
+          }
+        }
+      }
+    }
+
+    stage('Summary') {
+      steps {
+        dir('perf-skyfall-team/firewall-performance/firewall_onboarding') {
+          script {
+            terraformDestroy()
+            DB_RECORDS = readFile file: 'DB_RECORDS'
+            DATE_START_TASK = readFile file: 'DATE_START_TASK'
+            DATE_END_TASK = readFile file: 'DATE_END_TASK'
+            echo "Components Expected: ${params.expected_components}"
+            echo "Components Monitored: ${DB_RECORDS}"
+            sh """
+            elapsed=\$((${DATE_END_TASK} - ${DATE_START_TASK}))
+            echo "Time to complete monitoring in seconds: \$elapsed"
+            """
+          }
+        }
+      }
+      post {
+        failure {
+          dir('perf-skyfall-team/firewall-performance/firewall_onboarding') {
+            terraformDestroy()
+          }
+        }
+        aborted {
+          dir('perf-skyfall-team/firewall-performance/firewall_onboarding') {
+            terraformDestroy()
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,738 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+/*
+  #Form elements
+
+  base form typography is in _typography.scss
+*/
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use './variables' as *;
+
+// Shared styles
+
+@mixin iq-pristine() {
+  border-left-color: $iq-valid-color;
+  border-left-style: double;
+  color: $iq-slate;
+}
+
+@mixin iq-valid() {
+  border-left-color: $iq-valid-color;
+  border-left-style: solid;
+}
+
+@mixin iq-dirty() {
+  border-color: $iq-grey-3;
+  border-left-style: solid;
+}
+
+@mixin iq-invalid-dirty() {
+  border-color: $iq-invalid-color;
+  border-left-style: solid;
+}
+
+@mixin iq-disabled() {
+  background: var(--nx-swatch-white);
+  border-color: $iq-grey-3;
+  border-left: 4px double $iq-grey-3;
+}
+
+$iq-form-element-wide: 395px;
+
+// Basic form layout
+
+.iq-form {
+  border-top: 1px solid $iq-grey-4;
+  margin: 0;
+  padding-top: 20px;
+  position: relative; // to make a containing block for validation popovers
+}
+
+.iq-form--no-padding {
+  padding: 0;
+}
+
+.iq-form--no-border {
+  border-top: none;
+}
+
+// styles for a form that is the entirety of a modal
+.iq-form--modal-form {
+  border-top-style: none;
+  padding-top: 0;
+
+  .iq-form-group:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.iq-form-row {
+  margin-bottom: 24px;
+
+  .iq-form-group {
+    display: inline-block;
+    margin-right: 24px;
+    margin-bottom: 0;
+    vertical-align: top; // fixes issue where certain form types display lower
+
+    &:last-child {
+      margin-right: 0;
+    }
+
+    .iq-btn {
+      margin-top: 27px;
+    }
+  }
+}
+
+.iq-form-buttons {
+  border-top: 1px solid $iq-grey-4;
+  padding: 8px 0;
+}
+
+.iq-form-group {
+  margin-bottom: 20px;
+
+  .iq-label {
+    line-height: 20px;
+  }
+
+  .iq-checkbox__label {
+    display: block;
+    padding-left: 24px;
+  }
+}
+
+.iq-form-group--indent {
+  margin-left: $iq-spacing-l;
+}
+
+// labels
+
+.iq-label {
+  @include nx-text-helpers.semi-bold;
+
+  color: $iq-off-black;
+  display: block;
+  font-size: 16px;
+  margin-bottom: 7px;
+
+  &:not(.iq-radio):not(.iq-checkbox__label).disabled {
+    color: #cacaca;
+  }
+
+  // Nested because of an inheritance issue
+  &.iq-label--inline {
+    display: inline-block;
+  }
+}
+
+.iq-label--optional {
+  &::after {
+    @include nx-text-helpers.regular;
+
+    color: $iq-slate;
+    content: ' - optional';
+    font-style: italic;
+  }
+}
+
+.iq-sub-label {
+  @include nx-text-helpers.regular;
+
+  color: $iq-off-black;
+  display: block;
+  font-size: 14px;
+
+  .fa {
+    margin-right: 6px;
+  }
+}
+
+// when using iq-label--optional, the sub-label must be placed outside of the main label
+.iq-label--optional + .iq-sub-label {
+  margin-bottom: 7px;
+  margin-top: -7px;
+}
+
+// Defining labels for groups of radio buttons or checkboxes is tricky - each individual radio has a <label>
+// element, so it inappropriate to use a <label> for the group as a whole.  Instead, a <fieldset> and <legend> can
+// be used, but you'll still typically want the <legend> styled the way a <label> on a text field would be.  This
+// class implements that
+fieldset {
+  &.iq-radio-group,
+  &.iq-checkbox-group {
+    // override browser-default "min-content"
+    min-width: auto;
+
+    legend {
+      @include nx-text-helpers.semi-bold;
+
+      // use the same styling as <label>s
+      border-style: none;
+      color: $iq-off-black;
+      font-size: 16px;
+      margin-bottom: 7px;
+    }
+  }
+}
+
+// Text Inputs
+
+input[type='text'],
+input[type='number'],
+input[type='email'],
+input[type='password'],
+input[type='url'],
+textarea {
+  &.iq-text-input,
+  &.iq-textarea {
+    box-shadow: none;
+    border-radius: 0;
+
+    border: 1px solid $iq-grey-4;
+    border-left-width: 4px;
+    font-size: var(--nx-font-size);
+    height: 32px;
+    padding: 0 8px;
+    width: 219px;
+
+    // The :focus styling is required to over-ride Bootstrap styles.
+    &:focus {
+      box-shadow: none;
+    }
+
+    &.ng-dirty {
+      @include iq-dirty();
+    }
+
+    &.ng-valid {
+      @include iq-valid();
+    }
+
+    &.ng-pristine {
+      @include iq-pristine();
+    }
+
+    &.ng-invalid.ng-dirty {
+      @include iq-invalid-dirty();
+    }
+
+    &.ng-invalid:not(.ng-dirty):focus {
+      // override bootstrap
+      border-color: $iq-grey-4;
+      border-left-color: $iq-valid-color;
+      box-shadow: initial;
+    }
+
+    &:disabled {
+      &,
+      &.ng-valid.ng-dirty {
+        @include iq-disabled();
+      }
+    }
+
+    &.iq-text-input--read-only {
+      border-color: $iq-grey-4;
+      border-left: 1px solid $iq-grey-4;
+    }
+  }
+
+  &.iq-text-input--long,
+  &.iq-textarea--long {
+    width: 374px;
+  }
+
+  // The following NX styles override Bootstrap's overly specific form element styles
+  &.nx-text-input {
+    @extend .iq-text-input;
+  }
+
+  &.nx-text-input--long {
+    @extend .iq-text-input--long;
+  }
+
+  &.nx-text-input--valid:focus {
+    @include iq-valid();
+  }
+
+  &.nx-textarea {
+    @extend .iq-textarea;
+  }
+
+  &.nx-textarea--long {
+    @extend .iq-textarea--long;
+  }
+}
+
+.iq-text-input--wide {
+  width: $iq-form-element-wide;
+}
+
+.iq-text-input--double-indent {
+  margin-left: 52px;
+}
+
+input.iq-input-file--hidden {
+  left: -9999em;
+  position: absolute;
+}
+
+textarea {
+  &.iq-textarea {
+    min-height: 64px;
+  }
+
+  &.iq-textarea--tall {
+    height: 200px;
+  }
+}
+
+// Dropdown Selector
+
+dropdown-selector {
+  border: 1px solid $iq-grey-4;
+  border-left-width: 4px;
+  display: inline-block;
+  vertical-align: middle;
+  width: 240px;
+
+  &.wide {
+    width: 411px;
+  }
+
+  &.ng-pristine {
+    border-left-color: $iq-valid-color;
+    border-left-style: double;
+  }
+
+  &.ng-valid {
+    border-left-color: $iq-valid-color;
+  }
+
+  &.ng-invalid.ng-dirty {
+    border-color: $iq-invalid-color;
+    border-left-style: solid;
+  }
+
+  &.no-options {
+    border: none;
+    color: $iq-fail-color;
+    padding: 1px 1px 1px 4px;
+    text-align: center;
+
+    .fa {
+      margin-right: 8px;
+    }
+  }
+
+  &.disabled {
+    border-color: $iq-grey-3;
+    border-left-style: double;
+
+    .iq-form-select__item .caret,
+    .iq-form-select__item:hover .caret {
+      border-top: 6px solid $iq-grey-3;
+    }
+  }
+}
+
+.iq-form-select {
+  &.open {
+    .iq-form-select__item,
+    .iq-form-select__item:hover {
+      color: $iq-grey-4;
+    }
+
+    .iq-form-select__item:hover .caret {
+      border-top-color: $iq-grey-4;
+    }
+  }
+
+  .dropdown-menu {
+    background: $iq-off-white;
+    border: 1px solid $iq-grey-4;
+    border-collapse: separate;
+    border-radius: 0;
+    box-shadow: -4px 6px 10px $iq-slate;
+    max-height: 300px; // 10 list items
+    margin: 0 0 0 -4px;
+    overflow-y: auto;
+    padding: 0;
+    width: calc(100% + 3px);
+    min-width: 0;
+
+    > li {
+      @include nx-text-helpers.truncate-ellipsis;
+
+      color: $iq-slate;
+      cursor: pointer;
+      height: 30px;
+      line-height: 30px;
+      padding: 0 11px;
+
+      &:hover {
+        color: $iq-off-black;
+      }
+    }
+  }
+}
+
+.iq-dropdown-selector--long {
+  width: 390px; // matches the --long size of .iq-text-input
+}
+
+.iq-form-select__item {
+  @include nx-text-helpers.truncate-ellipsis;
+
+  color: $iq-off-black;
+  display: block;
+  height: 22px;
+  line-height: 22px;
+  padding: 4px 34px 4px 8px;
+  position: relative;
+  text-decoration: none;
+
+  &.none-selected {
+    color: $iq-slate;
+  }
+
+  & .caret {
+    border-top: 6px solid $iq-grey-4;
+    border-right: 5px solid transparent;
+    border-left: 5px solid transparent;
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+  }
+
+  &:hover {
+    color: $iq-off-black;
+    text-decoration: none;
+
+    & .caret {
+      border-top: 6px solid $iq-slate;
+    }
+  }
+}
+
+// Colour Picker
+
+.iq-color-picker {
+  background: $iq-grey-3;
+  padding: 4px;
+  width: 166px;
+}
+
+.iq-color-picker-row {
+  font-size: 0;
+  line-height: 0;
+
+  &:not(:first-child) {
+    margin-top: -1px;
+  }
+}
+
+.iq-color-picker-color {
+  border: 1px solid $iq-off-black;
+  cursor: pointer;
+  display: inline-block;
+  height: 32px;
+  position: relative;
+  width: 32px;
+
+  &:not(:first-child) {
+    margin-left: -1px;
+  }
+
+  @each $color-name, $pickable-color in $pickable-colors {
+    &.#{$color-name} {
+      background-color: $pickable-color;
+    }
+  }
+
+  &.selected {
+    border: 1px solid $iq-off-white;
+    box-shadow: 1px 1px 5px $iq-off-black;
+    height: 32px;
+    width: 32px;
+    z-index: 1;
+  }
+}
+
+/*
+  # Read-only form groups
+*/
+
+.iq-read-only {
+  margin-top: 0;
+  margin-bottom: 13px;
+
+  > dt,
+  > div > dt {
+    @include nx-text-helpers.semi-bold;
+
+    color: var(--nx-color-text-stark);
+    cursor: default;
+    display: block;
+    font-size: 16px;
+    margin-top: 12px;
+    margin-bottom: 1px;
+
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+
+  .iq-label {
+    cursor: default;
+  }
+
+  &.nx-form-group {
+    margin-bottom: var(--nx-spacing-8x);
+  }
+}
+
+.iq-read-only-data {
+  cursor: default;
+  margin-left: var(--nx-spacing-2x);
+
+  .fa {
+    margin-right: 8px;
+  }
+
+  > span {
+    display: inline-block;
+    margin-right: 12px;
+    margin-left: 0;
+
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+}
+
+.nx-form-group.iq-read-only {
+  .iq-read-only-data {
+    margin-left: 0;
+
+    + .iq-read-only-data {
+      margin-left: var(--nx-spacing-2x);
+    }
+  }
+}
+
+.iq-read-only-data--vertical {
+  span {
+    display: block;
+    margin-right: 0;
+    margin-bottom: 8px;
+  }
+}
+
+.iq-read-only-data--horizontal {
+  dd {
+    display: inline-block;
+  }
+}
+
+// hack so that name/password fields don't autocomplete
+.hidden-input-hack {
+  position: absolute;
+  left: -1000px;
+  height: 0;
+  width: 0;
+}
+
+// See policy editor > notifications for usage
+#policy-edit-notifications {
+  td {
+    .iq-checkbox__label--no-text {
+      vertical-align: middle;
+      margin: 0;
+      width: 100%;
+
+      .iq-checkbox__box {
+        display: inline-block;
+        float: none;
+      }
+    }
+  }
+}
+
+/*
+  #Components
+  ##Inputs
+*/
+.input-prepend {
+  .add-on {
+    background-color: var(--nx-swatch-white);
+    border-right: none;
+    box-shadow: none;
+    padding-left: 2px;
+    padding-right: 4px;
+
+    // NOTE [type=text] was necessary to increase specificity above that of some of the styles from clm-form
+    & + input[type='text'] {
+      border-left: none;
+      box-shadow: none;
+      border-radius: 0;
+      height: 20px;
+
+      &::-ms-clear {
+        height: 0;
+        width: 0;
+      }
+    }
+  }
+
+  .add-on:first-child,
+  .btn:first-child {
+    border-radius: 0;
+  }
+}
+
+/*
+  ##Toggle Switches
+  Toggle switches use the [Bootstrap Toggle](http://www.bootstraptoggle.com/) plugin. Height is set programmatically
+  to 32px using "height: '24px'", where there is 8px of margins.
+*/
+.toggle-checkbox {
+  padding-left: 24px;
+}
+
+.toggle-checkbox .toggle-handle {
+  background: transparent;
+  height: calc(100% - 10px);
+  margin-top: -1px;
+  padding: 5px 8px;
+}
+
+.toggle-checkbox .btn {
+  background-image: none;
+  box-shadow: none;
+  border-color: $iq-link-color;
+}
+
+.toggle-checkbox .toggle {
+  border-width: 1px;
+  margin-right: 16px;
+
+  .toggle-group label {
+    border: none;
+  }
+}
+
+.toggle.btn-primary {
+  .toggle-handle {
+    background-color: $iq-off-white;
+    margin-right: 8px;
+    padding-left: 0;
+  }
+}
+
+.toggle-checkbox .toggle:not([disabled='disabled']):hover {
+  border-color: $iq-link-color-active;
+}
+
+.toggle-checkbox .btn-default {
+  background-color: transparent;
+  color: $iq-link-color;
+}
+
+.toggle-checkbox .btn-primary {
+  background-color: $iq-link-color;
+  color: $iq-off-white;
+  text-shadow: none;
+}
+
+.toggle-checkbox .toggle[disabled='disabled'],
+.toggle-checkbox .toggle[disabled='disabled'] .btn {
+  border-color: $iq-light-blue;
+}
+
+.toggle-checkbox .toggle[disabled='disabled'],
+.toggle-checkbox .toggle[disabled='disabled'] * {
+  cursor: not-allowed;
+}
+
+.toggle-checkbox .toggle[disabled='disabled'] .btn-default {
+  color: $iq-light-blue;
+}
+
+.toggle-checkbox .toggle[disabled='disabled'] .btn-primary {
+  background-color: $iq-light-blue;
+}
+
+/*
+  ##Validation popovers
+  Modified version of bootstrap popover styling, should appear at the far right edge of an invalidated input
+  See clmInput directive.
+*/
+.input-popover {
+  border-radius: 4px;
+  background-color: $bootstrap-error-background !important;
+  border: 1px solid $bootstrap-error-border;
+  color: $bootstrap-error-text;
+  z-index: $iq-modal-backdrop-z-index - 1;
+
+  .modal & {
+    z-index: $iq-modal-z-index + 1;
+  }
+
+  &.top {
+    //override popup positioning, so that the content will at least start in the proper dom element
+    margin-left: 10px;
+  }
+}
+
+.input-popover .top {
+  margin-top: -2px;
+}
+
+.input-popover .right {
+  margin-left: 2px;
+}
+
+.input-popover .bottom {
+  margin-top: 2px;
+}
+
+.input-popover .left {
+  margin-left: -2px;
+}
+
+.input-popover .top .popover-arrow {
+  bottom: -11px;
+  left: 80%;
+}
+
+.input-popover .popover-content {
+  padding: 0 10px;
+}
+
+.input-popover.top .arrow {
+  border-top-color: $bootstrap-error-border !important;
+  left: 80%;
+}
+
+.input-popover.top .arrow:after {
+  border-top-color: $bootstrap-error-background !important;
+}
+
+.input-popover.top .arrow:before {
+  display: none;
+}
+
+/*
+  ##Alerts
+  See clmAlerts directive.
+*/
+.alert {
+  word-break: break-word;
+}

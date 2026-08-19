@@ -15,6 +15,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.model.HashHelper;
+import com.sonatype.insight.brain.model.ScanSource;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
@@ -110,6 +111,10 @@ public class PolicyWaiverRequest
 
   @Column(name = "policy_waiver_id")
   private String policyWaiverId;
+
+  @Column(name = "source")
+  @Enumerated(EnumType.STRING)
+  private ScanSource source;
 
   @Transient
   private ComponentIdentifier componentIdentifier;
@@ -408,6 +413,18 @@ public class PolicyWaiverRequest
 
   public PolicyWaiverRequest setPolicyViolationId(String policyViolationId) {
     this.policyViolationId = policyViolationId;
+    return this;
+  }
+
+  /**
+   * Never null: rows stored before this column existed read as {@link ScanSource#DEFAULT}.
+   */
+  public ScanSource getSource() {
+    return source == null ? ScanSource.DEFAULT : source;
+  }
+
+  public PolicyWaiverRequest setSource(ScanSource source) {
+    this.source = source;
     return this;
   }
 }

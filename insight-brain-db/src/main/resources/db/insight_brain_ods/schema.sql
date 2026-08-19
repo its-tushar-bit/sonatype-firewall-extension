@@ -170,6 +170,8 @@ CREATE TABLE policy_waiver_request (
   note_to_reviewer text NULL,
   -- ID of the policy violation requested to be waived. Can be an application or repository policy violation.
   policy_violation_id varchar(50) NOT NULL,
+  -- Where the request originated. NULL for rows created before this column existed.
+  source varchar(32) NULL,
   CONSTRAINT policy_waiver_request_pk PRIMARY KEY (policy_waiver_request_id),
   CONSTRAINT policy_waiver_request_policy_fk FOREIGN KEY (policy_id) REFERENCES policy(policy_id)
      ON DELETE CASCADE,

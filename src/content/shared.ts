@@ -2,8 +2,21 @@ import { FirewallVerdict, RuntimeMessage, RuntimeResponse } from "../types";
 
 export async function requestVerdict(purl: string): Promise<FirewallVerdict | null> {
   const msg: RuntimeMessage = { type: "GET_VERDICT", purl };
+  console.log("[sonatype-firewall] requesting verdict for", purl);
   const res = await chrome.runtime.sendMessage<RuntimeMessage, RuntimeResponse>(msg);
-  if (!res.ok || !("verdict" in res)) return null;
+  if (!res) {
+    console.warn("[sonatype-firewall] no response from background service worker");
+    return null;
+  }
+  if (!res.ok) {
+    console.error("[sonatype-firewall] verdict fetch failed:", res.error);
+    return null;
+  }
+  if (!("verdict" in res)) {
+    console.warn("[sonatype-firewall] response had no verdict field:", res);
+    return null;
+  }
+  console.log("[sonatype-firewall] got verdict:", res.verdict);
   return res.verdict;
 }
 
@@ -24,8 +37,37 @@ export function badgeStyles(verdict: FirewallVerdict["policy"]["verdict"]) {
     case "warn":
       return { bg: "#F79009", fg: "#1a1a1a", label: "WARN" };
     case "allow":
-      return { bg: "#12B76A", fg: "#fff", label: "ALLOWED" };
+      return { bg: "#6b7280", fg: "#fff", label: "NO VULNERABILITIES" };
   }
+}
+
+export function injectUnsupportedBadge(host: HTMLElement, message: string): HTMLElement {
+  const existing = host.querySelector<HTMLElement>("#sonatype-firewall-badge");
+  if (existing) existing.remove();
+  const wrap = document.createElement("div");
+  wrap.id = "sonatype-firewall-badge";
+  wrap.style.cssText = `
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    margin: 12px 0;
+    border-radius: 6px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    background: #6b7280;
+    color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  `;
+  const dot = document.createElement("span");
+  dot.style.cssText = `width: 8px; height: 8px; border-radius: 50%; background: #ffffff; opacity: 0.85;`;
+  wrap.appendChild(dot);
+  const label = document.createElement("span");
+  label.textContent = `Sonatype Firewall: ${message}`;
+  wrap.appendChild(label);
+  host.prepend(wrap);
+  return wrap;
 }
 
 export function injectBadge(host: HTMLElement, verdict: FirewallVerdict): HTMLElement {

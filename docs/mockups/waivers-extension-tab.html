@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Firewall &rsaquo; Waiver Requests &mdash; Extension tab (mockup)</title>
+  <link rel="stylesheet" href="_shared.css" />
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-dot"></div>
+      <div class="brand-name">SONATYPE IQ</div>
+    </div>
+
+    <div class="section-label">Firewall</div>
+    <a class="nav-item" href="#">Dashboard</a>
+    <a class="nav-item" href="#">Repository Managers</a>
+    <a class="nav-item" href="#">Proxy Repositories</a>
+    <a class="nav-item" href="#">Quarantined Components</a>
+    <a class="nav-item active" href="waivers-extension-tab.html">Waiver Requests</a>
+    <a class="nav-item new" href="browser-extension-page.html">
+      Browser Extension
+      <span class="badge-new">NEW</span>
+    </a>
+
+    <div class="section-label">Orgs and Policies</div>
+    <a class="nav-item" href="#">Organizations</a>
+    <a class="nav-item" href="#">Applications</a>
+    <a class="nav-item" href="#">Policies</a>
+
+    <div class="section-label">System</div>
+    <a class="nav-item" href="#">Users</a>
+    <a class="nav-item" href="#">System Preferences</a>
+  </aside>
+
+  <main class="content">
+    <div class="breadcrumb">
+      <a href="#">Firewall</a> &nbsp;/&nbsp;
+      <a href="waivers-source-column.html">Waiver Requests</a> &nbsp;/&nbsp;
+      Extension requests
+    </div>
+    <h1 class="page-title">Waiver Requests</h1>
+    <p class="page-subtitle">
+      Filtered view of waiver requests submitted through the Sonatype Firewall browser extension.
+    </p>
+
+    <div class="tabs">
+      <div class="tab">Requested <span class="count">12</span></div>
+      <div class="tab">Approved <span class="count">38</span></div>
+      <div class="tab active">Extension requests <span class="count">4</span></div>
+    </div>
+
+    <div class="filter-bar">
+      <div class="search">
+        <input type="text" placeholder="Search by component, requester, or reason" />
+      </div>
+      <select>
+        <option>All requesters</option>
+        <option>alice.chen@acme.com</option>
+        <option>bob.singh@acme.com</option>
+        <option>carla.perez@acme.com</option>
+      </select>
+      <select>
+        <option>All verdicts</option>
+        <option>Blocked</option>
+        <option>Quarantined</option>
+      </select>
+      <select>
+        <option>Last 30 days</option>
+        <option>Last 7 days</option>
+        <option>Last 24 hours</option>
+      </select>
+      <div class="spacer"></div>
+      <button class="btn-primary">Bulk approve</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 130px;">Requested</th>
+            <th>Requester</th>
+            <th>Component</th>
+            <th>Policy</th>
+            <th>Scope</th>
+            <th>Origin URL</th>
+            <th style="width: 130px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="group-parent">
+            <td class="muted">3 min ago</td>
+            <td>alice.chen@acme.com</td>
+            <td class="mono">
+              lodash@4.17.10
+              <span class="group-count-badge">2 scopes</span>
+            </td>
+            <td>Security-Critical</td>
+            <td>
+              <span class="scope-badge repo">vrm-npm-proxy</span>
+              <span class="scope-badge repo">npm-central</span>
+            </td>
+            <td class="mono muted">npmjs.com/package/lodash/v/4.17.10</td>
+            <td>
+              <a href="#" style="color:#007fb0; text-decoration:none; margin-right:8px;">Approve all</a>
+              <a href="#" style="color:#a3160c; text-decoration:none;">Deny all</a>
+            </td>
+          </tr>
+          <tr class="group-child">
+            <td class="muted">3 min ago</td>
+            <td>alice.chen@acme.com</td>
+            <td class="mono">lodash@4.17.10</td>
+            <td>Security-Critical</td>
+            <td><span class="scope-badge repo">vrm-npm-proxy</span></td>
+            <td class="mono muted">npmjs.com/package/lodash/v/4.17.10</td>
+            <td>
+              <a href="#" style="color:#007fb0; text-decoration:none; margin-right:8px;">Approve</a>
+              <a href="#" style="color:#a3160c; text-decoration:none;">Deny</a>
+            </td>
+          </tr>
+          <tr class="group-child">
+            <td class="muted">3 min ago</td>
+            <td>alice.chen@acme.com</td>
+            <td class="mono">lodash@4.17.10</td>
+            <td>Security-Critical</td>
+            <td><span class="scope-badge repo">npm-central</span></td>
+            <td class="mono muted">npmjs.com/package/lodash/v/4.17.10</td>
+            <td>
+              <a href="#" style="color:#007fb0; text-decoration:none; margin-right:8px;">Approve</a>
+              <a href="#" style="color:#a3160c; text-decoration:none;">Deny</a>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="muted">18 min ago</td>
+            <td>carla.perez@acme.com</td>
+            <td class="mono">colors@1.4.44-liberty-2</td>
+            <td>Integrity-Malicious</td>
+            <td><span class="scope-badge rm">browser-ext-vrm</span></td>
+            <td class="mono muted">npmjs.com/package/colors/v/1.4.44-liberty-2</td>
+            <td>
+              <a href="#" style="color:#007fb0; text-decoration:none; margin-right:8px;">Approve</a>
+              <a href="#" style="color:#a3160c; text-decoration:none;">Deny</a>
+            </td>
+          </tr>
+
+          <tr class="group-parent">
+            <td class="muted">3 hr ago</td>
+            <td>alice.chen@acme.com</td>
+            <td class="mono">
+              ctx@0.1.2
+              <span class="group-count-badge">2 scopes</span>
+            </td>
+            <td>Integrity-Malicious</td>
+            <td>
+              <span class="scope-badge repo">vrm-pypi-proxy</span>
+              <span class="scope-badge repo">pypi-central</span>
+            </td>
+            <td class="mono muted">pypi.org/project/ctx/0.1.2/</td>
+            <td>
+              <a href="#" style="color:#007fb0; text-decoration:none; margin-right:8px;">Approve all</a>
+              <a href="#" style="color:#a3160c; text-decoration:none;">Deny all</a>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="muted">yesterday</td>
+            <td>bob.singh@acme.com</td>
+            <td class="mono">event-stream@3.3.6</td>
+            <td>Integrity-Malicious</td>
+            <td><span class="scope-badge org">Acme Corp</span></td>
+            <td class="mono muted">npmjs.com/package/event-stream/v/3.3.6</td>
+            <td>
+              <a href="#" style="color:#007fb0; text-decoration:none; margin-right:8px;">Approve</a>
+              <a href="#" style="color:#a3160c; text-decoration:none;">Deny</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="pager">
+        <span>Showing 1&ndash;4 of 4 (2 grouped)</span>
+      </div>
+    </div>
+
+    <p style="margin-top: 16px; font-size: 12px; color: #6f7d8c;">
+      Client-side filter: <code>source === 'BROWSER_EXTENSION'</code>. Grouped rows
+      (parent + children) represent one cascade waiver applied across multiple scopes &mdash;
+      typically the VRM child repo (used by the extension) plus the paired traditional Nexus
+      proxy (used by the developer's <code>npm install</code>). Origin URL column reads from the
+      extension-supplied reason string.
+    </p>
+
+  </main>
+</div>
+</body>
+</html>

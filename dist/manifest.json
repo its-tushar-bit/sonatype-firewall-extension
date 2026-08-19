@@ -22,74 +22,27 @@
   },
   "permissions": [
     "storage",
-    "activeTab"
+    "activeTab",
+    "cookies",
+    "scripting"
   ],
   "host_permissions": [
-    "https://www.npmjs.com/*",
-    "https://pypi.org/*",
-    "https://central.sonatype.com/*",
-    "https://search.maven.org/*",
-    "http://localhost:8765/*"
+    "http://localhost:8765/*",
+    "http://localhost:8070/*",
+    "http://localhost:8072/*",
+    "http://localhost:9090/*"
   ],
-  "content_scripts": [
-    {
-      "js": [
-        "assets/npm.ts-loader-CG4cd0zX.js"
-      ],
-      "matches": [
-        "https://www.npmjs.com/package/*"
-      ],
-      "run_at": "document_idle"
-    },
-    {
-      "js": [
-        "assets/pypi.ts-loader-ZEnf9wvz.js"
-      ],
-      "matches": [
-        "https://pypi.org/project/*"
-      ],
-      "run_at": "document_idle"
-    },
-    {
-      "js": [
-        "assets/maven.ts-loader--2IHejYq.js"
-      ],
-      "matches": [
-        "https://central.sonatype.com/artifact/*",
-        "https://search.maven.org/artifact/*"
-      ],
-      "run_at": "document_idle"
-    }
+  "optional_host_permissions": [
+    "https://*/*",
+    "http://*/*"
   ],
   "web_accessible_resources": [
     {
       "matches": [
-        "https://www.npmjs.com/*"
+        "<all_urls>"
       ],
       "resources": [
-        "assets/shared-LR3nET6j.js",
-        "assets/npm.ts-DdDTwkK7.js"
-      ],
-      "use_dynamic_url": false
-    },
-    {
-      "matches": [
-        "https://pypi.org/*"
-      ],
-      "resources": [
-        "assets/shared-LR3nET6j.js",
-        "assets/pypi.ts-Do8I-uY-.js"
-      ],
-      "use_dynamic_url": false
-    },
-    {
-      "matches": [
-        "https://central.sonatype.com/*",
-        "https://search.maven.org/*"
-      ],
-      "resources": [
-        "assets/shared-LR3nET6j.js",
-        "assets/maven.ts-bWdSqCyD.js"
+        "src/content/*.js"
       ],
       "use_dynamic_url": false
     }

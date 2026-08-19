@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: hexawatch-postgres
+    environment:
+      POSTGRES_DB: hexawatch
+      POSTGRES_USER: hexawatch
+      POSTGRES_PASSWORD: hexawatch
+    ports:
+      - "5455:5432"
+    volumes:
+      - hexawatch-pg-data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hexawatch -d hexawatch"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  hexawatch-pg-data:

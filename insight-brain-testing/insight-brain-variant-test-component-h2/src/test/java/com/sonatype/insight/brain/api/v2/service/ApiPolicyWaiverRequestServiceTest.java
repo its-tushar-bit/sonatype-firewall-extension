@@ -271,6 +271,40 @@ public class ApiPolicyWaiverRequestServiceTest
   }
 
   @Test
+  public void testGetPolicyWaiverRequests_ListEndpointExposesSource() {
+    // getPolicyWaiverRequests only surfaces waiver requests scoped to a repository the caller can
+    // read (via OwnerType.REPOSITORY_CONTAINER / REPOSITORY_CONTAINER_ID) -- see
+    // testGetPolicyWaiverRequests_usesBatchOwnerIdsQuery_notPerOwnerLoop below for the same pattern.
+    // An OwnerType.APPLICATION-scoped request (as in the other tests in this class) is invisible to
+    // this endpoint regardless of the source field, so this test must use a repository scope.
+    Repository repository = tempEntity.newRepository();
+    Policy repoPolicy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+    ProxyRepositoryPolicyViolation repoViolation =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), repoPolicy.getId(), repoPolicy.getThreatLevel());
+
+    apiPolicyWaiverRequestService.addPolicyWaiverRequestByPolicyViolationId(
+        OwnerType.REPOSITORY, repository.getId(), repoViolation.getId(),
+        new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false),
+        ScanSource.BROWSER_EXTENSION);
+
+    List<ApiPolicyWaiverRequestDTO> listed = apiPolicyWaiverRequestService
+        .getPolicyWaiverRequests(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, null);
+
+    assertThat(listed).hasSize(1);
+    assertThat(listed.get(0).source).isEqualTo("BROWSER_EXTENSION");
+  }
+
+  @Test
+  public void testAddPolicyWaiverRequest_SingleItemDtoExposesSource() {
+    ApiPolicyWaiverRequestDTO dto = apiPolicyWaiverRequestService.addPolicyWaiverRequestByPolicyViolationId(
+        OwnerType.APPLICATION, app.getId(), policyViolation.getId(),
+        new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false),
+        ScanSource.BROWSER_EXTENSION);
+
+    assertThat(dto.source).isEqualTo("BROWSER_EXTENSION");
+  }
+
+  @Test
   public void testAddPolicyWaiverRequestByPolicyViolationId_NonParentApplicationPublicId() {
     Application otherApp = tempEntity.newApplication(org.getId());
 

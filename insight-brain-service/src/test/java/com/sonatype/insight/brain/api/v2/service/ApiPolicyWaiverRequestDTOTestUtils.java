@@ -33,5 +33,6 @@ public class ApiPolicyWaiverRequestDTOTestUtils
         .isEqualTo(policyWaiverRequest.isExpireWhenRemediationAvailable());
     assertThat(policyWaiverRequestDTO.policyViolationId).isEqualTo(policyWaiverRequest.getPolicyViolationId());
     assertThat(policyWaiverRequestDTO.status).isEqualTo(policyWaiverRequest.getStatus().name());
+    assertThat(policyWaiverRequestDTO.source).isEqualTo(policyWaiverRequest.getSource().name());
   }
 }

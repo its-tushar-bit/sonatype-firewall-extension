@@ -337,6 +337,7 @@ public class ApiPolicyWaiverRequestService
     dto.componentUpgradeAvailable = policyWaiverRequest.isComponentUpgradeAvailable();
     dto.expireWhenRemediationAvailable = policyWaiverRequest.isExpireWhenRemediationAvailable();
     dto.policyViolationId = policyWaiverRequest.getPolicyViolationId();
+    dto.source = policyWaiverRequest.getSource().name();
 
     if (policyWaiverRequest.getComponentIdentifier() != null) {
       dto.componentIdentifier =
@@ -1049,6 +1050,7 @@ public class ApiPolicyWaiverRequestService
     dto.componentUpgradeAvailable = policyWaiverRequest.isComponentUpgradeAvailable();
     dto.expireWhenRemediationAvailable = policyWaiverRequest.isExpireWhenRemediationAvailable();
     dto.policyViolationId = policyWaiverRequest.getPolicyViolationId();
+    dto.source = policyWaiverRequest.getSource().name();
 
     if (policyWaiverRequest.getComponentIdentifier() != null) {
       dto.componentIdentifier =

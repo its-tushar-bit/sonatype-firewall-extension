@@ -112,6 +112,13 @@ public class ApiPolicyWaiverRequestDTO
   public String status;
 
   /**
+   * Where the request originated: a {@code ScanSource} constant name. Never null -- requests stored
+   * before this field existed report the default. Typed as a string so the wire format is not
+   * coupled to the Java enum.
+   */
+  public String source;
+
+  /**
    * Whether the current caller may approve/reject this waiver request. Computed server-side so
    * the UI can gate the Approve/Reject buttons correctly even when the request is scoped to a
    * virtual owner (e.g. REPOSITORY_CONTAINER_ID) that the caller lacks direct permission on but

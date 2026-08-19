@@ -49,36 +49,90 @@ export interface FirewallVerdict {
   reachability?: { reachable: boolean; appsScanned: number };
   fetchedAt: number;
   source: "mock" | "iq-server";
+  policyViolationId?: string;
+  repositoryId?: string;
+}
+
+export type IqMode = "mock" | "real";
+
+export interface ApiVrm {
+  id: string;
+  name: string;
+  childRepositoryCount?: number;
+}
+
+export interface ApiVrmRepo {
+  repositoryId: string;
+  publicId: string;
+  format: string;
+  remoteUrl?: string;
 }
 
 export interface ExtensionSettings {
+  mode: IqMode;
   iqServerUrl: string;
   userCode: string;
   passCode: string;
-  nexusProxyUrl: string;
-  rewriteInstallCommands: boolean;
-  enabledSites: { npm: boolean; pypi: boolean; maven: boolean };
+  vrmId: string;
+  vrmName: string;
+  selectedRepoIds: string[];
+  // Full repo objects for the selected repositories — the background reads
+  // remoteUrl from these to dynamically register content scripts, so we no
+  // longer hardcode Maven Central / npm / PyPI in the manifest.
+  selectedRepos: ApiVrmRepo[];
+  hexawatchUrl: string;
 }
 
 export const DEFAULT_SETTINGS: ExtensionSettings = {
+  mode: "real",
   iqServerUrl: "http://localhost:8765",
   userCode: "demo-user",
   passCode: "demo-pass",
-  nexusProxyUrl: "https://nexus.acme.com/repository",
-  rewriteInstallCommands: true,
-  enabledSites: { npm: true, pypi: true, maven: true },
+  vrmId: "",
+  vrmName: "",
+  selectedRepoIds: [],
+  selectedRepos: [],
+  hexawatchUrl: "http://localhost:9090",
 };
 
 export type RuntimeMessage =
   | { type: "GET_VERDICT"; purl: string }
+  | { type: "REFRESH_VERDICT"; purl: string }
   | { type: "GET_SETTINGS" }
   | { type: "SET_SETTINGS"; settings: ExtensionSettings }
-  | { type: "REQUEST_WAIVER"; purl: string; reason: string }
-  | { type: "GET_LAST_VIEWED" };
+  | {
+      type: "REQUEST_WAIVER";
+      purl: string;
+      reason: string;
+      policyViolationId?: string;
+      repositoryId?: string;
+    }
+  | { type: "GET_LAST_VIEWED" }
+  | { type: "TEST_CONNECTION" }
+  | { type: "LIST_REPOS_FOR_VRM"; vrmId: string }
+  | { type: "PULL_HEXAWATCH_CONFIG" }
+  | { type: "PUSH_HEXAWATCH_CONFIG" }
+  | { type: "SAVE_SETTINGS_SYNCED"; settings: ExtensionSettings }
+  | { type: "RESCAN" };
+
+export type TestConnectionResult =
+  | { ok: true; vrms: ApiVrm[] }
+  | { ok: false; error: string };
+
+export type ListReposResult =
+  | { ok: true; repos: ApiVrmRepo[] }
+  | { ok: false; error: string };
+
+export type HexawatchSyncResult =
+  | { ok: true; source: "hexawatch" | "local" }
+  | { ok: false; error: string };
 
 export type RuntimeResponse =
   | { ok: true; verdict: FirewallVerdict }
   | { ok: true; settings: ExtensionSettings }
   | { ok: true; waiverId: string }
   | { ok: true; lastViewed: FirewallVerdict | null }
+  | { ok: true; testResult: TestConnectionResult }
+  | { ok: true; reposResult: ListReposResult }
+  | { ok: true; syncResult: HexawatchSyncResult }
   | { ok: false; error: string };

@@ -1,1 +1,0 @@
-const e={iqServerUrl:"http://localhost:8765",userCode:"demo-user",passCode:"demo-pass",nexusProxyUrl:"https://nexus.acme.com/repository",rewriteInstallCommands:!0,enabledSites:{npm:!0,pypi:!0,maven:!0}};export{e as D};

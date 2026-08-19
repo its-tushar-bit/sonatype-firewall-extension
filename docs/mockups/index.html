@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Sonatype Firewall — UI mockups</title>
+  <link rel="stylesheet" href="_shared.css" />
+</head>
+<body>
+  <div class="mockup-index">
+    <h1>Sonatype Firewall &mdash; UI mockups</h1>
+    <p class="lead">Seven static HTML mockups covering both sides of the Sonatype Firewall browser-extension integration: three new/updated pages in the IQ Server frontend (insight-brain), and four surfaces of the Chrome extension (Verdict, History, Scan detail, Settings). Open in a browser to review layout, spacing, and interaction states. Copy tweaks live in <code>docs/IMPLEMENTATION.md</code>.</p>
+
+    <p style="margin: 0 0 12px; font-size: 13px; color: #1a2634; text-transform: uppercase; letter-spacing: .8px; font-weight: 600;">IQ Server &mdash; new pages</p>
+    <ul>
+      <li>
+        <a href="browser-extension-page.html">1. Browser Extension page (new)</a>
+        <div class="desc">Firewall &rarr; Browser Extension. Lists scans submitted by the extension against a Virtual Repository Manager. New sidebar entry, new route.</div>
+      </li>
+      <li>
+        <a href="waivers-source-column.html">2. Waiver Requests &mdash; Source + Scope columns, grouped cascade waivers</a>
+        <div class="desc">Existing Waiver Requests page with new Source column, new Scope column, and a source filter. Cascade waivers (one request &rarr; multiple scope rows) render as a grouped parent + expanded children sharing a <code>waiver_group_id</code>.</div>
+      </li>
+      <li>
+        <a href="waivers-extension-tab.html">3. Waiver Requests &mdash; Extension requests tab</a>
+        <div class="desc">Same page as (2), third top-tab active. Client-side filter shows only extension-originated waiver requests, with the grouped cascade view.</div>
+      </li>
+    </ul>
+
+    <p style="margin: 20px 0 12px; font-size: 13px; color: #1a2634; text-transform: uppercase; letter-spacing: .8px; font-weight: 600;">Chrome extension popup</p>
+    <ul>
+      <li>
+        <a href="extension-popup.html#verdict">4. Verdict tab &mdash; default, scope picker, submit result</a>
+        <div class="desc">The primary popup surface: current package&rsquo;s verdict, policy reasons, CVEs, golden version. <em>Request waiver</em> expands into a scope picker driven by <code>GET /policyWaiverRequests/scope-options</code>. Submit result confirms cascade rows created under one <code>waiver_group_id</code>.</div>
+      </li>
+      <li>
+        <a href="extension-popup.html#history">5. History tab &mdash; recent scans + empty state</a>
+        <div class="desc">Session-scoped list of up to 20 recently-scanned packages, newest first, persisted to <code>chrome.storage.local</code>. Current-view row is highlighted. Clicking a row swaps the Verdict tab to that entry. Empty state covers first-use.</div>
+      </li>
+      <li>
+        <a href="extension-popup.html#scan-detail">6. Scan detail tab &mdash; happy + degraded paths</a>
+        <div class="desc">Per-call diagnostic breakdown: each API call the extension made (details, evaluate, remediation, scope-options), with method, path, status, latency. Expanded row shows raw JSON. Degraded state shows how a 401 on evaluate makes the Verdict tab display partial data.</div>
+      </li>
+      <li>
+        <a href="extension-settings.html">7. Settings page &mdash; IQ Server configuration</a>
+        <div class="desc">The Options page (opens as a full Chrome tab from the popup&rsquo;s <em>Settings</em> link). Three variants: <strong>Real mode connected</strong> with successful Test-connection showing resolved VRM child repos, <strong>Test failed (401)</strong> error state with fix hint, and <strong>Mock mode</strong> where real-IQ sections are hidden.</div>
+      </li>
+    </ul>
+  </div>
+</body>
+</html>

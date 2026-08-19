@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Firewall &rsaquo; Browser Extension &mdash; IQ Server (mockup)</title>
+  <link rel="stylesheet" href="_shared.css" />
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-dot"></div>
+      <div class="brand-name">SONATYPE IQ</div>
+    </div>
+
+    <div class="section-label">Firewall</div>
+    <a class="nav-item" href="#">Dashboard</a>
+    <a class="nav-item" href="#">Repository Managers</a>
+    <a class="nav-item" href="#">Proxy Repositories</a>
+    <a class="nav-item" href="#">Quarantined Components</a>
+    <a class="nav-item" href="waivers-source-column.html">Waiver Requests</a>
+    <a class="nav-item active new" href="browser-extension-page.html">
+      Browser Extension
+      <span class="badge-new">NEW</span>
+    </a>
+
+    <div class="section-label">Orgs and Policies</div>
+    <a class="nav-item" href="#">Organizations</a>
+    <a class="nav-item" href="#">Applications</a>
+    <a class="nav-item" href="#">Policies</a>
+
+    <div class="section-label">System</div>
+    <a class="nav-item" href="#">Users</a>
+    <a class="nav-item" href="#">System Preferences</a>
+  </aside>
+
+  <main class="content">
+    <div class="breadcrumb">
+      <a href="#">Firewall</a> &nbsp;/&nbsp;
+      <a href="#">browser-ext-vrm</a> &nbsp;/&nbsp;
+      Browser Extension
+    </div>
+    <h1 class="page-title">Browser Extension scans</h1>
+    <p class="page-subtitle">
+      Components scanned through the Sonatype Firewall browser extension against
+      <strong>browser-ext-vrm</strong>. Verdicts and policy violations are recorded the same way as repository-manager proxy evaluations, tagged with source <em>Browser Extension</em>.
+    </p>
+
+    <div class="flag-banner">
+      This page is gated behind feature flags <code>iq-firewall-enterprise-enabled</code> and <code>iq-firewall-enterprise-redirect-ui-enabled</code>.
+    </div>
+
+    <div class="filter-bar">
+      <div class="search">
+        <input type="text" placeholder="Search by component or PURL" />
+      </div>
+      <select>
+        <option>All formats</option>
+        <option>npm</option>
+        <option>PyPI</option>
+        <option>Maven</option>
+      </select>
+      <select>
+        <option>All verdicts</option>
+        <option>Blocked</option>
+        <option>Quarantined</option>
+        <option>Warned</option>
+        <option>Allowed</option>
+      </select>
+      <select>
+        <option>All requesters</option>
+        <option>alice.chen@acme.com</option>
+        <option>bob.singh@acme.com</option>
+        <option>carla.perez@acme.com</option>
+      </select>
+      <select>
+        <option>Last 7 days</option>
+        <option>Last 24 hours</option>
+        <option>Last 30 days</option>
+        <option>All time</option>
+      </select>
+      <div class="spacer"></div>
+      <button class="filter-btn">Export CSV</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 150px;">When</th>
+            <th>Requester</th>
+            <th>Ecosystem</th>
+            <th>Component</th>
+            <th>Version</th>
+            <th>Verdict</th>
+            <th class="num">Violations</th>
+            <th style="width: 130px;">Repository</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="muted">2 min ago</td>
+            <td>alice.chen@acme.com</td>
+            <td><span class="pill eco-npm">npm</span></td>
+            <td class="mono">lodash</td>
+            <td class="mono">4.17.10</td>
+            <td><span class="pill verdict-block">Blocked</span></td>
+            <td class="num">2</td>
+            <td class="mono muted">npm-proxy</td>
+          </tr>
+          <tr>
+            <td class="muted">4 min ago</td>
+            <td>alice.chen@acme.com</td>
+            <td><span class="pill eco-npm">npm</span></td>
+            <td class="mono">event-stream</td>
+            <td class="mono">3.3.6</td>
+            <td><span class="pill verdict-block">Blocked</span></td>
+            <td class="num">3</td>
+            <td class="mono muted">npm-proxy</td>
+          </tr>
+          <tr>
+            <td class="muted">5 min ago</td>
+            <td>bob.singh@acme.com</td>
+            <td><span class="pill eco-pypi">pypi</span></td>
+            <td class="mono">ctx</td>
+            <td class="mono">0.1.2</td>
+            <td><span class="pill verdict-block">Blocked</span></td>
+            <td class="num">1</td>
+            <td class="mono muted">pypi-proxy</td>
+          </tr>
+          <tr>
+            <td class="muted">7 min ago</td>
+            <td>bob.singh@acme.com</td>
+            <td><span class="pill eco-maven">maven</span></td>
+            <td class="mono">org.apache.logging.log4j:log4j-core</td>
+            <td class="mono">2.14.1</td>
+            <td><span class="pill verdict-block">Blocked</span></td>
+            <td class="num">2</td>
+            <td class="mono muted">maven-proxy</td>
+          </tr>
+          <tr>
+            <td class="muted">10 min ago</td>
+            <td>alice.chen@acme.com</td>
+            <td><span class="pill eco-npm">npm</span></td>
+            <td class="mono">lodash</td>
+            <td class="mono">4.17.21</td>
+            <td><span class="pill verdict-allow">Allowed</span></td>
+            <td class="num">0</td>
+            <td class="mono muted">npm-proxy</td>
+          </tr>
+          <tr>
+            <td class="muted">12 min ago</td>
+            <td>carla.perez@acme.com</td>
+            <td><span class="pill eco-npm">npm</span></td>
+            <td class="mono">express</td>
+            <td class="mono">4.17.1</td>
+            <td><span class="pill verdict-warn">Warn</span></td>
+            <td class="num">1</td>
+            <td class="mono muted">npm-proxy</td>
+          </tr>
+          <tr>
+            <td class="muted">18 min ago</td>
+            <td>carla.perez@acme.com</td>
+            <td><span class="pill eco-npm">npm</span></td>
+            <td class="mono">colors</td>
+            <td class="mono">1.4.44-liberty-2</td>
+            <td><span class="pill verdict-quarant">Quarantined</span></td>
+            <td class="num">1</td>
+            <td class="mono muted">npm-proxy</td>
+          </tr>
+          <tr>
+            <td class="muted">32 min ago</td>
+            <td>bob.singh@acme.com</td>
+            <td><span class="pill eco-pypi">pypi</span></td>
+            <td class="mono">requests</td>
+            <td class="mono">2.31.0</td>
+            <td><span class="pill verdict-allow">Allowed</span></td>
+            <td class="num">0</td>
+            <td class="mono muted">pypi-proxy</td>
+          </tr>
+          <tr>
+            <td class="muted">1 hr ago</td>
+            <td>alice.chen@acme.com</td>
+            <td><span class="pill eco-maven">maven</span></td>
+            <td class="mono">com.fasterxml.jackson.core:jackson-databind</td>
+            <td class="mono">2.9.10.1</td>
+            <td><span class="pill verdict-block">Blocked</span></td>
+            <td class="num">4</td>
+            <td class="mono muted">maven-proxy</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="pager">
+        <span>Showing 1&ndash;9 of 47</span>
+        <button>&laquo;</button>
+        <button class="current">1</button>
+        <button>2</button>
+        <button>3</button>
+        <button>4</button>
+        <button>5</button>
+        <button>&raquo;</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+</body>
+</html>

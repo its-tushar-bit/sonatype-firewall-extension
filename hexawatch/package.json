@@ -1,0 +1,19 @@
+{
+  "name": "hexawatch",
+  "version": "0.1.0",
+  "private": true,
+  "description": "hexawatch-DB service: per-user config store for the Sonatype Firewall browser extension.",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f postgres"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "pg": "^8.11.5"
+  }
+}

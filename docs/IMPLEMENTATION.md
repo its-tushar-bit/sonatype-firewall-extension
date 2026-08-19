@@ -12,6 +12,13 @@ Mock mode stays in the codebase as an opt-in demo/offline path — same `Firewal
 
 Outcome: extension works against a running insight-brain (local `./local-dev-run.sh`, port 8070) using real component data, real firewall policy verdicts, and real waiver submission — while adding the two UI surfaces the user asked for.
 
+### Removed from scope
+
+- **Install-command rewrite** (npm/pip snippets on package pages routed through `nexusProxyUrl`). Dropped by user decision — the download path is handled by the developer's own Nexus setup and doesn't belong in the extension. Phase 1 deletes:
+  - `nexusProxyUrl` and `rewriteInstallCommands` fields from `ExtensionSettings` (`src/types.ts`).
+  - `rewriteInstallSnippets(...)` function from `src/content/shared.ts` and its callers in `src/content/npm.ts` and `src/content/pypi.ts`.
+  - The "Nexus proxy" section from the Options page.
+
 ---
 
 ## API mapping (mock → real)
@@ -199,12 +206,14 @@ Each phase is independently testable — you can pause after any of them. Total 
 ### Phase 1 — Types + settings scaffolding (no behavior change yet)
 1. `src/types.ts`
    - Extend `ExtensionSettings` with `mode: 'mock' | 'real'` (default `'mock'`) and `virtualRepositoryManagerName: string`.
+   - **Delete** `nexusProxyUrl` and `rewriteInstallCommands` from `ExtensionSettings` and `DEFAULT_SETTINGS` (dropped from scope — see Context).
    - Add types: `VrmContext { managerId: string; repoIds: Partial<Record<Ecosystem, string>>; resolvedAt: number }`.
    - Add types: `ScanRecord { purl, ecosystem, name, version, verdict, fetchedAt, tabId }` and `ScanCallLog { purl, entries: ApiCallEntry[] }` and `ApiCallEntry { method, path, status, latencyMs, error?, responsePreview? }`.
    - Extend `RuntimeMessage` union: `GET_HISTORY`, `CLEAR_HISTORY`, `GET_SCAN_DETAIL`, `RESOLVE_VRM`, `TEST_CONNECTION`.
    - Add optional `policyViolationId?: string` on `FirewallVerdict`.
-2. `src/lib/settings.ts` — extend `DEFAULT_SETTINGS`, add a lightweight migration so existing users don't crash on missing keys.
-3. `src/options/Options.tsx` — add UI controls for the two new settings and a placeholder "Test connection" button (wired in Phase 3).
+2. `src/lib/settings.ts` — extend `DEFAULT_SETTINGS`, add a lightweight migration so existing users don't crash on missing keys (also drops the two removed fields when reading legacy stored state).
+3. `src/content/shared.ts` — **delete** `rewriteInstallSnippets(...)`. Remove its calls from `src/content/npm.ts` and `src/content/pypi.ts`.
+4. `src/options/Options.tsx` — add UI controls for the new settings and a placeholder "Test connection" button (wired in Phase 3). **Remove** the Nexus proxy section entirely.
 
 **Verify:** `npm run build` succeeds; loading dist/ shows new fields in the Options page; existing mock verdicts still render.
 
@@ -378,6 +387,81 @@ New directory: `src/main/frontend/firewall/browserExtension/`.
 4. Frontend `FirewallWaiversPage` — third tab "Extension requests" (`source === 'BROWSER_EXTENSION'`).
 
 **Verify:** Jest snapshot updates for `FirewallRequestedWaiversTable.jestspec.jsx`; page renders both existing tabs + new tab.
+
+### Phase IB-6 — Cross-scope waiver (policy-driven scope options + cascade endpoint)
+
+**Problem.** Developers browse packages on npmjs.com / pypi.org / central.sonatype.com via the extension (VRM-scoped view). But they actually **download** via a *traditional* repository manager proxy (Nexus RM `npm-proxy`, `pypi-proxy`, etc.) that their `npm install --registry=…` command hits. A waiver approved only on the VRM child repo does nothing for the real install. We need the extension's "Request waiver" flow to be able to apply the waiver at the correct **policy scope** — org / RM / repo — with the specific target(s) chosen by the requester.
+
+**Policy-driven scope options.** A waiver can only be created at a scope ≤ the policy's own owner scope. So the extension asks IQ what's possible for the current violation, and renders those choices.
+
+New endpoint: `GET /api/v2/policyWaiverRequests/scope-options/{policyViolationId}` — returns
+```json
+{
+  "policy": { "policyId": "…", "policyName": "Security-Critical", "ownerType": "organization", "ownerId": "acme" },
+  "availableScopes": [
+    { "kind": "ORGANIZATION",       "ownerType": "organization",       "ownerId": "acme",       "ownerName": "Acme Corp" },
+    { "kind": "REPOSITORY_MANAGER", "ownerType": "repository_manager", "ownerId": "vrm-42",     "ownerName": "browser-ext-vrm"      },
+    { "kind": "REPOSITORY_MANAGER", "ownerType": "repository_manager", "ownerId": "trad-nex-1", "ownerName": "nexus-prod"           },
+    { "kind": "REPOSITORY",         "ownerType": "repository",         "ownerId": "r-401",      "ownerName": "vrm-npm-proxy",  "parentManagerId": "vrm-42" },
+    { "kind": "REPOSITORY",         "ownerType": "repository",         "ownerId": "r-812",      "ownerName": "npm-central",    "parentManagerId": "trad-nex-1" }
+  ]
+}
+```
+
+Rules:
+- If `policy.ownerType == 'repository'` → `availableScopes` returns only that one repo. Waiver must be at repo scope.
+- If `policy.ownerType == 'repository_manager'` → returns that RM plus every repo under it. Waiver can be at either.
+- If `policy.ownerType == 'organization'` → returns the org, every RM under it (both VRM and traditional), and every repo under those. User picks the level they want.
+
+New endpoint: `POST /api/v2/policyWaiverRequests/cascade` — body:
+```json
+{
+  "policyViolationId": "pv-9f21",
+  "scopes": [
+    { "ownerType": "repository", "ownerId": "r-401" },
+    { "ownerType": "repository", "ownerId": "r-812" }
+  ],
+  "reason": "requested via browser extension …",
+  "expiresAt": null
+}
+```
+Server behavior: inserts one waiver-request row **per scope** inside a single transaction; every row shares the same generated `waiver_group_id varchar(36)`. Response returns the group id and per-row status.
+
+**Schema addition** (part of `schema_incremental_0479.sql` from Phase IB-1):
+```sql
+ALTER TABLE policy_waiver_request ADD COLUMN IF NOT EXISTS waiver_group_id varchar(36);
+CREATE INDEX IF NOT EXISTS policy_waiver_request_group_idx ON policy_waiver_request (waiver_group_id);
+```
+
+**Authorization.** Reuse the existing `ApiPolicyWaiverRequestService` authz check per-scope — a cascade call to a scope the requester lacks permission on returns a per-row `403` in the response without failing the whole cascade. Requester sees exactly what got created.
+
+**Files touched (net add on top of IB-1..IB-5):**
+- `insight-brain-service/…/api/v2/ApiPolicyWaiverRequestResource.java` — two new methods.
+- `insight-brain-service/…/api/v2/service/ApiPolicyWaiverRequestService.java` — `getScopeOptions(policyViolationId)` and `createCascade(...)` methods.
+- `insight-brain-service/…/api/v2/dto/ApiPolicyWaiverScopeOptionsDTO.java`, `…/ApiPolicyWaiverCascadeRequestDTO.java`, `…/ApiPolicyWaiverCascadeResultDTO.java` — new DTOs.
+- `insight-brain-data/…/dataaccess/policy/PolicyWaiverRequestDAO.java` — accept `waiverGroupId` on insert; add `listByGroup(id)` helper for the frontend row-grouping view.
+- `insight-brain-db/…/schema.sql` and `schema_incremental_0479.sql` — new nullable column + index (bundled with the source column from IB-1 into the same migration file).
+
+**Extension side** (folded into Phase 6 — Waivers on real API):
+1. Verdict tab: after real-mode fetch, if `verdict.policyViolationId` present, background pre-fetches `GET /scope-options/{id}` in parallel and stashes result on the verdict record.
+2. Click "Request waiver" opens an inline scope picker:
+   - Default option: highest-level scope in `availableScopes` up to the policy's own owner (usually `REPOSITORY_MANAGER` if policy is org-level).
+   - Second row: multi-select of specific repos under that RM (checked by default; unchecking narrows).
+   - "Advanced": drop up to organization scope (only visible if `availableScopes` contains an ORGANIZATION entry).
+3. Submit → `POST /policyWaiverRequests/cascade` with the chosen scope(s). Popup shows a success line per row: `✓ Waiver submitted on vrm-npm-proxy` / `✓ Waiver submitted on npm-central`.
+
+**Verify:** Create a policy at org scope in IQ. Trigger a violation on lodash. Click Request Waiver in the extension → dropdown offers ORG, both RMs, and both repos. Submit with both repos ticked → IQ shows two rows on Waiver Requests page, both grouped by the same `waiver_group_id` (rendered as one grouped card — see IB-7).
+
+### Phase IB-7 — Grouped waiver rendering + linked-scope tab
+
+Frontend view for cascade waivers.
+
+1. `FirewallRequestedWaiversTable.jsx` — when rows share a `waiver_group_id`, render them as one grouped row: the parent row shows the component + policy + `Applies to N scopes` badge; expanding shows the child rows with their individual scope + status.
+2. `firewallWaiverRequestsSelectors.js` — memoized selector `groupedWaiverRequests` that partitions the flat list into groups.
+3. On the Extension tab, group indicator shows the two scope pills side-by-side: `VRM · vrm-npm-proxy  +  Nexus · npm-central`.
+4. New sort: "Group size" so admins can find broadly-applied waivers first.
+
+**Verify:** File a cascade waiver on two scopes → Waiver Requests page shows one grouped row; expanding shows both scopes. Approving the group approves all rows atomically (single request loop client-side; server-side approval is per-row unchanged).
 
 ### Phase IB-5 — New Browser Extension page
 1. Directory + files listed under **Frontend / B** above.

@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Extension Settings &mdash; Sonatype Firewall (mockup)</title>
+  <link rel="stylesheet" href="_shared.css" />
+  <style>
+    body { background: #eef1f4; padding: 20px 20px 60px; }
+    .back { position: fixed; top: 20px; left: 20px; color: #007fb0; text-decoration: none; font-size: 13px; }
+    .back:hover { text-decoration: underline; }
+    .variant-label {
+      max-width: 760px;
+      margin: 40px auto 0;
+      padding: 0 8px;
+      font-size: 12px;
+      color: #6f7d8c;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
+    .variant-label h2 {
+      margin: 4px 0 0;
+      font-size: 14px;
+      color: #1a2634;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .variant-label .lead {
+      color: #5c6b7a; font-size: 12.5px; margin-top: 2px;
+      text-transform: none; letter-spacing: 0; font-weight: 400;
+    }
+  </style>
+</head>
+<body>
+
+<a class="back" href="index.html">&larr; back to index</a>
+
+<div class="variant-label">
+  <h2>Extension Settings &mdash; Real mode, connected</h2>
+  <div class="lead">The Options page opens as a full Chrome tab when the user clicks <em>Settings</em> in the popup. Configures how the extension talks to insight-brain.</div>
+</div>
+
+<div class="settings-page">
+  <div class="page-hdr">
+    <div class="dot"></div>
+    <div>
+      <div class="title">Sonatype Firewall &mdash; Settings</div>
+      <div class="subtitle">Extension v0.2.0 &middot; connected to <span style="font-family:monospace;">http://localhost:8070</span></div>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <!-- Mode -->
+    <section>
+      <div class="sec-title">Mode</div>
+      <div class="sec-desc">Where the extension gets verdicts from. Mock is useful for demos and when you&rsquo;re offline; Real IQ Server is the production path.</div>
+      <div class="radio-row">
+        <label>
+          <input type="radio" name="mode" />
+          <div>
+            <div class="name">Mock (offline demo)</div>
+            <div class="desc">Serves pre-baked verdicts from <code>mock-iq/data.js</code>. No network calls to IQ.</div>
+          </div>
+        </label>
+        <label class="checked">
+          <input type="radio" name="mode" checked />
+          <div>
+            <div class="name">Real IQ Server <span class="locked-badge">Active</span></div>
+            <div class="desc">Queries a running insight-brain instance via HTTP Basic auth. Requires a Virtual Repository Manager.</div>
+          </div>
+        </label>
+      </div>
+    </section>
+
+    <!-- IQ Server connection -->
+    <section>
+      <div class="sec-title">IQ Server connection</div>
+      <div class="sec-desc">Base URL and user-token credentials. Get a user token from IQ &rarr; Profile &rarr; User Tokens.</div>
+
+      <div class="field">
+        <label for="url">Server URL</label>
+        <div>
+          <input id="url" type="url" value="http://localhost:8070" />
+          <span class="hint">Chrome will ask for permission to send requests to this origin.</span>
+        </div>
+      </div>
+      <div class="field">
+        <label for="usercode">User code</label>
+        <input id="usercode" type="text" value="usr-abc123" />
+      </div>
+      <div class="field">
+        <label for="passcode">Pass code</label>
+        <input id="passcode" type="password" value="pass-xyz456789012" />
+      </div>
+
+      <div class="field">
+        <label>&nbsp;</label>
+        <div class="inline-actions">
+          <button class="btn-secondary small">Test connection</button>
+          <span style="font-size: 11px; color: #6f7d8c;">Last tested 2m ago</span>
+        </div>
+      </div>
+
+      <div class="test-result">
+        <strong>&#10003; Connected</strong> &middot; IQ Server responded to <code>/ping</code> in 68 ms
+        <ul>
+          <li>VRM: browser-ext-vrm &nbsp;(id&nbsp;vrm-42)</li>
+          <li>Resolved npm  &nbsp;&rarr; vrm-npm-proxy &nbsp;(id&nbsp;r-401)</li>
+          <li>Resolved pypi &nbsp;&rarr; vrm-pypi-proxy &nbsp;(id&nbsp;r-402)</li>
+          <li>Resolved maven &nbsp;&rarr; vrm-maven-proxy &nbsp;(id&nbsp;r-403)</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Virtual Repository Manager -->
+    <section>
+      <div class="sec-title">Virtual Repository Manager</div>
+      <div class="sec-desc">The VRM (FIRE-660) the extension evaluates against. Its child proxy repos map 1:1 to ecosystems (npm/pypi/maven).</div>
+      <div class="field">
+        <label for="vrm">VRM name</label>
+        <div>
+          <input id="vrm" type="text" value="browser-ext-vrm" />
+          <span class="hint">Case-sensitive. Feature flags <code>iq-firewall-enterprise-enabled</code> and <code>iq-firewall-enterprise-redirect-ui-enabled</code> must be on in IQ.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Enabled sites -->
+    <section>
+      <div class="sec-title">Enabled sites</div>
+      <div class="sec-desc">Which package registries the extension scans. Uncheck to disable content-script injection for that origin.</div>
+      <div class="toggle-row">
+        <label><input type="checkbox" checked /> npmjs.com</label>
+        <label><input type="checkbox" checked /> pypi.org</label>
+        <label><input type="checkbox" checked /> central.sonatype.com</label>
+        <label><input type="checkbox" /> search.maven.org</label>
+      </div>
+    </section>
+
+    <!-- Advanced -->
+    <section>
+      <div class="sec-title">Advanced</div>
+      <div class="sec-desc">Defaults are appropriate for most users.</div>
+      <div class="field">
+        <label for="ttl">Verdict cache TTL</label>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <input id="ttl" type="number" value="30" style="width:80px" />
+          <span style="font-size: 12.5px; color: #5c6b7a;">minutes</span>
+        </div>
+      </div>
+      <div class="field">
+        <label for="hist">History size</label>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <input id="hist" type="number" value="20" style="width:80px" />
+          <span style="font-size: 12.5px; color: #5c6b7a;">most-recent scans</span>
+        </div>
+      </div>
+      <div class="field">
+        <label for="src">Scan source header</label>
+        <input id="src" type="text" value="BROWSER_EXTENSION" disabled style="opacity:.65;" />
+      </div>
+      <div class="field">
+        <label>Diagnostics</label>
+        <div>
+          <button class="btn-secondary small">Copy config as JSON</button>
+          &nbsp;
+          <button class="btn-secondary small">Clear all cached data</button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="actions">
+    <span class="status saved">&#10003; Changes saved &middot; 4s ago</span>
+    <button class="btn-secondary">Reset to defaults</button>
+    <button class="btn-primary">Save changes</button>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     Variant 2: Test failed (401)
+     ============================================================ -->
+<div class="variant-label" style="margin-top: 60px;">
+  <h2>Variant &mdash; Test connection failed (401)</h2>
+  <div class="lead">Same page, showing the error state when the pass code is wrong. Diagnostic hint routes the user back to fix credentials.</div>
+</div>
+
+<div class="settings-page">
+  <div class="page-hdr">
+    <div class="dot"></div>
+    <div>
+      <div class="title">Sonatype Firewall &mdash; Settings</div>
+      <div class="subtitle">Extension v0.2.0 &middot; <span style="color:#a3160c;">connection failed</span></div>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <section>
+      <div class="sec-title">IQ Server connection</div>
+      <div class="sec-desc">Base URL and user-token credentials.</div>
+      <div class="field">
+        <label>Server URL</label>
+        <input type="url" value="http://localhost:8070" />
+      </div>
+      <div class="field">
+        <label>User code</label>
+        <input type="text" value="usr-abc123" />
+      </div>
+      <div class="field">
+        <label>Pass code</label>
+        <input type="password" value="oops-wrong" style="border-color:#a3160c;" />
+      </div>
+      <div class="field">
+        <label>&nbsp;</label>
+        <div class="inline-actions">
+          <button class="btn-secondary small">Test connection</button>
+          <span style="font-size: 11px; color: #a3160c;">Failed just now</span>
+        </div>
+      </div>
+
+      <div class="test-result error">
+        <strong>&#10005; 401 Unauthorized</strong> &middot; IQ Server rejected the user token
+        <div style="margin-top: 6px; font-size: 11.5px; color: #5c6b7a;">
+          Regenerate a token in IQ under <em>Profile &rarr; User Tokens</em> and paste both parts above.
+          The token is throttled for 60&nbsp;seconds after this failure to avoid tripping IQ&rsquo;s lockout.
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sec-title">Virtual Repository Manager</div>
+      <div class="sec-desc">Cannot resolve until connection succeeds.</div>
+      <div class="field">
+        <label>VRM name</label>
+        <input type="text" value="browser-ext-vrm" disabled style="opacity:.5;" />
+      </div>
+    </section>
+
+  </div>
+
+  <div class="actions">
+    <span class="status">Unsaved changes</span>
+    <button class="btn-secondary">Cancel</button>
+    <button class="btn-primary">Save changes</button>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     Variant 3: Mock mode
+     ============================================================ -->
+<div class="variant-label" style="margin-top: 60px;">
+  <h2>Variant &mdash; Mock mode</h2>
+  <div class="lead">Real-IQ sections are hidden. Only the mock data source and site toggles are visible.</div>
+</div>
+
+<div class="settings-page">
+  <div class="page-hdr">
+    <div class="dot"></div>
+    <div>
+      <div class="title">Sonatype Firewall &mdash; Settings</div>
+      <div class="subtitle">Extension v0.2.0 &middot; <span style="color:#7a5a0a;">mock mode</span></div>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <section>
+      <div class="sec-title">Mode</div>
+      <div class="sec-desc">Where the extension gets verdicts from.</div>
+      <div class="radio-row">
+        <label class="checked">
+          <input type="radio" name="mode2" checked />
+          <div>
+            <div class="name">Mock (offline demo) <span class="locked-badge">Active</span></div>
+            <div class="desc">Serves pre-baked verdicts from <code>mock-iq/data.js</code>. No network calls to IQ.</div>
+          </div>
+        </label>
+        <label>
+          <input type="radio" name="mode2" />
+          <div>
+            <div class="name">Real IQ Server</div>
+            <div class="desc">Queries a running insight-brain instance via HTTP Basic auth.</div>
+          </div>
+        </label>
+      </div>
+    </section>
+
+    <section>
+      <div class="sec-title">Enabled sites</div>
+      <div class="sec-desc">Which package registries the extension scans.</div>
+      <div class="toggle-row">
+        <label><input type="checkbox" checked /> npmjs.com</label>
+        <label><input type="checkbox" checked /> pypi.org</label>
+        <label><input type="checkbox" checked /> central.sonatype.com</label>
+        <label><input type="checkbox" /> search.maven.org</label>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="actions">
+    <span class="status saved">&#10003; Changes saved</span>
+    <button class="btn-secondary">Reset to defaults</button>
+    <button class="btn-primary">Save changes</button>
+  </div>
+</div>
+
+</body>
+</html>

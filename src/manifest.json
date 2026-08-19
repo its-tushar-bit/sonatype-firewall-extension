@@ -20,32 +20,18 @@
     "service_worker": "src/background/index.ts",
     "type": "module"
   },
-  "permissions": ["storage", "activeTab"],
+  "permissions": ["storage", "activeTab", "cookies", "scripting"],
   "host_permissions": [
-    "https://www.npmjs.com/*",
-    "https://pypi.org/*",
-    "https://central.sonatype.com/*",
-    "https://search.maven.org/*",
-    "http://localhost:8765/*"
+    "http://localhost:8765/*",
+    "http://localhost:8070/*",
+    "http://localhost:8072/*",
+    "http://localhost:9090/*"
   ],
-  "content_scripts": [
+  "optional_host_permissions": ["https://*/*", "http://*/*"],
+  "web_accessible_resources": [
     {
-      "matches": ["https://www.npmjs.com/package/*"],
-      "js": ["src/content/npm.ts"],
-      "run_at": "document_idle"
-    },
-    {
-      "matches": ["https://pypi.org/project/*"],
-      "js": ["src/content/pypi.ts"],
-      "run_at": "document_idle"
-    },
-    {
-      "matches": [
-        "https://central.sonatype.com/artifact/*",
-        "https://search.maven.org/artifact/*"
-      ],
-      "js": ["src/content/maven.ts"],
-      "run_at": "document_idle"
+      "resources": ["src/content/*.js"],
+      "matches": ["<all_urls>"]
     }
   ]
 }

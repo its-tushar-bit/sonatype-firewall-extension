@@ -1,6 +1,6 @@
 import { FirewallVerdict } from "../types";
 
-const TTL_MS = 5 * 60 * 1000;
+const TTL_MS = 60 * 1000;
 const memCache = new Map<string, FirewallVerdict>();
 
 export function getCached(purl: string): FirewallVerdict | null {
@@ -15,6 +15,10 @@ export function getCached(purl: string): FirewallVerdict | null {
 
 export function setCached(purl: string, verdict: FirewallVerdict): void {
   memCache.set(purl, verdict);
+}
+
+export function invalidateCache(purl: string): void {
+  memCache.delete(purl);
 }
 
 export function clearCache(): void {

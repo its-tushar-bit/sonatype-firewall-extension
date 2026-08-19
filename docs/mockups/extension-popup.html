@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Extension popup &mdash; scope picker (mockup)</title>
+  <link rel="stylesheet" href="_shared.css" />
+  <style>
+    body { background: #eef1f4; padding: 20px; }
+    .side-by-side { display: flex; gap: 40px; justify-content: center; flex-wrap: wrap; align-items: flex-start; }
+    .caption { text-align: center; color: #5c6b7a; font-size: 12px; margin-top: 8px; }
+    .back { position: fixed; top: 20px; left: 20px; color: #007fb0; text-decoration: none; font-size: 13px; }
+    .back:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<a class="back" href="index.html">&larr; back to index</a>
+
+<div class="section-hdr" id="verdict">
+  <h2>Verdict tab</h2>
+  <div class="lead">Default view when the popup opens on a package page. Three states shown: default, scope picker expanded, submit result.</div>
+</div>
+
+<div class="side-by-side">
+
+  <!-- (A) Verdict tab, waiver button visible -->
+  <div>
+    <div class="popup-frame">
+      <div class="header">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div style="width:10px;height:10px;border-radius:50%;background:#008fbb;"></div>
+          Sonatype Firewall
+        </div>
+        <span class="mode-chip">REAL &middot; IQ v2</span>
+      </div>
+      <div class="tab-bar">
+        <div class="tab active">Verdict</div>
+        <div class="tab">History <span style="color:#8b98a5">(12)</span></div>
+        <div class="tab">Scan detail</div>
+      </div>
+      <div class="tab-body">
+        <div class="eco-label">NPM</div>
+        <div class="pkg-name">lodash</div>
+        <div class="pkg-version">version 4.17.10</div>
+
+        <div>
+          <span class="pill verdict-block">Blocked</span>
+        </div>
+        <div style="font-size: 11.5px; color: #5c6b7a; margin-top: 6px;">
+          Policy: <span style="font-family:monospace">Security-Critical</span> &middot; stage Build
+        </div>
+        <ul style="font-size: 12px; color: #1a2634; padding-left: 20px; margin: 8px 0 12px;">
+          <li>Critical CVE present (CVE-2019-10744, CVSS 9.1)</li>
+        </ul>
+
+        <div class="section-title">Integrity Rating</div>
+        <span class="pill verdict-allow" style="font-weight:500;">Normal</span>
+
+        <div class="section-title">CVEs</div>
+        <div class="cve-row">
+          <span class="cvss">9.1</span>
+          <div>
+            <div class="cve-id">CVE-2019-10744</div>
+            <div class="cve-title">Prototype pollution in defaultsDeep</div>
+            <div class="cve-reach">Reachable in scanned apps</div>
+          </div>
+        </div>
+
+        <div class="section-title">Golden Version</div>
+        <div style="background:#e6f1f7; border:1px solid #cfe6f0; border-radius:4px; padding:8px 10px;">
+          <div style="font-family:monospace; font-weight:600; color:#005c8f;">4.17.21</div>
+          <div style="font-size:11px; color:#5c6b7a;">Fixes 1 CVE(s) &middot; non-breaking</div>
+        </div>
+      </div>
+      <div class="footer">
+        <button class="btn-primary">Request waiver</button>
+        <button class="btn-link">Settings</button>
+      </div>
+    </div>
+    <div class="caption">A. Default Verdict tab &mdash; click <em>Request waiver</em> to expand the scope picker</div>
+  </div>
+
+  <!-- (B) Scope picker expanded -->
+  <div>
+    <div class="popup-frame">
+      <div class="header">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div style="width:10px;height:10px;border-radius:50%;background:#008fbb;"></div>
+          Sonatype Firewall
+        </div>
+        <span class="mode-chip">REAL &middot; IQ v2</span>
+      </div>
+      <div class="tab-bar">
+        <div class="tab active">Verdict</div>
+        <div class="tab">History <span style="color:#8b98a5">(12)</span></div>
+        <div class="tab">Scan detail</div>
+      </div>
+      <div class="tab-body">
+        <div class="eco-label">NPM</div>
+        <div class="pkg-name">lodash</div>
+        <div class="pkg-version">version 4.17.10</div>
+
+        <div>
+          <span class="pill verdict-block">Blocked</span>
+          <span style="font-size: 11.5px; color: #5c6b7a; margin-left: 8px;">Security-Critical &middot; stage Build</span>
+        </div>
+
+        <div class="waiver-box">
+          <h4>Request waiver</h4>
+
+          <div style="font-size: 11px; color: #5c6b7a; margin-bottom: 6px;">
+            Policy is scoped to <strong>Organization: Acme Corp</strong> &mdash; you can waive at any level below.
+          </div>
+
+          <label style="font-size: 11px; color: #5c6b7a; display:block; margin-bottom:2px;">Apply at</label>
+          <select>
+            <option>Repository (specific repos)</option>
+            <option>Repository Manager (whole RM)</option>
+            <option>Organization: Acme Corp (all repos)</option>
+          </select>
+
+          <label style="font-size: 11px; color: #5c6b7a; display:block; margin-bottom:2px;">Target repositories</label>
+          <div class="scope-picker" style="border:1px solid #e0e6ec; border-radius:3px; padding:8px 10px; background:#fff; margin-bottom:8px;">
+            <label>
+              <input type="checkbox" checked />
+              <span class="scope-name">vrm-npm-proxy</span>
+              <span class="scope-hint">&mdash; browser-ext-vrm (VRM child)</span>
+            </label>
+            <label>
+              <input type="checkbox" checked />
+              <span class="scope-name">npm-central</span>
+              <span class="scope-hint">&mdash; nexus-prod (Nexus proxy, download path)</span>
+            </label>
+            <label>
+              <input type="checkbox" />
+              <span class="scope-name">npm-mirror</span>
+              <span class="scope-hint">&mdash; nexus-prod</span>
+            </label>
+          </div>
+
+          <label style="font-size: 11px; color: #5c6b7a; display:block; margin-bottom:2px;">Reason</label>
+          <input type="text" value="Requested via browser extension on 2026-08-06T09:12:18Z" />
+
+          <div style="display:flex; gap:8px; justify-content:flex-end; margin-top: 4px;">
+            <button class="btn-link">Cancel</button>
+            <button class="btn-primary">Submit (2 scopes)</button>
+          </div>
+        </div>
+      </div>
+      <div class="footer">
+        <div style="font-size:11px; color:#6f7d8c;">Cascade waiver: 1 request &rarr; 2 waiver rows in IQ</div>
+        <button class="btn-link">Settings</button>
+      </div>
+    </div>
+    <div class="caption">B. Scope picker expanded &mdash; user selects VRM child + paired Nexus proxy, single Submit fans out into a cascade waiver</div>
+  </div>
+
+  <!-- (C) Submit result -->
+  <div>
+    <div class="popup-frame">
+      <div class="header">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div style="width:10px;height:10px;border-radius:50%;background:#008fbb;"></div>
+          Sonatype Firewall
+        </div>
+        <span class="mode-chip">REAL &middot; IQ v2</span>
+      </div>
+      <div class="tab-bar">
+        <div class="tab active">Verdict</div>
+        <div class="tab">History <span style="color:#8b98a5">(12)</span></div>
+        <div class="tab">Scan detail</div>
+      </div>
+      <div class="tab-body">
+        <div class="eco-label">NPM</div>
+        <div class="pkg-name">lodash</div>
+        <div class="pkg-version">version 4.17.10</div>
+
+        <div>
+          <span class="pill verdict-block">Blocked</span>
+          <span style="font-size: 11.5px; color: #5c6b7a; margin-left: 8px;">Security-Critical &middot; stage Build</span>
+        </div>
+
+        <div class="waiver-box" style="background:#e9f5ec; border-color:#a4d8b1;">
+          <h4 style="color:#0a6c33;">Waiver submitted</h4>
+          <div style="font-size: 12px; color: #1a2634; line-height: 1.6;">
+            <div>&#10003; <span style="font-family:monospace;">vrm-npm-proxy</span> &nbsp;<span style="color:#6f7d8c; font-size:11px;">status: pending approval</span></div>
+            <div>&#10003; <span style="font-family:monospace;">npm-central</span> &nbsp;<span style="color:#6f7d8c; font-size:11px;">status: pending approval</span></div>
+          </div>
+          <div style="font-size: 11px; color: #6f7d8c; margin-top: 8px;">
+            Group id: <span style="font-family:monospace">wg-a1b3c9d2</span>
+          </div>
+          <div style="margin-top: 10px;">
+            <a href="#" style="color:#007fb0; text-decoration:none; font-size:12px;">View on IQ Server &rarr;</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer">
+        <div></div>
+        <button class="btn-link">Settings</button>
+      </div>
+    </div>
+    <div class="caption">C. Submit result &mdash; both waiver rows created under one group; deep-link to IQ for approval</div>
+  </div>
+
+</div>
+
+<!-- ============================================================
+     History tab
+     ============================================================ -->
+<div class="section-hdr" id="history">
+  <h2>History tab</h2>
+  <div class="lead">Session-scoped scan history &mdash; up to 20 rows, newest first, persisted to <code>chrome.storage.local</code>. Clicking a row switches to Verdict tab pre-loaded with that entry.</div>
+</div>
+
+<div class="side-by-side">
+
+  <!-- (D) History tab with rows -->
+  <div>
+    <div class="popup-frame">
+      <div class="header">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div style="width:10px;height:10px;border-radius:50%;background:#008fbb;"></div>
+          Sonatype Firewall
+        </div>
+        <span class="mode-chip">REAL &middot; IQ v2</span>
+      </div>
+      <div class="tab-bar">
+        <div class="tab">Verdict</div>
+        <div class="tab active">History <span style="color:#007fb0">(12)</span></div>
+        <div class="tab">Scan detail</div>
+      </div>
+
+      <div class="history-toolbar">
+        <select class="filter">
+          <option>All ecosystems</option>
+          <option>npm</option>
+          <option>PyPI</option>
+          <option>Maven</option>
+        </select>
+        <a class="clear-link" href="#">Clear all</a>
+      </div>
+
+      <div class="history-list">
+        <div class="history-row current" title="Currently viewed on Verdict tab">
+          <span class="eco-chip npm">npm</span>
+          <div class="name-col"><span class="pkg">lodash@4.17.10</span></div>
+          <span class="pill verdict-block">Blocked</span>
+          <span class="time">2m ago</span>
+        </div>
+        <div class="history-row">
+          <span class="eco-chip npm">npm</span>
+          <div class="name-col"><span class="pkg">event-stream@3.3.6</span></div>
+          <span class="pill verdict-block">Blocked</span>
+          <span class="time">4m ago</span>
+        </div>
+        <div class="history-row">
+          <span class="eco-chip pypi">pypi</span>
+          <div class="name-col"><span class="pkg">ctx@0.1.2</span></div>
+          <span class="pill verdict-block">Blocked</span>
+          <span class="time">5m ago</span>
+        </div>
+        <div class="history-row">
+          <span class="eco-chip maven">maven</span>
+          <div class="name-col"><span class="pkg">org.apache.logging.log4j:log4j-core@2.14.1</span></div>
+          <span class="pill verdict-block">Blocked</span>
+          <span class="time">7m ago</span>
+        </div>
+        <div class="history-row">
+          <span class="eco-chip npm">npm</span>
+          <div class="name-col"><span class="pkg">lodash@4.17.21</span></div>
+          <span class="pill verdict-allow">Allowed</span>
+          <span class="time">10m ago</span>
+        </div>
+        <div class="history-row">
+          <span class="eco-chip npm">npm</span>
+          <div class="name-col"><span class="pkg">express@4.17.1</span></div>
+          <span class="pill verdict-warn">Warn</span>
+          <span class="time">12m ago</span>
+        </div>
+        <div class="history-row">
+          <span class="eco-chip npm">npm</span>
+          <div class="name-col"><span class="pkg">colors@1.4.44-liberty-2</span></div>
+          <span class="pill verdict-quarant">Quarant.</span>
+          <span class="time">18m ago</span>
+        </div>
+        <div class="history-row">
+          <span class="eco-chip pypi">pypi</span>
+          <div class="name-col"><span class="pkg">requests@2.31.0</span></div>
+          <span class="pill verdict-allow">Allowed</span>
+          <span class="time">32m ago</span>
+        </div>
+        <div class="history-row">
+          <span class="eco-chip maven">maven</span>
+          <div class="name-col"><span class="pkg">com.fasterxml.jackson.core:jackson-databind@2.9.10.1</span></div>
+          <span class="pill verdict-block">Blocked</span>
+          <span class="time">1h ago</span>
+        </div>
+        <div class="history-row">
+          <span class="eco-chip npm">npm</span>
+          <div class="name-col"><span class="pkg">react@18.2.0</span></div>
+          <span class="pill verdict-allow">Allowed</span>
+          <span class="time">1h ago</span>
+        </div>
+        <div class="history-row">
+          <span class="eco-chip pypi">pypi</span>
+          <div class="name-col"><span class="pkg">django@3.2.0</span></div>
+          <span class="pill verdict-warn">Warn</span>
+          <span class="time">2h ago</span>
+        </div>
+        <div class="history-row">
+          <span class="eco-chip npm">npm</span>
+          <div class="name-col"><span class="pkg">axios@1.6.0</span></div>
+          <span class="pill verdict-allow">Allowed</span>
+          <span class="time">2h ago</span>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div style="font-size:11px; color:#6f7d8c;">Retention: 20 most-recent scans this session</div>
+        <button class="btn-link">Settings</button>
+      </div>
+    </div>
+    <div class="caption">D. History tab &mdash; the currently-viewed row (blue highlight) reflects what the Verdict tab is showing</div>
+  </div>
+
+  <!-- (E) History tab, empty state -->
+  <div>
+    <div class="popup-frame">
+      <div class="header">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div style="width:10px;height:10px;border-radius:50%;background:#008fbb;"></div>
+          Sonatype Firewall
+        </div>
+        <span class="mode-chip">REAL &middot; IQ v2</span>
+      </div>
+      <div class="tab-bar">
+        <div class="tab">Verdict</div>
+        <div class="tab active">History <span style="color:#8b98a5">(0)</span></div>
+        <div class="tab">Scan detail</div>
+      </div>
+
+      <div style="padding: 48px 24px; text-align: center; color: #6f7d8c;">
+        <div style="font-size: 28px; margin-bottom: 8px; color: #c4cdd6;">&#9737;</div>
+        <div style="font-weight: 600; color: #1a2634; margin-bottom: 4px;">No scans yet</div>
+        <div style="font-size: 12px; line-height: 1.5;">
+          Visit a package page on npm, PyPI, or Maven Central &mdash; the extension will record its verdict here.
+        </div>
+      </div>
+
+      <div class="footer">
+        <div></div>
+        <button class="btn-link">Settings</button>
+      </div>
+    </div>
+    <div class="caption">E. History tab &mdash; empty state (first use of the extension)</div>
+  </div>
+
+</div>
+
+<!-- ============================================================
+     Scan detail tab
+     ============================================================ -->
+<div class="section-hdr" id="scan-detail">
+  <h2>Scan detail tab</h2>
+  <div class="lead">Per-call breakdown for the currently-focused package. Diagnostic view &mdash; if a verdict is missing or wrong, this shows exactly which IQ call failed and why.</div>
+</div>
+
+<div class="side-by-side">
+
+  <!-- (F) Scan detail, all 200s -->
+  <div>
+    <div class="popup-frame">
+      <div class="header">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div style="width:10px;height:10px;border-radius:50%;background:#008fbb;"></div>
+          Sonatype Firewall
+        </div>
+        <span class="mode-chip">REAL &middot; IQ v2</span>
+      </div>
+      <div class="tab-bar">
+        <div class="tab">Verdict</div>
+        <div class="tab">History <span style="color:#8b98a5">(12)</span></div>
+        <div class="tab active">Scan detail</div>
+      </div>
+
+      <div class="scan-meta">
+        <div><strong>lodash@4.17.10</strong></div>
+        <div class="purl">pkg:npm/lodash@4.17.10</div>
+        <div style="margin-top: 4px;">VRM: <strong>browser-ext-vrm</strong> &rarr; repo: <strong>vrm-npm-proxy</strong> <span style="color:#6f7d8c;">(id&nbsp;r-401)</span></div>
+      </div>
+
+      <div>
+        <div class="call-row">
+          <div class="top-line">
+            <span class="method">POST</span>
+            <span class="path">/api/v2/components/details</span>
+            <span class="status-ok">200</span>
+            <span class="latency">&middot; 142ms</span>
+            <span class="chevron">&#9656;</span>
+          </div>
+        </div>
+
+        <!-- expanded evaluate call -->
+        <div class="call-row expanded">
+          <div class="top-line">
+            <span class="method">POST</span>
+            <span class="path">/api/v2/firewall/components/vrm-42/r-401/evaluate</span>
+            <span class="status-ok">200</span>
+            <span class="latency">&middot; 218ms</span>
+            <span class="chevron">&#9662;</span>
+          </div>
+          <div class="response-preview">{
+  <span class="k">"results"</span>: [{
+    <span class="k">"packageUrl"</span>: <span class="s">"pkg:npm/lodash@4.17.10"</span>,
+    <span class="k">"policyEvaluationResult"</span>: {
+      <span class="k">"verdict"</span>: <span class="s">"BLOCK"</span>,
+      <span class="k">"policyViolations"</span>: [{
+        <span class="k">"policyViolationId"</span>: <span class="s">"pv-9f21"</span>,
+        <span class="k">"policyName"</span>:        <span class="s">"Security-Critical"</span>,
+        <span class="k">"stage"</span>:             <span class="s">"Build"</span>,
+        <span class="k">"waiverEligible"</span>:    <span class="n">true</span>
+      }]
+    }
+  }]
+}</div>
+        </div>
+
+        <div class="call-row">
+          <div class="top-line">
+            <span class="method">POST</span>
+            <span class="path">/api/v2/components/remediation/repository/r-401</span>
+            <span class="status-ok">200</span>
+            <span class="latency">&middot; 87ms</span>
+            <span class="chevron">&#9656;</span>
+          </div>
+        </div>
+
+        <div class="call-row">
+          <div class="top-line">
+            <span class="method">GET</span>
+            <span class="path">/api/v2/policyWaiverRequests/scope-options/pv-9f21</span>
+            <span class="status-ok">200</span>
+            <span class="latency">&middot; 64ms</span>
+            <span class="chevron">&#9656;</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div style="font-size:11px; color:#6f7d8c;">4 calls &middot; total 511ms</div>
+        <button class="btn-link">Copy as HAR</button>
+      </div>
+    </div>
+    <div class="caption">F. Scan detail &mdash; happy path; evaluate call expanded shows the <code>policyViolationId</code> that the waiver flow uses</div>
+  </div>
+
+  <!-- (G) Scan detail, one call failed -->
+  <div>
+    <div class="popup-frame">
+      <div class="header">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div style="width:10px;height:10px;border-radius:50%;background:#008fbb;"></div>
+          Sonatype Firewall
+        </div>
+        <span class="mode-chip" style="background:#a3160c;">DEGRADED</span>
+      </div>
+      <div class="tab-bar">
+        <div class="tab">Verdict</div>
+        <div class="tab">History <span style="color:#8b98a5">(12)</span></div>
+        <div class="tab active">Scan detail</div>
+      </div>
+
+      <div class="scan-meta">
+        <div><strong>lodash@4.17.10</strong></div>
+        <div class="purl">pkg:npm/lodash@4.17.10</div>
+        <div style="margin-top: 4px;">VRM: <strong>browser-ext-vrm</strong> &rarr; repo: <strong>vrm-npm-proxy</strong> <span style="color:#6f7d8c;">(id&nbsp;r-401)</span></div>
+      </div>
+
+      <div>
+        <div class="call-row">
+          <div class="top-line">
+            <span class="method">POST</span>
+            <span class="path">/api/v2/components/details</span>
+            <span class="status-ok">200</span>
+            <span class="latency">&middot; 138ms</span>
+            <span class="chevron">&#9656;</span>
+          </div>
+        </div>
+
+        <div class="call-row expanded">
+          <div class="top-line">
+            <span class="method">POST</span>
+            <span class="path">/api/v2/firewall/components/vrm-42/r-401/evaluate</span>
+            <span class="status-err">401</span>
+            <span class="latency">&middot; 88ms</span>
+            <span class="chevron">&#9662;</span>
+          </div>
+          <div class="response-preview">{
+  <span class="k">"error"</span>: <span class="s">"Unauthorized"</span>,
+  <span class="k">"message"</span>: <span class="s">"Invalid user token"</span>,
+  <span class="k">"path"</span>: <span class="s">"/api/v2/firewall/components/vrm-42/r-401/evaluate"</span>
+}</div>
+        </div>
+
+        <div class="call-row">
+          <div class="top-line">
+            <span class="method">POST</span>
+            <span class="path">/api/v2/components/remediation/repository/r-401</span>
+            <span class="status-err">401</span>
+            <span class="latency">&middot; 71ms</span>
+            <span class="chevron">&#9656;</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding: 10px 16px; background: #fdead3; color: #6b4a0a; font-size: 11.5px; border-top: 1px solid #f0d59a;">
+        Verdict shown on Verdict tab is <strong>partial</strong> &mdash; component metadata only, no policy verdict. <a href="#" style="color:#a3160c;">Fix credentials in Settings</a>
+      </div>
+
+      <div class="footer">
+        <div style="font-size:11px; color:#6f7d8c;">3 calls &middot; 2 failed</div>
+        <button class="btn-link">Copy as HAR</button>
+      </div>
+    </div>
+    <div class="caption">G. Scan detail &mdash; degraded path; a 401 on evaluate makes the diagnostic view the single-source-of-truth for why the Verdict tab looks incomplete</div>
+  </div>
+
+</div>
+
+</body>
+</html>

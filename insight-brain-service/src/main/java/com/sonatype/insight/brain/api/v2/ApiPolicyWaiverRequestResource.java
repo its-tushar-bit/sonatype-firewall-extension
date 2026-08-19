@@ -18,6 +18,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
@@ -30,6 +32,7 @@ import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.product.license.RequiresEntitlement;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.ScanSource;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 
 import com.codahale.metrics.annotation.Timed;
@@ -79,6 +82,7 @@ public class ApiPolicyWaiverRequestResource
             useReturnTypeSchema = true)
       })
   public ApiPolicyWaiverRequestDTO addPolicyWaiverRequestByPolicyViolationId(
+      @Context HttpHeaders headers,
       @Parameter(description = "The scope of the policy waiver request. Possible values are application, " +
           "organization, repository, repository_manager, repository_container.",
           required = true) @PathParam("ownerType") OwnerType ownerType,
@@ -96,8 +100,10 @@ public class ApiPolicyWaiverRequestResource
           + "<li>noteToReviewer (optional) to add a note to the reviewer</li></ol>",
           required = true) ApiPolicyWaiverRequestOptionsDTO apiPolicyWaiverRequestOptionsDTO)
   {
+    ScanSource scanSource =
+        ScanSource.fromHeader(headers.getHeaderString(PublicApiPaths.X_SCAN_SOURCE_HEADER));
     return apiPolicyWaiverRequestService.addPolicyWaiverRequestByPolicyViolationId(ownerType, ownerId,
-        policyViolationId, apiPolicyWaiverRequestOptionsDTO);
+        policyViolationId, apiPolicyWaiverRequestOptionsDTO, scanSource);
   }
 
   @POST

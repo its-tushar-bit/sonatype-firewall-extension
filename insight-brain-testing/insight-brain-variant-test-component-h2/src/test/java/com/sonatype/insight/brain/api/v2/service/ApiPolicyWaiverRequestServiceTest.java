@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.ScanSource;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -246,6 +247,27 @@ public class ApiPolicyWaiverRequestServiceTest
           new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
     }).isInstanceOf(NotFoundException.class)
         .hasMessage("Could not find policy violation with ID " + policyViolation.getId() + ".");
+  }
+
+  @Test
+  public void testAddPolicyWaiverRequest_PersistsExplicitBrowserExtensionSource() {
+    ApiPolicyWaiverRequestDTO dto = apiPolicyWaiverRequestService.addPolicyWaiverRequestByPolicyViolationId(
+        OwnerType.APPLICATION, app.getId(), policyViolation.getId(),
+        new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false),
+        ScanSource.BROWSER_EXTENSION);
+
+    PolicyWaiverRequest persisted = policyWaiverRequestDAO.getById(dto.policyWaiverRequestId);
+    assertThat(persisted.getSource()).isEqualTo(ScanSource.BROWSER_EXTENSION);
+  }
+
+  @Test
+  public void testAddPolicyWaiverRequest_FourArgOverloadDefaultsToFirewallProxy() {
+    ApiPolicyWaiverRequestDTO dto = apiPolicyWaiverRequestService.addPolicyWaiverRequestByPolicyViolationId(
+        OwnerType.APPLICATION, app.getId(), policyViolation.getId(),
+        new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+
+    PolicyWaiverRequest persisted = policyWaiverRequestDAO.getById(dto.policyWaiverRequestId);
+    assertThat(persisted.getSource()).isEqualTo(ScanSource.FIREWALL_PROXY);
   }
 
   @Test

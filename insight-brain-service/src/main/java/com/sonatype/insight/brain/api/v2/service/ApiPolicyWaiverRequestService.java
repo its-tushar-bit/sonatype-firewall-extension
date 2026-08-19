@@ -53,6 +53,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.repository.RepositoryService;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.ScanSource;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -178,6 +179,9 @@ public class ApiPolicyWaiverRequestService
   }
 
   /**
+   * Retained for callers that do not carry request-origin information; records
+   * {@link ScanSource#DEFAULT}.
+   *
    * @param policyViolationId The id of an application or repository policy violation
    */
   public ApiPolicyWaiverRequestDTO addPolicyWaiverRequestByPolicyViolationId(
@@ -185,6 +189,20 @@ public class ApiPolicyWaiverRequestService
       String ownerId,
       String policyViolationId,
       ApiPolicyWaiverRequestOptionsDTO policyWaiverRequestOptionsDTO)
+  {
+    return addPolicyWaiverRequestByPolicyViolationId(ownerType, ownerId, policyViolationId,
+        policyWaiverRequestOptionsDTO, ScanSource.DEFAULT);
+  }
+
+  /**
+   * @param policyViolationId The id of an application or repository policy violation
+   */
+  public ApiPolicyWaiverRequestDTO addPolicyWaiverRequestByPolicyViolationId(
+      OwnerType ownerType,
+      String ownerId,
+      String policyViolationId,
+      ApiPolicyWaiverRequestOptionsDTO policyWaiverRequestOptionsDTO,
+      ScanSource scanSource)
   {
     log.debug("Received request to add policy waiver request for ownerType {}, ownerId {}, policy violation ID {}",
         ownerType, ownerId, policyViolationId);
@@ -232,7 +250,8 @@ public class ApiPolicyWaiverRequestService
     validateExpireWhenRemediationAvailable(expireWhenRemediationAvailable, matcherStrategy);
 
     PolicyWaiverRequest policyWaiverRequest = createPolicyWaiverRequest(internalOwnerId, abstractPolicyViolation,
-        comment, noteToReviewer, matcherStrategy, expiryTime, waiverReasonId, expireWhenRemediationAvailable);
+        comment, noteToReviewer, matcherStrategy, expiryTime, waiverReasonId, expireWhenRemediationAvailable,
+        scanSource);
 
     if (abstractPolicyViolation instanceof PolicyViolation) {
       requestPolicyWaiverEventService.postPolicyWaiverRequestEvent(policyViolationId, comment,
@@ -285,8 +304,9 @@ public class ApiPolicyWaiverRequestService
 
     // Scope the waiver request to REPOSITORY_CONTAINER_ID so it appears in the
     // Firewall waiver requests tab, which queries by repository/repository_manager/REPOSITORY_CONTAINER_ID.
+    // Container image waivers originate from the firewall proxy path and carry no inbound X-Scan-Source header.
     createPolicyWaiverRequest(RepositoryContainer.REPOSITORY_CONTAINER_ID, anchorViolation, comment, noteToReviewer,
-        ALL_COMPONENTS, expiryTime, waiverReasonId, false);
+        ALL_COMPONENTS, expiryTime, waiverReasonId, false, ScanSource.DEFAULT);
   }
 
   private ApiPolicyWaiverRequestDTO toDto(
@@ -470,7 +490,8 @@ public class ApiPolicyWaiverRequestService
       ComponentMatcherStrategyForWaiver matcherStrategy,
       Date expiryTime,
       String policyWaiverReasonId,
-      boolean expireWhenRemediationAvailable)
+      boolean expireWhenRemediationAvailable,
+      ScanSource scanSource)
   {
     validateAllVersionsHasComponentIdentifier(matcherStrategy, abstractPolicyViolation);
 
@@ -491,6 +512,7 @@ public class ApiPolicyWaiverRequestService
       policyWaiverRequest.setAssociatedPackageUrl(toPackageUrl(abstractPolicyViolation.getComponentIdentifier()));
     }
     policyWaiverRequest.setWaiverReasonId(policyWaiverReasonId);
+    policyWaiverRequest.setSource(scanSource);
 
     policyWaiverRequestDAO.insert(policyWaiverRequest);
     return policyWaiverRequest;

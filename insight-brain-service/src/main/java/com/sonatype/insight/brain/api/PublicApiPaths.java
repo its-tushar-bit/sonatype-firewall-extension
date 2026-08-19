@@ -53,6 +53,12 @@ public class PublicApiPaths
 
   public static final String POLICY_WAIVER_REQUEST_PATH = API_VERSION_PATH_V2 + "policyWaiverRequests";
 
+  /**
+   * Request header naming where a request originated. Values are {@code ScanSource} constant names;
+   * unrecognized values are treated as the default rather than rejected.
+   */
+  public static final String X_SCAN_SOURCE_HEADER = "X-Scan-Source";
+
   public static final String POLICY_VIOLATION_WAIVER_PATH =
       API_VERSION_PATH_V2 + "policyWaiver/{policyViolationId}/{ownerType: application|organization}";
 

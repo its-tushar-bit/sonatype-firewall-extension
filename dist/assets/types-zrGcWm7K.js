@@ -1,1 +1,0 @@
-const e={mode:"real",iqServerUrl:"http://localhost:8765",userCode:"demo-user",passCode:"demo-pass",vrmId:"",vrmName:"",selectedRepoIds:[],selectedRepos:[],hexawatchUrl:"http://localhost:9090"};export{e as D};

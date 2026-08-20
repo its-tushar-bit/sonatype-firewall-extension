@@ -70,7 +70,7 @@ export function injectUnsupportedBadge(host: HTMLElement, message: string): HTML
   dot.style.cssText = `width: 8px; height: 8px; border-radius: 50%; background: #ffffff; opacity: 0.85;`;
   wrap.appendChild(dot);
   const label = document.createElement("span");
-  label.textContent = `Sonatype Firewall: ${message}`;
+  label.textContent = `HexaWatch: ${message}`;
   wrap.appendChild(label);
   host.prepend(wrap);
   return wrap;
@@ -106,7 +106,7 @@ export function injectBadge(host: HTMLElement, verdict: FirewallVerdict): HTMLEl
   wrap.appendChild(dot);
 
   const label = document.createElement("span");
-  label.textContent = `Sonatype Firewall: ${styles.label}`;
+  label.textContent = `HexaWatch: ${styles.label}`;
   wrap.appendChild(label);
 
   if (verdict.policy.policyName) {

@@ -1,23 +1,29 @@
 import { FirewallVerdict, RuntimeMessage, RuntimeResponse } from "../types";
 
-export async function requestVerdict(purl: string): Promise<FirewallVerdict | null> {
+export type VerdictResult =
+  | { kind: "verdict"; verdict: FirewallVerdict }
+  | { kind: "error"; error: string };
+
+export async function requestVerdict(purl: string): Promise<VerdictResult> {
   const msg: RuntimeMessage = { type: "GET_VERDICT", purl };
   console.log("[sonatype-firewall] requesting verdict for", purl);
   const res = await chrome.runtime.sendMessage<RuntimeMessage, RuntimeResponse>(msg);
   if (!res) {
-    console.warn("[sonatype-firewall] no response from background service worker");
-    return null;
+    const error = "No response from background service worker";
+    console.warn("[sonatype-firewall]", error);
+    return { kind: "error", error };
   }
   if (!res.ok) {
     console.error("[sonatype-firewall] verdict fetch failed:", res.error);
-    return null;
+    return { kind: "error", error: res.error };
   }
   if (!("verdict" in res)) {
-    console.warn("[sonatype-firewall] response had no verdict field:", res);
-    return null;
+    const error = "Response had no verdict field";
+    console.warn("[sonatype-firewall]", error, res);
+    return { kind: "error", error };
   }
   console.log("[sonatype-firewall] got verdict:", res.verdict);
-  return res.verdict;
+  return { kind: "verdict", verdict: res.verdict };
 }
 
 export async function getSettings() {

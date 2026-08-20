@@ -1,10 +1,6 @@
 import React, { useEffect, useState } from "react";
-import {
-  ExtensionSettings,
-  FirewallVerdict,
-  RuntimeMessage,
-  RuntimeResponse,
-} from "../types";
+import { FirewallVerdict, RuntimeMessage, RuntimeResponse } from "../types";
+import { useDarkMode } from "../lib/theme";
 
 const verdictColor: Record<string, string> = {
   block: "bg-sonatype-danger text-white",
@@ -19,13 +15,6 @@ const verdictLabel: Record<string, string> = {
   warn: "WARNING",
   allow: "NO VULNERABILITIES",
 };
-
-function isConfigured(s: ExtensionSettings | null): boolean {
-  if (!s) return false;
-  if (!s.iqServerUrl || !s.userCode || !s.passCode) return false;
-  if (s.mode === "real" && (!s.vrmId || s.selectedRepoIds.length === 0)) return false;
-  return true;
-}
 
 function chipTone(reason: string): string {
   const r = reason.toLowerCase();
@@ -76,88 +65,109 @@ function ReasonChips({ reasons }: { reasons: string[] }) {
   );
 }
 
-function ModeChip({ settings }: { settings: ExtensionSettings | null }) {
-  if (!isConfigured(settings)) {
-    return (
-      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-gray-500 text-white tracking-wide">
-        NOT CONFIGURED
-      </span>
-    );
-  }
-  if (settings!.mode === "mock") {
-    return (
-      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-yellow-400 text-black tracking-wide">
-        MOCK MODE
-      </span>
-    );
-  }
+function HeaderIconButton({
+  onClick,
+  disabled,
+  label,
+  children,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
-    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-sonatype-blue text-white tracking-wide">
-      REAL · IQ
-    </span>
+    <div className="relative group">
+      <button
+        onClick={onClick}
+        disabled={disabled}
+        aria-label={label}
+        className="w-6 h-6 rounded flex items-center justify-center bg-white/10 hover:bg-white/20 disabled:opacity-40 text-white"
+      >
+        {children}
+      </button>
+      <span
+        role="tooltip"
+        className="pointer-events-none absolute top-full right-0 mt-1 z-10 whitespace-nowrap rounded bg-gray-900 text-white text-[10px] font-medium px-1.5 py-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-100 shadow-md border border-white/10"
+      >
+        {label}
+      </span>
+    </div>
   );
 }
 
-const THEME_KEY = "hexawatch:theme";
-
-function ThemeToggle({
-  dark,
-  onToggle,
-}: {
-  dark: boolean;
-  onToggle: () => void;
-}) {
+function ThemeToggle({ dark, onToggle }: { dark: boolean; onToggle: () => void }) {
   return (
-    <button
+    <HeaderIconButton
       onClick={onToggle}
-      aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
-      title={dark ? "Light mode" : "Dark mode"}
-      className="text-xs w-6 h-6 rounded flex items-center justify-center bg-white/10 hover:bg-white/20 text-white"
+      label={dark ? "Switch to light mode" : "Switch to dark mode"}
     >
-      {dark ? "☀" : "☾"}
-    </button>
+      <span className="text-xs">{dark ? "☀" : "☾"}</span>
+    </HeaderIconButton>
+  );
+}
+
+function RefreshIcon({ spinning }: { spinning?: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      width="14"
+      height="14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={spinning ? "animate-spin" : ""}
+    >
+      <path d="M13.5 3.5v3h-3" />
+      <path d="M2.5 12.5v-3h3" />
+      <path d="M12.5 6.5A5 5 0 0 0 3.6 7.4" />
+      <path d="M3.5 9.5a5 5 0 0 0 8.9-.9" />
+    </svg>
+  );
+}
+
+function GearIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="14"
+      height="14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
   );
 }
 
 export function Popup() {
   const [verdict, setVerdict] = useState<FirewallVerdict | null>(null);
-  const [settings, setSettings] = useState<ExtensionSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [waiverStatus, setWaiverStatus] = useState<string>("");
   const [refreshing, setRefreshing] = useState(false);
-  const [dark, setDark] = useState(false);
+  const { dark, toggle: toggleTheme } = useDarkMode();
   const [cvesExpanded, setCvesExpanded] = useState(false);
+  const [iqServerUrl, setIqServerUrl] = useState<string>("");
 
   useEffect(() => {
-    chrome.storage.local.get(THEME_KEY).then((r) => {
-      const t = r[THEME_KEY];
-      const prefersDark =
-        typeof window !== "undefined" &&
-        window.matchMedia?.("(prefers-color-scheme: dark)").matches;
-      const isDark = t === "dark" || (t === undefined && prefersDark);
-      setDark(isDark);
-    });
+    chrome.runtime
+      .sendMessage<RuntimeMessage, RuntimeResponse>({ type: "GET_SETTINGS" })
+      .then((r) => {
+        if (r && r.ok && "settings" in r) setIqServerUrl(r.settings.iqServerUrl || "");
+      });
   }, []);
 
   useEffect(() => {
-    document.documentElement.classList.toggle("dark", dark);
-    document.documentElement.style.background = dark ? "#0b1220" : "";
-  }, [dark]);
-
-  function toggleTheme() {
-    const next = !dark;
-    setDark(next);
-    void chrome.storage.local.set({ [THEME_KEY]: next ? "dark" : "light" });
-  }
-
-  useEffect(() => {
-    Promise.all([
-      chrome.runtime.sendMessage<RuntimeMessage, RuntimeResponse>({ type: "GET_LAST_VIEWED" }),
-      chrome.runtime.sendMessage<RuntimeMessage, RuntimeResponse>({ type: "GET_SETTINGS" }),
-    ])
-      .then(([v, s]) => {
+    chrome.runtime
+      .sendMessage<RuntimeMessage, RuntimeResponse>({ type: "GET_LAST_VIEWED" })
+      .then((v) => {
         if (v.ok && "lastViewed" in v) setVerdict(v.lastViewed);
-        if (s.ok && "settings" in s) setSettings(s.settings);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -174,11 +184,15 @@ export function Popup() {
       <div className="flex flex-col max-h-[600px] text-sm bg-white dark:bg-gray-900 dark:text-gray-100">
         <header className="shrink-0 bg-sonatype-dark text-white px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-sonatype-blue" />
             <span className="font-semibold">HexaWatch</span>
           </div>
           <div className="flex items-center gap-2">
-            <ModeChip settings={settings} />
+            <HeaderIconButton
+              onClick={() => chrome.runtime.openOptionsPage()}
+              label="Settings"
+            >
+              <GearIcon />
+            </HeaderIconButton>
             <ThemeToggle dark={dark} onToggle={toggleTheme} />
           </div>
         </header>
@@ -195,14 +209,6 @@ export function Popup() {
             </a>{" "}
             to see a Sonatype Firewall verdict.
           </p>
-        </div>
-        <div className="shrink-0 px-4 py-3 border-t border-gray-200 bg-white dark:bg-gray-900 dark:border-gray-700 flex justify-end">
-          <button
-            onClick={() => chrome.runtime.openOptionsPage()}
-            className="text-xs text-sonatype-blue hover:underline"
-          >
-            Settings
-          </button>
         </div>
       </div>
     );
@@ -223,20 +229,26 @@ export function Popup() {
     setRefreshing(false);
   }
 
-  async function requestWaiver() {
-    setWaiverStatus("Submitting…");
-    const res = await chrome.runtime.sendMessage<RuntimeMessage, RuntimeResponse>({
-      type: "REQUEST_WAIVER",
-      purl: c.purl,
-      reason: `Requested via browser extension on ${new Date().toISOString()}`,
-      policyViolationId,
+  function openFirewallReport() {
+    if (!iqServerUrl || !repositoryId) return;
+    const base = iqServerUrl.replace(/\/$/, "");
+    const url = `${base}/assets/index.html#/firewall/repository/${encodeURIComponent(
       repositoryId,
+    )}/result`;
+    void chrome.tabs.create({ url });
+  }
+
+  function openWaiverPage() {
+    if (!policyViolationId) return;
+    const params = new URLSearchParams({
+      purl: c.purl,
+      policyViolationId,
+      componentName: c.name,
+      componentVersion: c.version,
     });
-    if (res.ok && "waiverId" in res) {
-      setWaiverStatus(`Waiver submitted: ${res.waiverId}`);
-    } else if (!res.ok) {
-      setWaiverStatus(`Failed: ${res.error}`);
-    }
+    if (repositoryId) params.set("repositoryId", repositoryId);
+    const url = `${chrome.runtime.getURL("src/waiver/index.html")}?${params.toString()}`;
+    void chrome.tabs.create({ url });
   }
 
   const CVE_LIMIT = 5;
@@ -246,11 +258,22 @@ export function Popup() {
     <div className="flex flex-col max-h-[600px] text-sm bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100">
       <header className="shrink-0 bg-sonatype-dark text-white px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-full bg-sonatype-blue" />
           <span className="font-semibold">HexaWatch</span>
         </div>
         <div className="flex items-center gap-2">
-          <ModeChip settings={settings} />
+          <HeaderIconButton
+            onClick={refreshVerdict}
+            disabled={refreshing}
+            label={refreshing ? "Refreshing…" : "Refresh verdict"}
+          >
+            <RefreshIcon spinning={refreshing} />
+          </HeaderIconButton>
+          <HeaderIconButton
+            onClick={() => chrome.runtime.openOptionsPage()}
+            label="Settings"
+          >
+            <GearIcon />
+          </HeaderIconButton>
           <ThemeToggle dark={dark} onToggle={toggleTheme} />
         </div>
       </header>
@@ -309,6 +332,23 @@ export function Popup() {
         )}
       </section>
 
+        {c.goldenVersion && (
+            <section className="px-4 pt-4">
+              <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+                Golden Version
+              </div>
+              <div className="bg-blue-50 border border-blue-200 rounded p-2 dark:bg-blue-900/30 dark:border-blue-800">
+                <div className="font-mono font-semibold text-sonatype-blue dark:text-blue-300">
+                  {c.goldenVersion.version}
+                </div>
+                <div className="text-xs text-gray-700 dark:text-gray-300">
+                  Fixes {c.goldenVersion.fixesCves.length} CVE(s) ·{" "}
+                  {c.goldenVersion.breakingChanges ? "breaking changes" : "non-breaking"}
+                </div>
+              </div>
+            </section>
+        )}
+
       {c.cves.length > 0 && (
         <section className="px-4 pt-4">
           <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
@@ -366,22 +406,7 @@ export function Popup() {
         </section>
       )}
 
-      {c.goldenVersion && (
-        <section className="px-4 pt-4">
-          <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
-            Golden Version
-          </div>
-          <div className="bg-blue-50 border border-blue-200 rounded p-2 dark:bg-blue-900/30 dark:border-blue-800">
-            <div className="font-mono font-semibold text-sonatype-blue dark:text-blue-300">
-              {c.goldenVersion.version}
-            </div>
-            <div className="text-xs text-gray-700 dark:text-gray-300">
-              Fixes {c.goldenVersion.fixesCves.length} CVE(s) ·{" "}
-              {c.goldenVersion.breakingChanges ? "breaking changes" : "non-breaking"}
-            </div>
-          </div>
-        </section>
-      )}
+
 
       </div>
 
@@ -389,34 +414,27 @@ export function Popup() {
         {waiverStatus && (
           <div className="px-4 pt-2 text-xs text-gray-600 dark:text-gray-400">{waiverStatus}</div>
         )}
-        <div className="px-4 py-3 flex items-center justify-between">
+        <div className="px-4 py-3 flex items-center gap-2">
+          {repositoryId && iqServerUrl && (
+            <button
+              onClick={openFirewallReport}
+              className="text-xs px-3 py-1.5 border border-sonatype-blue text-sonatype-blue rounded hover:bg-sonatype-blue hover:text-white dark:text-blue-300 dark:border-blue-500 dark:hover:bg-blue-500 dark:hover:text-white"
+            >
+              View report
+            </button>
+          )}
           {p.waiverEligible ? (
             <button
-              onClick={requestWaiver}
-              className="text-xs px-3 py-1.5 bg-sonatype-blue text-white rounded hover:bg-sonatype-dark"
+              onClick={openWaiverPage}
+              className="text-xs px-3 py-1.5 bg-sonatype-blue text-white rounded hover:bg-sonatype-dark ml-auto"
             >
               Request waiver
             </button>
           ) : (
-            <span className="text-xs text-gray-500 dark:text-gray-400">
+            <span className="text-xs text-gray-500 dark:text-gray-400 ml-auto">
               Not eligible for waiver
             </span>
           )}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={refreshVerdict}
-              disabled={refreshing}
-              className="text-xs text-sonatype-blue hover:underline disabled:opacity-50"
-            >
-              {refreshing ? "Refreshing…" : "Refresh"}
-            </button>
-            <button
-              onClick={() => chrome.runtime.openOptionsPage()}
-              className="text-xs text-sonatype-blue hover:underline"
-            >
-              Settings
-            </button>
-          </div>
         </div>
       </footer>
     </div>

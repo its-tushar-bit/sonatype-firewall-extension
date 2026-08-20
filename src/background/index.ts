@@ -9,7 +9,16 @@ import {
   ApiVrmRepo,
 } from "../types";
 import { getSettings, setSettings } from "../lib/settings";
-import { fetchVerdict, listReposForVrm, listVrms, ping, requestWaiver } from "../lib/iq-client";
+import {
+  fetchVerdict,
+  listReposForRepositoryManager,
+  listReposForVrm,
+  listRepositoryManagers,
+  listVrms,
+  listWaiverReasons,
+  ping,
+  requestWaiver,
+} from "../lib/iq-client";
 import { fetchHexawatchConfig, saveHexawatchConfig } from "../lib/hexawatch-client";
 // Verdicts are never cached — the user needs live IQ results every time.
 
@@ -29,9 +38,16 @@ let lastVerdictAny: FirewallVerdict | null = null;
 
 chrome.runtime.onMessage.addListener(
   (msg: RuntimeMessage, sender, sendResponse: (r: RuntimeResponse) => void) => {
-    handle(msg, sender.tab?.id)
-      .then(sendResponse)
-      .catch((e: Error) => sendResponse({ ok: false, error: e.message }));
+    console.log("[hexawatch] bg received", msg.type, "from tab", sender.tab?.id);
+    handle(msg, sender.tab?.id, sender.tab?.url)
+      .then((r) => {
+        console.log("[hexawatch] bg responding", msg.type, r);
+        sendResponse(r);
+      })
+      .catch((e: Error) => {
+        console.error("[hexawatch] bg handler threw for", msg.type, e);
+        sendResponse({ ok: false, error: e.message });
+      });
     return true; // async
   },
 );
@@ -53,12 +69,24 @@ chrome.tabs.onActivated.addListener(({ tabId }) => {
   });
 });
 
-async function handle(msg: RuntimeMessage, tabId?: number): Promise<RuntimeResponse> {
+async function handle(
+  msg: RuntimeMessage,
+  tabId?: number,
+  tabUrl?: string,
+): Promise<RuntimeResponse> {
   switch (msg.type) {
     case "GET_VERDICT":
     case "REFRESH_VERDICT": {
       const settings = await getSettings();
-      const verdict = await fetchVerdict(msg.purl, settings);
+      // REFRESH_VERDICT comes from the popup — the sender tab is the popup's
+      // hidden tab, not the page we care about. Fall back to the active tab's
+      // URL in that case so repo-picking still uses the visited page's origin.
+      let pageUrl = tabUrl;
+      if (msg.type === "REFRESH_VERDICT" && !isHttpUrl(pageUrl)) {
+        const [active] = await chrome.tabs.query({ active: true, windowType: "normal" });
+        pageUrl = active?.url;
+      }
+      const verdict = await fetchVerdict(msg.purl, settings, pageUrl);
       if (tabId !== undefined) {
         tabVerdicts.set(tabId, verdict);
         await updateBadge(verdict, tabId);
@@ -73,14 +101,35 @@ async function handle(msg: RuntimeMessage, tabId?: number): Promise<RuntimeRespo
       return { ok: true, settings: msg.settings };
     case "REQUEST_WAIVER": {
       const settings = await getSettings();
-      const id = await requestWaiver(
-        msg.purl,
-        msg.reason,
-        settings,
-        msg.policyViolationId,
-        msg.repositoryId,
-      );
+      const id = await requestWaiver(msg.purl, settings, msg.options);
       return { ok: true, waiverId: id };
+    }
+    case "LIST_REPO_MANAGERS": {
+      const settings = await getSettings();
+      try {
+        const managers = await listRepositoryManagers(settings);
+        return { ok: true, managersResult: { ok: true, managers } };
+      } catch (e: any) {
+        return { ok: true, managersResult: { ok: false, error: e.message } };
+      }
+    }
+    case "LIST_REPOS_FOR_MANAGER": {
+      const settings = await getSettings();
+      try {
+        const repos = await listReposForRepositoryManager(settings, msg.repositoryManagerId);
+        return { ok: true, reposResult: { ok: true, repos } };
+      } catch (e: any) {
+        return { ok: true, reposResult: { ok: false, error: e.message } };
+      }
+    }
+    case "LIST_WAIVER_REASONS": {
+      const settings = await getSettings();
+      try {
+        const reasons = await listWaiverReasons(settings);
+        return { ok: true, waiverReasonsResult: { ok: true, reasons } };
+      } catch (e: any) {
+        return { ok: true, waiverReasonsResult: { ok: false, error: e.message } };
+      }
     }
     case "GET_LAST_VIEWED": {
       // Try the active normal-browser tab first; fall back to any known
@@ -135,6 +184,11 @@ async function handle(msg: RuntimeMessage, tabId?: number): Promise<RuntimeRespo
       // Content-script → content-script only; background ignores.
       return { ok: false, error: "RESCAN not handled by background" };
   }
+}
+
+function isHttpUrl(u?: string): boolean {
+  if (!u) return false;
+  return u.startsWith("http://") || u.startsWith("https://");
 }
 
 // Turn a remoteUrl like "https://repo1.maven.org/maven2/" into a match pattern

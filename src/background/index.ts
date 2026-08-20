@@ -169,16 +169,19 @@ async function handle(
       return { ok: true, syncResult };
     }
     case "SAVE_SETTINGS_SYNCED": {
-      // DB is source of truth. Write it first; only mirror to chrome.storage
-      // on success so a failed DB save doesn't leave the two out of sync.
+      // Try hexawatch first (org-wide sync), but always persist locally so
+      // the extension works standalone when hexawatch isn't reachable — the
+      // packaged distribution assumes users won't run the sync server.
       const r = await saveHexawatchConfig(msg.settings);
-      if (!r.ok) {
-        return { ok: true, syncResult: { ok: false, error: r.error } };
-      }
       await setSettings(msg.settings);
-      // Selected repos may have changed — re-register content scripts to match.
       void syncDynamicContentScripts(msg.settings);
-      return { ok: true, syncResult: { ok: true, source: "hexawatch" } };
+      if (r.ok) {
+        return { ok: true, syncResult: { ok: true, source: "hexawatch" } };
+      }
+      return {
+        ok: true,
+        syncResult: { ok: true, source: "local", warning: r.error },
+      };
     }
     case "RESCAN":
       // Content-script → content-script only; background ignores.

@@ -169,7 +169,7 @@ export type ListWaiverReasonsResult =
   | { ok: false; error: string };
 
 export type HexawatchSyncResult =
-  | { ok: true; source: "hexawatch" | "local" }
+  | { ok: true; source: "hexawatch" | "local"; warning?: string }
   | { ok: false; error: string };
 
 export interface WaiverSubmitCallResult {

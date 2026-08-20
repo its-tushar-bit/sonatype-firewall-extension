@@ -136,7 +136,17 @@ export function Options() {
     });
     if (r && r.ok && "syncResult" in r && r.syncResult.ok) {
       setSavedAt(Date.now());
-      setSyncStatus("Saved to server");
+      if (r.syncResult.source === "hexawatch") {
+        setSyncStatus("Saved to server");
+      } else {
+        // Hexawatch was unreachable but we persisted locally — the extension
+        // is fully usable, we just skipped the org-wide sync.
+        setSyncStatus(
+          r.syncResult.warning
+            ? `Saved locally (sync server unreachable: ${r.syncResult.warning})`
+            : "Saved locally",
+        );
+      }
       return;
     }
     const err =

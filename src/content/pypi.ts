@@ -20,9 +20,12 @@ async function runScan() {
   const version = m[2] || readVersionFromDom() || "latest";
   const purl = `pkg:pypi/${name}@${version}`;
 
-  const verdict = await requestVerdict(purl);
-  if (!verdict) return;
-  injectBadge(host, verdict);
+  const result = await requestVerdict(purl);
+  if (result.kind === "error") {
+    injectUnsupportedBadge(host, `scan failed — ${result.error}`);
+    return;
+  }
+  injectBadge(host, result.verdict);
 }
 
 chrome.runtime.onMessage.addListener((msg: RuntimeMessage) => {

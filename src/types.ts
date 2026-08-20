@@ -68,6 +68,42 @@ export interface ApiVrmRepo {
   remoteUrl?: string;
 }
 
+export interface ApiRepositoryManager {
+  id: string;
+  name: string;
+  managerType: "HOSTED" | "PROXY" | "GROUP" | "VIRTUAL" | string;
+  instanceId?: string;
+  productName?: string;
+  productVersion?: string;
+}
+
+// Waiver scope maps 1:1 to IQ's OwnerType + ownerId. See
+// insight-brain/.../v2/ApiPolicyWaiverRequestResource.java.
+export type WaiverScope =
+  | { ownerType: "organization"; ownerId: string; label: string }
+  | { ownerType: "repository_container"; ownerId: string; label: string }
+  | { ownerType: "repository_manager"; ownerId: string; label: string }
+  | { ownerType: "repository"; ownerId: string; label: string };
+
+export type WaiverMatcherStrategy = "DEFAULT" | "EXACT_COMPONENT" | "ALL_COMPONENTS" | "ALL_VERSIONS";
+
+export interface WaiverRequestOptions {
+  scope: WaiverScope;
+  policyViolationId: string;
+  matcherStrategy: WaiverMatcherStrategy;
+  comment?: string;
+  noteToReviewer?: string;
+  expiryTime?: string;
+  expireWhenRemediationAvailable: boolean;
+  waiverReasonId?: string;
+}
+
+export interface ApiWaiverReason {
+  id: string;
+  type: string;
+  reasonText: string;
+}
+
 export interface ExtensionSettings {
   mode: IqMode;
   iqServerUrl: string;
@@ -103,13 +139,14 @@ export type RuntimeMessage =
   | {
       type: "REQUEST_WAIVER";
       purl: string;
-      reason: string;
-      policyViolationId?: string;
-      repositoryId?: string;
+      options: WaiverRequestOptions;
     }
   | { type: "GET_LAST_VIEWED" }
   | { type: "TEST_CONNECTION" }
   | { type: "LIST_REPOS_FOR_VRM"; vrmId: string }
+  | { type: "LIST_REPO_MANAGERS" }
+  | { type: "LIST_REPOS_FOR_MANAGER"; repositoryManagerId: string }
+  | { type: "LIST_WAIVER_REASONS" }
   | { type: "PULL_HEXAWATCH_CONFIG" }
   | { type: "PUSH_HEXAWATCH_CONFIG" }
   | { type: "SAVE_SETTINGS_SYNCED"; settings: ExtensionSettings }
@@ -123,6 +160,14 @@ export type ListReposResult =
   | { ok: true; repos: ApiVrmRepo[] }
   | { ok: false; error: string };
 
+export type ListRepoManagersResult =
+  | { ok: true; managers: ApiRepositoryManager[] }
+  | { ok: false; error: string };
+
+export type ListWaiverReasonsResult =
+  | { ok: true; reasons: ApiWaiverReason[] }
+  | { ok: false; error: string };
+
 export type HexawatchSyncResult =
   | { ok: true; source: "hexawatch" | "local" }
   | { ok: false; error: string };
@@ -134,5 +179,7 @@ export type RuntimeResponse =
   | { ok: true; lastViewed: FirewallVerdict | null }
   | { ok: true; testResult: TestConnectionResult }
   | { ok: true; reposResult: ListReposResult }
+  | { ok: true; managersResult: ListRepoManagersResult }
+  | { ok: true; waiverReasonsResult: ListWaiverReasonsResult }
   | { ok: true; syncResult: HexawatchSyncResult }
   | { ok: false; error: string };

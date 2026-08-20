@@ -7,6 +7,7 @@ import {
   RuntimeResponse,
   DEFAULT_SETTINGS,
 } from "../types";
+import { useDarkMode } from "../lib/theme";
 
 type ConnectState =
   | { status: "idle" }
@@ -20,7 +21,21 @@ type ReposState =
   | { status: "loaded"; repos: ApiVrmRepo[] }
   | { status: "error"; error: string };
 
+function ThemeToggleButton({ dark, onToggle }: { dark: boolean; onToggle: () => void }) {
+  return (
+    <button
+      onClick={onToggle}
+      aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
+      title={dark ? "Switch to light mode" : "Switch to dark mode"}
+      className="w-8 h-8 rounded flex items-center justify-center bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-sonatype-dark dark:text-gray-100"
+    >
+      <span className="text-sm">{dark ? "☀" : "☾"}</span>
+    </button>
+  );
+}
+
 export function Options() {
+  const { dark, toggle: toggleTheme } = useDarkMode();
   const [settings, setSettings] = useState<ExtensionSettings>(DEFAULT_SETTINGS);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [connect, setConnect] = useState<ConnectState>({ status: "idle" });
@@ -277,19 +292,20 @@ export function Options() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <header className="mb-6">
-        <h1 className="text-2xl font-semibold flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-sonatype-blue" />
-          Sonatype Firewall — Settings
-        </h1>
-        <p className="text-sm text-gray-600 mt-1">
-          Configure where the extension fetches verdicts from.
-        </p>
-      </header>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-sonatype-dark dark:text-gray-100">
+      <div className="max-w-2xl mx-auto p-6">
+        <header className="mb-6 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold">HexaWatch — Settings</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Configure where the extension fetches verdicts from.
+            </p>
+          </div>
+          <ThemeToggleButton dark={dark} onToggle={toggleTheme} />
+        </header>
 
-      <section className="bg-white rounded shadow-sm p-5 mb-4">
-        <h2 className="font-semibold mb-3">IQ Server</h2>
+        <section className="bg-white dark:bg-gray-800 dark:border dark:border-gray-700 rounded shadow-sm p-5 mb-4">
+          <h2 className="font-semibold mb-3">IQ Server</h2>
 
         <Field
           label="IQ Server URL"
@@ -316,7 +332,7 @@ export function Options() {
           <button
             onClick={testConnection}
             disabled={connect.status === "connecting"}
-            className="px-3 py-1.5 text-sm bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+            className="px-3 py-1.5 text-sm bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100 rounded disabled:opacity-50"
           >
             {connect.status === "connecting" ? "Connecting…" : "Connect"}
           </button>
@@ -341,19 +357,22 @@ export function Options() {
         )}
       </section>
 
-      <div className="flex items-center gap-3">
-        <button
-          onClick={save}
-          className="px-4 py-2 bg-sonatype-blue text-white rounded hover:bg-sonatype-dark"
-        >
-          Save settings
-        </button>
-        {savedAt && (
-          <span className="text-sm text-gray-600">
-            Saved at {new Date(savedAt).toLocaleTimeString()}
-          </span>
-        )}
-        {syncStatus && <span className="text-sm text-gray-600">· {syncStatus}</span>}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={save}
+            className="px-4 py-2 bg-sonatype-blue text-white rounded hover:bg-sonatype-dark"
+          >
+            Save settings
+          </button>
+          {savedAt && (
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              Saved at {new Date(savedAt).toLocaleTimeString()}
+            </span>
+          )}
+          {syncStatus && (
+            <span className="text-sm text-gray-600 dark:text-gray-400">· {syncStatus}</span>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -363,10 +382,12 @@ function ConnectStatusView({ state }: { state: ConnectState }) {
   if (state.status === "idle") return null;
   if (state.status === "connecting") return null;
   if (state.status === "error") {
-    return <span className="text-sm text-red-600">Failed: {state.error}</span>;
+    return (
+      <span className="text-sm text-red-600 dark:text-red-400">Failed: {state.error}</span>
+    );
   }
   return (
-    <span className="text-sm text-green-700">
+    <span className="text-sm text-green-700 dark:text-green-400">
       Connected · {state.vrms.length} VRM{state.vrms.length === 1 ? "" : "s"} available
     </span>
   );
@@ -387,7 +408,7 @@ function VrmPicker({
       <select
         value={selectedVrmId}
         onChange={(e) => onChange(e.target.value)}
-        className="mt-1 block w-full rounded border border-gray-300 px-3 py-1.5 text-sm"
+        className="mt-1 block w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 dark:text-gray-100 px-3 py-1.5 text-sm"
       >
         <option value="">— select a VRM —</option>
         {vrms.map((v) => (
@@ -398,7 +419,7 @@ function VrmPicker({
         ))}
       </select>
       {vrms.length === 0 && (
-        <span className="text-xs text-gray-500 mt-1 block">
+        <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 block">
           No VRMs configured on this IQ instance.
         </span>
       )}
@@ -426,10 +447,14 @@ function RepoPicker({
       <label className="block">
         <span className="text-sm font-medium">Repositories</span>
         {reposState.status === "loading" && (
-          <span className="text-xs text-gray-500 mt-1 block">Loading repositories…</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 block">
+            Loading repositories…
+          </span>
         )}
         {reposState.status === "error" && (
-          <span className="text-xs text-red-600 mt-1 block">Failed: {reposState.error}</span>
+          <span className="text-xs text-red-600 dark:text-red-400 mt-1 block">
+            Failed: {reposState.error}
+          </span>
         )}
         {reposState.status === "loaded" && (
           <select
@@ -438,7 +463,7 @@ function RepoPicker({
               onAdd(e.target.value);
               e.target.value = "";
             }}
-            className="mt-1 block w-full rounded border border-gray-300 px-3 py-1.5 text-sm"
+            className="mt-1 block w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 dark:text-gray-100 px-3 py-1.5 text-sm"
           >
             <option value="">
               {available.length === 0 ? "All repositories selected" : "— add a repository —"}
@@ -460,12 +485,12 @@ function RepoPicker({
             return (
               <span
                 key={id}
-                className="inline-flex items-center gap-1.5 pl-2 pr-1 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-xs text-blue-800"
+                className="inline-flex items-center gap-1.5 pl-2 pr-1 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-800 text-xs text-blue-800 dark:text-blue-200"
               >
                 {label}
                 <button
                   onClick={() => onRemove(id)}
-                  className="w-4 h-4 rounded-full bg-blue-200 hover:bg-blue-300 text-blue-900 leading-none flex items-center justify-center"
+                  className="w-4 h-4 rounded-full bg-blue-200 hover:bg-blue-300 dark:bg-blue-800 dark:hover:bg-blue-700 text-blue-900 dark:text-blue-100 leading-none flex items-center justify-center"
                   aria-label={`Remove ${label}`}
                   title="Remove"
                 >
@@ -497,7 +522,7 @@ function Field(props: {
         placeholder={props.placeholder}
         onChange={(e) => props.onChange(e.target.value)}
         onBlur={(e) => props.onBlur?.(e.target.value)}
-        className="mt-1 block w-full rounded border border-gray-300 px-3 py-1.5 text-sm font-mono"
+        className="mt-1 block w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-500 px-3 py-1.5 text-sm font-mono"
       />
     </label>
   );

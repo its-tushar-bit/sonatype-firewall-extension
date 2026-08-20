@@ -1,12 +1,15 @@
 import {
+  ApiRepositoryManager,
   ApiVrm,
   ApiVrmRepo,
+  ApiWaiverReason,
   ComponentInfo,
   CVE,
   ExtensionSettings,
   FirewallVerdict,
   IntegrityRating,
   PolicyVerdict,
+  WaiverRequestOptions,
 } from "../types";
 
 function authHeader(s: ExtensionSettings): string {
@@ -94,6 +97,69 @@ interface ApiVirtualRepositoryManagerListDTO {
 }
 interface ApiRepositoryListDTO {
   repositories?: ApiVrmRepo[];
+}
+interface ApiRepositoryManagerListDTO {
+  repositoryManagers?: ApiRepositoryManager[];
+}
+
+// List every repository manager configured on the IQ instance. Waiver-scope
+// pickers filter this to exclude VIRTUAL managers per product spec (a VRM is
+// not a valid waiver-request owner; it just aggregates other managers).
+export async function listRepositoryManagers(
+  settings: ExtensionSettings,
+): Promise<ApiRepositoryManager[]> {
+  const res = await fetch(`${baseUrl(settings)}/api/v2/firewall/repositoryManagers`, {
+    credentials: "include",
+    headers: { Authorization: authHeader(settings), Accept: "application/json" },
+  });
+  if (res.status === 401) throw new Error("Unauthorized — check user code / pass code");
+  if (!res.ok) throw new Error(`Repository managers list failed: HTTP ${res.status}`);
+  const dto = (await res.json()) as ApiRepositoryManagerListDTO;
+  return dto.repositoryManagers ?? [];
+}
+
+// Same endpoint as listReposForVrm — /repositories/configuration/{id} accepts
+// any repository manager id, VRM or not. Kept as a distinct helper so callers
+// document intent (scope-picker fetch vs verdict-time repo enumeration).
+export async function listReposForRepositoryManager(
+  settings: ExtensionSettings,
+  repositoryManagerId: string,
+): Promise<ApiVrmRepo[]> {
+  return listReposForVrm(settings, repositoryManagerId);
+}
+
+// Preset waiver reasons the org configured (via IQ UI). Optional dropdown
+// on the request form — some orgs require picking one so approvers can group
+// requests. See ApiPolicyWaiverReasonResource.java.
+export async function listWaiverReasons(
+  settings: ExtensionSettings,
+): Promise<ApiWaiverReason[]> {
+  const url = `${baseUrl(settings)}/api/v2/policyWaiverReasons`;
+  const res = await fetch(url, {
+    credentials: "include",
+    headers: { Authorization: authHeader(settings), Accept: "application/json" },
+  });
+  console.log("[hexawatch] listWaiverReasons", url, "→ HTTP", res.status);
+  if (res.status === 401) throw new Error("Unauthorized — check user code / pass code");
+  if (!res.ok) {
+    throw new Error(`Waiver reasons list failed: HTTP ${res.status}${await readIqError(res)}`);
+  }
+  const text = await res.text();
+  console.log("[hexawatch] listWaiverReasons body:", text);
+  try {
+    const parsed = JSON.parse(text);
+    // Some IQ builds wrap the list; accept either an array or {waiverReasons/policyWaiverReasons: [...]}.
+    if (Array.isArray(parsed)) return parsed as ApiWaiverReason[];
+    if (Array.isArray(parsed?.waiverReasons)) return parsed.waiverReasons as ApiWaiverReason[];
+    if (Array.isArray(parsed?.policyWaiverReasons)) {
+      return parsed.policyWaiverReasons as ApiWaiverReason[];
+    }
+    console.warn("[hexawatch] waiver reasons response was not an array:", parsed);
+    return [];
+  } catch (e) {
+    console.error("[hexawatch] failed to parse waiver reasons body:", e);
+    return [];
+  }
 }
 
 export async function listVrms(settings: ExtensionSettings): Promise<ApiVrm[]> {
@@ -468,19 +534,57 @@ function composeRealVerdict(
 export async function fetchVerdict(
   purl: string,
   settings: ExtensionSettings,
+  pageUrl?: string,
 ): Promise<FirewallVerdict> {
-  if (settings.mode === "real") return fetchVerdictReal(purl, settings);
+  if (settings.mode === "real") return fetchVerdictReal(purl, settings, pageUrl);
   return fetchVerdictMock(purl, settings);
+}
+
+function safeOrigin(u?: string): string | null {
+  if (!u) return null;
+  try {
+    return new URL(u).origin;
+  } catch {
+    return null;
+  }
+}
+
+// Build a Map<pageOrigin, repositoryId> from the user's selected repos so
+// verdict fetches use the repo that actually proxies the page in front of
+// them. When multiple selected repos share the same upstream origin, the
+// first one wins — we can't disambiguate further from the URL alone.
+function buildOriginToRepoIdMap(settings: ExtensionSettings): Map<string, string> {
+  const m = new Map<string, string>();
+  for (const r of settings.selectedRepos) {
+    const origin = safeOrigin(r.remoteUrl);
+    if (!origin) continue;
+    if (!m.has(origin)) m.set(origin, r.repositoryId);
+  }
+  return m;
+}
+
+// Pick the selected repo whose remoteUrl origin matches the page the user is
+// on. Falls back to selectedRepoIds[0] when no page URL is available or no
+// repo matches the page origin.
+function pickRepoIdForPage(settings: ExtensionSettings, pageUrl?: string): string | undefined {
+  const pageOrigin = safeOrigin(pageUrl);
+  if (pageOrigin) {
+    const byOrigin = buildOriginToRepoIdMap(settings);
+    const hit = byOrigin.get(pageOrigin);
+    if (hit) return hit;
+  }
+  return settings.selectedRepoIds[0];
 }
 
 async function fetchVerdictReal(
   purl: string,
   settings: ExtensionSettings,
+  pageUrl?: string,
 ): Promise<FirewallVerdict> {
   if (!settings.vrmId) {
     throw new Error("Real mode requires a Virtual Repository Manager. Open Settings.");
   }
-  const repoId = settings.selectedRepoIds[0];
+  const repoId = pickRepoIdForPage(settings, pageUrl);
   if (!repoId) {
     throw new Error("Real mode requires at least one repository selected. Open Settings.");
   }
@@ -517,46 +621,51 @@ async function fetchVerdictMock(
 
 export async function requestWaiver(
   purl: string,
-  reason: string,
   settings: ExtensionSettings,
-  policyViolationId?: string,
-  repositoryId?: string,
+  options: WaiverRequestOptions,
 ): Promise<string> {
-  if (settings.mode === "real") {
-    if (!policyViolationId || !repositoryId) {
-      throw new Error("Waiver requires a policy violation id and repository id from the verdict.");
-    }
-    const url =
-      `${baseUrl(settings)}/api/v2/policyWaiverRequests/repository/` +
-      `${encodeURIComponent(repositoryId)}/policyViolation/${encodeURIComponent(policyViolationId)}`;
-    const res = await fetch(url, {
+  if (settings.mode !== "real") {
+    // Mock mode: opaque path kept for regression parity with earlier build.
+    const res = await fetch(`${baseUrl(settings)}/api/v2/waivers`, {
       method: "POST",
-      credentials: "include",
-      headers: await jsonHeadersWithCsrf(settings),
-      body: JSON.stringify({
-        matcherStrategy: "DEFAULT",
-        comment: reason,
-        expireWhenRemediationAvailable: false,
-      }),
+      headers: { "Content-Type": "application/json", Authorization: authHeader(settings) },
+      body: JSON.stringify({ purl, reason: options.comment }),
     });
-    if (res.status === 401) throw new Error("Unauthorized — check user code / pass code");
-    if (!res.ok) {
-      throw new Error(`Waiver failed: HTTP ${res.status}${await readIqError(res)}`);
-    }
+    if (!res.ok) throw new Error(`Waiver failed: HTTP ${res.status}`);
     const data = await res.json();
-    return data.id || data.policyWaiverRequestId || "requested";
+    return data.waiverId;
   }
-  // Mock mode: keep the old flat POST /api/v2/waivers path.
-  void purl; // purl is unused in the mock's opaque endpoint
-  const res = await fetch(`${baseUrl(settings)}/api/v2/waivers`, {
+
+  if (!options.policyViolationId) {
+    throw new Error("Waiver requires a policy violation id from the verdict.");
+  }
+  const { scope } = options;
+  const url =
+    `${baseUrl(settings)}/api/v2/policyWaiverRequests/` +
+    `${encodeURIComponent(scope.ownerType)}/${encodeURIComponent(scope.ownerId)}` +
+    `/policyViolation/${encodeURIComponent(options.policyViolationId)}`;
+
+  // Only include optional fields when set — IQ's DTO uses @JsonInclude(NON_EMPTY)
+  // for note/reason, and treats absent expiryTime as "never expires".
+  const body: Record<string, unknown> = {
+    matcherStrategy: options.matcherStrategy,
+    expireWhenRemediationAvailable: options.expireWhenRemediationAvailable,
+  };
+  if (options.comment) body.comment = options.comment;
+  if (options.noteToReviewer) body.noteToReviewer = options.noteToReviewer;
+  if (options.expiryTime) body.expiryTime = options.expiryTime;
+  if (options.waiverReasonId) body.waiverReasonId = options.waiverReasonId;
+
+  const res = await fetch(url, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: authHeader(settings),
-    },
-    body: JSON.stringify({ purl, reason }),
+    credentials: "include",
+    headers: await jsonHeadersWithCsrf(settings),
+    body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(`Waiver failed: HTTP ${res.status}`);
+  if (res.status === 401) throw new Error("Unauthorized — check user code / pass code");
+  if (!res.ok) {
+    throw new Error(`Waiver request failed: HTTP ${res.status}${await readIqError(res)}`);
+  }
   const data = await res.json();
-  return data.waiverId;
+  return data.id || data.policyWaiverRequestId || "requested";
 }

@@ -128,7 +128,7 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
   vrmName: "",
   selectedRepoIds: [],
   selectedRepos: [],
-  hexawatchUrl: "http://localhost:9090",
+  hexawatchUrl: "",
 };
 
 export type RuntimeMessage =

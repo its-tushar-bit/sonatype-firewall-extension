@@ -178,9 +178,15 @@ async function handle(
       if (r.ok) {
         return { ok: true, syncResult: { ok: true, source: "hexawatch" } };
       }
+      // "skipped" = no hexawatch URL was configured, so we deliberately did
+      // not attempt a POST. No warning; a clean local save.
       return {
         ok: true,
-        syncResult: { ok: true, source: "local", warning: r.error },
+        syncResult: {
+          ok: true,
+          source: "local",
+          warning: r.skipped ? undefined : r.error,
+        },
       };
     }
     case "RESCAN":

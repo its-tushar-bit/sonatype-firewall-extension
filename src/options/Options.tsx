@@ -8,6 +8,7 @@ import {
   DEFAULT_SETTINGS,
 } from "../types";
 import { useDarkMode } from "../lib/theme";
+import { Logo } from "../lib/Logo";
 
 type ConnectState =
   | { status: "idle" }
@@ -295,11 +296,14 @@ export function Options() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-sonatype-dark dark:text-gray-100">
       <div className="max-w-2xl mx-auto p-6">
         <header className="mb-6 flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold">HexaWatch — Settings</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Configure where the extension fetches verdicts from.
-            </p>
+          <div className="flex items-center gap-3">
+            <Logo dark={dark} size={40} />
+            <div>
+              <h1 className="text-2xl font-semibold">HexaWatch — Settings</h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Configure where the extension fetches verdicts from.
+              </p>
+            </div>
           </div>
           <ThemeToggleButton dark={dark} onToggle={toggleTheme} />
         </header>

@@ -10,6 +10,7 @@ import {
   IntegrityRating,
   PolicyVerdict,
   WaiverRequestOptions,
+  WaiverScope,
 } from "../types";
 
 function authHeader(s: ExtensionSettings): string {
@@ -619,31 +620,16 @@ async function fetchVerdictMock(
 // Waiver — dispatches on mode
 // -----------------------------------------------------------------------------
 
-export async function requestWaiver(
-  purl: string,
+async function submitOneWaiver(
   settings: ExtensionSettings,
+  scope: WaiverScope,
+  policyViolationId: string,
   options: WaiverRequestOptions,
 ): Promise<string> {
-  if (settings.mode !== "real") {
-    // Mock mode: opaque path kept for regression parity with earlier build.
-    const res = await fetch(`${baseUrl(settings)}/api/v2/waivers`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: authHeader(settings) },
-      body: JSON.stringify({ purl, reason: options.comment }),
-    });
-    if (!res.ok) throw new Error(`Waiver failed: HTTP ${res.status}`);
-    const data = await res.json();
-    return data.waiverId;
-  }
-
-  if (!options.policyViolationId) {
-    throw new Error("Waiver requires a policy violation id from the verdict.");
-  }
-  const { scope } = options;
   const url =
     `${baseUrl(settings)}/api/v2/policyWaiverRequests/` +
     `${encodeURIComponent(scope.ownerType)}/${encodeURIComponent(scope.ownerId)}` +
-    `/policyViolation/${encodeURIComponent(options.policyViolationId)}`;
+    `/policyViolation/${encodeURIComponent(policyViolationId)}`;
 
   // Only include optional fields when set — IQ's DTO uses @JsonInclude(NON_EMPTY)
   // for note/reason, and treats absent expiryTime as "never expires".
@@ -656,10 +642,18 @@ export async function requestWaiver(
   if (options.expiryTime) body.expiryTime = options.expiryTime;
   if (options.waiverReasonId) body.waiverReasonId = options.waiverReasonId;
 
+  // Identify the request as extension-originated so IQ tags the waiver source
+  // as BROWSER_EXTENSION instead of the default FIREWALL_PROXY — the Waivers
+  // page renders that as a "Hexawatch" chip. See ScanSource.java and
+  // ApiPolicyWaiverRequestResource.java in insight-brain.
+  const headers = {
+    ...(await jsonHeadersWithCsrf(settings)),
+    "X-Scan-Source": "BROWSER_EXTENSION",
+  };
   const res = await fetch(url, {
     method: "POST",
     credentials: "include",
-    headers: await jsonHeadersWithCsrf(settings),
+    headers,
     body: JSON.stringify(body),
   });
   if (res.status === 401) throw new Error("Unauthorized — check user code / pass code");
@@ -668,4 +662,133 @@ export async function requestWaiver(
   }
   const data = await res.json();
   return data.id || data.policyWaiverRequestId || "requested";
+}
+
+// Find any VRM in the IQ instance that lists the given repo. The configured
+// settings.vrmId is tried first (common case), then every other VRM. Returns
+// undefined when no VRM proxies this repo — meaning Firewall never sees it
+// and evaluate cannot produce a policy_violation for it.
+async function findVrmContainingRepo(
+  settings: ExtensionSettings,
+  repoId: string,
+): Promise<string | undefined> {
+  if (settings.vrmId) {
+    try {
+      const repos = await listReposForVrm(settings, settings.vrmId);
+      if (repos.some((r) => r.repositoryId === repoId)) return settings.vrmId;
+    } catch {
+      // fall through and try every VRM
+    }
+  }
+  try {
+    const vrms = await listVrms(settings);
+    for (const v of vrms) {
+      if (v.id === settings.vrmId) continue;
+      try {
+        const repos = await listReposForVrm(settings, v.id);
+        if (repos.some((r) => r.repositoryId === repoId)) return v.id;
+      } catch {
+        // try the next VRM
+      }
+    }
+  } catch (e: any) {
+    console.warn("[hexawatch] VRM enumeration for repo lookup failed:", e?.message);
+  }
+  return undefined;
+}
+
+// Try to make IQ create a fresh policy_violation record scoped to the user's
+// chosen owner so we can waive against it. Only meaningful when the selected
+// owner is a specific repository under some VRM — that's the shape
+// /firewall/components/{vrmId}/{repoId}/evaluate accepts. Falls back through
+// every VRM to find one that lists the repo. Returns a detailed error string
+// in `error` when we couldn't get a fresh id, so the caller can surface it.
+async function evaluatePolicyViolationForScope(
+  purl: string,
+  settings: ExtensionSettings,
+  scope: WaiverScope,
+): Promise<{ policyViolationId?: string; error?: string }> {
+  if (scope.ownerType !== "repository") {
+    return { error: "selected scope is not a repository — skipped evaluate" };
+  }
+  const vrmId = await findVrmContainingRepo(settings, scope.ownerId);
+  if (!vrmId) {
+    return {
+      error: `no VRM proxies repository ${scope.ownerId} — IQ Firewall can't create a policy_violation for it`,
+    };
+  }
+  try {
+    const detail = await fetchDetails(purl, settings);
+    const hash = detail.component.hash;
+    if (!hash) return { error: "IQ did not return a component hash" };
+    const evalRes = await evaluateComponent(purl, hash, vrmId, scope.ownerId, settings);
+    const id = pickWorstViolation(evalRes.policyViolations)?.policyViolationId;
+    if (!id) {
+      return { error: "evaluate returned no policy violations for the selected repo" };
+    }
+    return { policyViolationId: id };
+  } catch (e: any) {
+    return { error: e?.message || String(e) };
+  }
+}
+
+export interface WaiverSubmitCallResult {
+  label: string;
+  ok: boolean;
+  id?: string;
+  error?: string;
+  policyViolationId?: string;
+}
+
+export interface WaiverSubmitResult {
+  results: WaiverSubmitCallResult[];
+}
+
+export async function requestWaiver(
+  purl: string,
+  settings: ExtensionSettings,
+  options: WaiverRequestOptions,
+): Promise<WaiverSubmitResult> {
+  if (settings.mode !== "real") {
+    // Mock mode: opaque path kept for regression parity with earlier build.
+    const res = await fetch(`${baseUrl(settings)}/api/v2/waivers`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: authHeader(settings) },
+      body: JSON.stringify({ purl, reason: options.comment }),
+    });
+    if (!res.ok) throw new Error(`Waiver failed: HTTP ${res.status}`);
+    const data = await res.json();
+    return { results: [{ label: "mock", ok: true, id: data.waiverId }] };
+  }
+
+  if (!options.policyViolationId) {
+    throw new Error("Waiver requires a policy violation id from the verdict.");
+  }
+  const { scope } = options;
+
+  // Single waiver at the scope the user picked. IQ's
+  // ApiPolicyWaiverRequestService.isViolationOwnerId walks the violation's
+  // owner chain upward — so a waiver on an ancestor (VRM, root org) covers
+  // the descendants automatically. For a specific-repo scope we first
+  // evaluate to mint a policy_violation owned by that repo when possible.
+  const evalOutcome = await evaluatePolicyViolationForScope(purl, settings, scope);
+  const violationId = evalOutcome.policyViolationId || options.policyViolationId;
+  const results: WaiverSubmitCallResult[] = [];
+  try {
+    const id = await submitOneWaiver(settings, scope, violationId, options);
+    console.log("[hexawatch] waiver submitted:", id);
+    results.push({ label: scope.label, ok: true, id, policyViolationId: violationId });
+  } catch (e: any) {
+    console.warn("[hexawatch] waiver failed:", e?.message);
+    const evalNote = evalOutcome.error ? ` (evaluate: ${evalOutcome.error})` : "";
+    results.push({
+      label: scope.label,
+      ok: false,
+      error: `${e?.message || String(e)}${evalNote}`,
+    });
+  }
+  if (results.every((r) => !r.ok)) {
+    throw new Error(results.map((r) => `${r.label}: ${r.error}`).join(" | "));
+  }
+  return { results };
 }

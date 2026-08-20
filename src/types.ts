@@ -172,10 +172,22 @@ export type HexawatchSyncResult =
   | { ok: true; source: "hexawatch" | "local" }
   | { ok: false; error: string };
 
+export interface WaiverSubmitCallResult {
+  label: string;
+  ok: boolean;
+  id?: string;
+  error?: string;
+  policyViolationId?: string;
+}
+
+export interface WaiverSubmitResult {
+  results: WaiverSubmitCallResult[];
+}
+
 export type RuntimeResponse =
   | { ok: true; verdict: FirewallVerdict }
   | { ok: true; settings: ExtensionSettings }
-  | { ok: true; waiverId: string }
+  | { ok: true; waiverResult: WaiverSubmitResult }
   | { ok: true; lastViewed: FirewallVerdict | null }
   | { ok: true; testResult: TestConnectionResult }
   | { ok: true; reposResult: ListReposResult }

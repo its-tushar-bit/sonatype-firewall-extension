@@ -23,7 +23,11 @@ export function useDarkMode(): {
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
-    document.documentElement.style.background = dark ? "#0b1220" : "";
+    // Paint html to match body in BOTH modes. If we leave light-mode blank,
+    // Chrome fills any pixels around the 420px body with its own popup
+    // background (dark on some themes), causing a strip on the right edge.
+    // #111827 = Tailwind gray-900 (dark body); #ffffff = light body.
+    document.documentElement.style.background = dark ? "#111827" : "#ffffff";
   }, [dark]);
 
   function toggle() {

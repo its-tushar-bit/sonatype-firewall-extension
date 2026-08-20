@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { FirewallVerdict, RuntimeMessage, RuntimeResponse } from "../types";
 import { useDarkMode } from "../lib/theme";
+import { Logo } from "../lib/Logo";
 
 const verdictColor: Record<string, string> = {
   block: "bg-sonatype-danger text-white",
@@ -181,9 +182,10 @@ export function Popup() {
   }
   if (!verdict) {
     return (
-      <div className="flex flex-col max-h-[600px] text-sm bg-white dark:bg-gray-900 dark:text-gray-100">
+      <div className="flex flex-col w-full max-w-[420px] max-h-[600px] overflow-hidden text-sm bg-white dark:bg-gray-900 dark:text-gray-100">
         <header className="shrink-0 bg-sonatype-dark text-white px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
+            <Logo dark size={20} />
             <span className="font-semibold">HexaWatch</span>
           </div>
           <div className="flex items-center gap-2">
@@ -255,7 +257,7 @@ export function Popup() {
   const shownCves = cvesExpanded ? c.cves : c.cves.slice(0, CVE_LIMIT);
 
   return (
-    <div className="flex flex-col max-h-[600px] text-sm bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100">
+    <div className="flex flex-col w-full max-w-[420px] max-h-[600px] overflow-hidden text-sm bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100">
       <header className="shrink-0 bg-sonatype-dark text-white px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="font-semibold">HexaWatch</span>
@@ -278,7 +280,7 @@ export function Popup() {
         </div>
       </header>
 
-      <div className="flex-1 min-h-0 overflow-y-auto pb-4">
+      <div className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto pb-4">
       <section className="px-4 pt-4">
         <div className="text-xs text-gray-500 dark:text-gray-400 uppercase">{c.ecosystem}</div>
         <div className="font-mono text-base font-semibold break-all">{c.name}</div>

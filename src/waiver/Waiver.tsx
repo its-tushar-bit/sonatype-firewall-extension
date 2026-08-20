@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  ApiRepositoryManager,
   ApiVrmRepo,
   ApiWaiverReason,
   RuntimeMessage,
@@ -8,14 +7,19 @@ import {
   WaiverMatcherStrategy,
   WaiverRequestOptions,
   WaiverScope,
+  WaiverSubmitCallResult,
 } from "../types";
 import { useDarkMode } from "../lib/theme";
+import { Logo } from "../lib/Logo";
 
-// Root of the "scope" cascade in the UI. Maps to IQ OwnerType at submit time.
-type ScopeRoot = "root_org" | "repository_managers";
+// Waiver scope is limited to owners on the scanned violation's ancestor
+// chain — the only chain IQ's ApiPolicyWaiverRequestService will accept.
+// That means: root organization, the configured VRM (as a repository_manager),
+// or a specific repo under that VRM (re-evaluated at submit time to mint
+// a policy_violation owned by that repo).
+type ScopeRoot = "root_org" | "vrm";
 
 const ROOT_ORG_ID = "ROOT_ORGANIZATION_ID";
-const REPO_CONTAINER_ID = "REPOSITORY_CONTAINER_ID";
 
 function readParams() {
   const p = new URLSearchParams(location.search);
@@ -45,16 +49,13 @@ export function Waiver() {
   const params = useMemo(readParams, []);
   const { dark, toggle: toggleTheme } = useDarkMode();
 
-  const [scopeRoot, setScopeRoot] = useState<ScopeRoot>("repository_managers");
-  const [allManagers, setAllManagers] = useState(false);
-  const [managers, setManagers] = useState<ApiRepositoryManager[] | null>(null);
-  const [managersError, setManagersError] = useState<string>("");
-  const [selectedManagerId, setSelectedManagerId] = useState<string>("");
-
-  const [allReposUnderManager, setAllReposUnderManager] = useState(false);
-  const [managerRepos, setManagerRepos] = useState<ApiVrmRepo[] | null>(null);
-  const [managerReposError, setManagerReposError] = useState<string>("");
-  const [selectedRepoId, setSelectedRepoId] = useState<string>("");
+  const [scopeRoot, setScopeRoot] = useState<ScopeRoot>("vrm");
+  const [allVrmRepos, setAllVrmRepos] = useState(false);
+  const [vrmId, setVrmId] = useState<string>("");
+  const [vrmName, setVrmName] = useState<string>("");
+  const [vrmRepos, setVrmRepos] = useState<ApiVrmRepo[] | null>(null);
+  const [vrmReposError, setVrmReposError] = useState<string>("");
+  const [selectedRepoId, setSelectedRepoId] = useState<string>(params.repositoryId || "");
 
   const [matcherStrategy, setMatcherStrategy] = useState<WaiverMatcherStrategy>("EXACT_COMPONENT");
   const [waiverReasons, setWaiverReasons] = useState<ApiWaiverReason[] | null>(null);
@@ -67,15 +68,22 @@ export function Waiver() {
 
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState<string>("");
+  const [callResults, setCallResults] = useState<WaiverSubmitCallResult[]>([]);
   const [done, setDone] = useState(false);
   const [iqServerUrl, setIqServerUrl] = useState<string>("");
 
+  // Pull the configured VRM out of settings — every scope on this page is
+  // relative to it (repos under it, or the VRM itself as an RM).
   useEffect(() => {
     void (async () => {
       const r = await chrome.runtime.sendMessage<RuntimeMessage, RuntimeResponse>({
         type: "GET_SETTINGS",
       });
-      if (r && r.ok && "settings" in r) setIqServerUrl(r.settings.iqServerUrl || "");
+      if (r && r.ok && "settings" in r) {
+        setIqServerUrl(r.settings.iqServerUrl || "");
+        setVrmId(r.settings.vrmId || "");
+        setVrmName(r.settings.vrmName || "");
+      }
     })();
   }, []);
 
@@ -83,32 +91,27 @@ export function Waiver() {
     ? `${iqServerUrl.replace(/\/$/, "")}/assets/index.html#/firewall/waivers/components/requested`
     : "";
 
-  // Load repository managers when the user picks the "repository_managers" branch.
+  // Load repos under the configured VRM when we enter the VRM branch and
+  // know the vrmId. Only fetched once per session.
   useEffect(() => {
-    if (scopeRoot !== "repository_managers" || managers !== null) return;
+    if (scopeRoot !== "vrm" || !vrmId || vrmRepos !== null) return;
     void (async () => {
       const r = await chrome.runtime.sendMessage<RuntimeMessage, RuntimeResponse>({
-        type: "LIST_REPO_MANAGERS",
+        type: "LIST_REPOS_FOR_VRM",
+        vrmId,
       });
-      if (r && r.ok && "managersResult" in r) {
-        if (r.managersResult.ok) {
-          // Product decision: hide VRMs from the scope picker; the extension
-          // itself is configured against a VRM, but waivers are owned by
-          // concrete RMs.
-          const filtered = r.managersResult.managers.filter(
-            (m) => (m.managerType || "").toUpperCase() !== "VIRTUAL",
-          );
-          setManagers(filtered);
-        } else {
-          setManagersError(r.managersResult.error);
-          setManagers([]);
+      if (r && r.ok && "reposResult" in r) {
+        if (r.reposResult.ok) setVrmRepos(r.reposResult.repos);
+        else {
+          setVrmReposError(r.reposResult.error);
+          setVrmRepos([]);
         }
       } else if (r && !r.ok) {
-        setManagersError(r.error);
-        setManagers([]);
+        setVrmReposError(r.error);
+        setVrmRepos([]);
       }
     })();
-  }, [scopeRoot, managers]);
+  }, [scopeRoot, vrmId, vrmRepos]);
 
   // Load preset waiver reasons once on mount.
   useEffect(() => {
@@ -139,54 +142,20 @@ export function Waiver() {
     })();
   }, []);
 
-  // Load repos under the selected RM.
-  useEffect(() => {
-    if (!selectedManagerId) {
-      setManagerRepos(null);
-      setSelectedRepoId("");
-      return;
-    }
-    setManagerRepos(null);
-    setManagerReposError("");
-    setSelectedRepoId("");
-    void (async () => {
-      const r = await chrome.runtime.sendMessage<RuntimeMessage, RuntimeResponse>({
-        type: "LIST_REPOS_FOR_MANAGER",
-        repositoryManagerId: selectedManagerId,
-      });
-      if (r && r.ok && "reposResult" in r) {
-        if (r.reposResult.ok) setManagerRepos(r.reposResult.repos);
-        else {
-          setManagerReposError(r.reposResult.error);
-          setManagerRepos([]);
-        }
-      } else if (r && !r.ok) {
-        setManagerReposError(r.error);
-        setManagerRepos([]);
-      }
-    })();
-  }, [selectedManagerId]);
-
-  const selectedManager = managers?.find((m) => m.id === selectedManagerId);
-  const selectedRepo = managerRepos?.find((r) => r.repositoryId === selectedRepoId);
+  const selectedRepo = vrmRepos?.find((r) => r.repositoryId === selectedRepoId);
 
   const computedScope: WaiverScope | null = (() => {
     if (scopeRoot === "root_org") {
       return { ownerType: "organization", ownerId: ROOT_ORG_ID, label: "Root Organization" };
     }
-    if (allManagers) {
-      return {
-        ownerType: "repository_container",
-        ownerId: REPO_CONTAINER_ID,
-        label: "All repository managers",
-      };
-    }
-    if (!selectedManagerId) return null;
-    if (allReposUnderManager) {
+    // VRM branch. Requires the extension to know its VRM — surfaced in the
+    // picker with a red inline hint when it doesn't.
+    if (!vrmId) return null;
+    if (allVrmRepos) {
       return {
         ownerType: "repository_manager",
-        ownerId: selectedManagerId,
-        label: `Repository manager · ${selectedManager?.name ?? selectedManagerId}`,
+        ownerId: vrmId,
+        label: `VRM · ${vrmName || vrmId}`,
       };
     }
     if (!selectedRepoId) return null;
@@ -203,6 +172,7 @@ export function Waiver() {
     if (!computedScope) return;
     setSubmitting(true);
     setStatus("Submitting…");
+    setCallResults([]);
     // IQ's ApiPolicyWaiverRequestOptionsDTO.expiryTime uses format
     // "yyyy-MM-dd'T'HH:mm:ss.SSSZZ" — an RFC 822 numeric offset like "+0000",
     // not the shorthand "Z". Rewrite the trailing "Z" so Jackson accepts it.
@@ -225,9 +195,18 @@ export function Waiver() {
       options,
     });
     setSubmitting(false);
-    if (r && r.ok && "waiverId" in r) {
-      setStatus(`Waiver request submitted · id ${r.waiverId}`);
-      setDone(true);
+    if (r && r.ok && "waiverResult" in r) {
+      const rows = r.waiverResult.results;
+      setCallResults(rows);
+      const okCount = rows.filter((x) => x.ok).length;
+      if (okCount === rows.length) {
+        setStatus(`All ${rows.length} waiver request(s) submitted`);
+        setDone(true);
+      } else if (okCount > 0) {
+        setStatus(`Partial: ${okCount}/${rows.length} succeeded — see details below`);
+      } else {
+        setStatus("All waiver requests failed — see details below");
+      }
     } else if (r && !r.ok) {
       setStatus(`Failed: ${r.error}`);
     } else {
@@ -239,15 +218,18 @@ export function Waiver() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-sonatype-dark dark:text-gray-100">
       <div className="max-w-2xl mx-auto p-6">
       <header className="mb-6 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">Request Policy Waiver</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            For{" "}
-            <span className="font-mono">
-              {params.componentName}
-              {params.componentVersion ? `@${params.componentVersion}` : ""}
-            </span>
-          </p>
+        <div className="flex items-center gap-3">
+          <Logo dark={dark} size={40} />
+          <div>
+            <h1 className="text-2xl font-semibold">Request Policy Waiver</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              For{" "}
+              <span className="font-mono">
+                {params.componentName}
+                {params.componentVersion ? `@${params.componentVersion}` : ""}
+              </span>
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {waiversDashboardUrl && (
@@ -281,61 +263,32 @@ export function Waiver() {
             className="mt-1 block w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-500 px-3 py-1.5 text-sm"
           >
             <option value="root_org">Root Organization</option>
-            <option value="repository_managers">Repository Managers</option>
+            <option value="vrm">
+              VRM{vrmName ? ` · ${vrmName}` : ""}
+            </option>
           </select>
         </label>
 
-        {scopeRoot === "repository_managers" && (
+        {scopeRoot === "vrm" && (
           <>
-            <label className="inline-flex items-center gap-2 mb-3 text-sm">
-              <input
-                type="checkbox"
-                checked={allManagers}
-                onChange={(e) => setAllManagers(e.target.checked)}
-              />
-              All repository managers
-            </label>
-
-            {!allManagers && (
-              <div className="mb-3">
-                <label className="block">
-                  <span className="text-sm font-medium">Repository manager</span>
-                  <select
-                    value={selectedManagerId}
-                    onChange={(e) => setSelectedManagerId(e.target.value)}
-                    className="mt-1 block w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-500 px-3 py-1.5 text-sm"
-                  >
-                    <option value="">— select a repository manager —</option>
-                    {(managers || []).map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.name} ({m.managerType})
-                      </option>
-                    ))}
-                  </select>
-                  {managers === null && (
-                    <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 block">Loading managers…</span>
-                  )}
-                  {managersError && (
-                    <span className="text-xs text-red-600 dark:text-red-400 mt-1 block">
-                      Failed to load managers: {managersError}
-                    </span>
-                  )}
-                </label>
+            {!vrmId && (
+              <div className="mb-3 text-xs text-red-600 dark:text-red-400">
+                No VRM configured. Open Settings to pick one.
               </div>
             )}
 
-            {!allManagers && selectedManagerId && (
+            {vrmId && (
               <>
                 <label className="inline-flex items-center gap-2 mb-3 text-sm">
                   <input
                     type="checkbox"
-                    checked={allReposUnderManager}
-                    onChange={(e) => setAllReposUnderManager(e.target.checked)}
+                    checked={allVrmRepos}
+                    onChange={(e) => setAllVrmRepos(e.target.checked)}
                   />
-                  All repositories under this manager
+                  All repositories under this VRM
                 </label>
 
-                {!allReposUnderManager && (
+                {!allVrmRepos && (
                   <label className="block mb-3">
                     <span className="text-sm font-medium">Repository</span>
                     <select
@@ -344,18 +297,20 @@ export function Waiver() {
                       className="mt-1 block w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-500 px-3 py-1.5 text-sm"
                     >
                       <option value="">— select a repository —</option>
-                      {(managerRepos || []).map((r) => (
+                      {(vrmRepos || []).map((r) => (
                         <option key={r.repositoryId} value={r.repositoryId}>
                           {r.publicId} ({r.format})
                         </option>
                       ))}
                     </select>
-                    {managerRepos === null && (
-                      <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 block">Loading repositories…</span>
+                    {vrmRepos === null && (
+                      <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 block">
+                        Loading repositories…
+                      </span>
                     )}
-                    {managerReposError && (
+                    {vrmReposError && (
                       <span className="text-xs text-red-600 dark:text-red-400 mt-1 block">
-                        Failed to load repositories: {managerReposError}
+                        Failed to load repositories: {vrmReposError}
                       </span>
                     )}
                   </label>
@@ -473,6 +428,36 @@ export function Waiver() {
           </label>
         </div>
       </section>
+
+      {callResults.length > 0 && (
+        <section className="bg-white dark:bg-gray-800 dark:border dark:border-gray-700 rounded shadow-sm p-5 mb-4">
+          <h2 className="font-semibold mb-3">Submission results</h2>
+          <ul className="space-y-2 text-sm">
+            {callResults.map((r, i) => (
+              <li
+                key={i}
+                className={`px-3 py-2 rounded border ${
+                  r.ok
+                    ? "bg-green-50 border-green-200 text-green-800 dark:bg-green-900/30 dark:border-green-800 dark:text-green-200"
+                    : "bg-red-50 border-red-200 text-red-800 dark:bg-red-900/30 dark:border-red-800 dark:text-red-200"
+                }`}
+              >
+                <div className="font-medium">
+                  {r.ok ? "✓" : "✗"} {r.label}
+                </div>
+                {r.ok ? (
+                  <div className="text-xs mt-0.5 font-mono">
+                    waiver id: {r.id}
+                    {r.policyViolationId ? ` · violation: ${r.policyViolationId}` : ""}
+                  </div>
+                ) : (
+                  <div className="text-xs mt-0.5">{r.error}</div>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <div className="flex items-center gap-3">
         <button

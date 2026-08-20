@@ -101,8 +101,8 @@ async function handle(
       return { ok: true, settings: msg.settings };
     case "REQUEST_WAIVER": {
       const settings = await getSettings();
-      const id = await requestWaiver(msg.purl, settings, msg.options);
-      return { ok: true, waiverId: id };
+      const waiverResult = await requestWaiver(msg.purl, settings, msg.options);
+      return { ok: true, waiverResult };
     }
     case "LIST_REPO_MANAGERS": {
       const settings = await getSettings();
